@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -17,8 +16,25 @@ import (
 // 3. Change APR for vanilla kava staking from 23% --> 20%
 // 4. Remove lockup periods from claims (going forward)
 // 5. Remove HARD and SWP delegation rewards for vanilla staking
-func MigrateParams(ctx sdk.Context, k keeper.Keeper) error {
-	params := k.GetParams(ctx)
+func MigrateParams(ctx sdk.Context, paramstore types.ParamSubspace) error {
+	if !paramstore.HasKeyTable() {
+		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
+	}
+
+	var oldParams v1Params
+	paramstore.GetParamSet(ctx, &oldParams)
+
+	params := types.Params{
+		USDXMintingRewardPeriods: oldParams.USDXMintingRewardPeriods,
+		HardSupplyRewardPeriods:  oldParams.HardSupplyRewardPeriods,
+		HardBorrowRewardPeriods:  oldParams.HardBorrowRewardPeriods,
+		DelegatorRewardPeriods:   oldParams.DelegatorRewardPeriods,
+		SwapRewardPeriods:        oldParams.SwapRewardPeriods,
+		ClaimMultipliers:         oldParams.ClaimMultipliers,
+		ClaimEnd:                 oldParams.ClaimEnd,
+		SavingsRewardPeriods:     oldParams.SavingsRewardPeriods,
+		EarnRewardPeriods:        nil,
+	}
 
 	periodStart := time.Date(2022, 10, 12, 15, 0, 0, 0, time.UTC)
 	periodEnd := time.Date(2024, 10, 12, 15, 0, 0, 0, time.UTC)
@@ -122,6 +138,6 @@ func MigrateParams(ctx sdk.Context, k keeper.Keeper) error {
 		return err
 	}
 
-	k.SetParams(ctx, params)
+	paramstore.SetParamSet(ctx, &params)
 	return nil
 }

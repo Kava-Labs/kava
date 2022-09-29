@@ -19,7 +19,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/client/cli"
 	"github.com/kava-labs/kava/x/incentive/client/rest"
 	"github.com/kava-labs/kava/x/incentive/keeper"
-	"github.com/kava-labs/kava/x/incentive/migrations"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -143,7 +142,7 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	// TODO: types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper, am.accountKeeper, am.bankKeeper))
 
-	m := migrations.NewMigrator(am.keeper)
+	m := keeper.NewMigrator(am.keeper)
 	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
 		panic(fmt.Sprintf("failed to migrate x/incentive from version 1 to 2: %v", err))
 	}
