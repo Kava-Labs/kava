@@ -373,7 +373,8 @@ func (s queryServer) TotalBorrowed(ctx context.Context, req *types.QueryTotalBor
 
 	borrowedCoins, found := s.keeper.GetBorrowedCoins(sdkCtx)
 	if !found {
-		return nil, types.ErrBorrowedCoinsNotFound
+		// Use empty coins instead of returning an error
+		borrowedCoins = sdk.NewCoins()
 	}
 
 	// If user specified a denom only return coins of that denom type
@@ -395,7 +396,8 @@ func (s queryServer) TotalDeposited(ctx context.Context, req *types.QueryTotalDe
 
 	suppliedCoins, found := s.keeper.GetSuppliedCoins(sdkCtx)
 	if !found {
-		return nil, types.ErrSuppliedCoinsNotFound
+		// Use empty coins instead of returning an error
+		suppliedCoins = sdk.NewCoins()
 	}
 
 	// If user specified a denom only return coins of that denom type

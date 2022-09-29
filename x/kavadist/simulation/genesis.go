@@ -42,7 +42,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 
 func genRandomParams(simState *module.SimulationState) types.Params {
 	periods := genRandomPeriods(simState.Rand, simState.GenTimestamp)
-	params := types.NewParams(true, periods)
+	params := types.NewParams(true, periods, types.DefaultInfraParams)
 	return params
 }
 

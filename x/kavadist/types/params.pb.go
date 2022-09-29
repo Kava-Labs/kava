@@ -5,7 +5,9 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
@@ -30,8 +32,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params governance parameters for kavadist module
 type Params struct {
-	Active  bool     `protobuf:"varint,1,opt,name=active,proto3" json:"active,omitempty" yaml:"active"`
-	Periods []Period `protobuf:"bytes,3,rep,name=periods,proto3" json:"periods" yaml:"periods"`
+	Active               bool                 `protobuf:"varint,1,opt,name=active,proto3" json:"active,omitempty" yaml:"active"`
+	Periods              []Period             `protobuf:"bytes,3,rep,name=periods,proto3" json:"periods" yaml:"periods"`
+	InfrastructureParams InfrastructureParams `protobuf:"bytes,4,opt,name=infrastructure_params,json=infrastructureParams,proto3" json:"infrastructure_params"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }
@@ -66,6 +69,121 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+type InfrastructureParams struct {
+	InfrastructurePeriods Periods        `protobuf:"bytes,1,rep,name=infrastructure_periods,json=infrastructurePeriods,proto3,castrepeated=Periods" json:"infrastructure_periods"`
+	CoreRewards           CoreRewards    `protobuf:"bytes,2,rep,name=core_rewards,json=coreRewards,proto3,castrepeated=CoreRewards" json:"core_rewards"`
+	PartnerRewards        PartnerRewards `protobuf:"bytes,3,rep,name=partner_rewards,json=partnerRewards,proto3,castrepeated=PartnerRewards" json:"partner_rewards"`
+}
+
+func (m *InfrastructureParams) Reset()         { *m = InfrastructureParams{} }
+func (m *InfrastructureParams) String() string { return proto.CompactTextString(m) }
+func (*InfrastructureParams) ProtoMessage()    {}
+func (*InfrastructureParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2c7a7a4b0c884a4e, []int{1}
+}
+func (m *InfrastructureParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *InfrastructureParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_InfrastructureParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *InfrastructureParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_InfrastructureParams.Merge(m, src)
+}
+func (m *InfrastructureParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *InfrastructureParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_InfrastructureParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_InfrastructureParams proto.InternalMessageInfo
+
+type CoreReward struct {
+	Address github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=address,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"address,omitempty"`
+	Weight  github_com_cosmos_cosmos_sdk_types.Dec        `protobuf:"bytes,2,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"weight"`
+}
+
+func (m *CoreReward) Reset()         { *m = CoreReward{} }
+func (m *CoreReward) String() string { return proto.CompactTextString(m) }
+func (*CoreReward) ProtoMessage()    {}
+func (*CoreReward) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2c7a7a4b0c884a4e, []int{2}
+}
+func (m *CoreReward) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CoreReward) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CoreReward.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CoreReward) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CoreReward.Merge(m, src)
+}
+func (m *CoreReward) XXX_Size() int {
+	return m.Size()
+}
+func (m *CoreReward) XXX_DiscardUnknown() {
+	xxx_messageInfo_CoreReward.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CoreReward proto.InternalMessageInfo
+
+type PartnerReward struct {
+	Address          github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=address,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"address,omitempty"`
+	RewardsPerSecond types.Coin                                    `protobuf:"bytes,2,opt,name=rewards_per_second,json=rewardsPerSecond,proto3" json:"rewards_per_second"`
+}
+
+func (m *PartnerReward) Reset()         { *m = PartnerReward{} }
+func (m *PartnerReward) String() string { return proto.CompactTextString(m) }
+func (*PartnerReward) ProtoMessage()    {}
+func (*PartnerReward) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2c7a7a4b0c884a4e, []int{3}
+}
+func (m *PartnerReward) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PartnerReward) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PartnerReward.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PartnerReward) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PartnerReward.Merge(m, src)
+}
+func (m *PartnerReward) XXX_Size() int {
+	return m.Size()
+}
+func (m *PartnerReward) XXX_DiscardUnknown() {
+	xxx_messageInfo_PartnerReward.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PartnerReward proto.InternalMessageInfo
+
 // Period stores the specified start and end dates, and the inflation, expressed as a decimal
 // representing the yearly APR of KAVA tokens that will be minted during that period
 type Period struct {
@@ -80,7 +198,7 @@ type Period struct {
 func (m *Period) Reset()      { *m = Period{} }
 func (*Period) ProtoMessage() {}
 func (*Period) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2c7a7a4b0c884a4e, []int{1}
+	return fileDescriptor_2c7a7a4b0c884a4e, []int{4}
 }
 func (m *Period) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -111,6 +229,9 @@ var xxx_messageInfo_Period proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*Params)(nil), "kava.kavadist.v1beta1.Params")
+	proto.RegisterType((*InfrastructureParams)(nil), "kava.kavadist.v1beta1.InfrastructureParams")
+	proto.RegisterType((*CoreReward)(nil), "kava.kavadist.v1beta1.CoreReward")
+	proto.RegisterType((*PartnerReward)(nil), "kava.kavadist.v1beta1.PartnerReward")
 	proto.RegisterType((*Period)(nil), "kava.kavadist.v1beta1.Period")
 }
 
@@ -119,32 +240,51 @@ func init() {
 }
 
 var fileDescriptor_2c7a7a4b0c884a4e = []byte{
-	// 399 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0xb1, 0x8e, 0xd3, 0x30,
-	0x18, 0xc7, 0xe3, 0x0b, 0x04, 0xf0, 0x1d, 0x08, 0x22, 0x40, 0x51, 0x25, 0xec, 0xca, 0x03, 0x2a,
-	0x48, 0x67, 0xeb, 0x8e, 0xed, 0xc6, 0xe8, 0x26, 0x84, 0xc4, 0x29, 0x62, 0x62, 0xc2, 0x49, 0x7c,
-	0x21, 0xba, 0x24, 0x8e, 0x62, 0xb7, 0xa2, 0x2b, 0xe2, 0x01, 0xfa, 0x08, 0x3c, 0x4e, 0xc7, 0x8e,
-	0x15, 0x43, 0xa0, 0xed, 0xc2, 0xdc, 0x27, 0x40, 0xb1, 0x13, 0xca, 0x80, 0x74, 0x4b, 0xf2, 0x25,
-	0xf9, 0x7d, 0xbf, 0xef, 0xfb, 0x47, 0x86, 0xe4, 0x86, 0xcf, 0x38, 0xeb, 0x2e, 0x69, 0xae, 0x34,
-	0x9b, 0x9d, 0xc5, 0x42, 0xf3, 0x33, 0x56, 0xf3, 0x86, 0x97, 0x8a, 0xd6, 0x8d, 0xd4, 0xd2, 0x7f,
-	0xd6, 0x7d, 0xa6, 0x03, 0x43, 0x7b, 0x66, 0xf4, 0x34, 0x93, 0x99, 0x34, 0x04, 0xeb, 0x2a, 0x0b,
-	0x8f, 0x70, 0x26, 0x65, 0x56, 0x08, 0x66, 0x9e, 0xe2, 0xe9, 0x35, 0xd3, 0x79, 0x29, 0x94, 0xe6,
-	0x65, 0x6d, 0x01, 0xf2, 0x0d, 0x40, 0xef, 0xca, 0xe8, 0xfd, 0x57, 0xd0, 0xe3, 0x89, 0xce, 0x67,
-	0x22, 0x00, 0x63, 0x30, 0xb9, 0x1f, 0x3e, 0xd9, 0xb7, 0xf8, 0xe1, 0x9c, 0x97, 0xc5, 0x05, 0xb1,
-	0xef, 0x49, 0xd4, 0x03, 0xfe, 0x7b, 0x78, 0xaf, 0x16, 0x4d, 0x2e, 0x53, 0x15, 0xb8, 0x63, 0x77,
-	0x72, 0x7c, 0xfe, 0x82, 0xfe, 0x77, 0x2b, 0x7a, 0x65, 0xa8, 0xf0, 0xf9, 0xb2, 0xc5, 0xce, 0xbe,
-	0xc5, 0x8f, 0xac, 0xae, 0xef, 0x25, 0xd1, 0x60, 0x21, 0x5f, 0x8f, 0xa0, 0x67, 0x59, 0xff, 0x2d,
-	0xbc, 0xab, 0x34, 0x6f, 0xb4, 0xd9, 0xe2, 0xf8, 0x7c, 0x44, 0x6d, 0x04, 0x3a, 0x44, 0xa0, 0x1f,
-	0x86, 0x08, 0x61, 0xd0, 0x6b, 0x4f, 0xac, 0xd6, 0xb4, 0x91, 0xc5, 0x4f, 0x0c, 0x22, 0xab, 0xf0,
-	0x2f, 0xa1, 0x2b, 0xaa, 0x34, 0x38, 0xba, 0xd5, 0x34, 0x2c, 0x08, 0xad, 0x49, 0x54, 0xa9, 0xf5,
-	0x74, 0xed, 0xfe, 0x27, 0xf8, 0x20, 0xaf, 0xae, 0x0b, 0xae, 0x73, 0x59, 0x05, 0xee, 0x18, 0x4c,
-	0x4e, 0xc2, 0xb0, 0xe3, 0x7f, 0xb4, 0xf8, 0x65, 0x96, 0xeb, 0xcf, 0xd3, 0x98, 0x26, 0xb2, 0x64,
-	0x89, 0x54, 0xa5, 0x54, 0xfd, 0xed, 0x54, 0xa5, 0x37, 0x4c, 0xcf, 0x6b, 0xa1, 0xe8, 0xa5, 0x48,
-	0xf6, 0x2d, 0x7e, 0x6c, 0xcd, 0x7f, 0x45, 0x24, 0x3a, 0x48, 0x2f, 0xee, 0xfc, 0xfe, 0x8e, 0x41,
-	0xf8, 0x6e, 0xb9, 0x41, 0xce, 0x7a, 0x83, 0x9c, 0xe5, 0x16, 0x81, 0xd5, 0x16, 0x81, 0x5f, 0x5b,
-	0x04, 0x16, 0x3b, 0xe4, 0xac, 0x76, 0xc8, 0x59, 0xef, 0x90, 0xf3, 0xf1, 0xf5, 0x3f, 0xe3, 0xba,
-	0x7f, 0x7d, 0x5a, 0xf0, 0x58, 0x99, 0x8a, 0x7d, 0x39, 0x1c, 0x1b, 0x33, 0x36, 0xf6, 0x4c, 0xcc,
-	0x37, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0xd6, 0x3b, 0xc2, 0x43, 0x54, 0x02, 0x00, 0x00,
+	// 696 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x54, 0xbd, 0x6f, 0xd3, 0x40,
+	0x14, 0xcf, 0x25, 0x21, 0xa5, 0x97, 0x7e, 0xe1, 0x7e, 0xc8, 0xad, 0x84, 0x1d, 0x2c, 0x84, 0x02,
+	0x28, 0xb6, 0x1a, 0xb6, 0x8a, 0xa5, 0xa6, 0x03, 0x20, 0x10, 0x95, 0xe9, 0x02, 0x4b, 0x38, 0xdb,
+	0x97, 0xd4, 0x6a, 0xe2, 0xb3, 0xee, 0x2e, 0x2d, 0x5d, 0xf9, 0x0b, 0x3a, 0x32, 0x76, 0x66, 0xee,
+	0xbf, 0x80, 0x94, 0x81, 0xa1, 0xea, 0x54, 0x31, 0xa4, 0xb4, 0x5d, 0x18, 0x98, 0x3a, 0x32, 0x21,
+	0xdf, 0x5d, 0x92, 0xa6, 0x6a, 0x50, 0x59, 0x58, 0x12, 0xbf, 0x8f, 0xdf, 0xef, 0xbd, 0xdf, 0xdd,
+	0x7b, 0x07, 0xad, 0x2d, 0xb4, 0x8d, 0x9c, 0xf4, 0x27, 0x8c, 0x18, 0x77, 0xb6, 0x97, 0x7d, 0xcc,
+	0xd1, 0xb2, 0x93, 0x20, 0x8a, 0x5a, 0xcc, 0x4e, 0x28, 0xe1, 0x44, 0x9b, 0x4f, 0xc3, 0x76, 0x2f,
+	0xc7, 0x56, 0x39, 0x4b, 0x73, 0x0d, 0xd2, 0x20, 0x22, 0xc3, 0x49, 0xbf, 0x64, 0xf2, 0x92, 0x11,
+	0x10, 0xd6, 0x22, 0xcc, 0xf1, 0x11, 0xc3, 0x7d, 0xba, 0x80, 0x44, 0xb1, 0x8a, 0x2f, 0xca, 0x78,
+	0x4d, 0x02, 0xa5, 0xa1, 0x42, 0x66, 0x83, 0x90, 0x46, 0x13, 0x3b, 0xc2, 0xf2, 0xdb, 0x75, 0x87,
+	0x47, 0x2d, 0xcc, 0x38, 0x6a, 0x25, 0x32, 0xc1, 0xfa, 0x05, 0x60, 0x61, 0x5d, 0x74, 0xa6, 0x3d,
+	0x84, 0x05, 0x14, 0xf0, 0x68, 0x1b, 0xeb, 0xa0, 0x04, 0xca, 0xb7, 0xdd, 0x3b, 0x17, 0x5d, 0x73,
+	0x72, 0x17, 0xb5, 0x9a, 0x2b, 0x96, 0xf4, 0x5b, 0x9e, 0x4a, 0xd0, 0xde, 0xc0, 0xb1, 0x04, 0xd3,
+	0x88, 0x84, 0x4c, 0xcf, 0x95, 0x72, 0xe5, 0x62, 0xf5, 0xae, 0x7d, 0xad, 0x20, 0x7b, 0x5d, 0x64,
+	0xb9, 0x0b, 0x9d, 0xae, 0x99, 0xb9, 0xe8, 0x9a, 0x53, 0x92, 0x4e, 0x61, 0x2d, 0xaf, 0xc7, 0xa2,
+	0xd5, 0xe1, 0x7c, 0x14, 0xd7, 0x29, 0x62, 0x9c, 0xb6, 0x03, 0xde, 0xa6, 0xb8, 0x26, 0x8f, 0x4b,
+	0xcf, 0x97, 0x40, 0xb9, 0x58, 0x7d, 0x3c, 0x82, 0xfe, 0xc5, 0x10, 0x46, 0xea, 0x70, 0xf3, 0x69,
+	0x31, 0x6f, 0x2e, 0xba, 0x26, 0x66, 0x7d, 0xcd, 0xc2, 0xb9, 0xeb, 0x40, 0x1a, 0x86, 0x0b, 0x57,
+	0x1b, 0x50, 0x02, 0xc1, 0x4d, 0x04, 0x4e, 0xa7, 0x35, 0xbf, 0x9c, 0x98, 0x63, 0xd2, 0x66, 0xde,
+	0x15, 0x39, 0xca, 0xad, 0xbd, 0x83, 0x13, 0x01, 0xa1, 0xb8, 0x46, 0xf1, 0x0e, 0xa2, 0x21, 0xd3,
+	0xb3, 0x82, 0xfc, 0xde, 0x08, 0xf2, 0x67, 0x84, 0x62, 0x4f, 0x64, 0xba, 0xb3, 0xaa, 0x40, 0x71,
+	0xe0, 0x63, 0x5e, 0x31, 0x18, 0x18, 0x1a, 0x86, 0xd3, 0x09, 0xa2, 0x3c, 0xc6, 0xb4, 0xcf, 0x2e,
+	0xef, 0xe6, 0xfe, 0xa8, 0xd6, 0x65, 0xb6, 0x2a, 0xb0, 0xa0, 0x0a, 0x4c, 0x0d, 0xb9, 0x99, 0x37,
+	0x95, 0x0c, 0xd9, 0x2b, 0xf9, 0xcf, 0xfb, 0x26, 0xb0, 0xbe, 0x01, 0x08, 0x07, 0x9d, 0x68, 0x3e,
+	0x1c, 0x43, 0x61, 0x48, 0x31, 0x63, 0x62, 0x76, 0x26, 0xdc, 0xe7, 0xbf, 0xbb, 0x66, 0xa5, 0x11,
+	0xf1, 0xcd, 0xb6, 0x6f, 0x07, 0xa4, 0xa5, 0x86, 0x52, 0xfd, 0x55, 0x58, 0xb8, 0xe5, 0xf0, 0xdd,
+	0x04, 0x33, 0x7b, 0x35, 0x08, 0x56, 0x25, 0xf0, 0xe8, 0xa0, 0x32, 0xab, 0x46, 0x57, 0x79, 0xdc,
+	0x5d, 0x8e, 0x99, 0xd7, 0x23, 0xd6, 0x36, 0x60, 0x61, 0x07, 0x47, 0x8d, 0x4d, 0xae, 0x67, 0x4b,
+	0xa0, 0x3c, 0xee, 0x3e, 0x4d, 0x1b, 0xfe, 0xde, 0x35, 0x1f, 0xdc, 0xa0, 0xcc, 0x1a, 0x0e, 0x8e,
+	0x0e, 0x2a, 0x50, 0xf1, 0xaf, 0xe1, 0xc0, 0x53, 0x5c, 0x4a, 0x4e, 0x07, 0xc0, 0xc9, 0x21, 0xdd,
+	0xff, 0x45, 0xd1, 0x6b, 0xa8, 0xa9, 0x9b, 0x4a, 0x87, 0xad, 0xc6, 0x70, 0x40, 0xe2, 0x50, 0xa8,
+	0x2b, 0x56, 0x17, 0x6d, 0x05, 0x4d, 0x97, 0xfe, 0xd2, 0x40, 0x44, 0xb1, 0x9a, 0xef, 0x19, 0x05,
+	0x5d, 0xc7, 0xf4, 0xad, 0x00, 0x2a, 0x29, 0x9f, 0xb2, 0xb0, 0x20, 0xa7, 0x4d, 0x7b, 0x09, 0x6f,
+	0x31, 0x8e, 0x28, 0x17, 0x0a, 0x8a, 0xd5, 0x25, 0x5b, 0x3e, 0x06, 0x76, 0xef, 0x31, 0xb0, 0x37,
+	0x7a, 0x8f, 0x81, 0xab, 0xab, 0x05, 0x9d, 0x90, 0x0b, 0x2a, 0x60, 0xd6, 0xde, 0x89, 0x09, 0x3c,
+	0x49, 0xa1, 0xad, 0xc1, 0x1c, 0xee, 0x37, 0xf7, 0x37, 0xa6, 0xde, 0xaa, 0x43, 0xc9, 0x84, 0xe3,
+	0x50, 0xf2, 0xa4, 0x70, 0xed, 0x03, 0x1c, 0x8f, 0xe2, 0x7a, 0x13, 0xf1, 0x88, 0xc4, 0x7a, 0x4e,
+	0x9c, 0xab, 0xfb, 0x6f, 0xd7, 0x78, 0xd1, 0x35, 0x67, 0x24, 0x73, 0x9f, 0xc8, 0xf2, 0x06, 0xa4,
+	0x2b, 0xf9, 0x9f, 0xfb, 0x26, 0x70, 0x5f, 0x75, 0x4e, 0x8d, 0xcc, 0xf1, 0xa9, 0x91, 0xe9, 0x9c,
+	0x19, 0xe0, 0xf0, 0xcc, 0x00, 0x3f, 0xce, 0x0c, 0xb0, 0x77, 0x6e, 0x64, 0x0e, 0xcf, 0x8d, 0xcc,
+	0xf1, 0xb9, 0x91, 0x79, 0xff, 0xe8, 0x52, 0xb9, 0x74, 0x33, 0x2a, 0x4d, 0xe4, 0x33, 0xf1, 0xe5,
+	0x7c, 0x1c, 0xbc, 0xdd, 0xa2, 0xac, 0x5f, 0x10, 0x32, 0x9f, 0xfc, 0x09, 0x00, 0x00, 0xff, 0xff,
+	0xb2, 0xbd, 0x98, 0xf3, 0xd9, 0x05, 0x00, 0x00,
 }
 
 func (this *Period) Equal(that interface{}) bool {
@@ -197,6 +337,16 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.InfrastructureParams.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintParams(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
 	if len(m.Periods) > 0 {
 		for iNdEx := len(m.Periods) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -220,6 +370,151 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *InfrastructureParams) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *InfrastructureParams) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *InfrastructureParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.PartnerRewards) > 0 {
+		for iNdEx := len(m.PartnerRewards) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.PartnerRewards[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintParams(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.CoreRewards) > 0 {
+		for iNdEx := len(m.CoreRewards) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.CoreRewards[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintParams(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.InfrastructurePeriods) > 0 {
+		for iNdEx := len(m.InfrastructurePeriods) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.InfrastructurePeriods[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintParams(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CoreReward) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CoreReward) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CoreReward) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.Weight.Size()
+		i -= size
+		if _, err := m.Weight.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintParams(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PartnerReward) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PartnerReward) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PartnerReward) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.RewardsPerSecond.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintParams(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintParams(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -254,20 +549,20 @@ func (m *Period) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x1a
-	n1, err1 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.End, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.End):])
-	if err1 != nil {
-		return 0, err1
+	n3, err3 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.End, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.End):])
+	if err3 != nil {
+		return 0, err3
 	}
-	i -= n1
-	i = encodeVarintParams(dAtA, i, uint64(n1))
+	i -= n3
+	i = encodeVarintParams(dAtA, i, uint64(n3))
 	i--
 	dAtA[i] = 0x12
-	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Start, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Start):])
-	if err2 != nil {
-		return 0, err2
+	n4, err4 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Start, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Start):])
+	if err4 != nil {
+		return 0, err4
 	}
-	i -= n2
-	i = encodeVarintParams(dAtA, i, uint64(n2))
+	i -= n4
+	i = encodeVarintParams(dAtA, i, uint64(n4))
 	i--
 	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
@@ -299,6 +594,65 @@ func (m *Params) Size() (n int) {
 			n += 1 + l + sovParams(uint64(l))
 		}
 	}
+	l = m.InfrastructureParams.Size()
+	n += 1 + l + sovParams(uint64(l))
+	return n
+}
+
+func (m *InfrastructureParams) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.InfrastructurePeriods) > 0 {
+		for _, e := range m.InfrastructurePeriods {
+			l = e.Size()
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
+	if len(m.CoreRewards) > 0 {
+		for _, e := range m.CoreRewards {
+			l = e.Size()
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
+	if len(m.PartnerRewards) > 0 {
+		for _, e := range m.PartnerRewards {
+			l = e.Size()
+			n += 1 + l + sovParams(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *CoreReward) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = m.Weight.Size()
+	n += 1 + l + sovParams(uint64(l))
+	return n
+}
+
+func (m *PartnerReward) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovParams(uint64(l))
+	}
+	l = m.RewardsPerSecond.Size()
+	n += 1 + l + sovParams(uint64(l))
 	return n
 }
 
@@ -403,6 +757,426 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			}
 			m.Periods = append(m.Periods, Period{})
 			if err := m.Periods[len(m.Periods)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InfrastructureParams", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.InfrastructureParams.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipParams(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthParams
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *InfrastructureParams) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowParams
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: InfrastructureParams: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: InfrastructureParams: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InfrastructurePeriods", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InfrastructurePeriods = append(m.InfrastructurePeriods, Period{})
+			if err := m.InfrastructurePeriods[len(m.InfrastructurePeriods)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CoreRewards", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CoreRewards = append(m.CoreRewards, CoreReward{})
+			if err := m.CoreRewards[len(m.CoreRewards)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PartnerRewards", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PartnerRewards = append(m.PartnerRewards, PartnerReward{})
+			if err := m.PartnerRewards[len(m.PartnerRewards)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipParams(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthParams
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CoreReward) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowParams
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CoreReward: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CoreReward: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Weight", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Weight.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipParams(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthParams
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PartnerReward) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowParams
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PartnerReward: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PartnerReward: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = append(m.Address[:0], dAtA[iNdEx:postIndex]...)
+			if m.Address == nil {
+				m.Address = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RewardsPerSecond", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowParams
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthParams
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthParams
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.RewardsPerSecond.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
