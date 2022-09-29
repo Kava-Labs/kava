@@ -152,18 +152,17 @@ func (k *Keeper) Withdraw(
 }
 
 // WithdrawFromModuleAccount removes the amount of supplied tokens from a vault and transfers it
-// back to the module account.
-func (k *Keeper) WithdrawFromModuleAccount(ctx sdk.Context, from string, wantAmount sdk.Coin, withdrawStrategy types.StrategyType) (sdk.Coin, error) {
+// back to the module account. The module account must be unblocked from receiving transfers.
+func (k *Keeper) WithdrawFromModuleAccount(
+	ctx sdk.Context,
+	from string,
+	wantAmount sdk.Coin,
+	withdrawStrategy types.StrategyType,
+) (sdk.Coin, error) {
 	// Ensure the module account exists to prevent SendCoins from creating a new non-module account.
 	acc := k.accountKeeper.GetModuleAccount(ctx, from)
 	if acc == nil {
 		return sdk.Coin{}, fmt.Errorf("module account not found: %s", from)
 	}
-	// The module account must also be non blocked.
 	return k.Withdraw(ctx, acc.GetAddress(), wantAmount, withdrawStrategy)
-}
-
-func (k *Keeper) DepositFromModuleAccount(ctx sdk.Context, from string, wantAmount sdk.Coin, withdrawStrategy types.StrategyType) error {
-	addr := k.accountKeeper.GetModuleAddress(from)
-	return k.Deposit(ctx, addr, wantAmount, withdrawStrategy)
 }

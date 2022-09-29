@@ -23,22 +23,27 @@ func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.Comm
 
 }
 
+// HandleCommunityPoolWithdrawProposal is a handler for executing a passed community pool withdraw proposal.
 func HandleCommunityPoolWithdrawProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolWithdrawProposal) error {
-
-	// withdraw funds
+	// Withdraw to fund module account
 	withdrawAmount, err := k.WithdrawFromModuleAccount(ctx, kavadisttypes.FundModuleAccount, p.Amount, types.STRATEGY_TYPE_SAVINGS)
 	if err != nil {
 		return err
 	}
 
-	// add funds to community pool manually
-	if err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, kavadisttypes.FundModuleAccount, k.distKeeper.GetDistributionAccount(ctx).GetName(), sdk.NewCoins(withdrawAmount)); err != nil {
+	// Move funds to the community pool manually
+	err = k.bankKeeper.SendCoinsFromModuleToModule(
+		ctx,
+		kavadisttypes.FundModuleAccount,
+		k.distKeeper.GetDistributionAccount(ctx).GetName(),
+		sdk.NewCoins(withdrawAmount),
+	)
+	if err != nil {
 		return err
 	}
 	feePool := k.distKeeper.GetFeePool(ctx)
 	newCommunityPool := feePool.CommunityPool.Add(sdk.NewDecCoinFromCoin(withdrawAmount))
 	feePool.CommunityPool = newCommunityPool
-	// store updated community pool
 	k.distKeeper.SetFeePool(ctx, feePool)
 	return nil
 }
