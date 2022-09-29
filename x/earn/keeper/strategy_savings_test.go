@@ -180,7 +180,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw() {
 	suite.Equal(depositAmount, totalValue)
 
 	// Withdraw
-	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	suite.SavingsDepositAmountEqual(sdk.NewCoins())
@@ -192,7 +192,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw() {
 	suite.Equal(sdk.NewInt64Coin(savingsVaultDenom, 0), totalValue)
 
 	// Withdraw again
-	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, types.ErrVaultRecordNotFound, "vault should be deleted when no more supply")
 }
@@ -213,11 +213,11 @@ func (suite *strategySavingsTestSuite) TestWithdraw_OnlyWithdrawOwnSupply() {
 	suite.Require().NoError(err)
 
 	// Withdraw
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	// Withdraw again
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(
 		err,
@@ -257,11 +257,11 @@ func (suite *strategySavingsTestSuite) TestWithdraw_WithAccumulatedSavings() {
 	suite.Equal(depositAmount.AddAmount(sdk.NewInt(10)), accValue)
 
 	// Withdraw 100, 10 remaining
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	// Withdraw 100 again -- too much
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(
 		err,
@@ -270,11 +270,11 @@ func (suite *strategySavingsTestSuite) TestWithdraw_WithAccumulatedSavings() {
 	)
 
 	// Half of remaining 10, 5 remaining
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	// Withdraw all
-	err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	accValue, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, savingsVaultDenom, acc)
@@ -393,7 +393,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw_AccumulatedAmount() {
 	suite.Require().NoError(err)
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(10)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(10)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	_, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -435,7 +435,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw_AccumulatedTruncated() {
 	suite.Equal(depositAmount.AddAmount(sdk.NewInt(5)), accBal, "acc1 should have 105 usdx")
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -475,7 +475,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw_ExpensiveShares() {
 	suite.Equal(sdk.NewInt(2000), accBal.Amount, "acc1 should have 2000 usdx")
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	err = suite.Keeper.Withdraw(suite.Ctx, acc1, sdk.NewInt64Coin(savingsVaultDenom, 2000), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, sdk.NewInt64Coin(savingsVaultDenom, 2000), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
