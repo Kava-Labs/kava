@@ -21,8 +21,20 @@ func MigrateParams(ctx sdk.Context, paramstore types.ParamSubspace) error {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
-	var params types.Params
-	paramstore.GetParamSet(ctx, &params)
+	var oldParams v1Params
+	paramstore.GetParamSet(ctx, &oldParams)
+
+	params := types.Params{
+		USDXMintingRewardPeriods: oldParams.USDXMintingRewardPeriods,
+		HardSupplyRewardPeriods:  oldParams.HardSupplyRewardPeriods,
+		HardBorrowRewardPeriods:  oldParams.HardBorrowRewardPeriods,
+		DelegatorRewardPeriods:   oldParams.DelegatorRewardPeriods,
+		SwapRewardPeriods:        oldParams.SwapRewardPeriods,
+		ClaimMultipliers:         oldParams.ClaimMultipliers,
+		ClaimEnd:                 oldParams.ClaimEnd,
+		SavingsRewardPeriods:     oldParams.SavingsRewardPeriods,
+		EarnRewardPeriods:        nil,
+	}
 
 	periodStart := time.Date(2022, 10, 12, 15, 0, 0, 0, time.UTC)
 	periodEnd := time.Date(2024, 10, 12, 15, 0, 0, 0, time.UTC)
