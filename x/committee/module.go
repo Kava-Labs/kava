@@ -20,11 +20,12 @@ import (
 	"github.com/kava-labs/kava/x/committee/client/cli"
 	"github.com/kava-labs/kava/x/committee/client/rest"
 	"github.com/kava-labs/kava/x/committee/keeper"
+	"github.com/kava-labs/kava/x/committee/migrations"
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
 // ConsensusVersion defines the current module consensus version.
-const ConsensusVersion = 1
+const ConsensusVersion = 2
 
 var (
 	_ module.AppModule      = AppModule{}
@@ -130,6 +131,11 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+
+	m := migrations.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/committee from version 1 to 2: %v", err))
+	}
 }
 
 // RegisterInvariants registers committee module's invariants.

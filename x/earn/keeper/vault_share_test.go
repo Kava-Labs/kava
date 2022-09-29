@@ -67,7 +67,6 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 		suite.Run(tt.name, func() {
 			// Reset state
 			suite.Suite.SetupTest()
-			suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 			err := suite.App.FundModuleAccount(
 				suite.Ctx,
 				types.ModuleName,
