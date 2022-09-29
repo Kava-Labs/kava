@@ -172,12 +172,12 @@ func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, deposit
 
 // AfterSavingsDepositCreated function that runs after a deposit is created
 func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, deposit savingstypes.Deposit) {
-	h.k.InitializeSavingsReward(ctx, deposit)
+	// h.k.InitializeSavingsReward(ctx, deposit)
 }
 
 // BeforeSavingsDepositModified function that runs before a deposit is modified
 func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit, incomingDenoms []string) {
-	h.k.SynchronizeSavingsReward(ctx, deposit, incomingDenoms)
+	// h.k.SynchronizeSavingsReward(ctx, deposit, incomingDenoms)
 }
 
 // ------------------- Earn Module Hooks -------------------
