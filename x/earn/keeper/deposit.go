@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/earn/types"
 )
 
@@ -111,4 +112,16 @@ func (k *Keeper) Deposit(
 	)
 
 	return nil
+}
+
+// DepositFromModuleAccount adds the provided amount from a depositor module
+// account to a vault. The vault is specified by the denom in the amount.
+func (k *Keeper) DepositFromModuleAccount(
+	ctx sdk.Context,
+	from string,
+	wantAmount sdk.Coin,
+	withdrawStrategy types.StrategyType,
+) error {
+	addr := k.accountKeeper.GetModuleAddress(from)
+	return k.Deposit(ctx, addr, wantAmount, withdrawStrategy)
 }
