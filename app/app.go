@@ -519,7 +519,7 @@ func NewApp(
 		app.bankKeeper,
 		app.accountKeeper,
 		app.distrKeeper,
-		app.ModuleAccountAddrs(),
+		app.loadBlockedMaccAddrs(),
 	)
 
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
