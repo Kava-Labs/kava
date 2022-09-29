@@ -9,7 +9,7 @@ import (
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 )
 
-const UpgradeName = "v0.19.0"
+const UpgradeName = "v0.19.0-testnet"
 
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
