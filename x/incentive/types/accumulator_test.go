@@ -187,7 +187,11 @@ func TestAccumulator(t *testing.T) {
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
 				acc := &Accumulator{}
-				indexes := acc.calculateNewRewards(tc.args.rewardsPerSecond, tc.args.totalSourceShares, tc.args.duration)
+				indexes := acc.calculateNewRewards(
+					sdk.NewDecCoinsFromCoins(tc.args.rewardsPerSecond...),
+					tc.args.totalSourceShares,
+					tc.args.duration,
+				)
 
 				require.Equal(t, tc.expected, indexes)
 			})

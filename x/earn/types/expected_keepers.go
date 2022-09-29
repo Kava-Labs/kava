@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -25,9 +26,18 @@ type BankKeeper interface {
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 }
 
+// DistributionKeeper defines the expected interface needed for community-pool deposits to earn vaults
+type DistributionKeeper interface {
+	GetFeePool(ctx sdk.Context) (feePool disttypes.FeePool)
+	SetFeePool(ctx sdk.Context, feePool disttypes.FeePool)
+	GetDistributionAccount(ctx sdk.Context) types.ModuleAccountI
+	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
+}
+
 // LiquidKeeper defines the expected interface needed for derivative to staked token conversions.
 type LiquidKeeper interface {
 	GetStakedTokensForDerivatives(ctx sdk.Context, derivatives sdk.Coins) (sdk.Coin, error)
+	IsDerivativeDenom(ctx sdk.Context, denom string) bool
 }
 
 // HardKeeper defines the expected interface needed for the hard strategy.
@@ -48,6 +58,6 @@ type SavingsKeeper interface {
 
 // EarnHooks are event hooks called when a user's deposit to a earn vault changes.
 type EarnHooks interface {
-	AfterVaultDepositCreated(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
-	BeforeVaultDepositModified(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharedOwned sdk.Dec)
+	AfterVaultDepositCreated(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharesOwned sdk.Dec)
+	BeforeVaultDepositModified(ctx sdk.Context, vaultDenom string, depositor sdk.AccAddress, sharesOwned sdk.Dec)
 }

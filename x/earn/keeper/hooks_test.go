@@ -172,7 +172,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		acc.GetAddress(),
 		shareRecord.AmountOf(deposit1Amount.Denom),
 	).Once()
-	err = suite.Keeper.Withdraw(
+	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
 		// 3 deposits, multiply original deposit amount by 3
@@ -196,7 +196,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		acc.GetAddress(),
 		shareRecord.AmountOf(deposit2Amount.Denom),
 	).Once()
-	err = suite.Keeper.Withdraw(
+	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
 		deposit2Amount,
@@ -219,7 +219,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		acc.GetAddress(),
 		shareRecord.AmountOf(deposit2Amount.Denom),
 	).Once()
-	err = suite.Keeper.Withdraw(
+	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
 		deposit2Amount,
@@ -242,7 +242,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		acc.GetAddress(),
 		shareRecord.AmountOf(deposit2Amount.Denom),
 	).Once()
-	err = suite.Keeper.Withdraw(
+	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
 		deposit2Amount,
@@ -274,7 +274,7 @@ func (suite *hookTestSuite) TestHooks_NoPanicsOnNilHooks() {
 	suite.Require().NoError(err)
 
 	// BeforeVaultDepositModified should not panic if no hooks are registered
-	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount, types.STRATEGY_TYPE_HARD)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), withdrawAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 }
 
@@ -317,6 +317,6 @@ func (suite *hookTestSuite) TestHooks_HookOrdering() {
 			suite.Require().True(found, "expected after hook to be called after shares are updated")
 			suite.Require().Equal(depositAmount.Amount.MulRaw(2).ToDec(), shares.AmountOf(depositAmount.Denom))
 		})
-	err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 }
