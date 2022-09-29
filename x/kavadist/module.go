@@ -26,6 +26,9 @@ import (
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
+// ConsensusVersion defines the current module consensus version.
+const ConsensusVersion = 2
+
 var (
 	_ module.AppModule           = AppModule{}
 	_ module.AppModuleBasic      = AppModuleBasic{}
@@ -131,6 +134,11 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+
+	m := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/kavadist from version 1 to 2: %v", err))
+	}
 }
 
 // RegisterInvariants registers kavadist module's invariants.
