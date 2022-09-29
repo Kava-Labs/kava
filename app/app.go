@@ -107,6 +107,7 @@ import (
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	earn "github.com/kava-labs/kava/x/earn"
+	earnclient "github.com/kava-labs/kava/x/earn/client"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
@@ -171,6 +172,8 @@ var (
 			ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,
 			committeeclient.ProposalHandler,
+			earnclient.DepositProposalHandler,
+			earnclient.WithdrawProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -225,6 +228,7 @@ var (
 		savingstypes.ModuleAccountName:  nil,
 		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
 		earntypes.ModuleAccountName:     nil,
+		kavadisttypes.FundModuleAccount: nil,
 	}
 )
 
@@ -613,6 +617,7 @@ func NewApp(
 		&app.liquidKeeper,
 		&hardKeeper,
 		&savingsKeeper,
+		app.distrKeeper,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
@@ -652,26 +657,6 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 	)
-	// create gov keeper with router
-	// NOTE this must be done after any keepers referenced in the gov router (ie committee) are defined
-	govRouter := govtypes.NewRouter()
-	govRouter.
-		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
-		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
-	app.govKeeper = govkeeper.NewKeeper(
-		appCodec,
-		keys[govtypes.StoreKey],
-		govSubspace,
-		app.accountKeeper,
-		app.bankKeeper,
-		&app.stakingKeeper,
-		govRouter,
-	)
 
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
@@ -683,6 +668,28 @@ func NewApp(
 	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 	app.savingsKeeper = *savingsKeeper.SetHooks(savingstypes.NewMultiSavingsHooks(app.incentiveKeeper.Hooks()))
 	app.earnKeeper = *earnKeeper.SetHooks(app.incentiveKeeper.Hooks())
+
+	// create gov keeper with router
+	// NOTE this must be done after any keepers referenced in the gov router (ie committee) are defined
+	govRouter := govtypes.NewRouter()
+	govRouter.
+		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
+		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
+		AddRoute(earntypes.RouterKey, earn.NewCommunityPoolProposalHandler(app.earnKeeper)).
+		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
+	app.govKeeper = govkeeper.NewKeeper(
+		appCodec,
+		keys[govtypes.StoreKey],
+		govSubspace,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+		govRouter,
+	)
 
 	// override x/gov tally handler with custom implementation
 	tallyHandler := NewTallyHandler(
@@ -1023,10 +1030,11 @@ func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
 	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
 	liquidMaccAddr := app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName)
+	kavadistFundMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.FundModuleAccount)
 
 	for addr := range modAccAddrs {
 		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() {
+		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() || addr == kavadistFundMaccAddr.String() {
 			modAccAddrs[addr] = false
 		}
 	}

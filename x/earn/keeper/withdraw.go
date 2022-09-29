@@ -16,43 +16,43 @@ func (k *Keeper) Withdraw(
 	from sdk.AccAddress,
 	wantAmount sdk.Coin,
 	withdrawStrategy types.StrategyType,
-) error {
+) (sdk.Coin, error) {
 	// Get AllowedVault, if not found (not a valid vault), return error
 	allowedVault, found := k.GetAllowedVault(ctx, wantAmount.Denom)
 	if !found {
-		return types.ErrInvalidVaultDenom
+		return sdk.Coin{}, types.ErrInvalidVaultDenom
 	}
 
 	if wantAmount.IsZero() {
-		return types.ErrInsufficientAmount
+		return sdk.Coin{}, types.ErrInsufficientAmount
 	}
 
 	// Check if withdraw strategy is supported by vault
 	if !allowedVault.IsStrategyAllowed(withdrawStrategy) {
-		return types.ErrInvalidVaultStrategy
+		return sdk.Coin{}, types.ErrInvalidVaultStrategy
 	}
 
 	// Check if VaultRecord exists
 	vaultRecord, found := k.GetVaultRecord(ctx, wantAmount.Denom)
 	if !found {
-		return types.ErrVaultRecordNotFound
+		return sdk.Coin{}, types.ErrVaultRecordNotFound
 	}
 
 	// Get account share record for the vault
 	vaultShareRecord, found := k.GetVaultShareRecord(ctx, from)
 	if !found {
-		return types.ErrVaultShareRecordNotFound
+		return sdk.Coin{}, types.ErrVaultShareRecordNotFound
 	}
 
 	withdrawShares, err := k.ConvertToShares(ctx, wantAmount)
 	if err != nil {
-		return fmt.Errorf("failed to convert assets to shares: %w", err)
+		return sdk.Coin{}, fmt.Errorf("failed to convert assets to shares: %w", err)
 	}
 
 	accCurrentShares := vaultShareRecord.Shares.AmountOf(wantAmount.Denom)
 	// Check if account is not withdrawing more shares than they have
 	if accCurrentShares.LT(withdrawShares.Amount) {
-		return sdkerrors.Wrapf(
+		return sdk.Coin{}, sdkerrors.Wrapf(
 			types.ErrInsufficientValue,
 			"account has less %s vault shares than withdraw shares, %s < %s",
 			wantAmount.Denom,
@@ -64,17 +64,17 @@ func (k *Keeper) Withdraw(
 	// Convert shares to amount to get truncated true share value
 	withdrawAmount, err := k.ConvertToAssets(ctx, withdrawShares)
 	if err != nil {
-		return fmt.Errorf("failed to convert shares to assets: %w", err)
+		return sdk.Coin{}, fmt.Errorf("failed to convert shares to assets: %w", err)
 	}
 
 	accountValue, err := k.GetVaultAccountValue(ctx, wantAmount.Denom, from)
 	if err != nil {
-		return fmt.Errorf("failed to get account value: %w", err)
+		return sdk.Coin{}, fmt.Errorf("failed to get account value: %w", err)
 	}
 
 	// Check if withdrawAmount > account value
 	if withdrawAmount.Amount.GT(accountValue.Amount) {
-		return sdkerrors.Wrapf(
+		return sdk.Coin{}, sdkerrors.Wrapf(
 			types.ErrInsufficientValue,
 			"account has less %s vault value than withdraw amount, %s < %s",
 			withdrawAmount.Denom,
@@ -86,7 +86,7 @@ func (k *Keeper) Withdraw(
 	// Get the strategy for the vault
 	strategy, err := k.GetStrategy(allowedVault.Strategies[0])
 	if err != nil {
-		return err
+		return sdk.Coin{}, err
 	}
 
 	// Not necessary to check if amount denom is allowed for the strategy, as
@@ -94,7 +94,7 @@ func (k *Keeper) Withdraw(
 
 	// Withdraw the withdrawAmount from the strategy
 	if err := strategy.Withdraw(ctx, withdrawAmount); err != nil {
-		return fmt.Errorf("failed to withdraw from strategy: %w", err)
+		return sdk.Coin{}, fmt.Errorf("failed to withdraw from strategy: %w", err)
 	}
 
 	// Send coins back to account, must withdraw from strategy first or the
@@ -105,7 +105,7 @@ func (k *Keeper) Withdraw(
 		from,
 		sdk.NewCoins(withdrawAmount),
 	); err != nil {
-		return err
+		return sdk.Coin{}, err
 	}
 
 	// Check if new account balance of shares results in account share value
@@ -116,7 +116,7 @@ func (k *Keeper) Withdraw(
 		vaultShareRecord.Shares.GetShare(withdrawAmount.Denom).Sub(withdrawShares),
 	)
 	if err != nil {
-		return err
+		return sdk.Coin{}, err
 	}
 
 	if isDust {
@@ -148,5 +148,21 @@ func (k *Keeper) Withdraw(
 		),
 	)
 
-	return nil
+	return withdrawAmount, nil
+}
+
+// WithdrawFromModuleAccount removes the amount of supplied tokens from a vault and transfers it
+// back to the module account. The module account must be unblocked from receiving transfers.
+func (k *Keeper) WithdrawFromModuleAccount(
+	ctx sdk.Context,
+	from string,
+	wantAmount sdk.Coin,
+	withdrawStrategy types.StrategyType,
+) (sdk.Coin, error) {
+	// Ensure the module account exists to prevent SendCoins from creating a new non-module account.
+	acc := k.accountKeeper.GetModuleAccount(ctx, from)
+	if acc == nil {
+		return sdk.Coin{}, fmt.Errorf("module account not found: %s", from)
+	}
+	return k.Withdraw(ctx, acc.GetAddress(), wantAmount, withdrawStrategy)
 }

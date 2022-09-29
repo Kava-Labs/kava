@@ -18,6 +18,9 @@ const (
 
 	// KavaDistMacc module account for kavadist
 	KavaDistMacc = ModuleName
+
+	// Treasury
+	FundModuleAccount = "kava-fund"
 )
 
 var (
