@@ -667,7 +667,7 @@ func NewApp(
 	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
-	app.savingsKeeper = *savingsKeeper.SetHooks(savingstypes.NewMultiSavingsHooks(app.incentiveKeeper.Hooks()))
+	app.savingsKeeper = savingsKeeper // savings incentive hooks disabled
 	app.earnKeeper = *earnKeeper.SetHooks(app.incentiveKeeper.Hooks())
 
 	// create gov keeper with router

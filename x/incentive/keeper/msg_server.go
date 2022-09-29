@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -92,21 +93,8 @@ func (k msgServer) ClaimSwapReward(goCtx context.Context, msg *types.MsgClaimSwa
 }
 
 func (k msgServer) ClaimSavingsReward(goCtx context.Context, msg *types.MsgClaimSavingsReward) (*types.MsgClaimSavingsRewardResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	sender, err := sdk.AccAddressFromBech32(msg.Sender)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, selection := range msg.DenomsToClaim {
-		err := k.keeper.ClaimSavingsReward(ctx, sender, sender, selection.Denom, selection.MultiplierName)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &types.MsgClaimSavingsRewardResponse{}, nil
+	err := sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "savings claims disabled")
+	return nil, err
 }
 
 func (k msgServer) ClaimEarnReward(goCtx context.Context, msg *types.MsgClaimEarnReward) (*types.MsgClaimEarnRewardResponse, error) {

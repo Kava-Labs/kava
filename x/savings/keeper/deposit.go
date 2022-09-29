@@ -24,14 +24,14 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	deposit := types.NewDeposit(depositor, coins)
 	if foundDeposit {
 		deposit.Amount = deposit.Amount.Add(currDeposit.Amount...)
-		k.hooks.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
+		k.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
 
 	}
 
 	k.SetDeposit(ctx, deposit)
 
 	if !foundDeposit {
-		k.hooks.AfterSavingsDepositCreated(ctx, deposit)
+		k.AfterSavingsDepositCreated(ctx, deposit)
 	}
 
 	ctx.EventManager().EmitEvent(
