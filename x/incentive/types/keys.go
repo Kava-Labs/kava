@@ -36,4 +36,7 @@ var (
 	SavingsClaimKeyPrefix                         = []byte{0x15} // prefix for keys that store savings claims
 	SavingsRewardIndexesKeyPrefix                 = []byte{0x16} // prefix for key that stores savings reward indexes
 	PreviousSavingsRewardAccrualTimeKeyPrefix     = []byte{0x17} // prefix for key that stores the previous time savings rewards accrued
+	EarnClaimKeyPrefix                            = []byte{0x18} // prefix for keys that store earn claims
+	EarnRewardIndexesKeyPrefix                    = []byte{0x19} // prefix for key that stores earn reward indexes
+	PreviousEarnRewardAccrualTimeKeyPrefix        = []byte{0x20} // prefix for key that stores the previous time earn rewards accrued
 )

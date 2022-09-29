@@ -71,7 +71,7 @@ func (mpd MultipliersPerDenoms) Validate() error {
 		}
 
 		if foundDenoms[item.Denom] {
-			return fmt.Errorf("")
+			return fmt.Errorf("duplicate denom %s", item.Denom)
 		}
 		foundDenoms[item.Denom] = true
 	}

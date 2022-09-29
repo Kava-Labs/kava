@@ -94,7 +94,7 @@ func (suite *KeeperTestSuite) AddCoinsToModule(module string, amount sdk.Coins) 
 // AccountBalanceEqual checks if an account has the specified coins.
 func (suite *KeeperTestSuite) AccountBalanceEqual(addr sdk.AccAddress, coins sdk.Coins) {
 	balance := suite.BankKeeper.GetAllBalances(suite.Ctx, addr)
-	suite.Equalf(coins, balance, "expected account balance to equal coins %s, but got %s", coins, balance)
+	suite.Truef(coins.IsEqual(balance), "expected account balance to equal coins %s, but got %s", coins, balance)
 }
 
 func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {

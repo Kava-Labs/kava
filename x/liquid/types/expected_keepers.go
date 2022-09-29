@@ -17,10 +17,14 @@ type BankKeeper interface {
 	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 	UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+
+	IterateTotalSupply(ctx sdk.Context, cb func(sdk.Coin) bool)
+	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 }
 
 // AccountKeeper defines the expected keeper interface for interacting with account
 type AccountKeeper interface {
+	GetModuleAddress(moduleName string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
 }
 
@@ -43,4 +47,9 @@ type StakingKeeper interface {
 	Unbond(
 		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, shares sdk.Dec,
 	) (amount sdk.Int, err error)
+}
+
+type DistributionKeeper interface {
+	GetDelegatorWithdrawAddr(ctx sdk.Context, delAddr sdk.AccAddress) sdk.AccAddress
+	WithdrawDelegationRewards(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error)
 }

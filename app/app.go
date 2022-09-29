@@ -131,6 +131,9 @@ import (
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
+	"github.com/kava-labs/kava/x/router"
+	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
+	routertypes "github.com/kava-labs/kava/x/router/types"
 	savings "github.com/kava-labs/kava/x/savings"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -196,6 +199,7 @@ var (
 		evmutil.AppModuleBasic{},
 		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
+		router.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -292,6 +296,7 @@ type App struct {
 	savingsKeeper    savingskeeper.Keeper
 	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
+	routerKeeper     routerkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -585,19 +590,32 @@ func NewApp(
 		app.pricefeedKeeper,
 		app.auctionKeeper,
 	)
+	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
+		appCodec,
+		app.accountKeeper,
+		app.bankKeeper,
+		&app.stakingKeeper,
+		&app.distrKeeper,
+	)
 	savingsKeeper := savingskeeper.NewKeeper(
 		appCodec,
 		keys[savingstypes.StoreKey],
 		savingsSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
+		app.liquidKeeper,
 	)
-	app.liquidKeeper = liquidkeeper.NewDefaultKeeper(
+	earnKeeper := earnkeeper.NewKeeper(
 		appCodec,
+		keys[earntypes.StoreKey],
+		earnSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		&app.stakingKeeper,
+		&app.liquidKeeper,
+		&hardKeeper,
+		&savingsKeeper,
 	)
+
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
 		keys[incentivetypes.StoreKey],
@@ -609,16 +627,13 @@ func NewApp(
 		app.stakingKeeper,
 		&swapKeeper,
 		&savingsKeeper,
+		&app.liquidKeeper,
+		&earnKeeper,
 	)
-	app.earnKeeper = earnkeeper.NewKeeper(
-		appCodec,
-		keys[earntypes.StoreKey],
-		earnSubspace,
-		app.accountKeeper,
-		app.bankKeeper,
+	app.routerKeeper = routerkeeper.NewKeeper(
+		&app.earnKeeper,
 		app.liquidKeeper,
-		&hardKeeper,
-		&savingsKeeper,
+		&app.stakingKeeper,
 	)
 
 	// create committee keeper with router
@@ -668,6 +683,14 @@ func NewApp(
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 	app.savingsKeeper = *savingsKeeper.SetHooks(savingstypes.NewMultiSavingsHooks(app.incentiveKeeper.Hooks()))
+	app.earnKeeper = *earnKeeper.SetHooks(app.incentiveKeeper.Hooks())
+
+	// override x/gov tally handler with custom implementation
+	tallyHandler := NewTallyHandler(
+		app.govKeeper, app.stakingKeeper, app.savingsKeeper, app.earnKeeper,
+		app.liquidKeeper, app.bankKeeper,
+	)
+	app.govKeeper.SetTallyHandler(tallyHandler)
 
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
@@ -706,6 +729,7 @@ func NewApp(
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
+		router.NewAppModule(app.routerKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -754,6 +778,7 @@ func NewApp(
 		savingstypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -794,6 +819,7 @@ func NewApp(
 		savingstypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -833,6 +859,7 @@ func NewApp(
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
 		liquidtypes.ModuleName,
+		routertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

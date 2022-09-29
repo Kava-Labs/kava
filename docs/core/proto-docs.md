@@ -302,6 +302,7 @@
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
     - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
+    - [EarnClaim](#kava.incentive.v1beta1.EarnClaim)
     - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
     - [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex)
     - [MultiRewardIndexesProto](#kava.incentive.v1beta1.MultiRewardIndexesProto)
@@ -326,6 +327,8 @@
 - [kava/incentive/v1beta1/tx.proto](#kava/incentive/v1beta1/tx.proto)
     - [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward)
     - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
+    - [MsgClaimEarnReward](#kava.incentive.v1beta1.MsgClaimEarnReward)
+    - [MsgClaimEarnRewardResponse](#kava.incentive.v1beta1.MsgClaimEarnRewardResponse)
     - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
     - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
     - [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward)
@@ -426,6 +429,18 @@
     - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
   
     - [Msg](#kava.pricefeed.v1beta1.Msg)
+  
+- [kava/router/v1beta1/tx.proto](#kava/router/v1beta1/tx.proto)
+    - [MsgDelegateMintDeposit](#kava.router.v1beta1.MsgDelegateMintDeposit)
+    - [MsgDelegateMintDepositResponse](#kava.router.v1beta1.MsgDelegateMintDepositResponse)
+    - [MsgMintDeposit](#kava.router.v1beta1.MsgMintDeposit)
+    - [MsgMintDepositResponse](#kava.router.v1beta1.MsgMintDepositResponse)
+    - [MsgWithdrawBurn](#kava.router.v1beta1.MsgWithdrawBurn)
+    - [MsgWithdrawBurnResponse](#kava.router.v1beta1.MsgWithdrawBurnResponse)
+    - [MsgWithdrawBurnUndelegate](#kava.router.v1beta1.MsgWithdrawBurnUndelegate)
+    - [MsgWithdrawBurnUndelegateResponse](#kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse)
+  
+    - [Msg](#kava.router.v1beta1.Msg)
   
 - [kava/savings/v1beta1/store.proto](#kava/savings/v1beta1/store.proto)
     - [Deposit](#kava.savings.v1beta1.Deposit)
@@ -4353,6 +4368,22 @@ DelegatorClaim stores delegation rewards that can be claimed by owner
 
 
 
+<a name="kava.incentive.v1beta1.EarnClaim"></a>
+
+### EarnClaim
+EarnClaim stores the earn rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.HardLiquidityProviderClaim"></a>
 
 ### HardLiquidityProviderClaim
@@ -4564,6 +4595,7 @@ Params
 | `claim_multipliers` | [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom) | repeated |  |
 | `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 | `savings_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `earn_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 
 
 
@@ -4657,6 +4689,8 @@ GenesisState is the state that must be provided at genesis.
 | `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
 | `savings_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
 | `savings_claims` | [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim) | repeated |  |
+| `earn_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
 
 
 
@@ -4699,6 +4733,32 @@ MsgClaimDelegatorReward message type used to claim delegator rewards
 
 ### MsgClaimDelegatorRewardResponse
 MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimEarnReward"></a>
+
+### MsgClaimEarnReward
+MsgClaimEarnReward message type used to claim earn rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimEarnRewardResponse"></a>
+
+### MsgClaimEarnRewardResponse
+MsgClaimEarnRewardResponse defines the Msg/ClaimEarnReward response type.
 
 
 
@@ -4842,8 +4902,9 @@ Msg defines the incentive Msg service.
 | `ClaimUSDXMintingReward` | [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward) | [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse) | ClaimUSDXMintingReward is a message type used to claim USDX minting rewards | |
 | `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
 | `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
-| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim swap rewards | |
 | `ClaimSavingsReward` | [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward) | [MsgClaimSavingsRewardResponse](#kava.incentive.v1beta1.MsgClaimSavingsRewardResponse) | ClaimSavingsReward is a message type used to claim savings rewards | |
+| `ClaimEarnReward` | [MsgClaimEarnReward](#kava.incentive.v1beta1.MsgClaimEarnReward) | [MsgClaimEarnRewardResponse](#kava.incentive.v1beta1.MsgClaimEarnRewardResponse) | ClaimEarnReward is a message type used to claim earn rewards | |
 
  <!-- end services -->
 
@@ -5902,6 +5963,145 @@ Msg defines the pricefeed Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `PostPrice` | [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice) | [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse) | PostPrice defines a method for creating a new post price | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/router/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/router/v1beta1/tx.proto
+
+
+
+<a name="kava.router.v1beta1.MsgDelegateMintDeposit"></a>
+
+### MsgDelegateMintDeposit
+MsgDelegateMintDeposit delegates tokens to a validator, then converts them into staking derivatives,
+then deposits to an earn vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the tokens to delegate |
+| `validator` | [string](#string) |  | validator is the address of the validator to delegate to |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the tokens to delegate |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgDelegateMintDepositResponse"></a>
+
+### MsgDelegateMintDepositResponse
+MsgDelegateMintDepositResponse defines the Msg/MsgDelegateMintDeposit response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgMintDeposit"></a>
+
+### MsgMintDeposit
+MsgMintDeposit converts a delegation into staking derivatives and deposits it all into an earn vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the delegation to convert |
+| `validator` | [string](#string) |  | validator is the validator for the depositor's delegation |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the delegation balance to convert |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgMintDepositResponse"></a>
+
+### MsgMintDepositResponse
+MsgMintDepositResponse defines the Msg/MsgMintDeposit response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurn"></a>
+
+### MsgWithdrawBurn
+MsgWithdrawBurn removes staking derivatives from an earn vault and converts them back to a staking delegation.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from is the owner of the earn vault to withdraw from |
+| `validator` | [string](#string) |  | validator is the address to select the derivative denom to withdraw |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the staked token equivalent to withdraw |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnResponse"></a>
+
+### MsgWithdrawBurnResponse
+MsgWithdrawBurnResponse defines the Msg/MsgWithdrawBurn response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnUndelegate"></a>
+
+### MsgWithdrawBurnUndelegate
+MsgWithdrawBurnUndelegate removes staking derivatives from an earn vault, converts them to a staking delegation,
+then undelegates them from their validator.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from is the owner of the earn vault to withdraw from |
+| `validator` | [string](#string) |  | validator is the address to select the derivative denom to withdraw |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the staked token equivalent to withdraw |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse"></a>
+
+### MsgWithdrawBurnUndelegateResponse
+MsgWithdrawBurnUndelegateResponse defines the Msg/MsgWithdrawBurnUndelegate response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.router.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the router Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `MintDeposit` | [MsgMintDeposit](#kava.router.v1beta1.MsgMintDeposit) | [MsgMintDepositResponse](#kava.router.v1beta1.MsgMintDepositResponse) | MintDeposit converts a delegation into staking derivatives and deposits it all into an earn vault. | |
+| `DelegateMintDeposit` | [MsgDelegateMintDeposit](#kava.router.v1beta1.MsgDelegateMintDeposit) | [MsgDelegateMintDepositResponse](#kava.router.v1beta1.MsgDelegateMintDepositResponse) | DelegateMintDeposit delegates tokens to a validator, then converts them into staking derivatives, then deposits to an earn vault. | |
+| `WithdrawBurn` | [MsgWithdrawBurn](#kava.router.v1beta1.MsgWithdrawBurn) | [MsgWithdrawBurnResponse](#kava.router.v1beta1.MsgWithdrawBurnResponse) | WithdrawBurn removes staking derivatives from an earn vault and converts them back to a staking delegation. | |
+| `WithdrawBurnUndelegate` | [MsgWithdrawBurnUndelegate](#kava.router.v1beta1.MsgWithdrawBurnUndelegate) | [MsgWithdrawBurnUndelegateResponse](#kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse) | WithdrawBurnUndelegate removes staking derivatives from an earn vault, converts them to a staking delegation, then undelegates them from their validator. | |
 
  <!-- end services -->
 

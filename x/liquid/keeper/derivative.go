@@ -136,6 +136,28 @@ func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) 
 	return totalCoin, nil
 }
 
+// GetTotalDerivativeValue returns the total sum value of all derivative coins
+// for all validators denominated by the bond token (ukava).
+func (k Keeper) GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, error) {
+	bkavaCoins := sdk.NewCoins()
+
+	k.bankKeeper.IterateTotalSupply(ctx, func(c sdk.Coin) bool {
+		if k.IsDerivativeDenom(ctx, c.Denom) {
+			bkavaCoins = bkavaCoins.Add(c)
+		}
+
+		return false
+	})
+
+	return k.GetStakedTokensForDerivatives(ctx, bkavaCoins)
+}
+
+// GetDerivativeValue returns the total underlying value of the provided
+// derivative denominated by the bond token (ukava).
+func (k Keeper) GetDerivativeValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
+	return k.GetStakedTokensForDerivatives(ctx, sdk.NewCoins(k.bankKeeper.GetSupply(ctx, denom)))
+}
+
 func (k Keeper) mintCoins(ctx sdk.Context, receiver sdk.AccAddress, amount sdk.Coins) error {
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, amount); err != nil {
 		return err
@@ -154,4 +176,22 @@ func (k Keeper) burnCoins(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coi
 		return err
 	}
 	return nil
+}
+
+// DerivativeFromTokens calculates the approximate amount of derivative coins that would be minted for a given amount of staking tokens.
+func (k Keeper) DerivativeFromTokens(ctx sdk.Context, valAddr sdk.ValAddress, tokens sdk.Coin) (sdk.Coin, error) {
+	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	if tokens.Denom != bondDenom {
+		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "'%s' does not match staking denom '%s'", tokens.Denom, bondDenom)
+	}
+
+	// Use GetModuleAddress instead of GetModuleAccount to avoid creating a module account if it doesn't exist.
+	modAddress := k.accountKeeper.GetModuleAddress(types.ModuleAccountName)
+	derivative, _, err := k.CalculateDerivativeSharesFromTokens(ctx, modAddress, valAddr, tokens.Amount)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+	liquidTokenDenom := k.GetLiquidStakingTokenDenom(valAddr)
+	liquidToken := sdk.NewCoin(liquidTokenDenom, derivative)
+	return liquidToken, nil
 }
