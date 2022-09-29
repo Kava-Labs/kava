@@ -717,7 +717,10 @@ func (suite *MigrateTestSuite) TestMigrate() {
 		},
 	)
 
-	err := v2.MigrateParams(suite.Ctx, suite.App.GetIncentiveKeeper())
+	subspace, found := suite.App.GetParamsKeeper().GetSubspace(types.ModuleName)
+	suite.Require().True(found)
+
+	err := v2.MigrateParams(suite.Ctx, subspace)
 	suite.Require().NoError(err)
 
 	newParams := suite.App.GetIncentiveKeeper().GetParams(suite.Ctx)
