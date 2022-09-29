@@ -364,6 +364,26 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalDeposited() {
 	}, totalDeposited)
 }
 
+func (suite *grpcQueryTestSuite) TestGrpcQueryTotalDeposited_Empty() {
+	totalDeposited, err := suite.queryServer.TotalDeposited(sdk.WrapSDKContext(suite.ctx), &types.QueryTotalDepositedRequest{})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryTotalDepositedResponse{
+		SuppliedCoins: cs(),
+	}, totalDeposited)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryTotalDeposited_Denom_Empty() {
+	totalDeposited, err := suite.queryServer.TotalDeposited(sdk.WrapSDKContext(suite.ctx), &types.QueryTotalDepositedRequest{
+		Denom: "bnb",
+	})
+	suite.Require().NoError(err)
+
+	suite.Equal(&types.QueryTotalDepositedResponse{
+		SuppliedCoins: cs(),
+	}, totalDeposited)
+}
+
 func (suite *grpcQueryTestSuite) TestGrpcQueryTotalDeposited_Denom() {
 	suite.addDeposits()
 

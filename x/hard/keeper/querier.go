@@ -350,7 +350,7 @@ func queryGetTotalBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
 	if !found {
-		return nil, types.ErrBorrowedCoinsNotFound
+		borrowedCoins = sdk.NewCoins()
 	}
 
 	// If user specified a denom only return coins of that denom type
@@ -375,7 +375,7 @@ func queryGetTotalDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper, le
 
 	suppliedCoins, found := k.GetSuppliedCoins(ctx)
 	if !found {
-		return nil, types.ErrSuppliedCoinsNotFound
+		suppliedCoins = sdk.NewCoins()
 	}
 
 	// If user specified a denom only return coins of that denom type
