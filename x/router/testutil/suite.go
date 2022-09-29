@@ -40,8 +40,17 @@ type Suite struct {
 func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	cdc := tApp.AppCodec()
 
-	tApp.InitializeFromGenesisStates()
+	tApp.InitializeFromGenesisStates(
+		app.GenesisState{
+			// Empty genesis state instead of DefaultGenesisState() as the
+			// default genesis state contains vaults
+			earntypes.ModuleName: cdc.MustMarshalJSON(&earntypes.GenesisState{
+				Params: earntypes.DefaultParams(),
+			}),
+		},
+	)
 
 	suite.App = tApp
 	suite.Ctx = ctx
