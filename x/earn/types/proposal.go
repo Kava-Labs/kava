@@ -17,15 +17,15 @@ const (
 
 // Assert CommunityPoolDepositProposal implements govtypes.Content at compile-time
 var (
-	_ govtypes.Content = CommunityPoolDepositProposal{}
-	_ govtypes.Content = CommunityPoolWithdrawProposal{}
+	_ govtypes.Content = &CommunityPoolDepositProposal{}
+	_ govtypes.Content = &CommunityPoolWithdrawProposal{}
 )
 
 func init() {
 	govtypes.RegisterProposalType(ProposalTypeCommunityPoolDeposit)
-	govtypes.RegisterProposalTypeCodec(CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal")
+	govtypes.RegisterProposalTypeCodec(&CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal")
 	govtypes.RegisterProposalType(ProposalTypeCommunityPoolWithdraw)
-	govtypes.RegisterProposalTypeCodec(CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal")
+	govtypes.RegisterProposalTypeCodec(&CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal")
 }
 
 // NewCommunityPoolDepositProposal creates a new community pool deposit proposal.
@@ -38,21 +38,21 @@ func NewCommunityPoolDepositProposal(title, description string, amount sdk.Coin)
 }
 
 // GetTitle returns the title of a community pool deposit proposal.
-func (cdp CommunityPoolDepositProposal) GetTitle() string { return cdp.Title }
+func (cdp *CommunityPoolDepositProposal) GetTitle() string { return cdp.Title }
 
 // GetDescription returns the description of a community pool deposit proposal.
-func (cdp CommunityPoolDepositProposal) GetDescription() string { return cdp.Description }
+func (cdp *CommunityPoolDepositProposal) GetDescription() string { return cdp.Description }
 
 // GetDescription returns the routing key of a community pool deposit proposal.
-func (cdp CommunityPoolDepositProposal) ProposalRoute() string { return RouterKey }
+func (cdp *CommunityPoolDepositProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool deposit proposal.
-func (cdp CommunityPoolDepositProposal) ProposalType() string {
+func (cdp *CommunityPoolDepositProposal) ProposalType() string {
 	return ProposalTypeCommunityPoolDeposit
 }
 
 // String implements fmt.Stringer
-func (cdp CommunityPoolDepositProposal) String() string {
+func (cdp *CommunityPoolDepositProposal) String() string {
 
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Community Pool Deposit Proposal:
@@ -64,7 +64,7 @@ func (cdp CommunityPoolDepositProposal) String() string {
 }
 
 // ValidateBasic stateless validation of a community pool multi-spend proposal.
-func (cdp CommunityPoolDepositProposal) ValidateBasic() error {
+func (cdp *CommunityPoolDepositProposal) ValidateBasic() error {
 	err := govtypes.ValidateAbstract(cdp)
 	if err != nil {
 		return err
@@ -82,21 +82,21 @@ func NewCommunityPoolWithdrawProposal(title, description string, amount sdk.Coin
 }
 
 // GetTitle returns the title of a community pool withdraw proposal.
-func (cdp CommunityPoolWithdrawProposal) GetTitle() string { return cdp.Title }
+func (cdp *CommunityPoolWithdrawProposal) GetTitle() string { return cdp.Title }
 
 // GetDescription returns the description of a community pool withdraw proposal.
-func (cdp CommunityPoolWithdrawProposal) GetDescription() string { return cdp.Description }
+func (cdp *CommunityPoolWithdrawProposal) GetDescription() string { return cdp.Description }
 
 // GetDescription returns the routing key of a community pool withdraw proposal.
-func (cdp CommunityPoolWithdrawProposal) ProposalRoute() string { return RouterKey }
+func (cdp *CommunityPoolWithdrawProposal) ProposalRoute() string { return RouterKey }
 
 // ProposalType returns the type of a community pool withdraw proposal.
-func (cdp CommunityPoolWithdrawProposal) ProposalType() string {
+func (cdp *CommunityPoolWithdrawProposal) ProposalType() string {
 	return ProposalTypeCommunityPoolWithdraw
 }
 
 // String implements fmt.Stringer
-func (cdp CommunityPoolWithdrawProposal) String() string {
+func (cdp *CommunityPoolWithdrawProposal) String() string {
 
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Community Pool Withdraw Proposal:
@@ -108,7 +108,7 @@ func (cdp CommunityPoolWithdrawProposal) String() string {
 }
 
 // ValidateBasic stateless validation of a community pool multi-spend proposal.
-func (cdp CommunityPoolWithdrawProposal) ValidateBasic() error {
+func (cdp *CommunityPoolWithdrawProposal) ValidateBasic() error {
 	err := govtypes.ValidateAbstract(cdp)
 	if err != nil {
 		return err
