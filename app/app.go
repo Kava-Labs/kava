@@ -146,7 +146,8 @@ import (
 )
 
 const (
-	appName = "kava"
+	appName                        = "kava"
+	FixDefaultAccountUpgradeHeight = 138592
 )
 
 var (
@@ -413,7 +414,7 @@ func NewApp(
 		appCodec,
 		keys[authtypes.StoreKey],
 		authSubspace,
-		authtypes.ProtoBaseAccount,
+		newProtoAccount,
 		mAccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
@@ -920,6 +921,7 @@ func NewApp(
 		SigGasConsumer:  evmante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  options.EVMMaxGasWanted,
 		AddressFetchers: fetchers,
+		UpgradeHeight:   FixDefaultAccountUpgradeHeight,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)

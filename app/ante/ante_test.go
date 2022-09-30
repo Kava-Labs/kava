@@ -5,18 +5,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+	ethermint "github.com/tharsis/ethermint/types"
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/app"
@@ -263,4 +268,158 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 			require.Equal(t, resDeliverTx.Code, tc.expectedCode, resDeliverTx.Log)
 		})
 	}
+}
+
+func TestAppAnteHandler_ConvertEthAccount_DeliverTx(t *testing.T) {
+	chainID := "kavatest_1-1"
+	encodingConfig := app.MakeEncodingConfig()
+	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
+
+	tApp := app.NewTestApp()
+
+	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
+		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		chainID,
+		app.FixDefaultAccountUpgradeHeight-2,
+		app.NewAuthBankGenesisBuilder().
+			WithAccounts(&ethermint.EthAccount{
+				BaseAccount: authtypes.NewBaseAccount(
+					testAddresses[0],
+					nil, // no pubkey set
+					0,
+					0,
+				),
+				CodeHash: common.BytesToHash(evmtypes.EmptyCodeHash).String(), // ethermint stores the codehash with a 0x prefix
+			}).
+			WithBalances(banktypes.Balance{
+				Address: testAddresses[0].String(),
+				Coins:   sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e9)),
+			}).
+			BuildMarshalled(encodingConfig.Marshaler),
+	)
+
+	txBytes := mustGenerateAndEncodeTx(
+		encodingConfig.TxConfig,
+		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
+		chainID,
+		[]uint64{0},
+		[]uint64{0},
+		testPrivKeys[0],
+	)
+
+	// Check accounts not converted before upgrade height
+	checkAccountAfterDeliverTx(t, tApp, testAddresses[0], txBytes, (*ethermint.EthAccount)(nil))
+
+	// Advance to upgrade height
+	tApp.EndBlock(abci.RequestEndBlock{Height: app.FixDefaultAccountUpgradeHeight - 1})
+	tApp.Commit()
+	tApp.BeginBlock(abci.RequestBeginBlock{Header: tmproto.Header{Height: app.FixDefaultAccountUpgradeHeight, ChainID: chainID}})
+
+	txBytes = mustGenerateAndEncodeTx(
+		encodingConfig.TxConfig,
+		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
+		chainID,
+		[]uint64{0},
+		[]uint64{1},
+		testPrivKeys[0],
+	)
+
+	// Check account converted at upgrade height
+	checkAccountAfterDeliverTx(t, tApp, testAddresses[0], txBytes, (*authtypes.BaseAccount)(nil))
+}
+
+func TestAppAnteHandler_ConvertEthAccount_CheckTx(t *testing.T) {
+	chainID := "kavatest_1-1"
+	encodingConfig := app.MakeEncodingConfig()
+	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
+
+	tApp := app.NewTestApp()
+
+	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
+		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		chainID,
+		app.FixDefaultAccountUpgradeHeight-1,
+		app.NewAuthBankGenesisBuilder().
+			WithAccounts(&ethermint.EthAccount{
+				BaseAccount: authtypes.NewBaseAccount(
+					testAddresses[0],
+					nil, // no pubkey set
+					0,
+					0,
+				),
+				CodeHash: common.BytesToHash(evmtypes.EmptyCodeHash).String(), // ethermint stores the codehash with a 0x prefix
+			}).
+			WithBalances(banktypes.Balance{
+				Address: testAddresses[0].String(),
+				Coins:   sdk.NewCoins(sdk.NewInt64Coin("ukava", 1e9)),
+			}).
+			BuildMarshalled(encodingConfig.Marshaler),
+	)
+
+	txBytes := mustGenerateAndEncodeTx(
+		encodingConfig.TxConfig,
+		[]sdk.Msg{banktypes.NewMsgSend(testAddresses[0], testAddresses[1], sdk.NewCoins(sdk.NewInt64Coin("ukava", 1)))},
+		chainID,
+		[]uint64{0},
+		[]uint64{0},
+		testPrivKeys[0],
+	)
+
+	// Check account not converted before upgrade height
+	checkAccountAfterCheckTx(t, tApp, testAddresses[0], txBytes, (*ethermint.EthAccount)(nil))
+
+	// Advance to upgrade height. Note CheckTx uses the last committed height.
+	tApp.EndBlock(abci.RequestEndBlock{Height: app.FixDefaultAccountUpgradeHeight})
+	tApp.Commit()
+
+	// Check account not converted at upgrade height
+	checkAccountAfterCheckTx(t, tApp, testAddresses[0], txBytes, (*authtypes.BaseAccount)(nil))
+}
+
+func checkAccountAfterDeliverTx(t *testing.T, tApp app.TestApp, address sdk.AccAddress, tx []byte, expectedAccountType interface{}) {
+	resDeliverTx := tApp.DeliverTx(
+		abci.RequestDeliverTx{
+			Tx: tx,
+		},
+	)
+	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resDeliverTx.Code, resDeliverTx.Log)
+
+	ctx := tApp.NewContext(false, tmproto.Header{})
+	acc := tApp.GetAccountKeeper().GetAccount(ctx, address)
+	require.IsType(t, expectedAccountType, acc)
+}
+
+func checkAccountAfterCheckTx(t *testing.T, tApp app.TestApp, address sdk.AccAddress, tx []byte, expectedAccountType interface{}) {
+	resCheckTx := tApp.CheckTx(
+		abci.RequestCheckTx{
+			Tx:   tx,
+			Type: abci.CheckTxType_New,
+		},
+	)
+	require.Equal(t, uint32(sdkerrors.SuccessABCICode), resCheckTx.Code, resCheckTx.Log)
+
+	ctx := tApp.NewContext(true, tmproto.Header{})
+	acc := tApp.GetAccountKeeper().GetAccount(ctx, address)
+	require.IsType(t, expectedAccountType, acc)
+}
+
+func mustGenerateAndEncodeTx(txConfig client.TxConfig, msgs []sdk.Msg, chainID string, accNums, accSeqs []uint64, priv ...cryptotypes.PrivKey) []byte {
+	stdTx, err := helpers.GenTx(
+		txConfig,
+		msgs,
+		sdk.NewCoins(), // no fee
+		helpers.DefaultGenTxGas,
+		chainID,
+		accNums,
+		accSeqs,
+		priv...,
+	)
+	if err != nil {
+		panic(err)
+	}
+	txBytes, err := txConfig.TxEncoder()(stdTx)
+	if err != nil {
+		panic(err)
+	}
+	return txBytes
 }

@@ -29,6 +29,7 @@ type HandlerOptions struct {
 	FeeMarketKeeper evmtypes.FeeMarketKeeper
 	MaxTxGasWanted  uint64
 	AddressFetchers []AddressFetcher
+	UpgradeHeight   int64
 }
 
 func (options HandlerOptions) Validate() error {
@@ -151,6 +152,7 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 		authante.NewValidateSigCountDecorator(options.AccountKeeper),
 		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		sigVerification,
+		ActivateAfter(NewConvertEthAccounts(options.AccountKeeper), options.UpgradeHeight),
 		authante.NewIncrementSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator
 		ibcante.NewAnteDecorator(options.IBCKeeper),
 	)
