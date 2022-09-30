@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
@@ -58,7 +60,7 @@ func (suite *unitTester) SetupSuite() {
 
 func (suite *unitTester) SetupTest() {
 	suite.ctx = NewTestContext(suite.incentiveStoreKey)
-	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil)
+	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 }
 
 func (suite *unitTester) TearDownTest() {
@@ -66,8 +68,13 @@ func (suite *unitTester) TearDownTest() {
 	suite.ctx = sdk.Context{}
 }
 
-func (suite *unitTester) NewKeeper(paramSubspace types.ParamSubspace, bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper, svk types.SavingsKeeper) keeper.Keeper {
-	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk)
+func (suite *unitTester) NewKeeper(
+	paramSubspace types.ParamSubspace,
+	bk types.BankKeeper, cdpk types.CdpKeeper, hk types.HardKeeper,
+	ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper,
+	svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
+) keeper.Keeper {
+	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk, lqk, ek)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
@@ -100,6 +107,12 @@ func (suite *unitTester) storeGlobalSavingsIndexes(indexes types.MultiRewardInde
 	}
 }
 
+func (suite *unitTester) storeGlobalEarnIndexes(indexes types.MultiRewardIndexes) {
+	for _, i := range indexes {
+		suite.keeper.SetEarnRewardIndexes(suite.ctx, i.CollateralType, i.RewardIndexes)
+	}
+}
+
 func (suite *unitTester) storeHardClaim(claim types.HardLiquidityProviderClaim) {
 	suite.keeper.SetHardLiquidityProviderClaim(suite.ctx, claim)
 }
@@ -114,6 +127,10 @@ func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
 
 func (suite *unitTester) storeSavingsClaim(claim types.SavingsClaim) {
 	suite.keeper.SetSavingsClaim(suite.ctx, claim)
+}
+
+func (suite *unitTester) storeEarnClaim(claim types.EarnClaim) {
+	suite.keeper.SetEarnClaim(suite.ctx, claim)
 }
 
 // fakeParamSubspace is a stub paramSpace to simplify keeper unit test setup.
@@ -349,6 +366,157 @@ func (k *fakeCDPKeeper) GetCdpByOwnerAndCollateralType(_ sdk.Context, owner sdk.
 
 func (k *fakeCDPKeeper) GetCollateral(_ sdk.Context, collateralType string) (cdptypes.CollateralParam, bool) {
 	return cdptypes.CollateralParam{}, false
+}
+
+// fakeEarnKeeper is a stub earn keeper.
+// It can be used to return values to the incentive keeper without having to initialize a full earn keeper.
+type fakeEarnKeeper struct {
+	vaultShares   map[string]earntypes.VaultShare
+	depositShares map[string]earntypes.VaultShares
+}
+
+var _ types.EarnKeeper = newFakeEarnKeeper()
+
+func newFakeEarnKeeper() *fakeEarnKeeper {
+	return &fakeEarnKeeper{
+		vaultShares:   map[string]earntypes.VaultShare{},
+		depositShares: map[string]earntypes.VaultShares{},
+	}
+}
+
+func (k *fakeEarnKeeper) addVault(vaultDenom string, shares earntypes.VaultShare) *fakeEarnKeeper {
+	k.vaultShares[vaultDenom] = shares
+	return k
+}
+
+func (k *fakeEarnKeeper) addDeposit(
+	depositor sdk.AccAddress,
+	shares earntypes.VaultShare,
+) *fakeEarnKeeper {
+	if k.depositShares[depositor.String()] == nil {
+		k.depositShares[depositor.String()] = earntypes.NewVaultShares()
+	}
+
+	k.depositShares[depositor.String()] = k.depositShares[depositor.String()].Add(shares)
+
+	return k
+}
+
+func (k *fakeEarnKeeper) GetVaultTotalShares(
+	ctx sdk.Context,
+	denom string,
+) (shares earntypes.VaultShare, found bool) {
+	vaultShares, found := k.vaultShares[denom]
+	return vaultShares, found
+}
+
+func (k *fakeEarnKeeper) GetVaultAccountShares(
+	ctx sdk.Context,
+	acc sdk.AccAddress,
+) (shares earntypes.VaultShares, found bool) {
+	accShares, found := k.depositShares[acc.String()]
+	return accShares, found
+}
+
+func (k *fakeEarnKeeper) IterateVaultRecords(
+	ctx sdk.Context,
+	cb func(record earntypes.VaultRecord) (stop bool),
+) {
+	for _, vaultShares := range k.vaultShares {
+		cb(earntypes.VaultRecord{
+			TotalShares: vaultShares,
+		})
+	}
+}
+
+// fakeLiquidKeeper is a stub liquid keeper.
+// It can be used to return values to the incentive keeper without having to initialize a full liquid keeper.
+type fakeLiquidKeeper struct {
+	derivatives     map[string]sdk.Int
+	lastRewardClaim map[string]time.Time
+}
+
+var _ types.LiquidKeeper = newFakeLiquidKeeper()
+
+func newFakeLiquidKeeper() *fakeLiquidKeeper {
+	return &fakeLiquidKeeper{
+		derivatives:     map[string]sdk.Int{},
+		lastRewardClaim: map[string]time.Time{},
+	}
+}
+
+func (k *fakeLiquidKeeper) addDerivative(
+	ctx sdk.Context,
+	denom string,
+	supply sdk.Int,
+) *fakeLiquidKeeper {
+	k.derivatives[denom] = supply
+	k.lastRewardClaim[denom] = ctx.BlockTime()
+	return k
+}
+
+func (k *fakeLiquidKeeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
+	return strings.HasPrefix(denom, "bkava-")
+}
+
+func (k *fakeLiquidKeeper) GetAllDerivativeDenoms(ctx sdk.Context) (denoms []string) {
+	for denom := range k.derivatives {
+		denoms = append(denoms, denom)
+	}
+
+	return denoms
+}
+
+func (k *fakeLiquidKeeper) GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, error) {
+	totalSupply := sdk.ZeroInt()
+	for _, supply := range k.derivatives {
+		totalSupply = totalSupply.Add(supply)
+	}
+
+	return sdk.NewCoin("ukava", totalSupply), nil
+}
+
+func (k *fakeLiquidKeeper) GetDerivativeValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
+	supply, found := k.derivatives[denom]
+	if !found {
+		return sdk.NewCoin("ukava", sdk.ZeroInt()), nil
+	}
+
+	return sdk.NewCoin("ukava", supply), nil
+}
+
+func (k *fakeLiquidKeeper) CollectStakingRewardsByDenom(
+	ctx sdk.Context,
+	derivativeDenom string,
+	destinationModAccount string,
+) (sdk.Coins, error) {
+	amt := k.getRewardAmount(ctx, derivativeDenom)
+
+	return sdk.NewCoins(sdk.NewCoin("ukava", amt)), nil
+}
+
+func (k *fakeLiquidKeeper) getRewardAmount(
+	ctx sdk.Context,
+	derivativeDenom string,
+) sdk.Int {
+	amt, found := k.derivatives[derivativeDenom]
+	if !found {
+		// No error
+		return sdk.ZeroInt()
+	}
+
+	lastRewardClaim, found := k.lastRewardClaim[derivativeDenom]
+	if !found {
+		panic("last reward claim not found")
+	}
+
+	duration := int64(ctx.BlockTime().Sub(lastRewardClaim).Seconds())
+	if duration <= 0 {
+		return sdk.ZeroInt()
+	}
+
+	// Reward amount just set to 10% of the derivative supply per second
+	return amt.QuoRaw(10).MulRaw(duration)
 }
 
 // Assorted Testing Data

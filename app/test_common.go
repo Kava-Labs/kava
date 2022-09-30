@@ -28,17 +28,21 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 	evmkeeper "github.com/tharsis/ethermint/x/evm/keeper"
+	feemarketkeeper "github.com/tharsis/ethermint/x/feemarket/keeper"
 
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
+	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 )
@@ -106,6 +110,10 @@ func (tApp TestApp) GetIncentiveKeeper() incentivekeeper.Keeper { return tApp.in
 func (tApp TestApp) GetEvmutilKeeper() evmutilkeeper.Keeper     { return tApp.evmutilKeeper }
 func (tApp TestApp) GetEvmKeeper() *evmkeeper.Keeper            { return tApp.evmKeeper }
 func (tApp TestApp) GetSavingsKeeper() savingskeeper.Keeper     { return tApp.savingsKeeper }
+func (tApp TestApp) GetFeeMarketKeeper() feemarketkeeper.Keeper { return tApp.feeMarketKeeper }
+func (tApp TestApp) GetLiquidKeeper() liquidkeeper.Keeper       { return tApp.liquidKeeper }
+func (tApp TestApp) GetEarnKeeper() earnkeeper.Keeper           { return tApp.earnKeeper }
+func (tApp TestApp) GetRouterKeeper() routerkeeper.Keeper       { return tApp.routerKeeper }
 
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {

@@ -16,7 +16,7 @@ func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
 	// Hacky way to validate periods since validation is wrapped in params
 	active := genRandomActive(r)
 	periods := genRandomPeriods(r, simtypes.RandTimestamp(r))
-	if err := types.NewParams(active, periods).Validate(); err != nil {
+	if err := types.NewParams(active, periods, types.DefaultInfraParams).Validate(); err != nil {
 		panic(err)
 	}
 

@@ -1,0 +1,26 @@
+syntax = "proto3";
+package kava.evmutil.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "kava/evmutil/v1beta1/genesis.proto";
+
+option go_package                    = "github.com/kava-labs/kava/x/evmutil/types";
+option (gogoproto.equal_all)         = true;
+option (gogoproto.verbose_equal_all) = true;
+
+// Query defines the gRPC querier service for evmutil module
+service Query {
+  // Params queries all parameters of the evmutil module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/evmutil/v1beta1/params";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/evmutil parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/evmutil parameters.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}

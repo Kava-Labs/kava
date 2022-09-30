@@ -1,0 +1,60 @@
+syntax = "proto3";
+package kava.earn.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/earn/types";
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "kava/earn/v1beta1/strategy.proto";
+
+// AllowedVault is a vault that is allowed to be created. These can be
+// modified via parameter governance.
+message AllowedVault {
+  // Denom is the only supported denomination of the vault for deposits and withdrawals.
+  string denom = 1;
+
+  // VaultStrategy is the strategy used for this vault.
+  repeated StrategyType strategies = 2 [(gogoproto.castrepeated) = "StrategyTypes"];
+
+  // IsPrivateVault is true if the vault only allows depositors contained in
+  // AllowedDepositors.
+  bool is_private_vault = 3;
+
+  // AllowedDepositors is a list of addresses that are allowed to deposit to
+  // this vault if IsPrivateVault is true. Addresses not contained in this list
+  // are not allowed to deposit into this vault. If IsPrivateVault is false,
+  // this should be empty and ignored.
+  repeated bytes allowed_depositors = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+}
+
+// VaultRecord is the state of a vault.
+message VaultRecord {
+  // TotalShares is the total distributed number of shares in the vault.
+  VaultShare total_shares = 1 [(gogoproto.nullable) = false];
+}
+
+// VaultShareRecord defines the vault shares owned by a depositor.
+message VaultShareRecord {
+  // Depositor represents the owner of the shares
+  bytes depositor = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+  // Shares represent the vault shares owned by the depositor.
+  repeated VaultShare shares = 2 [(gogoproto.castrepeated) = "VaultShares", (gogoproto.nullable) = false];
+}
+
+// VaultShare defines shares of a vault owned by a depositor.
+message VaultShare {
+  option (gogoproto.goproto_stringer) = false;
+
+  string denom  = 1;
+  string amount = 2 [
+    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+}

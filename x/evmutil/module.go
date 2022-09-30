@@ -1,7 +1,9 @@
 package evmutil
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -15,9 +17,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
+	"github.com/kava-labs/kava/x/evmutil/client/cli"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
+
+// ConsensusVersion defines the current module consensus version.
+const ConsensusVersion = 2
 
 var (
 	_ module.AppModule      = AppModule{}
@@ -44,7 +50,9 @@ func (AppModuleBasic) Name() string {
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {}
 
 // RegisterInterfaces registers the module's interface types
-func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {}
+func (a AppModuleBasic) RegisterInterfaces(reg cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(reg)
+}
 
 // DefaultGenesis default genesis state
 func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
@@ -66,13 +74,21 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for evmutil module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+}
 
 // GetTxCmd returns evmutil module's root tx command.
-func (a AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
+func (a AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
+}
 
 // GetQueryCmd returns evmutil module's root query command.
-func (AppModuleBasic) GetQueryCmd() *cobra.Command { return nil }
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
+}
 
 // ----------------------------------------------------------------------------
 // AppModule
@@ -104,7 +120,7 @@ func (am AppModule) Name() string {
 func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // QuerierRoute returns evmutil module's query routing key.
-func (AppModule) QuerierRoute() string { return types.ModuleName }
+func (AppModule) QuerierRoute() string { return "" }
 
 // LegacyQuerierHandler returns evmutil module's Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
@@ -113,7 +129,15 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
-func (am AppModule) RegisterServices(cfg module.Configurator) {}
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+
+	m := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/evmutil from version 1 to 2: %v", err))
+	}
+}
 
 // RegisterInvariants registers evmutil module's invariants.
 func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
@@ -138,7 +162,7 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // ConsensusVersion implements ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 1 }
+func (AppModule) ConsensusVersion() uint64 { return ConsensusVersion }
 
 // BeginBlock executes all ABCI BeginBlock logic respective to evmutil module.
 func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {}

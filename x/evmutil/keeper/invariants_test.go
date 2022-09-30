@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"math/big"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +15,8 @@ import (
 
 type invariantTestSuite struct {
 	testutil.Suite
-	invariants map[string]map[string]sdk.Invariant
+	invariants   map[string]map[string]sdk.Invariant
+	contractAddr types.InternalEVMAddress
 }
 
 func TestInvariantTestSuite(t *testing.T) {
@@ -23,6 +25,9 @@ func TestInvariantTestSuite(t *testing.T) {
 
 func (suite *invariantTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
+
+	suite.contractAddr = suite.DeployERC20()
+
 	suite.invariants = make(map[string]map[string]sdk.Invariant)
 	keeper.RegisterInvariants(suite, suite.BankKeeper, suite.Keeper)
 }
@@ -40,6 +45,23 @@ func (suite *invariantTestSuite) SetupValidState() {
 			sdk.NewCoin("ukava", sdk.NewInt(2)), // ( sum of all minor balances ) / conversion multiplier
 		),
 	)
+
+	err := suite.Keeper.MintERC20(suite.Ctx, suite.contractAddr, suite.Key1Addr, big.NewInt(1000000))
+	suite.Require().NoError(err)
+
+	// key1 ERC20 bal -10000, sdk.Coin +1000
+	// Module account balance 0 -> 1000
+	_, err = suite.Keeper.CallEVM(
+		suite.Ctx,
+		types.ERC20MintableBurnableContract.ABI,
+		suite.Key1Addr.Address,
+		suite.contractAddr,
+		"convertToCoin",
+		// convertToCoin ERC20 args
+		suite.Key1Addr.Address,
+		big.NewInt(1000),
+	)
+	suite.Require().NoError(err)
 }
 
 // RegisterRoutes implements sdk.InvariantRegistry

@@ -2,7 +2,8 @@
 set -e
 
 validatorMnemonic="equip town gesture square tomorrow volume nephew minute witness beef rich gadget actress egg sing secret pole winter alarm law today check violin uncover"
-# kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+#        kava1ffv7nhd3z6sych2qpqkk03ec6hzkmufy0r2s4c
+# kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0
 
 faucetMnemonic="crash sort dwarf disease change advice attract clump avoid mobile clump right junior axis book fresh mask tube front require until face effort vault"
 # kava1adkm6svtzjsxxvg7g6rshg6kj9qwej8gwqadqd
@@ -35,6 +36,10 @@ sed -in-place='' 's/enable = false/enable = true/g' $DATA/config/app.toml
 # Set evm tracer to json
 sed -in-place='' 's/tracer = ""/tracer = "json"/g' $DATA/config/app.toml
 
+# Enable full error trace to be returned on tx failure
+sed -in-place='' '/iavl-cache-size/a\
+trace = true' $DATA/config/app.toml
+
 # Set client chain id
 sed -in-place='' 's/chain-id = ""/chain-id = "kavalocalnet_8888-1"/g' $DATA/config/client.toml
 
@@ -57,7 +62,7 @@ $BINARY add-genesis-account $evmFaucetKeyName 1000000000ukava
 
 userKeyName="user"
 printf "$userMnemonic\n" | $BINARY keys add $userKeyName --eth --recover
-$BINARY add-genesis-account $userKeyName 1000000000ukava
+$BINARY add-genesis-account $userKeyName 1000000000ukava,1000000000usdx
 
 relayerKeyName="relayer"
 printf "$relayerMnemonic\n" | $BINARY keys add $relayerKeyName --eth --recover
@@ -84,34 +89,18 @@ jq '.app_state.evm.params.chain_config.london_block = null' $DATA/config/genesis
 jq '.app_state.evm.params.chain_config.arrow_glacier_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 jq '.app_state.evm.params.chain_config.merge_fork_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 
-# Enable bridge
-jq '.app_state.bridge.params.bridge_enabled = true' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
-
-# Set relayer to devnet relayer address
-jq '.app_state.bridge.params.relayer = "kava15tmj37vh7ch504px9fcfglmvx6y9m70646ev8t"' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
-
-# Set enabled erc20 tokens to match local geth testnet
-jq '.app_state.bridge.params.enabled_erc20_tokens = [
+# Add earn vault
+jq '.app_state.earn.params.allowed_vaults =  [
     {
-        address: "0x6098c27D41ec6dc280c2200A737D443b0AaA2E8F",
-        name: "Wrapped ETH",
-        symbol: "WETH",
-        decimals: 18,
-        minimum_withdraw_amount: "10000000000000000"
+        denom: "usdx",
+        strategies: ["STRATEGY_TYPE_HARD"],
     },
     {
-        address: "0x4Fb48E68842bb59f07569c623ACa5826b600F8F7",
-        name: "USDC",
-        symbol: "USDC",
-        decimals: 6,
-        minimum_withdraw_amount: "10000000"
+        denom: "bkava",
+        strategies: ["STRATEGY_TYPE_SAVINGS"],
     }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
 
-# Set enabled conversion pairs - weth address is the first contract bridge module
-# deploys
-jq '.app_state.bridge.params.enabled_conversion_pairs = [
-    {
-        kava_erc20_address: "0x404F9466d758eA33eA84CeBE9E444b06533b369e",
-        denom: "erc20/weth",
-    }]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
+jq '.app_state.savings.params.supported_denoms = ["bkava-kavavaloper1ffv7nhd3z6sych2qpqkk03ec6hzkmufyz4scd0"]' $DATA/config/genesis.json | sponge $DATA/config/genesis.json
 
+
+$BINARY config broadcast-mode block

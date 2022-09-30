@@ -178,9 +178,70 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/earn/v1beta1/strategy.proto](#kava/earn/v1beta1/strategy.proto)
+    - [StrategyType](#kava.earn.v1beta1.StrategyType)
+  
+- [kava/earn/v1beta1/vault.proto](#kava/earn/v1beta1/vault.proto)
+    - [AllowedVault](#kava.earn.v1beta1.AllowedVault)
+    - [VaultRecord](#kava.earn.v1beta1.VaultRecord)
+    - [VaultShare](#kava.earn.v1beta1.VaultShare)
+    - [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord)
+  
+- [kava/earn/v1beta1/params.proto](#kava/earn/v1beta1/params.proto)
+    - [Params](#kava.earn.v1beta1.Params)
+  
+- [kava/earn/v1beta1/genesis.proto](#kava/earn/v1beta1/genesis.proto)
+    - [GenesisState](#kava.earn.v1beta1.GenesisState)
+  
+- [kava/earn/v1beta1/proposal.proto](#kava/earn/v1beta1/proposal.proto)
+    - [CommunityPoolDepositProposal](#kava.earn.v1beta1.CommunityPoolDepositProposal)
+    - [CommunityPoolDepositProposalJSON](#kava.earn.v1beta1.CommunityPoolDepositProposalJSON)
+    - [CommunityPoolWithdrawProposal](#kava.earn.v1beta1.CommunityPoolWithdrawProposal)
+    - [CommunityPoolWithdrawProposalJSON](#kava.earn.v1beta1.CommunityPoolWithdrawProposalJSON)
+  
+- [kava/earn/v1beta1/query.proto](#kava/earn/v1beta1/query.proto)
+    - [DepositResponse](#kava.earn.v1beta1.DepositResponse)
+    - [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest)
+    - [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse)
+    - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
+    - [QueryVaultRequest](#kava.earn.v1beta1.QueryVaultRequest)
+    - [QueryVaultResponse](#kava.earn.v1beta1.QueryVaultResponse)
+    - [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest)
+    - [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse)
+    - [VaultResponse](#kava.earn.v1beta1.VaultResponse)
+  
+    - [Query](#kava.earn.v1beta1.Query)
+  
+- [kava/earn/v1beta1/tx.proto](#kava/earn/v1beta1/tx.proto)
+    - [MsgDeposit](#kava.earn.v1beta1.MsgDeposit)
+    - [MsgDepositResponse](#kava.earn.v1beta1.MsgDepositResponse)
+    - [MsgWithdraw](#kava.earn.v1beta1.MsgWithdraw)
+    - [MsgWithdrawResponse](#kava.earn.v1beta1.MsgWithdrawResponse)
+  
+    - [Msg](#kava.earn.v1beta1.Msg)
+  
+- [kava/evmutil/v1beta1/conversion_pair.proto](#kava/evmutil/v1beta1/conversion_pair.proto)
+    - [ConversionPair](#kava.evmutil.v1beta1.ConversionPair)
+  
 - [kava/evmutil/v1beta1/genesis.proto](#kava/evmutil/v1beta1/genesis.proto)
     - [Account](#kava.evmutil.v1beta1.Account)
     - [GenesisState](#kava.evmutil.v1beta1.GenesisState)
+    - [Params](#kava.evmutil.v1beta1.Params)
+  
+- [kava/evmutil/v1beta1/query.proto](#kava/evmutil/v1beta1/query.proto)
+    - [QueryParamsRequest](#kava.evmutil.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.evmutil.v1beta1.QueryParamsResponse)
+  
+    - [Query](#kava.evmutil.v1beta1.Query)
+  
+- [kava/evmutil/v1beta1/tx.proto](#kava/evmutil/v1beta1/tx.proto)
+    - [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20)
+    - [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response)
+    - [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin)
+    - [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse)
+  
+    - [Msg](#kava.evmutil.v1beta1.Msg)
   
 - [kava/hard/v1beta1/hard.proto](#kava/hard/v1beta1/hard.proto)
     - [Borrow](#kava.hard.v1beta1.Borrow)
@@ -247,6 +308,7 @@
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
     - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
+    - [EarnClaim](#kava.incentive.v1beta1.EarnClaim)
     - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
     - [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex)
     - [MultiRewardIndexesProto](#kava.incentive.v1beta1.MultiRewardIndexesProto)
@@ -271,6 +333,8 @@
 - [kava/incentive/v1beta1/tx.proto](#kava/incentive/v1beta1/tx.proto)
     - [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward)
     - [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse)
+    - [MsgClaimEarnReward](#kava.incentive.v1beta1.MsgClaimEarnReward)
+    - [MsgClaimEarnRewardResponse](#kava.incentive.v1beta1.MsgClaimEarnRewardResponse)
     - [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward)
     - [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse)
     - [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward)
@@ -311,7 +375,10 @@
     - [Msg](#kava.issuance.v1beta1.Msg)
   
 - [kava/kavadist/v1beta1/params.proto](#kava/kavadist/v1beta1/params.proto)
+    - [CoreReward](#kava.kavadist.v1beta1.CoreReward)
+    - [InfrastructureParams](#kava.kavadist.v1beta1.InfrastructureParams)
     - [Params](#kava.kavadist.v1beta1.Params)
+    - [PartnerReward](#kava.kavadist.v1beta1.PartnerReward)
     - [Period](#kava.kavadist.v1beta1.Period)
   
 - [kava/kavadist/v1beta1/genesis.proto](#kava/kavadist/v1beta1/genesis.proto)
@@ -329,6 +396,14 @@
     - [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse)
   
     - [Query](#kava.kavadist.v1beta1.Query)
+  
+- [kava/liquid/v1beta1/tx.proto](#kava/liquid/v1beta1/tx.proto)
+    - [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative)
+    - [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse)
+    - [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative)
+    - [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse)
+  
+    - [Msg](#kava.liquid.v1beta1.Msg)
   
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
@@ -363,6 +438,18 @@
     - [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse)
   
     - [Msg](#kava.pricefeed.v1beta1.Msg)
+  
+- [kava/router/v1beta1/tx.proto](#kava/router/v1beta1/tx.proto)
+    - [MsgDelegateMintDeposit](#kava.router.v1beta1.MsgDelegateMintDeposit)
+    - [MsgDelegateMintDepositResponse](#kava.router.v1beta1.MsgDelegateMintDepositResponse)
+    - [MsgMintDeposit](#kava.router.v1beta1.MsgMintDeposit)
+    - [MsgMintDepositResponse](#kava.router.v1beta1.MsgMintDepositResponse)
+    - [MsgWithdrawBurn](#kava.router.v1beta1.MsgWithdrawBurn)
+    - [MsgWithdrawBurnResponse](#kava.router.v1beta1.MsgWithdrawBurnResponse)
+    - [MsgWithdrawBurnUndelegate](#kava.router.v1beta1.MsgWithdrawBurnUndelegate)
+    - [MsgWithdrawBurnUndelegateResponse](#kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse)
+  
+    - [Msg](#kava.router.v1beta1.Msg)
   
 - [kava/savings/v1beta1/store.proto](#kava/savings/v1beta1/store.proto)
     - [Deposit](#kava.savings.v1beta1.Deposit)
@@ -2707,6 +2794,570 @@ Msg defines the committee Msg service
 
 
 
+<a name="kava/earn/v1beta1/strategy.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/strategy.proto
+
+
+ <!-- end messages -->
+
+
+<a name="kava.earn.v1beta1.StrategyType"></a>
+
+### StrategyType
+StrategyType is the type of strategy that a vault uses to optimize yields.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| STRATEGY_TYPE_UNSPECIFIED | 0 | STRATEGY_TYPE_UNSPECIFIED represents an unspecified or invalid strategy type. |
+| STRATEGY_TYPE_HARD | 1 | STRATEGY_TYPE_HARD represents the strategy that deposits assets in the Hard module. |
+| STRATEGY_TYPE_SAVINGS | 2 | STRATEGY_TYPE_SAVINGS represents the strategy that deposits assets in the Savings module. |
+
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/vault.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/vault.proto
+
+
+
+<a name="kava.earn.v1beta1.AllowedVault"></a>
+
+### AllowedVault
+AllowedVault is a vault that is allowed to be created. These can be
+modified via parameter governance.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | Denom is the only supported denomination of the vault for deposits and withdrawals. |
+| `strategies` | [StrategyType](#kava.earn.v1beta1.StrategyType) | repeated | VaultStrategy is the strategy used for this vault. |
+| `is_private_vault` | [bool](#bool) |  | IsPrivateVault is true if the vault only allows depositors contained in AllowedDepositors. |
+| `allowed_depositors` | [bytes](#bytes) | repeated | AllowedDepositors is a list of addresses that are allowed to deposit to this vault if IsPrivateVault is true. Addresses not contained in this list are not allowed to deposit into this vault. If IsPrivateVault is false, this should be empty and ignored. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultRecord"></a>
+
+### VaultRecord
+VaultRecord is the state of a vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `total_shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) |  | TotalShares is the total distributed number of shares in the vault. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultShare"></a>
+
+### VaultShare
+VaultShare defines shares of a vault owned by a depositor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  |  |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultShareRecord"></a>
+
+### VaultShareRecord
+VaultShareRecord defines the vault shares owned by a depositor.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [bytes](#bytes) |  | Depositor represents the owner of the shares |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) | repeated | Shares represent the vault shares owned by the depositor. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/params.proto
+
+
+
+<a name="kava.earn.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters of the earn module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `allowed_vaults` | [AllowedVault](#kava.earn.v1beta1.AllowedVault) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/genesis.proto
+
+
+
+<a name="kava.earn.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the earn module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to earn |
+| `vault_records` | [VaultRecord](#kava.earn.v1beta1.VaultRecord) | repeated | vault_records defines the available vaults |
+| `vault_share_records` | [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord) | repeated | share_records defines the owned shares of each vault |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/proposal.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/proposal.proto
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolDepositProposal"></a>
+
+### CommunityPoolDepositProposal
+CommunityPoolDepositProposal deposits from the community pool into an earn vault
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolDepositProposalJSON"></a>
+
+### CommunityPoolDepositProposalJSON
+CommunityPoolDepositProposalJSON defines a CommunityPoolDepositProposal with a deposit
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolWithdrawProposal"></a>
+
+### CommunityPoolWithdrawProposal
+CommunityPoolWithdrawProposal withdraws from an earn vault back to community pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.CommunityPoolWithdrawProposalJSON"></a>
+
+### CommunityPoolWithdrawProposalJSON
+CommunityPoolWithdrawProposalJSON defines a CommunityPoolWithdrawProposal with a deposit
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/query.proto
+
+
+
+<a name="kava.earn.v1beta1.DepositResponse"></a>
+
+### DepositResponse
+DepositResponse defines a deposit query response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the deposit. |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) | repeated | Shares represent the issued shares from their corresponding vaults. |
+| `value` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Value represents the total accumulated value of denom coins supplied to vaults. This may be greater than or equal to amount_supplied depending on the strategy. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryDepositsRequest"></a>
+
+### QueryDepositsRequest
+QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor optionally filters deposits by depositor |
+| `denom` | [string](#string) |  | denom optionally filters deposits by vault denom |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryDepositsResponse"></a>
+
+### QueryDepositsResponse
+QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deposits` | [DepositResponse](#kava.earn.v1beta1.DepositResponse) | repeated | deposits returns the deposits matching the requested parameters |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/earn parameters.
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/earn parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params represents the earn module parameters |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultRequest"></a>
+
+### QueryVaultRequest
+QueryVaultRequest is the request type for the Query/Vault RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | vault filters vault by denom |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultResponse"></a>
+
+### QueryVaultResponse
+QueryVaultResponse is the response type for the Query/Vault RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vault` | [VaultResponse](#kava.earn.v1beta1.VaultResponse) |  | vault represents the queried earn module vault |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultsRequest"></a>
+
+### QueryVaultsRequest
+QueryVaultsRequest is the request type for the Query/Vaults RPC method.
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryVaultsResponse"></a>
+
+### QueryVaultsResponse
+QueryVaultsResponse is the response type for the Query/Vaults RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vaults` | [VaultResponse](#kava.earn.v1beta1.VaultResponse) | repeated | vaults represents the earn module vaults |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.VaultResponse"></a>
+
+### VaultResponse
+VaultResponse is the response type for a vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `denom` | [string](#string) |  | denom represents the denom of the vault |
+| `strategies` | [StrategyType](#kava.earn.v1beta1.StrategyType) | repeated | VaultStrategy is the strategy used for this vault. |
+| `is_private_vault` | [bool](#bool) |  | IsPrivateVault is true if the vault only allows depositors contained in AllowedDepositors. |
+| `allowed_depositors` | [string](#string) | repeated | AllowedDepositors is a list of addresses that are allowed to deposit to this vault if IsPrivateVault is true. Addresses not contained in this list are not allowed to deposit into this vault. If IsPrivateVault is false, this should be empty and ignored. |
+| `total_shares` | [string](#string) |  | TotalShares is the total amount of shares issued to depositors. |
+| `total_value` | [string](#string) |  | TotalValue is the total value of denom coins supplied to the vault if the vault were to be liquidated. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.earn.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for earn module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse) | Params queries all parameters of the earn module. | GET|/kava/earn/v1beta1/params|
+| `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries all vaults | GET|/kava/earn/v1beta1/vaults|
+| `Vault` | [QueryVaultRequest](#kava.earn.v1beta1.QueryVaultRequest) | [QueryVaultResponse](#kava.earn.v1beta1.QueryVaultResponse) | Vault queries a single vault based on the vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
+| `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on depositor address and vault | GET|/kava/earn/v1beta1/deposits|
+
+ <!-- end services -->
+
+
+
+<a name="kava/earn/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/earn/v1beta1/tx.proto
+
+
+
+<a name="kava.earn.v1beta1.MsgDeposit"></a>
+
+### MsgDeposit
+MsgDeposit represents a message for depositing assedts into a vault
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the address to deposit funds from |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount represents the token to deposit. The vault corresponds to the denom of the amount coin. |
+| `strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | Strategy is the vault strategy to use. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.MsgDepositResponse"></a>
+
+### MsgDepositResponse
+MsgDepositResponse defines the Msg/Deposit response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) |  |  |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.MsgWithdraw"></a>
+
+### MsgWithdraw
+MsgWithdraw represents a message for withdrawing liquidity from a vault
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from represents the address we are withdrawing for |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount represents the token to withdraw. The vault corresponds to the denom of the amount coin. |
+| `strategy` | [StrategyType](#kava.earn.v1beta1.StrategyType) |  | Strategy is the vault strategy to use. |
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.MsgWithdrawResponse"></a>
+
+### MsgWithdrawResponse
+MsgWithdrawResponse defines the Msg/Withdraw response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `shares` | [VaultShare](#kava.earn.v1beta1.VaultShare) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.earn.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the earn Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Deposit` | [MsgDeposit](#kava.earn.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.earn.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing assets into a vault | |
+| `Withdraw` | [MsgWithdraw](#kava.earn.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.earn.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing assets into a vault | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/evmutil/v1beta1/conversion_pair.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/conversion_pair.proto
+
+
+
+<a name="kava.evmutil.v1beta1.ConversionPair"></a>
+
+### ConversionPair
+ConversionPair defines a Kava ERC20 address and corresponding denom that is
+allowed to be converted between ERC20 and sdk.Coin
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `kava_erc20_address` | [bytes](#bytes) |  | ERC20 address of the token on the Kava EVM |
+| `denom` | [string](#string) |  | Denom of the corresponding sdk.Coin |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/evmutil/v1beta1/genesis.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2739,6 +3390,22 @@ GenesisState defines the evmutil module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `accounts` | [Account](#kava.evmutil.v1beta1.Account) | repeated |  |
+| `params` | [Params](#kava.evmutil.v1beta1.Params) |  | params defines all the parameters of the module. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.Params"></a>
+
+### Params
+Params defines the evmutil module params
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `enabled_conversion_pairs` | [ConversionPair](#kava.evmutil.v1beta1.ConversionPair) | repeated | enabled_conversion_pairs defines the list of conversion pairs allowed to be converted between Kava ERC20 and sdk.Coin |
 
 
 
@@ -2749,6 +3416,140 @@ GenesisState defines the evmutil module's genesis state.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/evmutil/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/query.proto
+
+
+
+<a name="kava.evmutil.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/evmutil parameters.
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/evmutil parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.evmutil.v1beta1.Params) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.evmutil.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for evmutil module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.evmutil.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.evmutil.v1beta1.QueryParamsResponse) | Params queries all parameters of the evmutil module. | GET|/kava/evmutil/v1beta1/params|
+
+ <!-- end services -->
+
+
+
+<a name="kava/evmutil/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/tx.proto
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertCoinToERC20"></a>
+
+### MsgConvertCoinToERC20
+MsgConvertCoinToERC20 defines a conversion from sdk.Coin to Kava ERC20.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `initiator` | [string](#string) |  | Kava bech32 address initiating the conversion. |
+| `receiver` | [string](#string) |  | EVM 0x hex address that will receive the converted Kava ERC20 tokens. |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount is the sdk.Coin amount to convert. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertCoinToERC20Response"></a>
+
+### MsgConvertCoinToERC20Response
+MsgConvertCoinToERC20Response defines the response value from Msg/ConvertCoinToERC20.
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertERC20ToCoin"></a>
+
+### MsgConvertERC20ToCoin
+MsgConvertERC20ToCoin defines a conversion from Kava ERC20 to sdk.Coin.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `initiator` | [string](#string) |  | EVM 0x hex address initiating the conversion. |
+| `receiver` | [string](#string) |  | Kava bech32 address that will receive the converted sdk.Coin. |
+| `kava_erc20_address` | [string](#string) |  | EVM 0x hex address of the ERC20 contract. |
+| `amount` | [string](#string) |  | ERC20 token amount to convert. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse"></a>
+
+### MsgConvertERC20ToCoinResponse
+MsgConvertERC20ToCoinResponse defines the response value from
+Msg/MsgConvertERC20ToCoin.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.evmutil.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the evmutil Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `ConvertCoinToERC20` | [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20) | [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response) | ConvertCoinToERC20 defines a method for converting sdk.Coin to Kava ERC20. | |
+| `ConvertERC20ToCoin` | [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin) | [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse) | ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin. | |
 
  <!-- end services -->
 
@@ -3662,6 +4463,22 @@ DelegatorClaim stores delegation rewards that can be claimed by owner
 
 
 
+<a name="kava.incentive.v1beta1.EarnClaim"></a>
+
+### EarnClaim
+EarnClaim stores the earn rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.HardLiquidityProviderClaim"></a>
 
 ### HardLiquidityProviderClaim
@@ -3873,6 +4690,7 @@ Params
 | `claim_multipliers` | [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom) | repeated |  |
 | `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 | `savings_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `earn_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 
 
 
@@ -3966,6 +4784,8 @@ GenesisState is the state that must be provided at genesis.
 | `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
 | `savings_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
 | `savings_claims` | [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim) | repeated |  |
+| `earn_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
+| `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
 
 
 
@@ -4008,6 +4828,32 @@ MsgClaimDelegatorReward message type used to claim delegator rewards
 
 ### MsgClaimDelegatorRewardResponse
 MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimEarnReward"></a>
+
+### MsgClaimEarnReward
+MsgClaimEarnReward message type used to claim earn rewards
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  |  |
+| `denoms_to_claim` | [Selection](#kava.incentive.v1beta1.Selection) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.MsgClaimEarnRewardResponse"></a>
+
+### MsgClaimEarnRewardResponse
+MsgClaimEarnRewardResponse defines the Msg/ClaimEarnReward response type.
 
 
 
@@ -4151,8 +4997,9 @@ Msg defines the incentive Msg service.
 | `ClaimUSDXMintingReward` | [MsgClaimUSDXMintingReward](#kava.incentive.v1beta1.MsgClaimUSDXMintingReward) | [MsgClaimUSDXMintingRewardResponse](#kava.incentive.v1beta1.MsgClaimUSDXMintingRewardResponse) | ClaimUSDXMintingReward is a message type used to claim USDX minting rewards | |
 | `ClaimHardReward` | [MsgClaimHardReward](#kava.incentive.v1beta1.MsgClaimHardReward) | [MsgClaimHardRewardResponse](#kava.incentive.v1beta1.MsgClaimHardRewardResponse) | ClaimHardReward is a message type used to claim Hard liquidity provider rewards | |
 | `ClaimDelegatorReward` | [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward) | [MsgClaimDelegatorRewardResponse](#kava.incentive.v1beta1.MsgClaimDelegatorRewardResponse) | ClaimDelegatorReward is a message type used to claim delegator rewards | |
-| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim delegator rewards | |
+| `ClaimSwapReward` | [MsgClaimSwapReward](#kava.incentive.v1beta1.MsgClaimSwapReward) | [MsgClaimSwapRewardResponse](#kava.incentive.v1beta1.MsgClaimSwapRewardResponse) | ClaimSwapReward is a message type used to claim swap rewards | |
 | `ClaimSavingsReward` | [MsgClaimSavingsReward](#kava.incentive.v1beta1.MsgClaimSavingsReward) | [MsgClaimSavingsRewardResponse](#kava.incentive.v1beta1.MsgClaimSavingsRewardResponse) | ClaimSavingsReward is a message type used to claim savings rewards | |
+| `ClaimEarnReward` | [MsgClaimEarnReward](#kava.incentive.v1beta1.MsgClaimEarnReward) | [MsgClaimEarnRewardResponse](#kava.incentive.v1beta1.MsgClaimEarnRewardResponse) | ClaimEarnReward is a message type used to claim earn rewards | |
 
  <!-- end services -->
 
@@ -4481,6 +5328,39 @@ Msg defines the issuance Msg service.
 
 
 
+<a name="kava.kavadist.v1beta1.CoreReward"></a>
+
+### CoreReward
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  |  |
+| `weight` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.InfrastructureParams"></a>
+
+### InfrastructureParams
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `infrastructure_periods` | [Period](#kava.kavadist.v1beta1.Period) | repeated |  |
+| `core_rewards` | [CoreReward](#kava.kavadist.v1beta1.CoreReward) | repeated |  |
+| `partner_rewards` | [PartnerReward](#kava.kavadist.v1beta1.PartnerReward) | repeated |  |
+
+
+
+
+
+
 <a name="kava.kavadist.v1beta1.Params"></a>
 
 ### Params
@@ -4491,6 +5371,23 @@ Params governance parameters for kavadist module
 | ----- | ---- | ----- | ----------- |
 | `active` | [bool](#bool) |  |  |
 | `periods` | [Period](#kava.kavadist.v1beta1.Period) | repeated |  |
+| `infrastructure_params` | [InfrastructureParams](#kava.kavadist.v1beta1.InfrastructureParams) |  |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.PartnerReward"></a>
+
+### PartnerReward
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  |  |
+| `rewards_per_second` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 
 
 
@@ -4696,6 +5593,97 @@ Query defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavadist module. | GET|/kava/kavadist/v1beta1/parameters|
 | `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/kavadist module. | GET|/kava/kavadist/v1beta1/balance|
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquid/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquid/v1beta1/tx.proto
+
+
+
+<a name="kava.liquid.v1beta1.MsgBurnDerivative"></a>
+
+### MsgBurnDerivative
+MsgBurnDerivative defines the Msg/BurnDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  | sender is the owner of the derivatives to be converted |
+| `validator` | [string](#string) |  | validator is the validator of the derivatives to be converted |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the quantity of derivatives to be converted |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgBurnDerivativeResponse"></a>
+
+### MsgBurnDerivativeResponse
+MsgBurnDerivativeResponse defines the Msg/BurnDerivative response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `received` | [string](#string) |  | received is the number of delegation shares sent to the sender |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgMintDerivative"></a>
+
+### MsgMintDerivative
+MsgMintDerivative defines the Msg/MintDerivative request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sender` | [string](#string) |  | sender is the owner of the delegation to be converted |
+| `validator` | [string](#string) |  | validator is the validator of the delegation to be converted |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the quantity of staked assets to be converted |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.MsgMintDerivativeResponse"></a>
+
+### MsgMintDerivativeResponse
+MsgMintDerivativeResponse defines the Msg/MintDerivative response type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `received` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | received is the amount of staking derivative minted and sent to the sender |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.liquid.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the liquid Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `MintDerivative` | [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative) | [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse) | MintDerivative defines a method for converting a delegation into staking deriviatives. | |
+| `BurnDerivative` | [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative) | [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse) | BurnDerivative defines a method for converting staking deriviatives into a delegation. | |
 
  <!-- end services -->
 
@@ -5120,6 +6108,145 @@ Msg defines the pricefeed Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `PostPrice` | [MsgPostPrice](#kava.pricefeed.v1beta1.MsgPostPrice) | [MsgPostPriceResponse](#kava.pricefeed.v1beta1.MsgPostPriceResponse) | PostPrice defines a method for creating a new post price | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/router/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/router/v1beta1/tx.proto
+
+
+
+<a name="kava.router.v1beta1.MsgDelegateMintDeposit"></a>
+
+### MsgDelegateMintDeposit
+MsgDelegateMintDeposit delegates tokens to a validator, then converts them into staking derivatives,
+then deposits to an earn vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the tokens to delegate |
+| `validator` | [string](#string) |  | validator is the address of the validator to delegate to |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the tokens to delegate |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgDelegateMintDepositResponse"></a>
+
+### MsgDelegateMintDepositResponse
+MsgDelegateMintDepositResponse defines the Msg/MsgDelegateMintDeposit response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgMintDeposit"></a>
+
+### MsgMintDeposit
+MsgMintDeposit converts a delegation into staking derivatives and deposits it all into an earn vault.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `depositor` | [string](#string) |  | depositor represents the owner of the delegation to convert |
+| `validator` | [string](#string) |  | validator is the validator for the depositor's delegation |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the delegation balance to convert |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgMintDepositResponse"></a>
+
+### MsgMintDepositResponse
+MsgMintDepositResponse defines the Msg/MsgMintDeposit response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurn"></a>
+
+### MsgWithdrawBurn
+MsgWithdrawBurn removes staking derivatives from an earn vault and converts them back to a staking delegation.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from is the owner of the earn vault to withdraw from |
+| `validator` | [string](#string) |  | validator is the address to select the derivative denom to withdraw |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the staked token equivalent to withdraw |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnResponse"></a>
+
+### MsgWithdrawBurnResponse
+MsgWithdrawBurnResponse defines the Msg/MsgWithdrawBurn response type.
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnUndelegate"></a>
+
+### MsgWithdrawBurnUndelegate
+MsgWithdrawBurnUndelegate removes staking derivatives from an earn vault, converts them to a staking delegation,
+then undelegates them from their validator.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `from` | [string](#string) |  | from is the owner of the earn vault to withdraw from |
+| `validator` | [string](#string) |  | validator is the address to select the derivative denom to withdraw |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | amount is the staked token equivalent to withdraw |
+
+
+
+
+
+
+<a name="kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse"></a>
+
+### MsgWithdrawBurnUndelegateResponse
+MsgWithdrawBurnUndelegateResponse defines the Msg/MsgWithdrawBurnUndelegate response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.router.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the router Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `MintDeposit` | [MsgMintDeposit](#kava.router.v1beta1.MsgMintDeposit) | [MsgMintDepositResponse](#kava.router.v1beta1.MsgMintDepositResponse) | MintDeposit converts a delegation into staking derivatives and deposits it all into an earn vault. | |
+| `DelegateMintDeposit` | [MsgDelegateMintDeposit](#kava.router.v1beta1.MsgDelegateMintDeposit) | [MsgDelegateMintDepositResponse](#kava.router.v1beta1.MsgDelegateMintDepositResponse) | DelegateMintDeposit delegates tokens to a validator, then converts them into staking derivatives, then deposits to an earn vault. | |
+| `WithdrawBurn` | [MsgWithdrawBurn](#kava.router.v1beta1.MsgWithdrawBurn) | [MsgWithdrawBurnResponse](#kava.router.v1beta1.MsgWithdrawBurnResponse) | WithdrawBurn removes staking derivatives from an earn vault and converts them back to a staking delegation. | |
+| `WithdrawBurnUndelegate` | [MsgWithdrawBurnUndelegate](#kava.router.v1beta1.MsgWithdrawBurnUndelegate) | [MsgWithdrawBurnUndelegateResponse](#kava.router.v1beta1.MsgWithdrawBurnUndelegateResponse) | WithdrawBurnUndelegate removes staking derivatives from an earn vault, converts them to a staking delegation, then undelegates them from their validator. | |
 
  <!-- end services -->
 

@@ -1,0 +1,133 @@
+syntax = "proto3";
+package kava.earn.v1beta1;
+
+option go_package                      = "github.com/kava-labs/kava/x/earn/types";
+option (gogoproto.goproto_getters_all) = false;
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "kava/earn/v1beta1/params.proto";
+import "kava/earn/v1beta1/strategy.proto";
+import "kava/earn/v1beta1/vault.proto";
+
+// Query defines the gRPC querier service for earn module
+service Query {
+  // Params queries all parameters of the earn module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/earn/v1beta1/params";
+  }
+
+  // Vaults queries all vaults
+  rpc Vaults(QueryVaultsRequest) returns (QueryVaultsResponse) {
+    option (google.api.http).get = "/kava/earn/v1beta1/vaults";
+  }
+
+  // Vault queries a single vault based on the vault denom
+  rpc Vault(QueryVaultRequest) returns (QueryVaultResponse) {
+    option (google.api.http).get = "/kava/earn/v1beta1/vaults/{denom}";
+  }
+
+  // Deposits queries deposit details based on depositor address and vault
+  rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
+    option (google.api.http).get = "/kava/earn/v1beta1/deposits";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/earn parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/earn parameters.
+message QueryParamsResponse {
+  // params represents the earn module parameters
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryVaultsRequest is the request type for the Query/Vaults RPC method.
+message QueryVaultsRequest {}
+
+// QueryVaultsResponse is the response type for the Query/Vaults RPC method.
+message QueryVaultsResponse {
+  // vaults represents the earn module vaults
+  repeated VaultResponse vaults = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryVaultRequest is the request type for the Query/Vault RPC method.
+message QueryVaultRequest {
+  // vault filters vault by denom
+  string denom = 1;
+}
+
+// QueryVaultResponse is the response type for the Query/Vault RPC method.
+message QueryVaultResponse {
+  // vault represents the queried earn module vault
+  VaultResponse vault = 1 [(gogoproto.nullable) = false];
+}
+
+// VaultResponse is the response type for a vault.
+message VaultResponse {
+  // denom represents the denom of the vault
+  string denom = 1;
+
+  // VaultStrategy is the strategy used for this vault.
+  repeated StrategyType strategies = 2 [(gogoproto.castrepeated) = "StrategyTypes"];
+
+  // IsPrivateVault is true if the vault only allows depositors contained in
+  // AllowedDepositors.
+  bool is_private_vault = 3;
+
+  // AllowedDepositors is a list of addresses that are allowed to deposit to
+  // this vault if IsPrivateVault is true. Addresses not contained in this list
+  // are not allowed to deposit into this vault. If IsPrivateVault is false,
+  // this should be empty and ignored.
+  repeated string allowed_depositors = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // TotalShares is the total amount of shares issued to depositors.
+  string total_shares = 5;
+
+  // TotalValue is the total value of denom coins supplied to the vault if the
+  // vault were to be liquidated.
+  string total_value = 6 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// QueryDepositsRequest is the request type for the Query/Deposits RPC method.
+message QueryDepositsRequest {
+  // depositor optionally filters deposits by depositor
+  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // denom optionally filters deposits by vault denom
+  string denom = 2;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryDepositsResponse is the response type for the Query/Deposits RPC method.
+message QueryDepositsResponse {
+  // deposits returns the deposits matching the requested parameters
+  repeated DepositResponse deposits = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// DepositResponse defines a deposit query response type.
+message DepositResponse {
+  // depositor represents the owner of the deposit.
+  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // Shares represent the issued shares from their corresponding vaults.
+  repeated VaultShare shares = 2 [(gogoproto.castrepeated) = "VaultShares", (gogoproto.nullable) = false];
+
+  // Value represents the total accumulated value of denom coins supplied to
+  // vaults. This may be greater than or equal to amount_supplied depending on
+  // the strategy.
+  repeated cosmos.base.v1beta1.Coin value = 3
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}

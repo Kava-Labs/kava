@@ -6,6 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -13,16 +14,37 @@ import (
 // Keeper of the evmutil store.
 // This keeper stores additional data related to evm accounts.
 type Keeper struct {
-	cdc      codec.Codec
-	storeKey sdk.StoreKey
+	cdc           codec.Codec
+	storeKey      sdk.StoreKey
+	paramSubspace paramtypes.Subspace
+	bankKeeper    types.BankKeeper
+	evmKeeper     types.EvmKeeper
+	accountKeeper types.AccountKeeper
 }
 
 // NewKeeper creates an evmutil keeper.
-func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey) Keeper {
-	return Keeper{
-		cdc:      cdc,
-		storeKey: storeKey,
+func NewKeeper(
+	cdc codec.Codec,
+	storeKey sdk.StoreKey,
+	params paramtypes.Subspace,
+	bk types.BankKeeper,
+	ak types.AccountKeeper,
+) Keeper {
+	if !params.HasKeyTable() {
+		params = params.WithKeyTable(types.ParamKeyTable())
 	}
+
+	return Keeper{
+		cdc:           cdc,
+		storeKey:      storeKey,
+		paramSubspace: params,
+		bankKeeper:    bk,
+		accountKeeper: ak,
+	}
+}
+
+func (k *Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) {
+	k.evmKeeper = evmKeeper
 }
 
 // GetAllAccounts returns all accounts.

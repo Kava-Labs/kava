@@ -5,6 +5,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
@@ -21,6 +22,7 @@ var (
 	_ stakingtypes.StakingHooks = Hooks{}
 	_ swaptypes.SwapHooks       = Hooks{}
 	_ savingstypes.SavingsHooks = Hooks{}
+	_ earntypes.EarnHooks       = Hooks{}
 )
 
 // Hooks create new incentive hooks
@@ -170,10 +172,32 @@ func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, deposit
 
 // AfterSavingsDepositCreated function that runs after a deposit is created
 func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, deposit savingstypes.Deposit) {
-	h.k.InitializeSavingsReward(ctx, deposit)
+	// h.k.InitializeSavingsReward(ctx, deposit)
 }
 
 // BeforeSavingsDepositModified function that runs before a deposit is modified
 func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit, incomingDenoms []string) {
-	h.k.SynchronizeSavingsReward(ctx, deposit, incomingDenoms)
+	// h.k.SynchronizeSavingsReward(ctx, deposit, incomingDenoms)
+}
+
+// ------------------- Earn Module Hooks -------------------
+
+// AfterVaultDepositCreated function that runs after a vault deposit is created
+func (h Hooks) AfterVaultDepositCreated(
+	ctx sdk.Context,
+	vaultDenom string,
+	depositor sdk.AccAddress,
+	_ sdk.Dec,
+) {
+	h.k.InitializeEarnReward(ctx, vaultDenom, depositor)
+}
+
+// BeforeVaultDepositModified function that runs before a vault deposit is modified
+func (h Hooks) BeforeVaultDepositModified(
+	ctx sdk.Context,
+	vaultDenom string,
+	depositor sdk.AccAddress,
+	sharesOwned sdk.Dec,
+) {
+	h.k.SynchronizeEarnReward(ctx, vaultDenom, depositor, sharesOwned)
 }

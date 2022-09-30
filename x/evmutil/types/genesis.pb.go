@@ -4,6 +4,7 @@
 package types
 
 import (
+	bytes "bytes"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
@@ -28,6 +29,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // GenesisState defines the evmutil module's genesis state.
 type GenesisState struct {
 	Accounts []Account `protobuf:"bytes,1,rep,name=accounts,proto3" json:"accounts"`
+	// params defines all the parameters of the module.
+	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -103,9 +106,57 @@ func (m *Account) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Account proto.InternalMessageInfo
 
+// Params defines the evmutil module params
+type Params struct {
+	// enabled_conversion_pairs defines the list of conversion pairs allowed to be
+	// converted between Kava ERC20 and sdk.Coin
+	EnabledConversionPairs ConversionPairs `protobuf:"bytes,4,rep,name=enabled_conversion_pairs,json=enabledConversionPairs,proto3,castrepeated=ConversionPairs" json:"enabled_conversion_pairs"`
+}
+
+func (m *Params) Reset()         { *m = Params{} }
+func (m *Params) String() string { return proto.CompactTextString(m) }
+func (*Params) ProtoMessage()    {}
+func (*Params) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d916ab97b8e628c2, []int{2}
+}
+func (m *Params) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Params) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Params.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Params) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Params.Merge(m, src)
+}
+func (m *Params) XXX_Size() int {
+	return m.Size()
+}
+func (m *Params) XXX_DiscardUnknown() {
+	xxx_messageInfo_Params.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Params proto.InternalMessageInfo
+
+func (m *Params) GetEnabledConversionPairs() ConversionPairs {
+	if m != nil {
+		return m.EnabledConversionPairs
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "kava.evmutil.v1beta1.GenesisState")
 	proto.RegisterType((*Account)(nil), "kava.evmutil.v1beta1.Account")
+	proto.RegisterType((*Params)(nil), "kava.evmutil.v1beta1.Params")
 }
 
 func init() {
@@ -113,30 +164,231 @@ func init() {
 }
 
 var fileDescriptor_d916ab97b8e628c2 = []byte{
-	// 331 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0xca, 0x4e, 0x2c, 0x4b,
-	0xd4, 0x4f, 0x2d, 0xcb, 0x2d, 0x2d, 0xc9, 0xcc, 0xd1, 0x2f, 0x33, 0x4c, 0x4a, 0x2d, 0x49, 0x34,
-	0xd4, 0x4f, 0x4f, 0xcd, 0x4b, 0x2d, 0xce, 0x2c, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12,
-	0x01, 0xa9, 0xd1, 0x83, 0xaa, 0xd1, 0x83, 0xaa, 0x91, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07, 0x2b,
-	0xd0, 0x07, 0xb1, 0x20, 0x6a, 0xa5, 0x24, 0x93, 0xf3, 0x8b, 0x73, 0xf3, 0x8b, 0xe3, 0x21, 0x12,
-	0x10, 0x0e, 0x44, 0x4a, 0x29, 0x94, 0x8b, 0xc7, 0x1d, 0x62, 0x6e, 0x70, 0x49, 0x62, 0x49, 0xaa,
-	0x90, 0x3d, 0x17, 0x47, 0x62, 0x72, 0x72, 0x7e, 0x69, 0x5e, 0x49, 0xb1, 0x04, 0xa3, 0x02, 0xb3,
-	0x06, 0xb7, 0x91, 0xac, 0x1e, 0x36, 0x9b, 0xf4, 0x1c, 0x21, 0xaa, 0x9c, 0x58, 0x4e, 0xdc, 0x93,
-	0x67, 0x08, 0x82, 0x6b, 0xb2, 0x62, 0xe9, 0x58, 0x20, 0xcf, 0xa0, 0x74, 0x9e, 0x91, 0x8b, 0x1d,
-	0xaa, 0x42, 0x28, 0x89, 0x8b, 0x3d, 0x31, 0x25, 0xa5, 0x28, 0xb5, 0x18, 0x64, 0x22, 0xa3, 0x06,
-	0x8f, 0x93, 0xc7, 0xaf, 0x7b, 0xf2, 0xba, 0xe9, 0x99, 0x25, 0x19, 0xa5, 0x49, 0x7a, 0xc9, 0xf9,
-	0xb9, 0x50, 0x07, 0x41, 0x29, 0xdd, 0xe2, 0x94, 0x6c, 0xfd, 0x92, 0xca, 0x82, 0xd4, 0x62, 0x90,
-	0x15, 0x8e, 0x10, 0x8d, 0x97, 0xb6, 0xe8, 0x0a, 0x43, 0x9d, 0x0d, 0x15, 0x71, 0xaa, 0x2c, 0x49,
-	0x2d, 0x0e, 0x82, 0x19, 0x2c, 0x14, 0xc6, 0xc5, 0x9e, 0x94, 0x98, 0x93, 0x98, 0x97, 0x9c, 0x2a,
-	0xc1, 0xa4, 0xc0, 0xa8, 0xc1, 0xe9, 0x64, 0x03, 0x72, 0xd6, 0xad, 0x7b, 0xf2, 0x6a, 0x44, 0xd8,
-	0xe3, 0x99, 0x57, 0x72, 0x69, 0x8b, 0x2e, 0x17, 0xd4, 0x02, 0xcf, 0xbc, 0x92, 0x20, 0x98, 0x61,
-	0x56, 0x1c, 0x20, 0xdf, 0xbc, 0x58, 0x20, 0xcf, 0xe0, 0xe4, 0x7c, 0xe2, 0x91, 0x1c, 0xe3, 0x85,
-	0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7, 0x70, 0xe1, 0xb1, 0x1c, 0xc3,
-	0x8d, 0xc7, 0x72, 0x0c, 0x51, 0x9a, 0x48, 0x56, 0x80, 0x82, 0x4a, 0x37, 0x27, 0x31, 0xa9, 0x18,
-	0xcc, 0xd2, 0xaf, 0x80, 0x47, 0x22, 0xd8, 0xa6, 0x24, 0x36, 0x70, 0xa0, 0x1b, 0x03, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0x21, 0x8b, 0xca, 0xd4, 0xe1, 0x01, 0x00, 0x00,
+	// 434 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0x41, 0x8b, 0xd3, 0x40,
+	0x14, 0xc7, 0x33, 0x5a, 0x5a, 0x9d, 0x5d, 0x10, 0xe2, 0xa2, 0x71, 0xd1, 0xc9, 0x52, 0x44, 0xaa,
+	0x90, 0x84, 0x5d, 0x6f, 0x45, 0x90, 0xc6, 0x83, 0x16, 0x2f, 0x25, 0x82, 0x07, 0x2f, 0x65, 0x92,
+	0x0c, 0x31, 0x34, 0x99, 0x09, 0x99, 0x69, 0xb4, 0x47, 0x6f, 0x1e, 0xf5, 0x1b, 0x78, 0x14, 0xcf,
+	0xfd, 0x10, 0x05, 0x2f, 0xa5, 0x27, 0xf1, 0x50, 0x6b, 0xfa, 0x2d, 0x3c, 0x49, 0x32, 0xd3, 0xa2,
+	0x25, 0x87, 0x3d, 0x75, 0xfa, 0xe6, 0xf7, 0x7f, 0xef, 0xff, 0x7f, 0x19, 0xd8, 0x9d, 0xe0, 0x02,
+	0x3b, 0xa4, 0x48, 0xa7, 0x22, 0x4e, 0x9c, 0xe2, 0xdc, 0x27, 0x02, 0x9f, 0x3b, 0x11, 0xa1, 0x84,
+	0xc7, 0xdc, 0xce, 0x72, 0x26, 0x98, 0x7e, 0x52, 0x31, 0xb6, 0x62, 0x6c, 0xc5, 0x9c, 0x9e, 0x44,
+	0x2c, 0x62, 0x35, 0xe0, 0x54, 0x27, 0xc9, 0x9e, 0xde, 0x09, 0x18, 0x4f, 0x19, 0x1f, 0xcb, 0x0b,
+	0xf9, 0x47, 0x5d, 0x3d, 0x6a, 0x1c, 0x15, 0x30, 0x5a, 0x90, 0x9c, 0xc7, 0x8c, 0x8e, 0x33, 0x1c,
+	0xe7, 0x92, 0xed, 0x7e, 0x06, 0xf0, 0xf8, 0xb9, 0x34, 0xf1, 0x4a, 0x60, 0x41, 0xf4, 0xa7, 0xf0,
+	0x1a, 0x0e, 0x02, 0x36, 0xa5, 0x82, 0x1b, 0xe0, 0xec, 0x6a, 0xef, 0xe8, 0xe2, 0x9e, 0xdd, 0x64,
+	0xcb, 0x1e, 0x48, 0xca, 0x6d, 0x2d, 0xd6, 0xa6, 0xe6, 0xed, 0x45, 0x7a, 0x1f, 0xb6, 0x33, 0x9c,
+	0xe3, 0x94, 0x1b, 0x57, 0xce, 0x40, 0xef, 0xe8, 0xe2, 0x6e, 0xb3, 0x7c, 0x54, 0x33, 0x4a, 0xad,
+	0x14, 0xfd, 0xd6, 0xc7, 0x2f, 0xa6, 0xd6, 0xfd, 0x0e, 0x60, 0x47, 0x75, 0xd7, 0x7d, 0xd8, 0xc1,
+	0x61, 0x98, 0x13, 0x5e, 0xb9, 0x01, 0xbd, 0x63, 0xf7, 0xc5, 0x9f, 0xb5, 0x69, 0x45, 0xb1, 0x78,
+	0x3b, 0xf5, 0xed, 0x80, 0xa5, 0x2a, 0xb9, 0xfa, 0xb1, 0x78, 0x38, 0x71, 0xc4, 0x2c, 0x23, 0xbc,
+	0xb2, 0x37, 0x90, 0xc2, 0xd5, 0xdc, 0xba, 0xa9, 0xf6, 0xa3, 0x2a, 0xee, 0x4c, 0x10, 0xee, 0xed,
+	0x1a, 0xeb, 0xaf, 0x61, 0xc7, 0xc7, 0x09, 0xa6, 0x01, 0xa9, 0x2d, 0x5f, 0x77, 0x9f, 0x54, 0xa6,
+	0x7e, 0xae, 0xcd, 0x07, 0x97, 0x98, 0x33, 0xa4, 0x62, 0x35, 0xb7, 0xa0, 0x1a, 0x30, 0xa4, 0xc2,
+	0xdb, 0x35, 0x53, 0x69, 0x3e, 0x00, 0xd8, 0x96, 0x61, 0xf5, 0x77, 0xd0, 0x20, 0x14, 0xfb, 0x09,
+	0x09, 0xc7, 0x07, 0x5f, 0x83, 0x1b, 0xad, 0x7a, 0xd7, 0xf7, 0x9b, 0x97, 0xf5, 0x6c, 0x4f, 0x8f,
+	0x70, 0x9c, 0xbb, 0xb7, 0x2b, 0x7f, 0xdf, 0x7e, 0x99, 0x37, 0xfe, 0xaf, 0x73, 0xef, 0x96, 0x6a,
+	0x7f, 0x50, 0x77, 0x5f, 0x6e, 0x7e, 0x23, 0xf0, 0xb5, 0x44, 0x60, 0x51, 0x22, 0xb0, 0x2c, 0x11,
+	0xd8, 0x94, 0x08, 0x7c, 0xda, 0x22, 0x6d, 0xb9, 0x45, 0xda, 0x8f, 0x2d, 0xd2, 0xde, 0x3c, 0xfc,
+	0x27, 0x6a, 0x65, 0xc1, 0x4a, 0xb0, 0xcf, 0xeb, 0x93, 0xf3, 0x7e, 0xff, 0x94, 0xea, 0xc4, 0x7e,
+	0xbb, 0x7e, 0x39, 0x8f, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff, 0xd6, 0x08, 0x73, 0x42, 0xd2, 0x02,
+	0x00, 0x00,
 }
 
+func (this *GenesisState) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*GenesisState)
+	if !ok {
+		that2, ok := that.(GenesisState)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *GenesisState")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *GenesisState but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *GenesisState but is not nil && this == nil")
+	}
+	if len(this.Accounts) != len(that1.Accounts) {
+		return fmt.Errorf("Accounts this(%v) Not Equal that(%v)", len(this.Accounts), len(that1.Accounts))
+	}
+	for i := range this.Accounts {
+		if !this.Accounts[i].Equal(&that1.Accounts[i]) {
+			return fmt.Errorf("Accounts this[%v](%v) Not Equal that[%v](%v)", i, this.Accounts[i], i, that1.Accounts[i])
+		}
+	}
+	if !this.Params.Equal(&that1.Params) {
+		return fmt.Errorf("Params this(%v) Not Equal that(%v)", this.Params, that1.Params)
+	}
+	return nil
+}
+func (this *GenesisState) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*GenesisState)
+	if !ok {
+		that2, ok := that.(GenesisState)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.Accounts) != len(that1.Accounts) {
+		return false
+	}
+	for i := range this.Accounts {
+		if !this.Accounts[i].Equal(&that1.Accounts[i]) {
+			return false
+		}
+	}
+	if !this.Params.Equal(&that1.Params) {
+		return false
+	}
+	return true
+}
+func (this *Account) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*Account)
+	if !ok {
+		that2, ok := that.(Account)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *Account")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *Account but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *Account but is not nil && this == nil")
+	}
+	if !bytes.Equal(this.Address, that1.Address) {
+		return fmt.Errorf("Address this(%v) Not Equal that(%v)", this.Address, that1.Address)
+	}
+	if !this.Balance.Equal(that1.Balance) {
+		return fmt.Errorf("Balance this(%v) Not Equal that(%v)", this.Balance, that1.Balance)
+	}
+	return nil
+}
+func (this *Account) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Account)
+	if !ok {
+		that2, ok := that.(Account)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !bytes.Equal(this.Address, that1.Address) {
+		return false
+	}
+	if !this.Balance.Equal(that1.Balance) {
+		return false
+	}
+	return true
+}
+func (this *Params) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*Params)
+	if !ok {
+		that2, ok := that.(Params)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *Params")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *Params but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *Params but is not nil && this == nil")
+	}
+	if len(this.EnabledConversionPairs) != len(that1.EnabledConversionPairs) {
+		return fmt.Errorf("EnabledConversionPairs this(%v) Not Equal that(%v)", len(this.EnabledConversionPairs), len(that1.EnabledConversionPairs))
+	}
+	for i := range this.EnabledConversionPairs {
+		if !this.EnabledConversionPairs[i].Equal(&that1.EnabledConversionPairs[i]) {
+			return fmt.Errorf("EnabledConversionPairs this[%v](%v) Not Equal that[%v](%v)", i, this.EnabledConversionPairs[i], i, that1.EnabledConversionPairs[i])
+		}
+	}
+	return nil
+}
+func (this *Params) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*Params)
+	if !ok {
+		that2, ok := that.(Params)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.EnabledConversionPairs) != len(that1.EnabledConversionPairs) {
+		return false
+	}
+	for i := range this.EnabledConversionPairs {
+		if !this.EnabledConversionPairs[i].Equal(&that1.EnabledConversionPairs[i]) {
+			return false
+		}
+	}
+	return true
+}
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -157,6 +409,16 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
 	if len(m.Accounts) > 0 {
 		for iNdEx := len(m.Accounts) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -214,6 +476,43 @@ func (m *Account) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Params) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Params) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.EnabledConversionPairs) > 0 {
+		for iNdEx := len(m.EnabledConversionPairs) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.EnabledConversionPairs[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintGenesis(dAtA []byte, offset int, v uint64) int {
 	offset -= sovGenesis(v)
 	base := offset
@@ -237,6 +536,8 @@ func (m *GenesisState) Size() (n int) {
 			n += 1 + l + sovGenesis(uint64(l))
 		}
 	}
+	l = m.Params.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	return n
 }
 
@@ -252,6 +553,21 @@ func (m *Account) Size() (n int) {
 	}
 	l = m.Balance.Size()
 	n += 1 + l + sovGenesis(uint64(l))
+	return n
+}
+
+func (m *Params) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.EnabledConversionPairs) > 0 {
+		for _, e := range m.EnabledConversionPairs {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -321,6 +637,39 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			}
 			m.Accounts = append(m.Accounts, Account{})
 			if err := m.Accounts[len(m.Accounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -439,6 +788,90 @@ func (m *Account) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Balance.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Params) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Params: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Params: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EnabledConversionPairs", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EnabledConversionPairs = append(m.EnabledConversionPairs, ConversionPair{})
+			if err := m.EnabledConversionPairs[len(m.EnabledConversionPairs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

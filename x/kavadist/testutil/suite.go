@@ -52,7 +52,7 @@ func (suite *Suite) SetupTest() {
 			Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
 		},
 	}
-	params := types.NewParams(true, testPeriods)
+	params := types.NewParams(true, testPeriods, types.DefaultInfraParams)
 	moduleGs := types.ModuleCdc.MustMarshalJSON(types.NewGenesisState(params, types.DefaultPreviousBlockTime))
 	gs := app.GenesisState{types.ModuleName: moduleGs}
 	tApp.InitializeFromGenesisStates(authGS, gs)
