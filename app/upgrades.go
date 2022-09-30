@@ -15,7 +15,10 @@ func (app App) RegisterUpgradeHandlers() {
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 
 			// add minter and burner permissions to evmutil
-			evmutilAcc := app.accountKeeper.GetModuleAccount(ctx, evmutiltypes.ModuleName).(*authtypes.ModuleAccount)
+			evmutilAcc, ok := app.accountKeeper.GetModuleAccount(ctx, evmutiltypes.ModuleName).(*authtypes.ModuleAccount)
+			if !ok {
+				panic("unable to fetch evmutil module account")
+			}
 			evmutilAcc.Permissions = []string{
 				authtypes.Minter, authtypes.Burner,
 			}
