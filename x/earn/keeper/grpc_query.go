@@ -397,6 +397,28 @@ func (s queryServer) getOneAccountAllDeposits(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
+	if req.ValueInStakedTokens {
+		valueInStakedTokens := sdk.NewCoins()
+
+		for _, coin := range value {
+			// Non-bkava coins are kept as is
+			if !s.keeper.liquidKeeper.IsDerivativeDenom(ctx, coin.Denom) {
+				valueInStakedTokens = valueInStakedTokens.Add(coin)
+				continue
+			}
+
+			// Derivative coins are converted to underlying staked tokens
+			ukavaValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, sdk.NewCoins(coin))
+			if err != nil {
+				// This should "never" happen if IsDerivativeDenom is true
+				panic("Error getting ukava value for " + coin.Denom)
+			}
+			valueInStakedTokens = valueInStakedTokens.Add(ukavaValue)
+		}
+
+		value = valueInStakedTokens
+	}
+
 	deposits = append(deposits, types.DepositResponse{
 		Depositor: depositor.String(),
 		Shares:    accountShare.Shares,
