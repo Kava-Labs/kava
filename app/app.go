@@ -147,8 +147,7 @@ import (
 
 const (
 	appName                        = "kava"
-	FixDefaultAccountUpgradeHeight = 138592
-	EthermintPatchUpgradeName      = "v0.18.0"
+	FixDefaultAccountUpgradeHeight = 1783387
 )
 
 var (
@@ -944,12 +943,6 @@ func NewApp(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
-
-	app.upgradeKeeper.SetUpgradeHandler(
-		EthermintPatchUpgradeName,
-		func(ctx sdk.Context, _ upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-		})
 
 	return app
 }
