@@ -4,9 +4,12 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
@@ -22,6 +25,9 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("updating x/savings params with new supported denoms")
 			UpdateSavingsParams(ctx, app.savingsKeeper)
+
+			app.Logger().Info("updating x/evmutil module account with new permissions")
+			UpdateEvmutilPermissions(ctx, app.accountKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
@@ -64,4 +70,16 @@ func UpdateSavingsParams(ctx sdk.Context, savingsKeeper savingskeeper.Keeper) {
 	})
 
 	savingsKeeper.SetParams(ctx, savingsParams)
+}
+
+func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) {
+	// add minter and burner permissions to evmutil
+	evmutilAcc, ok := accountKeeper.GetModuleAccount(ctx, evmutiltypes.ModuleName).(*authtypes.ModuleAccount)
+	if !ok {
+		panic("unable to fetch evmutil module account")
+	}
+	evmutilAcc.Permissions = []string{
+		authtypes.Minter, authtypes.Burner,
+	}
+	accountKeeper.SetModuleAccount(ctx, evmutilAcc)
 }
