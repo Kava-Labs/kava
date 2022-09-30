@@ -72,3 +72,25 @@ func (suite *UpgradeTestSuite) TestUpdateCosmosMintInflation() {
 	suite.Equal(oldParams.GoalBonded, newParams.GoalBonded)
 	suite.Equal(oldParams.BlocksPerYear, newParams.BlocksPerYear)
 }
+
+func (suite *UpgradeTestSuite) TestUpdateSavingsParams() {
+	savingsKeeper := suite.App.GetSavingsKeeper()
+	oldParams := savingsKeeper.GetParams(suite.Ctx)
+	suite.Empty(oldParams.SupportedDenoms, "initial SupportedDenoms should be empty")
+
+	// Run migration
+	app.UpdateSavingsParams(suite.Ctx, savingsKeeper)
+
+	newParams := savingsKeeper.GetParams(suite.Ctx)
+	suite.NotEqual(oldParams, newParams, "params should be changed after migration")
+
+	suite.ElementsMatch(
+		[]string{
+			"ukava",
+			"bkava",
+			"erc20/multichain/usdc",
+		},
+		newParams.SupportedDenoms,
+		"SupportedDenoms should be updated to include ukava",
+	)
+}

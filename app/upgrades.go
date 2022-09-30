@@ -7,6 +7,8 @@ import (
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
 const UpgradeName = "v0.19.0"
@@ -16,6 +18,7 @@ func (app App) RegisterUpgradeHandlers() {
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			// 100% inflation -> 75% inflation
 			UpdateCosmosMintInflation(ctx, app.mintKeeper)
+			UpdateSavingsParams(ctx, app.savingsKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
@@ -48,4 +51,14 @@ func UpdateCosmosMintInflation(ctx sdk.Context, mintKeeper mintkeeper.Keeper) {
 	mintParams.InflationMax = sdk.NewDecWithPrec(75, 2)
 
 	mintKeeper.SetParams(ctx, mintParams)
+}
+
+func UpdateSavingsParams(ctx sdk.Context, savingsKeeper savingskeeper.Keeper) {
+	savingsParams := savingstypes.NewParams([]string{
+		"ukava",
+		"bkava",
+		"erc20/multichain/usdc",
+	})
+
+	savingsKeeper.SetParams(ctx, savingsParams)
 }
