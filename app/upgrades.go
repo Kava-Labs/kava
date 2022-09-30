@@ -17,7 +17,10 @@ func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			// 100% inflation -> 75% inflation
+			app.Logger().Info("updating x/mint params with inflation 100% -> 75%")
 			UpdateCosmosMintInflation(ctx, app.mintKeeper)
+
+			app.Logger().Info("updating x/savings params with new supported denoms")
 			UpdateSavingsParams(ctx, app.savingsKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
