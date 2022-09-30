@@ -6,7 +6,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
-const UpgradeName = "v0.19.1"
+const UpgradeName = "v0.19.1-testnet"
 
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
