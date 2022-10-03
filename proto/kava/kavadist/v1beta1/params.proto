@@ -13,20 +13,21 @@ option (gogoproto.goproto_getters_all)  = false;
 
 // Params governance parameters for kavadist module
 message Params {
-  bool            active  = 1 [(gogoproto.moretags) = "yaml:\"active\""];
-  repeated Period periods = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"periods\""];
+  bool                 active  = 1 [(gogoproto.moretags) = "yaml:\"active\""];
+  repeated Period      periods = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"periods\""];
   InfrastructureParams infrastructure_params = 4 [(gogoproto.nullable) = false];
 }
 
 message InfrastructureParams {
-  repeated Period infrastructure_periods = 1 [(gogoproto.castrepeated) = "Periods", (gogoproto.nullable) = false];
-  repeated CoreReward core_rewards = 2 [(gogoproto.castrepeated) = "CoreRewards", (gogoproto.nullable) = false];
-  repeated PartnerReward partner_rewards = 3 [(gogoproto.castrepeated) = "PartnerRewards", (gogoproto.nullable) = false];
-  option (gogoproto.goproto_stringer)        = true;
+  repeated Period     infrastructure_periods = 1 [(gogoproto.castrepeated) = "Periods", (gogoproto.nullable) = false];
+  repeated CoreReward core_rewards       = 2 [(gogoproto.castrepeated) = "CoreRewards", (gogoproto.nullable) = false];
+  repeated PartnerReward partner_rewards = 3
+      [(gogoproto.castrepeated) = "PartnerRewards", (gogoproto.nullable) = false];
+  option (gogoproto.goproto_stringer) = true;
 }
 
 message CoreReward {
-  bytes   address      = 1                   [
+  bytes address = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
@@ -35,16 +36,16 @@ message CoreReward {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ];
-  option (gogoproto.goproto_stringer)        = true;
+  option (gogoproto.goproto_stringer) = true;
 }
 
 message PartnerReward {
-  bytes   address      = 1                   [
+  bytes address = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
-  cosmos.base.v1beta1.Coin rewards_per_second         = 2[(gogoproto.nullable) = false];
-  option (gogoproto.goproto_stringer)        = true;
+  cosmos.base.v1beta1.Coin rewards_per_second = 2 [(gogoproto.nullable) = false];
+  option (gogoproto.goproto_stringer)         = true;
 }
 
 // Period stores the specified start and end dates, and the inflation, expressed as a decimal
@@ -67,4 +68,3 @@ message Period {
     (gogoproto.moretags)   = "yaml:\"inflation\""
   ];
 }
-

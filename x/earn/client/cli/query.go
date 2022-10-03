@@ -15,8 +15,9 @@ import (
 
 // flags for cli queries
 const (
-	flagDenom = "denom"
-	flagOwner = "owner"
+	flagDenom               = "denom"
+	flagOwner               = "owner"
+	flagValueInStakedTokens = "value_in_staked_tokens"
 )
 
 // GetQueryCmd returns the cli query commands for the earn module
@@ -145,6 +146,10 @@ func queryDepositsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			valueInStakedTokens, err := cmd.Flags().GetBool(flagValueInStakedTokens)
+			if err != nil {
+				return err
+			}
 
 			pageReq, err := client.ReadPageRequest(cmd.Flags())
 			if err != nil {
@@ -156,6 +161,7 @@ func queryDepositsCmd() *cobra.Command {
 			req := types.NewQueryDepositsRequest(
 				ownerBech,
 				denom,
+				valueInStakedTokens,
 				pageReq,
 			)
 			res, err := queryClient.Deposits(context.Background(), req)
@@ -171,6 +177,7 @@ func queryDepositsCmd() *cobra.Command {
 
 	cmd.Flags().String(flagOwner, "", "(optional) filter for deposits by owner address")
 	cmd.Flags().String(flagDenom, "", "(optional) filter for deposits by vault denom")
+	cmd.Flags().Bool(flagValueInStakedTokens, false, "(optional) get underlying staked tokens for staking derivative vaults")
 
 	return cmd
 }

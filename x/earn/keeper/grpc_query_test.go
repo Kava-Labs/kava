@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -14,6 +15,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/testutil"
 	"github.com/kava-labs/kava/x/earn/types"
@@ -217,32 +219,61 @@ func (suite *grpcQueryTestSuite) TestVault_NotFound() {
 }
 
 func (suite *grpcQueryTestSuite) TestDeposits() {
+	// Validator setup for bkava
+	_, addrs := app.GeneratePrivKeyAddressPairs(5)
+	valAccAddr1, valAccAddr2, delegator := addrs[0], addrs[1], addrs[2]
+	valAddr1 := sdk.ValAddress(valAccAddr1)
+	valAddr2 := sdk.ValAddress(valAccAddr2)
+
 	vault1Denom := "usdx"
 	vault2Denom := "busd"
-	vault3Denom := testutil.TestBkavaDenoms[0]
+	vault3Denom := fmt.Sprintf("bkava-%s", valAddr1.String())
+	vault4Denom := fmt.Sprintf("bkava-%s", valAddr2.String())
+
+	initialUkavaBalance := sdk.NewInt(1e9)
+	startBalance := sdk.NewCoins(
+		sdk.NewCoin("ukava", initialUkavaBalance),
+		sdk.NewInt64Coin(vault1Denom, 1000),
+		sdk.NewInt64Coin(vault2Denom, 1000),
+		// Bkava isn't actually minted via x/liquid
+		sdk.NewInt64Coin(vault3Denom, 1000),
+		sdk.NewInt64Coin(vault4Denom, 1000),
+	)
+
+	delegateAmount := sdk.NewInt(100e6)
+
+	suite.App.FundAccount(suite.Ctx, valAccAddr1, startBalance)
+	suite.App.FundAccount(suite.Ctx, valAccAddr2, startBalance)
+	suite.App.FundAccount(suite.Ctx, delegator, startBalance)
+
+	suite.CreateNewUnbondedValidator(valAddr1, initialUkavaBalance)
+	suite.CreateNewUnbondedValidator(valAddr2, initialUkavaBalance)
+	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
+	suite.CreateDelegation(valAddr2, delegator, delegateAmount)
+
+	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
+
+	savingsParams := suite.SavingsKeeper.GetParams(suite.Ctx)
+	savingsParams.SupportedDenoms = append(savingsParams.SupportedDenoms, "bkava")
+	suite.SavingsKeeper.SetParams(suite.Ctx, savingsParams)
 
 	// Add vaults
 	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 
-	startBalance := sdk.NewCoins(
-		sdk.NewInt64Coin(vault1Denom, 1000),
-		sdk.NewInt64Coin(vault2Denom, 1000),
-		sdk.NewInt64Coin(vault3Denom, 1000),
-	)
-
 	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
 	deposit3Amount := sdk.NewInt64Coin(vault3Denom, 200)
+	deposit4Amount := sdk.NewInt64Coin(vault4Denom, 300)
 
 	// Accounts
 	acc1 := suite.CreateAccount(startBalance, 0).GetAddress()
-	acc2 := suite.CreateAccount(startBalance, 1).GetAddress()
+	acc2 := delegator
 
 	// Deposit into each vault from each account - 4 total deposits
 	// Acc 1: usdx + busd
-	// Acc 2: usdx + bkava
+	// Acc 2: usdx + bkava-1 + bkava-2
 	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount, types.STRATEGY_TYPE_HARD)
@@ -252,12 +283,14 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit3Amount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit4Amount, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(err)
 
 	suite.Run("specific vault", func() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(acc1.String(), vault1Denom, nil),
+			types.NewQueryDepositsRequest(acc1.String(), vault1Denom, false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
@@ -282,7 +315,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	suite.Run("specific bkava vault", func() {
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(acc2.String(), vault3Denom, nil),
+			types.NewQueryDepositsRequest(acc2.String(), vault3Denom, false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
@@ -304,10 +337,33 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		)
 	})
 
+	suite.Run("specific bkava vault in staked tokens", func() {
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc2.String(), vault3Denom, true, nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().Equal(
+			types.DepositResponse{
+				Depositor: acc2.String(),
+				// Only includes specified deposit shares
+				Shares: types.NewVaultShares(
+					types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+				),
+				// Only the specified vault denom value
+				Value: sdk.NewCoins(
+					sdk.NewCoin("ukava", deposit3Amount.Amount),
+				),
+			},
+			res.Deposits[0],
+		)
+	})
+
 	suite.Run("invalid vault", func() {
 		_, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(acc1.String(), "notavaliddenom", nil),
+			types.NewQueryDepositsRequest(acc1.String(), "notavaliddenom", false, nil),
 		)
 		suite.Require().Error(err)
 		suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "vault for notavaliddenom not found"))
@@ -317,7 +373,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(acc1.String(), "", nil),
+			types.NewQueryDepositsRequest(acc1.String(), "", false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
@@ -334,6 +390,40 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 			},
 			res.Deposits,
 		)
+	})
+
+	suite.Run("all vaults value in staked tokens", func() {
+		// Query all deposits for account 1 with value in staked tokens
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc2.String(), "", true, nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().Equal(
+			types.DepositResponse{
+				Depositor: acc2.String(),
+				Shares: types.VaultShares{
+					types.NewVaultShare(deposit4Amount.Denom, deposit4Amount.Amount.ToDec()),
+					types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+					types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+				},
+				Value: sdk.Coins{
+					sdk.NewCoin("ukava", deposit4Amount.Amount),
+					sdk.NewCoin("ukava", deposit3Amount.Amount),
+					// Deposit 1 is last as it's the same order as vault shares
+					deposit1Amount,
+				},
+			},
+			res.Deposits[0],
+		)
+		for i := range res.Deposits[0].Shares {
+			suite.Equal(
+				res.Deposits[0].Shares[i].Amount,
+				res.Deposits[0].Value[i].Amount.ToDec(),
+				"order of deposit value should match shares",
+			)
+		}
 	})
 }
 
@@ -353,7 +443,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_NoDeposits() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(acc1.String(), vault1Denom, nil),
+			types.NewQueryDepositsRequest(acc1.String(), vault1Denom, false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
@@ -376,7 +466,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_NoDeposits() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(acc1.String(), "", nil),
+			types.NewQueryDepositsRequest(acc1.String(), "", false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Empty(res.Deposits)
@@ -386,7 +476,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_NoDeposits() {
 func (suite *grpcQueryTestSuite) TestDeposits_NoDepositor() {
 	_, err := suite.queryClient.Deposits(
 		context.Background(),
-		types.NewQueryDepositsRequest("", "usdx", nil),
+		types.NewQueryDepositsRequest("", "usdx", false, nil),
 	)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "depositor is required"))
@@ -395,14 +485,14 @@ func (suite *grpcQueryTestSuite) TestDeposits_NoDepositor() {
 func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
 	_, err := suite.queryClient.Deposits(
 		context.Background(),
-		types.NewQueryDepositsRequest("asdf", "usdx", nil),
+		types.NewQueryDepositsRequest("asdf", "usdx", false, nil),
 	)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "Invalid address"))
 
 	_, err = suite.queryClient.Deposits(
 		context.Background(),
-		types.NewQueryDepositsRequest("asdf", "", nil),
+		types.NewQueryDepositsRequest("asdf", "", false, nil),
 	)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "Invalid address"))
@@ -440,7 +530,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(address1.String(), "bkava", nil),
+			types.NewQueryDepositsRequest(address1.String(), "bkava", false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
@@ -475,7 +565,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(address1.String(), "bkava", nil),
+			types.NewQueryDepositsRequest(address1.String(), "bkava", false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)

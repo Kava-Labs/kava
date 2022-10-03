@@ -23,11 +23,13 @@ func NewQueryVaultRequest(denom string) *QueryVaultRequest {
 func NewQueryDepositsRequest(
 	depositor string,
 	denom string,
+	ValueInStakedTokens bool,
 	pagination *query.PageRequest,
 ) *QueryDepositsRequest {
 	return &QueryDepositsRequest{
-		Depositor:  depositor,
-		Denom:      denom,
-		Pagination: pagination,
+		Depositor:           depositor,
+		Denom:               denom,
+		ValueInStakedTokens: ValueInStakedTokens,
+		Pagination:          pagination,
 	}
 }
