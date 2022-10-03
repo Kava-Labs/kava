@@ -325,6 +325,29 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		)
 	})
 
+	suite.Run("specific bkava vault in staked tokens", func() {
+		res, err := suite.queryClient.Deposits(
+			context.Background(),
+			types.NewQueryDepositsRequest(acc2.String(), vault3Denom, true, nil),
+		)
+		suite.Require().NoError(err)
+		suite.Require().Len(res.Deposits, 1)
+		suite.Require().Equal(
+			types.DepositResponse{
+				Depositor: acc2.String(),
+				// Only includes specified deposit shares
+				Shares: types.NewVaultShares(
+					types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+				),
+				// Only the specified vault denom value
+				Value: sdk.NewCoins(
+					sdk.NewCoin("ukava", deposit3Amount.Amount),
+				),
+			},
+			res.Deposits[0],
+		)
+	})
+
 	suite.Run("invalid vault", func() {
 		_, err := suite.queryClient.Deposits(
 			context.Background(),

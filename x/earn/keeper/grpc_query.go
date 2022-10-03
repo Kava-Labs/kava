@@ -296,6 +296,19 @@ func (s queryServer) getOneAccountOneVaultDeposit(
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
+	if req.ValueInStakedTokens {
+		// Get underlying ukava amount if denom is a derivative
+		if s.keeper.liquidKeeper.IsDerivativeDenom(ctx, req.Denom) {
+			ukavaValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, sdk.NewCoins(value))
+			if err != nil {
+				// This should "never" happen if IsDerivativeDenom is true
+				panic("Error getting ukava value for " + req.Denom)
+			}
+
+			value = ukavaValue
+		}
+	}
+
 	return &types.QueryDepositsResponse{
 		Deposits: []types.DepositResponse{
 			{
