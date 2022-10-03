@@ -221,25 +221,40 @@ func (suite *grpcQueryTestSuite) TestVault_NotFound() {
 func (suite *grpcQueryTestSuite) TestDeposits() {
 	// Validator setup for bkava
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
-	valAccAddr1, delegator := addrs[0], addrs[1]
-	valAddr := sdk.ValAddress(valAccAddr1)
-
-	initialBalance := sdk.NewInt(1e9)
-	delegateAmount := sdk.NewInt(100e6)
-
-	suite.App.FundAccount(suite.Ctx, valAccAddr1, sdk.NewCoins(sdk.NewCoin("ukava", initialBalance)))
-	suite.App.FundAccount(suite.Ctx, delegator, sdk.NewCoins(sdk.NewCoin("ukava", initialBalance)))
-
-	suite.CreateNewUnbondedValidator(valAddr, initialBalance)
-	suite.CreateDelegation(valAddr, delegator, delegateAmount)
-	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
+	valAccAddr1, valAccAddr2, delegator := addrs[0], addrs[1], addrs[2]
+	valAddr1 := sdk.ValAddress(valAccAddr1)
+	valAddr2 := sdk.ValAddress(valAccAddr2)
 
 	vault1Denom := "usdx"
 	vault2Denom := "busd"
-	vault3Denom := fmt.Sprintf("bkava-%s", valAddr.String())
+	vault3Denom := fmt.Sprintf("bkava-%s", valAddr1.String())
+	vault4Denom := fmt.Sprintf("bkava-%s", valAddr2.String())
+
+	initialUkavaBalance := sdk.NewInt(1e9)
+	startBalance := sdk.NewCoins(
+		sdk.NewCoin("ukava", initialUkavaBalance),
+		sdk.NewInt64Coin(vault1Denom, 1000),
+		sdk.NewInt64Coin(vault2Denom, 1000),
+		// Bkava isn't actually minted via x/liquid
+		sdk.NewInt64Coin(vault3Denom, 1000),
+		sdk.NewInt64Coin(vault4Denom, 1000),
+	)
+
+	delegateAmount := sdk.NewInt(100e6)
+
+	suite.App.FundAccount(suite.Ctx, valAccAddr1, startBalance)
+	suite.App.FundAccount(suite.Ctx, valAccAddr2, startBalance)
+	suite.App.FundAccount(suite.Ctx, delegator, startBalance)
+
+	suite.CreateNewUnbondedValidator(valAddr1, initialUkavaBalance)
+	suite.CreateNewUnbondedValidator(valAddr2, initialUkavaBalance)
+	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
+	suite.CreateDelegation(valAddr2, delegator, delegateAmount)
+
+	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
 
 	savingsParams := suite.SavingsKeeper.GetParams(suite.Ctx)
-	savingsParams.SupportedDenoms = append(savingsParams.SupportedDenoms, vault3Denom)
+	savingsParams.SupportedDenoms = append(savingsParams.SupportedDenoms, "bkava")
 	suite.SavingsKeeper.SetParams(suite.Ctx, savingsParams)
 
 	// Add vaults
@@ -247,23 +262,18 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 
-	startBalance := sdk.NewCoins(
-		sdk.NewInt64Coin(vault1Denom, 1000),
-		sdk.NewInt64Coin(vault2Denom, 1000),
-		sdk.NewInt64Coin(vault3Denom, 1000),
-	)
-
 	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
 	deposit3Amount := sdk.NewInt64Coin(vault3Denom, 200)
+	deposit4Amount := sdk.NewInt64Coin(vault4Denom, 300)
 
 	// Accounts
 	acc1 := suite.CreateAccount(startBalance, 0).GetAddress()
-	acc2 := suite.CreateAccount(startBalance, 1).GetAddress()
+	acc2 := delegator
 
 	// Deposit into each vault from each account - 4 total deposits
 	// Acc 1: usdx + busd
-	// Acc 2: usdx + bkava
+	// Acc 2: usdx + bkava-1 + bkava-2
 	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount, types.STRATEGY_TYPE_HARD)
@@ -272,6 +282,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit3Amount, types.STRATEGY_TYPE_SAVINGS)
+	suite.Require().NoError(err)
+	err = suite.Keeper.Deposit(suite.Ctx, acc2, deposit4Amount, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	suite.Run("specific vault", func() {
@@ -391,17 +403,27 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		suite.Require().Equal(
 			types.DepositResponse{
 				Depositor: acc2.String(),
-				Shares: types.NewVaultShares(
-					types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+				Shares: types.VaultShares{
+					types.NewVaultShare(deposit4Amount.Denom, deposit4Amount.Amount.ToDec()),
 					types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
-				),
-				Value: sdk.NewCoins(
-					deposit1Amount,
+					types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+				},
+				Value: sdk.Coins{
+					sdk.NewCoin("ukava", deposit4Amount.Amount),
 					sdk.NewCoin("ukava", deposit3Amount.Amount),
-				),
+					// Deposit 1 is last as it's the same order as vault shares
+					deposit1Amount,
+				},
 			},
 			res.Deposits[0],
 		)
+		for i := range res.Deposits[0].Shares {
+			suite.Equal(
+				res.Deposits[0].Shares[i].Amount,
+				res.Deposits[0].Value[i].Amount.ToDec(),
+				"order of deposit value should match shares",
+			)
+		}
 	})
 }
 
