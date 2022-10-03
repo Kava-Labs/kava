@@ -105,7 +105,7 @@ func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
 	accCount := 0
 
 	// Add all accounts as EthAccount
-	app.IterateEOAAddresses(func(addr string) error {
+	app.IterateEOAAddresses(func(addr string) {
 		acc, err := sdk.AccAddressFromBech32(addr)
 		suite.NoError(err)
 
@@ -116,8 +116,6 @@ func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
 
 		ak.SetAccount(suite.Ctx, &ethAcc)
 		accCount++
-
-		return nil
 	})
 
 	// Add a contract EthAccount
@@ -128,13 +126,14 @@ func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
 	ak.SetAccount(suite.Ctx, &contractAcc)
 
 	// Run migration
-	err := app.ConvertEOAsToBaseAccount(suite.Ctx, ak)
-	suite.Require().NoError(err)
+	suite.NotPanics(func() {
+		app.ConvertEOAsToBaseAccount(suite.Ctx, ak)
+	})
 
 	accCountAfter := 0
 
 	// Check that accounts are now BaseAccounts
-	app.IterateEOAAddresses(func(addrStr string) error {
+	app.IterateEOAAddresses(func(addrStr string) {
 		addr, err := sdk.AccAddressFromBech32(addrStr)
 		suite.Require().NoError(err)
 
@@ -144,8 +143,6 @@ func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
 		_, ok := acc.(*authtypes.BaseAccount)
 		suite.Require().Truef(ok, "account is not an BaseAccount: %T", acc)
 		accCountAfter++
-
-		return nil
 	})
 
 	suite.T().Logf("accounts updated: %d", accCountAfter)

@@ -34,10 +34,7 @@ func (app App) RegisterUpgradeHandlers() {
 			UpdateEvmutilPermissions(ctx, app.accountKeeper)
 
 			app.Logger().Info("converting all non-contract EthAccounts to BaseAccounts")
-			err := ConvertEOAsToBaseAccount(ctx, app.accountKeeper)
-			if err != nil {
-				return nil, err
-			}
+			ConvertEOAsToBaseAccount(ctx, app.accountKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
@@ -97,45 +94,39 @@ func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountK
 //go:embed eth_eoa_addresses.json
 var ethEOAAddresses []byte
 
-func IterateEOAAddresses(f func(addr string) error) error {
+func IterateEOAAddresses(f func(addr string)) {
 	var addresses []string
 
 	if err := json.Unmarshal(ethEOAAddresses, &addresses); err != nil {
-		return err
+		panic("failed to unmarshal embedded eth_eoa_addresses.json")
 	}
 
 	for _, addr := range addresses {
-		if err := f(addr); err != nil {
-			return err
-		}
+		f(addr)
 	}
-
-	return nil
 }
 
 // ConvertEOAsToBaseAccount converts all non-contract EthAccounts to BaseAccounts
-func ConvertEOAsToBaseAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) error {
-	return IterateEOAAddresses(func(addrStr string) error {
+func ConvertEOAsToBaseAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) {
+	IterateEOAAddresses(func(addrStr string) {
 		addr, err := sdk.AccAddressFromBech32(addrStr)
 		if err != nil {
-			return err
+			panic("failed to parse address")
 		}
 
 		// Skip non-EthAccounts
 		acc := accountKeeper.GetAccount(ctx, addr)
 		ethAcc, isEthAcc := acc.(*etherminttypes.EthAccount)
 		if !isEthAcc {
-			return nil
+			return
 		}
 
 		// Skip contract accounts
 		if ethAcc.Type() != etherminttypes.AccountTypeEOA {
-			return nil
+			return
 		}
 
 		// Change to BaseAccount in store
 		accountKeeper.SetAccount(ctx, ethAcc.BaseAccount)
-
-		return nil
 	})
 }
