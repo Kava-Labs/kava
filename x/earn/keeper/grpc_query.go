@@ -411,12 +411,15 @@ func (s queryServer) getOneAccountAllDeposits(
 	}
 
 	if req.ValueInStakedTokens {
-		valueInStakedTokens := sdk.NewCoins()
+		// Plain slice to not sum ukava amounts together. This is not a valid
+		// sdk.Coin due to multiple coins of the same denom, but we need them to
+		// be separate in the response to not be an aggregate amount.
+		var valueInStakedTokens []sdk.Coin
 
 		for _, coin := range value {
 			// Non-bkava coins are kept as is
 			if !s.keeper.liquidKeeper.IsDerivativeDenom(ctx, coin.Denom) {
-				valueInStakedTokens = valueInStakedTokens.Add(coin)
+				valueInStakedTokens = append(valueInStakedTokens, coin)
 				continue
 			}
 
@@ -426,7 +429,7 @@ func (s queryServer) getOneAccountAllDeposits(
 				// This should "never" happen if IsDerivativeDenom is true
 				panic("Error getting ukava value for " + coin.Denom)
 			}
-			valueInStakedTokens = valueInStakedTokens.Add(ukavaValue)
+			valueInStakedTokens = append(valueInStakedTokens, ukavaValue)
 		}
 
 		value = valueInStakedTokens
