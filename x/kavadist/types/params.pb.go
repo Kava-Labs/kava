@@ -69,6 +69,7 @@ func (m *Params) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Params proto.InternalMessageInfo
 
+// InfrastructureParams define the parameters for infrastructure rewards.
 type InfrastructureParams struct {
 	InfrastructurePeriods Periods        `protobuf:"bytes,1,rep,name=infrastructure_periods,json=infrastructurePeriods,proto3,castrepeated=Periods" json:"infrastructure_periods"`
 	CoreRewards           CoreRewards    `protobuf:"bytes,2,rep,name=core_rewards,json=coreRewards,proto3,castrepeated=CoreRewards" json:"core_rewards"`
@@ -108,6 +109,7 @@ func (m *InfrastructureParams) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_InfrastructureParams proto.InternalMessageInfo
 
+// CoreReward defines the reward weights for core infrastructure providers.
 type CoreReward struct {
 	Address github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=address,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"address,omitempty"`
 	Weight  github_com_cosmos_cosmos_sdk_types.Dec        `protobuf:"bytes,2,opt,name=weight,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"weight"`
@@ -146,6 +148,7 @@ func (m *CoreReward) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CoreReward proto.InternalMessageInfo
 
+// PartnerRewards defines the reward schedule for partner infrastructure providers.
 type PartnerReward struct {
 	Address          github_com_cosmos_cosmos_sdk_types.AccAddress `protobuf:"bytes,1,opt,name=address,proto3,casttype=github.com/cosmos/cosmos-sdk/types.AccAddress" json:"address,omitempty"`
 	RewardsPerSecond types.Coin                                    `protobuf:"bytes,2,opt,name=rewards_per_second,json=rewardsPerSecond,proto3" json:"rewards_per_second"`

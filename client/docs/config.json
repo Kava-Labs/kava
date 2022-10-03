@@ -149,6 +149,23 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/kava/liquid/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Liquid"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Liquid$1"
+          }
+        ]
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/kava/pricefeed/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
