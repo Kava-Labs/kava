@@ -104,8 +104,11 @@ message QueryDepositsRequest {
   // denom optionally filters deposits by vault denom
   string denom = 2;
 
+  // respond with vault value in ukava for bkava vaults
+  bool value_in_staked_tokens = 3;
+
   // pagination defines an optional pagination for the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 // QueryDepositsResponse is the response type for the Query/Deposits RPC method.

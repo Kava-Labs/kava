@@ -3089,6 +3089,7 @@ QueryDepositsRequest is the request type for the Query/Deposits RPC method.
 | ----- | ---- | ----- | ----------- |
 | `depositor` | [string](#string) |  | depositor optionally filters deposits by depositor |
 | `denom` | [string](#string) |  | denom optionally filters deposits by vault denom |
+| `value_in_staked_tokens` | [bool](#bool) |  | respond with vault value in ukava for bkava vaults |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
 
