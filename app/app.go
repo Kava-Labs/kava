@@ -633,6 +633,9 @@ func NewApp(
 		&savingsKeeper,
 		&app.liquidKeeper,
 		&earnKeeper,
+		app.mintKeeper,
+		app.distrKeeper,
+		app.kavadistKeeper,
 	)
 	app.routerKeeper = routerkeeper.NewKeeper(
 		&app.earnKeeper,

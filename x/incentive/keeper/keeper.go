@@ -24,6 +24,11 @@ type Keeper struct {
 	savingsKeeper types.SavingsKeeper
 	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
+
+	// Keepers used for APY queries
+	mintKeeper     types.MintKeeper
+	distrKeeper    types.DistrKeeper
+	kavadistKeeper types.KavadistKeeper
 }
 
 // NewKeeper creates a new keeper
@@ -31,24 +36,28 @@ func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
 	swpk types.SwapKeeper, svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
+	mk types.MintKeeper, dk types.DistrKeeper, kdk types.KavadistKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		accountKeeper: ak,
-		cdc:           cdc,
-		key:           key,
-		paramSubspace: paramstore,
-		bankKeeper:    bk,
-		cdpKeeper:     cdpk,
-		hardKeeper:    hk,
-		stakingKeeper: stk,
-		swapKeeper:    swpk,
-		savingsKeeper: svk,
-		liquidKeeper:  lqk,
-		earnKeeper:    ek,
+		accountKeeper:  ak,
+		cdc:            cdc,
+		key:            key,
+		paramSubspace:  paramstore,
+		bankKeeper:     bk,
+		cdpKeeper:      cdpk,
+		hardKeeper:     hk,
+		stakingKeeper:  stk,
+		swapKeeper:     swpk,
+		savingsKeeper:  svk,
+		liquidKeeper:   lqk,
+		earnKeeper:     ek,
+		mintKeeper:     mk,
+		distrKeeper:    dk,
+		kavadistKeeper: kdk,
 	}
 }
 
