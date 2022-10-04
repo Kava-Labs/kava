@@ -35,14 +35,12 @@ func (s queryServer) DelegatedBalance(
 	}
 
 	delegated := s.getDelegatedBalance(ctx, delegator)
-	unbonding := s.getUnbondingBalance(ctx, delegator)
 
 	bondDenom := s.keeper.stakingKeeper.BondDenom(ctx)
 	vesting := s.getVesting(ctx, delegator).AmountOf(bondDenom)
 
-	totalStaked := delegated.Add(unbonding)
-	vestingDelegated := sdk.MinInt(vesting, totalStaked)
-	vestedDelegated := totalStaked.Sub(vestingDelegated)
+	vestingDelegated := sdk.MinInt(vesting, delegated)
+	vestedDelegated := delegated.Sub(vestingDelegated)
 
 	res := types.QueryDelegatedBalanceResponse{
 		Vested:  sdk.NewCoin(bondDenom, vestedDelegated),

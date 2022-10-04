@@ -10887,6 +10887,8 @@ paths:
       summary: >-
         DelegatedBalance returns an account's vesting and vested coins currently
         delegated to validators.
+
+        It ignores coins in unbonding delegations.
       operationId: LiquidDelegatedBalance
       responses:
         '200':
