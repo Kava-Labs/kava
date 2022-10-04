@@ -3,11 +3,13 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
@@ -23,6 +25,7 @@ type ParamSubspace interface {
 type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 }
 
 // StakingKeeper defines the expected staking keeper for module accounts
@@ -88,6 +91,21 @@ type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+}
+
+// MintKeeper defines the required methods needed by this modules keeper
+type MintKeeper interface {
+	GetMinter(ctx sdk.Context) (minter minttypes.Minter)
+}
+
+// DistrKeeper defines the required methods needed by this modules keeper
+type DistrKeeper interface {
+	GetCommunityTax(ctx sdk.Context) (percent sdk.Dec)
+}
+
+// DistrKeeper defines the required methods needed by this modules keeper
+type KavadistKeeper interface {
+	GetParams(ctx sdk.Context) (params kavadisttypes.Params)
 }
 
 // CDPHooks event hooks for other keepers to run code in response to CDP modifications

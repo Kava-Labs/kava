@@ -74,7 +74,11 @@ func (suite *unitTester) NewKeeper(
 	ak types.AccountKeeper, stk types.StakingKeeper, swk types.SwapKeeper,
 	svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
 ) keeper.Keeper {
-	return keeper.NewKeeper(suite.cdc, suite.incentiveStoreKey, paramSubspace, bk, cdpk, hk, ak, stk, swk, svk, lqk, ek)
+	return keeper.NewKeeper(
+		suite.cdc, suite.incentiveStoreKey, paramSubspace,
+		bk, cdpk, hk, ak, stk, swk, svk, lqk, ek,
+		nil, nil, nil,
+	)
 }
 
 func (suite *unitTester) storeGlobalBorrowIndexes(indexes types.MultiRewardIndexes) {
