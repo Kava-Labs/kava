@@ -160,6 +160,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
 	// DelegatedBalance returns an account's vesting and vested coins currently delegated to validators.
+	// It ignores coins in unbonding delegations.
 	DelegatedBalance(ctx context.Context, in *QueryDelegatedBalanceRequest, opts ...grpc.CallOption) (*QueryDelegatedBalanceResponse, error)
 }
 
@@ -183,6 +184,7 @@ func (c *queryClient) DelegatedBalance(ctx context.Context, in *QueryDelegatedBa
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// DelegatedBalance returns an account's vesting and vested coins currently delegated to validators.
+	// It ignores coins in unbonding delegations.
 	DelegatedBalance(context.Context, *QueryDelegatedBalanceRequest) (*QueryDelegatedBalanceResponse, error)
 }
 

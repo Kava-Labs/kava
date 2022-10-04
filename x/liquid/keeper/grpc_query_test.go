@@ -46,6 +46,51 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 		expectedErr error
 	}{
 		{
+			name: "vesting account with stake less than vesting",
+			setup: func() string {
+				initBalance := suite.NewBondCoin(i(1e9))
+				_, addrs := app.GeneratePrivKeyAddressPairs(2)
+				valAddr, delAddr := addrs[0], addrs[1]
+
+				suite.CreateAccountWithAddress(valAddr, sdk.NewCoins(initBalance))
+
+				suite.CreateVestingAccountWithAddress(delAddr, sdk.NewCoins(initBalance), suite.NewBondCoins(initBalance.Amount.QuoRaw(2)))
+
+				suite.CreateNewUnbondedValidator(sdk.ValAddress(valAddr), initBalance.Amount)
+				suite.CreateDelegation(sdk.ValAddress(valAddr), delAddr, initBalance.Amount.QuoRaw(4))
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
+
+				return delAddr.String()
+			},
+			expectedRes: &types.QueryDelegatedBalanceResponse{
+				Vested:  suite.NewBondCoin(i(250e6)),
+				Vesting: suite.NewBondCoin(sdk.ZeroInt()),
+			},
+		},
+		{
+			name: "vesting account with stake greater than vesting",
+			setup: func() string {
+				initBalance := suite.NewBondCoin(i(1e9))
+				_, addrs := app.GeneratePrivKeyAddressPairs(2)
+				valAddr, delAddr := addrs[0], addrs[1]
+
+				suite.CreateAccountWithAddress(valAddr, sdk.NewCoins(initBalance))
+
+				suite.CreateVestingAccountWithAddress(delAddr, sdk.NewCoins(initBalance), suite.NewBondCoins(initBalance.Amount.QuoRaw(2)))
+
+				suite.CreateNewUnbondedValidator(sdk.ValAddress(valAddr), initBalance.Amount)
+				threeQuarters := initBalance.Amount.QuoRaw(4).MulRaw(3)
+				suite.CreateDelegation(sdk.ValAddress(valAddr), delAddr, threeQuarters)
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
+
+				return delAddr.String()
+			},
+			expectedRes: &types.QueryDelegatedBalanceResponse{
+				Vested:  suite.NewBondCoin(i(250e6)),
+				Vesting: suite.NewBondCoin(i(500e6)),
+			},
+		},
+		{
 			name: "no account returns zeros",
 			setup: func() string {
 				return "kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t"
@@ -82,7 +127,7 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 			},
 		},
 		{
-			name: "base account with delegations and unbonding delegations returns total",
+			name: "base account with delegations and unbonding delegations returns only delegations",
 			setup: func() string {
 				initBalance := suite.NewBondCoin(i(1e9))
 				valAcc := suite.CreateAccount(sdk.NewCoins(initBalance), 0)
@@ -97,53 +142,8 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 				return delAcc.GetAddress().String()
 			},
 			expectedRes: &types.QueryDelegatedBalanceResponse{
-				Vested:  suite.NewBondCoin(i(1e9)),
+				Vested:  suite.NewBondCoin(i(500e6)),
 				Vesting: suite.NewBondCoin(sdk.ZeroInt()),
-			},
-		},
-		{
-			name: "base account with only unbonding delegations returns unbonding",
-			setup: func() string {
-				initBalance := suite.NewBondCoin(i(1e9))
-				valAcc := suite.CreateAccount(sdk.NewCoins(initBalance), 0)
-				delAcc := suite.CreateAccount(sdk.NewCoins(initBalance), 1)
-
-				suite.CreateNewUnbondedValidator(valAcc.GetAddress().Bytes(), initBalance.Amount)
-				suite.CreateDelegation(valAcc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
-				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
-
-				suite.CreateUnbondingDelegation(delAcc.GetAddress(), valAcc.GetAddress().Bytes(), initBalance.Amount)
-
-				return delAcc.GetAddress().String()
-			},
-			expectedRes: &types.QueryDelegatedBalanceResponse{
-				Vested:  suite.NewBondCoin(i(1e9)),
-				Vesting: suite.NewBondCoin(sdk.ZeroInt()),
-			},
-		},
-		{
-			name: "vesting balance taken from delegated and unbonding balances",
-			setup: func() string {
-				initBalance := suite.NewBondCoin(i(1e9))
-				_, addrs := app.GeneratePrivKeyAddressPairs(2)
-				valAddr, delAddr := addrs[0], addrs[1]
-
-				suite.CreateAccountWithAddress(valAddr, sdk.NewCoins(initBalance))
-
-				threeQuarters := initBalance.Amount.ToDec().Mul(d("0.75")).TruncateInt()
-				suite.CreateVestingAccountWithAddress(delAddr, sdk.NewCoins(initBalance), suite.NewBondCoins(threeQuarters))
-
-				suite.CreateNewUnbondedValidator(sdk.ValAddress(valAddr), initBalance.Amount)
-				suite.CreateDelegation(sdk.ValAddress(valAddr), delAddr, initBalance.Amount)
-				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
-
-				suite.CreateUnbondingDelegation(delAddr, sdk.ValAddress(valAddr), initBalance.Amount.QuoRaw(2))
-
-				return delAddr.String()
-			},
-			expectedRes: &types.QueryDelegatedBalanceResponse{
-				Vested:  suite.NewBondCoin(i(250e6)),
-				Vesting: suite.NewBondCoin(i(750e6)),
 			},
 		},
 	}

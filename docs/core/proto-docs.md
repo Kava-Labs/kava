@@ -5656,7 +5656,7 @@ Query defines the gRPC querier service for liquid module
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `DelegatedBalance` | [QueryDelegatedBalanceRequest](#kava.liquid.v1beta1.QueryDelegatedBalanceRequest) | [QueryDelegatedBalanceResponse](#kava.liquid.v1beta1.QueryDelegatedBalanceResponse) | DelegatedBalance returns an account's vesting and vested coins currently delegated to validators. | GET|/kava/liquid/v1beta1/delegated_balance/{delegator}|
+| `DelegatedBalance` | [QueryDelegatedBalanceRequest](#kava.liquid.v1beta1.QueryDelegatedBalanceRequest) | [QueryDelegatedBalanceResponse](#kava.liquid.v1beta1.QueryDelegatedBalanceResponse) | DelegatedBalance returns an account's vesting and vested coins currently delegated to validators. It ignores coins in unbonding delegations. | GET|/kava/liquid/v1beta1/delegated_balance/{delegator}|
 
  <!-- end services -->
 
