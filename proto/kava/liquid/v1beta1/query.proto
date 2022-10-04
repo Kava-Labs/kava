@@ -12,6 +12,7 @@ option (gogoproto.goproto_getters_all) = false;
 // Query defines the gRPC querier service for liquid module
 service Query {
   // DelegatedBalance returns an account's vesting and vested coins currently delegated to validators.
+  // It ignores coins in unbonding delegations.
   rpc DelegatedBalance(QueryDelegatedBalanceRequest) returns (QueryDelegatedBalanceResponse) {
     option (google.api.http).get = "/kava/liquid/v1beta1/delegated_balance/{delegator}";
   }
