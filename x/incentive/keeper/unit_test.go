@@ -77,7 +77,7 @@ func (suite *unitTester) NewKeeper(
 	return keeper.NewKeeper(
 		suite.cdc, suite.incentiveStoreKey, paramSubspace,
 		bk, cdpk, hk, ak, stk, swk, svk, lqk, ek,
-		nil, nil, nil,
+		nil, nil, nil, nil,
 	)
 }
 
@@ -412,6 +412,15 @@ func (k *fakeEarnKeeper) GetVaultTotalShares(
 ) (shares earntypes.VaultShare, found bool) {
 	vaultShares, found := k.vaultShares[denom]
 	return vaultShares, found
+}
+
+func (k *fakeEarnKeeper) GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
+	vaultShares, found := k.vaultShares[denom]
+	if !found {
+		return sdk.NewCoin(denom, sdk.ZeroInt()), nil
+	}
+
+	return sdk.NewCoin(denom, vaultShares.Amount.RoundInt()), nil
 }
 
 func (k *fakeEarnKeeper) GetVaultAccountShares(
