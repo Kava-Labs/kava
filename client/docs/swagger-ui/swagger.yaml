@@ -7077,6 +7077,12 @@ paths:
           in: query
           required: false
           type: string
+        - name: value_in_staked_tokens
+          description: respond with vault value in ukava for bkava vaults.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
         - name: pagination.key
           description: |-
             key is a value returned in PageResponse.next_key to begin
