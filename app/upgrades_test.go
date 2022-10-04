@@ -4,10 +4,14 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/kava-labs/kava/app"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	etherminttypes "github.com/tharsis/ethermint/types"
+	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
@@ -93,4 +97,65 @@ func (suite *UpgradeTestSuite) TestUpdateSavingsParams() {
 		newParams.SupportedDenoms,
 		"SupportedDenoms should be updated to include ukava",
 	)
+}
+
+func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
+	ak := suite.App.GetAccountKeeper()
+
+	accCount := 0
+
+	// Add all accounts as EthAccount
+	app.IterateEOAAddresses(func(addr string) {
+		acc, err := sdk.AccAddressFromBech32(addr)
+		suite.NoError(err)
+
+		ethAcc := etherminttypes.EthAccount{
+			BaseAccount: authtypes.NewBaseAccount(acc, nil, 0, 0),
+			CodeHash:    common.Bytes2Hex(evmtypes.EmptyCodeHash),
+		}
+
+		ak.SetAccount(suite.Ctx, &ethAcc)
+		accCount++
+	})
+
+	// Add a contract EthAccount
+	contractAcc := etherminttypes.EthAccount{
+		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress("contract"), nil, 0, 0),
+		CodeHash:    common.Bytes2Hex([]byte("contract code hash")),
+	}
+	ak.SetAccount(suite.Ctx, &contractAcc)
+
+	// Run migration
+	suite.NotPanics(func() {
+		app.ConvertEOAsToBaseAccount(suite.Ctx, ak)
+	})
+
+	accCountAfter := 0
+
+	// Check that accounts are now BaseAccounts
+	app.IterateEOAAddresses(func(addrStr string) {
+		addr, err := sdk.AccAddressFromBech32(addrStr)
+		suite.Require().NoError(err)
+
+		acc := ak.GetAccount(suite.Ctx, addr)
+		suite.Require().NoError(err)
+
+		_, ok := acc.(*authtypes.BaseAccount)
+		suite.Require().Truef(ok, "account is not an BaseAccount: %T", acc)
+		accCountAfter++
+	})
+
+	suite.T().Logf("accounts updated: %d", accCountAfter)
+
+	contractAccAfter := ak.GetAccount(suite.Ctx, sdk.AccAddress("contract"))
+	suite.Require().NotNil(contractAccAfter)
+	suite.Require().Implements(
+		(*etherminttypes.EthAccountI)(nil),
+		contractAccAfter,
+		"contract account should still be an EthAccount",
+	)
+
+	suite.Greater(accCount, 0)
+	suite.Greater(accCountAfter, 0)
+	suite.Equal(accCount, accCountAfter, "account count should be unchanged")
 }
