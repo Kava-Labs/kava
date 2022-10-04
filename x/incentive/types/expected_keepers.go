@@ -10,6 +10,7 @@ import (
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
@@ -70,6 +71,7 @@ type SavingsKeeper interface {
 // EarnKeeper defines the required methods needed by this modules keeper
 type EarnKeeper interface {
 	GetVaultTotalShares(ctx sdk.Context, denom string) (shares earntypes.VaultShare, found bool)
+	GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error)
 	GetVaultAccountShares(ctx sdk.Context, acc sdk.AccAddress) (shares earntypes.VaultShares, found bool)
 	IterateVaultRecords(ctx sdk.Context, cb func(record earntypes.VaultRecord) (stop bool))
 }
@@ -103,9 +105,14 @@ type DistrKeeper interface {
 	GetCommunityTax(ctx sdk.Context) (percent sdk.Dec)
 }
 
-// DistrKeeper defines the required methods needed by this modules keeper
+// KavadistKeeper defines the required methods needed by this modules keeper
 type KavadistKeeper interface {
 	GetParams(ctx sdk.Context) (params kavadisttypes.Params)
+}
+
+// PricefeedKeeper defines the required methods needed by this modules keeper
+type PricefeedKeeper interface {
+	GetCurrentPrice(ctx sdk.Context, marketID string) (pricefeedtypes.CurrentPrice, error)
 }
 
 // CDPHooks event hooks for other keepers to run code in response to CDP modifications

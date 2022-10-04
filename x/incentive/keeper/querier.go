@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -393,7 +395,12 @@ func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 			continue
 		}
 
-		apy, err := getAPYFromMultiRewardPeriod(ctx, k, param)
+		// Value in the vault in the same denom as CollateralType
+		vaultTotalValue, err := k.earnKeeper.GetVaultTotalValue(ctx, param.CollateralType)
+		if err != nil {
+			return nil, err
+		}
+		apy, err := getAPYFromMultiRewardPeriod(ctx, k, param, vaultTotalValue.Amount)
 		if err != nil {
 			return nil, err
 		}
@@ -465,8 +472,7 @@ func GetTotalInfrastructureInflation(
 	}
 
 	// Per second minting  = 0.000000003022265980
-	// Convert to yearly % = 0.000000003022265980 * seconds per year
-	//                     = 0.000000003022265980 * 31536000
+	// Convert to yearly % = 0.000000003022265980 * seconds per year (31536000)
 	//                     = 0.09531017994528 per year (9.531%)
 	totalAPR := totalPerSecondInflation.MulInt64(SecondsPerYear)
 	return totalAPR
@@ -476,20 +482,41 @@ func getAPYFromMultiRewardPeriod(
 	ctx sdk.Context,
 	k Keeper,
 	rewardPeriod types.MultiRewardPeriod,
+	totalSupply sdk.Int,
 ) (types.APY, error) {
-	// Get total rewards per second
-	totalRewardsPerSecond := sdk.ZeroDec()
-	for _, reward := range rewardPeriod.RewardsPerSecond {
-		totalRewardsPerSecond = totalRewardsPerSecond.Add(reward.Amount.ToDec())
+	// Get USD value of collateral type
+	collateralUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(rewardPeriod.CollateralType))
+	if err != nil {
+		return types.APY{}, err
 	}
 
-	// Get total supply
-	totalSupply := k.bankKeeper.GetSupply(ctx, types.BondDenom)
+	// Total USD value of the collateral type total supply
+	totalSupplyUSDValue := totalSupply.ToDec().Mul(collateralUSDValue.Price)
 
-	// APY = rewards per second * seconds per year / total supplied
-	apy := totalRewardsPerSecond.
+	totalUSDRewardsPerSecond := sdk.ZeroDec()
+
+	// In many cases, RewardsPerSecond are assets that are different from the
+	// CollateralType, so we need to use the USD value of CollateralType and
+	// RewardsPerSecond to determine the APY.
+	for _, reward := range rewardPeriod.RewardsPerSecond {
+		// Get USD value of 1 unit of reward asset type, using TWAP
+		rewardDenomUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(reward.Denom))
+		if err != nil {
+			return types.APY{}, fmt.Errorf("failed to get price for RewardsPerSecond asset %s: %w", reward.Denom, err)
+		}
+
+		rewardPerSecond := reward.Amount.ToDec().Mul(rewardDenomUSDValue.Price)
+		totalUSDRewardsPerSecond = totalUSDRewardsPerSecond.Add(rewardPerSecond)
+	}
+
+	// APY = USD rewards per second * seconds per year / USD total supplied
+	apy := totalUSDRewardsPerSecond.
 		MulInt64(SecondsPerYear).
-		QuoInt(totalSupply.Amount)
+		Quo(totalSupplyUSDValue)
 
 	return types.NewAPY(rewardPeriod.CollateralType, apy), nil
+}
+
+func getMarketID(denom string) string {
+	return fmt.Sprintf("%s:usd:30", denom)
 }
