@@ -1,6 +1,9 @@
 package app
 
 import (
+	_ "embed"
+	"encoding/json"
+
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -12,6 +15,7 @@ import (
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
+	etherminttypes "github.com/tharsis/ethermint/types"
 )
 
 const UpgradeName = "v0.19.0"
@@ -28,6 +32,9 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("updating x/evmutil module account with new permissions")
 			UpdateEvmutilPermissions(ctx, app.accountKeeper)
+
+			app.Logger().Info("converting all non-contract EthAccounts to BaseAccounts")
+			ConvertEOAsToBaseAccount(ctx, app.accountKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
@@ -82,4 +89,44 @@ func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountK
 		authtypes.Minter, authtypes.Burner,
 	}
 	accountKeeper.SetModuleAccount(ctx, evmutilAcc)
+}
+
+//go:embed eth_eoa_addresses.json
+var ethEOAAddresses []byte
+
+func IterateEOAAddresses(f func(addr string)) {
+	var addresses []string
+
+	if err := json.Unmarshal(ethEOAAddresses, &addresses); err != nil {
+		panic("failed to unmarshal embedded eth_eoa_addresses.json")
+	}
+
+	for _, addr := range addresses {
+		f(addr)
+	}
+}
+
+// ConvertEOAsToBaseAccount converts all non-contract EthAccounts to BaseAccounts
+func ConvertEOAsToBaseAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) {
+	IterateEOAAddresses(func(addrStr string) {
+		addr, err := sdk.AccAddressFromBech32(addrStr)
+		if err != nil {
+			panic("failed to parse address")
+		}
+
+		// Skip non-EthAccounts
+		acc := accountKeeper.GetAccount(ctx, addr)
+		ethAcc, isEthAcc := acc.(*etherminttypes.EthAccount)
+		if !isEthAcc {
+			return
+		}
+
+		// Skip contract accounts
+		if ethAcc.Type() != etherminttypes.AccountTypeEOA {
+			return
+		}
+
+		// Change to BaseAccount in store
+		accountKeeper.SetAccount(ctx, ethAcc.BaseAccount)
+	})
 }
