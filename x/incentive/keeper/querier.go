@@ -9,6 +9,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
@@ -384,7 +385,10 @@ func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	var apys types.APYs
 
 	// bkava APY (staking + incentive rewards)
-	stakingAPR := getLiquidStakingAPR(ctx, k, params)
+	stakingAPR, err := getStakingAPR(ctx, k, params)
+	if err != nil {
+		return nil, err
+	}
 
 	apys = append(apys, types.NewAPY(liquidtypes.DefaultDerivativeDenom, stakingAPR))
 
@@ -417,7 +421,7 @@ func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	return bz, nil
 }
 
-func getLiquidStakingAPR(ctx sdk.Context, k Keeper, params types.Params) sdk.Dec {
+func getStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, error) {
 	// Get staking APR + incentive APR
 	inflationRate := k.mintKeeper.GetMinter(ctx).Inflation
 	communityTax := k.distrKeeper.GetCommunityTax(ctx)
@@ -438,16 +442,41 @@ func getLiquidStakingAPR(ctx sdk.Context, k Keeper, params types.Params) sdk.Dec
 	bkavaRewardPeriod, found := params.EarnRewardPeriods.GetMultiRewardPeriod(liquidtypes.DefaultDerivativeDenom)
 	if !found {
 		// No incentive rewards for bkava, only staking rewards
-		return stakingAPR
+		return stakingAPR, nil
 	}
 
-	// Incentive APR = rewards per second * seconds per year / total supplied
+	// Total amount of bkava in earn vaults, this may be lower than total bank
+	// supply of bkava as some bkava may not be deposited in earn vaults
+	totalEarnBkavaDeposited := sdk.ZeroInt()
+
+	var iterErr error
+	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
+		if !k.liquidKeeper.IsDerivativeDenom(ctx, record.TotalShares.Denom) {
+			return false
+		}
+
+		vaultValue, err := k.earnKeeper.GetVaultTotalValue(ctx, record.TotalShares.Denom)
+		if err != nil {
+			iterErr = err
+			return false
+		}
+
+		totalEarnBkavaDeposited = totalEarnBkavaDeposited.Add(vaultValue.Amount)
+
+		return false
+	})
+
+	if iterErr != nil {
+		return sdk.ZeroDec(), iterErr
+	}
+
+	// Incentive APR = rewards per second * seconds per year / total supplied to earn vaults
 	incentiveAPY := bkavaRewardPeriod.RewardsPerSecond.AmountOf(types.BondDenom).ToDec().
 		MulInt64(SecondsPerYear).
-		QuoInt(circulatingSupply.Amount)
+		QuoInt(totalEarnBkavaDeposited)
 
 	totalAPY := stakingAPR.Add(incentiveAPY)
-	return totalAPY
+	return totalAPY, nil
 }
 
 func GetTotalInfrastructureInflation(
