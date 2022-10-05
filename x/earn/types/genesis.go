@@ -3,7 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // NewGenesisState creates a new genesis state.
@@ -46,7 +47,7 @@ func DefaultGenesisState() GenesisState {
 					"ukava",
 					StrategyTypes{STRATEGY_TYPE_SAVINGS},
 					true,
-					[]sdk.AccAddress{authtypes.NewModuleAddress(distrtypes.ModuleName)},
+					[]sdk.AccAddress{authtypes.NewModuleAddress(kavadisttypes.FundModuleAccount)},
 				),
 				// usdx
 				NewAllowedVault(
