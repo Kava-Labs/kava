@@ -5,95 +5,98 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
-	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-	"github.com/stretchr/testify/require"
+	"github.com/kava-labs/kava/x/incentive/types"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestGetTotalInfrastructureInflation(t *testing.T) {
-	blockTime := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
+type QuerierTestSuite struct {
+	unitTester
+}
 
-	tests := []struct {
-		name          string
-		periods       kavadisttypes.Periods
-		wantInflation sdk.Dec
-	}{
-		{
-			"one period",
-			kavadisttypes.Periods{
-				kavadisttypes.NewPeriod(
-					blockTime.Add(-time.Hour),
-					blockTime.Add(time.Hour),
-					sdk.MustNewDecFromStr("1.000000003022265980"),
+func TestQuerierTestSuite(t *testing.T) {
+	suite.Run(t, new(QuerierTestSuite))
+}
+
+func (suite *QuerierTestSuite) TestGetStakingAPR() {
+	communityTax := sdk.MustNewDecFromStr("0.90")
+	inflation := sdk.MustNewDecFromStr("0.75")
+
+	bondedTokens := int64(120_000_000_000000)
+	liquidStakedTokens := int64(60_000_000_000000)
+	totalSupply := int64(289_138_414_286684)
+
+	suite.keeper = suite.NewTestKeeper(&fakeParamSubspace{}).
+		WithDistrKeeper(
+			newFakeDistrKeeper().setCommunityTax(communityTax),
+		).
+		WithMintKeeper(
+			newFakeMintKeeper().
+				setMinter(minttypes.NewMinter(inflation, sdk.OneDec())),
+		).
+		WithStakingKeeper(
+			newFakeStakingKeeper().addBondedTokens(bondedTokens),
+		).
+		WithBankKeeper(
+			newFakeBankKeeper().setSupply(sdk.NewCoin(types.BondDenom, sdk.NewInt(totalSupply))),
+		).
+		WithEarnKeeper(
+			newFakeEarnKeeper().
+				addVault("bkava-asdf", earntypes.NewVaultShare("bkava-asdf", sdk.NewDec(liquidStakedTokens))),
+		).
+		WithLiquidKeeper(
+			newFakeLiquidKeeper().addDerivative(suite.ctx, "bkava-asdf", sdk.NewInt(liquidStakedTokens)),
+		).
+		WithPricefeedKeeper(
+			newFakePricefeedKeeper().
+				setPrice(
+					pricefeedtypes.NewCurrentPrice(
+						"ukava:usd:30",
+						sdk.MustNewDecFromStr("1.5"),
+					)),
+		).
+		Build()
+
+	// ~18% APR
+	expectedStakingAPY := inflation.
+		Mul(sdk.OneDec().Sub(communityTax)).
+		Quo(sdk.NewDec(bondedTokens).Quo(sdk.NewDec(totalSupply)))
+
+	// Staking APR = (Inflation Rate * (1 - Community Tax)) / (Bonded Tokens / Circulating Supply)
+	aprWithoutIncentives, err := keeper.GetStakingAPR(suite.ctx, suite.keeper, types.Params{})
+	suite.Require().NoError(err)
+	suite.Require().Equal(
+		expectedStakingAPY,
+		aprWithoutIncentives,
+	)
+
+	suite.T().Logf("Staking APR without incentives: %s", aprWithoutIncentives)
+
+	params := types.Params{
+		EarnRewardPeriods: types.MultiRewardPeriods{
+			{
+				Active:         true,
+				CollateralType: "bkava",
+				Start:          suite.ctx.BlockTime().Add(-time.Hour),
+				End:            suite.ctx.BlockTime().Add(time.Hour),
+				RewardsPerSecond: sdk.NewCoins(
+					sdk.NewCoin("ukava", sdk.NewInt(190258)),
 				),
 			},
-			sdk.MustNewDecFromStr("0.000000003022265980").MulInt64(keeper.SecondsPerYear),
-		},
-		{
-			"one period expired",
-			kavadisttypes.Periods{
-				kavadisttypes.NewPeriod(
-					blockTime.Add(-2*time.Hour),
-					blockTime.Add(-time.Hour),
-					sdk.MustNewDecFromStr("1.000000003022265980"),
-				),
-			},
-			sdk.ZeroDec(),
-		},
-		{
-			"one period in future",
-			kavadisttypes.Periods{
-				kavadisttypes.NewPeriod(
-					blockTime.Add(time.Hour),
-					blockTime.Add(2*time.Hour),
-					sdk.MustNewDecFromStr("1.000000003022265980"),
-				),
-			},
-			sdk.ZeroDec(),
-		},
-		{
-			"two periods active",
-			kavadisttypes.Periods{
-				// Additional expired period
-				kavadisttypes.NewPeriod(
-					blockTime.Add(-2*time.Hour),
-					blockTime.Add(-time.Hour),
-					sdk.MustNewDecFromStr("1.000000003022265980"),
-				),
-				// Two active periods
-				kavadisttypes.NewPeriod(
-					blockTime.Add(-time.Hour),
-					blockTime.Add(time.Hour),
-					sdk.MustNewDecFromStr("1.000000003022265980"),
-				),
-				kavadisttypes.NewPeriod(
-					blockTime.Add(-2*time.Hour),
-					blockTime.Add(2*time.Hour),
-					sdk.MustNewDecFromStr("1.0000000095129375"),
-				),
-				// An additional future period
-				kavadisttypes.NewPeriod(
-					blockTime.Add(2*time.Hour),
-					blockTime.Add(3*time.Hour),
-					sdk.MustNewDecFromStr("1.0000000095129375"),
-				),
-			},
-			sdk.MustNewDecFromStr("0.000000003022265980").
-				Add(sdk.MustNewDecFromStr("0.0000000095129375")).
-				MulInt64(keeper.SecondsPerYear),
 		},
 	}
 
-	ctx := NewTestContext().WithBlockTime(blockTime)
+	aprWithIncentives, err := keeper.GetStakingAPR(suite.ctx, suite.keeper, params)
+	suite.Require().NoError(err)
+	// Approx 10% increase in APR from incentives
+	suite.Require().Equal(sdk.MustNewDecFromStr("0.280711113729177500"), aprWithIncentives)
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			inflation := keeper.GetTotalInfrastructureInflation(ctx, tc.periods)
-			t.Logf("inflation per year: %s (~%v%%)",
-				inflation, inflation.MulInt64(100).RoundInt64())
-
-			require.Equal(t, tc.wantInflation, inflation)
-		})
-	}
+	suite.Require().Truef(
+		aprWithIncentives.GT(aprWithoutIncentives),
+		"APR with incentives (%s) should be greater than APR without incentives (%s)",
+	)
 }
