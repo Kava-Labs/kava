@@ -41,7 +41,6 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 		},
 		{
 			name: "value doubled",
-
 			beforeConvert: func() {
 				// set total shares set total value for hard
 				// value is double than shares
@@ -73,6 +72,8 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 				sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 10000)),
 			)
 			suite.Require().NoError(err)
+
+			suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 			// Run any deposits or any other setup
 			tt.beforeConvert()
