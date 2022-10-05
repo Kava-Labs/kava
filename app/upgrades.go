@@ -2,7 +2,6 @@ package app
 
 import (
 	_ "embed"
-	"encoding/json"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,14 +10,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
-	savingstypes "github.com/kava-labs/kava/x/savings/types"
-	etherminttypes "github.com/tharsis/ethermint/types"
 )
 
 const UpgradeName = "v0.19.0"
@@ -26,18 +21,8 @@ const UpgradeName = "v0.19.0"
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			// 100% inflation -> 75% inflation
-			app.Logger().Info("updating x/mint params with inflation 100% -> 75%")
-			UpdateCosmosMintInflation(ctx, app.mintKeeper)
-
-			app.Logger().Info("updating x/savings params with new supported denoms")
-			UpdateSavingsParams(ctx, app.savingsKeeper)
-
 			app.Logger().Info("updating x/evmutil module account with new permissions")
 			UpdateEvmutilPermissions(ctx, app.accountKeeper)
-
-			app.Logger().Info("converting all non-contract EthAccounts to BaseAccounts")
-			ConvertEOAsToBaseAccount(ctx, app.accountKeeper)
 
 			app.Logger().Info("initializing kavadist funding module account")
 			AddKavadistFundAccount(ctx, app.accountKeeper, app.bankKeeper, app.distrKeeper)
@@ -66,25 +51,6 @@ func (app App) RegisterUpgradeHandlers() {
 	}
 }
 
-func UpdateCosmosMintInflation(ctx sdk.Context, mintKeeper mintkeeper.Keeper) {
-	mintParams := mintKeeper.GetParams(ctx)
-	// 0.75
-	mintParams.InflationMin = sdk.NewDecWithPrec(75, 2)
-	mintParams.InflationMax = sdk.NewDecWithPrec(75, 2)
-
-	mintKeeper.SetParams(ctx, mintParams)
-}
-
-func UpdateSavingsParams(ctx sdk.Context, savingsKeeper savingskeeper.Keeper) {
-	savingsParams := savingstypes.NewParams([]string{
-		"ukava",
-		"bkava",
-		"erc20/multichain/usdc",
-	})
-
-	savingsKeeper.SetParams(ctx, savingsParams)
-}
-
 func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) {
 	// add minter and burner permissions to evmutil
 	evmutilAcc, ok := accountKeeper.GetModuleAccount(ctx, evmutiltypes.ModuleName).(*authtypes.ModuleAccount)
@@ -95,46 +61,6 @@ func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountK
 		authtypes.Minter, authtypes.Burner,
 	}
 	accountKeeper.SetModuleAccount(ctx, evmutilAcc)
-}
-
-//go:embed eth_eoa_addresses.json
-var ethEOAAddresses []byte
-
-func IterateEOAAddresses(f func(addr string)) {
-	var addresses []string
-
-	if err := json.Unmarshal(ethEOAAddresses, &addresses); err != nil {
-		panic("failed to unmarshal embedded eth_eoa_addresses.json")
-	}
-
-	for _, addr := range addresses {
-		f(addr)
-	}
-}
-
-// ConvertEOAsToBaseAccount converts all non-contract EthAccounts to BaseAccounts
-func ConvertEOAsToBaseAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) {
-	IterateEOAAddresses(func(addrStr string) {
-		addr, err := sdk.AccAddressFromBech32(addrStr)
-		if err != nil {
-			panic("failed to parse address")
-		}
-
-		// Skip non-EthAccounts
-		acc := accountKeeper.GetAccount(ctx, addr)
-		ethAcc, isEthAcc := acc.(*etherminttypes.EthAccount)
-		if !isEthAcc {
-			return
-		}
-
-		// Skip contract accounts
-		if ethAcc.Type() != etherminttypes.AccountTypeEOA {
-			return
-		}
-
-		// Change to BaseAccount in store
-		accountKeeper.SetAccount(ctx, ethAcc.BaseAccount)
-	})
 }
 
 func AddKavadistFundAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper, bankKeeper bankKeeper.Keeper, distKeeper distrkeeper.Keeper) {
