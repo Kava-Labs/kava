@@ -16,6 +16,8 @@ import (
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	etherminttypes "github.com/tharsis/ethermint/types"
@@ -41,6 +43,8 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("initializing kavadist funding module account")
 			AddKavadistFundAccount(ctx, app.accountKeeper, app.bankKeeper, app.distrKeeper)
+			app.Logger().Info("updating x/pricefeed params with new markets")
+			UpdatePricefeedParams(ctx, app.pricefeedKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
@@ -161,5 +165,55 @@ func AddKavadistFundAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKee
 	modBaseAcc := authtypes.NewBaseAccount(maccAddr, nil, 0, 0)
 	modAcc := authtypes.NewModuleAccount(modBaseAcc, kavadisttypes.FundModuleAccount, []string{}...)
 	accountKeeper.SetModuleAccount(ctx, modAcc)
+}
 
+func UpdatePricefeedParams(ctx sdk.Context, pricefeedKeeper pricefeedkeeper.Keeper) {
+	params := pricefeedKeeper.GetParams(ctx)
+	oracles := params.Markets[0].Oracles
+	newMarkets := pricefeedtypes.Markets{
+		{
+			MarketID:   "usdc:usd",
+			BaseAsset:  "usdc",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "usdc:usd:30",
+			BaseAsset:  "usdc",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "usdt:usd:30",
+			BaseAsset:  "usdt",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "usdt:usd:30",
+			BaseAsset:  "usdt",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "dai:usd:30",
+			BaseAsset:  "dai",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+		{
+			MarketID:   "dai:usd:30",
+			BaseAsset:  "dai",
+			QuoteAsset: "usd",
+			Oracles:    oracles,
+			Active:     true,
+		},
+	}
+	params.Markets = append(params.Markets, newMarkets...)
+	pricefeedKeeper.SetParams(ctx, params)
 }
