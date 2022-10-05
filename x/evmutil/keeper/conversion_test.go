@@ -164,13 +164,17 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20() {
 	)
 	suite.Require().NoError(err)
 
+	// convert coin to erc20
+	ctx := suite.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	err = suite.Keeper.ConvertCoinToERC20(
-		suite.Ctx,
+		ctx,
 		originAcc,
 		recipientAcc,
 		sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount)),
 	)
 	suite.Require().NoError(err)
+	suite.Require().LessOrEqual(ctx.GasMeter().GasConsumed(), uint64(500000))
+	suite.Require().GreaterOrEqual(ctx.GasMeter().GasConsumed(), uint64(50000))
 
 	// Source should decrease
 	bal := suite.App.GetBankKeeper().GetBalance(suite.Ctx, originAcc, pair.Denom)
@@ -279,15 +283,18 @@ func (suite *ConversionTestSuite) TestConvertERC20ToCoin() {
 	)
 	suite.Require().NoError(err)
 
+	ctx := suite.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 	convertAmt := sdk.NewInt(50)
 	err = suite.Keeper.ConvertERC20ToCoin(
-		suite.Ctx,
+		ctx,
 		userEvmAddr,
 		userAddr,
 		pair.GetAddress(),
 		convertAmt,
 	)
 	suite.Require().NoError(err)
+	suite.Require().LessOrEqual(ctx.GasMeter().GasConsumed(), uint64(500000))
+	suite.Require().GreaterOrEqual(ctx.GasMeter().GasConsumed(), uint64(50000))
 
 	// bank balance should decrease
 	bal := suite.App.GetBankKeeper().GetBalance(suite.Ctx, userAddr, pair.Denom)
