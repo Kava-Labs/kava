@@ -55,7 +55,7 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 			newFakePricefeedKeeper().
 				setPrice(
 					pricefeedtypes.NewCurrentPrice(
-						"ukava:usd:30",
+						"kava:usd:30",
 						sdk.MustNewDecFromStr("1.5"),
 					)),
 		).
