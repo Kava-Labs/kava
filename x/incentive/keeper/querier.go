@@ -468,7 +468,7 @@ func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, err
 	}
 
 	// Incentive APR = rewards per second * seconds per year / total supplied to earn vaults
-	// Override collateral type to use "ukava" instead of "bkava" when fetching prices
+	// Override collateral type to use "kava" instead of "bkava" when fetching
 	incentiveAPY, err := GetAPYFromMultiRewardPeriod(ctx, k, types.BondDenom, bkavaRewardPeriod, totalEarnBkavaDeposited)
 	if err != nil {
 		return sdk.ZeroDec(), err
@@ -486,6 +486,10 @@ func GetAPYFromMultiRewardPeriod(
 	rewardPeriod types.MultiRewardPeriod,
 	totalSupply sdk.Int,
 ) (sdk.Dec, error) {
+	if totalSupply.IsZero() {
+		return sdk.ZeroDec(), nil
+	}
+
 	// Get USD value of collateral type
 	collateralUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(collateralType))
 	if err != nil {
@@ -520,5 +524,10 @@ func GetAPYFromMultiRewardPeriod(
 }
 
 func getMarketID(denom string) string {
+	if denom == types.BondDenom {
+		// Rewrite "ukava" to "kava" as pricefeed only has "kava" and not "ukava"
+		return getMarketID("kava")
+	}
+
 	return fmt.Sprintf("%s:usd:30", denom)
 }
