@@ -9,7 +9,6 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
-	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
@@ -103,11 +102,6 @@ type MintKeeper interface {
 // DistrKeeper defines the required methods needed by this modules keeper
 type DistrKeeper interface {
 	GetCommunityTax(ctx sdk.Context) (percent sdk.Dec)
-}
-
-// KavadistKeeper defines the required methods needed by this modules keeper
-type KavadistKeeper interface {
-	GetParams(ctx sdk.Context) (params kavadisttypes.Params)
 }
 
 // PricefeedKeeper defines the required methods needed by this modules keeper
