@@ -3,21 +3,26 @@ package app
 import (
 	_ "embed"
 	"encoding/json"
+	"fmt"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	etherminttypes "github.com/tharsis/ethermint/types"
+
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
-	etherminttypes "github.com/tharsis/ethermint/types"
 )
 
 const UpgradeName = "v0.19.0"
@@ -37,6 +42,9 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("converting all non-contract EthAccounts to BaseAccounts")
 			ConvertEOAsToBaseAccount(ctx, app.accountKeeper)
+
+			app.Logger().Info("initializing kavadist funding module account")
+			AddKavadistFundAccount(ctx, app.accountKeeper, app.bankKeeper, app.distrKeeper)
 
 			app.Logger().Info("updating x/pricefeed params with new markets")
 			UpdatePricefeedParams(ctx, app.pricefeedKeeper)
@@ -134,6 +142,35 @@ func ConvertEOAsToBaseAccount(ctx sdk.Context, accountKeeper authkeeper.AccountK
 		// Change to BaseAccount in store
 		accountKeeper.SetAccount(ctx, ethAcc.BaseAccount)
 	})
+}
+
+func AddKavadistFundAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper, bankKeeper bankKeeper.Keeper, distKeeper distrkeeper.Keeper) {
+	maccAddr, perms := accountKeeper.GetModuleAddressAndPermissions(kavadisttypes.FundModuleAccount)
+	if maccAddr == nil {
+		panic(fmt.Sprintf("%s module account not configured in app", kavadisttypes.FundModuleAccount))
+	}
+
+	accountI := accountKeeper.GetAccount(ctx, maccAddr)
+	// if account already exists and is a module account, return
+	_, ok := accountI.(authtypes.ModuleAccountI)
+	if ok {
+		return
+	}
+	// if account exists and is not a module account, transfer funds to community pool
+	if accountI != nil {
+		// transfer balance if it exists
+		coins := bankKeeper.GetAllBalances(ctx, maccAddr)
+		if !coins.IsZero() {
+			err := distKeeper.FundCommunityPool(ctx, coins, maccAddr)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+	// instantiate new module account
+	modAcc := authtypes.NewEmptyModuleAccount(kavadisttypes.FundModuleAccount, perms...)
+	modAccI := (accountKeeper.NewAccount(ctx, modAcc)).(authtypes.ModuleAccountI) // set and increment the account number
+	accountKeeper.SetModuleAccount(ctx, modAccI)
 }
 
 func UpdatePricefeedParams(ctx sdk.Context, pricefeedKeeper pricefeedkeeper.Keeper) {

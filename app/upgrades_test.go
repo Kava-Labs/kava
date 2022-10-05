@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/kava-labs/kava/app"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	etherminttypes "github.com/tharsis/ethermint/types"
@@ -158,4 +159,43 @@ func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
 	suite.Greater(accCount, 0)
 	suite.Greater(accCountAfter, 0)
 	suite.Equal(accCount, accCountAfter, "account count should be unchanged")
+}
+
+func (suite *UpgradeTestSuite) TestAddKavadistFundAccount() {
+	ak := suite.App.GetAccountKeeper()
+	maccAddr := ak.GetModuleAddress(kavadisttypes.FundModuleAccount)
+
+	dstk := suite.App.GetDistrKeeper()
+
+	communityCoinsBefore := dstk.GetFeePoolCommunityCoins(suite.Ctx)
+
+	acc := ak.NewAccountWithAddress(suite.Ctx, maccAddr)
+	ak.SetAccount(suite.Ctx, acc)
+
+	bal := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000000000000)))
+	suite.App.FundAccount(suite.Ctx, maccAddr, bal)
+
+	// Ensure it is a module account prior to migration
+	acc = ak.GetAccount(suite.Ctx, maccAddr)
+	_, ok := acc.(authtypes.ModuleAccountI)
+	suite.Require().Falsef(ok, "account should not a ModuleAccount: %T", acc)
+
+	suite.Require().IsType(&authtypes.BaseAccount{}, acc)
+
+	app.AddKavadistFundAccount(
+		suite.Ctx,
+		ak,
+		suite.App.GetBankKeeper(),
+		dstk,
+	)
+
+	acc = ak.GetAccount(suite.Ctx, maccAddr)
+	suite.Require().Implements((*authtypes.ModuleAccountI)(nil), acc)
+
+	communityCoinsAfter := dstk.GetFeePoolCommunityCoins(suite.Ctx)
+
+	suite.Equal(
+		communityCoinsBefore.Add(sdk.NewDecCoinsFromCoins(bal...)...),
+		communityCoinsAfter,
+	)
 }
