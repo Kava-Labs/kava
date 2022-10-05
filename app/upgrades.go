@@ -155,7 +155,7 @@ func UpdatePricefeedParams(ctx sdk.Context, pricefeedKeeper pricefeedkeeper.Keep
 			Active:     true,
 		},
 		{
-			MarketID:   "usdt:usd:30",
+			MarketID:   "usdt:usd",
 			BaseAsset:  "usdt",
 			QuoteAsset: "usd",
 			Oracles:    oracles,
@@ -169,7 +169,7 @@ func UpdatePricefeedParams(ctx sdk.Context, pricefeedKeeper pricefeedkeeper.Keep
 			Active:     true,
 		},
 		{
-			MarketID:   "dai:usd:30",
+			MarketID:   "dai:usd",
 			BaseAsset:  "dai",
 			QuoteAsset: "usd",
 			Oracles:    oracles,
