@@ -49,13 +49,6 @@ func DefaultGenesisState() GenesisState {
 					true,
 					[]sdk.AccAddress{authtypes.NewModuleAddress(kavadisttypes.FundModuleAccount)},
 				),
-				// usdx
-				NewAllowedVault(
-					"usdx",
-					StrategyTypes{STRATEGY_TYPE_HARD},
-					false,
-					[]sdk.AccAddress{},
-				),
 				NewAllowedVault(
 					"bkava",
 					StrategyTypes{STRATEGY_TYPE_SAVINGS},
