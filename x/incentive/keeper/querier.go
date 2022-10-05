@@ -11,7 +11,6 @@ import (
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/types"
-	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 )
 
@@ -385,7 +384,7 @@ func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	var apys types.APYs
 
 	// bkava APY (staking + incentive rewards)
-	stakingAPR, err := getStakingAPR(ctx, k, params)
+	stakingAPR, err := GetStakingAPR(ctx, k, params)
 	if err != nil {
 		return nil, err
 	}
@@ -404,12 +403,12 @@ func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 		if err != nil {
 			return nil, err
 		}
-		apy, err := getAPYFromMultiRewardPeriod(ctx, k, param, vaultTotalValue.Amount)
+		apy, err := GetAPYFromMultiRewardPeriod(ctx, k, param.CollateralType, param, vaultTotalValue.Amount)
 		if err != nil {
 			return nil, err
 		}
 
-		apys = append(apys, apy)
+		apys = append(apys, types.NewAPY(param.CollateralType, apy))
 	}
 
 	// Marshal APYs
@@ -421,20 +420,18 @@ func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	return bz, nil
 }
 
-func getStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, error) {
+// GetStakingAPR returns the total APR for staking and incentive rewards
+func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, error) {
 	// Get staking APR + incentive APR
 	inflationRate := k.mintKeeper.GetMinter(ctx).Inflation
 	communityTax := k.distrKeeper.GetCommunityTax(ctx)
-	infrastructureTaxPeriods := k.kavadistKeeper.GetParams(ctx).InfrastructureParams.InfrastructurePeriods
-	infrastructureTax := GetTotalInfrastructureInflation(ctx, infrastructureTaxPeriods)
 
 	bondedTokens := k.stakingKeeper.TotalBondedTokens(ctx)
 	circulatingSupply := k.bankKeeper.GetSupply(ctx, types.BondDenom)
 
-	// Staking APR = (Inflation Rate - Community Tax - Infrastructure Tax) / (Bonded Tokens / Circulating Supply)
+	// Staking APR = (Inflation Rate * (1 - Community Tax)) / (Bonded Tokens / Circulating Supply)
 	stakingAPR := inflationRate.
-		Sub(communityTax).
-		Sub(infrastructureTax).
+		Mul(sdk.OneDec().Sub(communityTax)).
 		Quo(bondedTokens.ToDec().
 			Quo(circulatingSupply.Amount.ToDec()))
 
@@ -471,52 +468,28 @@ func getStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, err
 	}
 
 	// Incentive APR = rewards per second * seconds per year / total supplied to earn vaults
-	incentiveAPY := bkavaRewardPeriod.RewardsPerSecond.AmountOf(types.BondDenom).ToDec().
-		MulInt64(SecondsPerYear).
-		QuoInt(totalEarnBkavaDeposited)
+	// Override collateral type to use "ukava" instead of "bkava" when fetching prices
+	incentiveAPY, err := GetAPYFromMultiRewardPeriod(ctx, k, types.BondDenom, bkavaRewardPeriod, totalEarnBkavaDeposited)
+	if err != nil {
+		return sdk.ZeroDec(), err
+	}
 
 	totalAPY := stakingAPR.Add(incentiveAPY)
 	return totalAPY, nil
 }
 
-func GetTotalInfrastructureInflation(
-	ctx sdk.Context,
-	infrastructureTaxPeriods kavadisttypes.Periods,
-) sdk.Dec {
-	totalPerSecondInflation := sdk.ZeroDec()
-
-	for _, period := range infrastructureTaxPeriods {
-		// Skip periods that already ended or haven't started yet.
-		// Only consider periods that are active **now** at this given blocktime
-		// and not those that expired between past block and this block.
-		if period.End.Before(ctx.BlockTime()) || period.Start.After(ctx.BlockTime()) {
-			continue
-		}
-
-		// Inflation is represented as a new percent of *total* tokens in supply,
-		// not just a percentage of what to mint.
-		// For example: 1.000000003022265980 as 10% inflation
-		// So we have to subtract 1.0 to get only the percentage of minted tokens.
-		totalPerSecondInflation = totalPerSecondInflation.Add(period.Inflation.Sub(sdk.OneDec()))
-	}
-
-	// Per second minting  = 0.000000003022265980
-	// Convert to yearly % = 0.000000003022265980 * seconds per year (31536000)
-	//                     = 0.09531017994528 per year (9.531%)
-	totalAPR := totalPerSecondInflation.MulInt64(SecondsPerYear)
-	return totalAPR
-}
-
-func getAPYFromMultiRewardPeriod(
+// GetAPYFromMultiRewardPeriod calculates the APY for a given MultiRewardPeriod
+func GetAPYFromMultiRewardPeriod(
 	ctx sdk.Context,
 	k Keeper,
+	collateralType string,
 	rewardPeriod types.MultiRewardPeriod,
 	totalSupply sdk.Int,
-) (types.APY, error) {
+) (sdk.Dec, error) {
 	// Get USD value of collateral type
-	collateralUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(rewardPeriod.CollateralType))
+	collateralUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(collateralType))
 	if err != nil {
-		return types.APY{}, err
+		return sdk.ZeroDec(), err
 	}
 
 	// Total USD value of the collateral type total supply
@@ -531,7 +504,7 @@ func getAPYFromMultiRewardPeriod(
 		// Get USD value of 1 unit of reward asset type, using TWAP
 		rewardDenomUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(reward.Denom))
 		if err != nil {
-			return types.APY{}, fmt.Errorf("failed to get price for RewardsPerSecond asset %s: %w", reward.Denom, err)
+			return sdk.ZeroDec(), fmt.Errorf("failed to get price for RewardsPerSecond asset %s: %w", reward.Denom, err)
 		}
 
 		rewardPerSecond := reward.Amount.ToDec().Mul(rewardDenomUSDValue.Price)
@@ -543,7 +516,7 @@ func getAPYFromMultiRewardPeriod(
 		MulInt64(SecondsPerYear).
 		Quo(totalSupplyUSDValue)
 
-	return types.NewAPY(rewardPeriod.CollateralType, apy), nil
+	return apy, nil
 }
 
 func getMarketID(denom string) string {

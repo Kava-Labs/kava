@@ -8,8 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/stretchr/testify/suite"
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
@@ -77,7 +79,7 @@ func (suite *unitTester) NewKeeper(
 	return keeper.NewKeeper(
 		suite.cdc, suite.incentiveStoreKey, paramSubspace,
 		bk, cdpk, hk, ak, stk, swk, svk, lqk, ek,
-		nil, nil, nil, nil,
+		nil, nil, nil,
 	)
 }
 
@@ -135,6 +137,96 @@ func (suite *unitTester) storeSavingsClaim(claim types.SavingsClaim) {
 
 func (suite *unitTester) storeEarnClaim(claim types.EarnClaim) {
 	suite.keeper.SetEarnClaim(suite.ctx, claim)
+}
+
+type TestKeeperBuilder struct {
+	cdc           codec.Codec
+	key           sdk.StoreKey
+	paramSubspace types.ParamSubspace
+	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	cdpKeeper     types.CdpKeeper
+	hardKeeper    types.HardKeeper
+	stakingKeeper types.StakingKeeper
+	swapKeeper    types.SwapKeeper
+	savingsKeeper types.SavingsKeeper
+	liquidKeeper  types.LiquidKeeper
+	earnKeeper    types.EarnKeeper
+
+	// Keepers used for APY queries
+	mintKeeper      types.MintKeeper
+	distrKeeper     types.DistrKeeper
+	pricefeedKeeper types.PricefeedKeeper
+}
+
+func (suite *unitTester) NewTestKeeper(
+	paramSubspace types.ParamSubspace,
+) *TestKeeperBuilder {
+	if !paramSubspace.HasKeyTable() {
+		paramSubspace = paramSubspace.WithKeyTable(types.ParamKeyTable())
+	}
+
+	return &TestKeeperBuilder{
+		cdc:             suite.cdc,
+		key:             suite.incentiveStoreKey,
+		paramSubspace:   paramSubspace,
+		accountKeeper:   nil,
+		bankKeeper:      nil,
+		cdpKeeper:       nil,
+		hardKeeper:      nil,
+		stakingKeeper:   nil,
+		swapKeeper:      nil,
+		savingsKeeper:   nil,
+		liquidKeeper:    nil,
+		earnKeeper:      nil,
+		mintKeeper:      nil,
+		distrKeeper:     nil,
+		pricefeedKeeper: nil,
+	}
+}
+
+func (tk *TestKeeperBuilder) WithPricefeedKeeper(k types.PricefeedKeeper) *TestKeeperBuilder {
+	tk.pricefeedKeeper = k
+	return tk
+}
+
+func (tk *TestKeeperBuilder) WithDistrKeeper(k types.DistrKeeper) *TestKeeperBuilder {
+	tk.distrKeeper = k
+	return tk
+}
+
+func (tk *TestKeeperBuilder) WithBankKeeper(k types.BankKeeper) *TestKeeperBuilder {
+	tk.bankKeeper = k
+	return tk
+}
+
+func (tk *TestKeeperBuilder) WithStakingKeeper(k types.StakingKeeper) *TestKeeperBuilder {
+	tk.stakingKeeper = k
+	return tk
+}
+
+func (tk *TestKeeperBuilder) WithMintKeeper(k types.MintKeeper) *TestKeeperBuilder {
+	tk.mintKeeper = k
+	return tk
+}
+
+func (tk *TestKeeperBuilder) WithEarnKeeper(k types.EarnKeeper) *TestKeeperBuilder {
+	tk.earnKeeper = k
+	return tk
+}
+
+func (tk *TestKeeperBuilder) WithLiquidKeeper(k types.LiquidKeeper) *TestKeeperBuilder {
+	tk.liquidKeeper = k
+	return tk
+}
+
+func (tk *TestKeeperBuilder) Build() keeper.Keeper {
+	return keeper.NewKeeper(
+		tk.cdc, tk.key, tk.paramSubspace,
+		tk.bankKeeper, tk.cdpKeeper, tk.hardKeeper, tk.accountKeeper,
+		tk.stakingKeeper, tk.swapKeeper, tk.savingsKeeper, tk.liquidKeeper,
+		tk.earnKeeper, tk.mintKeeper, tk.distrKeeper, tk.pricefeedKeeper,
+	)
 }
 
 // fakeParamSubspace is a stub paramSpace to simplify keeper unit test setup.
@@ -530,6 +622,112 @@ func (k *fakeLiquidKeeper) getRewardAmount(
 
 	// Reward amount just set to 10% of the derivative supply per second
 	return amt.QuoRaw(10).MulRaw(duration)
+}
+
+type fakeDistrKeeper struct {
+	communityTax sdk.Dec
+}
+
+var _ types.DistrKeeper = newFakeDistrKeeper()
+
+func newFakeDistrKeeper() *fakeDistrKeeper {
+	return &fakeDistrKeeper{}
+}
+
+func (k *fakeDistrKeeper) setCommunityTax(percent sdk.Dec) *fakeDistrKeeper {
+	k.communityTax = percent
+	return k
+}
+
+func (k *fakeDistrKeeper) GetCommunityTax(ctx sdk.Context) (percent sdk.Dec) {
+	return k.communityTax
+}
+
+type fakeMintKeeper struct {
+	minter minttypes.Minter
+}
+
+var _ types.MintKeeper = newFakeMintKeeper()
+
+func newFakeMintKeeper() *fakeMintKeeper {
+	return &fakeMintKeeper{}
+}
+
+func (k *fakeMintKeeper) setMinter(minter minttypes.Minter) *fakeMintKeeper {
+	k.minter = minter
+	return k
+}
+
+func (k *fakeMintKeeper) GetMinter(ctx sdk.Context) (minter minttypes.Minter) {
+	return k.minter
+}
+
+type fakePricefeedKeeper struct {
+	prices map[string]pricefeedtypes.CurrentPrice
+}
+
+var _ types.PricefeedKeeper = newFakePricefeedKeeper()
+
+func newFakePricefeedKeeper() *fakePricefeedKeeper {
+	return &fakePricefeedKeeper{
+		prices: map[string]pricefeedtypes.CurrentPrice{},
+	}
+}
+
+func (k *fakePricefeedKeeper) setPrice(price pricefeedtypes.CurrentPrice) *fakePricefeedKeeper {
+	k.prices[price.MarketID] = price
+	return k
+}
+
+func (k *fakePricefeedKeeper) GetCurrentPrice(ctx sdk.Context, marketID string) (pricefeedtypes.CurrentPrice, error) {
+	price, found := k.prices[marketID]
+	if !found {
+		return pricefeedtypes.CurrentPrice{}, fmt.Errorf("price not found for market %s", marketID)
+	}
+
+	return price, nil
+}
+
+type fakeBankKeeper struct {
+	supply map[string]sdk.Int
+}
+
+var _ types.BankKeeper = newFakeBankKeeper()
+
+func newFakeBankKeeper() *fakeBankKeeper {
+	return &fakeBankKeeper{
+		supply: map[string]sdk.Int{},
+	}
+}
+
+func (k *fakeBankKeeper) setSupply(coins ...sdk.Coin) *fakeBankKeeper {
+	for _, coin := range coins {
+		k.supply[coin.Denom] = coin.Amount
+	}
+
+	return k
+}
+
+func (k *fakeBankKeeper) SendCoinsFromModuleToAccount(
+	ctx sdk.Context,
+	senderModule string,
+	recipientAddr sdk.AccAddress,
+	amt sdk.Coins,
+) error {
+	panic("not implemented")
+}
+
+func (k *fakeBankKeeper) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
+	panic("not implemented")
+}
+
+func (k *fakeBankKeeper) GetSupply(ctx sdk.Context, denom string) sdk.Coin {
+	supply, found := k.supply[denom]
+	if !found {
+		return sdk.NewCoin(denom, sdk.ZeroInt())
+	}
+
+	return sdk.NewCoin(denom, supply)
 }
 
 // Assorted Testing Data
