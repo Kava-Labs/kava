@@ -168,7 +168,6 @@ func (suite *UpgradeTestSuite) TestAddKavadistFundAccount() {
 	dstk := suite.App.GetDistrKeeper()
 
 	communityCoinsBefore := dstk.GetFeePoolCommunityCoins(suite.Ctx)
-	suite.T().Logf("community coins before: %s", communityCoinsBefore)
 
 	acc := ak.NewAccountWithAddress(suite.Ctx, maccAddr)
 	ak.SetAccount(suite.Ctx, acc)
@@ -194,7 +193,6 @@ func (suite *UpgradeTestSuite) TestAddKavadistFundAccount() {
 	suite.Require().Implements((*authtypes.ModuleAccountI)(nil), acc)
 
 	communityCoinsAfter := dstk.GetFeePoolCommunityCoins(suite.Ctx)
-	suite.T().Logf("community coins after: %s", communityCoinsAfter)
 
 	suite.Equal(
 		communityCoinsBefore.Add(sdk.NewDecCoinsFromCoins(bal...)...),
