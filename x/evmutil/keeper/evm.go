@@ -125,11 +125,11 @@ func (k Keeper) CallEVMWithData(
 		return nil, err
 	}
 
-	ctx.GasMeter().ConsumeGas(res.GasUsed, "evm gas consumed")
-
 	if res.Failed() {
 		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, res.VmError)
 	}
+
+	ctx.GasMeter().ConsumeGas(res.GasUsed, "evm gas consumed")
 
 	return res, nil
 }
