@@ -397,6 +397,12 @@
   
     - [Query](#kava.kavadist.v1beta1.Query)
   
+- [kava/liquid/v1beta1/query.proto](#kava/liquid/v1beta1/query.proto)
+    - [QueryDelegatedBalanceRequest](#kava.liquid.v1beta1.QueryDelegatedBalanceRequest)
+    - [QueryDelegatedBalanceResponse](#kava.liquid.v1beta1.QueryDelegatedBalanceResponse)
+  
+    - [Query](#kava.liquid.v1beta1.Query)
+  
 - [kava/liquid/v1beta1/tx.proto](#kava/liquid/v1beta1/tx.proto)
     - [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative)
     - [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse)
@@ -5332,7 +5338,7 @@ Msg defines the issuance Msg service.
 <a name="kava.kavadist.v1beta1.CoreReward"></a>
 
 ### CoreReward
-
+CoreReward defines the reward weights for core infrastructure providers.
 
 
 | Field | Type | Label | Description |
@@ -5348,7 +5354,7 @@ Msg defines the issuance Msg service.
 <a name="kava.kavadist.v1beta1.InfrastructureParams"></a>
 
 ### InfrastructureParams
-
+InfrastructureParams define the parameters for infrastructure rewards.
 
 
 | Field | Type | Label | Description |
@@ -5382,7 +5388,7 @@ Params governance parameters for kavadist module
 <a name="kava.kavadist.v1beta1.PartnerReward"></a>
 
 ### PartnerReward
-
+PartnerRewards defines the reward schedule for partner infrastructure providers.
 
 
 | Field | Type | Label | Description |
@@ -5594,6 +5600,63 @@ Query defines the gRPC querier service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.kavadist.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavadist.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavadist module. | GET|/kava/kavadist/v1beta1/parameters|
 | `Balance` | [QueryBalanceRequest](#kava.kavadist.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.kavadist.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/kavadist module. | GET|/kava/kavadist/v1beta1/balance|
+
+ <!-- end services -->
+
+
+
+<a name="kava/liquid/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/liquid/v1beta1/query.proto
+
+
+
+<a name="kava.liquid.v1beta1.QueryDelegatedBalanceRequest"></a>
+
+### QueryDelegatedBalanceRequest
+QueryDelegatedBalanceRequest defines the request type for Query/DelegatedBalance method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `delegator` | [string](#string) |  | delegator is the address of the account to query |
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.QueryDelegatedBalanceResponse"></a>
+
+### QueryDelegatedBalanceResponse
+DelegatedBalanceResponse defines the response type for the Query/DelegatedBalance method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `vested` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | vested is the amount of all delegated coins that have vested (ie not locked) |
+| `vesting` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | vesting is the amount of all delegated coins that are still vesting (ie locked) |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.liquid.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for liquid module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `DelegatedBalance` | [QueryDelegatedBalanceRequest](#kava.liquid.v1beta1.QueryDelegatedBalanceRequest) | [QueryDelegatedBalanceResponse](#kava.liquid.v1beta1.QueryDelegatedBalanceResponse) | DelegatedBalance returns an account's vesting and vested coins currently delegated to validators. It ignores coins in unbonding delegations. | GET|/kava/liquid/v1beta1/delegated_balance/{delegator}|
 
  <!-- end services -->
 

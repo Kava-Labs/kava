@@ -18,6 +18,7 @@ message Params {
   InfrastructureParams infrastructure_params = 4 [(gogoproto.nullable) = false];
 }
 
+// InfrastructureParams define the parameters for infrastructure rewards.
 message InfrastructureParams {
   repeated Period     infrastructure_periods = 1 [(gogoproto.castrepeated) = "Periods", (gogoproto.nullable) = false];
   repeated CoreReward core_rewards       = 2 [(gogoproto.castrepeated) = "CoreRewards", (gogoproto.nullable) = false];
@@ -26,6 +27,7 @@ message InfrastructureParams {
   option (gogoproto.goproto_stringer) = true;
 }
 
+// CoreReward defines the reward weights for core infrastructure providers.
 message CoreReward {
   bytes address = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
@@ -39,6 +41,7 @@ message CoreReward {
   option (gogoproto.goproto_stringer) = true;
 }
 
+// PartnerRewards defines the reward schedule for partner infrastructure providers.
 message PartnerReward {
   bytes address = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
