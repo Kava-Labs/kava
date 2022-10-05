@@ -89,6 +89,8 @@ func (k Keeper) CallEVMWithData(
 		return nil, err
 	}
 
+	ethGasContext := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+
 	// EstimateGas applies the transaction against current block state to get
 	// optimal gas value. Since this is done right before the ApplyMessage
 	// below, it should essentially do the same thing but without affecting
@@ -96,7 +98,7 @@ func (k Keeper) CallEVMWithData(
 	// accurate exact amount in this case, as both the chain state and tx used
 	// to estimate and apply are the exact same (ie. no txs between estimate and
 	// apply, tx order is the same, etc.)
-	gasRes, err := k.evmKeeper.EstimateGas(sdk.WrapSDKContext(ctx), &evmtypes.EthCallRequest{
+	gasRes, err := k.evmKeeper.EstimateGas(sdk.WrapSDKContext(ethGasContext), &evmtypes.EthCallRequest{
 		Args:   args,
 		GasCap: config.DefaultGasCap,
 	})
@@ -118,10 +120,12 @@ func (k Keeper) CallEVMWithData(
 		true,                  // checkNonce
 	)
 
-	res, err := k.evmKeeper.ApplyMessage(ctx, msg, evmtypes.NewNoOpTracer(), true)
+	res, err := k.evmKeeper.ApplyMessage(ethGasContext, msg, evmtypes.NewNoOpTracer(), true)
 	if err != nil {
 		return nil, err
 	}
+
+	ctx.GasMeter().ConsumeGas(res.GasUsed, "evm gas consumed")
 
 	if res.Failed() {
 		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, res.VmError)
