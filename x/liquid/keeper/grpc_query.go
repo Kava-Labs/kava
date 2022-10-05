@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -50,29 +51,19 @@ func (s queryServer) DelegatedBalance(
 }
 
 func (s queryServer) getDelegatedBalance(ctx sdk.Context, delegator sdk.AccAddress) sdk.Int {
-	balance := sdk.ZeroInt()
+	balance := sdk.ZeroDec()
 
-	delegations := s.keeper.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 1000) // TODO what to set max to?
-	for _, delegation := range delegations {
+	s.keeper.stakingKeeper.IterateDelegatorDelegations(ctx, delegator, func(delegation stakingtypes.Delegation) bool {
 		validator, found := s.keeper.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
 		if !found {
 			panic(fmt.Sprintf("validator %s for delegation not found", delegation.GetValidatorAddr()))
 		}
-		balance = balance.Add(validator.TokensFromShares(delegation.GetShares()).TruncateInt())
-	}
-	return balance
-}
+		tokens := validator.TokensFromSharesTruncated(delegation.GetShares())
+		balance = balance.Add(tokens)
 
-func (s queryServer) getUnbondingBalance(ctx sdk.Context, delegator sdk.AccAddress) sdk.Int {
-	balance := sdk.ZeroInt()
-
-	ubds := s.keeper.stakingKeeper.GetUnbondingDelegations(ctx, delegator, 1000) // TODO what to set max to?
-	for _, ubd := range ubds {
-		for _, entry := range ubd.Entries {
-			balance = balance.Add(entry.Balance)
-		}
-	}
-	return balance
+		return false
+	})
+	return balance.TruncateInt()
 }
 
 func (s queryServer) getVesting(ctx sdk.Context, delegator sdk.AccAddress) sdk.Coins {
