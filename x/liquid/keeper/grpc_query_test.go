@@ -63,8 +63,8 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 				return delAddr.String()
 			},
 			expectedRes: &types.QueryDelegatedBalanceResponse{
-				Vested:  suite.NewBondCoin(i(250e6)),
-				Vesting: suite.NewBondCoin(sdk.ZeroInt()),
+				Vested:  suite.NewBondCoin(sdk.ZeroInt()),
+				Vesting: suite.NewBondCoin(i(250e6)),
 			},
 		},
 		{
