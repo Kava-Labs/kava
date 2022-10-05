@@ -16,7 +16,7 @@ import (
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
-const UpgradeName = "v0.19.0"
+const UpgradeName = "v0.19.3-testnet"
 
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
