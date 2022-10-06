@@ -3,7 +3,6 @@ package app
 import (
 	_ "embed"
 
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -11,7 +10,6 @@ import (
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
@@ -30,25 +28,6 @@ func (app App) RegisterUpgradeHandlers() {
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
-
-	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
-	if err != nil {
-		panic(err)
-	}
-
-	if upgradeInfo.Name == UpgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		storeUpgrades := storetypes.StoreUpgrades{
-			Added: []string{
-				earntypes.StoreKey,
-			},
-			Deleted: []string{
-				"bridge",
-			},
-		}
-
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
-	}
 }
 
 func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) {
