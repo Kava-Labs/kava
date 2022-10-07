@@ -493,7 +493,10 @@ func GetAPYFromMultiRewardPeriod(
 	// Get USD value of collateral type
 	collateralUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(collateralType))
 	if err != nil {
-		return sdk.ZeroDec(), err
+		return sdk.ZeroDec(), fmt.Errorf(
+			"failed to get price for incentive collateralType %s with market ID %s: %w",
+			collateralType, getMarketID(collateralType), err,
+		)
 	}
 
 	// Total USD value of the collateral type total supply
