@@ -1,4 +1,6 @@
-[
+package app
+
+var ethEOAAddresses = []byte(`[
   "kava1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqpjqqhvg",
   "kava1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzun4pzh",
   "kava1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqrp9p5l9",
@@ -33142,4 +33144,4 @@
   "kava1lll2wh9a0wkumhz5wdxu9jzd64slupzemgwzxv",
   "kava1lllsq67nkf8gt299v0duxkahqcacgaxz6qp2s4",
   "kava1llleudw5lun6ucm3z9fv6xnp65tndy0eeauu6f"
-]
+]`)
