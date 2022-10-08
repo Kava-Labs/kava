@@ -47,10 +47,10 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 // CreateAccount creates a new account (with a fixed address) from the provided balance.
-func (suite *KeeperTestSuite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+func (suite *KeeperTestSuite) CreateAccount(initialBalance sdk.Coins, index int) authtypes.AccountI {
+	_, addrs := app.GeneratePrivKeyAddressPairs(index + 1)
 
-	return suite.CreateAccountWithAddress(addrs[0], initialBalance)
+	return suite.CreateAccountWithAddress(addrs[index], initialBalance)
 }
 
 // CreateAccount creates a new account from the provided balance and address
@@ -186,6 +186,19 @@ func (suite *KeeperTestSuite) CreateRedelegation(delegator sdk.AccAddress, fromV
 
 	msgServer := stakingkeeper.NewMsgServerImpl(suite.StakingKeeper)
 	_, err := msgServer.BeginRedelegate(sdk.WrapSDKContext(suite.Ctx), msg)
+	suite.Require().NoError(err)
+}
+
+// CreateUnbondingDelegation undelegates tokens from a validator.
+func (suite *KeeperTestSuite) CreateUnbondingDelegation(delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Int) {
+	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
+	msg := stakingtypes.NewMsgUndelegate(
+		delegator,
+		validator,
+		sdk.NewCoin(stakingDenom, amount),
+	)
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.StakingKeeper)
+	_, err := msgServer.Undelegate(sdk.WrapSDKContext(suite.Ctx), msg)
 	suite.Require().NoError(err)
 }
 

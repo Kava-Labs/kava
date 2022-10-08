@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/types"
@@ -22,6 +23,8 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -160,6 +163,13 @@ func (suite *Suite) SetupTest() {
 		nil,
 	)
 
+	stakingParams := stakingtypes.DefaultParams()
+	stakingParams.BondDenom = "ukava"
+
+	stakingGs := stakingtypes.GenesisState{
+		Params: stakingParams,
+	}
+
 	tApp := app.NewTestApp()
 
 	tApp.InitializeFromGenesisStates(
@@ -167,6 +177,7 @@ func (suite *Suite) SetupTest() {
 			pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS),
 			hardtypes.ModuleName:      tApp.AppCodec().MustMarshalJSON(&hardGS),
 			savingstypes.ModuleName:   tApp.AppCodec().MustMarshalJSON(&savingsGS),
+			stakingtypes.ModuleName:   tApp.AppCodec().MustMarshalJSON(&stakingGs),
 		},
 	)
 
@@ -355,6 +366,67 @@ func (suite *Suite) SavingsDepositAmountEqual(expected sdk.Coins) {
 		"savings should have a deposit with the amount %v",
 		expected,
 	)
+}
+
+// ----------------------------------------------------------------------------
+// Staking
+
+// CreateNewUnbondedValidator creates a new validator in the staking module.
+// New validators are unbonded until the end blocker is run.
+func (suite *Suite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegation sdk.Int) stakingtypes.Validator {
+	// Create a validator
+	err := suite.deliverMsgCreateValidator(suite.Ctx, addr, suite.NewBondCoin(selfDelegation))
+	suite.Require().NoError(err)
+
+	// New validators are created in an unbonded state. Note if the end blocker is run later this validator could become bonded.
+
+	validator, found := suite.App.GetStakingKeeper().GetValidator(suite.Ctx, addr)
+	suite.Require().True(found)
+	return validator
+}
+
+// NewBondCoin creates a Coin with the current staking denom.
+func (suite *Suite) NewBondCoin(amount sdk.Int) sdk.Coin {
+	stakingDenom := suite.App.GetStakingKeeper().BondDenom(suite.Ctx)
+	return sdk.NewCoin(stakingDenom, amount)
+}
+
+// CreateDelegation delegates tokens to a validator.
+func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdk.Int) sdk.Dec {
+	sk := suite.App.GetStakingKeeper()
+
+	stakingDenom := sk.BondDenom(suite.Ctx)
+	msg := stakingtypes.NewMsgDelegate(
+		delegator,
+		valAddr,
+		sdk.NewCoin(stakingDenom, amount),
+	)
+
+	msgServer := stakingkeeper.NewMsgServerImpl(sk)
+	_, err := msgServer.Delegate(sdk.WrapSDKContext(suite.Ctx), msg)
+	suite.Require().NoError(err)
+
+	del, found := sk.GetDelegation(suite.Ctx, delegator, valAddr)
+	suite.Require().True(found)
+	return del.Shares
+}
+
+func (suite *Suite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
+	msg, err := stakingtypes.NewMsgCreateValidator(
+		address,
+		ed25519.GenPrivKey().PubKey(),
+		selfDelegation,
+		stakingtypes.Description{},
+		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		sdk.NewInt(1e6),
+	)
+	if err != nil {
+		return err
+	}
+
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.App.GetStakingKeeper())
+	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(suite.Ctx), msg)
+	return err
 }
 
 // ----------------------------------------------------------------------------

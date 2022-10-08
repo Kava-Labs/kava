@@ -1,0 +1,33 @@
+syntax = "proto3";
+package kava.liquid.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+
+option go_package                      = "github.com/kava-labs/kava/x/liquid/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Query defines the gRPC querier service for liquid module
+service Query {
+  // DelegatedBalance returns an account's vesting and vested coins currently delegated to validators.
+  // It ignores coins in unbonding delegations.
+  rpc DelegatedBalance(QueryDelegatedBalanceRequest) returns (QueryDelegatedBalanceResponse) {
+    option (google.api.http).get = "/kava/liquid/v1beta1/delegated_balance/{delegator}";
+  }
+}
+
+// QueryDelegatedBalanceRequest defines the request type for Query/DelegatedBalance method.
+message QueryDelegatedBalanceRequest {
+  // delegator is the address of the account to query
+  string delegator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// DelegatedBalanceResponse defines the response type for the Query/DelegatedBalance method.
+message QueryDelegatedBalanceResponse {
+  // vested is the amount of all delegated coins that have vested (ie not locked)
+  cosmos.base.v1beta1.Coin vested = 1 [(gogoproto.nullable) = false];
+  // vesting is the amount of all delegated coins that are still vesting (ie locked)
+  cosmos.base.v1beta1.Coin vesting = 2 [(gogoproto.nullable) = false];
+}
