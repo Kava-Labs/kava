@@ -245,7 +245,7 @@ func (th TallyHandler) addBkavaFromEarn(ctx sdk.Context, addr sdk.AccAddress, bk
 	}
 	for _, share := range shares {
 		if th.lk.IsDerivativeDenom(ctx, share.Denom) {
-			if coin, err := th.ek.ConvertToAssets(ctx, share); err != nil {
+			if coin, err := th.ek.ConvertToAssets(ctx, share); err == nil {
 				bkava.add(coin)
 			}
 		}
