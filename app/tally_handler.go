@@ -193,13 +193,13 @@ func (bkavaMap bkavaByDenom) add(coin sdk.Coin) {
 	if !found {
 		bkavaMap[coin.Denom] = sdk.ZeroInt()
 	}
-	bkavaMap[coin.Denom].Add(coin.Amount)
+	bkavaMap[coin.Denom] = bkavaMap[coin.Denom].Add(coin.Amount)
 }
 
 func (bkavaMap bkavaByDenom) toCoins() sdk.Coins {
 	coins := sdk.Coins{}
 	for denom, amt := range bkavaMap {
-		coins.Add(sdk.NewCoin(denom, amt))
+		coins = coins.Add(sdk.NewCoin(denom, amt))
 	}
 	return coins.Sort()
 }
@@ -245,7 +245,7 @@ func (th TallyHandler) addBkavaFromEarn(ctx sdk.Context, addr sdk.AccAddress, bk
 	}
 	for _, share := range shares {
 		if th.lk.IsDerivativeDenom(ctx, share.Denom) {
-			if coin, err := th.ek.ConvertToAssets(ctx, share); err != nil {
+			if coin, err := th.ek.ConvertToAssets(ctx, share); err == nil {
 				bkava.add(coin)
 			}
 		}
