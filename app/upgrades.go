@@ -12,16 +12,11 @@ import (
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
-const UpgradeName = "v0.19.3-testnet"
+const UpgradeName = "v0.19.4-testnet"
 
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			app.Logger().Info("updating x/evmutil module account with new permissions")
-			UpdateEvmutilPermissions(ctx, app.accountKeeper)
-
-			app.Logger().Info("initializing kavadist funding module account")
-			AddKavadistFundAccount(ctx, app.accountKeeper, app.bankKeeper, app.distrKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
