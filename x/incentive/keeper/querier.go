@@ -493,7 +493,10 @@ func GetAPYFromMultiRewardPeriod(
 	// Get USD value of collateral type
 	collateralUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(collateralType))
 	if err != nil {
-		return sdk.ZeroDec(), err
+		return sdk.ZeroDec(), fmt.Errorf(
+			"failed to get price for incentive collateralType %s with market ID %s: %w",
+			collateralType, getMarketID(collateralType), err,
+		)
 	}
 
 	// Total USD value of the collateral type total supply
@@ -524,9 +527,22 @@ func GetAPYFromMultiRewardPeriod(
 }
 
 func getMarketID(denom string) string {
-	if denom == types.BondDenom {
-		// Rewrite "ukava" to "kava" as pricefeed only has "kava" and not "ukava"
-		return getMarketID("kava")
+	// Rewrite denoms as pricefeed has different names for some assets,
+	// e.g. "ukava" -> "kava", "erc20/multichain/usdc" -> "usdc"
+	// bkava is not included as it is handled separately
+
+	// TODO: Replace hardcoded conversion with possible params set somewhere
+	// to be more flexible. E.g. a map of denoms to pricefeed market denoms in
+	// pricefeed params.
+	switch denom {
+	case types.BondDenom:
+		denom = "kava"
+	case "erc20/multichain/usdc":
+		denom = "usdc"
+	case "erc20/multichain/usdt":
+		denom = "usdt"
+	case "erc20/multichain/dai":
+		denom = "dai"
 	}
 
 	return fmt.Sprintf("%s:usd:30", denom)
