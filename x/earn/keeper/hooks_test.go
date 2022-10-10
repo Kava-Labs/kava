@@ -32,8 +32,11 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 
 	vault1Denom := "usdx"
 	vault2Denom := "ukava"
-	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
-	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 100)
+	acc1deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
+	acc1deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
+
+	acc2deposit1Amount := sdk.NewInt64Coin(vault1Denom, 200)
+	acc2deposit2Amount := sdk.NewInt64Coin(vault2Denom, 300)
 
 	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
@@ -53,14 +56,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"AfterVaultDepositCreated",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		deposit1Amount.Amount.ToDec(),
+		acc1deposit1Amount.Amount.ToDec(),
 	).Once()
 	err := suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit1Amount,
+		acc1deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -70,14 +73,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		deposit1Amount.Amount.ToDec(),
+		acc1deposit1Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit1Amount,
+		acc1deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -94,14 +97,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit1Amount.Denom),
+		shareRecord.AmountOf(acc1deposit1Amount.Denom),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit1Amount,
+		acc1deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -110,14 +113,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"AfterVaultDepositCreated",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		deposit2Amount.Amount.ToDec(),
+		acc1deposit2Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -126,14 +129,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		deposit2Amount.Amount.ToDec(),
+		acc1deposit2Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -149,14 +152,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -169,14 +172,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"AfterVaultDepositCreated",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc2deposit1Amount.Denom,
 		acc2.GetAddress(),
-		deposit1Amount.Amount.ToDec(),
+		acc2deposit1Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit1Amount,
+		acc2deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -187,14 +190,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc2deposit1Amount.Denom,
 		acc2.GetAddress(),
-		deposit1Amount.Amount.ToDec(),
+		acc2deposit1Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit1Amount,
+		acc2deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -211,14 +214,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc2deposit1Amount.Denom,
 		acc2.GetAddress(),
-		shareRecord2.AmountOf(deposit1Amount.Denom),
+		shareRecord2.AmountOf(acc2deposit1Amount.Denom),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit1Amount,
+		acc2deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -227,14 +230,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"AfterVaultDepositCreated",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		deposit2Amount.Amount.ToDec(),
+		acc2deposit2Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit2Amount,
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -243,14 +246,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		deposit2Amount.Amount.ToDec(),
+		acc2deposit2Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit2Amount,
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -266,14 +269,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		shareRecord2.AmountOf(deposit2Amount.Denom),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit2Amount,
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -290,15 +293,15 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit1Amount.Denom),
+		shareRecord.AmountOf(acc1deposit1Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
 		// 3 deposits, multiply original deposit amount by 3
-		sdk.NewCoin(deposit1Amount.Denom, deposit1Amount.Amount.MulRaw(3)),
+		sdk.NewCoin(acc1deposit1Amount.Denom, acc1deposit1Amount.Amount.MulRaw(3)),
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -314,14 +317,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -337,14 +340,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -360,14 +363,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -386,15 +389,15 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc2deposit1Amount.Denom,
 		acc2.GetAddress(),
-		shareRecord.AmountOf(deposit1Amount.Denom),
+		shareRecord.AmountOf(acc2deposit1Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc2.GetAddress(),
 		// 3 deposits, multiply original deposit amount by 3
-		sdk.NewCoin(deposit1Amount.Denom, deposit1Amount.Amount.MulRaw(3)),
+		sdk.NewCoin(acc2deposit1Amount.Denom, acc2deposit1Amount.Amount.MulRaw(3)),
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -410,14 +413,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		shareRecord2.AmountOf(deposit2Amount.Denom),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit2Amount,
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -433,14 +436,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		shareRecord2.AmountOf(deposit2Amount.Denom),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit2Amount,
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -456,14 +459,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		shareRecord2.AmountOf(deposit2Amount.Denom),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc2.GetAddress(),
-		deposit2Amount,
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
