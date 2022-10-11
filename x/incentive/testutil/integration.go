@@ -21,10 +21,14 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
+	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
@@ -87,6 +91,8 @@ func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
 		_, err = msgServer.ClaimUSDXMintingReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	case *types.MsgClaimDelegatorReward:
 		_, err = msgServer.ClaimDelegatorReward(sdk.WrapSDKContext(suite.Ctx), msg)
+	case *types.MsgClaimEarnReward:
+		_, err = msgServer.ClaimEarnReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	default:
 		panic("unhandled incentive msg")
 	}
@@ -194,6 +200,30 @@ func (suite *IntegrationTester) DeliverCDPMsgBorrow(owner sdk.AccAddress, collat
 	return err
 }
 
+func (suite *IntegrationTester) DeliverMsgMintDerivative(
+	sender sdk.AccAddress,
+	validator sdk.ValAddress,
+	amount sdk.Coin,
+) error {
+	msg := liquidtypes.NewMsgMintDerivative(sender, validator, amount)
+	msgServer := liquidkeeper.NewMsgServerImpl(suite.App.GetLiquidKeeper())
+
+	_, err := msgServer.MintDerivative(sdk.WrapSDKContext(suite.Ctx), &msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverEarnMsgDeposit(
+	depositor sdk.AccAddress,
+	amount sdk.Coin,
+	strategy earntypes.StrategyType,
+) error {
+	msg := earntypes.NewMsgDeposit(depositor.String(), amount, strategy)
+	msgServer := earnkeeper.NewMsgServerImpl(suite.App.GetEarnKeeper())
+
+	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), msg)
+	return err
+}
+
 func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, committeeID uint64, changes []proposaltypes.ParamChange) {
 	propose, err := committeetypes.NewMsgSubmitProposal(
 		proposaltypes.NewParameterChangeProposal(
@@ -291,4 +321,10 @@ func (suite *IntegrationTester) USDXRewardEquals(owner sdk.AccAddress, expected 
 	claim, found := suite.App.GetIncentiveKeeper().GetUSDXMintingClaim(suite.Ctx, owner)
 	suite.Require().Truef(found, "expected delegator claim to be found for %s", owner)
 	suite.Equalf(expected, claim.Reward, "expected delegator claim reward to be %s, but got %s", expected, claim.Reward)
+}
+
+func (suite *IntegrationTester) EarnRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
+	claim, found := suite.App.GetIncentiveKeeper().GetEarnClaim(suite.Ctx, owner)
+	suite.Require().Truef(found, "expected earn claim to be found for %s", owner)
+	suite.Truef(expected.IsEqual(claim.Reward), "expected earn claim reward to be %s, but got %s", expected, claim.Reward)
 }

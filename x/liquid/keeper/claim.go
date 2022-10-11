@@ -26,11 +26,15 @@ func (k Keeper) CollectStakingRewards(
 
 	rewards, err := k.distributionKeeper.WithdrawDelegationRewards(ctx, macc.GetAddress(), validator)
 	if err != nil {
+		fmt.Printf("FAILED to withdraw delegation rewards %s: %s\n", destinationModAccount, err)
 		return nil, err
 	}
 
+	fmt.Printf("sending %v rewards from liquid to %s\n", rewards, destinationModAccount)
+
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, destinationModAccount, rewards)
 	if err != nil {
+		fmt.Printf("FAILED to send %v rewards from liquid to %s: %s\n", rewards, destinationModAccount, err)
 		return nil, err
 	}
 
