@@ -113,8 +113,6 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	endingPeriod := dk.IncrementValidatorPeriod(suite.Ctx, validator1)
 	delegationRewards := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
 
-	suite.T().Logf("Rewards: %s", delegationRewards.String())
-
 	// Accumulate rewards - claim rewards
 	rewardPeriod := types.NewMultiRewardPeriod(
 		true,
