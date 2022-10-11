@@ -1,7 +1,6 @@
 package app
 
 import (
-	_ "embed"
 	"encoding/json"
 	"fmt"
 
@@ -103,9 +102,6 @@ func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountK
 	}
 	accountKeeper.SetModuleAccount(ctx, evmutilAcc)
 }
-
-//go:embed eth_eoa_addresses.json
-var ethEOAAddresses []byte
 
 func IterateEOAAddresses(f func(addr string)) {
 	var addresses []string
