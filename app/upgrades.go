@@ -8,11 +8,10 @@ import (
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
-const UpgradeName = "v0.19.4-testnet"
+const UpgradeName = "v0.19.5-testnet"
 
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
@@ -21,18 +20,6 @@ func (app App) RegisterUpgradeHandlers() {
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
 	)
-}
-
-func UpdateEvmutilPermissions(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper) {
-	// add minter and burner permissions to evmutil
-	evmutilAcc, ok := accountKeeper.GetModuleAccount(ctx, evmutiltypes.ModuleName).(*authtypes.ModuleAccount)
-	if !ok {
-		panic("unable to fetch evmutil module account")
-	}
-	evmutilAcc.Permissions = []string{
-		authtypes.Minter, authtypes.Burner,
-	}
-	accountKeeper.SetModuleAccount(ctx, evmutilAcc)
 }
 
 func AddKavadistFundAccount(ctx sdk.Context, accountKeeper authkeeper.AccountKeeper, bankKeeper bankKeeper.Keeper, distKeeper distrkeeper.Keeper) {
