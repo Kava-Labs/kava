@@ -79,8 +79,8 @@ func (k *Keeper) Deposit(
 
 	isNew := vaultShareRecord.Shares.AmountOf(amount.Denom).IsZero()
 	if !isNew {
-		// If deposits for this vault already exists
-		k.BeforeVaultDepositModified(ctx, amount.Denom, depositor, vaultRecord.TotalShares.Amount)
+		// If deposits for this vault already exists, call hook with user's existing shares
+		k.BeforeVaultDepositModified(ctx, amount.Denom, depositor, vaultShareRecord.Shares.AmountOf(amount.Denom))
 	}
 
 	// Increment VaultRecord total shares and account shares
