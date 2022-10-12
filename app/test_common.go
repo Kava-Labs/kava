@@ -230,6 +230,17 @@ func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk
 	return
 }
 
+// RandomAddress non-deterministically generates a new address, discarding the private key.
+func RandomAddress() sdk.AccAddress {
+	secret := make([]byte, 32)
+	_, err := rand.Read(secret)
+	if err != nil {
+		panic("Could not read randomness")
+	}
+	key := secp256k1.GenPrivKeyFromSecret(secret)
+	return sdk.AccAddress(key.PubKey().Address())
+}
+
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
 	builder := NewAuthBankGenesisBuilder()
