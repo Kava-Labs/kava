@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -327,4 +328,13 @@ func (suite *IntegrationTester) EarnRewardEquals(owner sdk.AccAddress, expected 
 	claim, found := suite.App.GetIncentiveKeeper().GetEarnClaim(suite.Ctx, owner)
 	suite.Require().Truef(found, "expected earn claim to be found for %s", owner)
 	suite.Truef(expected.IsEqual(claim.Reward), "expected earn claim reward to be %s, but got %s", expected, claim.Reward)
+}
+
+// AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
+func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdk.Int) {
+	initCoins := sdk.NewCoins(sdk.NewCoin(suite.App.GetStakingKeeper().BondDenom(ctx), accAmt))
+
+	for _, pk := range pubKeys {
+		suite.App.FundAccount(ctx, sdk.AccAddress(pk.Address()), initCoins)
+	}
 }

@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
-	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
@@ -15,11 +15,9 @@ import (
 
 func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	userAddr1, userAddr2, validatorAddr1, validatorAddr2 := suite.addrs[0], suite.addrs[1], suite.addrs[2], suite.addrs[3]
+
 	valAddr1 := sdk.ValAddress(validatorAddr1)
 	valAddr2 := sdk.ValAddress(validatorAddr2)
-
-	bkavaDenom1 := fmt.Sprintf("bkava-%s", valAddr1.String())
-	bkavaDenom2 := fmt.Sprintf("bkava-%s", valAddr2.String())
 
 	authBuilder := suite.authBuilder().
 		WithSimpleAccount(userAddr1, cs(c("ukava", 1e12))).
@@ -41,6 +39,22 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		})
 
 	suite.SetupWithGenState(authBuilder, incentBuilder, earnBuilder, savingsBuilder)
+
+	// ak := suite.App.GetAccountKeeper()
+	// bk := suite.App.GetBankKeeper()
+	sk := suite.App.GetStakingKeeper()
+	lq := suite.App.GetLiquidKeeper()
+	mk := suite.App.GetMintKeeper()
+	dk := suite.App.GetDistrKeeper()
+	ik := suite.App.GetIncentiveKeeper()
+
+	// Use ukava for mint denom
+	mParams := mk.GetParams(suite.Ctx)
+	mParams.MintDenom = "ukava"
+	mk.SetParams(suite.Ctx, mParams)
+
+	bkavaDenom1 := lq.GetLiquidStakingTokenDenom(valAddr1)
+	bkavaDenom2 := lq.GetLiquidStakingTokenDenom(valAddr2)
 
 	err := suite.App.FundModuleAccount(suite.Ctx, distrtypes.ModuleName, cs(c("ukava", 1e12)))
 	suite.NoError(err)
@@ -88,19 +102,43 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	err = suite.DeliverEarnMsgDeposit(userAddr2, c(bkavaDenom2, 99e9), earntypes.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
-	// Accumulate some staking rewards
-	// _ = suite.App.EndBlocker(suite.Ctx, abci.RequestEndBlock{})
-	// suite.Ctx = suite.Ctx.WithBlockTime(time.Now().Add(1 * time.Hour))
-	// suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{})
-	sk := suite.App.GetStakingKeeper()
-	dk := suite.App.GetDistrKeeper()
-	ik := suite.App.GetIncentiveKeeper()
+	// BeginBlocker to update minter annual provisions as it starts at 0 which results in no minted coins
+	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{})
 
-	rewardCoins := sdk.NewDecCoins(sdk.NewDecCoin("ukava", sdk.NewInt(500e6)))
+	// DeliverMsgCreateValidator uses a generated pubkey, so we need to fetch
+	// the validator to get the correct pubkey
 	validator1, found := sk.GetValidator(suite.Ctx, valAddr1)
 	suite.Require().True(found)
 
-	dk.AllocateTokensToValidator(suite.Ctx, validator1, rewardCoins)
+	pk, err := validator1.ConsPubKey()
+	suite.Require().NoError(err)
+
+	val := abci.Validator{
+		Address: pk.Address(),
+		Power:   100,
+	}
+
+	// Accumulate some staking rewards
+	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: []abci.VoteInfo{{
+				Validator:       val,
+				SignedLastBlock: true,
+			}},
+		},
+	})
+
+	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1).
+		WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
+	// Accumulate some staking rewards
+	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{
+		LastCommitInfo: abci.LastCommitInfo{
+			Votes: []abci.VoteInfo{{
+				Validator:       val,
+				SignedLastBlock: true,
+			}},
+		},
+	})
 
 	liquidMacc := suite.App.GetAccountKeeper().GetModuleAccount(suite.Ctx, liquidtypes.ModuleAccountName)
 	delegation, found := sk.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
@@ -132,10 +170,11 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	selections := types.NewSelectionsFromMap(denomsToClaim)
 
 	msg1 := types.NewMsgClaimEarnReward(userAddr1.String(), selections)
+	msg2 := types.NewMsgClaimEarnReward(userAddr2.String(), selections)
+
 	err = suite.DeliverIncentiveMsg(&msg1)
 	suite.Require().NoError(err)
 
-	msg2 := types.NewMsgClaimEarnReward(userAddr2.String(), selections)
 	err = suite.DeliverIncentiveMsg(&msg2)
 	suite.Require().NoError(err)
 
@@ -145,7 +184,12 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	stakingRewards1 := delegationRewards.
 		AmountOf("ukava").
 		QuoInt64(100).
-		TruncateInt()
+		RoundInt()
+
+	suite.T().Logf("stakingRewards1 raw: %s", delegationRewards.
+		AmountOf("ukava").
+		QuoInt64(100),
+	)
 	suite.BalanceEquals(userAddr1, preClaimBal1.Add(sdk.NewCoin("ukava", stakingRewards1)))
 
 	// Total * 99 / 100
