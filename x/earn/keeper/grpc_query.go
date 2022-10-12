@@ -298,15 +298,21 @@ func (s queryServer) getOneAccountOneVaultDeposit(
 
 	if req.ValueInStakedTokens {
 		// Get underlying ukava amount if denom is a derivative
-		if s.keeper.liquidKeeper.IsDerivativeDenom(ctx, req.Denom) {
-			ukavaValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, sdk.NewCoins(value))
-			if err != nil {
-				// This should "never" happen if IsDerivativeDenom is true
-				panic("Error getting ukava value for " + req.Denom)
-			}
-
-			value = ukavaValue
+		if !s.keeper.liquidKeeper.IsDerivativeDenom(ctx, req.Denom) {
+			return nil, status.Errorf(
+				codes.InvalidArgument,
+				"denom %s is not a derivative, ValueInStakedTokens can only be used with liquid derivatives",
+				req.Denom,
+			)
 		}
+
+		ukavaValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(ctx, sdk.NewCoins(value))
+		if err != nil {
+			// This should "never" happen if IsDerivativeDenom is true
+			panic("Error getting ukava value for " + req.Denom)
+		}
+
+		value = ukavaValue
 	}
 
 	return &types.QueryDepositsResponse{
@@ -417,9 +423,8 @@ func (s queryServer) getOneAccountAllDeposits(
 		var valueInStakedTokens []sdk.Coin
 
 		for _, coin := range value {
-			// Non-bkava coins are kept as is
+			// Skip non-bkava coins
 			if !s.keeper.liquidKeeper.IsDerivativeDenom(ctx, coin.Denom) {
-				valueInStakedTokens = append(valueInStakedTokens, coin)
 				continue
 			}
 
@@ -432,7 +437,20 @@ func (s queryServer) getOneAccountAllDeposits(
 			valueInStakedTokens = append(valueInStakedTokens, ukavaValue)
 		}
 
+		var filteredShares types.VaultShares
+		for _, share := range accountShare.Shares {
+			// Remove non-bkava coins from shares as they are used to
+			// determine which value is mapped to which denom
+			// These should be in the same order as valueInStakedTokens
+			if !s.keeper.liquidKeeper.IsDerivativeDenom(ctx, share.Denom) {
+				continue
+			}
+
+			filteredShares = append(filteredShares, share)
+		}
+
 		value = valueInStakedTokens
+		accountShare.Shares = filteredShares
 	}
 
 	deposits = append(deposits, types.DepositResponse{

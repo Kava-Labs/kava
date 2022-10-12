@@ -10827,9 +10827,6 @@ paths:
                               format: byte
                             weight:
                               type: string
-                          description: >-
-                            CoreReward defines the reward weights for core
-                            infrastructure providers.
                       partner_rewards:
                         type: array
                         items:
@@ -10854,12 +10851,6 @@ paths:
                                 implements the custom method
 
                                 signatures required by gogoproto.
-                          description: >-
-                            PartnerRewards defines the reward schedule for
-                            partner infrastructure providers.
-                    description: >-
-                      InfrastructureParams define the parameters for
-                      infrastructure rewards.
                 title: Params governance parameters for kavadist module
             description: >-
               QueryParamsResponse defines the response type for querying
@@ -10888,89 +10879,6 @@ paths:
                       format: byte
       tags:
         - Kavadist
-  /kava/liquid/v1beta1/delegated_balance/{delegator}:
-    get:
-      summary: >-
-        DelegatedBalance returns an account's vesting and vested coins currently
-        delegated to validators.
-
-        It ignores coins in unbonding delegations.
-      operationId: LiquidDelegatedBalance
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              vested:
-                title: >-
-                  vested is the amount of all delegated coins that have vested
-                  (ie not locked)
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-              vesting:
-                title: >-
-                  vesting is the amount of all delegated coins that are still
-                  vesting (ie locked)
-                type: object
-                properties:
-                  denom:
-                    type: string
-                  amount:
-                    type: string
-                description: >-
-                  Coin defines a token with a denomination and an amount.
-
-
-                  NOTE: The amount field is an Int which implements the custom
-                  method
-
-                  signatures required by gogoproto.
-            description: >-
-              DelegatedBalanceResponse defines the response type for the
-              Query/DelegatedBalance method.
-        default:
-          description: An unexpected error response
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: delegator
-          description: delegator is the address of the account to query
-          in: path
-          required: true
-          type: string
-      tags:
-        - Liquid
   /kava/pricefeed/v1beta1/markets:
     get:
       summary: Markets queries all markets
@@ -56000,7 +55908,6 @@ definitions:
         format: byte
       weight:
         type: string
-    description: CoreReward defines the reward weights for core infrastructure providers.
   kava.kavadist.v1beta1.InfrastructureParams:
     type: object
     properties:
@@ -56037,9 +55944,6 @@ definitions:
               format: byte
             weight:
               type: string
-          description: >-
-            CoreReward defines the reward weights for core infrastructure
-            providers.
       partner_rewards:
         type: array
         items:
@@ -56063,10 +55967,6 @@ definitions:
                 method
 
                 signatures required by gogoproto.
-          description: >-
-            PartnerRewards defines the reward schedule for partner
-            infrastructure providers.
-    description: InfrastructureParams define the parameters for infrastructure rewards.
   kava.kavadist.v1beta1.Params:
     type: object
     properties:
@@ -56132,9 +56032,6 @@ definitions:
                   format: byte
                 weight:
                   type: string
-              description: >-
-                CoreReward defines the reward weights for core infrastructure
-                providers.
           partner_rewards:
             type: array
             items:
@@ -56158,10 +56055,6 @@ definitions:
                     method
 
                     signatures required by gogoproto.
-              description: >-
-                PartnerRewards defines the reward schedule for partner
-                infrastructure providers.
-        description: InfrastructureParams define the parameters for infrastructure rewards.
     title: Params governance parameters for kavadist module
   kava.kavadist.v1beta1.PartnerReward:
     type: object
@@ -56181,9 +56074,6 @@ definitions:
 
           NOTE: The amount field is an Int which implements the custom method
           signatures required by gogoproto.
-    description: >-
-      PartnerRewards defines the reward schedule for partner infrastructure
-      providers.
   kava.kavadist.v1beta1.Period:
     type: object
     properties:
@@ -56293,9 +56183,6 @@ definitions:
                       format: byte
                     weight:
                       type: string
-                  description: >-
-                    CoreReward defines the reward weights for core
-                    infrastructure providers.
               partner_rewards:
                 type: array
                 items:
@@ -56319,52 +56206,10 @@ definitions:
                         custom method
 
                         signatures required by gogoproto.
-                  description: >-
-                    PartnerRewards defines the reward schedule for partner
-                    infrastructure providers.
-            description: >-
-              InfrastructureParams define the parameters for infrastructure
-              rewards.
         title: Params governance parameters for kavadist module
     description: >-
       QueryParamsResponse defines the response type for querying x/kavadist
       parameters.
-  kava.liquid.v1beta1.QueryDelegatedBalanceResponse:
-    type: object
-    properties:
-      vested:
-        title: >-
-          vested is the amount of all delegated coins that have vested (ie not
-          locked)
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
-      vesting:
-        title: >-
-          vesting is the amount of all delegated coins that are still vesting
-          (ie locked)
-        type: object
-        properties:
-          denom:
-            type: string
-          amount:
-            type: string
-        description: |-
-          Coin defines a token with a denomination and an amount.
-
-          NOTE: The amount field is an Int which implements the custom method
-          signatures required by gogoproto.
-    description: >-
-      DelegatedBalanceResponse defines the response type for the
-      Query/DelegatedBalance method.
   kava.pricefeed.v1beta1.CurrentPriceResponse:
     type: object
     properties:

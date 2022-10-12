@@ -2,6 +2,7 @@ package incentive
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -26,6 +27,9 @@ var (
 	_ module.AppModuleBasic = AppModuleBasic{}
 	// _ module.AppModuleSimulation = AppModule{}
 )
+
+// ConsensusVersion defines the current module consensus version.
+const ConsensusVersion = 2
 
 // AppModuleBasic defines the basic application module used by the incentive module.
 type AppModuleBasic struct{}
@@ -81,7 +85,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 {
-	return 1
+	return ConsensusVersion
 }
 
 // GetTxCmd returns the root tx command for the incentive module.
@@ -137,6 +141,11 @@ func (AppModule) QuerierRoute() string {
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	// TODO: types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper, am.accountKeeper, am.bankKeeper))
+
+	m := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/incentive from version 1 to 2: %v", err))
+	}
 }
 
 // InitGenesis performs genesis initialization for the incentive module. It returns no validator updates.

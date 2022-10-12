@@ -404,15 +404,14 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 			types.DepositResponse{
 				Depositor: acc2.String(),
 				Shares: types.VaultShares{
+					// Does not include non-bkava vaults
 					types.NewVaultShare(deposit4Amount.Denom, deposit4Amount.Amount.ToDec()),
 					types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
-					types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
 				},
 				Value: sdk.Coins{
+					// Does not include non-bkava vaults
 					sdk.NewCoin("ukava", deposit4Amount.Amount),
 					sdk.NewCoin("ukava", deposit3Amount.Amount),
-					// Deposit 1 is last as it's the same order as vault shares
-					deposit1Amount,
 				},
 			},
 			res.Deposits[0],
