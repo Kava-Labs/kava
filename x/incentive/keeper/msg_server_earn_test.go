@@ -118,17 +118,8 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		Power:   100,
 	}
 
-	// Accumulate some staking rewards
-	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{
-		LastCommitInfo: abci.LastCommitInfo{
-			Votes: []abci.VoteInfo{{
-				Validator:       val,
-				SignedLastBlock: true,
-			}},
-		},
-	})
-
-	suite.Ctx = suite.Ctx.WithBlockHeight(suite.Ctx.BlockHeight() + 1).
+	suite.Ctx = suite.Ctx.
+		WithBlockHeight(suite.Ctx.BlockHeight() + 1).
 		WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
 	// Accumulate some staking rewards
 	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{
@@ -143,9 +134,6 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	liquidMacc := suite.App.GetAccountKeeper().GetModuleAccount(suite.Ctx, liquidtypes.ModuleAccountName)
 	delegation, found := sk.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
 	suite.Require().True(found)
-
-	suite.Ctx = suite.Ctx.WithBlockHeight(100).
-		WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
 
 	// Get amount of rewards
 	endingPeriod := dk.IncrementValidatorPeriod(suite.Ctx, validator1)
