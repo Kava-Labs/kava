@@ -27,7 +27,7 @@ func TestHookTestSuite(t *testing.T) {
 
 func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	suite.Keeper.ClearHooks()
-	earnHooks := &mocks.EarnHooks{}
+	earnHooks := mocks.NewEarnHooks(suite.T())
 	suite.Keeper.SetHooks(earnHooks)
 
 	vault1Denom := "usdx"
@@ -375,8 +375,6 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	)
 	suite.Require().NoError(err)
 
-	earnHooks.AssertExpectations(suite.T())
-
 	// ------------------------------------------------------------
 	// withdraw from acc2
 	shareRecord, found = suite.Keeper.GetVaultAccountShares(
@@ -470,8 +468,6 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
-
-	earnHooks.AssertExpectations(suite.T())
 }
 
 func (suite *hookTestSuite) TestHooks_NoPanicsOnNilHooks() {
