@@ -32,8 +32,11 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 
 	vault1Denom := "usdx"
 	vault2Denom := "ukava"
-	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
-	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 100)
+	acc1deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
+	acc1deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
+
+	acc2deposit1Amount := sdk.NewInt64Coin(vault1Denom, 200)
+	acc2deposit2Amount := sdk.NewInt64Coin(vault2Denom, 300)
 
 	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
@@ -43,19 +46,24 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		sdk.NewInt64Coin(vault2Denom, 1000),
 	), 0)
 
+	acc2 := suite.CreateAccount(sdk.NewCoins(
+		sdk.NewInt64Coin(vault1Denom, 1000),
+		sdk.NewInt64Coin(vault2Denom, 1000),
+	), 1)
+
 	// first deposit creates vault - calls AfterVaultDepositCreated with initial shares
 	// shares are 1:1
 	earnHooks.On(
 		"AfterVaultDepositCreated",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		deposit1Amount.Amount.ToDec(),
+		acc1deposit1Amount.Amount.ToDec(),
 	).Once()
 	err := suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit1Amount,
+		acc1deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -65,14 +73,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		deposit1Amount.Amount.ToDec(),
+		acc1deposit1Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit1Amount,
+		acc1deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -89,14 +97,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit1Amount.Denom),
+		shareRecord.AmountOf(acc1deposit1Amount.Denom),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit1Amount,
+		acc1deposit1Amount,
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -105,14 +113,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"AfterVaultDepositCreated",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		deposit2Amount.Amount.ToDec(),
+		acc1deposit2Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -121,14 +129,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		deposit2Amount.Amount.ToDec(),
+		acc1deposit2Amount.Amount.ToDec(),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -144,14 +152,131 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
+		types.STRATEGY_TYPE_SAVINGS,
+	)
+	suite.Require().NoError(err)
+
+	// ------------------------------------------------------------
+	// Second account deposits
+
+	// first deposit by user - calls AfterVaultDepositCreated with user's shares
+	// not total shares
+	earnHooks.On(
+		"AfterVaultDepositCreated",
+		suite.Ctx,
+		acc2deposit1Amount.Denom,
+		acc2.GetAddress(),
+		acc2deposit1Amount.Amount.ToDec(),
+	).Once()
+	err = suite.Keeper.Deposit(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit1Amount,
+		types.STRATEGY_TYPE_HARD,
+	)
+	suite.Require().NoError(err)
+
+	// second deposit adds to vault - calls BeforeVaultDepositModified
+	// shares given are the initial shares, not new the shares added to the vault
+	// and not the total vault shares
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit1Amount.Denom,
+		acc2.GetAddress(),
+		acc2deposit1Amount.Amount.ToDec(),
+	).Once()
+	err = suite.Keeper.Deposit(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit1Amount,
+		types.STRATEGY_TYPE_HARD,
+	)
+	suite.Require().NoError(err)
+
+	// get the shares from the store from the last deposit
+	shareRecord2, found := suite.Keeper.GetVaultAccountShares(
+		suite.Ctx,
+		acc2.GetAddress(),
+	)
+	suite.Require().True(found)
+
+	// third deposit adds to vault - calls BeforeVaultDepositModified
+	// shares given are the shares added in previous deposit, not the shares added to the vault now
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit1Amount.Denom,
+		acc2.GetAddress(),
+		shareRecord2.AmountOf(acc2deposit1Amount.Denom),
+	).Once()
+	err = suite.Keeper.Deposit(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit1Amount,
+		types.STRATEGY_TYPE_HARD,
+	)
+	suite.Require().NoError(err)
+
+	// new deposit denom into vault creates the deposit and calls AfterVaultDepositCreated
+	earnHooks.On(
+		"AfterVaultDepositCreated",
+		suite.Ctx,
+		acc2deposit2Amount.Denom,
+		acc2.GetAddress(),
+		acc2deposit2Amount.Amount.ToDec(),
+	).Once()
+	err = suite.Keeper.Deposit(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit2Amount,
+		types.STRATEGY_TYPE_SAVINGS,
+	)
+	suite.Require().NoError(err)
+
+	// second deposit into vault calls BeforeVaultDepositModified with initial shares given
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit2Amount.Denom,
+		acc2.GetAddress(),
+		acc2deposit2Amount.Amount.ToDec(),
+	).Once()
+	err = suite.Keeper.Deposit(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit2Amount,
+		types.STRATEGY_TYPE_SAVINGS,
+	)
+	suite.Require().NoError(err)
+
+	// get the shares from the store from the last deposit
+	shareRecord2, found = suite.Keeper.GetVaultAccountShares(
+		suite.Ctx,
+		acc2.GetAddress(),
+	)
+	suite.Require().True(found)
+
+	// third deposit into vault calls BeforeVaultDepositModified with shares from last deposit
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit2Amount.Denom,
+		acc2.GetAddress(),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
+	).Once()
+	err = suite.Keeper.Deposit(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -168,15 +293,15 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit1Amount.Denom,
+		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit1Amount.Denom),
+		shareRecord.AmountOf(acc1deposit1Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
 		// 3 deposits, multiply original deposit amount by 3
-		sdk.NewCoin(deposit1Amount.Denom, deposit1Amount.Amount.MulRaw(3)),
+		sdk.NewCoin(acc1deposit1Amount.Denom, acc1deposit1Amount.Amount.MulRaw(3)),
 		types.STRATEGY_TYPE_HARD,
 	)
 	suite.Require().NoError(err)
@@ -192,14 +317,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -215,14 +340,14 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
@@ -238,14 +363,110 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 	earnHooks.On(
 		"BeforeVaultDepositModified",
 		suite.Ctx,
-		deposit2Amount.Denom,
+		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		shareRecord.AmountOf(deposit2Amount.Denom),
+		shareRecord.AmountOf(acc1deposit2Amount.Denom),
 	).Once()
 	_, err = suite.Keeper.Withdraw(
 		suite.Ctx,
 		acc.GetAddress(),
-		deposit2Amount,
+		acc1deposit2Amount,
+		types.STRATEGY_TYPE_SAVINGS,
+	)
+	suite.Require().NoError(err)
+
+	earnHooks.AssertExpectations(suite.T())
+
+	// ------------------------------------------------------------
+	// withdraw from acc2
+	shareRecord, found = suite.Keeper.GetVaultAccountShares(
+		suite.Ctx,
+		acc2.GetAddress(),
+	)
+	suite.Require().True(found)
+
+	// all shares given to BeforeVaultDepositModified
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit1Amount.Denom,
+		acc2.GetAddress(),
+		shareRecord.AmountOf(acc2deposit1Amount.Denom),
+	).Once()
+	_, err = suite.Keeper.Withdraw(
+		suite.Ctx,
+		acc2.GetAddress(),
+		// 3 deposits, multiply original deposit amount by 3
+		sdk.NewCoin(acc2deposit1Amount.Denom, acc2deposit1Amount.Amount.MulRaw(3)),
+		types.STRATEGY_TYPE_HARD,
+	)
+	suite.Require().NoError(err)
+
+	// test hooks on partial withdraw
+	shareRecord2, found = suite.Keeper.GetVaultAccountShares(
+		suite.Ctx,
+		acc2.GetAddress(),
+	)
+	suite.Require().True(found)
+
+	// all shares given to before deposit modified even with partial withdraw
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit2Amount.Denom,
+		acc2.GetAddress(),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
+	).Once()
+	_, err = suite.Keeper.Withdraw(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit2Amount,
+		types.STRATEGY_TYPE_SAVINGS,
+	)
+	suite.Require().NoError(err)
+
+	// test hooks on second partial withdraw
+	shareRecord2, found = suite.Keeper.GetVaultAccountShares(
+		suite.Ctx,
+		acc2.GetAddress(),
+	)
+	suite.Require().True(found)
+
+	// all shares given to before deposit modified even with partial withdraw
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit2Amount.Denom,
+		acc2.GetAddress(),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
+	).Once()
+	_, err = suite.Keeper.Withdraw(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit2Amount,
+		types.STRATEGY_TYPE_SAVINGS,
+	)
+	suite.Require().NoError(err)
+
+	// test hooks withdraw all remaining shares
+	shareRecord2, found = suite.Keeper.GetVaultAccountShares(
+		suite.Ctx,
+		acc2.GetAddress(),
+	)
+	suite.Require().True(found)
+
+	// all shares given to before deposit modified even with partial withdraw
+	earnHooks.On(
+		"BeforeVaultDepositModified",
+		suite.Ctx,
+		acc2deposit2Amount.Denom,
+		acc2.GetAddress(),
+		shareRecord2.AmountOf(acc2deposit2Amount.Denom),
+	).Once()
+	_, err = suite.Keeper.Withdraw(
+		suite.Ctx,
+		acc2.GetAddress(),
+		acc2deposit2Amount,
 		types.STRATEGY_TYPE_SAVINGS,
 	)
 	suite.Require().NoError(err)
