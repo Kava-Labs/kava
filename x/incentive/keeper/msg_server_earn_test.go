@@ -173,11 +173,6 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		AmountOf("ukava").
 		QuoInt64(100).
 		RoundInt()
-
-	suite.T().Logf("stakingRewards1 raw: %s", delegationRewards.
-		AmountOf("ukava").
-		QuoInt64(100),
-	)
 	suite.BalanceEquals(userAddr1, preClaimBal1.Add(sdk.NewCoin("ukava", stakingRewards1)))
 
 	// Total * 99 / 100
