@@ -40,25 +40,51 @@ type IntegrationTester struct {
 	suite.Suite
 	App app.TestApp
 	Ctx sdk.Context
+
+	GenesisTime time.Time
 }
 
 func (suite *IntegrationTester) SetupSuite() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
+
+	// Default genesis time, can be overridden with WithGenesisTime
+	suite.GenesisTime = time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC)
 }
 
 func (suite *IntegrationTester) SetApp() {
 	suite.App = app.NewTestApp()
 }
 
-func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates ...app.GenesisState) {
+func (suite *IntegrationTester) SetupTest() {
+	suite.SetApp()
+}
+
+func (suite *IntegrationTester) WithGenesisTime(genesisTime time.Time) {
+	suite.GenesisTime = genesisTime
+}
+
+func (suite *IntegrationTester) StartChainWithBuilders(builders ...GenesisBuilder) {
+	var builtGenStates []app.GenesisState
+	for _, builder := range builders {
+		builtGenStates = append(builtGenStates, builder.BuildMarshalled(suite.App.AppCodec()))
+	}
+
+	suite.StartChain(builtGenStates...)
+}
+
+func (suite *IntegrationTester) StartChain(genesisStates ...app.GenesisState) {
 	suite.App.InitializeFromGenesisStatesWithTimeAndChainID(
-		genesisTime,
+		suite.GenesisTime,
 		testChainID,
 		genesisStates...,
 	)
 
-	suite.Ctx = suite.App.NewContext(false, tmproto.Header{Height: 1, Time: genesisTime, ChainID: testChainID})
+	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
+		Height:  1,
+		Time:    suite.GenesisTime,
+		ChainID: testChainID,
+	})
 }
 
 func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
@@ -364,5 +390,23 @@ func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys
 
 	for _, pk := range pubKeys {
 		suite.App.FundAccount(ctx, sdk.AccAddress(pk.Address()), initCoins)
+	}
+}
+
+func (suite *IntegrationTester) StoredTimeEquals(denom string, expected time.Time) {
+	storedTime, found := suite.App.GetIncentiveKeeper().GetPreviousHardBorrowRewardAccrualTime(suite.Ctx, denom)
+	suite.True(found)
+	suite.Equal(expected, storedTime)
+}
+
+func (suite *IntegrationTester) StoredIndexesEqual(denom string, expected types.RewardIndexes) {
+	storedIndexes, found := suite.App.GetIncentiveKeeper().GetHardBorrowRewardIndexes(suite.Ctx, denom)
+	suite.Equal(found, expected != nil)
+
+	if found {
+		suite.Equal(expected, storedIndexes)
+	} else {
+		// Can't compare Equal for types.RewardIndexes(nil) vs types.RewardIndexes{}
+		suite.Empty(storedIndexes)
 	}
 }

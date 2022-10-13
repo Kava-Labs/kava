@@ -34,7 +34,7 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	savingsBuilder := testutil.NewSavingsGenesisBuilder().
 		WithSupportedDenoms("bkava")
 
-	earnBuilder := suite.earnBuilder().
+	earnBuilder := testutil.NewEarnGenesisBuilder().
 		WithVault(earntypes.AllowedVault{
 			Denom:             "bkava",
 			Strategies:        earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
@@ -215,10 +215,4 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// Check that claimed coins have been removed from a claim's reward
 	suite.EarnRewardEquals(userAddr1, cs())
 	suite.EarnRewardEquals(userAddr2, cs())
-}
-
-// earnBuilder returns a new earn genesis builder with a genesis time and multipliers set
-func (suite *HandlerTestSuite) earnBuilder() testutil.EarnGenesisBuilder {
-	return testutil.NewEarnGenesisBuilder().
-		WithGenesisTime(suite.genesisTime)
 }

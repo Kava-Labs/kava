@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
-	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
@@ -16,6 +15,10 @@ import (
 const (
 	oneYear time.Duration = time.Hour * 24 * 365
 )
+
+type GenesisBuilder interface {
+	BuildMarshalled(cdc codec.JSONCodec) app.GenesisState
+}
 
 // IncentiveGenesisBuilder is a tool for creating an incentive genesis state.
 // Helper methods add values onto a default genesis state.
@@ -300,42 +303,6 @@ func (builder IncentiveGenesisBuilder) WithInitializedSavingsRewardPeriod(period
 
 func (builder IncentiveGenesisBuilder) WithSimpleSavingsRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
 	return builder.WithInitializedSavingsRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
-}
-
-// EarnGenesisBuilder is a tool for creating a earn genesis state.
-// Helper methods add values onto a default genesis state.
-// All methods are immutable and return updated copies of the builder.
-type EarnGenesisBuilder struct {
-	earntypes.GenesisState
-	genesisTime time.Time
-}
-
-func NewEarnGenesisBuilder() EarnGenesisBuilder {
-	return EarnGenesisBuilder{
-		GenesisState: earntypes.DefaultGenesisState(),
-	}
-}
-
-func (builder EarnGenesisBuilder) Build() earntypes.GenesisState {
-	return builder.GenesisState
-}
-
-func (builder EarnGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.GenesisState {
-	built := builder.Build()
-
-	return app.GenesisState{
-		earntypes.ModuleName: cdc.MustMarshalJSON(&built),
-	}
-}
-
-func (builder EarnGenesisBuilder) WithGenesisTime(genTime time.Time) EarnGenesisBuilder {
-	builder.genesisTime = genTime
-	return builder
-}
-
-func (builder EarnGenesisBuilder) WithVault(vault earntypes.AllowedVault) EarnGenesisBuilder {
-	builder.Params.AllowedVaults = append(builder.Params.AllowedVaults, vault)
-	return builder
 }
 
 // SavingsGenesisBuilder is a tool for creating a savings genesis state.

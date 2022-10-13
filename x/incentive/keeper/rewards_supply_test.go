@@ -57,8 +57,8 @@ func (suite *SupplyIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 
 	suite.SetApp()
 
+	suite.WithGenesisTime(suite.genesisTime)
 	suite.StartChain(
-		suite.genesisTime,
 		NewPricefeedGenStateMultiFromTime(suite.App.AppCodec(), suite.genesisTime),
 		NewHardGenStateMulti(suite.genesisTime).BuildMarshalled(suite.App.AppCodec()),
 		authBulder.BuildMarshalled(suite.App.AppCodec()),
