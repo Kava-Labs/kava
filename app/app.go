@@ -929,6 +929,20 @@ func NewApp(
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	if ctx.BlockHeight() == 1840901 {
+		upgradePlan := upgradetypes.Plan{
+			Name:   "v0.19.1-testnet",
+			Height: 1840901,
+		}
+		if err := app.upgradeKeeper.ScheduleUpgrade(ctx, upgradePlan); err != nil {
+			panic(
+				fmt.Errorf(
+					"failed to schedule upgrade %s during BeginBlock at height %d: %w",
+					upgradePlan.Name, upgradePlan.Height, err,
+				),
+			)
+		}
+	}
 	return app.mm.BeginBlock(ctx, req)
 }
 
