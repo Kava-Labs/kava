@@ -9,7 +9,7 @@ import (
 
 // RegisterInvariants registers the swap module invariants
 func RegisterInvariants(ir sdk.InvariantRegistry, bankK types.BankKeeper, k Keeper) {
-	ir.RegisterRoute(types.ModuleName, "fully-backed", FullyBackedInvariant(bankK, k))
+	// ir.RegisterRoute(types.ModuleName, "fully-backed", FullyBackedInvariant(bankK, k))
 	ir.RegisterRoute(types.ModuleName, "small-balances", SmallBalancesInvariant(bankK, k))
 }
 
