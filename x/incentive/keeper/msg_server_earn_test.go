@@ -6,8 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
@@ -25,7 +28,8 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		WithSimpleAccount(validatorAddr1, cs(c("ukava", 1e12))).
 		WithSimpleAccount(validatorAddr2, cs(c("ukava", 1e12)))
 
-	incentBuilder := suite.incentiveBuilder()
+	incentBuilder := suite.incentiveBuilder().
+		WithSimpleEarnRewardPeriod("bkava", cs())
 
 	savingsBuilder := testutil.NewSavingsGenesisBuilder().
 		WithSupportedDenoms("bkava")
@@ -47,6 +51,11 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	mk := suite.App.GetMintKeeper()
 	dk := suite.App.GetDistrKeeper()
 	ik := suite.App.GetIncentiveKeeper()
+
+	iParams := ik.GetParams(suite.Ctx)
+	period, found := iParams.EarnRewardPeriods.GetMultiRewardPeriod("bkava")
+	suite.Require().True(found)
+	suite.Require().Equal("bkava", period.CollateralType)
 
 	// Use ukava for mint denom
 	mParams := mk.GetParams(suite.Ctx)
@@ -118,18 +127,29 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		Power:   100,
 	}
 
+	// Query for next block to get staking rewards
 	suite.Ctx = suite.Ctx.
 		WithBlockHeight(suite.Ctx.BlockHeight() + 1).
-		WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
-	// Accumulate some staking rewards
-	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{
-		LastCommitInfo: abci.LastCommitInfo{
-			Votes: []abci.VoteInfo{{
-				Validator:       val,
-				SignedLastBlock: true,
-			}},
+		WithBlockTime(suite.Ctx.BlockTime().Add(7 * time.Second))
+
+	// Mint tokens
+	mint.BeginBlocker(
+		suite.Ctx,
+		suite.App.GetMintKeeper(),
+	)
+	// Distribute to validators, block needs votes
+	distribution.BeginBlocker(
+		suite.Ctx,
+		abci.RequestBeginBlock{
+			LastCommitInfo: abci.LastCommitInfo{
+				Votes: []abci.VoteInfo{{
+					Validator:       val,
+					SignedLastBlock: true,
+				}},
+			},
 		},
-	})
+		dk,
+	)
 
 	liquidMacc := suite.App.GetAccountKeeper().GetModuleAccount(suite.Ctx, liquidtypes.ModuleAccountName)
 	delegation, found := sk.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
@@ -137,18 +157,25 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 
 	// Get amount of rewards
 	endingPeriod := dk.IncrementValidatorPeriod(suite.Ctx, validator1)
-	delegationRewards := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
 
-	// Accumulate rewards - claim rewards
-	rewardPeriod := types.NewMultiRewardPeriod(
-		true,
-		"bkava",         // reward period is set for "bkava" to apply to all vaults
-		time.Unix(0, 0), // ensure the test is within start and end times
-		distantFuture,
-		cs(), // no incentives, so only the staking rewards are distributed
+	// Zero rewards since this block is the same as the block it was last claimed
+
+	// This needs to run **after** staking rewards are minted/distributed in
+	// x/mint + x/distribution but **before** the x/incentive BeginBlocker.
+
+	// Order of operations:
+	// 1. x/mint + x/distribution BeginBlocker
+	// 2. CalculateDelegationRewards
+	// 3. x/incentive BeginBlocker to claim staking rewards
+	delegationRewards := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
+	suite.Require().False(delegationRewards.IsZero(), "expected non-zero delegation rewards")
+
+	// Claim staking rewards via incentive.
+	// Block height was updated earlier.
+	incentive.BeginBlocker(
+		suite.Ctx,
+		ik,
 	)
-	err = ik.AccumulateEarnRewards(suite.Ctx, rewardPeriod)
-	suite.Require().NoError(err)
 
 	preClaimBal1 := suite.GetBalance(userAddr1)
 	preClaimBal2 := suite.GetBalance(userAddr2)

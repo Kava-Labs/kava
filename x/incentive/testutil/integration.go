@@ -61,21 +61,49 @@ func (suite *IntegrationTester) StartChain(genesisTime time.Time, genesisStates 
 	suite.Ctx = suite.App.NewContext(false, tmproto.Header{Height: 1, Time: genesisTime, ChainID: testChainID})
 }
 
+func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
+	suite.NextBlockAfterWithReq(
+		blockDuration,
+		abcitypes.RequestEndBlock{},
+		abcitypes.RequestBeginBlock{},
+	)
+}
+
+func (suite *IntegrationTester) NextBlockAfterWithReq(
+	blockDuration time.Duration,
+	reqEnd abcitypes.RequestEndBlock,
+	reqBegin abcitypes.RequestBeginBlock,
+) {
+	suite.NextBlockAtWithRequest(
+		suite.Ctx.BlockTime().Add(blockDuration),
+		reqEnd,
+		reqBegin,
+	)
+}
+
 func (suite *IntegrationTester) NextBlockAt(blockTime time.Time) {
+	suite.NextBlockAtWithRequest(
+		blockTime,
+		abcitypes.RequestEndBlock{},
+		abcitypes.RequestBeginBlock{},
+	)
+}
+
+func (suite *IntegrationTester) NextBlockAtWithRequest(
+	blockTime time.Time,
+	reqEnd abcitypes.RequestEndBlock,
+	reqBegin abcitypes.RequestBeginBlock,
+) {
 	if !suite.Ctx.BlockTime().Before(blockTime) {
 		panic(fmt.Sprintf("new block time %s must be after current %s", blockTime, suite.Ctx.BlockTime()))
 	}
 	blockHeight := suite.Ctx.BlockHeight() + 1
 
-	_ = suite.App.EndBlocker(suite.Ctx, abcitypes.RequestEndBlock{})
+	_ = suite.App.EndBlocker(suite.Ctx, reqEnd)
 
 	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(testChainID)
 
-	_ = suite.App.BeginBlocker(suite.Ctx, abcitypes.RequestBeginBlock{}) // height and time in RequestBeginBlock are ignored by module begin blockers
-}
-
-func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
-	suite.NextBlockAt(suite.Ctx.BlockTime().Add(blockDuration))
+	_ = suite.App.BeginBlocker(suite.Ctx, reqBegin) // height and time in RequestBeginBlock are ignored by module begin blockers
 }
 
 func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
