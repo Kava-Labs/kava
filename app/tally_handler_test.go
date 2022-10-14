@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -19,6 +18,9 @@ import (
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 )
+
+// d is an alias for sdk.MustNewDecFromStr
+var d = sdk.MustNewDecFromStr
 
 type tallyHandlerSuite struct {
 	suite.Suite
@@ -71,6 +73,9 @@ func (suite *tallyHandlerSuite) TestVotePower_AllSourcesCounted() {
 
 	_, _, results := suite.tallier.Tally(suite.ctx, proposal)
 	suite.Equal(sdk.NewInt(500e6+250e6+250e6), results.Yes)
+	suite.Equal(sdk.ZeroInt(), results.No)
+	suite.Equal(sdk.ZeroInt(), results.NoWithVeto)
+	suite.Equal(sdk.ZeroInt(), results.Abstain)
 }
 
 func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
@@ -93,20 +98,125 @@ func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
 	// Validator votes, inheriting user's stake and bkava.
 	suite.voteOnProposal(validator.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
 
-	// TODO make Tally read only?
-	// _, _, results := suite.tallier.Tally(suite.ctx, proposal)
-	// suite.Equal(
-	// 	selfDelegated.Add(sdk.NewInt(500e6+250e6+250e6)),
-	// 	results.Yes,
-	// )
+	// use wrapped context to discard the state changes
+	readOnlyCtx, _ := suite.ctx.CacheContext()
+	_, _, results := suite.tallier.Tally(readOnlyCtx, proposal)
+	userPower := sdk.NewInt(500e6 + 250e6 + 250e6)
+	suite.Equal(
+		selfDelegated.Add(userPower),
+		results.Yes,
+	)
+	suite.Equal(sdk.ZeroInt(), results.No)
+	suite.Equal(sdk.ZeroInt(), results.NoWithVeto)
+	suite.Equal(sdk.ZeroInt(), results.Abstain)
 
 	// User votes, taking power away from validator.
 	suite.voteOnProposal(user.GetAddress(), proposal.ProposalId, govtypes.OptionNo)
 
-	_, _, results := suite.tallier.Tally(suite.ctx, proposal)
-	fmt.Println(results)
+	_, _, results = suite.tallier.Tally(suite.ctx, proposal)
 	suite.Equal(selfDelegated, results.Yes)
-	suite.Equal(sdk.NewInt(500e6+250e6+250e6), results.No)
+	suite.Equal(userPower, results.No)
+	suite.Equal(sdk.ZeroInt(), results.NoWithVeto)
+	suite.Equal(sdk.ZeroInt(), results.Abstain)
+}
+
+func (suite *tallyHandlerSuite) TestTallyOutcomes() {
+	suite.Run("VotedPowerBelowQuorumFails", func() {
+		suite.SetupTest()
+		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
+		proposal := suite.createProposal()
+
+		v1 := suite.createNewBondedValidator(sdk.NewInt(399_999_999))
+		suite.createNewBondedValidator(sdk.NewInt(600_000_001))
+
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
+
+		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
+		suite.Falsef(passes, "expected proposal to fail, tally: %v", tally)
+		suite.Truef(burns, "expected desposit to be burned, tally: %v", tally)
+	})
+	suite.Run("VetoedFails", func() {
+		suite.SetupTest()
+		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
+		proposal := suite.createProposal()
+
+		v1 := suite.createNewBondedValidator(sdk.NewInt(334_000_001))
+		v2 := suite.createNewBondedValidator(sdk.NewInt(665_999_999))
+
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionNoWithVeto)
+		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
+
+		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
+		suite.Falsef(passes, "expected proposal to fail, tally: %v", tally)
+		suite.Truef(burns, "expected desposit to be burned, tally: %v", tally)
+	})
+	suite.Run("UnvetoedAndYesAboveThresholdPasses", func() {
+		suite.SetupTest()
+		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
+		proposal := suite.createProposal()
+
+		v1 := suite.createNewBondedValidator(sdk.NewInt(900_000_000))
+		v2 := suite.createNewBondedValidator(sdk.NewInt(50_000_001))
+		v3 := suite.createNewBondedValidator(sdk.NewInt(49_999_999))
+
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionAbstain)
+		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
+		suite.voteOnProposal(v3.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionNo)
+
+		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
+		suite.Truef(passes, "expected proposal to pass, tally: %v", tally)
+		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+	})
+	suite.Run("UnvetoedAndYesBelowThresholdFails", func() {
+		suite.SetupTest()
+		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
+		proposal := suite.createProposal()
+
+		v1 := suite.createNewBondedValidator(sdk.NewInt(900_000_000))
+		v2 := suite.createNewBondedValidator(sdk.NewInt(49_999_999))
+		v3 := suite.createNewBondedValidator(sdk.NewInt(50_000_001))
+
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionAbstain)
+		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
+		suite.voteOnProposal(v3.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionNo)
+
+		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
+		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
+		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+	})
+	suite.Run("NotEnoughStakeFails", func() {
+		suite.SetupTest()
+		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
+		proposal := suite.createProposal()
+
+		// no stake
+
+		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
+		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
+		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+	})
+	suite.Run("UnvetoedAndAllAbstainedFails", func() {
+		suite.SetupTest()
+		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
+		proposal := suite.createProposal()
+
+		v1 := suite.createNewBondedValidator(sdk.NewInt(1e9))
+
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionAbstain)
+
+		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
+		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
+		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+	})
+
+}
+
+func (suite *tallyHandlerSuite) setTallyParams(quorum, threshold, veto sdk.Dec) {
+	suite.app.GetGovKeeper().SetTallyParams(suite.ctx, govtypes.TallyParams{
+		Quorum:        quorum,
+		Threshold:     threshold,
+		VetoThreshold: veto,
+	})
 }
 
 func (suite *tallyHandlerSuite) voteOnProposal(voter sdk.AccAddress, proposalID uint64, option govtypes.VoteOption) {
@@ -202,6 +312,22 @@ func (suite *tallyHandlerSuite) delegateToNewBondedValidator(delegator sdk.AccAd
 	return validator
 }
 
+func (suite *tallyHandlerSuite) createNewBondedValidator(selfDelegation sdk.Int) stakingtypes.ValidatorI {
+	valAcc := suite.createAccount(suite.newBondCoin(selfDelegation))
+	validator, err := suite.staking.createUnbondedValidator(suite.ctx, valAcc.GetAddress().Bytes(), selfDelegation)
+	suite.Require().NoError(err)
+
+	// bond the validator
+	sk := suite.app.GetStakingKeeper()
+	staking.EndBlocker(suite.ctx, sk)
+
+	validator, found := sk.GetValidator(suite.ctx, validator.GetOperator())
+	if !found {
+		panic("validator not found")
+	}
+	return validator
+}
+
 func (suite *tallyHandlerSuite) createAccount(initialBalance ...sdk.Coin) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
 
@@ -214,7 +340,7 @@ func (suite *tallyHandlerSuite) createAccount(initialBalance ...sdk.Coin) authty
 	return acc
 }
 
-// stakingHelper wraps the staking keeper and provides some helper functions for testing.
+// stakingHelper wraps the staking keeper with helper functions for testing.
 type stakingHelper struct {
 	keeper stakingkeeper.Keeper
 }
