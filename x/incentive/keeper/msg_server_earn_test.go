@@ -35,14 +35,19 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		WithSupportedDenoms("bkava")
 
 	earnBuilder := testutil.NewEarnGenesisBuilder().
-		WithVault(earntypes.AllowedVault{
+		WithAllowedVaults(earntypes.AllowedVault{
 			Denom:             "bkava",
 			Strategies:        earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
 			IsPrivateVault:    false,
 			AllowedDepositors: nil,
 		})
 
-	suite.SetupWithGenState(authBuilder, incentBuilder, earnBuilder, savingsBuilder)
+	suite.SetupWithGenState(
+		authBuilder,
+		incentBuilder,
+		earnBuilder,
+		savingsBuilder,
+	)
 
 	// ak := suite.App.GetAccountKeeper()
 	// bk := suite.App.GetBankKeeper()

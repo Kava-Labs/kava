@@ -34,7 +34,7 @@ func (builder EarnGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.Genes
 	}
 }
 
-func (builder EarnGenesisBuilder) WithVault(vault earntypes.AllowedVault) EarnGenesisBuilder {
-	builder.Params.AllowedVaults = append(builder.Params.AllowedVaults, vault)
+func (builder EarnGenesisBuilder) WithAllowedVaults(vault ...earntypes.AllowedVault) EarnGenesisBuilder {
+	builder.Params.AllowedVaults = append(builder.Params.AllowedVaults, vault...)
 	return builder
 }

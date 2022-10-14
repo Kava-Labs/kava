@@ -30,6 +30,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
+	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
+	routertypes "github.com/kava-labs/kava/x/router/types"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
@@ -393,14 +395,14 @@ func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys
 	}
 }
 
-func (suite *IntegrationTester) StoredTimeEquals(denom string, expected time.Time) {
-	storedTime, found := suite.App.GetIncentiveKeeper().GetPreviousHardBorrowRewardAccrualTime(suite.Ctx, denom)
+func (suite *IntegrationTester) StoredEarnTimeEquals(denom string, expected time.Time) {
+	storedTime, found := suite.App.GetIncentiveKeeper().GetEarnRewardAccrualTime(suite.Ctx, denom)
 	suite.True(found)
 	suite.Equal(expected, storedTime)
 }
 
-func (suite *IntegrationTester) StoredIndexesEqual(denom string, expected types.RewardIndexes) {
-	storedIndexes, found := suite.App.GetIncentiveKeeper().GetHardBorrowRewardIndexes(suite.Ctx, denom)
+func (suite *IntegrationTester) StoredEarnIndexesEqual(denom string, expected types.RewardIndexes) {
+	storedIndexes, found := suite.App.GetIncentiveKeeper().GetEarnRewardIndexes(suite.Ctx, denom)
 	suite.Equal(found, expected != nil)
 
 	if found {
@@ -409,4 +411,51 @@ func (suite *IntegrationTester) StoredIndexesEqual(denom string, expected types.
 		// Can't compare Equal for types.RewardIndexes(nil) vs types.RewardIndexes{}
 		suite.Empty(storedIndexes)
 	}
+}
+
+// -----------------------------------------------------------------------------
+// x/router
+
+func (suite *IntegrationTester) DeliverRouterMsgDelegateMintDeposit(
+	depositor sdk.AccAddress,
+	validator sdk.ValAddress,
+	amount sdk.Coin,
+) error {
+	msg := routertypes.MsgDelegateMintDeposit{
+		Depositor: depositor.String(),
+		Validator: validator.String(),
+		Amount:    amount,
+	}
+	msgServer := routerkeeper.NewMsgServerImpl(suite.App.GetRouterKeeper())
+
+	_, err := msgServer.DelegateMintDeposit(sdk.WrapSDKContext(suite.Ctx), &msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverRouterMsgMintDeposit(
+	depositor sdk.AccAddress,
+	validator sdk.ValAddress,
+	amount sdk.Coin,
+) error {
+	msg := routertypes.MsgMintDeposit{
+		Depositor: depositor.String(),
+		Validator: validator.String(),
+		Amount:    amount,
+	}
+	msgServer := routerkeeper.NewMsgServerImpl(suite.App.GetRouterKeeper())
+
+	_, err := msgServer.MintDeposit(sdk.WrapSDKContext(suite.Ctx), &msg)
+	return err
+}
+
+func (suite *IntegrationTester) DeliverMsgDelegateMint(
+	delegator sdk.AccAddress,
+	validator sdk.ValAddress,
+	amount sdk.Coin,
+) error {
+	if err := suite.DeliverMsgDelegate(delegator, validator, amount); err != nil {
+		return err
+	}
+
+	return suite.DeliverMsgMintDerivative(delegator, validator, amount)
 }
