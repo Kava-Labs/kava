@@ -42,7 +42,6 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) SetDenoms() {
 	mParams.MintDenom = "ukava"
 
 	mk.SetParams(suite.Ctx, mParams)
-
 }
 
 func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistributed() {
@@ -105,9 +104,6 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 
 	userMintAmount1 := c("ukava", 1e9)
 	userMintAmount2 := c("ukava", 1e9)
-
-	vaultDenom1Supply := userDepositAmount1.Add(userMintAmount1)
-	vaultDenom2Supply := userDepositAmount2.Add(userMintAmount2)
 
 	// Create two validators
 	err := suite.DeliverMsgCreateValidator(valAddr1, selfDelegationAmount)
@@ -185,7 +181,7 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 
 	// Mint tokens, distribute to validators, claim staking rewards
 	// 1 hour later
-	suite.NextBlockAfterWithReq(
+	_, resBeginBlock := suite.NextBlockAfterWithReq(
 		1*time.Hour,
 		abci.RequestEndBlock{},
 		abci.RequestBeginBlock{
@@ -202,26 +198,36 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 	suite.StoredEarnTimeEquals(vaultDenom1, suite.Ctx.BlockTime())
 	suite.StoredEarnTimeEquals(vaultDenom2, suite.Ctx.BlockTime())
 
+	validatorRewards, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
+
+	suite.Require().Contains(validatorRewards, valAddr1.String(), "there should be claim events for validator 1")
+	suite.Require().Contains(validatorRewards, valAddr2.String(), "there should be claim events for validator 2")
+
+	// Total staking rewards / total source shares (**deposited in earn** not total minted)
+	// types.RewardIndexes.Quo() uses Dec.Quo() which uses bankers rounding.
+	// So we need to use Dec.Quo() to also round vs Dec.QuoInt() which truncates
+	expectedIndexes1 := validatorRewards[valAddr1.String()].
+		AmountOf("ukava").
+		ToDec().
+		Quo(userDepositAmount1.Amount.ToDec())
+
+	expectedIndexes2 := validatorRewards[valAddr2.String()].
+		AmountOf("ukava").
+		ToDec().
+		Quo(userDepositAmount2.Amount.ToDec())
+
 	// Only contains staking rewards
 	suite.StoredEarnIndexesEqual(vaultDenom1, types.RewardIndexes{
 		{
 			CollateralType: "ukava",
-			RewardFactor: initialVault1RewardFactor.
-				Add(vaultDenom1Supply.Amount.ToDec().
-					QuoInt64(10).
-					MulInt64(3600).
-					QuoInt(userDepositAmount1.Amount)),
+			RewardFactor:   initialVault1RewardFactor.Add(expectedIndexes1),
 		},
 	})
 
 	suite.StoredEarnIndexesEqual(vaultDenom2, types.RewardIndexes{
 		{
 			CollateralType: "ukava",
-			RewardFactor: initialVault2RewardFactor.
-				Add(vaultDenom2Supply.Amount.ToDec().
-					QuoInt64(10).
-					MulInt64(3600).
-					QuoInt(userDepositAmount2.Amount)),
+			RewardFactor:   initialVault2RewardFactor.Add(expectedIndexes2),
 		},
 	})
 }

@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -101,16 +102,18 @@ func (suite *IntegrationTester) NextBlockAfterWithReq(
 	blockDuration time.Duration,
 	reqEnd abcitypes.RequestEndBlock,
 	reqBegin abcitypes.RequestBeginBlock,
-) {
-	suite.NextBlockAtWithRequest(
+) (abcitypes.ResponseEndBlock, abcitypes.ResponseBeginBlock) {
+	return suite.NextBlockAtWithRequest(
 		suite.Ctx.BlockTime().Add(blockDuration),
 		reqEnd,
 		reqBegin,
 	)
 }
 
-func (suite *IntegrationTester) NextBlockAt(blockTime time.Time) {
-	suite.NextBlockAtWithRequest(
+func (suite *IntegrationTester) NextBlockAt(
+	blockTime time.Time,
+) (abcitypes.ResponseEndBlock, abcitypes.ResponseBeginBlock) {
+	return suite.NextBlockAtWithRequest(
 		blockTime,
 		abcitypes.RequestEndBlock{},
 		abcitypes.RequestBeginBlock{},
@@ -121,17 +124,17 @@ func (suite *IntegrationTester) NextBlockAtWithRequest(
 	blockTime time.Time,
 	reqEnd abcitypes.RequestEndBlock,
 	reqBegin abcitypes.RequestBeginBlock,
-) {
+) (abcitypes.ResponseEndBlock, abcitypes.ResponseBeginBlock) {
 	if !suite.Ctx.BlockTime().Before(blockTime) {
 		panic(fmt.Sprintf("new block time %s must be after current %s", blockTime, suite.Ctx.BlockTime()))
 	}
 	blockHeight := suite.Ctx.BlockHeight() + 1
 
-	_ = suite.App.EndBlocker(suite.Ctx, reqEnd)
-
+	responseEndBlock := suite.App.EndBlocker(suite.Ctx, reqEnd)
 	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(testChainID)
+	responseBeginBlock := suite.App.BeginBlocker(suite.Ctx, reqBegin) // height and time in RequestBeginBlock are ignored by module begin blockers
 
-	_ = suite.App.BeginBlocker(suite.Ctx, reqBegin) // height and time in RequestBeginBlock are ignored by module begin blockers
+	return responseEndBlock, responseBeginBlock
 }
 
 func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
@@ -458,4 +461,66 @@ func (suite *IntegrationTester) DeliverMsgDelegateMint(
 	}
 
 	return suite.DeliverMsgMintDerivative(delegator, validator, amount)
+}
+
+// -----------------------------------------------------------------------------
+// x/distribution
+
+func (suite *IntegrationTester) GetBeginBlockClaimedStakingRewards(
+	resBeginBlock abcitypes.ResponseBeginBlock,
+) (validatorRewards map[string]sdk.Coins, totalRewards sdk.Coins) {
+	// Events emitted in BeginBlocker are in the ResponseBeginBlock, not in
+	// ctx.EventManager().Events() as BeginBlock is called with a NewEventManager()
+	// cosmos-sdk/types/module/module.go: func(m *Manager) BeginBlock(...)
+
+	// We also need to parse the events to get the rewards as querying state will
+	// always contain 0 rewards -- rewards are always claimed right after
+	// mint+distribution in BeginBlocker which resets distribution state back to
+	// 0 for reward amounts
+	blockRewardsClaimed := make(map[string]sdk.Coins)
+	for _, event := range resBeginBlock.Events {
+		if event.Type != distributiontypes.EventTypeWithdrawRewards {
+			continue
+		}
+
+		amount := sdk.NewCoins()
+		var validator string
+
+		// Example event attributes, amount can be empty for no rewards
+		//
+		// Event: withdraw_rewards
+		// - amount:
+		// - validator: kavavaloper1em2mlkrkx0qsa6327tgvl3g0fh8a95hjnqvrwh
+		// Event: withdraw_rewards
+		// - amount: 523909ukava
+		// - validator: kavavaloper1nmgpgr8l4t8pw9zqx9cltuymvz85wmw9sy8kjy
+		for _, attr := range event.Attributes {
+			if string(attr.Key) == distributiontypes.AttributeKeyValidator {
+				validator = string(attr.Value)
+			}
+
+			if string(attr.Key) == sdk.AttributeKeyAmount {
+				// Skip those which have no rewards
+				if len(attr.Value) == 0 {
+					continue
+				}
+
+				parsedAmt, err := sdk.ParseCoinNormalized(string(attr.Value))
+				suite.Require().NoError(err)
+
+				amount = sdk.NewCoins(parsedAmt)
+			}
+		}
+
+		suite.Require().NotEmpty(validator, "validator address not found in withdraw_rewards event attributes")
+
+		blockRewardsClaimed[validator] = amount
+	}
+
+	totalClaimedRewards := sdk.NewCoins()
+	for _, amount := range blockRewardsClaimed {
+		totalClaimedRewards = totalClaimedRewards.Add(amount...)
+	}
+
+	return blockRewardsClaimed, totalClaimedRewards
 }
