@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/evmos/ethermint/encoding"
 
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -38,7 +37,7 @@ const EnvPrefix = "KAVA"
 // NewRootCmd creates a new root command for evmosd. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
-	encodingConfig := encoding.MakeConfig(app.ModuleBasics)
+	encodingConfig := params.MakeEncodingConfig()
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -92,7 +91,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	rootCmd.AddCommand(
 		ethermintclient.ValidateChainID(
-			InitCmd(app.ModuleBasics, app.DefaultNodeHome),
+			genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
 		),
 		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		// MigrateGenesisCmd(),
