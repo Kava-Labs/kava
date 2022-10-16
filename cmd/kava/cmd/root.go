@@ -1,5 +1,9 @@
 package cmd
 
+/*
+Hi this is jacob from notional.  You can remove this message later.  Next time, please don't make a public release of a patch intended for validators only.
+*/
+
 import (
 	"fmt"
 	"os"
