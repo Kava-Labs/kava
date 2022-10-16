@@ -15,6 +15,7 @@ import (
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	srvflags "github.com/evmos/ethermint/server/flags"
 	"github.com/spf13/cobra"
@@ -238,4 +239,8 @@ func initAppConfig() (string, interface{}) {
 	srvCfg.IAVLDisableFastNode = false
 
 	return customAppTemplate, customAppConfig
+}
+
+func addModuleInitFlags(startCmd *cobra.Command) {
+	crisis.AddModuleInitFlags(startCmd)
 }
