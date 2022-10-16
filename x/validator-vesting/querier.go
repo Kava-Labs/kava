@@ -132,7 +132,7 @@ func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, legacyQuer
 		time.Date(2024, 9, 15, 14, 0, 0, 0, time.UTC),  // + 1,666,667  *** Year FOUR ***
 	}
 
-	circSupply := sdk.ZeroInt()
+	circSupply := sdk.ZeroInt() //nolint:ineffassign // false positive
 	blockTime := ctx.BlockTime()
 	switch {
 	case blockTime.Before(supplyIncreaseDates[0]):

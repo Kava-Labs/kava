@@ -779,7 +779,7 @@ func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 				addr, _ := sdk.AccAddressFromBech32(addrStr)
 				err := sk.MintCoins(suite.ctx, types.ModuleAccountName, sdk.NewCoins(tc.args.initialCoins))
 				suite.Require().NoError(err)
-				err = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleAccountName, addr, sdk.NewCoins(tc.args.initialCoins))
+				_ = sk.SendCoinsFromModuleToAccount(suite.ctx, types.ModuleAccountName, addr, sdk.NewCoins(tc.args.initialCoins))
 			}
 
 			err := suite.keeper.SeizeCoinsFromBlockedAddresses(suite.ctx, tc.args.denom)

@@ -38,7 +38,7 @@ func QueryAuctionByID(cliCtx client.Context, cdc *codec.Codec, queryRoute string
 		return nil, 0, err
 	}
 
-	res, height, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNextAuctionID), nil)
+	res, _, err = cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNextAuctionID), nil)
 	if err != nil {
 		return nil, 0, err
 	}
