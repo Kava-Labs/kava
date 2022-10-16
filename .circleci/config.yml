@@ -2,7 +2,7 @@ version: 2.1
 executors:
   golang:
     docker:
-      - image: circleci/golang:1.17
+      - image: circleci/golang:1.18
 
 commands:
   make:
@@ -115,7 +115,6 @@ jobs:
           command: |
             echo "$DOCKERHUB_KEY" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
             docker push $IMAGE_NAME:$CIRCLE_BRANCH
-
 
 workflows:
   version: 2
