@@ -483,9 +483,6 @@ func (suite *IntegrationTester) GetBeginBlockClaimedStakingRewards(
 			continue
 		}
 
-		amount := sdk.NewCoins()
-		var validator string
-
 		// Example event attributes, amount can be empty for no rewards
 		//
 		// Event: withdraw_rewards
@@ -494,25 +491,22 @@ func (suite *IntegrationTester) GetBeginBlockClaimedStakingRewards(
 		// Event: withdraw_rewards
 		// - amount: 523909ukava
 		// - validator: kavavaloper1nmgpgr8l4t8pw9zqx9cltuymvz85wmw9sy8kjy
-		for _, attr := range event.Attributes {
-			if string(attr.Key) == distributiontypes.AttributeKeyValidator {
-				validator = string(attr.Value)
-			}
+		attrsMap := attrsToMap(event.Attributes)
 
-			if string(attr.Key) == sdk.AttributeKeyAmount {
-				// Skip those which have no rewards
-				if len(attr.Value) == 0 {
-					continue
-				}
+		validator, found := attrsMap[distributiontypes.AttributeKeyValidator]
+		suite.Require().Truef(found, "expected validator attribute to be found in event %s", event)
 
-				parsedAmt, err := sdk.ParseCoinNormalized(string(attr.Value))
-				suite.Require().NoError(err)
+		amountStr, found := attrsMap[sdk.AttributeKeyAmount]
+		suite.Require().Truef(found, "expected amount attribute to be found in event %s", event)
 
-				amount = sdk.NewCoins(parsedAmt)
-			}
+		amount := sdk.NewCoins()
+
+		// Only parse amount if it is not empty
+		if len(amountStr) > 0 {
+			parsedAmt, err := sdk.ParseCoinNormalized(amountStr)
+			suite.Require().NoError(err)
+			amount = amount.Add(parsedAmt)
 		}
-
-		suite.Require().NotEmpty(validator, "validator address not found in withdraw_rewards event attributes")
 
 		blockRewardsClaimed[validator] = amount
 	}
@@ -523,4 +517,14 @@ func (suite *IntegrationTester) GetBeginBlockClaimedStakingRewards(
 	}
 
 	return blockRewardsClaimed, totalClaimedRewards
+}
+
+func attrsToMap(attrs []abcitypes.EventAttribute) map[string]string {
+	out := make(map[string]string)
+
+	for _, attr := range attrs {
+		out[string(attr.Key)] = string(attr.Value)
+	}
+
+	return out
 }
