@@ -448,8 +448,12 @@ func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys
 
 func (suite *IntegrationTester) StoredEarnTimeEquals(denom string, expected time.Time) {
 	storedTime, found := suite.App.GetIncentiveKeeper().GetEarnRewardAccrualTime(suite.Ctx, denom)
-	suite.True(found)
-	suite.Equal(expected, storedTime)
+	suite.Equal(found, expected != time.Time{}, "expected time is %v but time found = %v", expected, found)
+	if found {
+		suite.Equal(expected, storedTime)
+	} else {
+		suite.Empty(storedTime)
+	}
 }
 
 func (suite *IntegrationTester) StoredEarnIndexesEqual(denom string, expected types.RewardIndexes) {
