@@ -329,7 +329,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	})
 }
 
-func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUnchangedWhenBlockTimeHasNotIncreased_bkava() {
+func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
 	derivative0, err := suite.MintLiquidAnyValAddr(suite.userAddrs[0], suite.valAddrs[0], c("ukava", 1000000))
 	suite.NoError(err)
 	derivative1, err := suite.MintLiquidAnyValAddr(suite.userAddrs[1], suite.valAddrs[1], c("ukava", 1000000))
@@ -399,7 +399,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUnchangedWhenBlockT
 	suite.StoredEarnIndexesEqual(derivative1.Denom, expected)
 }
 
-func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSourceSharesAreZero_bkava() {
+func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSourceSharesAreZero() {
 	suite.AddIncentiveEarnMultiRewardPeriod(
 		types.NewMultiRewardPeriod(
 			true,
@@ -487,7 +487,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSource
 	suite.StoredEarnIndexesEqual(derivative1.Denom, expected)
 }
 
-func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesNotExist_bkava() {
+func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesNotExist() {
 	suite.AddIncentiveEarnMultiRewardPeriod(
 		types.NewMultiRewardPeriod(
 			true,
@@ -626,7 +626,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 	})
 }
 
-func (suite *AccumulateEarnRewardsIntegrationTests) TestNoPanicWhenStateDoesNotExist_bkava() {
+func (suite *AccumulateEarnRewardsIntegrationTests) TestNoPanicWhenStateDoesNotExist() {
 	derivative0, err := suite.MintLiquidAnyValAddr(suite.userAddrs[0], suite.valAddrs[0], c("ukava", 1000000))
 	suite.NoError(err)
 	derivative1, err := suite.MintLiquidAnyValAddr(suite.userAddrs[1], suite.valAddrs[1], c("ukava", 1000000))
