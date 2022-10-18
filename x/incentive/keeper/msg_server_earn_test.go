@@ -98,13 +98,13 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	suite.Require().NoError(err)
 
 	// Mint liquid tokens
-	err = suite.DeliverMsgMintDerivative(userAddr1, valAddr1, c("ukava", 1e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr1, valAddr1, c("ukava", 1e9))
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgMintDerivative(userAddr2, valAddr1, c("ukava", 99e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr1, c("ukava", 99e9))
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgMintDerivative(userAddr2, valAddr2, c("ukava", 99e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr2, c("ukava", 99e9))
 	suite.Require().NoError(err)
 
 	// Deposit liquid tokens to earn

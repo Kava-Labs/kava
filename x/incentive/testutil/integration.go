@@ -160,6 +160,46 @@ func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
 	return err
 }
 
+// MintLiquidAnyValAddr mints liquid tokens with the given validator address,
+// creating the validator if it does not already exist.
+// **Note:** This will increment the block height/time and run the End and Begin
+// blockers!
+func (suite *IntegrationTester) MintLiquidAnyValAddr(
+	owner sdk.AccAddress,
+	validator sdk.ValAddress,
+	amount sdk.Coin,
+) (sdk.Coin, error) {
+	// Check if validator already created
+	_, found := suite.App.GetStakingKeeper().GetValidator(suite.Ctx, validator)
+	if !found {
+		// Create validator
+		if err := suite.DeliverMsgCreateValidator(validator, sdk.NewCoin("ukava", sdk.NewInt(1e9))); err != nil {
+			return sdk.Coin{}, err
+		}
+
+		// new block required to bond validator
+		suite.NextBlockAfter(7 * time.Second)
+	}
+
+	// Delegate and mint liquid tokens
+	return suite.DeliverMsgDelegateMint(owner, validator, amount)
+}
+
+func (suite *IntegrationTester) GetAbciValidator(valAddr sdk.ValAddress) abcitypes.Validator {
+	sk := suite.App.GetStakingKeeper()
+
+	val, found := sk.GetValidator(suite.Ctx, valAddr)
+	suite.Require().True(found)
+
+	pk, err := val.ConsPubKey()
+	suite.Require().NoError(err)
+
+	return abcitypes.Validator{
+		Address: pk.Address(),
+		Power:   val.GetConsensusPower(sk.PowerReduction(suite.Ctx)),
+	}
+}
+
 func (suite *IntegrationTester) DeliverMsgCreateValidator(address sdk.ValAddress, selfDelegation sdk.Coin) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
 		address,
@@ -264,12 +304,17 @@ func (suite *IntegrationTester) DeliverMsgMintDerivative(
 	sender sdk.AccAddress,
 	validator sdk.ValAddress,
 	amount sdk.Coin,
-) error {
+) (sdk.Coin, error) {
 	msg := liquidtypes.NewMsgMintDerivative(sender, validator, amount)
 	msgServer := liquidkeeper.NewMsgServerImpl(suite.App.GetLiquidKeeper())
 
-	_, err := msgServer.MintDerivative(sdk.WrapSDKContext(suite.Ctx), &msg)
-	return err
+	res, err := msgServer.MintDerivative(sdk.WrapSDKContext(suite.Ctx), &msg)
+	if err != nil {
+		// Instead of returning res.Received, as res will be nil if there is an error
+		return sdk.Coin{}, err
+	}
+
+	return res.Received, err
 }
 
 func (suite *IntegrationTester) DeliverEarnMsgDeposit(
@@ -359,6 +404,9 @@ func (suite *IntegrationTester) VestingPeriodsEqual(address sdk.AccAddress, expe
 	suite.Equal(expectedPeriods, vacc.VestingPeriods)
 }
 
+// -----------------------------------------------------------------------------
+// x/incentive
+
 func (suite *IntegrationTester) SwapRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
 	claim, found := suite.App.GetIncentiveKeeper().GetSwapClaim(suite.Ctx, owner)
 	suite.Require().Truef(found, "expected swap claim to be found for %s", owner)
@@ -416,6 +464,27 @@ func (suite *IntegrationTester) StoredEarnIndexesEqual(denom string, expected ty
 	}
 }
 
+func (suite *IntegrationTester) AddIncentiveEarnMultiRewardPeriod(period types.MultiRewardPeriod) {
+	ik := suite.App.GetIncentiveKeeper()
+	params := ik.GetParams(suite.Ctx)
+
+	for i, reward := range params.EarnRewardPeriods {
+		if reward.CollateralType == period.CollateralType {
+			// Replace existing reward period if the collateralType exists.
+			// Params are invalid if there are multiple reward periods for the
+			// same collateral type.
+			params.EarnRewardPeriods[i] = period
+			ik.SetParams(suite.Ctx, params)
+			return
+		}
+	}
+
+	params.EarnRewardPeriods = append(params.EarnRewardPeriods, period)
+
+	suite.NoError(params.Validate())
+	ik.SetParams(suite.Ctx, params)
+}
+
 // -----------------------------------------------------------------------------
 // x/router
 
@@ -455,9 +524,9 @@ func (suite *IntegrationTester) DeliverMsgDelegateMint(
 	delegator sdk.AccAddress,
 	validator sdk.ValAddress,
 	amount sdk.Coin,
-) error {
+) (sdk.Coin, error) {
 	if err := suite.DeliverMsgDelegate(delegator, validator, amount); err != nil {
-		return err
+		return sdk.Coin{}, err
 	}
 
 	return suite.DeliverMsgMintDerivative(delegator, validator, amount)

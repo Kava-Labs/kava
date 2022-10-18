@@ -34,19 +34,7 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) SetupTest() {
 	_, suite.addrs = app.GeneratePrivKeyAddressPairs(5)
 }
 
-func (suite *EarnStakingRewardsIntegrationTestSuite) SetDenoms() {
-	mk := suite.App.GetMintKeeper()
-
-	// Use ukava for mint denom
-	mParams := mk.GetParams(suite.Ctx)
-	mParams.MintDenom = "ukava"
-
-	mk.SetParams(suite.Ctx, mParams)
-}
-
 func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistributed() {
-	sk := suite.App.GetStakingKeeper()
-
 	userAddr1, userAddr2, validatorAddr1, validatorAddr2 := suite.addrs[0],
 		suite.addrs[1],
 		suite.addrs[2],
@@ -82,7 +70,8 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 	mintBuilder := testutil.NewMintGenesisBuilder().
 		WithInflationMax(sdk.OneDec()).
 		WithInflationMin(sdk.OneDec()).
-		WithMinter(sdk.OneDec(), sdk.ZeroDec())
+		WithMinter(sdk.OneDec(), sdk.ZeroDec()).
+		WithMintDenom("ukava")
 
 	suite.StartChainWithBuilders(
 		authBuilder,
@@ -92,8 +81,6 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 		stakingBuilder,
 		mintBuilder,
 	)
-
-	suite.SetDenoms()
 
 	selfDelegationAmount := c("ukava", 1e9)
 
@@ -114,8 +101,6 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 
 	// new block required to bond validator
 	suite.NextBlockAfter(7 * time.Second)
-	// Now the delegation is bonded, accumulate some delegator rewards
-	suite.NextBlockAfter(7 * time.Second)
 
 	// Delegate to validator, mint derivative and deposit to earn
 	err = suite.DeliverRouterMsgDelegateMintDeposit(userAddr1, valAddr1, userDepositAmount1)
@@ -125,10 +110,10 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 	suite.Require().NoError(err)
 
 	// Additional delegate + mint derivative that is **not** deposited to earn
-	err = suite.DeliverMsgDelegateMint(userAddr1, valAddr1, userMintAmount1)
+	_, err = suite.DeliverMsgDelegateMint(userAddr1, valAddr1, userMintAmount1)
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgDelegateMint(userAddr1, valAddr2, userMintAmount2)
+	_, err = suite.DeliverMsgDelegateMint(userAddr1, valAddr2, userMintAmount2)
 	suite.Require().NoError(err)
 
 	// Get derivative denoms
@@ -168,16 +153,7 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom1, suite.Ctx.BlockTime())
 	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom2, suite.Ctx.BlockTime())
 
-	validator1, found := sk.GetValidator(suite.Ctx, valAddr1)
-	suite.Require().True(found)
-
-	pk, err := validator1.ConsPubKey()
-	suite.Require().NoError(err)
-
-	val := abci.Validator{
-		Address: pk.Address(),
-		Power:   100,
-	}
+	val := suite.GetAbciValidator(valAddr1)
 
 	// Mint tokens, distribute to validators, claim staking rewards
 	// 1 hour later

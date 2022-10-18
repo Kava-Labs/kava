@@ -59,3 +59,10 @@ func (builder MintGenesisBuilder) WithInflationMin(
 	builder.Params.InflationMin = inflationMin
 	return builder
 }
+
+func (builder MintGenesisBuilder) WithMintDenom(
+	mintDenom string,
+) MintGenesisBuilder {
+	builder.Params.MintDenom = mintDenom
+	return builder
+}
