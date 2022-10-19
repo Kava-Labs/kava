@@ -77,6 +77,11 @@ func (ac appCreator) newApp(
 		panic(fmt.Sprintf("could not get authorized address from config: %v", err))
 	}
 
+	iavlDisableFastNode := appOpts.Get(server.FlagIAVLFastNode)
+	if iavlDisableFastNode == nil {
+		iavlDisableFastNode = true
+	}
+
 	return app.NewApp(
 		logger, db, homeDir, traceStore, ac.encodingConfig,
 		app.Options{
@@ -100,6 +105,8 @@ func (ac appCreator) newApp(
 		baseapp.SetSnapshotStore(snapshotStore),
 		baseapp.SetSnapshotInterval(cast.ToUint64(appOpts.Get(server.FlagStateSyncSnapshotInterval))),
 		baseapp.SetSnapshotKeepRecent(cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent))),
+		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
+		baseapp.SetIAVLDisableFastNode(cast.ToBool(iavlDisableFastNode)),
 	)
 }
 
