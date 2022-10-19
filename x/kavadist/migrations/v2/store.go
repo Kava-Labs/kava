@@ -20,8 +20,8 @@ func MigrateStore(ctx sdk.Context, ss paramtypes.Subspace) error {
 	infraParamsJson := `{
 		"infrastructure_periods": [
 			{
-				"start": "2022-10-13T14:00:00Z",
-				"end": "2026-10-13T14:00:00Z",
+				"start": "2022-10-27T15:00:00Z",
+				"end": "2026-10-27T15:00:00Z",
 				"inflation": "1.000000007075835620"
 			}
 		],
