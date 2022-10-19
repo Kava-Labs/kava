@@ -6,8 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
@@ -25,20 +28,26 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		WithSimpleAccount(validatorAddr1, cs(c("ukava", 1e12))).
 		WithSimpleAccount(validatorAddr2, cs(c("ukava", 1e12)))
 
-	incentBuilder := suite.incentiveBuilder()
+	incentBuilder := suite.incentiveBuilder().
+		WithSimpleEarnRewardPeriod("bkava", cs())
 
 	savingsBuilder := testutil.NewSavingsGenesisBuilder().
 		WithSupportedDenoms("bkava")
 
-	earnBuilder := suite.earnBuilder().
-		WithVault(earntypes.AllowedVault{
+	earnBuilder := testutil.NewEarnGenesisBuilder().
+		WithAllowedVaults(earntypes.AllowedVault{
 			Denom:             "bkava",
 			Strategies:        earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
 			IsPrivateVault:    false,
 			AllowedDepositors: nil,
 		})
 
-	suite.SetupWithGenState(authBuilder, incentBuilder, earnBuilder, savingsBuilder)
+	suite.SetupWithGenState(
+		authBuilder,
+		incentBuilder,
+		earnBuilder,
+		savingsBuilder,
+	)
 
 	// ak := suite.App.GetAccountKeeper()
 	// bk := suite.App.GetBankKeeper()
@@ -47,6 +56,11 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	mk := suite.App.GetMintKeeper()
 	dk := suite.App.GetDistrKeeper()
 	ik := suite.App.GetIncentiveKeeper()
+
+	iParams := ik.GetParams(suite.Ctx)
+	period, found := iParams.EarnRewardPeriods.GetMultiRewardPeriod("bkava")
+	suite.Require().True(found)
+	suite.Require().Equal("bkava", period.CollateralType)
 
 	// Use ukava for mint denom
 	mParams := mk.GetParams(suite.Ctx)
@@ -84,13 +98,13 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	suite.Require().NoError(err)
 
 	// Mint liquid tokens
-	err = suite.DeliverMsgMintDerivative(userAddr1, valAddr1, c("ukava", 1e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr1, valAddr1, c("ukava", 1e9))
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgMintDerivative(userAddr2, valAddr1, c("ukava", 99e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr1, c("ukava", 99e9))
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgMintDerivative(userAddr2, valAddr2, c("ukava", 99e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr2, c("ukava", 99e9))
 	suite.Require().NoError(err)
 
 	// Deposit liquid tokens to earn
@@ -118,18 +132,29 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		Power:   100,
 	}
 
+	// Query for next block to get staking rewards
 	suite.Ctx = suite.Ctx.
 		WithBlockHeight(suite.Ctx.BlockHeight() + 1).
-		WithBlockTime(suite.Ctx.BlockTime().Add(1 * time.Hour))
-	// Accumulate some staking rewards
-	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{
-		LastCommitInfo: abci.LastCommitInfo{
-			Votes: []abci.VoteInfo{{
-				Validator:       val,
-				SignedLastBlock: true,
-			}},
+		WithBlockTime(suite.Ctx.BlockTime().Add(7 * time.Second))
+
+	// Mint tokens
+	mint.BeginBlocker(
+		suite.Ctx,
+		suite.App.GetMintKeeper(),
+	)
+	// Distribute to validators, block needs votes
+	distribution.BeginBlocker(
+		suite.Ctx,
+		abci.RequestBeginBlock{
+			LastCommitInfo: abci.LastCommitInfo{
+				Votes: []abci.VoteInfo{{
+					Validator:       val,
+					SignedLastBlock: true,
+				}},
+			},
 		},
-	})
+		dk,
+	)
 
 	liquidMacc := suite.App.GetAccountKeeper().GetModuleAccount(suite.Ctx, liquidtypes.ModuleAccountName)
 	delegation, found := sk.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
@@ -137,18 +162,25 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 
 	// Get amount of rewards
 	endingPeriod := dk.IncrementValidatorPeriod(suite.Ctx, validator1)
-	delegationRewards := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
 
-	// Accumulate rewards - claim rewards
-	rewardPeriod := types.NewMultiRewardPeriod(
-		true,
-		"bkava",         // reward period is set for "bkava" to apply to all vaults
-		time.Unix(0, 0), // ensure the test is within start and end times
-		distantFuture,
-		cs(), // no incentives, so only the staking rewards are distributed
+	// Zero rewards since this block is the same as the block it was last claimed
+
+	// This needs to run **after** staking rewards are minted/distributed in
+	// x/mint + x/distribution but **before** the x/incentive BeginBlocker.
+
+	// Order of operations:
+	// 1. x/mint + x/distribution BeginBlocker
+	// 2. CalculateDelegationRewards
+	// 3. x/incentive BeginBlocker to claim staking rewards
+	delegationRewards := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
+	suite.Require().False(delegationRewards.IsZero(), "expected non-zero delegation rewards")
+
+	// Claim staking rewards via incentive.
+	// Block height was updated earlier.
+	incentive.BeginBlocker(
+		suite.Ctx,
+		ik,
 	)
-	err = ik.AccumulateEarnRewards(suite.Ctx, rewardPeriod)
-	suite.Require().NoError(err)
 
 	preClaimBal1 := suite.GetBalance(userAddr1)
 	preClaimBal2 := suite.GetBalance(userAddr2)
@@ -171,15 +203,15 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// User 2 gets 99% of rewards
 	stakingRewards1 := delegationRewards.
 		AmountOf("ukava").
-		QuoInt64(100).
+		Quo(sdk.NewDec(100)).
 		RoundInt()
 	suite.BalanceEquals(userAddr1, preClaimBal1.Add(sdk.NewCoin("ukava", stakingRewards1)))
 
 	// Total * 99 / 100
 	stakingRewards2 := delegationRewards.
 		AmountOf("ukava").
-		MulInt64(99).
-		QuoInt64(100).
+		Mul(sdk.NewDec(99)).
+		Quo(sdk.NewDec(100)).
 		TruncateInt()
 	suite.BalanceEquals(userAddr2, preClaimBal2.Add(sdk.NewCoin("ukava", stakingRewards2)))
 
@@ -188,10 +220,4 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// Check that claimed coins have been removed from a claim's reward
 	suite.EarnRewardEquals(userAddr1, cs())
 	suite.EarnRewardEquals(userAddr2, cs())
-}
-
-// earnBuilder returns a new earn genesis builder with a genesis time and multipliers set
-func (suite *HandlerTestSuite) earnBuilder() testutil.EarnGenesisBuilder {
-	return testutil.NewEarnGenesisBuilder().
-		WithGenesisTime(suite.genesisTime)
 }
