@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	"github.com/stretchr/testify/suite"
@@ -46,11 +45,7 @@ func (suite *HandlerTestSuite) SetupApp() {
 	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
-type genesisBuilder interface {
-	BuildMarshalled(cdc codec.JSONCodec) app.GenesisState
-}
-
-func (suite *HandlerTestSuite) SetupWithGenState(builders ...genesisBuilder) {
+func (suite *HandlerTestSuite) SetupWithGenState(builders ...testutil.GenesisBuilder) {
 	suite.SetupApp()
 
 	builtGenStates := []app.GenesisState{

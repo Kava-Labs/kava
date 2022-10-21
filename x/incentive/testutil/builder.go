@@ -9,11 +9,16 @@ import (
 	"github.com/kava-labs/kava/app"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
 const (
 	oneYear time.Duration = time.Hour * 24 * 365
 )
+
+type GenesisBuilder interface {
+	BuildMarshalled(cdc codec.JSONCodec) app.GenesisState
+}
 
 // IncentiveGenesisBuilder is a tool for creating an incentive genesis state.
 // Helper methods add values onto a default genesis state.
@@ -168,6 +173,24 @@ func (builder IncentiveGenesisBuilder) WithSimpleUSDXRewardPeriod(ctype string, 
 	))
 }
 
+// WithInitializedEarnRewardPeriod sets the genesis time as the previous accumulation time for the specified period.
+// This can be helpful in tests. With no prev time set, the first block accrues no rewards as it just sets the prev time to the current.
+func (builder IncentiveGenesisBuilder) WithInitializedEarnRewardPeriod(period types.MultiRewardPeriod) IncentiveGenesisBuilder {
+	builder.Params.EarnRewardPeriods = append(builder.Params.EarnRewardPeriods, period)
+
+	accumulationTimeForPeriod := types.NewAccumulationTime(period.CollateralType, builder.genesisTime)
+	builder.EarnRewardState.AccumulationTimes = append(
+		builder.EarnRewardState.AccumulationTimes,
+		accumulationTimeForPeriod,
+	)
+
+	return builder
+}
+
+func (builder IncentiveGenesisBuilder) WithSimpleEarnRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
+	return builder.WithInitializedEarnRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
+}
+
 func (builder IncentiveGenesisBuilder) WithMultipliers(multipliers types.MultipliersPerDenoms) IncentiveGenesisBuilder {
 	builder.Params.ClaimMultipliers = multipliers
 
@@ -280,4 +303,40 @@ func (builder IncentiveGenesisBuilder) WithInitializedSavingsRewardPeriod(period
 
 func (builder IncentiveGenesisBuilder) WithSimpleSavingsRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
 	return builder.WithInitializedSavingsRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
+}
+
+// SavingsGenesisBuilder is a tool for creating a savings genesis state.
+// Helper methods add values onto a default genesis state.
+// All methods are immutable and return updated copies of the builder.
+type SavingsGenesisBuilder struct {
+	savingstypes.GenesisState
+	genesisTime time.Time
+}
+
+func NewSavingsGenesisBuilder() SavingsGenesisBuilder {
+	return SavingsGenesisBuilder{
+		GenesisState: savingstypes.DefaultGenesisState(),
+	}
+}
+
+func (builder SavingsGenesisBuilder) Build() savingstypes.GenesisState {
+	return builder.GenesisState
+}
+
+func (builder SavingsGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.GenesisState {
+	built := builder.Build()
+
+	return app.GenesisState{
+		savingstypes.ModuleName: cdc.MustMarshalJSON(&built),
+	}
+}
+
+func (builder SavingsGenesisBuilder) WithGenesisTime(genTime time.Time) SavingsGenesisBuilder {
+	builder.genesisTime = genTime
+	return builder
+}
+
+func (builder SavingsGenesisBuilder) WithSupportedDenoms(denoms ...string) SavingsGenesisBuilder {
+	builder.Params.SupportedDenoms = append(builder.Params.SupportedDenoms, denoms...)
+	return builder
 }

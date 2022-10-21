@@ -29,6 +29,10 @@ func (k Keeper) CollectStakingRewards(
 		return nil, err
 	}
 
+	if rewards.IsZero() {
+		return rewards, nil
+	}
+
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, destinationModAccount, rewards)
 	if err != nil {
 		return nil, err
