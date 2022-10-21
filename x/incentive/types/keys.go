@@ -39,4 +39,9 @@ var (
 	EarnClaimKeyPrefix                            = []byte{0x18} // prefix for keys that store earn claims
 	EarnRewardIndexesKeyPrefix                    = []byte{0x19} // prefix for key that stores earn reward indexes
 	PreviousEarnRewardAccrualTimeKeyPrefix        = []byte{0x20} // prefix for key that stores the previous time earn rewards accrued
+
+	// spike
+	ClaimKeyPrefix                     = []byte{0x21} // prefix for keys that stores all claims
+	PreviousRewardAccrualTimeKeyPrefix = []byte{0x22} // prefix for keys that stores previous time reward accrued
+	RewardIndexesKeyPrefix             = []byte{0x23} // prefix for key that stores reward indexes
 )

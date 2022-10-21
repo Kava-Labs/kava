@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	proto "github.com/gogo/protobuf/proto"
 )
 
 const (
@@ -16,6 +17,25 @@ const (
 	SavingsClaimType               = "savings"
 	EarnClaimType                  = "earn"
 )
+
+type Claim interface {
+	proto.Message
+
+	GetOwner() sdk.AccAddress
+	GetReward() sdk.Coins
+	GetRewardIndexes() MultiRewardIndexes
+	GetType() string
+
+	SetReward(reward sdk.Coins)
+	SetRewardIndexes(rewardIndexes MultiRewardIndexes)
+
+	// Store prefix for this type of claim, e.g. swap, earn, etc.
+	GetPrefix() []byte
+	// Store key for claim in the KVStore
+	GetKey() []byte
+}
+
+var _ Claim = (*EarnClaim)(nil)
 
 // GetOwner is a getter for Claim Owner
 func (c BaseClaim) GetOwner() sdk.AccAddress { return c.Owner }
@@ -366,6 +386,26 @@ func (c EarnClaim) Validate() error {
 		return err
 	}
 	return c.BaseMultiClaim.Validate()
+}
+
+func (e EarnClaim) GetPrefix() []byte {
+	return EarnClaimKeyPrefix
+}
+
+func (e EarnClaim) GetKey() []byte {
+	return e.Owner
+}
+
+func (e EarnClaim) GetRewardIndexes() MultiRewardIndexes {
+	return e.RewardIndexes
+}
+
+func (e *EarnClaim) SetReward(reward sdk.Coins) {
+	e.Reward = reward
+}
+
+func (e *EarnClaim) SetRewardIndexes(rewardIndexes MultiRewardIndexes) {
+	e.RewardIndexes = rewardIndexes
 }
 
 // HasRewardIndex check if a claim has a reward index for the input pool ID.
