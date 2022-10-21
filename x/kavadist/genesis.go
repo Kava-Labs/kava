@@ -27,6 +27,12 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, accountKeeper types.AccountKe
 	if moduleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.KavaDistMacc))
 	}
+
+	// check if the fund account exists
+	fundModuleAcc := accountKeeper.GetModuleAccount(ctx, types.FundModuleAccount)
+	if fundModuleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.FundModuleAccount))
+	}
 }
 
 // ExportGenesis export genesis state for cdp module
