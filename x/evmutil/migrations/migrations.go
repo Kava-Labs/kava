@@ -1,4 +1,4 @@
-package keeper
+package migrations
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
