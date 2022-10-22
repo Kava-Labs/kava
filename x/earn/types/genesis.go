@@ -1,12 +1,5 @@
 package types
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-)
-
 // NewGenesisState creates a new genesis state.
 func NewGenesisState(
 	params Params,
@@ -40,36 +33,37 @@ func (gs GenesisState) Validate() error {
 // DefaultGenesisState returns a default genesis state
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
-		Params{
-			AllowedVaults: AllowedVaults{
-				// ukava - Community Pool
-				NewAllowedVault(
-					"ukava",
-					StrategyTypes{STRATEGY_TYPE_SAVINGS},
-					true,
-					[]sdk.AccAddress{authtypes.NewModuleAddress(kavadisttypes.FundModuleAccount)},
-				),
-				// usdx
-				NewAllowedVault(
-					"usdx",
-					StrategyTypes{STRATEGY_TYPE_HARD},
-					false,
-					[]sdk.AccAddress{},
-				),
-				NewAllowedVault(
-					"bkava",
-					StrategyTypes{STRATEGY_TYPE_SAVINGS},
-					false,
-					[]sdk.AccAddress{},
-				),
-				NewAllowedVault(
-					"erc20/multichain/usdc",
-					StrategyTypes{STRATEGY_TYPE_SAVINGS},
-					false,
-					[]sdk.AccAddress{},
-				),
-			},
-		},
+		DefaultParams(),
+		//Params{
+		//	AllowedVaults: AllowedVaults{
+		//		// ukava - Community Pool
+		//		NewAllowedVault(
+		//			"ukava",
+		//			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+		//			true,
+		//			[]sdk.AccAddress{authtypes.NewModuleAddress(kavadisttypes.FundModuleAccount)},
+		//		),
+		//		// usdx
+		//		NewAllowedVault(
+		//			"usdx",
+		//			StrategyTypes{STRATEGY_TYPE_HARD},
+		//			false,
+		//			[]sdk.AccAddress{},
+		//		),
+		//		NewAllowedVault(
+		//			"bkava",
+		//			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+		//			false,
+		//			[]sdk.AccAddress{},
+		//		),
+		//		NewAllowedVault(
+		//			"erc20/multichain/usdc",
+		//			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+		//			false,
+		//			[]sdk.AccAddress{},
+		//		),
+		//	},
+		//},
 		VaultRecords{},
 		VaultShareRecords{},
 	)

@@ -711,7 +711,6 @@ func (suite *MigrateTestSuite) TestMigrate() {
 	)
 
 	suite.StartChain(
-		suite.genesisTime,
 		app.GenesisState{
 			types.ModuleName: cdc.MustMarshalJSON(&incentiveGs),
 		},
