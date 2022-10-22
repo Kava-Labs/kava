@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/kava-labs/kava/app"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -197,5 +198,49 @@ func (suite *UpgradeTestSuite) TestAddKavadistFundAccount() {
 	suite.Equal(
 		communityCoinsBefore.Add(sdk.NewDecCoinsFromCoins(bal...)...),
 		communityCoinsAfter,
+	)
+}
+
+func (suite *UpgradeTestSuite) TestUpdateEarnParams() {
+	earnKeeper := suite.App.GetEarnKeeper()
+	oldParams := earnKeeper.GetParams(suite.Ctx)
+	suite.Empty(oldParams.AllowedVaults, "initial AllowedVaults should be empty")
+
+	// Run migration
+	app.UpdateEarnParams(suite.Ctx, earnKeeper)
+
+	newParams := earnKeeper.GetParams(suite.Ctx)
+	suite.NotEqual(oldParams, newParams, "params should be changed after migration")
+
+	suite.Equal(earntypes.AllowedVaults{
+		// ukava - Community Pool
+		earntypes.NewAllowedVault(
+			"ukava",
+			earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
+			true,
+			[]sdk.AccAddress{authtypes.NewModuleAddress(kavadisttypes.FundModuleAccount)},
+		),
+		// usdx
+		earntypes.NewAllowedVault(
+			"usdx",
+			earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_HARD},
+			false,
+			[]sdk.AccAddress(nil),
+		),
+		earntypes.NewAllowedVault(
+			"bkava",
+			earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
+			false,
+			[]sdk.AccAddress(nil),
+		),
+		earntypes.NewAllowedVault(
+			"erc20/multichain/usdc",
+			earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
+			false,
+			[]sdk.AccAddress(nil),
+		),
+	},
+		newParams.AllowedVaults,
+		"SupportedDenoms should be updated to include ukava",
 	)
 }

@@ -15,6 +15,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	etherminttypes "github.com/tharsis/ethermint/types"
 
+	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
@@ -47,6 +48,9 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("updating x/pricefeed params with new markets")
 			UpdatePricefeedParams(ctx, app.pricefeedKeeper)
+
+			app.Logger().Info("updating x/earn params with initial allowed vaults")
+			UpdateEarnParams(ctx, app.earnKeeper)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		},
@@ -218,4 +222,42 @@ func UpdatePricefeedParams(ctx sdk.Context, pricefeedKeeper pricefeedkeeper.Keep
 	}
 	params.Markets = append(params.Markets, newMarkets...)
 	pricefeedKeeper.SetParams(ctx, params)
+}
+
+func UpdateEarnParams(ctx sdk.Context, earnKeeper earnkeeper.Keeper) {
+	earnParams := earntypes.NewParams(
+		earntypes.AllowedVaults{
+			// ukava - Community Pool
+			earntypes.NewAllowedVault(
+				"ukava",
+				earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
+				true,
+				[]sdk.AccAddress{authtypes.NewModuleAddress(kavadisttypes.FundModuleAccount)},
+			),
+			// usdx
+			earntypes.NewAllowedVault(
+				"usdx",
+				earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_HARD},
+				false,
+				[]sdk.AccAddress{},
+			),
+			earntypes.NewAllowedVault(
+				"bkava",
+				earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
+				false,
+				[]sdk.AccAddress{},
+			),
+			earntypes.NewAllowedVault(
+				"erc20/multichain/usdc",
+				earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
+				false,
+				[]sdk.AccAddress{},
+			),
+		})
+
+	if err := earnParams.Validate(); err != nil {
+		panic(err)
+	}
+
+	earnKeeper.SetParams(ctx, earnParams)
 }
