@@ -49,10 +49,13 @@ func (app App) RegisterUpgradeHandlers() {
 			app.Logger().Info("updating x/pricefeed params with new markets")
 			UpdatePricefeedParams(ctx, app.pricefeedKeeper)
 
+			app.Logger().Info("Running migrations")
+			vm, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+
 			app.Logger().Info("updating x/earn params with initial allowed vaults")
 			UpdateEarnParams(ctx, app.earnKeeper)
 
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			return vm, err
 		},
 	)
 
