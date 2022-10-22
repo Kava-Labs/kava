@@ -34,6 +34,36 @@ func (gs GenesisState) Validate() error {
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),
+		//Params{
+		//	AllowedVaults: AllowedVaults{
+		//		// ukava - Community Pool
+		//		NewAllowedVault(
+		//			"ukava",
+		//			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+		//			true,
+		//			[]sdk.AccAddress{authtypes.NewModuleAddress(kavadisttypes.FundModuleAccount)},
+		//		),
+		//		// usdx
+		//		NewAllowedVault(
+		//			"usdx",
+		//			StrategyTypes{STRATEGY_TYPE_HARD},
+		//			false,
+		//			[]sdk.AccAddress{},
+		//		),
+		//		NewAllowedVault(
+		//			"bkava",
+		//			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+		//			false,
+		//			[]sdk.AccAddress{},
+		//		),
+		//		NewAllowedVault(
+		//			"erc20/multichain/usdc",
+		//			StrategyTypes{STRATEGY_TYPE_SAVINGS},
+		//			false,
+		//			[]sdk.AccAddress{},
+		//		),
+		//	},
+		//},
 		VaultRecords{},
 		VaultShareRecords{},
 	)
