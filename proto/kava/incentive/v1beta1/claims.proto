@@ -126,6 +126,7 @@ message EarnClaim {
       [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
 }
 
+// Claim stores rewards earned by their owner.
 message Claim {
   bytes owner = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",

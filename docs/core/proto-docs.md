@@ -4458,7 +4458,7 @@ BaseMultiClaim is a claim with multiple reward coin types
 <a name="kava.incentive.v1beta1.Claim"></a>
 
 ### Claim
-
+Claim stores rewards earned by their owner.
 
 
 | Field | Type | Label | Description |
