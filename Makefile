@@ -174,7 +174,7 @@ start:
 ###                                Protobuf                                 ###
 ###############################################################################
 
-protoVer=v0.3
+protoVer=v0.7
 protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
 containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
 containerProtoGenAny=$(PROJECT_NAME)-proto-gen-any-$(protoVer)
@@ -233,7 +233,7 @@ proto-update-deps:
 	cp $(IBC_GO_PATH)/docs/client/swagger-ui/swagger.yaml client/docs/ibc-go-swagger.yml
 
 	mkdir -p $(COSMOS_PROTO_TYPES)
-	cp $(COSMOS_PROTO_PATH)/cosmos.proto $(COSMOS_PROTO_TYPES)/cosmos.proto
+	cp $(COSMOS_PROTO_PATH)/proto/cosmos_proto/cosmos.proto $(COSMOS_PROTO_TYPES)/cosmos.proto
 
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(GOGO_PATH)/gogoproto third_party/proto
 	rsync -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(TENDERMINT_PATH)/proto third_party
