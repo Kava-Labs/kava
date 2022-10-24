@@ -640,8 +640,8 @@ var kava11ParamsJson = `{
 		{
 			"active": true,
 			"collateral_type": "bkava",
-			"start": "2022-10-12T15:00:00Z",
-			"end": "2024-10-12T15:00:00Z",
+			"start": "2022-10-26T15:00:00Z",
+			"end": "2024-10-26T15:00:00Z",
 			"rewards_per_second": [
 				{
 					"denom": "ukava",
@@ -652,8 +652,8 @@ var kava11ParamsJson = `{
 		{
 			"active": true,
 			"collateral_type": "erc20/multichain/usdc",
-			"start": "2022-10-12T15:00:00Z",
-			"end": "2024-10-12T15:00:00Z",
+			"start": "2022-10-26T15:00:00Z",
+			"end": "2024-10-26T15:00:00Z",
 			"rewards_per_second": [
 				{
 					"denom": "ukava",
