@@ -162,7 +162,6 @@ paths:
                     name "y.z".
 
 
-
                     JSON
 
 
@@ -223,7 +222,7 @@ paths:
               QueryAuctionsResponse is the response type for the Query/Auctions
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -374,7 +373,6 @@ paths:
                     name "y.z".
 
 
-
                     JSON
 
 
@@ -476,7 +474,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -487,7 +484,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Auction
   /kava/auction/v1beta1/auctions/{auction_id}:
@@ -637,7 +633,6 @@ paths:
                   name "y.z".
 
 
-
                   JSON
 
 
@@ -677,7 +672,7 @@ paths:
               QueryAuctionResponse is the response type for the Query/Auction
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -826,7 +821,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -892,7 +886,7 @@ paths:
               QueryNextAuctionIDResponse defines the response type for querying
               x/auction next auction ID.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1041,7 +1035,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -1117,7 +1110,7 @@ paths:
               QueryParamsResponse defines the response type for querying
               x/auction parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1266,7 +1259,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -1407,7 +1399,7 @@ paths:
               QueryAssetSuppliesResponse is the response type for the
               Query/AssetSupplies RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1522,7 +1514,7 @@ paths:
               QueryAssetSupplyResponse is the response type for the
               Query/AssetSupply RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1631,7 +1623,6 @@ paths:
                        - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
                   cross_chain:
                     type: boolean
-                    format: boolean
                     title: >-
                       cross_chain identifies whether the atomic swap is cross
                       chain
@@ -1655,7 +1646,7 @@ paths:
               QueryAtomicSwapResponse is the response type for the
               Query/AtomicSwap RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1771,7 +1762,6 @@ paths:
                          - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
                     cross_chain:
                       type: boolean
-                      format: boolean
                       title: >-
                         cross_chain identifies whether the atomic swap is cross
                         chain
@@ -1825,7 +1815,7 @@ paths:
               QueryAtomicSwapsResponse is the response type for the
               Query/AtomicSwaps RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -1936,7 +1926,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -1947,7 +1936,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - BEP3
   /kava/bep3/v1beta1/params:
@@ -1989,7 +1977,6 @@ paths:
                               title: limit defines the total supply allowed
                             time_limited:
                               type: boolean
-                              format: boolean
                               title: >-
                                 time_limited enables or disables time based
                                 supply limiting
@@ -2008,7 +1995,6 @@ paths:
                             limits for an assets's supply.
                         active:
                           type: boolean
-                          format: boolean
                           title: active specifies if the asset is live or paused
                         deputy_address:
                           type: string
@@ -2042,7 +2028,7 @@ paths:
               QueryParamsResponse defines the response type for querying x/bep3
               parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -2224,7 +2210,6 @@ paths:
                             name "y.z".
 
 
-
                             JSON
 
 
@@ -2292,7 +2277,7 @@ paths:
               QueryAccountsResponse defines the response type for the
               Query/Accounts RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -2441,7 +2426,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -2607,7 +2591,7 @@ paths:
               QueryCdpsResponse defines the response type for the Query/Cdps RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -2756,7 +2740,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -2862,7 +2845,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -2873,7 +2855,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - CDP
   /kava/cdp/v1beta1/cdps/deposits/{owner}/{collateral_type}:
@@ -2920,7 +2901,7 @@ paths:
               QueryDepositsResponse defines the response type for the
               Query/Deposits RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -3069,7 +3050,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -3215,7 +3195,7 @@ paths:
               QueryCdpResponse defines the response type for the Query/Cdp RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -3364,7 +3344,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -3512,13 +3491,12 @@ paths:
                     type: string
                   circuit_breaker:
                     type: boolean
-                    format: boolean
                 description: Params defines the parameters for the cdp module.
             description: >-
               QueryParamsResponse defines the response type for the Query/Params
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -3667,7 +3645,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -3749,7 +3726,7 @@ paths:
               QueryTotalCollateralResponse defines the response type for the
               Query/TotalCollateral RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -3898,7 +3875,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -3985,7 +3961,7 @@ paths:
               QueryTotalPrincipalResponse defines the response type for the
               Query/TotalPrincipal RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -4134,7 +4110,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -4332,7 +4307,6 @@ paths:
                     name "y.z".
 
 
-
                     JSON
 
 
@@ -4375,7 +4349,7 @@ paths:
               QueryCommitteesResponse defines the response type for querying
               x/committee committees.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -4524,7 +4498,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -4714,7 +4687,6 @@ paths:
                   name "y.z".
 
 
-
                   JSON
 
 
@@ -4754,7 +4726,7 @@ paths:
               QueryCommitteeResponse defines the response type for querying
               x/committee committee.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -4903,7 +4875,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -4969,7 +4940,7 @@ paths:
               QueryNextProposalIDRequest defines the response type for querying
               x/committee NextProposalID.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -5118,7 +5089,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -5314,7 +5284,6 @@ paths:
                         name "y.z".
 
 
-
                         JSON
 
 
@@ -5371,7 +5340,7 @@ paths:
               QueryProposalsResponse defines the response type for querying
               x/committee proposals.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -5520,7 +5489,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -5716,7 +5684,6 @@ paths:
                   name "y.z".
 
 
-
                   JSON
 
 
@@ -5765,7 +5732,7 @@ paths:
               QueryProposalResponse defines the response type for querying
               x/committee proposal.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -5914,7 +5881,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -5992,7 +5958,7 @@ paths:
               QueryTallyResponse defines the response type for querying
               x/committee tally.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -6141,7 +6107,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -6251,7 +6216,7 @@ paths:
               QueryVotesResponse defines the response type for querying
               x/committee votes.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -6400,7 +6365,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -6493,7 +6457,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -6504,7 +6467,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Committee
   /kava/committee/v1beta1/proposals/{proposal_id}/votes/{voter}:
@@ -6541,7 +6503,7 @@ paths:
               QueryVoteResponse defines the response type for querying
               x/committee vote.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -6690,7 +6652,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -6759,7 +6720,7 @@ paths:
               QueryRawParamsResponse defines the response type for querying
               x/committee raw params.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -6908,7 +6869,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -7045,7 +7005,7 @@ paths:
               QueryDepositsResponse is the response type for the Query/Deposits
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -7082,7 +7042,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.key
           description: |-
             key is a value returned in PageResponse.next_key to begin
@@ -7129,7 +7088,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -7140,7 +7098,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Earn
   /kava/earn/v1beta1/params:
@@ -7188,7 +7145,6 @@ paths:
                           description: VaultStrategy is the strategy used for this vault.
                         is_private_vault:
                           type: boolean
-                          format: boolean
                           description: >-
                             IsPrivateVault is true if the vault only allows
                             depositors contained in
@@ -7220,7 +7176,7 @@ paths:
               QueryParamsResponse defines the response type for querying x/earn
               parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -7282,7 +7238,6 @@ paths:
                       description: VaultStrategy is the strategy used for this vault.
                     is_private_vault:
                       type: boolean
-                      format: boolean
                       description: >-
                         IsPrivateVault is true if the vault only allows
                         depositors contained in
@@ -7321,7 +7276,7 @@ paths:
               QueryVaultsResponse is the response type for the Query/Vaults RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -7381,7 +7336,6 @@ paths:
                     description: VaultStrategy is the strategy used for this vault.
                   is_private_vault:
                     type: boolean
-                    format: boolean
                     description: >-
                       IsPrivateVault is true if the vault only allows depositors
                       contained in
@@ -7420,7 +7374,7 @@ paths:
               QueryVaultResponse is the response type for the Query/Vault RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -7608,7 +7562,6 @@ paths:
                             name "y.z".
 
 
-
                             JSON
 
 
@@ -7676,7 +7629,7 @@ paths:
               QueryAccountsResponse is the response type for the Query/Accounts
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -7825,7 +7778,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -7950,7 +7902,7 @@ paths:
               QueryBorrowsResponse is the response type for the Query/Borrows
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -8101,7 +8053,6 @@ paths:
                     name "y.z".
 
 
-
                     JSON
 
 
@@ -8195,7 +8146,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -8206,7 +8156,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Hard
   /kava/hard/v1beta1/deposits:
@@ -8291,7 +8240,7 @@ paths:
               QueryDepositsResponse is the response type for the Query/Deposits
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -8440,7 +8389,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -8536,7 +8484,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -8547,7 +8494,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Hard
   /kava/hard/v1beta1/interest-factors/{denom}:
@@ -8580,7 +8526,7 @@ paths:
               QueryInterestFactorsResponse is the response type for the
               Query/InterestFactors RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -8729,7 +8675,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -8807,7 +8752,7 @@ paths:
               QueryInterestRateResponse is the response type for the
               Query/InterestRate RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -8956,7 +8901,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -9029,7 +8973,6 @@ paths:
                           properties:
                             has_max_limit:
                               type: boolean
-                              format: boolean
                             maximum_limit:
                               type: string
                             loan_to_value:
@@ -9065,7 +9008,7 @@ paths:
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -9214,7 +9157,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -9288,7 +9230,7 @@ paths:
               QueryReservesResponse is the response type for the Query/Reserves
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -9437,7 +9379,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -9516,7 +9457,7 @@ paths:
               QueryTotalBorrowedResponse is the response type for the
               Query/TotalBorrowed RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -9665,7 +9606,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -9744,7 +9684,7 @@ paths:
               QueryTotalDepositedResponse is the response type for the
               Query/TotalDeposited RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -9893,7 +9833,6 @@ paths:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -10023,7 +9962,7 @@ paths:
               QueryUnsyncedBorrowsResponse is the response type for the
               Query/UnsyncedBorrows RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10174,7 +10113,6 @@ paths:
                     name "y.z".
 
 
-
                     JSON
 
 
@@ -10268,7 +10206,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -10279,7 +10216,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Hard
   /kava/hard/v1beta1/unsynced-deposits:
@@ -10364,7 +10300,7 @@ paths:
               QueryUnsyncedDepositsResponse is the response type for the
               Query/UnsyncedDeposits RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10515,7 +10451,6 @@ paths:
                     name "y.z".
 
 
-
                     JSON
 
 
@@ -10609,7 +10544,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -10620,7 +10554,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Hard
   /kava/issuance/v1beta1/params:
@@ -10651,16 +10584,13 @@ paths:
                             type: string
                         paused:
                           type: boolean
-                          format: boolean
                         blockable:
                           type: boolean
-                          format: boolean
                         rate_limit:
                           type: object
                           properties:
                             active:
                               type: boolean
-                              format: boolean
                             limit:
                               type: string
                               format: byte
@@ -10675,7 +10605,7 @@ paths:
               QueryParamsResponse defines the response type for querying
               x/issuance parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10729,7 +10659,7 @@ paths:
               QueryBalanceResponse defines the response type for querying
               x/kavadist balance.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10767,7 +10697,6 @@ paths:
                 properties:
                   active:
                     type: boolean
-                    format: boolean
                   periods:
                     type: array
                     items:
@@ -10865,7 +10794,7 @@ paths:
               QueryParamsResponse defines the response type for querying
               x/kavadist parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10942,7 +10871,7 @@ paths:
               DelegatedBalanceResponse defines the response type for the
               Query/DelegatedBalance method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -10998,14 +10927,13 @@ paths:
                         type: string
                     active:
                       type: boolean
-                      format: boolean
                   description: MarketResponse defines an asset in the pricefeed.
                 title: List of markets
             description: >-
               QueryMarketsResponse is the response type for the Query/Markets
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11047,7 +10975,7 @@ paths:
               QueryOraclesResponse is the response type for the Query/Oracles
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11106,7 +11034,6 @@ paths:
                             format: byte
                         active:
                           type: boolean
-                          format: boolean
                       description: Market defines an asset in the pricefeed.
                 description: Params defines the parameters for the pricefeed module.
             description: >-
@@ -11115,7 +11042,7 @@ paths:
 
               parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11166,7 +11093,7 @@ paths:
               QueryPricesResponse is the response type for the Query/Prices RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11215,7 +11142,7 @@ paths:
               QueryPriceResponse is the response type for the Query/Prices RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11276,7 +11203,7 @@ paths:
 
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11379,7 +11306,7 @@ paths:
               QueryDepositsResponse is the response type for the Query/Deposits
               RPC method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11457,7 +11384,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -11468,7 +11394,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Swap
   /kava/swap/v1beta1/params:
@@ -11508,7 +11433,7 @@ paths:
               QueryParamsResponse defines the response type for querying x/swap
               parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11595,7 +11520,7 @@ paths:
               QueryPoolsResponse is the response type for the Query/Pools RPC
               method.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11668,7 +11593,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -11679,7 +11603,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Swap
   /kava/savings/v1beta1/deposits:
@@ -11753,7 +11676,7 @@ paths:
 
               deposits.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -11829,7 +11752,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
         - name: pagination.reverse
           description: >-
             reverse is set to true if results are to be returned in the
@@ -11840,7 +11762,6 @@ paths:
           in: query
           required: false
           type: boolean
-          format: boolean
       tags:
         - Savings
   /kava/savings/v1beta1/params:
@@ -11867,7 +11788,7 @@ paths:
 
               parameters.
         default:
-          description: An unexpected error response
+          description: An unexpected error response.
           schema:
             type: object
             properties:
@@ -34143,6 +34064,107 @@ paths:
           format: int64
       tags:
         - Cosmos SDK
+  /ibc/apps/transfer/v1/channels/{channel_id}/ports/{port_id}/escrow_address:
+    get:
+      summary: >-
+        EscrowAddress returns the escrow address for a particular port and
+        channel id.
+      operationId: IbcEscrowAddress
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              escrow_address:
+                type: string
+                title: the escrow account address
+            description: >-
+              QueryEscrowAddressResponse is the response type of the
+              EscrowAddress RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: channel_id
+          description: unique channel identifier
+          in: path
+          required: true
+          type: string
+        - name: port_id
+          description: unique port identifier
+          in: path
+          required: true
+          type: string
+      tags:
+        - IBC
+  /ibc/apps/transfer/v1/denom_hashes/{trace}:
+    get:
+      summary: DenomHash queries a denomination hash information.
+      operationId: IbcDenomHash
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              hash:
+                type: string
+                description: hash (in hex format) of the denomination trace information.
+            description: >-
+              QueryDenomHashResponse is the response type for the
+              Query/DenomHash RPC
+
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: trace
+          description: The denomination trace ([port_id]/[channel_id])+/[denom]
+          in: path
+          required: true
+          type: string
+      tags:
+        - IBC
   /ibc/apps/transfer/v1/denom_traces:
     get:
       summary: DenomTraces queries all denomination traces.
@@ -34326,7 +34348,9 @@ paths:
                       format: byte
       parameters:
         - name: hash
-          description: hash (in hex format) of the denomination trace information.
+          description: >-
+            hash (in hex format) or denom (full denom with ibc prefix) of the
+            denomination trace information.
           in: path
           required: true
           type: string
@@ -34362,6 +34386,155 @@ paths:
                       transfers to this
 
                       chain.
+            description: >-
+              QueryParamsResponse is the response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - IBC
+  /ibc/apps/interchain_accounts/controller/v1/owners/{owner}/connections/{connection_id}:
+    get:
+      summary: >-
+        InterchainAccount returns the interchain account address for a given
+        owner address on a given connection
+      operationId: IbcInterchainAccount
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              address:
+                type: string
+            description: >-
+              QueryInterchainAccountResponse the response type for the
+              Query/InterchainAccount RPC method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          type: string
+        - name: connection_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - IBC
+  /ibc/apps/interchain_accounts/controller/v1/params:
+    get:
+      summary: Params queries all parameters of the ICA controller submodule.
+      operationId: IbcInterchainAccountsControllerParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params defines the parameters of the module.
+                type: object
+                properties:
+                  controller_enabled:
+                    type: boolean
+                    format: boolean
+                    description: >-
+                      controller_enabled enables or disables the controller
+                      submodule.
+            description: >-
+              QueryParamsResponse is the response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - IBC
+  /ibc/apps/interchain_accounts/host/v1/params:
+    get:
+      summary: Params queries all parameters of the ICA host submodule.
+      operationId: IbcInterchainAccountsHostParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params defines the parameters of the module.
+                type: object
+                properties:
+                  host_enabled:
+                    type: boolean
+                    format: boolean
+                    description: host_enabled enables or disables the host submodule.
+                  allow_messages:
+                    type: array
+                    items:
+                      type: string
+                    description: >-
+                      allow_messages defines a list of sdk message typeURLs
+                      allowed to be executed on a host chain.
             description: >-
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
@@ -36219,6 +36392,331 @@ paths:
           format: boolean
       tags:
         - IBC
+  /ibc/core/client/v1/consensus_states/{client_id}/heights:
+    get:
+      summary: >-
+        ConsensusStateHeights queries the height of every consensus states
+        associated with a given client.
+      operationId: IbcConsensusStateHeights
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              consensus_state_heights:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    revision_number:
+                      type: string
+                      format: uint64
+                      title: the revision that the client is currently on
+                    revision_height:
+                      type: string
+                      format: uint64
+                      title: the height within the given revision
+                  description: >-
+                    Normally the RevisionHeight is incremented at each height
+                    while keeping
+
+                    RevisionNumber the same. However some consensus algorithms
+                    may choose to
+
+                    reset the height in certain conditions e.g. hard forks,
+                    state-machine
+
+                    breaking changes In these cases, the RevisionNumber is
+                    incremented so that
+
+                    height continues to be monitonically increasing even as the
+                    RevisionHeight
+
+                    gets reset
+                  title: >-
+                    Height is a monotonically increasing data type
+
+                    that can be compared against another Height for the purposes
+                    of updating and
+
+                    freezing clients
+                title: consensus state heights
+              pagination:
+                title: pagination response
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    title: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+            title: |-
+              QueryConsensusStateHeightsResponse is the response type for the
+              Query/ConsensusStateHeights RPC method
+        default:
+          description: An unexpected error response
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                      description: >-
+                        A URL/resource name that uniquely identifies the type of
+                        the serialized
+
+                        protocol buffer message. This string must contain at
+                        least
+
+                        one "/" character. The last segment of the URL's path
+                        must represent
+
+                        the fully qualified name of the type (as in
+
+                        `path/google.protobuf.Duration`). The name should be in
+                        a canonical form
+
+                        (e.g., leading "." is not accepted).
+
+
+                        In practice, teams usually precompile into the binary
+                        all types that they
+
+                        expect it to use in the context of Any. However, for
+                        URLs which use the
+
+                        scheme `http`, `https`, or no scheme, one can optionally
+                        set up a type
+
+                        server that maps type URLs to message definitions as
+                        follows:
+
+
+                        * If no scheme is provided, `https` is assumed.
+
+                        * An HTTP GET on the URL must yield a
+                        [google.protobuf.Type][]
+                          value in binary format, or produce an error.
+                        * Applications are allowed to cache lookup results based
+                        on the
+                          URL, or have them precompiled into a binary to avoid any
+                          lookup. Therefore, binary compatibility needs to be preserved
+                          on changes to types. (Use versioned type names to manage
+                          breaking changes.)
+
+                        Note: this functionality is not currently available in
+                        the official
+
+                        protobuf release, and it is not used for type URLs
+                        beginning with
+
+                        type.googleapis.com.
+
+
+                        Schemes other than `http`, `https` (or the empty scheme)
+                        might be
+
+                        used with implementation specific semantics.
+                    value:
+                      type: string
+                      format: byte
+                      description: >-
+                        Must be a valid serialized protocol buffer of the above
+                        specified type.
+                  description: >-
+                    `Any` contains an arbitrary serialized protocol buffer
+                    message along with a
+
+                    URL that describes the type of the serialized message.
+
+
+                    Protobuf library provides support to pack/unpack Any values
+                    in the form
+
+                    of utility functions or additional generated methods of the
+                    Any type.
+
+
+                    Example 1: Pack and unpack a message in C++.
+
+                        Foo foo = ...;
+                        Any any;
+                        any.PackFrom(foo);
+                        ...
+                        if (any.UnpackTo(&foo)) {
+                          ...
+                        }
+
+                    Example 2: Pack and unpack a message in Java.
+
+                        Foo foo = ...;
+                        Any any = Any.pack(foo);
+                        ...
+                        if (any.is(Foo.class)) {
+                          foo = any.unpack(Foo.class);
+                        }
+
+                     Example 3: Pack and unpack a message in Python.
+
+                        foo = Foo(...)
+                        any = Any()
+                        any.Pack(foo)
+                        ...
+                        if any.Is(Foo.DESCRIPTOR):
+                          any.Unpack(foo)
+                          ...
+
+                     Example 4: Pack and unpack a message in Go
+
+                         foo := &pb.Foo{...}
+                         any, err := ptypes.MarshalAny(foo)
+                         ...
+                         foo := &pb.Foo{}
+                         if err := ptypes.UnmarshalAny(any, foo); err != nil {
+                           ...
+                         }
+
+                    The pack methods provided by protobuf library will by
+                    default use
+
+                    'type.googleapis.com/full.type.name' as the type URL and the
+                    unpack
+
+                    methods only use the fully qualified type name after the
+                    last '/'
+
+                    in the type URL, for example "foo.bar.com/x/y.z" will yield
+                    type
+
+                    name "y.z".
+
+
+
+                    JSON
+
+                    ====
+
+                    The JSON representation of an `Any` value uses the regular
+
+                    representation of the deserialized, embedded message, with
+                    an
+
+                    additional field `@type` which contains the type URL.
+                    Example:
+
+                        package google.profile;
+                        message Person {
+                          string first_name = 1;
+                          string last_name = 2;
+                        }
+
+                        {
+                          "@type": "type.googleapis.com/google.profile.Person",
+                          "firstName": <string>,
+                          "lastName": <string>
+                        }
+
+                    If the embedded message type is well-known and has a custom
+                    JSON
+
+                    representation, that representation will be embedded adding
+                    a field
+
+                    `value` which holds the custom JSON in addition to the
+                    `@type`
+
+                    field. Example (for message [google.protobuf.Duration][]):
+
+                        {
+                          "@type": "type.googleapis.com/google.protobuf.Duration",
+                          "value": "1.212s"
+                        }
+      parameters:
+        - name: client_id
+          description: client identifier
+          in: path
+          required: true
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+          format: boolean
+      tags:
+        - IBC
   /ibc/core/client/v1/consensus_states/{client_id}/revision/{revision_number}/height/{revision_height}:
     get:
       summary: >-
@@ -36412,7 +36910,6 @@ paths:
                 format: byte
                 title: merkle proof of existence
               proof_height:
-                title: height at which the proof was retrieved
                 type: object
                 properties:
                   revision_number:
@@ -36440,6 +36937,13 @@ paths:
                   RevisionHeight
 
                   gets reset
+                title: >-
+                  Height is a monotonically increasing data type
+
+                  that can be compared against another Height for the purposes
+                  of updating and
+
+                  freezing clients
             title: >-
               QueryConsensusStateResponse is the response type for the
               Query/ConsensusState
@@ -41465,6 +41969,15 @@ paths:
           required: false
           type: boolean
           format: boolean
+        - name: packet_commitment_sequences
+          description: list of packet sequences.
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+            format: uint64
+          collectionFormat: multi
       tags:
         - IBC
   /ibc/core/channel/v1/channels/{channel_id}/ports/{port_id}/packet_acks/{sequence}:
@@ -50821,7 +51334,6 @@ definitions:
           If left empty it will default to a value to be set by each app.
       count_total:
         type: boolean
-        format: boolean
         description: >-
           count_total is set to true  to indicate that the result set should
           include
@@ -50832,15 +51344,16 @@ definitions:
           key
 
           is set.
+        format: boolean
       reverse:
         type: boolean
-        format: boolean
         description: >-
           reverse is set to true if results are to be returned in the descending
           order.
 
 
           Since: cosmos-sdk 0.43
+        format: boolean
     description: |-
       message SomeRequest {
                Foo some_parameter = 1;
@@ -50993,7 +51506,6 @@ definitions:
       in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
       name "y.z".
-
 
 
       JSON
@@ -51169,7 +51681,6 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
-
 
 
             JSON
@@ -51354,7 +51865,6 @@ definitions:
           name "y.z".
 
 
-
           JSON
 
 
@@ -51526,7 +52036,6 @@ definitions:
             name "y.z".
 
 
-
             JSON
 
 
@@ -51650,7 +52159,6 @@ definitions:
             title: limit defines the total supply allowed
           time_limited:
             type: boolean
-            format: boolean
             title: time_limited enables or disables time based supply limiting
           time_period:
             type: string
@@ -51667,7 +52175,6 @@ definitions:
           supply.
       active:
         type: boolean
-        format: boolean
         title: active specifies if the asset is live or paused
       deputy_address:
         type: string
@@ -51821,7 +52328,6 @@ definitions:
            - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
       cross_chain:
         type: boolean
-        format: boolean
         title: cross_chain identifies whether the atomic swap is cross chain
       direction:
         title: direction identifies if the swap is incoming or outgoing
@@ -51865,7 +52371,6 @@ definitions:
                   title: limit defines the total supply allowed
                 time_limited:
                   type: boolean
-                  format: boolean
                   title: time_limited enables or disables time based supply limiting
                 time_period:
                   type: string
@@ -51882,7 +52387,6 @@ definitions:
                 assets's supply.
             active:
               type: boolean
-              format: boolean
               title: active specifies if the asset is live or paused
             deputy_address:
               type: string
@@ -52147,7 +52651,6 @@ definitions:
                - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
           cross_chain:
             type: boolean
-            format: boolean
             title: cross_chain identifies whether the atomic swap is cross chain
           direction:
             title: direction identifies if the swap is incoming or outgoing
@@ -52239,7 +52742,6 @@ definitions:
                  - SWAP_STATUS_EXPIRED: SWAP_STATUS_EXPIRED represents an expired swap
             cross_chain:
               type: boolean
-              format: boolean
               title: cross_chain identifies whether the atomic swap is cross chain
             direction:
               title: direction identifies if the swap is incoming or outgoing
@@ -52316,7 +52818,6 @@ definitions:
                       title: limit defines the total supply allowed
                     time_limited:
                       type: boolean
-                      format: boolean
                       title: >-
                         time_limited enables or disables time based supply
                         limiting
@@ -52335,7 +52836,6 @@ definitions:
                     assets's supply.
                 active:
                   type: boolean
-                  format: boolean
                   title: active specifies if the asset is live or paused
                 deputy_address:
                   type: string
@@ -52376,7 +52876,6 @@ definitions:
         title: limit defines the total supply allowed
       time_limited:
         type: boolean
-        format: boolean
         title: time_limited enables or disables time based supply limiting
       time_period:
         type: string
@@ -52547,7 +53046,6 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
-
 
 
           JSON
@@ -52735,7 +53233,6 @@ definitions:
               in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
               name "y.z".
-
 
 
               JSON
@@ -53014,7 +53511,6 @@ definitions:
         type: string
       circuit_breaker:
         type: boolean
-        format: boolean
     description: Params defines the parameters for the cdp module.
   kava.cdp.v1beta1.QueryAccountsResponse:
     type: object
@@ -53165,7 +53661,6 @@ definitions:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -53547,7 +54042,6 @@ definitions:
             type: string
           circuit_breaker:
             type: boolean
-            format: boolean
         description: Params defines the parameters for the cdp module.
     description: >-
       QueryParamsResponse defines the response type for the Query/Params RPC
@@ -53780,7 +54274,6 @@ definitions:
           name "y.z".
 
 
-
           JSON
 
 
@@ -53950,7 +54443,6 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
-
 
 
             JSON
@@ -54126,7 +54618,6 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
-
 
 
           JSON
@@ -54316,7 +54807,6 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
-
 
 
                 JSON
@@ -54518,7 +55008,6 @@ definitions:
         description: VaultStrategy is the strategy used for this vault.
       is_private_vault:
         type: boolean
-        format: boolean
         description: >-
           IsPrivateVault is true if the vault only allows depositors contained
           in
@@ -54617,7 +55106,6 @@ definitions:
               description: VaultStrategy is the strategy used for this vault.
             is_private_vault:
               type: boolean
-              format: boolean
               description: >-
                 IsPrivateVault is true if the vault only allows depositors
                 contained in
@@ -54753,7 +55241,6 @@ definitions:
                   description: VaultStrategy is the strategy used for this vault.
                 is_private_vault:
                   type: boolean
-                  format: boolean
                   description: >-
                     IsPrivateVault is true if the vault only allows depositors
                     contained in
@@ -54814,7 +55301,6 @@ definitions:
             description: VaultStrategy is the strategy used for this vault.
           is_private_vault:
             type: boolean
-            format: boolean
             description: >-
               IsPrivateVault is true if the vault only allows depositors
               contained in
@@ -54880,7 +55366,6 @@ definitions:
               description: VaultStrategy is the strategy used for this vault.
             is_private_vault:
               type: boolean
-              format: boolean
               description: >-
                 IsPrivateVault is true if the vault only allows depositors
                 contained in
@@ -54956,7 +55441,6 @@ definitions:
         description: VaultStrategy is the strategy used for this vault.
       is_private_vault:
         type: boolean
-        format: boolean
         description: >-
           IsPrivateVault is true if the vault only allows depositors contained
           in
@@ -55010,7 +55494,6 @@ definitions:
     properties:
       has_max_limit:
         type: boolean
-        format: boolean
       maximum_limit:
         type: string
       loan_to_value:
@@ -55120,7 +55603,6 @@ definitions:
         properties:
           has_max_limit:
             type: boolean
-            format: boolean
           maximum_limit:
             type: string
           loan_to_value:
@@ -55174,7 +55656,6 @@ definitions:
               properties:
                 has_max_limit:
                   type: boolean
-                  format: boolean
                 maximum_limit:
                   type: string
                 loan_to_value:
@@ -55355,7 +55836,6 @@ definitions:
                     type
 
                     name "y.z".
-
 
 
                     JSON
@@ -55624,7 +56104,6 @@ definitions:
                   properties:
                     has_max_limit:
                       type: boolean
-                      format: boolean
                     maximum_limit:
                       type: string
                     loan_to_value:
@@ -55881,16 +56360,13 @@ definitions:
           type: string
       paused:
         type: boolean
-        format: boolean
       blockable:
         type: boolean
-        format: boolean
       rate_limit:
         type: object
         properties:
           active:
             type: boolean
-            format: boolean
           limit:
             type: string
             format: byte
@@ -55916,16 +56392,13 @@ definitions:
                 type: string
             paused:
               type: boolean
-              format: boolean
             blockable:
               type: boolean
-              format: boolean
             rate_limit:
               type: object
               properties:
                 active:
                   type: boolean
-                  format: boolean
                 limit:
                   type: string
                   format: byte
@@ -55957,16 +56430,13 @@ definitions:
                     type: string
                 paused:
                   type: boolean
-                  format: boolean
                 blockable:
                   type: boolean
-                  format: boolean
                 rate_limit:
                   type: object
                   properties:
                     active:
                       type: boolean
-                      format: boolean
                     limit:
                       type: string
                       format: byte
@@ -55985,7 +56455,6 @@ definitions:
     properties:
       active:
         type: boolean
-        format: boolean
       limit:
         type: string
         format: byte
@@ -56072,7 +56541,6 @@ definitions:
     properties:
       active:
         type: boolean
-        format: boolean
       periods:
         type: array
         items:
@@ -56233,7 +56701,6 @@ definitions:
         properties:
           active:
             type: boolean
-            format: boolean
           periods:
             type: array
             items:
@@ -56393,7 +56860,6 @@ definitions:
           format: byte
       active:
         type: boolean
-        format: boolean
     description: Market defines an asset in the pricefeed.
   kava.pricefeed.v1beta1.MarketResponse:
     type: object
@@ -56410,7 +56876,6 @@ definitions:
           type: string
       active:
         type: boolean
-        format: boolean
     description: MarketResponse defines an asset in the pricefeed.
   kava.pricefeed.v1beta1.Params:
     type: object
@@ -56433,7 +56898,6 @@ definitions:
                 format: byte
             active:
               type: boolean
-              format: boolean
           description: Market defines an asset in the pricefeed.
     description: Params defines the parameters for the pricefeed module.
   kava.pricefeed.v1beta1.PostedPriceResponse:
@@ -56471,7 +56935,6 @@ definitions:
                 type: string
             active:
               type: boolean
-              format: boolean
           description: MarketResponse defines an asset in the pricefeed.
         title: List of markets
     description: >-
@@ -56512,7 +56975,6 @@ definitions:
                     format: byte
                 active:
                   type: boolean
-                  format: boolean
               description: Market defines an asset in the pricefeed.
         description: Params defines the parameters for the pricefeed module.
     description: |-
@@ -73054,6 +73516,15 @@ definitions:
       SendEnabled
 
       parameter for the denomination to false.
+  ibc.applications.transfer.v1.QueryDenomHashResponse:
+    type: object
+    properties:
+      hash:
+        type: string
+        description: hash (in hex format) of the denomination trace information.
+    description: |-
+      QueryDenomHashResponse is the response type for the Query/DenomHash RPC
+      method.
   ibc.applications.transfer.v1.QueryDenomTraceResponse:
     type: object
     properties:
@@ -73125,6 +73596,15 @@ definitions:
       RPC
 
       method.
+  ibc.applications.transfer.v1.QueryEscrowAddressResponse:
+    type: object
+    properties:
+      escrow_address:
+        type: string
+        title: the escrow account address
+    description: >-
+      QueryEscrowAddressResponse is the response type of the EscrowAddress RPC
+      method.
   ibc.applications.transfer.v1.QueryParamsResponse:
     type: object
     properties:
@@ -73148,6 +73628,72 @@ definitions:
               transfers to this
 
               chain.
+    description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  ibc.applications.interchain_accounts.controller.v1.Params:
+    type: object
+    properties:
+      controller_enabled:
+        type: boolean
+        format: boolean
+        description: controller_enabled enables or disables the controller submodule.
+    description: |-
+      Params defines the set of on-chain interchain accounts parameters.
+      The following parameters may be used to disable the controller submodule.
+  ibc.applications.interchain_accounts.controller.v1.QueryInterchainAccountResponse:
+    type: object
+    properties:
+      address:
+        type: string
+    description: >-
+      QueryInterchainAccountResponse the response type for the
+      Query/InterchainAccount RPC method.
+  ibc.applications.interchain_accounts.controller.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params defines the parameters of the module.
+        type: object
+        properties:
+          controller_enabled:
+            type: boolean
+            format: boolean
+            description: controller_enabled enables or disables the controller submodule.
+    description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  ibc.applications.interchain_accounts.host.v1.Params:
+    type: object
+    properties:
+      host_enabled:
+        type: boolean
+        format: boolean
+        description: host_enabled enables or disables the host submodule.
+      allow_messages:
+        type: array
+        items:
+          type: string
+        description: >-
+          allow_messages defines a list of sdk message typeURLs allowed to be
+          executed on a host chain.
+    description: |-
+      Params defines the set of on-chain interchain accounts parameters.
+      The following parameters may be used to disable the host submodule.
+  ibc.applications.interchain_accounts.host.v1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params defines the parameters of the module.
+        type: object
+        properties:
+          host_enabled:
+            type: boolean
+            format: boolean
+            description: host_enabled enables or disables the host submodule.
+          allow_messages:
+            type: array
+            items:
+              type: string
+            description: >-
+              allow_messages defines a list of sdk message typeURLs allowed to
+              be executed on a host chain.
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
   ibc.core.client.v1.ConsensusStateWithHeight:
     type: object
@@ -73995,6 +74541,76 @@ definitions:
       RPC
 
       method. It returns the current status of the IBC client.
+  ibc.core.client.v1.QueryConsensusStateHeightsResponse:
+    type: object
+    properties:
+      consensus_state_heights:
+        type: array
+        items:
+          type: object
+          properties:
+            revision_number:
+              type: string
+              format: uint64
+              title: the revision that the client is currently on
+            revision_height:
+              type: string
+              format: uint64
+              title: the height within the given revision
+          description: >-
+            Normally the RevisionHeight is incremented at each height while
+            keeping
+
+            RevisionNumber the same. However some consensus algorithms may
+            choose to
+
+            reset the height in certain conditions e.g. hard forks,
+            state-machine
+
+            breaking changes In these cases, the RevisionNumber is incremented
+            so that
+
+            height continues to be monitonically increasing even as the
+            RevisionHeight
+
+            gets reset
+          title: >-
+            Height is a monotonically increasing data type
+
+            that can be compared against another Height for the purposes of
+            updating and
+
+            freezing clients
+        title: consensus state heights
+      pagination:
+        title: pagination response
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            title: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+    title: |-
+      QueryConsensusStateHeightsResponse is the response type for the
+      Query/ConsensusStateHeights RPC method
   ibc.core.client.v1.QueryConsensusStateResponse:
     type: object
     properties:
@@ -74165,7 +74781,6 @@ definitions:
         format: byte
         title: merkle proof of existence
       proof_height:
-        title: height at which the proof was retrieved
         type: object
         properties:
           revision_number:
@@ -74192,6 +74807,13 @@ definitions:
           RevisionHeight
 
           gets reset
+        title: >-
+          Height is a monotonically increasing data type
+
+          that can be compared against another Height for the purposes of
+          updating and
+
+          freezing clients
     title: >-
       QueryConsensusStateResponse is the response type for the
       Query/ConsensusState
