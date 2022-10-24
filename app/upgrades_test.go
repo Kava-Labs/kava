@@ -113,7 +113,7 @@ func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
 
 		ethAcc := etherminttypes.EthAccount{
 			BaseAccount: authtypes.NewBaseAccount(acc, nil, 0, 0),
-			CodeHash:    common.Bytes2Hex(evmtypes.EmptyCodeHash),
+			CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).String(),
 		}
 
 		ak.SetAccount(suite.Ctx, &ethAcc)
@@ -123,7 +123,7 @@ func (suite *UpgradeTestSuite) TestConvertEOAsToBaseAccount() {
 	// Add a contract EthAccount
 	contractAcc := etherminttypes.EthAccount{
 		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress("contract"), nil, 0, 0),
-		CodeHash:    common.Bytes2Hex([]byte("contract code hash")),
+		CodeHash:    common.BytesToHash([]byte("contract code hash")).String(),
 	}
 	ak.SetAccount(suite.Ctx, &contractAcc)
 
