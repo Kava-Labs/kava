@@ -13,11 +13,18 @@ protoc_gen_gocosmos() {
   go get github.com/regen-network/cosmos-proto/protoc-gen-gocosmos@latest 2>/dev/null
 }
 
+protoc_gen_doc() {
+  go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc 2>/dev/null
+}
+
+cp go.mod go.mod.bak
+
 protoc_gen_gocosmos
+protoc_gen_doc
 
 proto_dirs=$(find ./proto -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $proto_dirs; do
-  buf protoc \
+  buf alpha protoc \
     -I "proto" \
     -I "third_party/proto" \
     --gocosmos_out=plugins=grpc,\
@@ -30,12 +37,15 @@ done
 mkdir -p ./docs/core
 
 # command to generate docs using protoc-gen-doc
-buf protoc \
+buf alpha protoc \
   -I "proto" \
   -I "third_party/proto" \
+  --plugin=/go/bin/protoc-gen-doc \
   --doc_out=./docs/core \
   --doc_opt=./docs/protodoc-markdown.tmpl,proto-docs.md \
   $(find "$(pwd)/proto" -maxdepth 5 -name '*.proto')
+
+mv go.mod.bak go.mod
 go mod tidy
 
 # generate codec/testdata proto code
