@@ -9,24 +9,49 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+type RewardType int
+
+const (
+	RewardTypeEarn RewardType = iota + 1
+	RewardTypeSavings
+	RewardTypeHardSupply
+	RewardTypeHardBorrow
+)
+
 type NewParams struct {
 	// module -> reward period
 	RewardPeriods map[string]types.MultiRewardPeriod
 	ClaimEnd      time.Time
 }
 
-func (k Keeper) getStrategyFromModuleScope(scope string) AccumulatorStrategy {
-	switch scope {
+func rewardTypeFromString(rewardType string) RewardType {
+	switch rewardType {
+	case "hard_borrow":
+		return RewardTypeHardBorrow
+	case "hard_supply":
+		return RewardTypeHardSupply
+	case "savings":
+		return RewardTypeSavings
 	case "earn":
-		return NewTestEarnStrategy(k)
+		return RewardTypeEarn
+	default:
+		panic("invalid reward type")
+	}
+}
+
+func (k Keeper) getAccumulatorFromRewardType(rewardType RewardType) RewardTypeStrategy {
+	switch rewardType {
+	case RewardTypeEarn:
+		return NewTestEarnAccumulator(k)
 	default:
 		panic("invalid scope")
 	}
 }
 
 func (k Keeper) AccumulateAllRewards(ctx sdk.Context, params NewParams) error {
-	for scope, rp := range params.RewardPeriods {
-		strategy := k.getStrategyFromModuleScope(scope)
+	for rewardTypeStr, rp := range params.RewardPeriods {
+		rewardType := rewardTypeFromString(rewardTypeStr)
+		strategy := k.getAccumulatorFromRewardType(rewardType)
 		k.AccumulateRewards(ctx, strategy, rp)
 	}
 
@@ -35,7 +60,7 @@ func (k Keeper) AccumulateAllRewards(ctx sdk.Context, params NewParams) error {
 
 func (k Keeper) AccumulateRewards(
 	ctx sdk.Context,
-	strategy AccumulatorStrategy,
+	strategy RewardTypeStrategy,
 	rewardPeriod types.MultiRewardPeriod,
 ) {
 	storeKey := strategy.getStoreKey()
@@ -55,6 +80,10 @@ func (k Keeper) AccumulateRewards(
 	totalSourceShares := strategy.getTotalSourceShares(ctx, rewardPeriod.CollateralType)
 	acc.Accumulate(rewardPeriod, totalSourceShares, ctx.BlockTime())
 
+	// Additional rewards, e.g. bkava
+	additionalRewardIndexes := strategy.getAdditionalRewardIndexes(ctx, rewardPeriod.CollateralType)
+	acc.Indexes = acc.Indexes.Add(additionalRewardIndexes)
+
 	k.SetRewardAccrualTime(ctx, storeKey, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 
 	if len(acc.Indexes) > 0 {
@@ -63,7 +92,7 @@ func (k Keeper) AccumulateRewards(
 	}
 }
 
-func (k *Keeper) synchronizeClaimReward(
+func (k *Keeper) SynchronizeClaimReward(
 	ctx sdk.Context,
 	claim types.Claim,
 	collateralType string,
@@ -101,49 +130,56 @@ func (k *Keeper) synchronizeClaimReward(
 	return claim
 }
 
-type AccumulatorStrategy interface {
+func (k Keeper) InitializeClaim(
+	ctx sdk.Context,
+	rewardType RewardType,
+	indexDenom string,
+	owner sdk.AccAddress,
+) types.Claim {
+	rewardTypeStrategy := k.getAccumulatorFromRewardType(rewardType)
+	prefix := rewardTypeStrategy.getStoreKey()
+
+	claim, found := k.GetClaim(ctx, prefix, owner)
+	if !found {
+		claim = rewardTypeStrategy.newClaim(ctx, owner)
+	}
+
+	globalRewardIndexes, found := k.GetRewardIndexes(ctx, prefix, indexDenom)
+	if !found {
+		globalRewardIndexes = types.RewardIndexes{}
+	}
+
+	newRewardIndexes := claim.GetRewardIndexes().With(indexDenom, globalRewardIndexes)
+	claim.SetRewardIndexes(newRewardIndexes)
+
+	return claim
+}
+
+type RewardTypeStrategy interface {
 	getStoreKey() []byte
 	getTotalSourceShares(ctx sdk.Context, key string) sdk.Dec
 	getAccountSourceShares(ctx sdk.Context, key string, account sdk.AccAddress) sdk.Dec
 
-	getAllAccountDenoms(ctx sdk.Context, acc sdk.AccAddress) []string
+	getAdditionalRewardIndexes(ctx sdk.Context, collateralType string) types.RewardIndexes
 
-	initializeClaim(
-		ctx sdk.Context,
-		claim types.Claim,
-		indexDenom string,
-		globalIndexes types.RewardIndexes,
-	) types.Claim
+	newClaim(ctx sdk.Context, owner sdk.AccAddress) types.Claim
 }
 
-type TestEarnStrategy struct {
+type TestEarnAccumulator struct {
 	keeper Keeper
 }
 
-var _ AccumulatorStrategy = (*TestEarnStrategy)(nil)
+var _ RewardTypeStrategy = (*TestEarnAccumulator)(nil)
 
-func NewTestEarnStrategy(k Keeper) TestEarnStrategy {
-	return TestEarnStrategy{k}
+func NewTestEarnAccumulator(k Keeper) TestEarnAccumulator {
+	return TestEarnAccumulator{k}
 }
 
-func (k TestEarnStrategy) getStoreKey() []byte {
+func (k TestEarnAccumulator) getStoreKey() []byte {
 	return types.EarnClaimKeyPrefix
 }
 
-// InitializeEarnReward creates a new claim with zero rewards and indexes matching the global indexes.
-// If the claim already exists it just updates the indexes.
-func (k TestEarnStrategy) initializeClaim(
-	ctx sdk.Context,
-	claim types.Claim,
-	indexDenom string,
-	globalIndexes types.RewardIndexes,
-) types.Claim {
-	earnClaim := claim.(*types.EarnClaim)
-	earnClaim.RewardIndexes = earnClaim.RewardIndexes.With(indexDenom, globalIndexes)
-	return earnClaim
-}
-
-func (k TestEarnStrategy) getTotalSourceShares(ctx sdk.Context, key string) sdk.Dec {
+func (k TestEarnAccumulator) getTotalSourceShares(ctx sdk.Context, key string) sdk.Dec {
 	totalShares, found := k.keeper.earnKeeper.GetVaultTotalShares(ctx, key)
 	if !found {
 		return sdk.ZeroDec()
@@ -151,6 +187,36 @@ func (k TestEarnStrategy) getTotalSourceShares(ctx sdk.Context, key string) sdk.
 
 	return totalShares.Amount
 }
+
+func (k TestEarnAccumulator) getAccountSourceShares(ctx sdk.Context, key string, account sdk.AccAddress) sdk.Dec {
+	shares, found := k.keeper.earnKeeper.GetVaultAccountShares(ctx, account)
+	if !found {
+		return sdk.ZeroDec()
+	}
+
+	return shares.AmountOf(key)
+}
+
+func (k TestEarnAccumulator) getAdditionalRewardIndexes(
+	ctx sdk.Context,
+	collateralType string,
+) types.RewardIndexes {
+	if collateralType != "bkava" {
+		return nil
+	}
+
+	// Collect staking rewards
+
+	return nil
+}
+
+func (k TestEarnAccumulator) newClaim(ctx sdk.Context, owner sdk.AccAddress) types.Claim {
+	claim := types.NewEarnClaim(owner, sdk.NewCoins(), nil)
+	return &claim
+}
+
+// ----------------------------
+// state methods
 
 // GetClaim returns the claim in the store corresponding the the input address.
 func (k Keeper) GetClaim(ctx sdk.Context, claimPrefix []byte, addr sdk.AccAddress) (types.Claim, bool) {
