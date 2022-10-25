@@ -36,8 +36,8 @@ func MigrateParams(ctx sdk.Context, paramstore types.ParamSubspace) error {
 		EarnRewardPeriods:        nil,
 	}
 
-	periodStart := time.Date(2022, 10, 12, 15, 0, 0, 0, time.UTC)
-	periodEnd := time.Date(2024, 10, 12, 15, 0, 0, 0, time.UTC)
+	periodStart := time.Date(2022, 10, 26, 15, 0, 0, 0, time.UTC)
+	periodEnd := time.Date(2024, 10, 26, 15, 0, 0, 0, time.UTC)
 
 	params.EarnRewardPeriods = types.MultiRewardPeriods{
 		// 1. Add rewards for bkava liquid staking = 10% APR
