@@ -3,7 +3,7 @@
 ## Software Version and Key Dates
 
 - The version of Kava for kava-11 is v0.19.0
-- The kava-10 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **1907500**, which is approximately 15:00 UTC on October, 26th 2022.
+- The kava-10 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **2098400**, which is approximately 15:00 UTC on October, 26th 2022.
 
 
 ## Upgrade Procedure
