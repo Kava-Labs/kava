@@ -566,8 +566,8 @@ github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356/go.mod h1:Od972xHfMJo
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
 github.com/kava-labs/cosmos-sdk v0.45.9-kava.4 h1:nOsUMvY9qWvPyORBSV3k7G7D7Lc5JjzYqZE8ohuxskQ=
 github.com/kava-labs/cosmos-sdk v0.45.9-kava.4/go.mod h1:Z5M4TX7PsHNHlF/1XanI2DIpORQ+Q/st7oaeufEjnvU=
-github.com/kava-labs/ethermint v0.14.0-kava-v19.2 h1:QlftEcLIR5FhhSIWC65Adi5pfGbw3kc72NNAy23Yl0U=
-github.com/kava-labs/ethermint v0.14.0-kava-v19.2/go.mod h1:+/TXGhi6XwF9B8h2NrYZCKrrv0+pC3RkpM0950lYyJg=
+github.com/kava-labs/ethermint v0.14.0-kava-v19.3 h1:Vok1ED1rcev+dmj6X9Mj4kssxo7sTFY+yfbv7jctbYk=
+github.com/kava-labs/ethermint v0.14.0-kava-v19.3/go.mod h1:+/TXGhi6XwF9B8h2NrYZCKrrv0+pC3RkpM0950lYyJg=
 github.com/kava-labs/tm-db v0.6.7-kava.1 h1:7cVYlvWx1yP+gGdaAWcfm6NwMLzf4z6DxXguWn3+O3w=
 github.com/kava-labs/tm-db v0.6.7-kava.1/go.mod h1:HVZfZzWXuqWseXQVplxsWXK6kLHLkk3kQB6c+nuSZvk=
 github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d h1:Z+RDyXzjKE0i2sTjZ/b1uxiGtPhFy34Ou/Tk0qwN0kM=
