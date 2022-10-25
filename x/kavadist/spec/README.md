@@ -17,4 +17,4 @@ parent:
 
 ## Abstract
 
-`x/kavadist` is an implementation of a Cosmos SDK Module that allows for governance controlled minting of coins into a module account. Coins are minted during inflationary periods, which each period have a governance specified APR and duration. This module does not provide functionality for spending or distributing the minted coins.
+`x/kavadist` is an implementation of a Cosmos SDK Module that allows for governance controlled minting of coins into a module account. Coins are minted during inflationary periods, for which each period has a governance specified APR and duration. Additionally, coin rewards for governance specified infrastructure partners are minted and distributed.
