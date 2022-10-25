@@ -30,10 +30,13 @@ Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height 
   kava version --long
   # name: kava
   # server_name: kava
-  # version: v0.19.0
-  # commit: [TBD]
-  # build_tags: netgo,ledger
-  # go: go version go1.18.7 linux/amd64
+  # version: 0.19.0
+  # commit: 0ba73ff0417cdd246150de56fa29695e8d19fe36
+  # build_tags: netgo ledger,
+  # go: go version go1.18.7 linux/arm64
+  # build_deps:
+  #  ...
+  # cosmos_sdk_version: v0.45.9
 
   # Restart node -
   kava start
