@@ -3,18 +3,18 @@
 ## Software Version and Key Dates
 
 - The version of Kava for kava-11 is v0.19.0
-- The kava-10 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **1907500**, which is approximately 15:00 UTC on October, 12 2022.
+- The kava-10 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at block height **1907500**, which is approximately 15:00 UTC on October, 26th 2022.
 
 
 ## Upgrade Procedure
 
 ### Before the upgrade
 
-Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height **1907500** as the upgrade block height. This height corresponds to approximately 15:00 UTC on October 12th, 2022. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
+Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height **2098400** as the upgrade block height. This height corresponds to approximately 15:00 UTC on October 26thth, 2022. Once the proposal passes, the chain will shutdown automatically at the specified height and does not require manual intervention by validators.
 
 ### On the day of the upgrade
 
-**The kava chain is expected to halt at block height **1907500**. Do not stop your node and begin the upgrade before the upgrade height, or you may go offline and be unable to recover until after the upgrade!**
+**The kava chain is expected to halt at block height **2098400**. Do not stop your node and begin the upgrade before the upgrade height, or you may go offline and be unable to recover until after the upgrade!**
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
@@ -22,7 +22,7 @@ Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height 
 
 ```sh
   # in the `kava` folder
-  git pull
+  git fetch
   git checkout v0.19.0
   make install
 
@@ -33,12 +33,9 @@ Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height 
   # version: v0.19.0
   # commit: [TBD]
   # build_tags: netgo,ledger
-  # go: go version go1.17.1 linux/amd64
-
-
+  # go: go version go1.18.7 linux/amd64
 
   # Restart node -
-  # ! Be sure to remove --halt-time flag if it is set in systemd/docker
   kava start
 ```
 
@@ -58,4 +55,4 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Coordination
 
-If the kava-11 chain does not launch by October 13, 2022 at 00:00 UTC, the launch should be considered a failure and validators should refer to the [rollback](./rollback.md) instructions to restart the previous kava-9 chain. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the kava-11 chain does not launch by October 27, 2022 at 00:00 UTC, the launch should be considered a failure. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
