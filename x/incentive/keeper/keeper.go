@@ -7,11 +7,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/incentive/adapters/delegationsource"
+	"github.com/kava-labs/kava/x/incentive/adapters/swapsource"
+	"github.com/kava-labs/kava/x/incentive/distributor"
+	"github.com/kava-labs/kava/x/incentive/stores"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // Keeper keeper for the incentive module
 type Keeper struct {
+	distributors map[types.RewardType]*distributor.Distributor
+
+	// if everything is moved over to distributors, these may be removed
 	cdc           codec.Codec
 	key           sdk.StoreKey
 	paramSubspace types.ParamSubspace
@@ -19,8 +26,6 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	cdpKeeper     types.CdpKeeper
 	hardKeeper    types.HardKeeper
-	stakingKeeper types.StakingKeeper
-	swapKeeper    types.SwapKeeper
 	savingsKeeper types.SavingsKeeper
 	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
@@ -42,16 +47,31 @@ func NewKeeper(
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
+	// Distributors could be setup outside the keeper and passed in or registered.
+	// This would allow the app to configure different rewards without any change to the incentive module.
+	swapStore := stores.NewDistributorStore(cdc, key, types.RewardTypeSwap)
+	swapGroup := swapsource.New(swpk)
+	swapDist := distributor.New(swapStore, swapGroup)
+
+	deleStore := stores.NewDistributorStore(cdc, key, types.RewardTypeDelegator)
+	deleAdapter := delegationsource.New(stk)
+	deleDist := distributor.New(deleStore, deleAdapter)
+
 	return Keeper{
+		cdc:           cdc,
+		key:           key,
+		paramSubspace: paramstore,
+
+		distributors: map[types.RewardType]*distributor.Distributor{
+			types.RewardTypeSwap:      swapDist,
+			types.RewardTypeDelegator: deleDist,
+			// TODO add other reward types
+		},
+
 		accountKeeper:   ak,
-		cdc:             cdc,
-		key:             key,
-		paramSubspace:   paramstore,
 		bankKeeper:      bk,
 		cdpKeeper:       cdpk,
 		hardKeeper:      hk,
-		stakingKeeper:   stk,
-		swapKeeper:      swpk,
 		savingsKeeper:   svk,
 		liquidKeeper:    lqk,
 		earnKeeper:      ek,
@@ -232,55 +252,6 @@ func (k Keeper) IterateHardLiquidityProviderClaims(ctx sdk.Context, cb func(c ty
 func (k Keeper) GetAllHardLiquidityProviderClaims(ctx sdk.Context) types.HardLiquidityProviderClaims {
 	cs := types.HardLiquidityProviderClaims{}
 	k.IterateHardLiquidityProviderClaims(ctx, func(c types.HardLiquidityProviderClaim) (stop bool) {
-		cs = append(cs, c)
-		return false
-	})
-	return cs
-}
-
-// GetClaim returns the claim in the store corresponding the the input address.
-func (k Keeper) GetClaim(ctx sdk.Context, id types.RewardType, addr sdk.AccAddress) (types.Claim, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	bz := store.Get(types.NewClaimKey(id, addr))
-	if bz == nil {
-		return types.Claim{}, false
-	}
-	var c types.Claim
-	k.cdc.MustUnmarshal(bz, &c)
-	return c, true
-}
-
-// SetClaim sets the claim in the store corresponding to the input address.
-func (k Keeper) SetClaim(ctx sdk.Context, id types.RewardType, c types.Claim) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	bz := k.cdc.MustMarshal(&c)
-	store.Set(types.NewClaimKey(id, c.Owner), bz)
-}
-
-// DeleteClaim deletes the claim in the store corresponding to the input address.
-func (k Keeper) DeleteClaim(ctx sdk.Context, id types.RewardType, owner sdk.AccAddress) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	store.Delete(types.NewClaimKey(id, owner))
-}
-
-// IterateClaims iterates over all claim  objects in the store and preforms a callback function
-func (k Keeper) IterateClaims(ctx sdk.Context, id types.RewardType, cb func(c types.Claim) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.ClaimsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{byte(id)}) // TODO iterator prefix
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var c types.Claim
-		k.cdc.MustUnmarshal(iterator.Value(), &c)
-		if cb(c) {
-			break
-		}
-	}
-}
-
-// GetAllClaims returns all Claim objects in the store
-func (k Keeper) GetAllClaims(ctx sdk.Context, id types.RewardType) []types.Claim {
-	cs := []types.Claim{}
-	k.IterateClaims(ctx, id, func(c types.Claim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})
@@ -572,52 +543,6 @@ func (k Keeper) SetPreviousDelegatorRewardAccrualTime(ctx sdk.Context, denom str
 		panic(err)
 	}
 	store.Set([]byte(denom), bz)
-}
-
-// SetGlobalIndexes stores the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) SetGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, rewardID string, indexes types.RewardIndexes) {
-	if len(rewardID) == 0 {
-		panic("invalid reward ID")
-	}
-
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GlobalIndexesKeyPrefix)
-	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
-		RewardIndexes: indexes,
-	})
-	store.Set(types.NewGlobalIndexesKey(rewardType, rewardID), bz)
-}
-
-// GetGlobalIndexes fetches the global reward indexes that track total rewards to a swap pool.
-func (k Keeper) GetGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, rewardID string) (types.RewardIndexes, bool) {
-	/*
-		Instead, this could call out to our existing claim stores, and return an interface value.
-		Or, we provide different stores to the Distributor constructor, each wraps GetXClaim with GetClaim that returns a concrete type or interface.
-
-		Ideally want the Distributor service to control it's own store schema. Queries go through it, not directly to store.
-	*/
-
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GlobalIndexesKeyPrefix)
-	bz := store.Get(types.NewGlobalIndexesKey(rewardType, rewardID))
-	if bz == nil {
-		return types.RewardIndexes{}, false
-	}
-	var proto types.RewardIndexesProto
-	k.cdc.MustUnmarshal(bz, &proto)
-	return proto.RewardIndexes, true
-}
-
-// IterateGlobalIndexes iterates over all swap reward index objects in the store and preforms a callback function
-func (k Keeper) IterateGlobalIndexes(ctx sdk.Context, rewardType types.RewardType, cb func(poolID string, indexes types.RewardIndexes) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GlobalIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{byte(rewardType)}) // TODO
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var proto types.RewardIndexesProto
-		k.cdc.MustUnmarshal(iterator.Value(), &proto)
-		if cb(string(iterator.Key()[1:]), proto.RewardIndexes) {
-			break
-		}
-	}
 }
 
 // GetSwapRewardAccrualTime fetches the last time rewards were accrued for a swap pool.

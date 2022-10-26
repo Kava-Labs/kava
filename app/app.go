@@ -628,7 +628,7 @@ func NewApp(
 		&cdpKeeper,
 		&hardKeeper,
 		app.accountKeeper,
-		app.stakingKeeper,
+		&app.stakingKeeper,
 		&swapKeeper,
 		&savingsKeeper,
 		&app.liquidKeeper,
@@ -664,9 +664,8 @@ func NewApp(
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks(), app.incentiveKeeper.Hooks())))
+		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks())))
 
-	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
 	app.hardKeeper = *hardKeeper.SetHooks(hardtypes.NewMultiHARDHooks(app.incentiveKeeper.Hooks()))
 	app.savingsKeeper = savingsKeeper // savings incentive hooks disabled

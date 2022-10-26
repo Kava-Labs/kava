@@ -133,12 +133,8 @@ func (k Keeper) ClaimReward(ctx sdk.Context, rewardType types.RewardType, owner,
 		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
 	}
 
-	syncedClaim, found := k.GetSynchronizedClaim(ctx, rewardType, owner)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
-	}
-
-	amt := syncedClaim.Reward.AmountOf(denom)
+	availableBalance := k.distributors[rewardType].GetUserBalance(ctx, receiver)
+	amt := availableBalance.AmountOf(denom)
 
 	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
 	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
@@ -153,8 +149,7 @@ func (k Keeper) ClaimReward(ctx sdk.Context, rewardType types.RewardType, owner,
 	}
 
 	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
-	k.SetClaim(ctx, rewardType, syncedClaim)
+	k.distributors[rewardType].WithdrawUserBalance(ctx, owner, claimingCoins)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

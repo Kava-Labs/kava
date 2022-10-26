@@ -5,12 +5,16 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
+	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
+	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
 // ParamSubspace defines the expected Subspace interfacace
@@ -34,6 +38,7 @@ type StakingKeeper interface {
 	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (delegations []stakingtypes.Delegation)
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
 	TotalBondedTokens(ctx sdk.Context) sdk.Int
+	SetHooks(sh stakingtypes.StakingHooks) *stakingkeeper.Keeper
 }
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
@@ -59,6 +64,7 @@ type HardKeeper interface {
 type SwapKeeper interface {
 	GetPoolShares(ctx sdk.Context, poolID string) (shares sdk.Int, found bool)
 	GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (shares sdk.Int, found bool)
+	SetHooks(sh swaptypes.SwapHooks) *swapkeeper.Keeper
 }
 
 // SavingsKeeper defines the required methods needed by this module's keeper
