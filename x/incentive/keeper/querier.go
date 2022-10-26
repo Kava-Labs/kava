@@ -39,8 +39,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryGetRewardFactors(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetEarnRewards:
 			return queryGetEarnRewards(ctx, req, k, legacyQuerierCdc)
-		case types.QueryGetAPYs:
-			return queryGetAPYs(ctx, req, k, legacyQuerierCdc)
+		// case types.QueryGetAPYs:
+		// 	return queryGetAPYs(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
@@ -143,48 +143,54 @@ func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper
 }
 
 func queryGetClaims(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	var params types.QueryRewardsParams
-	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	owner := len(params.Owner) > 0
 
-	var claims []types.Claim
-	switch {
-	case owner:
-		claim, found := k.GetClaim(ctx, params.RewardType, params.Owner)
-		if found {
-			claims = append(claims, claim)
-		}
-	default:
-		claims = k.GetAllClaims(ctx, params.RewardType)
-	}
+	// TODO not sure how best to handle queriers
+	// Ideally they just query user reward balance from the distributors, the indexes shouldn't need to be exposed externally.
+	// However the indexes have been useful in debugging, so could give the querier the full distributor stores.
 
-	var paginatedClaims []types.Claim
-	startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
-	if startH < 0 || endH < 0 {
-		paginatedClaims = []types.Claim{}
-	} else {
-		paginatedClaims = claims[startH:endH]
-	}
+	// var params types.QueryRewardsParams
+	// err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
+	// if err != nil {
+	// 	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	// }
+	// owner := len(params.Owner) > 0
 
-	if !params.Unsynchronized {
-		for i, claim := range paginatedClaims {
-			syncedClaim, found := k.GetSynchronizedClaim(ctx, params.RewardType, claim.Owner)
-			if !found {
-				panic("previously found claim should still be found")
-			}
-			paginatedClaims[i] = syncedClaim
-		}
-	}
+	// var claims []types.Claim
+	// switch {
+	// case owner:
+	// 	claim, found := k.GetClaim(ctx, params.RewardType, params.Owner)
+	// 	if found {
+	// 		claims = append(claims, claim)
+	// 	}
+	// default:
+	// 	claims = k.GetAllClaims(ctx, params.RewardType)
+	// }
 
-	// Marshal claims
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedClaims)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
+	// var paginatedClaims []types.Claim
+	// startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
+	// if startH < 0 || endH < 0 {
+	// 	paginatedClaims = []types.Claim{}
+	// } else {
+	// 	paginatedClaims = claims[startH:endH]
+	// }
+
+	// if !params.Unsynchronized {
+	// 	for i, claim := range paginatedClaims {
+	// 		syncedClaim, found := k.GetSynchronizedClaim(ctx, params.RewardType, claim.Owner)
+	// 		if !found {
+	// 			panic("previously found claim should still be found")
+	// 		}
+	// 		paginatedClaims[i] = syncedClaim
+	// 	}
+	// }
+
+	// // Marshal claims
+	// bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedClaims)
+	// if err != nil {
+	// 	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	// }
+	// return bz, nil
+	return nil, nil
 }
 
 func queryGetSavingsRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
@@ -296,11 +302,12 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 		return false
 	})
 
-	var factors types.MultiRewardIndexes
-	k.IterateGlobalIndexes(ctx, types.RewardTypeSwap, func(poolID string, indexes types.RewardIndexes) (stop bool) {
-		factors = factors.With(poolID, indexes)
-		return false
-	})
+	// TODO
+	// var factors types.MultiRewardIndexes
+	// k.IterateGlobalIndexes(ctx, types.RewardTypeSwap, func(poolID string, indexes types.RewardIndexes) (stop bool) {
+	// 	factors = factors.With(poolID, indexes)
+	// 	return false
+	// })
 
 	var savingsFactors types.MultiRewardIndexes
 	k.IterateSavingsRewardIndexes(ctx, func(denom string, indexes types.RewardIndexes) (stop bool) {
@@ -318,7 +325,7 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 		usdxFactors,
 		supplyFactors,
 		borrowFactors,
-		factors,
+		nil,
 		savingsFactors,
 		earnFactors,
 	)
@@ -331,46 +338,46 @@ func queryGetRewardFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 	return bz, nil
 }
 
-func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	params := k.GetParams(ctx)
-	var apys types.APYs
+// func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+// 	params := k.GetParams(ctx)
+// 	var apys types.APYs
 
-	// bkava APY (staking + incentive rewards)
-	stakingAPR, err := GetStakingAPR(ctx, k, params)
-	if err != nil {
-		return nil, err
-	}
+// 	// bkava APY (staking + incentive rewards)
+// 	stakingAPR, err := GetStakingAPR(ctx, k, params)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	apys = append(apys, types.NewAPY(liquidtypes.DefaultDerivativeDenom, stakingAPR))
+// 	apys = append(apys, types.NewAPY(liquidtypes.DefaultDerivativeDenom, stakingAPR))
 
-	// Incentive only APYs
-	for _, param := range params.EarnRewardPeriods {
-		// Skip bkava as it's calculated earlier with staking rewards
-		if param.CollateralType == liquidtypes.DefaultDerivativeDenom {
-			continue
-		}
+// 	// Incentive only APYs
+// 	for _, param := range params.EarnRewardPeriods {
+// 		// Skip bkava as it's calculated earlier with staking rewards
+// 		if param.CollateralType == liquidtypes.DefaultDerivativeDenom {
+// 			continue
+// 		}
 
-		// Value in the vault in the same denom as CollateralType
-		vaultTotalValue, err := k.earnKeeper.GetVaultTotalValue(ctx, param.CollateralType)
-		if err != nil {
-			return nil, err
-		}
-		apy, err := GetAPYFromMultiRewardPeriod(ctx, k, param.CollateralType, param, vaultTotalValue.Amount)
-		if err != nil {
-			return nil, err
-		}
+// 		// Value in the vault in the same denom as CollateralType
+// 		vaultTotalValue, err := k.earnKeeper.GetVaultTotalValue(ctx, param.CollateralType)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		apy, err := GetAPYFromMultiRewardPeriod(ctx, k, param.CollateralType, param, vaultTotalValue.Amount)
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		apys = append(apys, types.NewAPY(param.CollateralType, apy))
-	}
+// 		apys = append(apys, types.NewAPY(param.CollateralType, apy))
+// 	}
 
-	// Marshal APYs
-	res := types.NewQueryGetAPYsResponse(apys)
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, res)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
+// 	// Marshal APYs
+// 	res := types.NewQueryGetAPYsResponse(apys)
+// 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, res)
+// 	if err != nil {
+// 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+// 	}
+// 	return bz, nil
+// }
 
 // GetStakingAPR returns the total APR for staking and incentive rewards
 func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, error) {
