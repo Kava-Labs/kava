@@ -126,6 +126,9 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	"github.com/kava-labs/kava/x/kavamint"
+	kavamintkeeper "github.com/kava-labs/kava/x/kavamint/keeper"
+	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
 	"github.com/kava-labs/kava/x/liquid"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
@@ -202,6 +205,7 @@ var (
 		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
 		router.AppModuleBasic{},
+		kavamint.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -229,6 +233,7 @@ var (
 		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
 		earntypes.ModuleAccountName:     nil,
 		kavadisttypes.FundModuleAccount: nil,
+		kavaminttypes.ModuleAccountName: {authtypes.Minter},
 	}
 )
 
@@ -300,6 +305,7 @@ type App struct {
 	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
 	routerKeeper     routerkeeper.Keeper
+	kavamintKeeper   kavamintkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -353,7 +359,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, earntypes.StoreKey,
+		savingstypes.StoreKey, earntypes.StoreKey, kavaminttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -399,6 +405,7 @@ func NewApp(
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
+	kavamintSubspace := app.paramsKeeper.Subspace(kavaminttypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -619,6 +626,15 @@ func NewApp(
 		&savingsKeeper,
 		app.distrKeeper,
 	)
+	app.kavamintKeeper = kavamintkeeper.NewKeeper(
+		appCodec,
+		keys[kavaminttypes.StoreKey],
+		kavamintSubspace,
+		app.stakingKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
+		authtypes.FeeCollectorName, // same fee collector as vanilla sdk
+	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
 		appCodec,
@@ -739,6 +755,7 @@ func NewApp(
 		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
+		kavamint.NewAppModule(appCodec, app.kavamintKeeper, app.accountKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -751,6 +768,8 @@ func NewApp(
 		// Run before to ensure params are updated together before state changes.
 		committeetypes.ModuleName,
 		minttypes.ModuleName,
+		// Kavamint registers with the vanilla mint module.
+		kavaminttypes.ModuleName,
 		distrtypes.ModuleName,
 		// During begin block slashing happens after distr.BeginBlocker so that
 		// there is nothing left over in the validator fee pool, so as to keep the
@@ -829,6 +848,7 @@ func NewApp(
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 		routertypes.ModuleName,
+		kavaminttypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -841,6 +861,7 @@ func NewApp(
 		slashingtypes.ModuleName, // iterates over validators, run after staking
 		govtypes.ModuleName,
 		minttypes.ModuleName,
+		kavaminttypes.ModuleName,
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
