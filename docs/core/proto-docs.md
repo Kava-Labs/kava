@@ -307,6 +307,7 @@
 - [kava/incentive/v1beta1/claims.proto](#kava/incentive/v1beta1/claims.proto)
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
+    - [Claim](#kava.incentive.v1beta1.Claim)
     - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
     - [EarnClaim](#kava.incentive.v1beta1.EarnClaim)
     - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
@@ -317,6 +318,8 @@
     - [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
     - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
+  
+    - [ClaimType](#kava.incentive.v1beta1.ClaimType)
   
 - [kava/incentive/v1beta1/params.proto](#kava/incentive/v1beta1/params.proto)
     - [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod)
@@ -4454,6 +4457,24 @@ BaseMultiClaim is a claim with multiple reward coin types
 
 
 
+<a name="kava.incentive.v1beta1.Claim"></a>
+
+### Claim
+Claim stores any generic rewards that can be claimed by owner
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
+| `owner` | [bytes](#bytes) |  |  |
+| `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.DelegatorClaim"></a>
 
 ### DelegatorClaim
@@ -4613,6 +4634,24 @@ USDXMintingClaim is for USDX minting rewards
 
 
  <!-- end messages -->
+
+
+<a name="kava.incentive.v1beta1.ClaimType"></a>
+
+### ClaimType
+ClaimType is the type of claim
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| CLAIM_TYPE_UNSPECIFIED | 0 |  |
+| CLAIM_TYPE_HARD_BORROW | 1 |  |
+| CLAIM_TYPE_HARD_SUPPLY | 2 |  |
+| CLAIM_TYPE_DELEGATOR | 3 |  |
+| CLAIM_TYPE_EARN | 4 |  |
+| CLAIM_TYPE_SAVINGS | 5 |  |
+| CLAIM_TYPE_SWAP | 6 |  |
+| CLAIM_TYPE_USDX_MINTING | 7 |  |
+
 
  <!-- end enums -->
 

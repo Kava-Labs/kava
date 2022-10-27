@@ -57,6 +57,58 @@ func (c BaseMultiClaim) Validate() error {
 	return nil
 }
 
+// Validate checks if a ClaimType is valid
+func (ct ClaimType) Validate() error {
+	switch ct {
+	case CLAIM_TYPE_HARD_BORROW,
+		CLAIM_TYPE_HARD_SUPPLY,
+		CLAIM_TYPE_DELEGATOR,
+		CLAIM_TYPE_EARN,
+		CLAIM_TYPE_SAVINGS,
+		CLAIM_TYPE_SWAP,
+		CLAIM_TYPE_USDX_MINTING:
+		return nil
+	default:
+		return fmt.Errorf("invalid claim type: %v", ct)
+	}
+}
+
+// NewClaim returns a new Claim
+func NewClaim(
+	claimType ClaimType,
+	owner sdk.AccAddress,
+	reward sdk.Coins,
+	rewardIndexes MultiRewardIndexes,
+) Claim {
+	return Claim{
+		Type:          claimType,
+		Owner:         owner,
+		Reward:        reward,
+		RewardIndexes: rewardIndexes,
+	}
+}
+
+// Validate performs a basic check of a Claim
+func (c Claim) Validate() error {
+	if err := c.Type.Validate(); err != nil {
+		return err
+	}
+
+	if c.Owner.Empty() {
+		return errors.New("claim owner cannot be empty")
+	}
+
+	if err := c.Reward.Validate(); err != nil {
+		return fmt.Errorf("invalid reward amount %v: %w", c.Reward, err)
+	}
+
+	if err := c.RewardIndexes.Validate(); err != nil {
+		return fmt.Errorf("invalid reward indexes: %w", err)
+	}
+
+	return nil
+}
+
 // NewUSDXMintingClaim returns a new USDXMintingClaim
 func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes RewardIndexes) USDXMintingClaim {
 	return USDXMintingClaim{
