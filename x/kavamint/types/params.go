@@ -7,10 +7,15 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-// Parameter keys
+// Parameter keys & defaults
 var (
 	KeyCommunityPoolInflation = []byte("CommunityPoolInflation")
 	KeyStakingRewardsApy      = []byte("StakingRewardsApy")
+
+	DefaultCommunityPoolInflation = sdk.MustNewDecFromStr("0.900000000000000000")
+	DefaultStakingRewardsApy      = sdk.MustNewDecFromStr("0.200000000000000000")
+
+	MintDenom = "ukava"
 )
 
 // ParamKeyTable Key declaration for parameters
@@ -23,6 +28,13 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyCommunityPoolInflation, &p.CommunityPoolInflation, validateCommunityPoolInflation),
 		paramtypes.NewParamSetPair(KeyStakingRewardsApy, &p.StakingRewardsApy, validateStakingRewardsApy),
+	}
+}
+
+func DefaultParams() Params {
+	return Params{
+		CommunityPoolInflation: DefaultCommunityPoolInflation,
+		StakingRewardsApy:      DefaultStakingRewardsApy,
 	}
 }
 

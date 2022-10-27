@@ -61,16 +61,10 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
 }
 
-// StakingTokenSupply implements an alias call to the underlying staking keeper's
-// StakingTokenSupply to be used in BeginBlocker.
-func (k Keeper) StakingTokenSupply(ctx sdk.Context) sdk.Int {
-	return k.stakingKeeper.StakingTokenSupply(ctx)
-}
-
-// BondedRatio implements an alias call to the underlying staking keeper's
-// BondedRatio to be used in BeginBlocker.
-func (k Keeper) BondedRatio(ctx sdk.Context) sdk.Dec {
-	return k.stakingKeeper.BondedRatio(ctx)
+// TotalBondedTokens implements an alias call to the underlying staking keeper's
+// TotalBondedTokens to be used in BeginBlocker.
+func (k Keeper) TotalBondedTokens(ctx sdk.Context) sdk.Int {
+	return k.stakingKeeper.TotalBondedTokens(ctx)
 }
 
 // MintCoins implements an alias call to the underlying supply keeper's

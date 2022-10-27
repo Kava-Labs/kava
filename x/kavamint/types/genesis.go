@@ -9,9 +9,8 @@ func NewGenesisState(params Params) *GenesisState {
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() *GenesisState {
-	// TODO: sane defaults go here.
 	return &GenesisState{
-		Params: Params{},
+		Params: DefaultParams(),
 	}
 }
 
