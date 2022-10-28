@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"errors"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -39,6 +37,12 @@ func queryParams(ctx sdk.Context, k Keeper, legacyQuerierCdc *codec.LegacyAmino)
 }
 
 func queryInflation(ctx sdk.Context, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	// TODO
-	return nil, errors.New("TODO")
+	inflation := k.CumulativeInflation(ctx)
+
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, inflation)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
 }

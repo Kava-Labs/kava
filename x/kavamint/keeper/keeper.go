@@ -83,3 +83,27 @@ func (k Keeper) MintCoins(ctx sdk.Context, newCoins sdk.Coins) error {
 func (k Keeper) AddCollectedFees(ctx sdk.Context, fees sdk.Coins) error {
 	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.feeCollectorName, fees)
 }
+
+// TotalSupply implements an alias call to the underlying supply keeper's
+// GetSupply for the mint denom to be used in calculating cumulative inflation.
+func (k Keeper) TotalSupply(ctx sdk.Context) sdk.Int {
+	return k.bankKeeper.GetSupply(ctx, types.MintDenom).Amount
+}
+
+func (k Keeper) CumulativeInflation(ctx sdk.Context) sdk.Dec {
+	params := k.GetParams(ctx)
+	totalInflation := sdk.NewDec(0)
+
+	// community pool contribution is simply the inflation param
+	totalInflation = totalInflation.Add(params.CommunityPoolInflation)
+
+	// staking rewards contribution is the apy * bonded_ratio
+	bondedSupply := k.TotalBondedTokens(ctx)
+	totalSupply := k.TotalSupply(ctx)
+	bondedRatio := sdk.NewDecFromInt(bondedSupply).QuoInt(totalSupply)
+	inflationFromStakingRewards := params.StakingRewardsApy.Mul(bondedRatio)
+
+	totalInflation = totalInflation.Add(inflationFromStakingRewards)
+
+	return totalInflation
+}

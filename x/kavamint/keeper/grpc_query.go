@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/kavamint/types"
@@ -20,6 +19,8 @@ func (k Keeper) Params(c context.Context, _ *types.QueryParamsRequest) (*types.Q
 
 // Inflation returns minter.Inflation of the mint module.
 func (k Keeper) Inflation(c context.Context, _ *types.QueryInflationRequest) (*types.QueryInflationResponse, error) {
-	// TODO
-	return nil, errors.New("TODO")
+	ctx := sdk.UnwrapSDKContext(c)
+	inflation := k.CumulativeInflation(ctx)
+
+	return &types.QueryInflationResponse{Inflation: inflation}, nil
 }
