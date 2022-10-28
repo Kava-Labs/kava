@@ -221,7 +221,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, param
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	var usdxMintingClaims types.USDXMintingClaims
+	var usdxMintingClaims types.Claims
 	cliCtx.LegacyAmino.MustUnmarshalJSON(usdxMintingRes, &usdxMintingClaims)
 
 	delegatorRes, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/incentive/%s", types.QueryGetDelegatorRewards), paramsBz)
@@ -252,7 +252,7 @@ func executeAllRewardQueries(w http.ResponseWriter, cliCtx client.Context, param
 
 	type rewardResult struct {
 		HardClaims        types.HardLiquidityProviderClaims `json:"hard_claims" yaml:"hard_claims"`
-		UsdxMintingClaims types.USDXMintingClaims           `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
+		UsdxMintingClaims types.Claims                      `json:"usdx_minting_claims" yaml:"usdx_minting_claims"`
 		DelegatorClaims   types.DelegatorClaims             `json:"delegator_claims" yaml:"delegator_claims"`
 		SwapClaims        types.SwapClaims                  `json:"swap_claims" yaml:"swap_claims"`
 		EarnClaims        types.EarnClaims                  `json:"earn_claims" yaml:"earn_claims"`

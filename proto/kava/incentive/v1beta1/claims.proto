@@ -60,13 +60,6 @@ message MultiRewardIndexesProto {
 
 // -------------- Custom Claim Types --------------
 
-// USDXMintingClaim is for USDX minting rewards
-message USDXMintingClaim {
-  BaseClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
-
-  repeated RewardIndex reward_indexes = 2 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
-}
-
 // HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
 message HardLiquidityProviderClaim {
   BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];

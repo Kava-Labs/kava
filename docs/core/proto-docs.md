@@ -317,7 +317,6 @@
     - [RewardIndexesProto](#kava.incentive.v1beta1.RewardIndexesProto)
     - [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
-    - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
   
     - [ClaimType](#kava.incentive.v1beta1.ClaimType)
   
@@ -4617,22 +4616,6 @@ SwapClaim stores the swap rewards that can be claimed by owner
 
 
 
-
-<a name="kava.incentive.v1beta1.USDXMintingClaim"></a>
-
-### USDXMintingClaim
-USDXMintingClaim is for USDX minting rewards
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `base_claim` | [BaseClaim](#kava.incentive.v1beta1.BaseClaim) |  |  |
-| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
-
-
-
-
-
  <!-- end messages -->
 
 
@@ -4824,7 +4807,6 @@ GenesisState is the state that must be provided at genesis.
 | `hard_borrow_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
 | `delegator_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
 | `swap_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
-| `usdx_minting_claims` | [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim) | repeated |  |
 | `hard_liquidity_provider_claims` | [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim) | repeated |  |
 | `delegator_claims` | [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim) | repeated |  |
 | `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |

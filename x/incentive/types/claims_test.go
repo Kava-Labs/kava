@@ -21,68 +21,6 @@ func cs(coins ...sdk.Coin) sdk.Coins { return sdk.NewCoins(coins...) }
 func TestClaims_Validate(t *testing.T) {
 	owner := sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1")))
 
-	t.Run("USDXMintingClaims", func(t *testing.T) {
-		testCases := []struct {
-			name    string
-			claims  USDXMintingClaims
-			expPass bool
-		}{
-			{
-				"valid",
-				USDXMintingClaims{
-					NewUSDXMintingClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), RewardIndexes{NewRewardIndex("bnb-a", sdk.ZeroDec())}),
-				},
-				true,
-			},
-			{
-				"invalid owner",
-				USDXMintingClaims{
-					USDXMintingClaim{
-						BaseClaim: BaseClaim{
-							Owner: nil,
-						},
-					},
-				},
-				false,
-			},
-			{
-				"invalid reward",
-				USDXMintingClaims{
-					{
-						BaseClaim: BaseClaim{
-							Owner:  owner,
-							Reward: sdk.Coin{Denom: "", Amount: sdk.ZeroInt()},
-						},
-					},
-				},
-				false,
-			},
-			{
-				"invalid collateral type",
-				USDXMintingClaims{
-					{
-						BaseClaim: BaseClaim{
-							Owner:  owner,
-							Reward: sdk.NewCoin("bnb", sdk.OneInt()),
-						},
-						RewardIndexes: []RewardIndex{{"", sdk.ZeroDec()}},
-					},
-				},
-				false,
-			},
-		}
-
-		for _, tc := range testCases {
-			t.Run(tc.name, func(t *testing.T) {
-				err := tc.claims.Validate()
-				if tc.expPass {
-					require.NoError(t, err)
-				} else {
-					require.Error(t, err)
-				}
-			})
-		}
-	})
 	t.Run("SwapClaims", func(t *testing.T) {
 		validRewardIndexes := RewardIndexes{}.With("swap", d("0.002"))
 		validMultiRewardIndexes := MultiRewardIndexes{}.With("btcb/usdx", validRewardIndexes)

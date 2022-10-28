@@ -123,60 +123,6 @@ func (cs Claims) Validate() error {
 	return nil
 }
 
-// NewUSDXMintingClaim returns a new USDXMintingClaim
-func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes RewardIndexes) USDXMintingClaim {
-	return USDXMintingClaim{
-		BaseClaim: BaseClaim{
-			Owner:  owner,
-			Reward: reward,
-		},
-		RewardIndexes: rewardIndexes,
-	}
-}
-
-// GetType returns the claim's type
-func (c USDXMintingClaim) GetType() string { return USDXMintingClaimType }
-
-// GetReward returns the claim's reward coin
-func (c USDXMintingClaim) GetReward() sdk.Coin { return c.Reward }
-
-// GetOwner returns the claim's owner
-func (c USDXMintingClaim) GetOwner() sdk.AccAddress { return c.Owner }
-
-// Validate performs a basic check of a Claim fields
-func (c USDXMintingClaim) Validate() error {
-	if err := c.RewardIndexes.Validate(); err != nil {
-		return err
-	}
-
-	return c.BaseClaim.Validate()
-}
-
-// HasRewardIndex check if a claim has a reward index for the input collateral type
-func (c USDXMintingClaim) HasRewardIndex(collateralType string) (int64, bool) {
-	for index, ri := range c.RewardIndexes {
-		if ri.CollateralType == collateralType {
-			return int64(index), true
-		}
-	}
-	return 0, false
-}
-
-// USDXMintingClaims slice of USDXMintingClaim
-type USDXMintingClaims []USDXMintingClaim
-
-// Validate checks if all the claims are valid and there are no duplicated
-// entries.
-func (cs USDXMintingClaims) Validate() error {
-	for _, c := range cs {
-		if err := c.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // NewHardLiquidityProviderClaim returns a new HardLiquidityProviderClaim
 func NewHardLiquidityProviderClaim(owner sdk.AccAddress, rewards sdk.Coins,
 	supplyRewardIndexes, borrowRewardIndexes MultiRewardIndexes,

@@ -95,9 +95,10 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.USDXMintingClaims.Validate(); err != nil {
+	if err := gs.Claims.Validate(); err != nil {
 		return err
 	}
+
 	if err := gs.HardLiquidityProviderClaims.Validate(); err != nil {
 		return err
 	}

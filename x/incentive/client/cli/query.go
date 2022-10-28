@@ -290,23 +290,23 @@ func executeHardRewardsQuery(cliCtx client.Context, params types.QueryRewardsPar
 	return claims, nil
 }
 
-func executeUSDXMintingRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.USDXMintingClaims, error) {
+func executeUSDXMintingRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.Claims, error) {
 	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 	if err != nil {
-		return types.USDXMintingClaims{}, err
+		return types.Claims{}, err
 	}
 
 	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetUSDXMintingRewards)
 	res, height, err := cliCtx.QueryWithData(route, bz)
 	if err != nil {
-		return types.USDXMintingClaims{}, err
+		return types.Claims{}, err
 	}
 
 	cliCtx = cliCtx.WithHeight(height)
 
-	var claims types.USDXMintingClaims
+	var claims types.Claims
 	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.USDXMintingClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
+		return types.Claims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
 	}
 
 	return claims, nil
