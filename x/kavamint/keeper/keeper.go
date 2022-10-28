@@ -61,6 +61,11 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
 }
 
+// BondDenom implements an alias call to the underlying staking keeper's BondDenom.
+func (k Keeper) BondDenom(ctx sdk.Context) string {
+	return k.stakingKeeper.BondDenom(ctx)
+}
+
 // TotalBondedTokens implements an alias call to the underlying staking keeper's
 // TotalBondedTokens to be used in BeginBlocker.
 func (k Keeper) TotalBondedTokens(ctx sdk.Context) sdk.Int {
@@ -87,7 +92,7 @@ func (k Keeper) AddCollectedFees(ctx sdk.Context, fees sdk.Coins) error {
 // TotalSupply implements an alias call to the underlying supply keeper's
 // GetSupply for the mint denom to be used in calculating cumulative inflation.
 func (k Keeper) TotalSupply(ctx sdk.Context) sdk.Int {
-	return k.bankKeeper.GetSupply(ctx, types.MintDenom).Amount
+	return k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
 }
 
 func (k Keeper) CumulativeInflation(ctx sdk.Context) sdk.Dec {

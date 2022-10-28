@@ -24,8 +24,6 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	// TODO: setup simulation.
-	// _ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the kavamint module.
@@ -155,31 +153,3 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-
-// TODO: setup simulation.
-// AppModuleSimulation functions
-
-// // GenerateGenesisState creates a randomized GenState of the kavamint module.
-// func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
-
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-// 	return nil
-// }
-
-// // RandomizedParams creates randomized mint param changes for the simulator.
-// func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
-
-// // RegisterStoreDecoder registers a decoder for kavamint module's types.
-// func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
-// }
-
-// // WeightedOperations doesn't return any kavamint module operation.
-// func (AppModule) WeightedOperations(_ module.SimulationState) []simtypes.WeightedOperation {
-// 	return nil
-// }

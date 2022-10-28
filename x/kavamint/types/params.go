@@ -14,9 +14,14 @@ var (
 
 	DefaultCommunityPoolInflation = sdk.MustNewDecFromStr("0.900000000000000000")
 	DefaultStakingRewardsApy      = sdk.MustNewDecFromStr("0.200000000000000000")
-
-	MintDenom = "ukava"
 )
+
+func NewParams(communityPoolInflation sdk.Dec, stakingRewardsApy sdk.Dec) Params {
+	return Params{
+		CommunityPoolInflation: communityPoolInflation,
+		StakingRewardsApy:      stakingRewardsApy,
+	}
+}
 
 // ParamKeyTable Key declaration for parameters
 func ParamKeyTable() paramtypes.KeyTable {
@@ -32,10 +37,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 }
 
 func DefaultParams() Params {
-	return Params{
-		CommunityPoolInflation: DefaultCommunityPoolInflation,
-		StakingRewardsApy:      DefaultStakingRewardsApy,
-	}
+	return NewParams(DefaultCommunityPoolInflation, DefaultStakingRewardsApy)
 }
 
 // Validate checks that the parameters have valid values.

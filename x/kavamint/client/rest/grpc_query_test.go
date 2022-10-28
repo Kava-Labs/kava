@@ -1,6 +1,3 @@
-//go:build norace
-// +build norace
-
 package rest_test
 
 import (
@@ -9,13 +6,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/testutil/network"
-	minttypes "github.com/kava-labs/kava/x/kavamint/types"
+	"github.com/kava-labs/kava/x/kavamint/types"
 )
 
 type IntegrationTestSuite struct {
@@ -32,17 +28,17 @@ func (s *IntegrationTestSuite) SetupSuite() {
 	genesisState := cfg.GenesisState
 	cfg.NumValidators = 1
 
-	var mintData minttypes.GenesisState
-	s.Require().NoError(cfg.Codec.UnmarshalJSON(genesisState[minttypes.ModuleName], &mintData))
+	var mintData types.GenesisState
+	s.Require().NoError(cfg.Codec.UnmarshalJSON(genesisState[types.ModuleName], &mintData))
 
-	inflation := sdk.MustNewDecFromStr("1.0")
-	mintData.Minter.Inflation = inflation
-	mintData.Params.InflationMin = inflation
-	mintData.Params.InflationMax = inflation
+	// inflation := sdk.MustNewDecFromStr("1.0")
+	// mintData.Minter.Inflation = inflation
+	// mintData.Params.InflationMin = inflation
+	// mintData.Params.InflationMax = inflation
 
 	mintDataBz, err := cfg.Codec.MarshalJSON(&mintData)
 	s.Require().NoError(err)
-	genesisState[minttypes.ModuleName] = mintDataBz
+	genesisState[types.ModuleName] = mintDataBz
 	cfg.GenesisState = genesisState
 
 	s.cfg = cfg
@@ -69,32 +65,20 @@ func (s *IntegrationTestSuite) TestQueryGRPC() {
 	}{
 		{
 			"gRPC request params",
-			fmt.Sprintf("%s/cosmos/mint/v1beta1/params", baseURL),
+			fmt.Sprintf("%s/kava/kavamint/v1beta1/parameters", baseURL),
 			map[string]string{},
-			&minttypes.QueryParamsResponse{},
-			&minttypes.QueryParamsResponse{
-				Params: minttypes.NewParams("stake", sdk.NewDecWithPrec(13, 2), sdk.NewDecWithPrec(100, 2),
-					sdk.NewDec(1), sdk.NewDecWithPrec(67, 2), (60 * 60 * 8766 / 5)),
+			&types.QueryParamsResponse{},
+			&types.QueryParamsResponse{
+				Params: types.NewParams(sdk.NewDecWithPrec(100, 2), sdk.NewDecWithPrec(20, 2)),
 			},
 		},
 		{
 			"gRPC request inflation",
-			fmt.Sprintf("%s/cosmos/mint/v1beta1/inflation", baseURL),
+			fmt.Sprintf("%s/kava/kavamint/v1beta1/inflation", baseURL),
 			map[string]string{},
-			&minttypes.QueryInflationResponse{},
-			&minttypes.QueryInflationResponse{
+			&types.QueryInflationResponse{},
+			&types.QueryInflationResponse{
 				Inflation: sdk.NewDec(1),
-			},
-		},
-		{
-			"gRPC request annual provisions",
-			fmt.Sprintf("%s/cosmos/mint/v1beta1/annual_provisions", baseURL),
-			map[string]string{
-				grpctypes.GRPCBlockHeightHeader: "1",
-			},
-			&minttypes.QueryAnnualProvisionsResponse{},
-			&minttypes.QueryAnnualProvisionsResponse{
-				AnnualProvisions: sdk.NewDec(500000000),
 			},
 		},
 	}

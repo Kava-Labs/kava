@@ -7,6 +7,7 @@ import (
 
 // StakingKeeper defines the expected staking keeper
 type StakingKeeper interface {
+	BondDenom(sdk.Context) string
 	TotalBondedTokens(sdk.Context) sdk.Int
 }
 

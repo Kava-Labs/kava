@@ -1,43 +1,120 @@
 package keeper_test
 
-// type MintTestSuite struct {
-// 	suite.Suite
+import (
+	"context"
+	"testing"
 
-// 	app         *simapp.SimApp
-// 	ctx         sdk.Context
-// 	queryClient types.QueryClient
-// }
+	"github.com/stretchr/testify/suite"
 
-// func (suite *MintTestSuite) SetupTest() {
-// 	app := simapp.Setup(false)
-// 	ctx := app.BaseApp.NewContext(false, tmproto.Header{})
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/staking"
 
-// 	queryHelper := baseapp.NewQueryServerTestHelper(ctx, app.InterfaceRegistry())
-// 	types.RegisterQueryServer(queryHelper, app.MintKeeper)
-// 	queryClient := types.NewQueryClient(queryHelper)
+	"github.com/kava-labs/kava/x/kavamint/types"
+)
 
-// 	suite.app = app
-// 	suite.ctx = ctx
+type grpcQueryTestSuite struct {
+	KavamintTestSuite
 
-// 	suite.queryClient = queryClient
-// }
+	queryClient types.QueryClient
+}
 
-// func (suite *MintTestSuite) TestGRPCParams() {
-// 	app, ctx, queryClient := suite.app, suite.ctx, suite.queryClient
+func (suite *grpcQueryTestSuite) SetupTest() {
+	suite.KavamintTestSuite.SetupTest()
 
-// 	params, err := queryClient.Params(gocontext.Background(), &types.QueryParamsRequest{})
-// 	suite.Require().NoError(err)
-// 	suite.Require().Equal(params.Params, app.MintKeeper.GetParams(ctx))
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.tApp.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.keeper)
+	suite.queryClient = types.NewQueryClient(queryHelper)
+}
 
-// 	inflation, err := queryClient.Inflation(gocontext.Background(), &types.QueryInflationRequest{})
-// 	suite.Require().NoError(err)
-// 	suite.Require().Equal(inflation.Inflation, app.MintKeeper.GetMinter(ctx).Inflation)
+func TestGRPCQueryTestSuite(t *testing.T) {
+	suite.Run(t, new(grpcQueryTestSuite))
+}
 
-// 	annualProvisions, err := queryClient.AnnualProvisions(gocontext.Background(), &types.QueryAnnualProvisionsRequest{})
-// 	suite.Require().NoError(err)
-// 	suite.Require().Equal(annualProvisions.AnnualProvisions, app.MintKeeper.GetMinter(ctx).AnnualProvisions)
-// }
+func (suite *grpcQueryTestSuite) TestGRPCQueryParams() {
+	app, ctx, queryClient := suite.tApp, suite.ctx, suite.queryClient
 
-// func TestMintTestSuite(t *testing.T) {
-// 	suite.Run(t, new(MintTestSuite))
-// }
+	kavamintKeeper := app.GetKavamintKeeper()
+
+	params, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+	suite.Require().NoError(err)
+	suite.Require().Equal(params.Params, kavamintKeeper.GetParams(ctx))
+}
+
+func (suite *grpcQueryTestSuite) TestGRPCInflationQuery() {
+	testCases := []struct {
+		name               string
+		communityInflation sdk.Dec
+		stakingApy         sdk.Dec
+		bondedRatio        sdk.Dec
+		expectedInflation  sdk.Dec
+	}{
+		{
+			name:               "no community inflation, no staking apy = no inflation",
+			communityInflation: sdk.NewDec(0),
+			stakingApy:         sdk.NewDec(0),
+			bondedRatio:        sdk.NewDecWithPrec(40, 2),
+			expectedInflation:  sdk.NewDec(0),
+		},
+		{
+			name:               "no community inflation means only staking contributes",
+			communityInflation: sdk.NewDec(0),
+			stakingApy:         sdk.NewDec(1),
+			bondedRatio:        sdk.NewDecWithPrec(34, 2),
+			expectedInflation:  sdk.NewDecWithPrec(34, 2),
+		},
+		{
+			name:               "no staking apy means only inflation contributes",
+			communityInflation: sdk.NewDecWithPrec(75, 2),
+			stakingApy:         sdk.NewDec(0),
+			bondedRatio:        sdk.NewDecWithPrec(40, 2),
+			expectedInflation:  sdk.NewDecWithPrec(75, 2),
+		},
+		{
+			name:               "staking and community inflation combines (100 percent bonded)",
+			communityInflation: sdk.NewDec(1),
+			stakingApy:         sdk.NewDecWithPrec(50, 2),
+			bondedRatio:        sdk.NewDec(1),
+			expectedInflation:  sdk.NewDecWithPrec(150, 2),
+		},
+		{
+			name:               "staking and community inflation combines (40 percent bonded)",
+			communityInflation: sdk.NewDecWithPrec(90, 2),
+			stakingApy:         sdk.NewDecWithPrec(25, 2),
+			bondedRatio:        sdk.NewDecWithPrec(40, 2),
+			// 90 + .4*25 = 100
+			expectedInflation: sdk.NewDec(1),
+		},
+		{
+			name:               "staking and community inflation combines (25 percent bonded)",
+			communityInflation: sdk.NewDecWithPrec(90, 2),
+			stakingApy:         sdk.NewDecWithPrec(20, 2),
+			bondedRatio:        sdk.NewDecWithPrec(25, 2),
+			// 90 + .25*20 = 95
+			expectedInflation: sdk.NewDecWithPrec(95, 2),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			app, ctx, queryClient := suite.tApp, suite.ctx, suite.queryClient
+
+			kavamintKeeper := app.GetKavamintKeeper()
+
+			// set desired params
+			kavamintKeeper.SetParams(ctx, types.NewParams(tc.communityInflation, tc.stakingApy))
+
+			// set bonded token ratio
+			suite.SetBondedTokenRatio(tc.bondedRatio)
+			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+
+			// query inflation & check for expected results
+			inflation, err := queryClient.Inflation(context.Background(), &types.QueryInflationRequest{})
+			suite.Require().NoError(err)
+			suite.Require().Equal(inflation.Inflation, kavamintKeeper.CumulativeInflation(ctx))
+			suite.Require().Equal(inflation.Inflation, tc.expectedInflation)
+		})
+	}
+}
