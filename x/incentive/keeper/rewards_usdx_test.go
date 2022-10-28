@@ -419,8 +419,8 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 			claim, found = suite.keeper.GetClaim(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, suite.addrs[0])
 			suite.Require().True(found)
 			suite.Require().Len(claim.RewardIndexes[0].RewardIndexes, 1)
-			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardIndexes[0].RewardFactor)
-			suite.Require().Equal(tc.args.expectedRewards, claim.Reward)
+			suite.Require().Equal(tc.args.expectedRewardFactor, claim.RewardIndexes[0].RewardIndexes[0].RewardFactor)
+			suite.Require().Equal(sdk.NewCoins(tc.args.expectedRewards), claim.Reward)
 		})
 	}
 }
@@ -504,8 +504,8 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 
 			updatedClaim := suite.keeper.SimulateUSDXMintingSynchronization(suite.ctx, claim)
 			suite.Require().Len(updatedClaim.RewardIndexes[0].RewardIndexes, 1)
-			suite.Require().Equal(sdk.ZeroDec(), updatedClaim.RewardIndexes[0].RewardIndexes[0].RewardFactor)
-			suite.Require().Equal(tc.args.expectedRewards, updatedClaim.Reward)
+			suite.Require().Equal(tc.args.expectedRewardFactor, updatedClaim.RewardIndexes[0].RewardIndexes[0].RewardFactor)
+			suite.Require().Equal(sdk.NewCoins(tc.args.expectedRewards), updatedClaim.Reward)
 		})
 	}
 }
