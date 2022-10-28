@@ -47,38 +47,52 @@ func (suite *KeeperTestSuite) SetupApp() {
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
 	suite.SetupApp()
-	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
-	_, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+	c := types.NewClaim(
+		types.CLAIM_TYPE_USDX_MINTING,
+		suite.addrs[0],
+		cs(c("ukava", 1000000)),
+		types.MultiRewardIndexes{types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
+			types.NewRewardIndex(types.USDXMintingRewardDenom, sdk.ZeroDec()),
+		})},
+	)
+	_, found := suite.keeper.GetClaim(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, suite.addrs[0])
 	suite.Require().False(found)
 	suite.Require().NotPanics(func() {
-		suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
+		suite.keeper.SetClaim(suite.ctx, c)
 	})
-	testC, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+	testC, found := suite.keeper.GetClaim(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, suite.addrs[0])
 	suite.Require().True(found)
 	suite.Require().Equal(c, testC)
 	suite.Require().NotPanics(func() {
-		suite.keeper.DeleteUSDXMintingClaim(suite.ctx, suite.addrs[0])
+		suite.keeper.DeleteClaim(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, suite.addrs[0])
 	})
-	_, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
+	_, found = suite.keeper.GetClaim(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, suite.addrs[0])
 	suite.Require().False(found)
 }
 
 func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	suite.SetupApp()
 	for i := 0; i < len(suite.addrs); i++ {
-		c := types.NewUSDXMintingClaim(suite.addrs[i], c("ukava", 100000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
+		c := types.NewClaim(
+			types.CLAIM_TYPE_USDX_MINTING,
+			suite.addrs[i],
+			cs(c("ukava", 100000)),
+			types.MultiRewardIndexes{types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
+				types.NewRewardIndex(types.USDXMintingRewardDenom, sdk.ZeroDec()),
+			})},
+		)
 		suite.Require().NotPanics(func() {
-			suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
+			suite.keeper.SetClaim(suite.ctx, c)
 		})
 	}
-	claims := types.USDXMintingClaims{}
-	suite.keeper.IterateUSDXMintingClaims(suite.ctx, func(c types.USDXMintingClaim) bool {
+	var claims types.Claims
+	suite.keeper.IterateClaims(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, func(c types.Claim) bool {
 		claims = append(claims, c)
 		return false
 	})
 	suite.Require().Equal(len(suite.addrs), len(claims))
 
-	claims = suite.keeper.GetAllUSDXMintingClaims(suite.ctx)
+	claims = suite.keeper.GetClaims(suite.ctx, types.CLAIM_TYPE_USDX_MINTING)
 	suite.Require().Equal(len(suite.addrs), len(claims))
 }
 

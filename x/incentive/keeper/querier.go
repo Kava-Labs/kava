@@ -109,21 +109,21 @@ func queryGetUSDXMintingRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper
 	}
 	owner := len(params.Owner) > 0
 
-	var usdxMintingClaims types.USDXMintingClaims
+	var usdxMintingClaims types.Claims
 	switch {
 	case owner:
-		usdxMintingClaim, foundUsdxMintingClaim := k.GetUSDXMintingClaim(ctx, params.Owner)
+		usdxMintingClaim, foundUsdxMintingClaim := k.GetClaim(ctx, types.CLAIM_TYPE_USDX_MINTING, params.Owner)
 		if foundUsdxMintingClaim {
 			usdxMintingClaims = append(usdxMintingClaims, usdxMintingClaim)
 		}
 	default:
-		usdxMintingClaims = k.GetAllUSDXMintingClaims(ctx)
+		usdxMintingClaims = k.GetClaims(ctx, types.CLAIM_TYPE_USDX_MINTING)
 	}
 
-	var paginatedUsdxMintingClaims types.USDXMintingClaims
+	var paginatedUsdxMintingClaims types.Claims
 	startU, endU := client.Paginate(len(usdxMintingClaims), params.Page, params.Limit, 100)
 	if startU < 0 || endU < 0 {
-		paginatedUsdxMintingClaims = types.USDXMintingClaims{}
+		paginatedUsdxMintingClaims = types.Claims{}
 	} else {
 		paginatedUsdxMintingClaims = usdxMintingClaims[startU:endU]
 	}

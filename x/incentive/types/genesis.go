@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	DefaultUSDXClaims         = USDXMintingClaims{}
+	DefaultClaims             = Claims{}
 	DefaultHardClaims         = HardLiquidityProviderClaims{}
 	DefaultDelegatorClaims    = DelegatorClaims{}
 	DefaultSwapClaims         = SwapClaims{}
@@ -22,7 +22,7 @@ var (
 func NewGenesisState(
 	params Params,
 	usdxState, hardSupplyState, hardBorrowState, delegatorState, swapState, savingsState, earnState GenesisRewardState,
-	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
+	c Claims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
 	earnc EarnClaims,
 ) GenesisState {
 	return GenesisState{
@@ -36,7 +36,8 @@ func NewGenesisState(
 		SavingsRewardState:    savingsState,
 		EarnRewardState:       earnState,
 
-		USDXMintingClaims:           c,
+		// Claims of all types
+		Claims:                      c,
 		HardLiquidityProviderClaims: hc,
 		DelegatorClaims:             dc,
 		SwapClaims:                  sc,
@@ -56,7 +57,7 @@ func DefaultGenesisState() GenesisState {
 		SwapRewardState:             DefaultGenesisRewardState,
 		SavingsRewardState:          DefaultGenesisRewardState,
 		EarnRewardState:             DefaultGenesisRewardState,
-		USDXMintingClaims:           DefaultUSDXClaims,
+		Claims:                      DefaultClaims,
 		HardLiquidityProviderClaims: DefaultHardClaims,
 		DelegatorClaims:             DefaultDelegatorClaims,
 		SwapClaims:                  DefaultSwapClaims,

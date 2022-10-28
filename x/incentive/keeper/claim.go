@@ -10,7 +10,7 @@ import (
 // ClaimUSDXMintingReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccAddress, multiplierName string) error {
-	claim, found := k.GetUSDXMintingClaim(ctx, owner)
+	claim, found := k.GetClaim(ctx, types.CLAIM_TYPE_USDX_MINTING, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
@@ -31,26 +31,33 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 		return err
 	}
 
-	rewardAmount := claim.Reward.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
-	if rewardAmount.IsZero() {
+	// Claim all instead of 1 to not break MsgClaimUSDXMintingReward
+	rewardCoins := sdk.NewCoins()
+	for _, coin := range claim.Reward {
+		rewardAmount := coin.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
+		rewardCoins = rewardCoins.Add(sdk.NewCoin(coin.Denom, rewardAmount))
+	}
+
+	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
-	rewardCoin := sdk.NewCoin(claim.Reward.Denom, rewardAmount)
 	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
 
-	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, sdk.NewCoins(rewardCoin), length)
+	err = k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
 	if err != nil {
 		return err
 	}
 
-	k.ZeroUSDXMintingClaim(ctx, claim)
+	// remove claimed coins (NOT reward coins)
+	claim.Reward = sdk.NewCoins()
+	k.SetClaim(ctx, claim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claim.Reward.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimType, claim.GetType()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, claim.Type.String()),
 		),
 	)
 	return nil

@@ -101,7 +101,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						RewardIndexes:  normalRewardIndexes,
 					}},
 				},
-				USDXMintingClaims: DefaultUSDXClaims,
+				Claims: DefaultClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,

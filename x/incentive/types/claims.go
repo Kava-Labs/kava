@@ -109,6 +109,20 @@ func (c Claim) Validate() error {
 	return nil
 }
 
+// Claims defines a slice of Claims
+type Claims []Claim
+
+// Validate checks if all the claims are valid.
+func (cs Claims) Validate() error {
+	for _, c := range cs {
+		if err := c.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // NewUSDXMintingClaim returns a new USDXMintingClaim
 func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes RewardIndexes) USDXMintingClaim {
 	return USDXMintingClaim{

@@ -59,24 +59,31 @@ func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string)
 // accrue rewards during the period the cdp was closed. By setting the reward factor to the current global reward factor,
 // any unclaimed rewards are preserved, but no new rewards are added.
 func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
-	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
+	claim, found := k.GetClaim(ctx, types.CLAIM_TYPE_USDX_MINTING, cdp.Owner)
 	if !found { // this is the owner's first usdx minting reward claim
-		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{})
+		claim = types.NewClaim(
+			types.CLAIM_TYPE_USDX_MINTING,
+			cdp.Owner,
+			sdk.NewCoins(sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt())),
+			types.MultiRewardIndexes{},
+		)
 	}
 
 	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
 		globalRewardFactor = sdk.ZeroDec()
 	}
-	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, globalRewardFactor)
+	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, types.RewardIndexes{
+		types.NewRewardIndex(types.USDXMintingRewardDenom, globalRewardFactor),
+	})
 
-	k.SetUSDXMintingClaim(ctx, claim)
+	k.SetClaim(ctx, claim)
 }
 
 // SynchronizeUSDXMintingReward updates the claim object by adding any accumulated rewards and updating the reward index value.
 // this should be called before a cdp is modified.
 func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) {
-	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
+	claim, found := k.GetClaim(ctx, types.CLAIM_TYPE_USDX_MINTING, cdp.Owner)
 	if !found {
 		return
 	}
@@ -88,14 +95,14 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 
 	claim = k.synchronizeSingleUSDXMintingReward(ctx, claim, cdp.Type, sourceShares)
 
-	k.SetUSDXMintingClaim(ctx, claim)
+	k.SetClaim(ctx, claim)
 }
 
 // synchronizeSingleUSDXMintingReward synchronizes a single rewarded cdp collateral type in a usdx minting claim.
 // It returns the claim without setting in the store.
 // The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
-func (k Keeper) synchronizeSingleUSDXMintingReward(ctx sdk.Context, claim types.USDXMintingClaim, ctype string, sourceShares sdk.Dec) types.USDXMintingClaim {
-	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, ctype)
+func (k Keeper) synchronizeSingleUSDXMintingReward(ctx sdk.Context, claim types.Claim, ctype string, sourceShares sdk.Dec) types.Claim {
+	globalRewardIndexes, found := k.GetUSDXMintingRewardFactor(ctx, ctype)
 	if !found {
 		// The global factor is only not found if
 		// - the cdp collateral type has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -106,30 +113,37 @@ func (k Keeper) synchronizeSingleUSDXMintingReward(ctx sdk.Context, claim types.
 		return claim
 	}
 
-	userRewardFactor, found := claim.RewardIndexes.Get(ctype)
+	userRewardIndexes, found := claim.RewardIndexes.Get(ctype)
 	if !found {
 		// Normally the factor should always be found, as it is added when the cdp is created in InitializeUSDXMintingClaim.
 		// However if a cdp type is not rewarded then becomes rewarded (ie a reward period is added to params), existing cdps will not have the factor in their claims.
 		// So assume the factor is the starting value for any global factor: 0.
-		userRewardFactor = sdk.ZeroDec()
+		userRewardIndexes = types.RewardIndexes{}
 	}
 
-	newRewardsAmount, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, sourceShares)
+	newRewards, err := k.CalculateRewards(
+		userRewardIndexes,
+		types.RewardIndexes{
+			types.NewRewardIndex(types.USDXMintingRewardDenom, globalRewardIndexes),
+		},
+		sourceShares,
+	)
 	if err != nil {
 		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 		// This panics if a global reward factor decreases or disappears between the old and new indexes.
 		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
 	}
-	newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
 
-	claim.Reward = claim.Reward.Add(newRewardsCoin)
-	claim.RewardIndexes = claim.RewardIndexes.With(ctype, globalRewardFactor)
+	claim.Reward = claim.Reward.Add(newRewards...)
+	claim.RewardIndexes = claim.RewardIndexes.With(ctype, types.RewardIndexes{
+		types.NewRewardIndex(types.USDXMintingRewardDenom, globalRewardIndexes),
+	})
 
 	return claim
 }
 
 // SimulateUSDXMintingSynchronization calculates a user's outstanding USDX minting rewards by simulating reward synchronization
-func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
+func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.Claim) types.Claim {
 	for _, ri := range claim.RewardIndexes {
 		_, found := k.GetUSDXMintingRewardPeriod(ctx, ri.CollateralType)
 		if !found {
@@ -141,37 +155,60 @@ func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.
 			globalRewardFactor = sdk.ZeroDec()
 		}
 
-		// the owner has an existing usdx minting reward claim
-		index, hasRewardIndex := claim.HasRewardIndex(ri.CollateralType)
-		if !hasRewardIndex { // this is the owner's first usdx minting reward for this collateral type
-			claim.RewardIndexes = append(claim.RewardIndexes, types.NewRewardIndex(ri.CollateralType, globalRewardFactor))
+		globalRewardIndexes := types.RewardIndexes{
+			types.NewRewardIndex(types.USDXMintingRewardDenom, globalRewardFactor),
 		}
-		userRewardFactor := claim.RewardIndexes[index].RewardFactor
-		rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
-		if rewardsAccumulatedFactor.IsZero() {
+
+		userRewardIndexes, foundUserRewardIndexes := claim.RewardIndexes.GetRewardIndex(ri.CollateralType)
+		if !foundUserRewardIndexes {
 			continue
 		}
 
-		claim.RewardIndexes[index].RewardFactor = globalRewardFactor
+		userRewardIndexIndex, foundUserRewardIndexIndex := claim.RewardIndexes.GetRewardIndexIndex(ri.CollateralType)
+		if !foundUserRewardIndexIndex {
+			continue
+		}
 
-		cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.GetOwner(), ri.CollateralType)
+		cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.Owner, ri.CollateralType)
 		if !found {
 			continue
 		}
-		newRewardsAmount := rewardsAccumulatedFactor.Mul(cdp.GetTotalPrincipal().Amount.ToDec()).RoundInt()
-		if newRewardsAmount.IsZero() {
-			continue
-		}
-		newRewardsCoin := sdk.NewCoin(types.USDXMintingRewardDenom, newRewardsAmount)
-		claim.Reward = claim.Reward.Add(newRewardsCoin)
-	}
 
+		for _, globalRewardIndex := range globalRewardIndexes {
+			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
+			if !foundUserRewardIndex {
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
+				claim.RewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.RewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
+			}
+
+			globalRewardFactor := globalRewardIndex.RewardFactor
+			userRewardFactor := userRewardIndex.RewardFactor
+			rewardsAccumulatedFactor := globalRewardFactor.Sub(userRewardFactor)
+			if rewardsAccumulatedFactor.IsZero() {
+				continue
+			}
+
+			rewardsEarned := rewardsAccumulatedFactor.Mul(cdp.GetTotalPrincipal().Amount.ToDec()).RoundInt()
+			if rewardsEarned.IsZero() || rewardsEarned.IsNegative() {
+				continue
+			}
+
+			factorIndex, foundFactorIndex := userRewardIndexes.RewardIndexes.GetFactorIndex(globalRewardIndex.CollateralType)
+			if !foundFactorIndex {
+				continue
+			}
+			claim.RewardIndexes[userRewardIndexIndex].RewardIndexes[factorIndex].RewardFactor = globalRewardIndex.RewardFactor
+			newRewardsCoin := sdk.NewCoin(userRewardIndex.CollateralType, rewardsEarned)
+			claim.Reward = claim.Reward.Add(newRewardsCoin)
+		}
+	}
 	return claim
 }
 
 // SynchronizeUSDXMintingClaim updates the claim object by adding any rewards that have accumulated.
 // Returns the updated claim object
-func (k Keeper) SynchronizeUSDXMintingClaim(ctx sdk.Context, claim types.USDXMintingClaim) (types.USDXMintingClaim, error) {
+func (k Keeper) SynchronizeUSDXMintingClaim(ctx sdk.Context, claim types.Claim) (types.Claim, error) {
 	for _, ri := range claim.RewardIndexes {
 		cdp, found := k.cdpKeeper.GetCdpByOwnerAndCollateralType(ctx, claim.Owner, ri.CollateralType)
 		if !found {
@@ -184,15 +221,8 @@ func (k Keeper) SynchronizeUSDXMintingClaim(ctx sdk.Context, claim types.USDXMin
 }
 
 // this function assumes a claim already exists, so don't call it if that's not the case
-func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CDP) types.USDXMintingClaim {
+func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CDP) types.Claim {
 	k.SynchronizeUSDXMintingReward(ctx, cdp)
-	claim, _ := k.GetUSDXMintingClaim(ctx, cdp.Owner)
-	return claim
-}
-
-// ZeroUSDXMintingClaim zeroes out the claim object's rewards and returns the updated claim object
-func (k Keeper) ZeroUSDXMintingClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
-	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
-	k.SetUSDXMintingClaim(ctx, claim)
+	claim, _ := k.GetClaim(ctx, types.CLAIM_TYPE_USDX_MINTING, cdp.Owner)
 	return claim
 }

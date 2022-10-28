@@ -44,9 +44,9 @@ func InitGenesis(
 
 	k.SetParams(ctx, gs.Params)
 
-	// USDX Minting
-	for _, claim := range gs.USDXMintingClaims {
-		k.SetUSDXMintingClaim(ctx, claim)
+	// Set Claims of all types
+	for _, claim := range gs.Claims {
+		k.SetClaim(ctx, claim)
 	}
 	for _, gat := range gs.USDXRewardState.AccumulationTimes {
 		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
@@ -146,7 +146,7 @@ func InitGenesis(
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 
-	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
+	claims := k.GetAllClaims(ctx)
 	usdxRewardState := getUSDXMintingGenesisRewardState(ctx, k)
 
 	hardClaims := k.GetAllHardLiquidityProviderClaims(ctx)
@@ -170,7 +170,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		// Reward states
 		usdxRewardState, hardSupplyRewardState, hardBorrowRewardState, delegatorRewardState, swapRewardState, savingsRewardState, earnRewardState,
 		// Claims
-		usdxClaims, hardClaims, delegatorClaims, swapClaims, savingsClaims, earnClaims,
+		claims, hardClaims, delegatorClaims, swapClaims, savingsClaims, earnClaims,
 	)
 }
 

@@ -102,7 +102,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
-		types.DefaultUSDXClaims,
+		types.DefaultClaims,
 		types.DefaultHardClaims,
 		types.DefaultDelegatorClaims,
 		types.DefaultSwapClaims,
@@ -219,16 +219,22 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				types.NewMultiRewardIndex("usdx", types.RewardIndexes{{CollateralType: "usdx", RewardFactor: d("0.2")}}),
 			},
 		),
-		types.USDXMintingClaims{
-			types.NewUSDXMintingClaim(
+		types.Claims{
+			types.NewClaim(
+				types.CLAIM_TYPE_USDX_MINTING,
 				suite.addrs[0],
-				c("ukava", 1e9),
-				types.RewardIndexes{{CollateralType: "bnb-a", RewardFactor: d("0.3")}},
+				cs(c("ukava", 1e9)),
+				types.MultiRewardIndexes{{CollateralType: "bnb-a", RewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex(types.USDXMintingRewardDenom, d("0.3")),
+				}}},
 			),
-			types.NewUSDXMintingClaim(
+			types.NewClaim(
+				types.CLAIM_TYPE_USDX_MINTING,
 				suite.addrs[1],
-				c("ukava", 1),
-				types.RewardIndexes{{CollateralType: "bnb-a", RewardFactor: d("0.001")}},
+				cs(c("ukava", 1)),
+				types.MultiRewardIndexes{{CollateralType: "bnb-a", RewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex(types.USDXMintingRewardDenom, d("0.001")),
+				}}},
 			),
 		},
 		types.HardLiquidityProviderClaims{
