@@ -425,10 +425,10 @@ func (suite *IntegrationTester) HardRewardEquals(owner sdk.AccAddress, expected 
 	suite.Equalf(expected, claim.Reward, "expected delegator claim reward to be %s, but got %s", expected, claim.Reward)
 }
 
-func (suite *IntegrationTester) USDXRewardEquals(owner sdk.AccAddress, expected sdk.Coin) {
+func (suite *IntegrationTester) USDXRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
 	claim, found := suite.App.GetIncentiveKeeper().GetClaim(suite.Ctx, types.CLAIM_TYPE_USDX_MINTING, owner)
 	suite.Require().Truef(found, "expected usdx claim to be found for %s", owner)
-	suite.Equalf(expected, claim.Reward, "expected usdx claim reward to be %s, but got %s", expected, claim.Reward)
+	suite.Truef(expected.IsEqual(claim.Reward), "expected usdx claim reward to be %s, but got %s", expected, claim.Reward)
 }
 
 func (suite *IntegrationTester) EarnRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {

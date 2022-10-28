@@ -500,7 +500,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 			suite.Require().True(found)
 			suite.Require().Len(claim.RewardIndexes[0].RewardIndexes, 1)
 			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardIndexes[0].RewardFactor)
-			suite.Require().Equal(claim.Reward, sdk.NewCoin("ukava", sdk.ZeroInt()))
+			suite.Require().True(claim.Reward.IsEqual(sdk.NewCoins(sdk.NewCoin("ukava", sdk.ZeroInt()))))
 
 			updatedClaim := suite.keeper.SimulateUSDXMintingSynchronization(suite.ctx, claim)
 			suite.Require().Len(updatedClaim.RewardIndexes[0].RewardIndexes, 1)

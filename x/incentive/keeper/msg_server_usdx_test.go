@@ -42,5 +42,5 @@ func (suite *HandlerTestSuite) TestPayoutUSDXClaim() {
 		{Length: (17+31+28+31+30+31+30+31+31+30+31+30+31)*secondsPerDay - 7, Amount: expectedRewards},
 	})
 	// Check that claimed coins have been removed from a claim's reward
-	suite.USDXRewardEquals(userAddr, c(types.USDXMintingRewardDenom, 0))
+	suite.USDXRewardEquals(userAddr, cs(c(types.USDXMintingRewardDenom, 0)))
 }
