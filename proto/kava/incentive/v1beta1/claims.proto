@@ -13,8 +13,6 @@ option (gogoproto.goproto_getters_all) = false;
 
 // BaseClaim is a claim with a single reward coin types
 message BaseClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   bytes owner = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
@@ -25,8 +23,6 @@ message BaseClaim {
 
 // BaseMultiClaim is a claim with multiple reward coin types
 message BaseMultiClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   bytes owner = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
     (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
@@ -66,8 +62,6 @@ message MultiRewardIndexesProto {
 
 // USDXMintingClaim is for USDX minting rewards
 message USDXMintingClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   BaseClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
   repeated RewardIndex reward_indexes = 2 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
@@ -75,8 +69,6 @@ message USDXMintingClaim {
 
 // HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
 message HardLiquidityProviderClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
   repeated MultiRewardIndex supply_reward_indexes = 2
@@ -88,8 +80,6 @@ message HardLiquidityProviderClaim {
 
 // DelegatorClaim stores delegation rewards that can be claimed by owner
 message DelegatorClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
   repeated MultiRewardIndex reward_indexes = 2
@@ -98,8 +88,6 @@ message DelegatorClaim {
 
 // SwapClaim stores the swap rewards that can be claimed by owner
 message SwapClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
   repeated MultiRewardIndex reward_indexes = 2
@@ -108,8 +96,6 @@ message SwapClaim {
 
 // SavingsClaim stores the savings rewards that can be claimed by owner
 message SavingsClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
   repeated MultiRewardIndex reward_indexes = 2
@@ -118,10 +104,38 @@ message SavingsClaim {
 
 // EarnClaim stores the earn rewards that can be claimed by owner
 message EarnClaim {
-  option (cosmos_proto.implements_interface) = "Claim";
-
   BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
 
   repeated MultiRewardIndex reward_indexes = 2
+      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+}
+
+// ClaimType is the type of claim
+enum ClaimType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  CLAIM_TYPE_UNSPECIFIED  = 0;
+  CLAIM_TYPE_HARD_BORROW  = 1;
+  CLAIM_TYPE_HARD_SUPPLY  = 2;
+  CLAIM_TYPE_DELEGATOR    = 3;
+  CLAIM_TYPE_EARN         = 4;
+  CLAIM_TYPE_SAVINGS      = 5;
+  CLAIM_TYPE_SWAP         = 6;
+  CLAIM_TYPE_USDX_MINTING = 7;
+}
+
+// Claim stores any generic rewards that can be claimed by owner
+message Claim {
+  ClaimType type = 1;
+
+  bytes owner = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressBytes",
+    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+  ];
+
+  repeated cosmos.base.v1beta1.Coin reward = 3
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+
+  repeated MultiRewardIndex reward_indexes = 4
       [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
 }
