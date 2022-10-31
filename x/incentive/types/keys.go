@@ -65,14 +65,19 @@ func getKeyPrefix(dataTypePrefix []byte, claimType ClaimType) []byte {
 	return createKey(dataTypePrefix, sep, b)
 }
 
+// GetClaimKeyPrefix returns the claim store key prefix for the given ClaimType.
 func GetClaimKeyPrefix(claimType ClaimType) []byte {
 	return getKeyPrefix(ClaimKeyPrefix, claimType)
 }
 
+// GetRewardIndexesKeyPrefix returns the reward indexes key prefix for the given
+// ClaimType.
 func GetRewardIndexesKeyPrefix(claimType ClaimType) []byte {
 	return getKeyPrefix(RewardIndexesKeyPrefix, claimType)
 }
 
+// GetPreviousRewardAccrualTimeKeyPrefix returns the previous reward accrual time
+// key prefix for the given ClaimType.
 func GetPreviousRewardAccrualTimeKeyPrefix(claimType ClaimType) []byte {
 	return getKeyPrefix(PreviousRewardAccrualTimeKeyPrefix, claimType)
 }
