@@ -120,9 +120,6 @@ func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes Re
 	}
 }
 
-// GetType returns the claim's type
-func (c USDXMintingClaim) GetType() string { return USDXMintingClaimType }
-
 // GetReward returns the claim's reward coin
 func (c USDXMintingClaim) GetReward() sdk.Coin { return c.Reward }
 
@@ -154,6 +151,20 @@ type USDXMintingClaims []USDXMintingClaim
 // Validate checks if all the claims are valid and there are no duplicated
 // entries.
 func (cs USDXMintingClaims) Validate() error {
+	for _, c := range cs {
+		if err := c.Validate(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Claims defines a slice of Claims
+type Claims []Claim
+
+// Validate checks if all the claims are valid.
+func (cs Claims) Validate() error {
 	for _, c := range cs {
 		if err := c.Validate(); err != nil {
 			return err
