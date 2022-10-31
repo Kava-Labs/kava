@@ -1,8 +1,5 @@
 package types
 
-// MinterKey is the key to use for the keeper store.
-var MinterKey = []byte{0x00}
-
 const (
 	// module name
 	ModuleName = "kavamint"
@@ -20,3 +17,6 @@ const (
 	QueryParameters = "parameters"
 	QueryInflation  = "inflation"
 )
+
+// PreviousBlockTimeKey is the store key for the previous block time
+var PreviousBlockTimeKey = []byte{0x00}

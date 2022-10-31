@@ -14,6 +14,11 @@ var (
 
 	DefaultCommunityPoolInflation = sdk.MustNewDecFromStr("0.900000000000000000")
 	DefaultStakingRewardsApy      = sdk.MustNewDecFromStr("0.200000000000000000")
+
+	// rates larger than 17,650% are out of bounds
+	// this is due to the necessary conversion of yearly rate to per second rate
+	// TODO consider lowering max rate. when it's this large the precision is very bad.
+	MaxMintingRate = sdk.NewDecWithPrec(1765, 1)
 )
 
 func NewParams(communityPoolInflation sdk.Dec, stakingRewardsApy sdk.Dec) Params {
@@ -49,17 +54,28 @@ func (p *Params) Validate() error {
 }
 
 func validateCommunityPoolInflation(i interface{}) error {
-	_, ok := i.(sdk.Dec)
+	rate, ok := i.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	return nil
+	return validateRateWithinBounds(rate)
 }
 
 func validateStakingRewardsApy(i interface{}) error {
-	_, ok := i.(sdk.Dec)
+	rate, ok := i.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	return validateRateWithinBounds(rate)
+}
+
+// validateRateWithinBounds ensure that the given rate falls within the allowed bounds: [0, MaxMintingRate]
+func validateRateWithinBounds(rate sdk.Dec) error {
+	if rate.BigInt().Sign() == -1 {
+		return fmt.Errorf("rate must be >= 0")
+	}
+	if MaxMintingRate.LT(rate) {
+		return fmt.Errorf("rate out of bounds. the max allowed rate is %s", MaxMintingRate)
 	}
 	return nil
 }

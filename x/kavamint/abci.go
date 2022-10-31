@@ -7,13 +7,16 @@ import (
 
 // BeginBlocker mints & distributes new tokens for the previous block.
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	params := k.GetParams(ctx)
+	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+	if !found {
+		previousBlockTime = ctx.BlockTime()
+	}
 
 	// ------------- Staking Rewards -------------
-	// number of tokens minted for staking rewards is total_bonded_tokens * apy
-	totalBonded := k.TotalBondedTokens(ctx)
-	stakingRewardsAmount := params.StakingRewardsApy.MulInt(totalBonded).TruncateInt()
-	stakingRewardCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), stakingRewardsAmount))
+	stakingRewardCoins, err := k.AccumulateStakingRewards(ctx, previousBlockTime)
+	if err != nil {
+		panic(err)
+	}
 
 	// mint staking rewards
 	if err := k.MintCoins(ctx, stakingRewardCoins); err != nil {
@@ -28,6 +31,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// ------------- Community Pool -------------
 	// TODO: mint tokens for community pool
 	// TODO: send tokens to community pool
+
+	// ------------- Bookkeeping -------------
+	// bookkeep the previous block time
+	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 
 	// TODO: emit event
 }
