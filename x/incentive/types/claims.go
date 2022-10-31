@@ -120,6 +120,9 @@ func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes Re
 	}
 }
 
+// GetType returns the claim's type
+func (c USDXMintingClaim) GetType() string { return USDXMintingClaimType }
+
 // GetReward returns the claim's reward coin
 func (c USDXMintingClaim) GetReward() sdk.Coin { return c.Reward }
 
