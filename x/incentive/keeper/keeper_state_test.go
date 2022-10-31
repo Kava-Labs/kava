@@ -83,5 +83,5 @@ func (suite *KeeperTestSuite) TestIterateClaims() {
 
 	allClaims := suite.keeper.GetAllClaims(suite.ctx)
 	suite.Require().Len(allClaims, len(claims))
-	suite.Require().Equal(allClaims, claims, "GetAllClaims() should return claims of all types")
+	suite.Require().ElementsMatch(allClaims, claims, "GetAllClaims() should return claims of all types")
 }
