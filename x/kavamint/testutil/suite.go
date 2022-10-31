@@ -1,4 +1,4 @@
-package keeper_test
+package testutil
 
 import (
 	"github.com/stretchr/testify/suite"
@@ -15,29 +15,30 @@ import (
 type KavamintTestSuite struct {
 	suite.Suite
 
-	tApp          app.TestApp
-	ctx           sdk.Context
-	keeper        keeper.Keeper
-	stakingKeeper stakingkeeper.Keeper
+	App           app.TestApp
+	Ctx           sdk.Context
+	Keeper        keeper.Keeper
+	StakingKeeper stakingkeeper.Keeper
 
 	bondDenom string
 }
 
 func (suite *KavamintTestSuite) SetupTest() {
 	app.SetSDKConfig()
-	suite.tApp = app.NewTestApp()
-	suite.tApp.InitializeFromGenesisStates()
-	suite.ctx = suite.tApp.BaseApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	suite.keeper = suite.tApp.GetKavamintKeeper()
-	suite.stakingKeeper = suite.tApp.GetStakingKeeper()
+	suite.App = app.NewTestApp()
+	suite.App.InitializeFromGenesisStates()
+	suite.Ctx = suite.App.BaseApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Keeper = suite.App.GetKavamintKeeper()
+	suite.StakingKeeper = suite.App.GetStakingKeeper()
 
-	suite.bondDenom = suite.keeper.BondDenom(suite.ctx)
+	suite.bondDenom = suite.Keeper.BondDenom(suite.Ctx)
 }
 
 // SetBondedTokenRatio mints the total supply to an account and creates a validator with a self
 // delegation that makes the total staked token ratio set as desired.
 // EndBlocker must be run in order for tokens to become bonded.
-func (suite *KavamintTestSuite) SetBondedTokenRatio(ratio sdk.Dec) {
+// returns total supply coins
+func (suite *KavamintTestSuite) SetBondedTokenRatio(ratio sdk.Dec) sdk.Coins {
 	address := app.RandomAddress()
 
 	supplyAmount := sdk.NewInt(1e10)
@@ -45,10 +46,12 @@ func (suite *KavamintTestSuite) SetBondedTokenRatio(ratio sdk.Dec) {
 	amountToBond := ratio.MulInt(supplyAmount).TruncateInt()
 
 	// fund account that will create validator with total supply
-	err := suite.tApp.FundAccount(suite.ctx, address, totalSupply)
+	err := suite.App.FundAccount(suite.Ctx, address, totalSupply)
 	suite.Require().NoError(err)
 
 	// create a validator with self delegation such that ratio is achieved
-	err = suite.tApp.CreateNewUnbondedValidator(suite.ctx, sdk.ValAddress(address), amountToBond)
+	err = suite.App.CreateNewUnbondedValidator(suite.Ctx, sdk.ValAddress(address), amountToBond)
 	suite.Require().NoError(err)
+
+	return totalSupply
 }

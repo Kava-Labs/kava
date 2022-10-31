@@ -10,11 +10,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
+	"github.com/kava-labs/kava/x/kavamint/testutil"
 	"github.com/kava-labs/kava/x/kavamint/types"
 )
 
 type grpcQueryTestSuite struct {
-	KavamintTestSuite
+	testutil.KavamintTestSuite
 
 	queryClient types.QueryClient
 }
@@ -22,8 +23,8 @@ type grpcQueryTestSuite struct {
 func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.KavamintTestSuite.SetupTest()
 
-	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.tApp.InterfaceRegistry())
-	types.RegisterQueryServer(queryHelper, suite.keeper)
+	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
+	types.RegisterQueryServer(queryHelper, suite.Keeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
 }
 
@@ -32,7 +33,7 @@ func TestGRPCQueryTestSuite(t *testing.T) {
 }
 
 func (suite *grpcQueryTestSuite) TestGRPCQueryParams() {
-	app, ctx, queryClient := suite.tApp, suite.ctx, suite.queryClient
+	app, ctx, queryClient := suite.App, suite.Ctx, suite.queryClient
 
 	kavamintKeeper := app.GetKavamintKeeper()
 
@@ -99,7 +100,7 @@ func (suite *grpcQueryTestSuite) TestGRPCInflationQuery() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			app, ctx, queryClient := suite.tApp, suite.ctx, suite.queryClient
+			app, ctx, queryClient := suite.App, suite.Ctx, suite.queryClient
 
 			kavamintKeeper := app.GetKavamintKeeper()
 
@@ -108,7 +109,7 @@ func (suite *grpcQueryTestSuite) TestGRPCInflationQuery() {
 
 			// set bonded token ratio
 			suite.SetBondedTokenRatio(tc.bondedRatio)
-			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+			staking.EndBlocker(ctx, suite.StakingKeeper)
 
 			// query inflation & check for expected results
 			inflation, err := queryClient.Inflation(context.Background(), &types.QueryInflationRequest{})
