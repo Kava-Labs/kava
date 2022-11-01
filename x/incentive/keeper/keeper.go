@@ -1042,18 +1042,22 @@ func (k Keeper) IterateRewardAccrualTimes(
 // claimType and performs a callback function.
 func (k Keeper) IterateAllRewardAccrualTimes(
 	ctx sdk.Context,
-	cb func(string, time.Time) (stop bool),
+	cb func(types.ClaimType, string, time.Time) (stop bool),
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousRewardAccrualTimeKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		subKey := string(iterator.Key())
+		claimType, subKey, err := types.DecodeKeyPrefix(iterator.Key())
+		if err != nil {
+			panic(err)
+		}
+
 		var accrualTime time.Time
 		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
 			panic(err)
 		}
-		if cb(subKey, accrualTime) {
+		if cb(claimType, subKey, accrualTime) {
 			break
 		}
 	}
