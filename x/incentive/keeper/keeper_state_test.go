@@ -160,16 +160,10 @@ func (suite *KeeperTestSuite) TestIterateRewardAccrualTimes() {
 	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
 }
 
-type claimAccrualTime struct {
-	accrualtime
-
-	claimType types.ClaimType
-}
-
 func (suite *KeeperTestSuite) TestIterateAllRewardAccrualTimes() {
 	suite.SetupApp()
 
-	var expectedAccrualTimes []claimAccrualTime
+	var expectedAccrualTimes types.AccrualTimes
 
 	for _, claimTypeValue := range types.ClaimType_value {
 		claimType := types.ClaimType(claimTypeValue)
@@ -182,27 +176,20 @@ func (suite *KeeperTestSuite) TestIterateAllRewardAccrualTimes() {
 		for _, at := range nonEmptyAccrualTimes {
 			suite.keeper.SetRewardAccrualTime(suite.ctx, claimType, at.denom, at.time)
 
-			expectedAccrualTimes = append(expectedAccrualTimes, claimAccrualTime{
-				claimType: claimType,
-				accrualtime: accrualtime{
-					denom: at.denom,
-					time:  at.time,
-				},
-			})
+			expectedAccrualTimes = append(expectedAccrualTimes, types.NewAccrualTime(
+				claimType,
+
+				at.denom,
+				at.time,
+			))
 		}
 	}
 
-	var actualAccrualTimes []claimAccrualTime
+	var actualAccrualTimes types.AccrualTimes
 	suite.keeper.IterateAllRewardAccrualTimes(
 		suite.ctx,
-		func(claimType types.ClaimType, subKey string, accrualTime time.Time) bool {
-			claimAt := claimAccrualTime{
-				claimType: claimType, accrualtime: accrualtime{
-					denom: subKey, time: accrualTime,
-				},
-			}
-
-			actualAccrualTimes = append(actualAccrualTimes, claimAt)
+		func(accrualTime types.AccrualTime) bool {
+			actualAccrualTimes = append(actualAccrualTimes, accrualTime)
 			return false
 		},
 	)

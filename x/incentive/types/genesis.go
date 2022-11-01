@@ -99,10 +99,6 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.Claims.Validate(); err != nil {
-		return err
-	}
-
 	if err := gs.USDXMintingClaims.Validate(); err != nil {
 		return err
 	}
@@ -120,7 +116,16 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	return gs.EarnClaims.Validate()
+	if err := gs.EarnClaims.Validate(); err != nil {
+		return err
+	}
+
+	// Refactored methods -- these will eventually replace the claim and state methods above
+	if err := gs.Claims.Validate(); err != nil {
+		return err
+	}
+
+	return gs.AccrualTimes.Validate()
 }
 
 // NewGenesisRewardState returns a new GenesisRewardState
@@ -160,6 +165,41 @@ type AccumulationTimes []AccumulationTime
 
 // Validate performs validation of GenesisAccumulationTimes
 func (gats AccumulationTimes) Validate() error {
+	for _, gat := range gats {
+		if err := gat.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// NewAccrualTime returns a new AccrualTime
+func NewAccrualTime(claimType ClaimType, collateralType string, prevTime time.Time) AccrualTime {
+	return AccrualTime{
+		ClaimType:                claimType,
+		CollateralType:           collateralType,
+		PreviousAccumulationTime: prevTime,
+	}
+}
+
+// Validate performs validation of AccrualTime
+func (at AccrualTime) Validate() error {
+	if err := at.ClaimType.Validate(); err != nil {
+		return err
+	}
+
+	if len(at.CollateralType) == 0 {
+		return fmt.Errorf("collateral type cannot be empty")
+	}
+
+	return nil
+}
+
+// AccrualTimes slice of AccrualTime
+type AccrualTimes []AccrualTime
+
+// Validate performs validation of AccrualTimes
+func (gats AccrualTimes) Validate() error {
 	for _, gat := range gats {
 		if err := gat.Validate(); err != nil {
 			return err

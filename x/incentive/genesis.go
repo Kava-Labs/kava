@@ -49,6 +49,15 @@ func InitGenesis(
 		k.SetClaim(ctx, claim)
 	}
 
+	for _, accumulationTime := range gs.AccrualTimes {
+		k.SetRewardAccrualTime(
+			ctx,
+			accumulationTime.ClaimType,
+			accumulationTime.CollateralType,
+			accumulationTime.PreviousAccumulationTime,
+		)
+	}
+
 	// USDX Minting
 	for _, claim := range gs.USDXMintingClaims {
 		k.SetUSDXMintingClaim(ctx, claim)

@@ -988,16 +988,16 @@ func (k Keeper) GetRewardAccrualTime(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	subKey string,
-) (blockTime time.Time, found bool) {
+) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
 	b := store.Get([]byte(subKey))
 	if b == nil {
 		return time.Time{}, false
 	}
-	if err := blockTime.UnmarshalBinary(b); err != nil {
-		panic(err)
-	}
-	return blockTime, true
+	var accrualTime types.AccrualTime
+	k.cdc.MustUnmarshal(b, &accrualTime)
+
+	return accrualTime.PreviousAccumulationTime, true
 }
 
 // SetRewardAccrualTime stores the last time rewards were accrued for the
@@ -1009,10 +1009,9 @@ func (k Keeper) SetRewardAccrualTime(
 	blockTime time.Time,
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
-	bz, err := blockTime.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
+
+	at := types.NewAccrualTime(claimType, subKey, blockTime)
+	bz := k.cdc.MustMarshal(&at)
 	store.Set([]byte(subKey), bz)
 }
 
@@ -1027,12 +1026,10 @@ func (k Keeper) IterateRewardAccrualTimes(
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		subKey := string(iterator.Key())
-		var accrualTime time.Time
-		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
-			panic(err)
-		}
-		if cb(subKey, accrualTime) {
+		var accrualTime types.AccrualTime
+		k.cdc.MustUnmarshal(iterator.Value(), &accrualTime)
+
+		if cb(accrualTime.CollateralType, accrualTime.PreviousAccumulationTime) {
 			break
 		}
 	}
@@ -1042,23 +1039,30 @@ func (k Keeper) IterateRewardAccrualTimes(
 // claimType and performs a callback function.
 func (k Keeper) IterateAllRewardAccrualTimes(
 	ctx sdk.Context,
-	cb func(types.ClaimType, string, time.Time) (stop bool),
+	cb func(types.AccrualTime) (stop bool),
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousRewardAccrualTimeKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		claimType, subKey, err := types.DecodeKeyPrefix(iterator.Key())
-		if err != nil {
-			panic(err)
-		}
+		var accrualTime types.AccrualTime
+		k.cdc.MustUnmarshal(iterator.Value(), &accrualTime)
 
-		var accrualTime time.Time
-		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
-			panic(err)
-		}
-		if cb(claimType, subKey, accrualTime) {
+		if cb(accrualTime) {
 			break
 		}
 	}
+}
+
+func (k Keeper) GetAllRewardAccrualTimes(ctx sdk.Context) types.AccrualTimes {
+	var ats types.AccrualTimes
+	k.IterateAllRewardAccrualTimes(
+		ctx,
+		func(accrualTime types.AccrualTime) bool {
+			ats = append(ats, accrualTime)
+			return false
+		},
+	)
+
+	return ats
 }
