@@ -153,7 +153,7 @@ func (k Keeper) accumulateBkavaEarnRewards(
 		indexes = types.RewardIndexes{}
 	}
 
-	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
+	totalSourceShares := k.getSourceAdapter(types.CLAIM_TYPE_EARN).GetTotalShares(ctx, collateralType)
 	var increment types.RewardIndexes
 	if totalSourceShares.GT(sdk.ZeroDec()) {
 		// Divide total rewards by total shares to get the reward **per share**
@@ -227,7 +227,7 @@ func (k Keeper) accumulateEarnRewards(
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
+	totalSourceShares := k.getSourceAdapter(types.CLAIM_TYPE_EARN).GetTotalShares(ctx, collateralType)
 
 	acc.AccumulateDecCoins(
 		periodStart,
@@ -242,16 +242,6 @@ func (k Keeper) accumulateEarnRewards(
 		// the store panics when setting empty or nil indexes
 		k.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
 	}
-}
-
-// getEarnTotalSourceShares fetches the sum of all source shares for a earn reward.
-// In the case of earn, these are the total (earn module) shares in a particular vault.
-func (k Keeper) getEarnTotalSourceShares(ctx sdk.Context, vaultDenom string) sdk.Dec {
-	totalShares, found := k.earnKeeper.GetVaultTotalShares(ctx, vaultDenom)
-	if !found {
-		return sdk.ZeroDec()
-	}
-	return totalShares.Amount
 }
 
 // InitializeEarnReward creates a new claim with zero rewards and indexes matching the global indexes.
@@ -335,17 +325,17 @@ func (k Keeper) GetSynchronizedEarnClaim(ctx sdk.Context, owner sdk.AccAddress) 
 		return types.EarnClaim{}, false
 	}
 
-	shares, found := k.earnKeeper.GetVaultAccountShares(ctx, owner)
-	if !found {
-		shares = earntypes.NewVaultShares()
-	}
-
+	var sourceIDs []string
 	k.IterateEarnRewardIndexes(ctx, func(vaultDenom string, _ types.RewardIndexes) bool {
-		vaultAmount := shares.AmountOf(vaultDenom)
-		claim = k.synchronizeEarnReward(ctx, claim, vaultDenom, owner, vaultAmount)
-
+		sourceIDs = append(sourceIDs, vaultDenom)
 		return false
 	})
+
+	adapter := k.getSourceAdapter(types.CLAIM_TYPE_EARN)
+	allShares := adapter.GetShares(ctx, owner, sourceIDs)
+	for i := range sourceIDs {
+		claim = k.synchronizeEarnReward(ctx, claim, sourceIDs[i], owner, allShares[i])
+	}
 
 	return claim, true
 }

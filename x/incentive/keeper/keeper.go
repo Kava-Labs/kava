@@ -1,12 +1,15 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/earn"
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/swap"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -20,10 +23,11 @@ type Keeper struct {
 	cdpKeeper     types.CdpKeeper
 	hardKeeper    types.HardKeeper
 	stakingKeeper types.StakingKeeper
-	swapKeeper    types.SwapKeeper
 	savingsKeeper types.SavingsKeeper
 	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
+
+	adapters map[types.ClaimType]types.SourceAdapter
 
 	// Keepers used for APY queries
 	mintKeeper      types.MintKeeper
@@ -43,22 +47,35 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		accountKeeper:   ak,
-		cdc:             cdc,
-		key:             key,
-		paramSubspace:   paramstore,
-		bankKeeper:      bk,
-		cdpKeeper:       cdpk,
-		hardKeeper:      hk,
-		stakingKeeper:   stk,
-		swapKeeper:      swpk,
-		savingsKeeper:   svk,
-		liquidKeeper:    lqk,
-		earnKeeper:      ek,
+		accountKeeper: ak,
+		cdc:           cdc,
+		key:           key,
+		paramSubspace: paramstore,
+		bankKeeper:    bk,
+		cdpKeeper:     cdpk,
+		hardKeeper:    hk,
+		stakingKeeper: stk,
+		savingsKeeper: svk,
+		liquidKeeper:  lqk,
+		earnKeeper:    ek,
+
+		adapters: map[types.ClaimType]types.SourceAdapter{
+			types.CLAIM_TYPE_SWAP: swap.NewSourceAdapter(swpk),
+			types.CLAIM_TYPE_EARN: earn.NewSourceAdapter(ek),
+		},
+
 		mintKeeper:      mk,
 		distrKeeper:     dk,
 		pricefeedKeeper: pfk,
 	}
+}
+
+func (k Keeper) getSourceAdapter(claimType types.ClaimType) types.SourceAdapter {
+	fetcher, found := k.adapters[claimType]
+	if !found {
+		panic(fmt.Sprintf("no source share fetcher for claim type %s", claimType))
+	}
+	return fetcher
 }
 
 // GetUSDXMintingClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
