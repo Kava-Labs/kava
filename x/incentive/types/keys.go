@@ -60,7 +60,7 @@ func createKey(bytes ...[]byte) (r []byte) {
 
 func getKeyPrefix(dataTypePrefix []byte, claimType ClaimType) []byte {
 	b := make([]byte, 4)
-	binary.LittleEndian.PutUint32(b, uint32(claimType))
+	binary.BigEndian.PutUint32(b, uint32(claimType))
 
 	return createKey(dataTypePrefix, sep, b)
 }
