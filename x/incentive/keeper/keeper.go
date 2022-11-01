@@ -1054,6 +1054,7 @@ func (k Keeper) IterateAllRewardAccrualTimes(
 	}
 }
 
+// GetAllRewardAccrualTimes returns all reward accrual times of any claimType.
 func (k Keeper) GetAllRewardAccrualTimes(ctx sdk.Context) types.AccrualTimes {
 	var ats types.AccrualTimes
 	k.IterateAllRewardAccrualTimes(
