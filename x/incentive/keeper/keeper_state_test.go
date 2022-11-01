@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"time"
+
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -84,4 +86,76 @@ func (suite *KeeperTestSuite) TestIterateClaims() {
 	allClaims := suite.keeper.GetAllClaims(suite.ctx)
 	suite.Require().Len(allClaims, len(claims))
 	suite.Require().ElementsMatch(allClaims, claims, "GetAllClaims() should return claims of all types")
+}
+
+func (suite *KeeperTestSuite) TestGetSetRewardAccrualTimes() {
+	testCases := []struct {
+		name        string
+		subKey      string
+		accrualTime time.Time
+		panics      bool
+	}{
+		{
+			name:        "normal time can be written and read",
+			subKey:      "btc/usdx",
+			accrualTime: time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		},
+		{
+			name:        "zero time can be written and read",
+			subKey:      "btc/usdx",
+			accrualTime: time.Time{},
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey)
+			suite.False(found)
+
+			setFunc := func() {
+				suite.keeper.SetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey, tc.accrualTime)
+			}
+			if tc.panics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			for _, claimTypeValue := range types.ClaimType_value {
+				claimType := types.ClaimType(claimTypeValue)
+
+				if claimType == types.CLAIM_TYPE_USDX_MINTING {
+					continue
+				}
+
+				_, found := suite.keeper.GetRewardAccrualTime(suite.ctx, claimType, tc.subKey)
+				suite.False(found, "reward accrual time for claim type %s should not exist", claimType)
+			}
+
+			storedTime, found := suite.keeper.GetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey)
+			suite.True(found)
+			suite.Equal(tc.accrualTime, storedTime)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestIterateRewardAccrualTimes() {
+	suite.SetupApp()
+
+	expectedAccrualTimes := nonEmptyAccrualTimes
+
+	for _, at := range expectedAccrualTimes {
+		suite.keeper.SetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, at.denom, at.time)
+	}
+
+	var actualAccrualTimes []accrualtime
+	suite.keeper.IterateRewardAccrualTimes(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, func(denom string, accrualTime time.Time) bool {
+		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
+		return false
+	})
+
+	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
 }

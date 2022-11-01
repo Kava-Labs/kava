@@ -1023,7 +1023,8 @@ func (k Keeper) IterateRewardAccrualTimes(
 	claimType types.ClaimType,
 	cb func(string, time.Time) (stop bool),
 ) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		subKey := string(iterator.Key())
@@ -1043,7 +1044,8 @@ func (k Keeper) IterateAllRewardAccrualTimes(
 	ctx sdk.Context,
 	cb func(string, time.Time) (stop bool),
 ) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.PreviousRewardAccrualTimeKeyPrefix)
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		subKey := string(iterator.Key())
