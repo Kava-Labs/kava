@@ -981,3 +981,78 @@ func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
 
 	return cs
 }
+
+// GetRewardAccrualTime fetches the last time rewards were accrued for the
+// specified ClaimType and subKey.
+func (k Keeper) GetRewardAccrualTime(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	subKey string,
+) (blockTime time.Time, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+	b := store.Get([]byte(subKey))
+	if b == nil {
+		return time.Time{}, false
+	}
+	if err := blockTime.UnmarshalBinary(b); err != nil {
+		panic(err)
+	}
+	return blockTime, true
+}
+
+// SetRewardAccrualTime stores the last time rewards were accrued for the
+// specified ClaimType and subKey.
+func (k Keeper) SetRewardAccrualTime(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	subKey string,
+	blockTime time.Time,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+	bz, err := blockTime.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	store.Set([]byte(subKey), bz)
+}
+
+// IterateRewardAccrualTimes iterates over all reward accrual times of a given
+// claimType and performs a callback function.
+func (k Keeper) IterateRewardAccrualTimes(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	cb func(string, time.Time) (stop bool),
+) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		subKey := string(iterator.Key())
+		var accrualTime time.Time
+		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
+			panic(err)
+		}
+		if cb(subKey, accrualTime) {
+			break
+		}
+	}
+}
+
+// IterateAllRewardAccrualTimes iterates over all reward accrual times of any
+// claimType and performs a callback function.
+func (k Keeper) IterateAllRewardAccrualTimes(
+	ctx sdk.Context,
+	cb func(string, time.Time) (stop bool),
+) {
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.PreviousRewardAccrualTimeKeyPrefix)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		subKey := string(iterator.Key())
+		var accrualTime time.Time
+		if err := accrualTime.UnmarshalBinary(iterator.Value()); err != nil {
+			panic(err)
+		}
+		if cb(subKey, accrualTime) {
+			break
+		}
+	}
+}
