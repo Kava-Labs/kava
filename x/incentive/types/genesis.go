@@ -6,7 +6,6 @@ import (
 )
 
 var (
-	DefaultClaims             = Claims{}
 	DefaultUSDXClaims         = USDXMintingClaims{}
 	DefaultHardClaims         = HardLiquidityProviderClaims{}
 	DefaultDelegatorClaims    = DelegatorClaims{}
@@ -17,6 +16,10 @@ var (
 		MultiRewardIndexes{},
 	)
 	DefaultEarnClaims = EarnClaims{}
+
+	// New fields
+	DefaultClaims       = Claims{}
+	DefaultAccrualTimes = AccrualTimes{}
 )
 
 // NewGenesisState returns a new genesis state
@@ -26,6 +29,7 @@ func NewGenesisState(
 	c Claims,
 	uc USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
 	earnc EarnClaims,
+	accrualTimes AccrualTimes,
 ) GenesisState {
 	return GenesisState{
 		Params: params,
@@ -38,14 +42,17 @@ func NewGenesisState(
 		SavingsRewardState:    savingsState,
 		EarnRewardState:       earnState,
 
-		// Claims of all types
-		Claims:                      c,
 		USDXMintingClaims:           uc,
 		HardLiquidityProviderClaims: hc,
 		DelegatorClaims:             dc,
 		SwapClaims:                  sc,
 		SavingsClaims:               savingsc,
 		EarnClaims:                  earnc,
+
+		// New fields
+		// Claims of all types
+		Claims:       c,
+		AccrualTimes: accrualTimes,
 	}
 }
 
@@ -67,6 +74,7 @@ func DefaultGenesisState() GenesisState {
 		SwapClaims:                  DefaultSwapClaims,
 		SavingsClaims:               DefaultSavingsClaims,
 		EarnClaims:                  DefaultEarnClaims,
+		AccrualTimes:                DefaultAccrualTimes,
 	}
 }
 
