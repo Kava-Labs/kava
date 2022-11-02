@@ -197,6 +197,13 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 	require.Equal(t, expectedCoins, coins)
 }
 
+// GetModuleAccountBalance gets the current balance of the denom for a module account
+func (tApp TestApp) GetModuleAccountBalance(ctx sdk.Context, moduleName string, denom string) sdk.Int {
+	moduleAcc := tApp.accountKeeper.GetModuleAccount(ctx, moduleName)
+	balance := tApp.bankKeeper.GetBalance(ctx, moduleAcc.GetAddress(), denom)
+	return balance.Amount
+}
+
 // FundAccount is a utility function that funds an account by minting and sending the coins to the address.
 func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
 	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
