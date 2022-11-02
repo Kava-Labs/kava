@@ -5,16 +5,6 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/kavamint/types";
 
-// Minter represents the minting state for x/kavamint.
-// message Minter {
-//   // current cummulative annual inflation rate
-//   string inflation = 1
-//       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-//   // current annual expected provisions
-//   string annual_provisions = 2
-//       [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-// }
-
 // Params wraps the governance parmeters for the kavamint module
 message Params {
   // yearly inflation of total token supply minted to the community pool.

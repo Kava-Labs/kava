@@ -769,6 +769,7 @@ func NewApp(
 		committeetypes.ModuleName,
 		minttypes.ModuleName,
 		// Kavamint registers with the vanilla mint module.
+		// Must be run before distribution module in order to generate block staking rewards.
 		kavaminttypes.ModuleName,
 		distrtypes.ModuleName,
 		// During begin block slashing happens after distr.BeginBlocker so that

@@ -8,9 +8,6 @@ option go_package = "github.com/kava-labs/kava/x/kavamint/types";
 
 // GenesisState defines the kavamint module's genesis state.
 message GenesisState {
-  // minter is a space for holding current inflation information.
-  // Minter minter = 1 [(gogoproto.nullable) = false];
-
   // params defines all the paramaters of the module.
   Params params = 2 [(gogoproto.nullable) = false];
 }

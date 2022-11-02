@@ -5663,9 +5663,6 @@ Params wraps the governance parmeters for the kavamint module
 ### GenesisState
 GenesisState defines the kavamint module's genesis state.
 
-minter is a space for holding current inflation information.
-Minter minter = 1 [(gogoproto.nullable) = false];
-
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |

@@ -25,7 +25,7 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse defines the response type for querying x/kavamint parameters.
 message QueryParamsResponse {
-  Params params = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"params\""];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryInflationRequest is the request type for the Query/Inflation RPC method.
