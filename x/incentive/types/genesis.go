@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	DefaultClaims             = Claims{}
 	DefaultUSDXClaims         = USDXMintingClaims{}
 	DefaultHardClaims         = HardLiquidityProviderClaims{}
 	DefaultDelegatorClaims    = DelegatorClaims{}
@@ -22,7 +23,8 @@ var (
 func NewGenesisState(
 	params Params,
 	usdxState, hardSupplyState, hardBorrowState, delegatorState, swapState, savingsState, earnState GenesisRewardState,
-	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
+	c Claims,
+	uc USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
 	earnc EarnClaims,
 ) GenesisState {
 	return GenesisState{
@@ -36,7 +38,9 @@ func NewGenesisState(
 		SavingsRewardState:    savingsState,
 		EarnRewardState:       earnState,
 
-		USDXMintingClaims:           c,
+		// Claims of all types
+		Claims:                      c,
+		USDXMintingClaims:           uc,
 		HardLiquidityProviderClaims: hc,
 		DelegatorClaims:             dc,
 		SwapClaims:                  sc,
@@ -56,6 +60,7 @@ func DefaultGenesisState() GenesisState {
 		SwapRewardState:             DefaultGenesisRewardState,
 		SavingsRewardState:          DefaultGenesisRewardState,
 		EarnRewardState:             DefaultGenesisRewardState,
+		Claims:                      DefaultClaims,
 		USDXMintingClaims:           DefaultUSDXClaims,
 		HardLiquidityProviderClaims: DefaultHardClaims,
 		DelegatorClaims:             DefaultDelegatorClaims,
@@ -91,6 +96,10 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 	if err := gs.EarnRewardState.Validate(); err != nil {
+		return err
+	}
+
+	if err := gs.Claims.Validate(); err != nil {
 		return err
 	}
 

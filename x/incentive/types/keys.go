@@ -1,5 +1,7 @@
 package types
 
+import "encoding/binary"
+
 const (
 	// ModuleName The name that will be used throughout the module
 	ModuleName = "incentive"
@@ -40,3 +42,42 @@ var (
 	EarnRewardIndexesKeyPrefix                    = []byte{0x19} // prefix for key that stores earn reward indexes
 	PreviousEarnRewardAccrualTimeKeyPrefix        = []byte{0x20} // prefix for key that stores the previous time earn rewards accrued
 )
+
+var (
+	ClaimKeyPrefix                     = []byte{0x21}
+	RewardIndexesKeyPrefix             = []byte{0x22}
+	PreviousRewardAccrualTimeKeyPrefix = []byte{0x23}
+)
+
+var sep = []byte("|")
+
+func createKey(bytes ...[]byte) (r []byte) {
+	for _, b := range bytes {
+		r = append(r, b...)
+	}
+	return
+}
+
+func getKeyPrefix(dataTypePrefix []byte, claimType ClaimType) []byte {
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, uint32(claimType))
+
+	return createKey(dataTypePrefix, sep, b)
+}
+
+// GetClaimKeyPrefix returns the claim store key prefix for the given ClaimType.
+func GetClaimKeyPrefix(claimType ClaimType) []byte {
+	return getKeyPrefix(ClaimKeyPrefix, claimType)
+}
+
+// GetRewardIndexesKeyPrefix returns the reward indexes key prefix for the given
+// ClaimType.
+func GetRewardIndexesKeyPrefix(claimType ClaimType) []byte {
+	return getKeyPrefix(RewardIndexesKeyPrefix, claimType)
+}
+
+// GetPreviousRewardAccrualTimeKeyPrefix returns the previous reward accrual time
+// key prefix for the given ClaimType.
+func GetPreviousRewardAccrualTimeKeyPrefix(claimType ClaimType) []byte {
+	return getKeyPrefix(PreviousRewardAccrualTimeKeyPrefix, claimType)
+}
