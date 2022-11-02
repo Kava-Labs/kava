@@ -4873,6 +4873,7 @@ GenesisState is the state that must be provided at genesis.
 | `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
 | `claims` | [Claim](#kava.incentive.v1beta1.Claim) | repeated |  |
 | `accrual_times` | [AccrualTime](#kava.incentive.v1beta1.AccrualTime) | repeated |  |
+| `reward_indexes` | [TypedRewardIndexes](#kava.incentive.v1beta1.TypedRewardIndexes) | repeated |  |
 
 
 

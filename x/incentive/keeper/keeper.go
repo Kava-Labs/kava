@@ -1141,3 +1141,17 @@ func (k Keeper) IterateAllRewardIndexes(
 		}
 	}
 }
+
+// GetAllRewardIndexes returns all reward indexes of any claimType.
+func (k Keeper) GetAllRewardIndexes(ctx sdk.Context) types.TypedRewardIndexesList {
+	var tril types.TypedRewardIndexesList
+	k.IterateAllRewardIndexes(
+		ctx,
+		func(typedRewardIndexes types.TypedRewardIndexes) bool {
+			tril = append(tril, typedRewardIndexes)
+			return false
+		},
+	)
+
+	return tril
+}
