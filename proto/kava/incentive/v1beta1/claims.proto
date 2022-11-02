@@ -45,6 +45,14 @@ message RewardIndexesProto {
   repeated RewardIndex reward_indexes = 1 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
 }
 
+// TypedRewardIndexes defines a RewardIndexes slice with its corresponding
+// claim and collateral type
+message TypedRewardIndexes {
+  ClaimType            claim_type      = 1;
+  string               collateral_type = 2;
+  repeated RewardIndex reward_indexes  = 3 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+}
+
 // MultiRewardIndex stores reward accumulation information on multiple reward types
 message MultiRewardIndex {
   string collateral_type = 1;

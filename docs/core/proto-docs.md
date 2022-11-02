@@ -317,6 +317,7 @@
     - [RewardIndexesProto](#kava.incentive.v1beta1.RewardIndexesProto)
     - [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
+    - [TypedRewardIndexes](#kava.incentive.v1beta1.TypedRewardIndexes)
     - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
   
     - [ClaimType](#kava.incentive.v1beta1.ClaimType)
@@ -4613,6 +4614,24 @@ SwapClaim stores the swap rewards that can be claimed by owner
 | ----- | ---- | ----- | ----------- |
 | `base_claim` | [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim) |  |  |
 | `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.TypedRewardIndexes"></a>
+
+### TypedRewardIndexes
+TypedRewardIndexes defines a RewardIndexes slice with its corresponding
+claim and collateral type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `claim_type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
 
 
 
