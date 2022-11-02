@@ -1,9 +1,7 @@
 package types
 
 import (
-	"bytes"
 	"encoding/binary"
-	"fmt"
 )
 
 const (
@@ -67,34 +65,6 @@ func getKeyPrefix(dataTypePrefix []byte, claimType ClaimType) []byte {
 	binary.BigEndian.PutUint32(b, uint32(claimType))
 
 	return createKey(dataTypePrefix, sep, b)
-}
-
-// DecodeKeyPrefix decodes the ClaimType and subKey from the given key prefix.
-func DecodeKeyPrefix(key []byte) (ClaimType, string, error) {
-	// Remove any data type prefix
-	trimmedKey := bytes.TrimPrefix(key, ClaimKeyPrefix)
-	trimmedKey = bytes.TrimPrefix(trimmedKey, RewardIndexesKeyPrefix)
-	trimmedKey = bytes.TrimPrefix(trimmedKey, PreviousRewardAccrualTimeKeyPrefix)
-
-	// Remove the key separator
-	trimmedKey = bytes.TrimPrefix(trimmedKey, sep)
-
-	// Need 4 bytes to decode the ClaimType, then there's the subKey after that.
-	if len(trimmedKey) < 4 {
-		return CLAIM_TYPE_UNSPECIFIED, "", fmt.Errorf("invalid key prefix length to decode ClaimType: %v", string(key))
-	}
-
-	claimTypeBytes := trimmedKey[:4]
-	subKeyBytes := trimmedKey[4:]
-
-	claimTypeValue := binary.LittleEndian.Uint32(claimTypeBytes)
-	claimType := ClaimType(claimTypeValue)
-
-	if err := claimType.Validate(); err != nil {
-		return claimType, "", err
-	}
-
-	return claimType, string(subKeyBytes), nil
 }
 
 // GetClaimKeyPrefix returns the claim store key prefix for the given ClaimType.
