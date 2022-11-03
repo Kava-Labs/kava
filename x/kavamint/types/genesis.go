@@ -1,16 +1,23 @@
 package types
 
+import (
+	fmt "fmt"
+	time "time"
+)
+
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params) *GenesisState {
+func NewGenesisState(params Params, previousBlockTime time.Time) *GenesisState {
 	return &GenesisState{
-		Params: params,
+		Params:            params,
+		PreviousBlockTime: previousBlockTime,
 	}
 }
 
 // DefaultGenesisState creates a default GenesisState object
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params: DefaultParams(),
+		Params:            DefaultParams(),
+		PreviousBlockTime: DefaultPreviousBlockTime,
 	}
 }
 
@@ -20,6 +27,8 @@ func ValidateGenesis(data GenesisState) error {
 	if err := data.Params.Validate(); err != nil {
 		return err
 	}
-
+	if data.PreviousBlockTime.IsZero() {
+		return fmt.Errorf("previous block time not set")
+	}
 	return nil
 }

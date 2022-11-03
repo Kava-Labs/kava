@@ -5667,6 +5667,7 @@ GenesisState defines the kavamint module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#kava.kavamint.v1beta1.Params) |  | Params defines all the parameters of the module. |
+| `previous_block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | PreviousBlockTime holds the last last time tokens were minted. On first block, tokens will be minted for total number of seconds passed since this time. |
 
 
 

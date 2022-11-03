@@ -2,9 +2,11 @@ package types
 
 import (
 	fmt "fmt"
+	time "time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 // Parameter keys & defaults
@@ -12,6 +14,7 @@ var (
 	KeyCommunityPoolInflation = []byte("CommunityPoolInflation")
 	KeyStakingRewardsApy      = []byte("StakingRewardsApy")
 
+	DefaultPreviousBlockTime      = tmtime.Canonical(time.Unix(1, 0))
 	DefaultCommunityPoolInflation = sdk.MustNewDecFromStr("0.900000000000000000")
 	DefaultStakingRewardsApy      = sdk.MustNewDecFromStr("0.200000000000000000")
 

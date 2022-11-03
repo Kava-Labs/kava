@@ -51,6 +51,7 @@ func (suite *abciTestSuite) TestBeginBlockerMintsStakingRewards() {
 	stakingApy := sdk.NewDecWithPrec(20, 2)
 
 	kavamintKeeper.SetParams(ctx, types.NewParams(sdk.ZeroDec(), stakingApy))
+	kavamintKeeper.SetPreviousBlockTime(ctx, ctx.BlockTime())
 
 	// determine factor based on 20% APY, compounded per second, for 6 seconds
 	rate, err := keeper.CalculateInflationRate(stakingApy, blockTime)
