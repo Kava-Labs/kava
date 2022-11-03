@@ -5,7 +5,7 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/kavamint/types";
 
-// Params wraps the governance parmeters for the kavamint module
+// Params wraps the governance parameters for the kavamint module
 message Params {
   // yearly inflation of total token supply minted to the community pool.
   bytes community_pool_inflation = 1

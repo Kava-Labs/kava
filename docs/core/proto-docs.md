@@ -5629,7 +5629,7 @@ Query defines the gRPC querier service.
 <a name="kava.kavamint.v1beta1.Params"></a>
 
 ### Params
-Params wraps the governance parmeters for the kavamint module
+Params wraps the governance parameters for the kavamint module
 
 
 | Field | Type | Label | Description |
@@ -5666,7 +5666,7 @@ GenesisState defines the kavamint module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.kavamint.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `params` | [Params](#kava.kavamint.v1beta1.Params) |  | Params defines all the parameters of the module. |
 
 
 

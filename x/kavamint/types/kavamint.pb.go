@@ -24,7 +24,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// Params wraps the governance parmeters for the kavamint module
+// Params wraps the governance parameters for the kavamint module
 type Params struct {
 	// yearly inflation of total token supply minted to the community pool.
 	CommunityPoolInflation github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,1,opt,name=community_pool_inflation,json=communityPoolInflation,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"community_pool_inflation"`
