@@ -12,10 +12,9 @@ message CommunityPoolMultiSpendProposal {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string                       title          = 1 [(gogoproto.moretags) = "yaml:\"title\""];
-  string                       description    = 2 [(gogoproto.moretags) = "yaml:\"description\""];
-  repeated MultiSpendRecipient recipient_list = 3
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"recipient_list\""];
+  string                       title          = 1;
+  string                       description    = 2;
+  repeated MultiSpendRecipient recipient_list = 3 [(gogoproto.nullable) = false];
 }
 
 // CommunityPoolMultiSpendProposalJSON defines a CommunityPoolMultiSpendProposal with a deposit
@@ -23,15 +22,11 @@ message CommunityPoolMultiSpendProposalJSON {
   option (gogoproto.goproto_stringer) = true;
   option (gogoproto.goproto_getters)  = false;
 
-  string                       title          = 1 [(gogoproto.moretags) = "yaml:\"title\""];
-  string                       description    = 2 [(gogoproto.moretags) = "yaml:\"title\""];
-  repeated MultiSpendRecipient recipient_list = 3
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"recipient_list\""];
-  repeated cosmos.base.v1beta1.Coin deposit = 4 [
-    (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.moretags)     = "yaml:\"deposit\""
-  ];
+  string                       title          = 1;
+  string                       description    = 2;
+  repeated MultiSpendRecipient recipient_list = 3 [(gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin deposit   = 4
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }
 
 // MultiSpendRecipient defines a recipient and the amount of coins they are receiving
@@ -39,10 +34,7 @@ message MultiSpendRecipient {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.goproto_getters)  = false;
 
-  string   address                         = 1 [(gogoproto.moretags) = "yaml:\"address\""];
-  repeated cosmos.base.v1beta1.Coin amount = 2 [
-    (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.moretags)     = "yaml:\"amount\""
-  ];
+  string   address                         = 1;
+  repeated cosmos.base.v1beta1.Coin amount = 2
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }

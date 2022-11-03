@@ -26,7 +26,7 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse defines the response type for querying x/kavadist parameters.
 message QueryParamsResponse {
-  Params params = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"params\""];
+  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryBalanceRequest defines the request type for querying x/kavadist balance.
@@ -34,9 +34,6 @@ message QueryBalanceRequest {}
 
 // QueryBalanceResponse defines the response type for querying x/kavadist balance.
 message QueryBalanceResponse {
-  repeated cosmos.base.v1beta1.Coin coins = 1 [
-    (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
-    (gogoproto.moretags)     = "yaml:\"coins\""
-  ];
+  repeated cosmos.base.v1beta1.Coin coins = 1
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }

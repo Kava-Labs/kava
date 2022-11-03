@@ -4643,14 +4643,14 @@ ClaimType is the type of claim
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| CLAIM_TYPE_UNSPECIFIED | 0 |  |
-| CLAIM_TYPE_HARD_BORROW | 1 |  |
-| CLAIM_TYPE_HARD_SUPPLY | 2 |  |
-| CLAIM_TYPE_DELEGATOR | 3 |  |
-| CLAIM_TYPE_EARN | 4 |  |
-| CLAIM_TYPE_SAVINGS | 5 |  |
-| CLAIM_TYPE_SWAP | 6 |  |
-| CLAIM_TYPE_USDX_MINTING | 7 |  |
+| CLAIM_TYPE_UNSPECIFIED | 0 | indicates an invalid claim type |
+| CLAIM_TYPE_HARD_BORROW | 1 | claim type for hard borrow rewards |
+| CLAIM_TYPE_HARD_SUPPLY | 2 | claim type for hard supply rewards |
+| CLAIM_TYPE_DELEGATOR | 3 | claim type for delegator rewards |
+| CLAIM_TYPE_EARN | 4 | claim type for earn rewards |
+| CLAIM_TYPE_SAVINGS | 5 | claim type for savings rewards |
+| CLAIM_TYPE_SWAP | 6 | claim type for swap rewards |
+| CLAIM_TYPE_USDX_MINTING | 7 | claim type for usdx minting rewards |
 
 
  <!-- end enums -->
