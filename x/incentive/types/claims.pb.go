@@ -30,13 +30,21 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type ClaimType int32
 
 const (
-	CLAIM_TYPE_UNSPECIFIED  ClaimType = 0
-	CLAIM_TYPE_HARD_BORROW  ClaimType = 1
-	CLAIM_TYPE_HARD_SUPPLY  ClaimType = 2
-	CLAIM_TYPE_DELEGATOR    ClaimType = 3
-	CLAIM_TYPE_EARN         ClaimType = 4
-	CLAIM_TYPE_SAVINGS      ClaimType = 5
-	CLAIM_TYPE_SWAP         ClaimType = 6
+	// indicates an invalid claim type
+	CLAIM_TYPE_UNSPECIFIED ClaimType = 0
+	// claim type for hard borrow rewards
+	CLAIM_TYPE_HARD_BORROW ClaimType = 1
+	// claim type for hard supply rewards
+	CLAIM_TYPE_HARD_SUPPLY ClaimType = 2
+	// claim type for delegator rewards
+	CLAIM_TYPE_DELEGATOR ClaimType = 3
+	// claim type for earn rewards
+	CLAIM_TYPE_EARN ClaimType = 4
+	// claim type for savings rewards
+	CLAIM_TYPE_SAVINGS ClaimType = 5
+	// claim type for swap rewards
+	CLAIM_TYPE_SWAP ClaimType = 6
+	// claim type for usdx minting rewards
 	CLAIM_TYPE_USDX_MINTING ClaimType = 7
 )
 

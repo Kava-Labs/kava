@@ -9,8 +9,7 @@ option go_package = "github.com/kava-labs/kava/x/kavadist/types";
 
 // GenesisState defines the kavadist module's genesis state.
 message GenesisState {
-  Params params = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"params\""];
+  Params params = 1 [(gogoproto.nullable) = false];
 
-  google.protobuf.Timestamp previous_block_time = 2
-      [(gogoproto.stdtime) = true, (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"params\""];
+  google.protobuf.Timestamp previous_block_time = 2 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
 }
