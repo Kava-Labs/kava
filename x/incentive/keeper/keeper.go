@@ -922,9 +922,9 @@ func (k Keeper) DeleteClaim(
 	store.Delete(owner)
 }
 
-// IterateClaims iterates over all claim objects in the store of a given
+// IterateClaimsByClaimType iterates over all claim objects in the store of a given
 // claimType and preforms a callback function
-func (k Keeper) IterateClaims(
+func (k Keeper) IterateClaimsByClaimType(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	cb func(c types.Claim) (stop bool),
@@ -946,7 +946,7 @@ func (k Keeper) GetClaims(
 	claimType types.ClaimType,
 ) types.Claims {
 	var cs types.Claims
-	k.IterateClaims(ctx, claimType, func(c types.Claim) (stop bool) {
+	k.IterateClaimsByClaimType(ctx, claimType, func(c types.Claim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})
@@ -954,9 +954,9 @@ func (k Keeper) GetClaims(
 	return cs
 }
 
-// IterateAllClaims iterates over all claim objects of any claimType in the
+// IterateClaims iterates over all claim objects of any claimType in the
 // store and preforms a callback function
-func (k Keeper) IterateAllClaims(
+func (k Keeper) IterateClaims(
 	ctx sdk.Context,
 	cb func(c types.Claim) (stop bool),
 ) {
@@ -974,7 +974,7 @@ func (k Keeper) IterateAllClaims(
 // GetAllClaims returns all Claim objects in the store of any claimType
 func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
 	var cs types.Claims
-	k.IterateAllClaims(ctx, func(c types.Claim) (stop bool) {
+	k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})
