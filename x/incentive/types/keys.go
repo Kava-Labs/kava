@@ -83,3 +83,8 @@ func GetRewardIndexesKeyPrefix(claimType ClaimType) []byte {
 func GetPreviousRewardAccrualTimeKeyPrefix(claimType ClaimType) []byte {
 	return getKeyPrefix(PreviousRewardAccrualTimeKeyPrefix, claimType)
 }
+
+// GetKeyFromSourceID returns the store key for the given source ID.
+func GetKeyFromSourceID(sourceID string) []byte {
+	return []byte(sourceID)
+}

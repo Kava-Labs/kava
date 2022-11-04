@@ -983,14 +983,14 @@ func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
 }
 
 // GetRewardAccrualTime fetches the last time rewards were accrued for the
-// specified ClaimType and subKey.
+// specified ClaimType and sourceID.
 func (k Keeper) GetRewardAccrualTime(
 	ctx sdk.Context,
 	claimType types.ClaimType,
-	subKey string,
+	sourceID string,
 ) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
-	b := store.Get([]byte(subKey))
+	b := store.Get(types.GetKeyFromSourceID(sourceID))
 	if b == nil {
 		return time.Time{}, false
 	}
@@ -1001,18 +1001,18 @@ func (k Keeper) GetRewardAccrualTime(
 }
 
 // SetRewardAccrualTime stores the last time rewards were accrued for the
-// specified ClaimType and subKey.
+// specified ClaimType and sourceID.
 func (k Keeper) SetRewardAccrualTime(
 	ctx sdk.Context,
 	claimType types.ClaimType,
-	subKey string,
+	sourceID string,
 	blockTime time.Time,
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
 
-	at := types.NewAccrualTime(claimType, subKey, blockTime)
+	at := types.NewAccrualTime(claimType, sourceID, blockTime)
 	bz := k.cdc.MustMarshal(&at)
-	store.Set([]byte(subKey), bz)
+	store.Set(types.GetKeyFromSourceID(sourceID), bz)
 }
 
 // IterateRewardAccrualTimesByClaimType iterates over all reward accrual times of a given
