@@ -87,6 +87,7 @@ func (k *Keeper) synchronizeClaim(
 	return claim
 }
 
+/** TODO: Need to use source adapter to get source shares
 // GetSynchronizedClaim fetches a claim from the store and syncs rewards for all
 // rewarded sourceIDs.
 func (k Keeper) GetSynchronizedClaim(
@@ -100,7 +101,6 @@ func (k Keeper) GetSynchronizedClaim(
 	}
 
 	k.IterateRewardIndexes(ctx, claimType, func(rewardIndexes types.TypedRewardIndexes) bool {
-		// TODO: Need to use source adapter to get source shares
 		shares, found := k.swapKeeper.GetDepositorSharesAmount(ctx, owner, rewardIndexes.CollateralType)
 		if !found {
 			shares = sdk.ZeroInt()
@@ -112,3 +112,4 @@ func (k Keeper) GetSynchronizedClaim(
 
 	return claim, true
 }
+*/
