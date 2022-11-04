@@ -109,6 +109,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultSwapClaims,
 		types.DefaultSavingsClaims,
 		types.DefaultEarnClaims,
+		types.DefaultAccrualTimes,
 	)
 
 	cdc := suite.app.AppCodec()
@@ -281,6 +282,9 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				nil,
 				types.MultiRewardIndexes{{CollateralType: "usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "earn", RewardFactor: d("0.0")}}}},
 			),
+		},
+		types.AccrualTimes{
+			types.NewAccrualTime(types.CLAIM_TYPE_USDX_MINTING, "usdx", genesisTime.Add(-2*time.Hour)),
 		},
 	)
 

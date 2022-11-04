@@ -922,9 +922,9 @@ func (k Keeper) DeleteClaim(
 	store.Delete(owner)
 }
 
-// IterateClaims iterates over all claim objects in the store of a given
+// IterateClaimsByClaimType iterates over all claim objects in the store of a given
 // claimType and preforms a callback function
-func (k Keeper) IterateClaims(
+func (k Keeper) IterateClaimsByClaimType(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	cb func(c types.Claim) (stop bool),
@@ -946,7 +946,7 @@ func (k Keeper) GetClaims(
 	claimType types.ClaimType,
 ) types.Claims {
 	var cs types.Claims
-	k.IterateClaims(ctx, claimType, func(c types.Claim) (stop bool) {
+	k.IterateClaimsByClaimType(ctx, claimType, func(c types.Claim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})
@@ -954,9 +954,9 @@ func (k Keeper) GetClaims(
 	return cs
 }
 
-// IterateAllClaims iterates over all claim objects of any claimType in the
+// IterateClaims iterates over all claim objects of any claimType in the
 // store and preforms a callback function
-func (k Keeper) IterateAllClaims(
+func (k Keeper) IterateClaims(
 	ctx sdk.Context,
 	cb func(c types.Claim) (stop bool),
 ) {
@@ -974,10 +974,96 @@ func (k Keeper) IterateAllClaims(
 // GetAllClaims returns all Claim objects in the store of any claimType
 func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
 	var cs types.Claims
-	k.IterateAllClaims(ctx, func(c types.Claim) (stop bool) {
+	k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
 		cs = append(cs, c)
 		return false
 	})
 
 	return cs
+}
+
+// GetRewardAccrualTime fetches the last time rewards were accrued for the
+// specified ClaimType and sourceID.
+func (k Keeper) GetRewardAccrualTime(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	sourceID string,
+) (time.Time, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+	b := store.Get(types.GetKeyFromSourceID(sourceID))
+	if b == nil {
+		return time.Time{}, false
+	}
+	var accrualTime types.AccrualTime
+	k.cdc.MustUnmarshal(b, &accrualTime)
+
+	return accrualTime.PreviousAccumulationTime, true
+}
+
+// SetRewardAccrualTime stores the last time rewards were accrued for the
+// specified ClaimType and sourceID.
+func (k Keeper) SetRewardAccrualTime(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	sourceID string,
+	blockTime time.Time,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+
+	at := types.NewAccrualTime(claimType, sourceID, blockTime)
+	bz := k.cdc.MustMarshal(&at)
+	store.Set(types.GetKeyFromSourceID(sourceID), bz)
+}
+
+// IterateRewardAccrualTimesByClaimType iterates over all reward accrual times of a given
+// claimType and performs a callback function.
+func (k Keeper) IterateRewardAccrualTimesByClaimType(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	cb func(string, time.Time) (stop bool),
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var accrualTime types.AccrualTime
+		k.cdc.MustUnmarshal(iterator.Value(), &accrualTime)
+
+		if cb(accrualTime.CollateralType, accrualTime.PreviousAccumulationTime) {
+			break
+		}
+	}
+}
+
+// IterateRewardAccrualTimes iterates over all reward accrual times of any
+// claimType and performs a callback function.
+func (k Keeper) IterateRewardAccrualTimes(
+	ctx sdk.Context,
+	cb func(types.AccrualTime) (stop bool),
+) {
+	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousRewardAccrualTimeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var accrualTime types.AccrualTime
+		k.cdc.MustUnmarshal(iterator.Value(), &accrualTime)
+
+		if cb(accrualTime) {
+			break
+		}
+	}
+}
+
+// GetAllRewardAccrualTimes returns all reward accrual times of any claimType.
+func (k Keeper) GetAllRewardAccrualTimes(ctx sdk.Context) types.AccrualTimes {
+	var ats types.AccrualTimes
+	k.IterateRewardAccrualTimes(
+		ctx,
+		func(accrualTime types.AccrualTime) bool {
+			ats = append(ats, accrualTime)
+			return false
+		},
+	)
+
+	return ats
 }
