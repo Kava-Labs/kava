@@ -152,7 +152,7 @@ func (suite *KeeperTestSuite) TestIterateRewardAccrualTimes() {
 	}
 
 	var actualAccrualTimes []accrualtime
-	suite.keeper.IterateRewardAccrualTimes(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, func(denom string, accrualTime time.Time) bool {
+	suite.keeper.IterateRewardAccrualTimesByClaimType(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, func(denom string, accrualTime time.Time) bool {
 		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
 		return false
 	})
@@ -186,7 +186,7 @@ func (suite *KeeperTestSuite) TestIterateAllRewardAccrualTimes() {
 	}
 
 	var actualAccrualTimes types.AccrualTimes
-	suite.keeper.IterateAllRewardAccrualTimes(
+	suite.keeper.IterateRewardAccrualTimes(
 		suite.ctx,
 		func(accrualTime types.AccrualTime) bool {
 			actualAccrualTimes = append(actualAccrualTimes, accrualTime)

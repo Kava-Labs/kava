@@ -1015,9 +1015,9 @@ func (k Keeper) SetRewardAccrualTime(
 	store.Set([]byte(subKey), bz)
 }
 
-// IterateRewardAccrualTimes iterates over all reward accrual times of a given
+// IterateRewardAccrualTimesByClaimType iterates over all reward accrual times of a given
 // claimType and performs a callback function.
-func (k Keeper) IterateRewardAccrualTimes(
+func (k Keeper) IterateRewardAccrualTimesByClaimType(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	cb func(string, time.Time) (stop bool),
@@ -1035,9 +1035,9 @@ func (k Keeper) IterateRewardAccrualTimes(
 	}
 }
 
-// IterateAllRewardAccrualTimes iterates over all reward accrual times of any
+// IterateRewardAccrualTimes iterates over all reward accrual times of any
 // claimType and performs a callback function.
-func (k Keeper) IterateAllRewardAccrualTimes(
+func (k Keeper) IterateRewardAccrualTimes(
 	ctx sdk.Context,
 	cb func(types.AccrualTime) (stop bool),
 ) {
@@ -1057,7 +1057,7 @@ func (k Keeper) IterateAllRewardAccrualTimes(
 // GetAllRewardAccrualTimes returns all reward accrual times of any claimType.
 func (k Keeper) GetAllRewardAccrualTimes(ctx sdk.Context) types.AccrualTimes {
 	var ats types.AccrualTimes
-	k.IterateAllRewardAccrualTimes(
+	k.IterateRewardAccrualTimes(
 		ctx,
 		func(accrualTime types.AccrualTime) bool {
 			ats = append(ats, accrualTime)
