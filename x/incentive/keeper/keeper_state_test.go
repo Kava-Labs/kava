@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) TestGetSetRewardIndexes() {
 		suite.Run(tc.name, func() {
 			suite.SetupApp()
 
-			_, found := suite.keeper.GetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
+			_, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
 			suite.False(found)
 
 			setFunc := func() {
@@ -226,7 +226,7 @@ func (suite *KeeperTestSuite) TestGetSetRewardIndexes() {
 				suite.NotPanics(setFunc)
 			}
 
-			storedIndexes, found := suite.keeper.GetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
+			storedIndexes, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
 			suite.True(found)
 			suite.Equal(tc.wantIndex, storedIndexes)
 
@@ -239,7 +239,7 @@ func (suite *KeeperTestSuite) TestGetSetRewardIndexes() {
 				otherClaimType := types.ClaimType(otherClaimTypeValue)
 
 				// Other claim types should not be affected
-				_, found := suite.keeper.GetRewardIndexes(suite.ctx, otherClaimType, tc.collateralType)
+				_, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, otherClaimType, tc.collateralType)
 				suite.False(found)
 			}
 		})
@@ -363,7 +363,7 @@ func (suite *KeeperTestSuite) TestIterateRewardIndexes() {
 	}
 
 	actualMultiIndexesMap := make(map[types.ClaimType]types.MultiRewardIndexes)
-	suite.keeper.IterateRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, func(rewardIndex types.TypedRewardIndexes) bool {
+	suite.keeper.IterateRewardIndexesByClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, func(rewardIndex types.TypedRewardIndexes) bool {
 		actualMultiIndexesMap[rewardIndex.ClaimType] = actualMultiIndexesMap[rewardIndex.ClaimType].With(rewardIndex.CollateralType, rewardIndex.RewardIndexes)
 		return false
 	})
@@ -412,7 +412,7 @@ func (suite *KeeperTestSuite) TestIterateAllRewardIndexes() {
 	}
 
 	actualMultiIndexesMap := make(map[types.ClaimType]types.MultiRewardIndexes)
-	suite.keeper.IterateAllRewardIndexes(suite.ctx, func(rewardIndex types.TypedRewardIndexes) bool {
+	suite.keeper.IterateRewardIndexes(suite.ctx, func(rewardIndex types.TypedRewardIndexes) bool {
 		actualMultiIndexesMap[rewardIndex.ClaimType] = actualMultiIndexesMap[rewardIndex.ClaimType].With(rewardIndex.CollateralType, rewardIndex.RewardIndexes)
 		return false
 	})

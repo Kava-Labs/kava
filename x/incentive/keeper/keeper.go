@@ -1082,18 +1082,18 @@ func (k Keeper) SetRewardIndexes(
 		CollateralType: collateralType,
 		RewardIndexes:  indexes,
 	})
-	store.Set([]byte(collateralType), bz)
+	store.Set(types.GetKeyFromSourceID(collateralType), bz)
 }
 
-// GetRewardIndexes fetches the global reward indexes that track total rewards
+// GetRewardIndexesOfClaimType fetches the global reward indexes that track total rewards
 // of a given claimType and collateralType.
-func (k Keeper) GetRewardIndexes(
+func (k Keeper) GetRewardIndexesOfClaimType(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	collateralType string,
 ) (types.RewardIndexes, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.GetRewardIndexesKeyPrefix(claimType))
-	bz := store.Get([]byte(collateralType))
+	bz := store.Get(types.GetKeyFromSourceID(collateralType))
 	if bz == nil {
 		return types.RewardIndexes{}, false
 	}
@@ -1103,9 +1103,9 @@ func (k Keeper) GetRewardIndexes(
 	return proto.RewardIndexes, true
 }
 
-// IterateRewardIndexes iterates over all reward index objects in the store of a
+// IterateRewardIndexesByClaimType iterates over all reward index objects in the store of a
 // given ClaimType and performs a callback function.
-func (k Keeper) IterateRewardIndexes(
+func (k Keeper) IterateRewardIndexesByClaimType(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	cb func(types.TypedRewardIndexes) (stop bool),
@@ -1123,9 +1123,9 @@ func (k Keeper) IterateRewardIndexes(
 	}
 }
 
-// IterateAllRewardIndexes iterates over all reward index objects in the store
+// IterateRewardIndexes iterates over all reward index objects in the store
 // of all ClaimTypes and performs a callback function.
-func (k Keeper) IterateAllRewardIndexes(
+func (k Keeper) IterateRewardIndexes(
 	ctx sdk.Context,
 	cb func(types.TypedRewardIndexes) (stop bool),
 ) {
@@ -1142,10 +1142,10 @@ func (k Keeper) IterateAllRewardIndexes(
 	}
 }
 
-// GetAllRewardIndexes returns all reward indexes of any claimType.
-func (k Keeper) GetAllRewardIndexes(ctx sdk.Context) types.TypedRewardIndexesList {
+// GetRewardIndexes returns all reward indexes of any claimType.
+func (k Keeper) GetRewardIndexes(ctx sdk.Context) types.TypedRewardIndexesList {
 	var tril types.TypedRewardIndexesList
-	k.IterateAllRewardIndexes(
+	k.IterateRewardIndexes(
 		ctx,
 		func(typedRewardIndexes types.TypedRewardIndexes) bool {
 			tril = append(tril, typedRewardIndexes)

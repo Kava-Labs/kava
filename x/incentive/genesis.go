@@ -170,7 +170,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 
 	claims := k.GetAllClaims(ctx)
 	accrualTimes := k.GetAllRewardAccrualTimes(ctx)
-	rewardIndexes := k.GetAllRewardIndexes(ctx)
+	rewardIndexes := k.GetRewardIndexes(ctx)
 
 	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
 	usdxRewardState := getUSDXMintingGenesisRewardState(ctx, k)
