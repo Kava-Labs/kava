@@ -142,6 +142,110 @@ func (suite *KeeperTestSuite) TestGetSetRewardAccrualTimes() {
 	}
 }
 
+func (suite *KeeperTestSuite) TestGetSetRewardIndexes() {
+	testCases := []struct {
+		name           string
+		collateralType string
+		indexes        types.RewardIndexes
+		wantIndex      types.RewardIndexes
+		panics         bool
+	}{
+		{
+			name:           "two factors can be written and read",
+			collateralType: "btc/usdx",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+			wantIndex: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			name:           "indexes with empty pool name panics",
+			collateralType: "",
+			indexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+			panics: true,
+		},
+		{
+			// this test is to detect any changes in behavior
+			name:           "setting empty indexes does not panic",
+			collateralType: "btc/usdx",
+			// Marshalling empty slice results in [] bytes, unmarshalling the []
+			// empty bytes results in a nil slice instead of an empty slice
+			indexes:   types.RewardIndexes{},
+			wantIndex: nil,
+			panics:    false,
+		},
+		{
+			// this test is to detect any changes in behavior
+			name:           "setting nil indexes does not panic",
+			collateralType: "btc/usdx",
+			indexes:        nil,
+			wantIndex:      nil,
+			panics:         false,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupApp()
+
+			_, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
+			suite.False(found)
+
+			setFunc := func() {
+				suite.keeper.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType, tc.indexes)
+			}
+			if tc.panics {
+				suite.Panics(setFunc)
+				return
+			} else {
+				suite.NotPanics(setFunc)
+			}
+
+			storedIndexes, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
+			suite.True(found)
+			suite.Equal(tc.wantIndex, storedIndexes)
+
+			for _, otherClaimTypeValue := range types.ClaimType_value {
+				// Skip swap
+				if types.ClaimType(otherClaimTypeValue) == types.CLAIM_TYPE_SWAP {
+					continue
+				}
+
+				otherClaimType := types.ClaimType(otherClaimTypeValue)
+
+				// Other claim types should not be affected
+				_, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, otherClaimType, tc.collateralType)
+				suite.False(found)
+			}
+		})
+	}
+}
+
 func (suite *KeeperTestSuite) TestIterateRewardAccrualTimes() {
 	suite.SetupApp()
 
@@ -195,4 +299,129 @@ func (suite *KeeperTestSuite) TestIterateAllRewardAccrualTimes() {
 	)
 
 	suite.ElementsMatch(expectedAccrualTimes, actualAccrualTimes)
+}
+
+func (suite *KeeperTestSuite) TestIterateRewardIndexes() {
+	suite.SetupApp()
+	swapMultiIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: "bnb",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "swap",
+					RewardFactor:   d("0.0000002"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			CollateralType: "btcb",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+			},
+		},
+	}
+
+	earnMultiIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: "usdc",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "usdc",
+					RewardFactor:   d("0.0000002"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			CollateralType: "ukava",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.02"),
+				},
+			},
+		},
+	}
+
+	for _, mi := range swapMultiIndexes {
+		suite.keeper.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, mi.CollateralType, mi.RewardIndexes)
+	}
+
+	for _, mi := range earnMultiIndexes {
+		// These should be excluded when iterating over swap indexes
+		suite.keeper.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_EARN, mi.CollateralType, mi.RewardIndexes)
+	}
+
+	actualMultiIndexesMap := make(map[types.ClaimType]types.MultiRewardIndexes)
+	suite.keeper.IterateRewardIndexesByClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, func(rewardIndex types.TypedRewardIndexes) bool {
+		actualMultiIndexesMap[rewardIndex.ClaimType] = actualMultiIndexesMap[rewardIndex.ClaimType].With(rewardIndex.CollateralType, rewardIndex.RewardIndexes)
+		return false
+	})
+
+	suite.Require().Len(actualMultiIndexesMap, 1, "iteration should only include 1 claim type")
+	suite.Require().Equal(swapMultiIndexes, actualMultiIndexesMap[types.CLAIM_TYPE_SWAP])
+}
+
+func (suite *KeeperTestSuite) TestIterateAllRewardIndexes() {
+	suite.SetupApp()
+	multiIndexes := types.MultiRewardIndexes{
+		{
+			CollateralType: "ukava",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "swap",
+					RewardFactor:   d("0.0000002"),
+				},
+				{
+					CollateralType: "ukava",
+					RewardFactor:   d("0.04"),
+				},
+			},
+		},
+		{
+			CollateralType: "usdc",
+			RewardIndexes: types.RewardIndexes{
+				{
+					CollateralType: "hard",
+					RewardFactor:   d("0.02"),
+				},
+			},
+		},
+	}
+
+	for _, claimTypeValue := range types.ClaimType_value {
+		if types.ClaimType(claimTypeValue) == types.CLAIM_TYPE_UNSPECIFIED {
+			continue
+		}
+
+		claimType := types.ClaimType(claimTypeValue)
+
+		for _, mi := range multiIndexes {
+			suite.keeper.SetRewardIndexes(suite.ctx, claimType, mi.CollateralType, mi.RewardIndexes)
+		}
+	}
+
+	actualMultiIndexesMap := make(map[types.ClaimType]types.MultiRewardIndexes)
+	suite.keeper.IterateRewardIndexes(suite.ctx, func(rewardIndex types.TypedRewardIndexes) bool {
+		actualMultiIndexesMap[rewardIndex.ClaimType] = actualMultiIndexesMap[rewardIndex.ClaimType].With(rewardIndex.CollateralType, rewardIndex.RewardIndexes)
+		return false
+	})
+
+	// -1 to exclude the unspecified type
+	suite.Require().Len(actualMultiIndexesMap, len(types.ClaimType_value)-1)
+
+	for claimType, actualMultiIndexes := range actualMultiIndexesMap {
+		suite.Require().NoError(claimType.Validate())
+		suite.Require().Equal(multiIndexes, actualMultiIndexes)
+	}
 }

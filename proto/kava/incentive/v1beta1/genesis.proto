@@ -79,4 +79,7 @@ message GenesisState {
   repeated Claim claims = 15 [(gogoproto.castrepeated) = "Claims", (gogoproto.nullable) = false];
 
   repeated AccrualTime accrual_times = 16 [(gogoproto.castrepeated) = "AccrualTimes", (gogoproto.nullable) = false];
+
+  repeated TypedRewardIndexes reward_indexes = 17
+      [(gogoproto.castrepeated) = "TypedRewardIndexesList", (gogoproto.nullable) = false];
 }

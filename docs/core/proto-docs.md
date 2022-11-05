@@ -317,6 +317,7 @@
     - [RewardIndexesProto](#kava.incentive.v1beta1.RewardIndexesProto)
     - [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
+    - [TypedRewardIndexes](#kava.incentive.v1beta1.TypedRewardIndexes)
     - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
   
     - [ClaimType](#kava.incentive.v1beta1.ClaimType)
@@ -4619,6 +4620,24 @@ SwapClaim stores the swap rewards that can be claimed by owner
 
 
 
+<a name="kava.incentive.v1beta1.TypedRewardIndexes"></a>
+
+### TypedRewardIndexes
+TypedRewardIndexes defines a RewardIndexes slice with its corresponding
+claim and collateral type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `claim_type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.USDXMintingClaim"></a>
 
 ### USDXMintingClaim
@@ -4854,6 +4873,7 @@ GenesisState is the state that must be provided at genesis.
 | `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
 | `claims` | [Claim](#kava.incentive.v1beta1.Claim) | repeated |  |
 | `accrual_times` | [AccrualTime](#kava.incentive.v1beta1.AccrualTime) | repeated |  |
+| `reward_indexes` | [TypedRewardIndexes](#kava.incentive.v1beta1.TypedRewardIndexes) | repeated |  |
 
 
 
