@@ -14,6 +14,8 @@ import (
 	"github.com/kava-labs/kava/x/savings/types"
 )
 
+var dep = types.NewDeposit
+
 type grpcQueryTestSuite struct {
 	suite.Suite
 
@@ -78,7 +80,12 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
-	suite.addDeposits()
+	suite.addDeposits([]types.Deposit{
+		dep(suite.addrs[0], cs(c("bnb", 100000000))),
+		dep(suite.addrs[1], cs(c("bnb", 20000000))),
+		dep(suite.addrs[0], cs(c("busd", 20000000))),
+		dep(suite.addrs[0], cs(c("busd", 8000000))),
+	})
 
 	tests := []struct {
 		giveName          string
@@ -161,32 +168,10 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 	}
 }
 
-func (suite *grpcQueryTestSuite) addDeposits() {
-	deposits := []struct {
-		Address sdk.AccAddress
-		Coins   sdk.Coins
-	}{
-		{
-			suite.addrs[0],
-			cs(c("bnb", 100000000)),
-		},
-		{
-			suite.addrs[1],
-			cs(c("bnb", 20000000)),
-		},
-		{
-			suite.addrs[0],
-			cs(c("busd", 20000000)),
-		},
-		{
-			suite.addrs[0],
-			cs(c("busd", 8000000)),
-		},
-	}
-
+func (suite *grpcQueryTestSuite) addDeposits(deposits types.Deposits) {
 	for _, dep := range deposits {
 		suite.NotPanics(func() {
-			err := suite.keeper.Deposit(suite.ctx, dep.Address, dep.Coins)
+			err := suite.keeper.Deposit(suite.ctx, dep.Depositor, dep.Amount)
 			suite.Require().NoError(err)
 		})
 	}
