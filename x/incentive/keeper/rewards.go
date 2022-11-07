@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -110,9 +111,17 @@ func (k Keeper) GetSynchronizedClaim(
 	adapter := k.GetSourceAdapter(claimType)
 	accShares := adapter.OwnerSharesBySource(ctx, owner, sourceIDs)
 
+	var sortedSourceIDs []string
+	for sourceID := range accShares {
+		sortedSourceIDs = append(sortedSourceIDs, sourceID)
+	}
+
+	// Sort source IDs to ensure deterministic order of claim syncs
+	sort.Strings(sortedSourceIDs)
+
 	// Synchronize claim for each source ID
-	for sourceID, shares := range accShares {
-		claim = k.synchronizeClaim(ctx, claim, sourceID, owner, shares)
+	for _, sourceID := range sortedSourceIDs {
+		claim = k.synchronizeClaim(ctx, claim, sourceID, owner, accShares[sourceID])
 	}
 
 	return claim, true
