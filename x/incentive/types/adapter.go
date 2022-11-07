@@ -7,8 +7,9 @@ type SourceAdapter interface {
 	// OwnerSharesBySource returns source shares owned by one address.
 	//
 	// For example, the shares a user owns in the kava:usdx and bnb:usdx swap pools.
-	// It returns the shares for several sources at once, in the same order as the sourceIDs. Specifying no sourceIDS will return no shares.
-	OwnerSharesBySource(ctx sdk.Context, owner sdk.AccAddress, sourceIDs []string) []sdk.Dec
+	// It returns the shares for several sources at once, in a map of sourceIDs to shares. Specifying no sourceIDS will return no shares.
+	// Note the returned map does not have a deterministic order.
+	OwnerSharesBySource(ctx sdk.Context, owner sdk.AccAddress, sourceIDs []string) map[string]sdk.Dec
 
 	// TotalSharesBySource returns the sum of all shares for a source (across all users).
 	//
