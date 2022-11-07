@@ -474,6 +474,8 @@
     - [QueryDepositsResponse](#kava.savings.v1beta1.QueryDepositsResponse)
     - [QueryParamsRequest](#kava.savings.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.savings.v1beta1.QueryParamsResponse)
+    - [QueryTotalSupplyRequest](#kava.savings.v1beta1.QueryTotalSupplyRequest)
+    - [QueryTotalSupplyResponse](#kava.savings.v1beta1.QueryTotalSupplyResponse)
   
     - [Query](#kava.savings.v1beta1.Query)
   
@@ -6532,6 +6534,32 @@ parameters.
 
 
 
+
+<a name="kava.savings.v1beta1.QueryTotalSupplyRequest"></a>
+
+### QueryTotalSupplyRequest
+QueryTotalSupplyRequest defines the request type for Query/TotalSupply method.
+
+
+
+
+
+
+<a name="kava.savings.v1beta1.QueryTotalSupplyResponse"></a>
+
+### QueryTotalSupplyResponse
+TotalSupplyResponse defines the response type for the Query/TotalSupply method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  | Height is the block height at which these totals apply |
+| `result` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Result is a list of coins supplied to liquid |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -6548,6 +6576,7 @@ Query defines the gRPC querier service for savings module
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.savings.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.savings.v1beta1.QueryParamsResponse) | Params queries all parameters of the savings module. | GET|/kava/savings/v1beta1/params|
 | `Deposits` | [QueryDepositsRequest](#kava.savings.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.savings.v1beta1.QueryDepositsResponse) | Deposits queries savings deposits. | GET|/kava/savings/v1beta1/deposits|
+| `TotalSupply` | [QueryTotalSupplyRequest](#kava.savings.v1beta1.QueryTotalSupplyRequest) | [QueryTotalSupplyResponse](#kava.savings.v1beta1.QueryTotalSupplyResponse) | TotalSupply returns the total sum of all coins currently locked into the savings module. | GET|/kava/savings/v1beta1/total_supply|
 
  <!-- end services -->
 

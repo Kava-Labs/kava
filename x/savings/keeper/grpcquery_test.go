@@ -168,6 +168,58 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 	}
 }
 
+func (suite *grpcQueryTestSuite) TestGrpcQueryTotalSupply() {
+	testCases := []struct {
+		name           string
+		deposits       types.Deposits
+		expectedSupply sdk.Coins
+	}{
+		{
+			name:           "returns zeros when there's no supply",
+			deposits:       []types.Deposit{},
+			expectedSupply: sdk.NewCoins(),
+		},
+		{
+			name: "returns supply of one denom deposited from multiple accounts",
+			deposits: []types.Deposit{
+				dep(suite.addrs[0], sdk.NewCoins(c("busd", 1e6))),
+				dep(suite.addrs[1], sdk.NewCoins(c("busd", 1e6))),
+			},
+			expectedSupply: sdk.NewCoins(c("busd", 2e6)),
+		},
+		{
+			name: "returns supply of multiple denoms deposited from single account",
+			deposits: []types.Deposit{
+				dep(suite.addrs[0], sdk.NewCoins(c("busd", 1e6), c("bnb", 1e6))),
+			},
+			expectedSupply: sdk.NewCoins(c("busd", 1e6), c("bnb", 1e6)),
+		},
+		{
+			name: "returns supply of multiple denoms deposited from multiple accounts",
+			deposits: []types.Deposit{
+				dep(suite.addrs[0], sdk.NewCoins(c("busd", 1e6), c("bnb", 1e6))),
+				dep(suite.addrs[1], sdk.NewCoins(c("busd", 1e6), c("bnb", 1e6))),
+			},
+			expectedSupply: sdk.NewCoins(c("busd", 2e6), c("bnb", 2e6)),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			// setup deposits
+			suite.addDeposits(tc.deposits)
+
+			res, err := suite.queryServer.TotalSupply(
+				sdk.WrapSDKContext(suite.ctx),
+				&types.QueryTotalSupplyRequest{},
+			)
+			suite.Require().NoError(err)
+			suite.Require().Equal(tc.expectedSupply, res.Result)
+		})
+	}
+}
+
 func (suite *grpcQueryTestSuite) addDeposits(deposits types.Deposits) {
 	for _, dep := range deposits {
 		suite.NotPanics(func() {

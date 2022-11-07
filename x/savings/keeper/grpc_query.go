@@ -103,3 +103,17 @@ func (s queryServer) Deposits(ctx context.Context, req *types.QueryDepositsReque
 		Pagination: nil,
 	}, nil
 }
+
+func (s queryServer) TotalSupply(ctx context.Context, req *types.QueryTotalSupplyRequest) (*types.QueryTotalSupplyResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	totalSupply := sdk.NewCoins()
+	s.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
+		totalSupply = totalSupply.Add(deposit.Amount...)
+		return false
+	})
+
+	return &types.QueryTotalSupplyResponse{
+		Height: sdkCtx.BlockHeight(),
+		Result: totalSupply,
+	}, nil
+}

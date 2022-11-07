@@ -11872,6 +11872,67 @@ paths:
                       format: byte
       tags:
         - Savings
+  /kava/savings/v1beta1/total_supply:
+    get:
+      summary: >-
+        TotalSupply returns the total sum of all coins currently locked into the
+        savings module.
+      operationId: SavingsTotalSupply
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                format: int64
+                title: Height is the block height at which these totals apply
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+                title: Result is a list of coins supplied to liquid
+            description: >-
+              TotalSupplyResponse defines the response type for the
+              Query/TotalSupply method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Savings
   /node_info:
     get:
       description: Information about the connected node
@@ -57448,6 +57509,31 @@ definitions:
     description: |-
       QueryParamsResponse defines the response type for querying x/savings
       parameters.
+  kava.savings.v1beta1.QueryTotalSupplyResponse:
+    type: object
+    properties:
+      height:
+        type: string
+        format: int64
+        title: Height is the block height at which these totals apply
+      result:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        title: Result is a list of coins supplied to liquid
+    description: >-
+      TotalSupplyResponse defines the response type for the Query/TotalSupply
+      method.
   CheckTxResult:
     type: object
     properties:
