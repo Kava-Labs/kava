@@ -403,6 +403,8 @@
 - [kava/liquid/v1beta1/query.proto](#kava/liquid/v1beta1/query.proto)
     - [QueryDelegatedBalanceRequest](#kava.liquid.v1beta1.QueryDelegatedBalanceRequest)
     - [QueryDelegatedBalanceResponse](#kava.liquid.v1beta1.QueryDelegatedBalanceResponse)
+    - [QueryTotalSupplyRequest](#kava.liquid.v1beta1.QueryTotalSupplyRequest)
+    - [QueryTotalSupplyResponse](#kava.liquid.v1beta1.QueryTotalSupplyResponse)
   
     - [Query](#kava.liquid.v1beta1.Query)
   
@@ -5682,6 +5684,32 @@ DelegatedBalanceResponse defines the response type for the Query/DelegatedBalanc
 
 
 
+
+<a name="kava.liquid.v1beta1.QueryTotalSupplyRequest"></a>
+
+### QueryTotalSupplyRequest
+QueryTotalSupplyRequest defines the request type for Query/TotalSupply method.
+
+
+
+
+
+
+<a name="kava.liquid.v1beta1.QueryTotalSupplyResponse"></a>
+
+### QueryTotalSupplyResponse
+TotalSupplyResponse defines the response type for the Query/TotalSupply method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  | Height is the block height at which these totals apply |
+| `result` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Result is a list of coins supplied to liquid |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -5697,6 +5725,7 @@ Query defines the gRPC querier service for liquid module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `DelegatedBalance` | [QueryDelegatedBalanceRequest](#kava.liquid.v1beta1.QueryDelegatedBalanceRequest) | [QueryDelegatedBalanceResponse](#kava.liquid.v1beta1.QueryDelegatedBalanceResponse) | DelegatedBalance returns an account's vesting and vested coins currently delegated to validators. It ignores coins in unbonding delegations. | GET|/kava/liquid/v1beta1/delegated_balance/{delegator}|
+| `TotalSupply` | [QueryTotalSupplyRequest](#kava.liquid.v1beta1.QueryTotalSupplyRequest) | [QueryTotalSupplyResponse](#kava.liquid.v1beta1.QueryTotalSupplyResponse) | TotalSupply returns the total sum of all coins currently locked into the liquid module. | GET|/kava/liquid/v1beta1/total_supply|
 
  <!-- end services -->
 
