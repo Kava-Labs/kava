@@ -20,7 +20,7 @@ func (k Keeper) InitializeClaim(
 		claim = types.NewClaim(claimType, owner, sdk.Coins{}, nil)
 	}
 
-	globalRewardIndexes, found := k.GetRewardIndexes(ctx, claimType, sourceID)
+	globalRewardIndexes, found := k.GetRewardIndexesOfClaimType(ctx, claimType, sourceID)
 	if !found {
 		globalRewardIndexes = types.RewardIndexes{}
 	}
@@ -55,7 +55,7 @@ func (k *Keeper) synchronizeClaim(
 	owner sdk.AccAddress,
 	shares sdk.Int,
 ) types.Claim {
-	globalRewardIndexes, found := k.GetRewardIndexes(ctx, claim.Type, sourceID)
+	globalRewardIndexes, found := k.GetRewardIndexesOfClaimType(ctx, claim.Type, sourceID)
 	if !found {
 		// The global factor is only not found if
 		// - the pool has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
