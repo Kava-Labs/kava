@@ -63,7 +63,7 @@ func (s queryServer) TotalSupply(
 
 	return &types.QueryTotalSupplyResponse{
 		Height: ctx.BlockHeight(),
-		Result: sdk.NewCoins(totalValue),
+		Result: []sdk.Coin{totalValue},
 	}, nil
 }
 

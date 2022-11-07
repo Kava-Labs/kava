@@ -166,3 +166,126 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 		})
 	}
 }
+
+func (suite *grpcQueryTestSuite) TestQueryTotalSupply() {
+	testCases := []struct {
+		name          string
+		setup         func()
+		expectedTotal sdk.Int
+		expectedErr   error
+	}{
+		{
+			name:          "no liquid kava means no tvl",
+			setup:         func() {},
+			expectedTotal: sdk.ZeroInt(),
+			expectedErr:   nil,
+		},
+		{
+			name: "returns TVL from one bkava denom",
+			setup: func() {
+				initBalance := suite.NewBondCoin(i(1e9))
+				valAcc := suite.CreateAccount(sdk.NewCoins(initBalance), 0)
+				delAcc := suite.CreateAccount(sdk.NewCoins(initBalance), 1)
+
+				suite.CreateNewUnbondedValidator(valAcc.GetAddress().Bytes(), initBalance.Amount)
+				suite.CreateDelegation(valAcc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
+
+				_, err := suite.Keeper.MintDerivative(
+					suite.Ctx,
+					delAcc.GetAddress(),
+					valAcc.GetAddress().Bytes(),
+					initBalance,
+				)
+				suite.Require().NoError(err)
+			},
+			expectedTotal: i(1e9),
+			expectedErr:   nil,
+		},
+		{
+			name: "returns TVL from multiple bkava denoms",
+			setup: func() {
+				initBalance := suite.NewBondCoin(i(1e9))
+				val1Acc := suite.CreateAccount(sdk.NewCoins(initBalance), 0)
+				val2Acc := suite.CreateAccount(sdk.NewCoins(initBalance), 1)
+				delAcc := suite.CreateAccount(sdk.NewCoins(initBalance.Add(initBalance)), 2)
+
+				suite.CreateNewUnbondedValidator(val1Acc.GetAddress().Bytes(), initBalance.Amount)
+				suite.CreateDelegation(val1Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
+				suite.CreateNewUnbondedValidator(val2Acc.GetAddress().Bytes(), initBalance.Amount)
+				suite.CreateDelegation(val2Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
+
+				_, err := suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val1Acc.GetAddress().Bytes(), initBalance)
+				suite.Require().NoError(err)
+				_, err = suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val2Acc.GetAddress().Bytes(), initBalance)
+				suite.Require().NoError(err)
+			},
+			expectedTotal: i(2e9),
+			expectedErr:   nil,
+		},
+		{
+			name: "returns TVL from multiple delegators",
+			setup: func() {
+				initBalance := suite.NewBondCoin(i(1e9))
+				valAcc := suite.CreateAccount(sdk.NewCoins(initBalance), 0)
+				del1Acc := suite.CreateAccount(sdk.NewCoins(initBalance), 1)
+				del2Acc := suite.CreateAccount(sdk.NewCoins(initBalance), 2)
+
+				suite.CreateNewUnbondedValidator(valAcc.GetAddress().Bytes(), initBalance.Amount)
+				suite.CreateDelegation(valAcc.GetAddress().Bytes(), del1Acc.GetAddress(), initBalance.Amount)
+				suite.CreateDelegation(valAcc.GetAddress().Bytes(), del2Acc.GetAddress(), initBalance.Amount)
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
+
+				_, err := suite.Keeper.MintDerivative(suite.Ctx, del1Acc.GetAddress(), valAcc.GetAddress().Bytes(), initBalance)
+				suite.Require().NoError(err)
+				_, err = suite.Keeper.MintDerivative(suite.Ctx, del2Acc.GetAddress(), valAcc.GetAddress().Bytes(), initBalance)
+				suite.Require().NoError(err)
+			},
+			expectedTotal: i(2e9),
+			expectedErr:   nil,
+		},
+		{
+			name: "handles calculating tvl after slashing",
+			setup: func() {
+				initBalance := suite.NewBondCoin(i(1e9))
+				val1Acc := suite.CreateAccount(sdk.NewCoins(initBalance), 0)
+				val2Acc := suite.CreateAccount(sdk.NewCoins(initBalance), 1)
+				delAcc := suite.CreateAccount(sdk.NewCoins(initBalance.Add(initBalance)), 2)
+
+				suite.CreateNewUnbondedValidator(val1Acc.GetAddress().Bytes(), initBalance.Amount)
+				suite.CreateDelegation(val1Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
+				suite.CreateNewUnbondedValidator(val2Acc.GetAddress().Bytes(), initBalance.Amount)
+				suite.CreateDelegation(val2Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
+				staking.EndBlocker(suite.Ctx, suite.StakingKeeper) // bond the validator
+
+				_, err := suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val1Acc.GetAddress().Bytes(), initBalance)
+				suite.Require().NoError(err)
+				_, err = suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val2Acc.GetAddress().Bytes(), initBalance)
+				suite.Require().NoError(err)
+
+				suite.SlashValidator(val2Acc.GetAddress().Bytes(), d("0.1"))
+			},
+			// delegation + (delegation * 90%)
+			expectedTotal: i(1e9).Add(i(1e9).MulRaw(90).QuoRaw(100)),
+			expectedErr:   nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			tc.setup()
+
+			res, err := suite.queryClient.TotalSupply(
+				context.Background(),
+				&types.QueryTotalSupplyRequest{},
+			)
+
+			suite.ErrorIs(err, tc.expectedErr)
+			if err == nil {
+				suite.Equal(tc.expectedTotal, res.Result[0].Amount)
+			}
+		})
+	}
+}
