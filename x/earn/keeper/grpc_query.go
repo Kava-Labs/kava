@@ -156,7 +156,7 @@ func (s queryServer) Vault(
 	}
 
 	// Handle bkava separately to get total of **all** bkava vaults
-	if req.Denom == "bkava" {
+	if req.Denom == bkavaDenom {
 		return s.getAggregateBkavaVault(sdkCtx, allowedVault)
 	}
 
@@ -198,7 +198,7 @@ func (s queryServer) getAggregateBkavaVault(
 	var iterErr error
 	s.keeper.IterateVaultRecords(ctx, func(record types.VaultRecord) (stop bool) {
 		// Skip non bkava vaults
-		if !strings.HasPrefix(record.TotalShares.Denom, "bkava") {
+		if !strings.HasPrefix(record.TotalShares.Denom, bkavaPrefix) {
 			return false
 		}
 
@@ -224,7 +224,7 @@ func (s queryServer) getAggregateBkavaVault(
 
 	return &types.QueryVaultResponse{
 		Vault: types.VaultResponse{
-			Denom:             "bkava",
+			Denom:             bkavaDenom,
 			Strategies:        allowedVault.Strategies,
 			IsPrivateVault:    allowedVault.IsPrivateVault,
 			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
@@ -251,7 +251,7 @@ func (s queryServer) Deposits(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	// bkava aggregate total
-	if req.Denom == "bkava" {
+	if req.Denom == bkavaDenom {
 		return s.getOneAccountBkavaVaultDeposit(sdkCtx, req)
 	}
 
@@ -271,6 +271,7 @@ func (s queryServer) TotalSupply(
 ) (*types.QueryTotalSupplyResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	totalSupply := sdk.NewCoins()
+	liquidStakedDerivatives := sdk.NewCoins()
 
 	// allowed vaults param contains info on allowed strategies, but bkava is aggregated
 	allowedVaults := s.keeper.GetAllowedVaults(sdkCtx)
@@ -280,7 +281,7 @@ func (s queryServer) TotalSupply(
 	}
 
 	var vaultRecordErr error
-	// iterate actual records to properly enumerate all bkava denoms
+	// iterate actual records to properly enumerate all denoms
 	s.keeper.IterateVaultRecords(sdkCtx, func(vault types.VaultRecord) (stop bool) {
 		isLiquidStakingDenom := false
 		// find allowed vault to get parameters. handle translating bkava denoms to allowed vault denom
@@ -308,22 +309,26 @@ func (s queryServer) TotalSupply(
 		}
 
 		// liquid staked tokens must be converted to their underlying value
+		// aggregate them here and then we can convert to underlying values all at once at the end
 		if isLiquidStakingDenom {
-			underlyingValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(
-				sdkCtx,
-				sdk.NewCoins(vaultSupply),
-			)
-			if err != nil {
-				vaultRecordErr = err
-				return true
-			}
-			vaultSupply.Amount = underlyingValue.Amount
+			liquidStakedDerivatives = liquidStakedDerivatives.Add(vaultSupply)
+		} else {
+			totalSupply = totalSupply.Add(vaultSupply)
 		}
-
-		// add to total supply
-		totalSupply = (sdk.Coins)(totalSupply).Add(vaultSupply)
 		return false
 	})
+
+	// determine underlying value of bkava denoms
+	if len(liquidStakedDerivatives) > 0 {
+		underlyingValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(
+			sdkCtx,
+			liquidStakedDerivatives,
+		)
+		if err != nil {
+			return nil, err
+		}
+		totalSupply = totalSupply.Add(sdk.NewCoin(bkavaDenom, underlyingValue.Amount))
+	}
 
 	return &types.QueryTotalSupplyResponse{
 		Height: sdkCtx.BlockHeight(),

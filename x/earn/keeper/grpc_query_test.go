@@ -788,7 +788,7 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 			),
 		},
 		{
-			name: "calculates supply of bkava vaults accounting for slashing",
+			name: "aggregates supply of bkava vaults accounting for slashing",
 			setup: func() {
 				address1, derivatives1, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[0], sdk.NewInt(1e9))
 				address2, derivatives2, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[1], sdk.NewInt(1e9))
@@ -807,9 +807,10 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 				deposit(address2, testutil.TestBkavaDenoms[1], derivatives2.Amount.Int64())
 			},
 			expectedSupply: sdk.NewCoins(
-				sdk.NewInt64Coin(testutil.TestBkavaDenoms[0], 1e9),
-				// original value * 80%
-				sdk.NewCoin(testutil.TestBkavaDenoms[1], sdk.NewInt(1e9).MulRaw(80).QuoRaw(100)),
+				sdk.NewCoin(
+					"bkava",
+					sdk.NewIntFromUint64(1e9). // derivative 1
+									Add(sdk.NewInt(1e9).MulRaw(80).QuoRaw(100))), // derivative 2: original value * 80%
 			),
 		},
 	}
