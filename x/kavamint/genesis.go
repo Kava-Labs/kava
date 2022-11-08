@@ -1,6 +1,8 @@
 package kavamint
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/kavamint/keeper"
 	"github.com/kava-labs/kava/x/kavamint/types"
@@ -15,7 +17,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, ak types.AccountKeeper, 
 		keeper.SetPreviousBlockTime(ctx, data.PreviousBlockTime)
 	}
 
-	ak.GetModuleAccount(ctx, types.ModuleName)
+	if macc := ak.GetModuleAccount(ctx, types.ModuleName); macc != nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper.

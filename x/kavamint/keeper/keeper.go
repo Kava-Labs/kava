@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -12,7 +13,7 @@ import (
 	"github.com/kava-labs/kava/x/kavamint/types"
 )
 
-// Keeper of the mint store
+// Keeper of the kavamint store
 type Keeper struct {
 	cdc              codec.BinaryCodec
 	storeKey         sdk.StoreKey
@@ -22,15 +23,15 @@ type Keeper struct {
 	feeCollectorName string
 }
 
-// NewKeeper creates a new mint Keeper instance
+// NewKeeper creates a new kavamint Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper,
 	feeCollectorName string,
 ) Keeper {
-	// ensure mint module account is set
+	// ensure kavamint module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
-		panic("the mint module account has not been set")
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
 	// set KeyTable if it has not already been set

@@ -38,7 +38,7 @@ func (k Keeper) AccumulateStakingRewards(ctx sdk.Context, since time.Time) (sdk.
 // CalculateInflationRate converts an APY into the factor corresponding with that APY's accumulation
 // over a period of secondsPassed seconds.
 func CalculateInflationRate(apy sdk.Dec, secondsPassed uint64) (sdk.Dec, error) {
-	perSecondInterestRate, err := APYToSPY(apy.Add(sdk.OneDec()))
+	perSecondInterestRate, err := apyToSpy(apy.Add(sdk.OneDec()))
 	if err != nil {
 		return sdk.ZeroDec(), err
 	}
@@ -46,9 +46,9 @@ func CalculateInflationRate(apy sdk.Dec, secondsPassed uint64) (sdk.Dec, error) 
 	return rate.Sub(sdk.OneDec()), nil
 }
 
-// APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.
+// apyToSpy converts the input annual interest rate. For example, 10% apy would be passed as 1.10.
 // SPY = Per second compounded interest rate is how cosmos mathematically represents APY.
-func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
+func apyToSpy(apy sdk.Dec) (sdk.Dec, error) {
 	// Note: any APY greater than 176.5 will cause an out-of-bounds error
 	root, err := apy.ApproxRoot(SecondsPerYear)
 	if err != nil {
