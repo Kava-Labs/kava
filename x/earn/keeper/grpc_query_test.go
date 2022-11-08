@@ -755,7 +755,7 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 			name: "calculates supply of savings vaults, even when private",
 			setup: func() {
 				vault1Denom := "ukava"
-				vault2Denom := testutil.TestBkavaDenoms[0]
+				vault2Denom := "busd"
 
 				acc1 := suite.CreateAccount(sdk.NewCoins(
 					sdk.NewInt64Coin(vault1Denom, 1e6),
@@ -772,7 +772,7 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 					true,                                // private!
 					[]sdk.AccAddress{acc1.GetAddress()}, // only acc1 can deposit.
 				)
-				suite.CreateVault("bkava",
+				suite.CreateVault("busd",
 					types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
 					false,
 					nil,
@@ -784,7 +784,32 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 			},
 			expectedSupply: sdk.NewCoins(
 				sdk.NewInt64Coin("ukava", 1e5),
-				sdk.NewInt64Coin(testutil.TestBkavaDenoms[0], 3e5),
+				sdk.NewInt64Coin("busd", 3e5),
+			),
+		},
+		{
+			name: "calculates supply of bkava vaults accounting for slashing",
+			setup: func() {
+				address1, derivatives1, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[0], sdk.NewInt(1e9))
+				address2, derivatives2, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[1], sdk.NewInt(1e9))
+
+				// bond validators
+				staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
+				// slash val2 - its shares are now 80% as valuable!
+				err := suite.slashValidator(sdk.ValAddress(address2), sdk.MustNewDecFromStr("0.2"))
+				suite.Require().NoError(err)
+
+				// create "bkava" vault. it holds all bkava denoms
+				suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, []sdk.AccAddress{})
+
+				// deposit bkava
+				deposit(address1, testutil.TestBkavaDenoms[0], derivatives1.Amount.Int64())
+				deposit(address2, testutil.TestBkavaDenoms[1], derivatives2.Amount.Int64())
+			},
+			expectedSupply: sdk.NewCoins(
+				sdk.NewInt64Coin(testutil.TestBkavaDenoms[0], 1e9),
+				// original value * 80%
+				sdk.NewCoin(testutil.TestBkavaDenoms[1], sdk.NewInt(1e9).MulRaw(80).QuoRaw(100)),
 			),
 		},
 	}

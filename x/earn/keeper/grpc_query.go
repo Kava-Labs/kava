@@ -282,9 +282,11 @@ func (s queryServer) TotalSupply(
 	var vaultRecordErr error
 	// iterate actual records to properly enumerate all bkava denoms
 	s.keeper.IterateVaultRecords(sdkCtx, func(vault types.VaultRecord) (stop bool) {
+		isLiquidStakingDenom := false
 		// find allowed vault to get parameters. handle translating bkava denoms to allowed vault denom
 		allowedVaultDenom := vault.TotalShares.Denom
 		if strings.HasPrefix(vault.TotalShares.Denom, bkavaPrefix) {
+			isLiquidStakingDenom = true
 			allowedVaultDenom = bkavaDenom
 		}
 		allowedVault, found := allowedVaultByDenom[allowedVaultDenom]
@@ -305,6 +307,20 @@ func (s queryServer) TotalSupply(
 			return true
 		}
 
+		// liquid staked tokens must be converted to their underlying value
+		if isLiquidStakingDenom {
+			underlyingValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(
+				sdkCtx,
+				sdk.NewCoins(vaultSupply),
+			)
+			if err != nil {
+				vaultRecordErr = err
+				return true
+			}
+			vaultSupply.Amount = underlyingValue.Amount
+		}
+
+		// add to total supply
 		totalSupply = (sdk.Coins)(totalSupply).Add(vaultSupply)
 		return false
 	})
