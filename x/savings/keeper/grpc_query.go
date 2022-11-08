@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -107,10 +108,31 @@ func (s queryServer) Deposits(ctx context.Context, req *types.QueryDepositsReque
 func (s queryServer) TotalSupply(ctx context.Context, req *types.QueryTotalSupplyRequest) (*types.QueryTotalSupplyResponse, error) {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	totalSupply := sdk.NewCoins()
+	liquidStakedDerivatives := sdk.NewCoins()
+
 	s.keeper.IterateDeposits(sdkCtx, func(deposit types.Deposit) (stop bool) {
-		totalSupply = totalSupply.Add(deposit.Amount...)
+		for _, c := range deposit.Amount {
+			// separate out bkava denoms
+			if strings.HasPrefix(c.Denom, bkavaPrefix) {
+				liquidStakedDerivatives = liquidStakedDerivatives.Add(c)
+			} else {
+				totalSupply = totalSupply.Add(c)
+			}
+		}
 		return false
 	})
+
+	// determine underlying value of bkava denoms
+	if len(liquidStakedDerivatives) > 0 {
+		underlyingValue, err := s.keeper.liquidKeeper.GetStakedTokensForDerivatives(
+			sdkCtx,
+			liquidStakedDerivatives,
+		)
+		if err != nil {
+			return nil, err
+		}
+		totalSupply = totalSupply.Add(sdk.NewCoin(bkavaDenom, underlyingValue.Amount))
+	}
 
 	return &types.QueryTotalSupplyResponse{
 		Height: sdkCtx.BlockHeight(),
