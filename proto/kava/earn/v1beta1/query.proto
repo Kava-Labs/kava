@@ -34,6 +34,11 @@ service Query {
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/earn/v1beta1/deposits";
   }
+
+  // TotalSupply returns the total sum of all coins currently locked into the earn module.
+  rpc TotalSupply(QueryTotalSupplyRequest) returns (QueryTotalSupplyResponse) {
+    option (google.api.http).get = "/kava/earn/v1beta1/total_supply";
+  }
 }
 
 // QueryParamsRequest defines the request type for querying x/earn parameters.
@@ -133,4 +138,16 @@ message DepositResponse {
   // the strategy.
   repeated cosmos.base.v1beta1.Coin value = 3
       [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+}
+
+// QueryTotalSupplyRequest defines the request type for Query/TotalSupply method.
+message QueryTotalSupplyRequest {}
+
+// TotalSupplyResponse defines the response type for the Query/TotalSupply method.
+message QueryTotalSupplyResponse {
+  // Height is the block height at which these totals apply
+  int64 height = 1;
+  // Result is a list of coins supplied to earn
+  repeated cosmos.base.v1beta1.Coin result = 2
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }

@@ -16,6 +16,11 @@ service Query {
   rpc DelegatedBalance(QueryDelegatedBalanceRequest) returns (QueryDelegatedBalanceResponse) {
     option (google.api.http).get = "/kava/liquid/v1beta1/delegated_balance/{delegator}";
   }
+
+  // TotalSupply returns the total sum of all coins currently locked into the liquid module.
+  rpc TotalSupply(QueryTotalSupplyRequest) returns (QueryTotalSupplyResponse) {
+    option (google.api.http).get = "/kava/liquid/v1beta1/total_supply";
+  }
 }
 
 // QueryDelegatedBalanceRequest defines the request type for Query/DelegatedBalance method.
@@ -30,4 +35,16 @@ message QueryDelegatedBalanceResponse {
   cosmos.base.v1beta1.Coin vested = 1 [(gogoproto.nullable) = false];
   // vesting is the amount of all delegated coins that are still vesting (ie locked)
   cosmos.base.v1beta1.Coin vesting = 2 [(gogoproto.nullable) = false];
+}
+
+// QueryTotalSupplyRequest defines the request type for Query/TotalSupply method.
+message QueryTotalSupplyRequest {}
+
+// TotalSupplyResponse defines the response type for the Query/TotalSupply method.
+message QueryTotalSupplyResponse {
+  // Height is the block height at which these totals apply
+  int64 height = 1;
+  // Result is a list of coins supplied to liquid
+  repeated cosmos.base.v1beta1.Coin result = 2
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }

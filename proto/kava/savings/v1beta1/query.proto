@@ -4,6 +4,7 @@ package kava.savings.v1beta1;
 import "kava/savings/v1beta1/store.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 
@@ -19,6 +20,11 @@ service Query {
   // Deposits queries savings deposits.
   rpc Deposits(QueryDepositsRequest) returns (QueryDepositsResponse) {
     option (google.api.http).get = "/kava/savings/v1beta1/deposits";
+  }
+
+  // TotalSupply returns the total sum of all coins currently locked into the savings module.
+  rpc TotalSupply(QueryTotalSupplyRequest) returns (QueryTotalSupplyResponse) {
+    option (google.api.http).get = "/kava/savings/v1beta1/total_supply";
   }
 }
 
@@ -49,4 +55,16 @@ message QueryDepositsResponse {
   repeated Deposit deposits = 1 [(gogoproto.castrepeated) = "Deposits", (gogoproto.nullable) = false];
 
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryTotalSupplyRequest defines the request type for Query/TotalSupply method.
+message QueryTotalSupplyRequest {}
+
+// TotalSupplyResponse defines the response type for the Query/TotalSupply method.
+message QueryTotalSupplyResponse {
+  // Height is the block height at which these totals apply
+  int64 height = 1;
+  // Result is a list of coins supplied to savings
+  repeated cosmos.base.v1beta1.Coin result = 2
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
 }

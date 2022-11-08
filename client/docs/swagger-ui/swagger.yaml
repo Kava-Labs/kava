@@ -7199,6 +7199,67 @@ paths:
                       format: byte
       tags:
         - Earn
+  /kava/earn/v1beta1/total_supply:
+    get:
+      summary: >-
+        TotalSupply returns the total sum of all coins currently locked into the
+        earn module.
+      operationId: EarnTotalSupply
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                format: int64
+                title: Height is the block height at which these totals apply
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+                title: Result is a list of coins supplied to earn
+            description: >-
+              TotalSupplyResponse defines the response type for the
+              Query/TotalSupply method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Earn
   /kava/earn/v1beta1/vaults:
     get:
       summary: Vaults queries all vaults
@@ -10900,6 +10961,67 @@ paths:
           type: string
       tags:
         - Liquid
+  /kava/liquid/v1beta1/total_supply:
+    get:
+      summary: >-
+        TotalSupply returns the total sum of all coins currently locked into the
+        liquid module.
+      operationId: LiquidTotalSupply
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                format: int64
+                title: Height is the block height at which these totals apply
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+                title: Result is a list of coins supplied to liquid
+            description: >-
+              TotalSupplyResponse defines the response type for the
+              Query/TotalSupply method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Liquid
   /kava/pricefeed/v1beta1/markets:
     get:
       summary: Markets queries all markets
@@ -11787,6 +11909,67 @@ paths:
               x/savings
 
               parameters.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Savings
+  /kava/savings/v1beta1/total_supply:
+    get:
+      summary: >-
+        TotalSupply returns the total sum of all coins currently locked into the
+        savings module.
+      operationId: SavingsTotalSupply
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              height:
+                type: string
+                format: int64
+                title: Height is the block height at which these totals apply
+              result:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+                title: Result is a list of coins supplied to savings
+            description: >-
+              TotalSupplyResponse defines the response type for the
+              Query/TotalSupply method.
         default:
           description: An unexpected error response.
           schema:
@@ -55271,6 +55454,31 @@ definitions:
     description: >-
       QueryParamsResponse defines the response type for querying x/earn
       parameters.
+  kava.earn.v1beta1.QueryTotalSupplyResponse:
+    type: object
+    properties:
+      height:
+        type: string
+        format: int64
+        title: Height is the block height at which these totals apply
+      result:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        title: Result is a list of coins supplied to earn
+    description: >-
+      TotalSupplyResponse defines the response type for the Query/TotalSupply
+      method.
   kava.earn.v1beta1.QueryVaultResponse:
     type: object
     properties:
@@ -56832,6 +57040,31 @@ definitions:
     description: >-
       DelegatedBalanceResponse defines the response type for the
       Query/DelegatedBalance method.
+  kava.liquid.v1beta1.QueryTotalSupplyResponse:
+    type: object
+    properties:
+      height:
+        type: string
+        format: int64
+        title: Height is the block height at which these totals apply
+      result:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        title: Result is a list of coins supplied to liquid
+    description: >-
+      TotalSupplyResponse defines the response type for the Query/TotalSupply
+      method.
   kava.pricefeed.v1beta1.CurrentPriceResponse:
     type: object
     properties:
@@ -57362,6 +57595,31 @@ definitions:
     description: |-
       QueryParamsResponse defines the response type for querying x/savings
       parameters.
+  kava.savings.v1beta1.QueryTotalSupplyResponse:
+    type: object
+    properties:
+      height:
+        type: string
+        format: int64
+        title: Height is the block height at which these totals apply
+      result:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        title: Result is a list of coins supplied to savings
+    description: >-
+      TotalSupplyResponse defines the response type for the Query/TotalSupply
+      method.
   CheckTxResult:
     type: object
     properties:
