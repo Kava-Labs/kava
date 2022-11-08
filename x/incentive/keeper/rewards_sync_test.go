@@ -322,7 +322,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenGlobalIndexesIncreasedAn
 func (suite *SynchronizeClaimTests) TestGetSyncedClaim_ClaimUnchangedWhenNoGlobalIndexes() {
 	collateralType_1 := "btcb:usdx"
 	owner := arbitraryAddress()
-	claimType := types.CLAIM_TYPE_USDX_MINTING
+	claimType := types.CLAIM_TYPE_SWAP
 
 	swapKeeper := newFakeSwapKeeper().
 		addDeposit(collateralType_1, owner, i(1e9))
@@ -356,7 +356,7 @@ func (suite *SynchronizeClaimTests) TestGetSyncedClaim_ClaimUpdatedWhenMissingIn
 	collateralType_1 := "btcb:usdx"
 	collateralType_2 := "ukava:usdx"
 	owner := arbitraryAddress()
-	claimType := types.CLAIM_TYPE_USDX_MINTING
+	claimType := types.CLAIM_TYPE_SWAP
 
 	// owner has no shares in any pool
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, newFakeSwapKeeper(), nil, nil, nil)
@@ -414,7 +414,7 @@ func (suite *SynchronizeClaimTests) TestGetSyncedClaim_ClaimUpdatedWhenMissingIn
 	collateralType_1 := "btcb:usdx"
 	collateralType_2 := "ukava:usdx"
 	owner := arbitraryAddress()
-	claimType := types.CLAIM_TYPE_USDX_MINTING
+	claimType := types.CLAIM_TYPE_SWAP
 
 	swapKeeper := newFakeSwapKeeper().
 		addDeposit(collateralType_1, owner, i(1e9)).

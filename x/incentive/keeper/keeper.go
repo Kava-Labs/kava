@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/swap"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -59,7 +60,9 @@ func NewKeeper(
 		liquidKeeper:  lqk,
 		earnKeeper:    ek,
 
-		adapters: map[types.ClaimType]types.SourceAdapter{},
+		adapters: map[types.ClaimType]types.SourceAdapter{
+			types.CLAIM_TYPE_SWAP: swap.NewSourceAdapter(swpk),
+		},
 
 		mintKeeper:      mk,
 		distrKeeper:     dk,
