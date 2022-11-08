@@ -10,6 +10,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/swap"
+	swaptypes "github.com/kava-labs/kava/x/swap/types"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -79,6 +80,104 @@ func (suite *SwapAdapterTestSuite) TestSwapAdapter_OwnerSharesBySource_Empty() {
 	}
 }
 
+func (suite *SwapAdapterTestSuite) TestSwapAdapter_OwnerSharesBySource() {
+	poolDenomA := "ukava"
+	poolDenomB := "usdx"
+
+	swapKeeper := suite.app.GetSwapKeeper()
+	swapKeeper.SetParams(suite.ctx, swaptypes.NewParams(
+		swaptypes.NewAllowedPools(
+			swaptypes.NewAllowedPool(poolDenomA, poolDenomB),
+		),
+		sdk.ZeroDec(),
+	))
+
+	suite.app.FundAccount(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(poolDenomA, sdk.NewInt(1000000000000)),
+			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
+		),
+	)
+	suite.app.FundAccount(
+		suite.ctx,
+		suite.addrs[1],
+		sdk.NewCoins(
+			sdk.NewCoin(poolDenomA, sdk.NewInt(1000000000000)),
+			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
+		),
+	)
+
+	err := swapKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoin(poolDenomA, sdk.NewInt(100)),
+		sdk.NewCoin(poolDenomB, sdk.NewInt(100)),
+		sdk.NewDecWithPrec(1, 1),
+	)
+	suite.NoError(err)
+
+	err = swapKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[1],
+		sdk.NewCoin(poolDenomA, sdk.NewInt(250)),
+		sdk.NewCoin(poolDenomB, sdk.NewInt(250)),
+		sdk.NewDecWithPrec(1, 0),
+	)
+	suite.NoError(err)
+
+	adapter := swap.NewSourceAdapter(suite.app.GetSwapKeeper())
+
+	tests := []struct {
+		name          string
+		giveOwner     sdk.AccAddress
+		giveSourceIDs []string
+		wantShares    map[string]sdk.Dec
+	}{
+		{
+			"depositor has shares",
+			suite.addrs[0],
+			[]string{
+				swaptypes.PoolID(poolDenomA, poolDenomB),
+			},
+			map[string]sdk.Dec{
+				swaptypes.PoolID(poolDenomA, poolDenomB): sdk.NewDecWithPrec(100, 0),
+			},
+		},
+		{
+			"depositor has shares - including empty deposits",
+			suite.addrs[1],
+			[]string{
+				swaptypes.PoolID(poolDenomA, poolDenomB),
+				"pool2",
+			},
+			map[string]sdk.Dec{
+				swaptypes.PoolID(poolDenomA, poolDenomB): sdk.NewDecWithPrec(250, 0),
+				"pool2":                                  sdk.ZeroDec(),
+			},
+		},
+		{
+			"non-depositor has zero shares",
+			suite.addrs[2],
+			[]string{
+				swaptypes.PoolID(poolDenomA, poolDenomB),
+			},
+			map[string]sdk.Dec{
+				swaptypes.PoolID(poolDenomA, poolDenomB): sdk.ZeroDec(),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			shares := adapter.OwnerSharesBySource(suite.ctx, tt.giveOwner, tt.giveSourceIDs)
+
+			suite.Equal(tt.wantShares, shares)
+		})
+	}
+}
+
 func (suite *SwapAdapterTestSuite) TestSwapAdapter_TotalSharesBySource_Empty() {
 	adapter := swap.NewSourceAdapter(suite.app.GetSwapKeeper())
 
@@ -95,6 +194,81 @@ func (suite *SwapAdapterTestSuite) TestSwapAdapter_TotalSharesBySource_Empty() {
 		{
 			"invalid request returns zero",
 			"",
+			sdk.ZeroDec(),
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			shares := adapter.TotalSharesBySource(suite.ctx, tt.giveSourceID)
+
+			suite.Equal(tt.wantShares, shares)
+		})
+	}
+}
+
+func (suite *SwapAdapterTestSuite) TestSwapAdapter_TotalSharesBySource() {
+	poolDenomA := "ukava"
+	poolDenomB := "usdx"
+
+	swapKeeper := suite.app.GetSwapKeeper()
+	swapKeeper.SetParams(suite.ctx, swaptypes.NewParams(
+		swaptypes.NewAllowedPools(
+			swaptypes.NewAllowedPool(poolDenomA, poolDenomB),
+		),
+		sdk.ZeroDec(),
+	))
+
+	suite.app.FundAccount(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(poolDenomA, sdk.NewInt(1000000000000)),
+			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
+		),
+	)
+	suite.app.FundAccount(
+		suite.ctx,
+		suite.addrs[1],
+		sdk.NewCoins(
+			sdk.NewCoin(poolDenomA, sdk.NewInt(1000000000000)),
+			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
+		),
+	)
+
+	err := swapKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoin(poolDenomA, sdk.NewInt(100)),
+		sdk.NewCoin(poolDenomB, sdk.NewInt(100)),
+		sdk.NewDecWithPrec(1, 1),
+	)
+	suite.NoError(err)
+
+	err = swapKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[1],
+		sdk.NewCoin(poolDenomA, sdk.NewInt(250)),
+		sdk.NewCoin(poolDenomB, sdk.NewInt(250)),
+		sdk.NewDecWithPrec(1, 0),
+	)
+	suite.NoError(err)
+
+	adapter := swap.NewSourceAdapter(suite.app.GetSwapKeeper())
+
+	tests := []struct {
+		name         string
+		giveSourceID string
+		wantShares   sdk.Dec
+	}{
+		{
+			"total shares",
+			swaptypes.PoolID(poolDenomA, poolDenomB),
+			sdk.NewDecWithPrec(350, 0),
+		},
+		{
+			"empty or invalid pool empty",
+			"pool2",
 			sdk.ZeroDec(),
 		},
 	}
