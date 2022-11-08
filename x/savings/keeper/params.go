@@ -7,6 +7,11 @@ import (
 	"github.com/kava-labs/kava/x/savings/types"
 )
 
+const (
+	bkavaDenom  = "bkava"
+	bkavaPrefix = bkavaDenom + "-"
+)
+
 // GetParams returns the params from the store
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	var p types.Params

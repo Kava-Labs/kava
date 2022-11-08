@@ -155,6 +155,8 @@ func (suite *Suite) SetupTest() {
 		savingstypes.NewParams(
 			[]string{
 				"ukava",
+				"busd",
+				"usdx",
 				TestBkavaDenoms[0],
 				TestBkavaDenoms[1],
 				TestBkavaDenoms[2],

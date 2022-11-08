@@ -33,6 +33,7 @@ func GetQueryCmd() *cobra.Command {
 	cmds := []*cobra.Command{
 		GetCmdQueryParams(),
 		queryDepositsCmd(),
+		GetCmdTotalSupply(),
 	}
 
 	for _, cmd := range cmds {
@@ -129,4 +130,29 @@ func queryDepositsCmd() *cobra.Command {
 	cmd.Flags().String(flagDenom, "", "(optional) filter for deposits by denom")
 
 	return cmd
+}
+
+// GetCmdTotalSupply returns the command that queries total supply locked into savings module
+func GetCmdTotalSupply() *cobra.Command {
+	return &cobra.Command{
+		Use:   "total-supply",
+		Short: "get total supply locked into savings module",
+		Long:  "Get the sum of all denoms locked into the savings module.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.TotalSupply(context.Background(), &types.QueryTotalSupplyRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
 }

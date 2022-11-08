@@ -50,6 +50,23 @@ func (s queryServer) DelegatedBalance(
 	return &res, nil
 }
 
+func (s queryServer) TotalSupply(
+	goCtx context.Context,
+	req *types.QueryTotalSupplyRequest,
+) (*types.QueryTotalSupplyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	totalValue, err := s.keeper.GetTotalDerivativeValue(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.QueryTotalSupplyResponse{
+		Height: ctx.BlockHeight(),
+		Result: []sdk.Coin{totalValue},
+	}, nil
+}
+
 func (s queryServer) getDelegatedBalance(ctx sdk.Context, delegator sdk.AccAddress) sdk.Int {
 	balance := sdk.ZeroDec()
 
