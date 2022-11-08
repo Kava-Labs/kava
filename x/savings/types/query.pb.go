@@ -267,7 +267,7 @@ var xxx_messageInfo_QueryTotalSupplyRequest proto.InternalMessageInfo
 type QueryTotalSupplyResponse struct {
 	// Height is the block height at which these totals apply
 	Height int64 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
-	// Result is a list of coins supplied to liquid
+	// Result is a list of coins supplied to savings
 	Result github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=result,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"result"`
 }
 

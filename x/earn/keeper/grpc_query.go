@@ -264,6 +264,57 @@ func (s queryServer) Deposits(
 	return s.getOneAccountAllDeposits(sdkCtx, req)
 }
 
+// TotalSupply implements the gRPC service handler for querying x/earn total supply (TVL)
+func (s queryServer) TotalSupply(
+	ctx context.Context,
+	req *types.QueryTotalSupplyRequest,
+) (*types.QueryTotalSupplyResponse, error) {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	totalSupply := sdk.NewCoins()
+
+	// allowed vaults param contains info on allowed strategies, but bkava is aggregated
+	allowedVaults := s.keeper.GetAllowedVaults(sdkCtx)
+	allowedVaultByDenom := make(map[string]types.AllowedVault)
+	for _, av := range allowedVaults {
+		allowedVaultByDenom[av.Denom] = av
+	}
+
+	var vaultRecordErr error
+	// iterate actual records to properly enumerate all bkava denoms
+	s.keeper.IterateVaultRecords(sdkCtx, func(vault types.VaultRecord) (stop bool) {
+		// find allowed vault to get parameters. handle translating bkava denoms to allowed vault denom
+		allowedVaultDenom := vault.TotalShares.Denom
+		if strings.HasPrefix(vault.TotalShares.Denom, bkavaPrefix) {
+			allowedVaultDenom = bkavaDenom
+		}
+		allowedVault, found := allowedVaultByDenom[allowedVaultDenom]
+		if !found {
+			vaultRecordErr = fmt.Errorf("vault record not found for vault record denom %s", vault.TotalShares.Denom)
+			return true
+		}
+
+		// only consider savings strategy vaults when determining supply
+		if !allowedVault.IsStrategyAllowed(types.STRATEGY_TYPE_SAVINGS) {
+			return false
+		}
+
+		// vault has savings strategy! determine total value of vault and add to sum
+		vaultSupply, err := s.keeper.GetVaultTotalValue(sdkCtx, vault.TotalShares.Denom)
+		if err != nil {
+			vaultRecordErr = err
+			return true
+		}
+
+		totalSupply = (sdk.Coins)(totalSupply).Add(vaultSupply)
+		return false
+	})
+
+	return &types.QueryTotalSupplyResponse{
+		Height: sdkCtx.BlockHeight(),
+		Result: totalSupply,
+	}, vaultRecordErr
+}
+
 // getOneAccountOneVaultDeposit returns deposits for a specific vault and a specific
 // account
 func (s queryServer) getOneAccountOneVaultDeposit(

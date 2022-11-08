@@ -35,6 +35,7 @@ func GetQueryCmd() *cobra.Command {
 		queryVaultsCmd(),
 		queryVaultCmd(),
 		queryDepositsCmd(),
+		queryTotalSupplyCmd(),
 	}
 
 	for _, cmd := range cmds {
@@ -180,4 +181,28 @@ func queryDepositsCmd() *cobra.Command {
 	cmd.Flags().Bool(flagValueInStakedTokens, false, "(optional) get underlying staked tokens for staking derivative vaults")
 
 	return cmd
+}
+
+func queryTotalSupplyCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "total-supply",
+		Short: "get total supply across all savings strategy vaults",
+		Long:  "Get the sum of all denoms locking into vaults that allow the savings strategy.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.TotalSupply(context.Background(), &types.QueryTotalSupplyRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
 }

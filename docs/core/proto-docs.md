@@ -205,6 +205,8 @@
     - [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse)
     - [QueryParamsRequest](#kava.earn.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.earn.v1beta1.QueryParamsResponse)
+    - [QueryTotalSupplyRequest](#kava.earn.v1beta1.QueryTotalSupplyRequest)
+    - [QueryTotalSupplyResponse](#kava.earn.v1beta1.QueryTotalSupplyResponse)
     - [QueryVaultRequest](#kava.earn.v1beta1.QueryVaultRequest)
     - [QueryVaultResponse](#kava.earn.v1beta1.QueryVaultResponse)
     - [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest)
@@ -3151,6 +3153,32 @@ QueryParamsResponse defines the response type for querying x/earn parameters.
 
 
 
+<a name="kava.earn.v1beta1.QueryTotalSupplyRequest"></a>
+
+### QueryTotalSupplyRequest
+QueryTotalSupplyRequest defines the request type for Query/TotalSupply method.
+
+
+
+
+
+
+<a name="kava.earn.v1beta1.QueryTotalSupplyResponse"></a>
+
+### QueryTotalSupplyResponse
+TotalSupplyResponse defines the response type for the Query/TotalSupply method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `height` | [int64](#int64) |  | Height is the block height at which these totals apply |
+| `result` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Result is a list of coins supplied to earn |
+
+
+
+
+
+
 <a name="kava.earn.v1beta1.QueryVaultRequest"></a>
 
 ### QueryVaultRequest
@@ -3243,6 +3271,7 @@ Query defines the gRPC querier service for earn module
 | `Vaults` | [QueryVaultsRequest](#kava.earn.v1beta1.QueryVaultsRequest) | [QueryVaultsResponse](#kava.earn.v1beta1.QueryVaultsResponse) | Vaults queries all vaults | GET|/kava/earn/v1beta1/vaults|
 | `Vault` | [QueryVaultRequest](#kava.earn.v1beta1.QueryVaultRequest) | [QueryVaultResponse](#kava.earn.v1beta1.QueryVaultResponse) | Vault queries a single vault based on the vault denom | GET|/kava/earn/v1beta1/vaults/{denom}|
 | `Deposits` | [QueryDepositsRequest](#kava.earn.v1beta1.QueryDepositsRequest) | [QueryDepositsResponse](#kava.earn.v1beta1.QueryDepositsResponse) | Deposits queries deposit details based on depositor address and vault | GET|/kava/earn/v1beta1/deposits|
+| `TotalSupply` | [QueryTotalSupplyRequest](#kava.earn.v1beta1.QueryTotalSupplyRequest) | [QueryTotalSupplyResponse](#kava.earn.v1beta1.QueryTotalSupplyResponse) | TotalSupply returns the total sum of all coins currently locked into the earn module. | GET|/kava/earn/v1beta1/total_supply|
 
  <!-- end services -->
 
@@ -6554,7 +6583,7 @@ TotalSupplyResponse defines the response type for the Query/TotalSupply method.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `height` | [int64](#int64) |  | Height is the block height at which these totals apply |
-| `result` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Result is a list of coins supplied to liquid |
+| `result` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated | Result is a list of coins supplied to savings |
 
 
 
