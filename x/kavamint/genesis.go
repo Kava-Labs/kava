@@ -17,7 +17,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, ak types.AccountKeeper, 
 		keeper.SetPreviousBlockTime(ctx, data.PreviousBlockTime)
 	}
 
-	if macc := ak.GetModuleAccount(ctx, types.ModuleName); macc != nil {
+	if macc := ak.GetModuleAccount(ctx, types.ModuleName); macc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 }
