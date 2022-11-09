@@ -1,0 +1,7 @@
+syntax = "proto3";
+package kava.community.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/community/types";
+
+// Params wraps the governance parameters for the community module
+message Params {}
