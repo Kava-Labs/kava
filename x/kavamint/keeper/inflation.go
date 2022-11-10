@@ -16,7 +16,11 @@ const (
 // The amount is the total_bonded_tokens * spy
 // where spy is the staking_rewards_apy converted to a compound-per-second rate over a period of
 // seconds_since_last_accumulation.
-func (k Keeper) AccumulateStakingRewards(ctx sdk.Context, since time.Time) (sdk.Coins, error) {
+func (k Keeper) AccumulateStakingRewards(
+	ctx sdk.Context,
+	totalBonded sdk.Int,
+	since time.Time,
+) (sdk.Coins, error) {
 	params := k.GetParams(ctx)
 	bondDenom := k.BondDenom(ctx)
 
@@ -30,7 +34,6 @@ func (k Keeper) AccumulateStakingRewards(ctx sdk.Context, since time.Time) (sdk.
 		return sdk.NewCoins(), err
 	}
 
-	totalBonded := k.TotalBondedTokens(ctx)
 	stakingRewardsAmount := stakingRewardsRate.MulInt(totalBonded).TruncateInt()
 
 	return sdk.NewCoins(sdk.NewCoin(bondDenom, stakingRewardsAmount)), nil
@@ -41,7 +44,11 @@ func (k Keeper) AccumulateStakingRewards(ctx sdk.Context, since time.Time) (sdk.
 // The amount is the total_supply * spy * seconds_since_last_accumulation
 // where spy is the community_pool_inflation converted to a compound-per-second rate over a period
 // of seconds_since_last_accumulation.
-func (k Keeper) AccumulateCommunityPoolInflation(ctx sdk.Context, since time.Time) (sdk.Coins, error) {
+func (k Keeper) AccumulateCommunityPoolInflation(
+	ctx sdk.Context,
+	totalSupply sdk.Int,
+	since time.Time,
+) (sdk.Coins, error) {
 	params := k.GetParams(ctx)
 	bondDenom := k.BondDenom(ctx)
 
@@ -58,7 +65,6 @@ func (k Keeper) AccumulateCommunityPoolInflation(ctx sdk.Context, since time.Tim
 		return sdk.NewCoins(), err
 	}
 
-	totalSupply := k.TotalSupply(ctx)
 	communityInflationAmount := communityInflationRate.MulInt(totalSupply).TruncateInt()
 
 	return sdk.NewCoins(sdk.NewCoin(bondDenom, communityInflationAmount)), nil

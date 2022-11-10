@@ -11,9 +11,12 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	if !found {
 		previousBlockTime = ctx.BlockTime()
 	}
+	// calculate totals before any minting is done to prevent new mints affecting the values
+	totalBonded := k.TotalBondedTokens(ctx)
+	totalSupply := k.TotalSupply(ctx)
 
 	// ------------- Staking Rewards -------------
-	stakingRewardCoins, err := k.AccumulateStakingRewards(ctx, previousBlockTime)
+	stakingRewardCoins, err := k.AccumulateStakingRewards(ctx, totalBonded, previousBlockTime)
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +32,7 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	}
 
 	// ------------- Community Pool -------------
-	communityPoolInflation, err := k.AccumulateCommunityPoolInflation(ctx, previousBlockTime)
+	communityPoolInflation, err := k.AccumulateCommunityPoolInflation(ctx, totalSupply, previousBlockTime)
 	if err != nil {
 		panic(err)
 	}

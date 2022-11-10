@@ -62,13 +62,63 @@ func (suite *abciTestSuite) TestBeginBlockerMintsExpectedTokens() {
 			blockTime:               6,
 			communityPoolInflation:  sdk.ZeroDec(),
 			stakingRewardsApy:       sdk.NewDecWithPrec(20, 2),
-			bondedRatio:             sdk.OneDec(),
+			bondedRatio:             sdk.NewDecWithPrec(40, 2),
 			expCommunityPoolBalance: sdk.ZeroInt(),
 			// 20% APY for 6 seconds
-			// bond ratio is 100%, so total supply = bonded supply = 1e10
-			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10
-			// => 346.88 => truncated to 346 tokens.
-			expFeeCollectorBalance: sdk.NewInt(346),
+			// bond ratio is 40%, so total supply * ratio = 1e10 * .4
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10*.4
+			// => 138.75 => truncated to 138 tokens.
+			expFeeCollectorBalance: sdk.NewInt(138),
+		},
+		{
+			name:                   "mints community pool inflation, handles 0 staking rewards",
+			blockTime:              6,
+			communityPoolInflation: sdk.NewDecWithPrec(80, 2),
+			stakingRewardsApy:      sdk.ZeroDec(),
+			bondedRatio:            sdk.NewDecWithPrec(40, 2),
+			// 80% APY for 6 seconds
+			// total supply = 1e10
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.80%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10
+			// => 1118.32 => truncated to 1118 tokens.
+			expCommunityPoolBalance: sdk.NewInt(1118),
+			expFeeCollectorBalance:  sdk.ZeroInt(),
+		},
+		{
+			name:                    "mints no tokens if all inflation is zero",
+			blockTime:               6,
+			communityPoolInflation:  sdk.ZeroDec(),
+			stakingRewardsApy:       sdk.ZeroDec(),
+			bondedRatio:             sdk.NewDecWithPrec(40, 2),
+			expCommunityPoolBalance: sdk.ZeroInt(),
+			expFeeCollectorBalance:  sdk.ZeroInt(),
+		},
+		{
+			name:                   "mints community pool inflation and staking rewards",
+			blockTime:              6,
+			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
+			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
+			bondedRatio:            sdk.NewDecWithPrec(35, 2),
+			// 50% APY for 6 seconds
+			// total supply = 1e10
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.5%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10
+			// => 771.43 => truncated to 771 tokens.
+			expCommunityPoolBalance: sdk.NewInt(771),
+			// 20% APY for 6 seconds
+			// total bonded = 1e10 * 35%
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10*.35
+			// => 121.41 => truncated to 121 tokens.
+			expFeeCollectorBalance: sdk.NewInt(121),
+		},
+		{
+			name:                   "handles extra long block time",
+			blockTime:              60, // like if we're upgrading the network takes an hour to get back up
+			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
+			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
+			bondedRatio:            sdk.NewDecWithPrec(35, 2),
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.5%2C31536000%5D%5C%2841%29%2C60%5D-1%5C%2841%29*1e10
+			expCommunityPoolBalance: sdk.NewInt(7714),
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C60%5D-1%5C%2841%29*1e10*.35
+			expFeeCollectorBalance: sdk.NewInt(1214),
 		},
 	}
 
