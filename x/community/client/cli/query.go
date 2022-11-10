@@ -23,10 +23,11 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryBalance(),
 	}
 
-	communityQueryCmd.AddCommand(commands...)
 	for _, cmd := range commands {
 		flags.AddQueryFlagsToCmd(cmd)
 	}
+
+	communityQueryCmd.AddCommand(commands...)
 
 	return communityQueryCmd
 }

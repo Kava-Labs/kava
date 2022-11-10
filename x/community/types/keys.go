@@ -10,8 +10,8 @@ const (
 	// StoreKey is the default store key for x/community
 	StoreKey = ModuleName
 
-	// QuerierRoute is the querier route for x/community
-	QuerierRoute = StoreKey
+	// RouterKey is the querier route for x/community
+	RouterKey = ModuleName
 
 	// Query endpoints supported by community
 	QueryParameters = "parameters"

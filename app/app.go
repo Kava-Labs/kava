@@ -209,7 +209,7 @@ var (
 		earn.AppModuleBasic{},
 		router.AppModuleBasic{},
 		kavamint.AppModuleBasic{},
-		committee.AppModuleBasic{},
+		community.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -366,6 +366,7 @@ func NewApp(
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, kavaminttypes.StoreKey,
+		communitytypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -634,7 +635,6 @@ func NewApp(
 		app.distrKeeper,
 	)
 	app.communityKeeper = communitykeeper.NewKeeper(
-		appCodec,
 		keys[communitytypes.StoreKey],
 		communitySubspace,
 		app.accountKeeper,
@@ -771,7 +771,7 @@ func NewApp(
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
 		kavamint.NewAppModule(appCodec, app.kavamintKeeper, app.accountKeeper),
-		community.NewAppModule(appCodec, app.communityKeeper, app.accountKeeper),
+		community.NewAppModule(app.communityKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.

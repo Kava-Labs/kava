@@ -5,7 +5,6 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/kava-labs/kava/x/community/types"
@@ -13,33 +12,20 @@ import (
 
 // Keeper of the community store
 type Keeper struct {
-	cdc           codec.BinaryCodec
-	storeKey      sdk.StoreKey
 	paramSpace    paramtypes.Subspace
 	bankKeeper    types.BankKeeper
 	moduleAddress sdk.AccAddress
 }
 
 // NewKeeper creates a new community Keeper instance
-func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	ak types.AccountKeeper, bk types.BankKeeper,
-) Keeper {
+func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleName)
 	if addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return Keeper{
-		cdc:           cdc,
-		storeKey:      key,
-		paramSpace:    paramSpace,
 		bankKeeper:    bk,
 		moduleAddress: addr,
 	}
@@ -64,4 +50,9 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 // GetModuleAccountBalance returns all the coins held by the community module account
 func (k Keeper) GetModuleAccountBalance(ctx sdk.Context) sdk.Coins {
 	return k.bankKeeper.GetAllBalances(ctx, k.moduleAddress)
+}
+
+// FundCommunityPool transfers coins from the sender to the community module account.
+func (k Keeper) FundCommunityPool(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error {
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
 }

@@ -1,10 +1,9 @@
 package types
 
-// Minting module event types
+// Community module event types
 const (
-	EventTypeMint = ModuleName
+	EventTypeFundCommunityPool = "fund_community_pool"
 
-	AttributeKeyBondedRatio      = "bonded_ratio"
-	AttributeKeyInflation        = "inflation"
-	AttributeKeyAnnualProvisions = "annual_provisions"
+	AttributeValueCategory = ModuleName
+	AttributeKeyDepositor  = "depositor"
 )
