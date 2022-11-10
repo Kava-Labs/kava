@@ -366,7 +366,6 @@ func NewApp(
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, kavaminttypes.StoreKey,
-		communitytypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -413,7 +412,6 @@ func NewApp(
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 	kavamintSubspace := app.paramsKeeper.Subspace(kavaminttypes.ModuleName)
-	communitySubspace := app.paramsKeeper.Subspace(communitytypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -635,8 +633,6 @@ func NewApp(
 		app.distrKeeper,
 	)
 	app.communityKeeper = communitykeeper.NewKeeper(
-		keys[communitytypes.StoreKey],
-		communitySubspace,
 		app.accountKeeper,
 		app.bankKeeper,
 	)
@@ -771,7 +767,7 @@ func NewApp(
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
 		kavamint.NewAppModule(appCodec, app.kavamintKeeper, app.accountKeeper),
-		community.NewAppModule(app.communityKeeper),
+		community.NewAppModule(app.communityKeeper, app.accountKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.

@@ -4,29 +4,15 @@ package kava.community.v1beta1;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "kava/community/v1beta1/community.proto";
 
 option go_package = "github.com/kava-labs/kava/x/community/types";
 
 // Query defines the gRPC querier service for x/community.
 service Query {
-  // Params queries the parameters of x/community module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/kava/community/v1beta1/parameters";
-  }
-
   // Balance queries the balance of all coins of x/community module.
   rpc Balance(QueryBalanceRequest) returns (QueryBalanceResponse) {
     option (google.api.http).get = "/kava/community/v1beta1/balance";
   }
-}
-
-// QueryParamsRequest defines the request type for querying x/community parameters.
-message QueryParamsRequest {}
-
-// QueryParamsResponse defines the response type for querying x/community parameters.
-message QueryParamsResponse {
-  Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // QueryBalanceRequest defines the request type for querying x/community balance.

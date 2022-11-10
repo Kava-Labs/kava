@@ -178,17 +178,9 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
-- [kava/community/v1beta1/community.proto](#kava/community/v1beta1/community.proto)
-    - [Params](#kava.community.v1beta1.Params)
-  
-- [kava/community/v1beta1/genesis.proto](#kava/community/v1beta1/genesis.proto)
-    - [GenesisState](#kava.community.v1beta1.GenesisState)
-  
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
-    - [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest)
-    - [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse)
   
     - [Query](#kava.community.v1beta1.Query)
   
@@ -2845,63 +2837,6 @@ Msg defines the committee Msg service
 
 
 
-<a name="kava/community/v1beta1/community.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## kava/community/v1beta1/community.proto
-
-
-
-<a name="kava.community.v1beta1.Params"></a>
-
-### Params
-Params wraps the governance parameters for the community module
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
-<a name="kava/community/v1beta1/genesis.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## kava/community/v1beta1/genesis.proto
-
-
-
-<a name="kava.community.v1beta1.GenesisState"></a>
-
-### GenesisState
-GenesisState defines the community module's genesis state.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.community.v1beta1.Params) |  | Params defines all the parameters of the module. |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
-
- <!-- end services -->
-
-
-
 <a name="kava/community/v1beta1/query.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2933,31 +2868,6 @@ QueryBalanceResponse defines the response type for querying x/community balance.
 
 
 
-
-<a name="kava.community.v1beta1.QueryParamsRequest"></a>
-
-### QueryParamsRequest
-QueryParamsRequest defines the request type for querying x/community parameters.
-
-
-
-
-
-
-<a name="kava.community.v1beta1.QueryParamsResponse"></a>
-
-### QueryParamsResponse
-QueryParamsResponse defines the response type for querying x/community parameters.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.community.v1beta1.Params) |  |  |
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2972,7 +2882,6 @@ Query defines the gRPC querier service for x/community.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse) | Params queries the parameters of x/community module. | GET|/kava/community/v1beta1/parameters|
 | `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
 
  <!-- end services -->
