@@ -13,8 +13,9 @@ const (
 
 // AccumulateStakingRewards calculates the number of coins that should be minted for staking rewards
 // given the staking rewards APY and the time of last accumulation.
-// The amount is the total_bonded_tokens * spy * seconds_since_last_accumulation
-// where spy is the staking_rewards_apy converted to a compound-per-second rate.
+// The amount is the total_bonded_tokens * spy
+// where spy is the staking_rewards_apy converted to a compound-per-second rate over a period of
+// seconds_since_last_accumulation.
 func (k Keeper) AccumulateStakingRewards(ctx sdk.Context, since time.Time) (sdk.Coins, error) {
 	params := k.GetParams(ctx)
 	bondDenom := k.BondDenom(ctx)
@@ -33,6 +34,34 @@ func (k Keeper) AccumulateStakingRewards(ctx sdk.Context, since time.Time) (sdk.
 	stakingRewardsAmount := stakingRewardsRate.MulInt(totalBonded).TruncateInt()
 
 	return sdk.NewCoins(sdk.NewCoin(bondDenom, stakingRewardsAmount)), nil
+}
+
+// AccumulateCommunityPoolInflation calculates the number of coins that should be minted for community pool
+// inflation.
+// The amount is the total_supply * spy * seconds_since_last_accumulation
+// where spy is the community_pool_inflation converted to a compound-per-second rate over a period
+// of seconds_since_last_accumulation.
+func (k Keeper) AccumulateCommunityPoolInflation(ctx sdk.Context, since time.Time) (sdk.Coins, error) {
+	params := k.GetParams(ctx)
+	bondDenom := k.BondDenom(ctx)
+
+	// determine seconds passed since this block time
+	// truncate the float with uint64(). remaining fraction of second will be picked up in next block.
+	secondsSinceLastBlock := ctx.BlockTime().Sub(since).Seconds()
+
+	// calculate the rate factor based on apy & seconds passed since last block
+	communityInflationRate, err := CalculateInflationRate(
+		params.CommunityPoolInflation,
+		uint64(secondsSinceLastBlock),
+	)
+	if err != nil {
+		return sdk.NewCoins(), err
+	}
+
+	totalSupply := k.TotalSupply(ctx)
+	communityInflationAmount := communityInflationRate.MulInt(totalSupply).TruncateInt()
+
+	return sdk.NewCoins(sdk.NewCoin(bondDenom, communityInflationAmount)), nil
 }
 
 // CalculateInflationRate converts an APY into the factor corresponding with that APY's accumulation

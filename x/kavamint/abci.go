@@ -29,8 +29,20 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	}
 
 	// ------------- Community Pool -------------
-	// TODO: mint tokens for community pool
-	// TODO: send tokens to community pool
+	communityPoolInflation, err := k.AccumulateCommunityPoolInflation(ctx, previousBlockTime)
+	if err != nil {
+		panic(err)
+	}
+
+	// mint community pool inflation
+	if err := k.MintCoins(ctx, communityPoolInflation); err != nil {
+		panic(err)
+	}
+
+	// send inflation coins to the community pool (x/community module account)
+	if err := k.FundCommunityPool(ctx, communityPoolInflation); err != nil {
+		panic(err)
+	}
 
 	// ------------- Bookkeeping -------------
 	// bookkeep the previous block time

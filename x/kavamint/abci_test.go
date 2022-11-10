@@ -10,6 +10,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 	"github.com/kava-labs/kava/x/kavamint"
 	"github.com/kava-labs/kava/x/kavamint/keeper"
 	"github.com/kava-labs/kava/x/kavamint/testutil"
@@ -36,6 +37,10 @@ func (suite *abciTestSuite) CheckFeeCollectorBalance(ctx sdk.Context, expectedAm
 
 func (suite *abciTestSuite) CheckKavamintBalance(ctx sdk.Context, expectedAmount sdk.Int) {
 	suite.CheckModuleBalance(ctx, types.ModuleName, expectedAmount)
+}
+
+func (suite *abciTestSuite) CheckCommunityPoolBalance(ctx sdk.Context, expectedAmount sdk.Int) {
+	suite.CheckModuleBalance(ctx, communitytypes.ModuleAccountName, expectedAmount)
 }
 
 func TestGRPCQueryTestSuite(t *testing.T) {
@@ -67,6 +72,8 @@ func (suite *abciTestSuite) TestBeginBlockerMintsStakingRewards() {
 	suite.CheckFeeCollectorBalance(ctx, sdk.ZeroInt())
 	// expect nothing in kavamint module
 	suite.CheckKavamintBalance(ctx, sdk.ZeroInt())
+	// expect nothing in community module
+	suite.CheckCommunityPoolBalance(ctx, sdk.ZeroInt())
 
 	// expect block time set
 	startBlockTime, startTimeFound := kavamintKeeper.GetPreviousBlockTime(ctx)
@@ -89,6 +96,8 @@ func (suite *abciTestSuite) TestBeginBlockerMintsStakingRewards() {
 
 	// kavamint balance should still be 0 because 100% was transferred out
 	suite.CheckKavamintBalance(ctx2, sdk.ZeroInt())
+	// community inflation is 0 so community pool should still be empty
+	suite.CheckCommunityPoolBalance(ctx, sdk.ZeroInt())
 
 	// expect time to be updated
 	endBlockTime, endTimeFound := kavamintKeeper.GetPreviousBlockTime(ctx)
