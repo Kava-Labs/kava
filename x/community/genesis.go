@@ -13,7 +13,7 @@ import (
 // InitGenesis initializes the community module account
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak types.AccountKeeper) {
 	// check if the module account exists
-	if moduleAcc := ak.GetModuleAccount(ctx, types.ModuleName); moduleAcc == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	if moduleAcc := ak.GetModuleAccount(ctx, types.ModuleAccountName); moduleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleAccountName))
 	}
 }

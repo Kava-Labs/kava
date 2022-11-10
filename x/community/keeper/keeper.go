@@ -18,9 +18,9 @@ type Keeper struct {
 // NewKeeper creates a new community Keeper instance
 func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper) Keeper {
 	// ensure community module account is set
-	addr := ak.GetModuleAddress(types.ModuleName)
+	addr := ak.GetModuleAddress(types.ModuleAccountName)
 	if addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleAccountName))
 	}
 
 	return Keeper{
@@ -41,5 +41,5 @@ func (k Keeper) GetModuleAccountBalance(ctx sdk.Context) sdk.Coins {
 
 // FundCommunityPool transfers coins from the sender to the community module account.
 func (k Keeper) FundCommunityPool(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, amount)
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, amount)
 }
