@@ -29,8 +29,7 @@ COSMOS_PROTO_TYPES = third_party/proto/cosmos_proto
 
 .PHONY: check-rsync
 check-rsync: ## Fails if rsync does not exist
-	@echo "Checking rsync"
-	@which $(RSYNC_BIN) > /dev/null
+	@which $(RSYNC_BIN) > /dev/null || (echo "\`$(RSYNC_BIN)\` not found. Please install $(RSYNC_BIN) or ensure it is in PATH."; exit 1)
 
 .PHONY: proto-update-deps
 proto-update-deps: check-rsync ## Update all third party proto files
