@@ -7,6 +7,37 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+// AccumulateRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
+// The provided rewardPeriod must be valid to avoid panics in calculating time durations.
+func (k Keeper) AccumulateRewards(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	rewardPeriod types.MultiRewardPeriod,
+) {
+	previousAccrualTime, found := k.GetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType)
+	if !found {
+		previousAccrualTime = ctx.BlockTime()
+	}
+
+	indexes, found := k.GetRewardIndexesOfClaimType(ctx, claimType, rewardPeriod.CollateralType)
+	if !found {
+		indexes = types.RewardIndexes{}
+	}
+
+	acc := types.NewAccumulator(previousAccrualTime, indexes)
+
+	adapter := k.GetSourceAdapter(claimType)
+	totalSource := adapter.TotalSharesBySource(ctx, rewardPeriod.CollateralType)
+
+	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
+
+	k.SetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	if len(acc.Indexes) > 0 {
+		// the store panics when setting empty or nil indexes
+		k.SetRewardIndexes(ctx, claimType, rewardPeriod.CollateralType, acc.Indexes)
+	}
+}
+
 // InitializeClaim creates a new claim with zero rewards and indexes matching
 // the global indexes. If the claim already exists it just updates the indexes.
 func (k Keeper) InitializeClaim(
