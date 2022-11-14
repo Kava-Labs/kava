@@ -306,3 +306,45 @@ func (mrps MultiRewardPeriods) Validate() error {
 
 	return nil
 }
+
+// NewMultiRewardPeriodOfClaimType returns a new MultiRewardPeriodOfClaimType
+func NewMultiRewardPeriodOfClaimType(claimType ClaimType, rewardPeriods MultiRewardPeriods) MultiRewardPeriodOfClaimType {
+	return MultiRewardPeriodOfClaimType{
+		ClaimType:     claimType,
+		RewardPeriods: rewardPeriods,
+	}
+}
+
+// Validate performs a basic check of a MultiRewardPeriodOfClaimType fields.
+func (mrp MultiRewardPeriodOfClaimType) Validate() error {
+	if err := mrp.ClaimType.Validate(); err != nil {
+		return fmt.Errorf("invalid claim type: %w", err)
+	}
+	if err := mrp.RewardPeriods.Validate(); err != nil {
+		return fmt.Errorf("invalid reward periods: %w", err)
+	}
+
+	return nil
+}
+
+// MultiRewardPeriodsOfClaimType array of MultiRewardPeriodOfClaimType
+type MultiRewardPeriodsOfClaimType []MultiRewardPeriodOfClaimType
+
+// Validate checks if all the MultiRewardPeriodsOfClaimType are valid and there
+// are no duplicated entries.
+func (mrps MultiRewardPeriodsOfClaimType) Validate() error {
+	seenClaimTypes := make(map[ClaimType]bool)
+	for _, mrp := range mrps {
+		if seenClaimTypes[mrp.ClaimType] {
+			return fmt.Errorf("duplicated reward period with claim type %s", mrp.ClaimType)
+		}
+
+		if err := mrp.Validate(); err != nil {
+			return fmt.Errorf("invalid reward period for claimType %s: %w", mrp.ClaimType, err)
+		}
+
+		seenClaimTypes[mrp.ClaimType] = true
+	}
+
+	return nil
+}

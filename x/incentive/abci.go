@@ -35,4 +35,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 			panic(fmt.Sprintf("failed to accumulate earn rewards: %s", err))
 		}
 	}
+
+	for _, mrp := range params.RewardPeriods {
+		for _, rp := range mrp.RewardPeriods {
+			k.AccumulateRewards(ctx, mrp.ClaimType, rp)
+		}
+	}
 }

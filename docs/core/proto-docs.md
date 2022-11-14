@@ -326,6 +326,7 @@
   
 - [kava/incentive/v1beta1/params.proto](#kava/incentive/v1beta1/params.proto)
     - [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod)
+    - [MultiRewardPeriodOfClaimType](#kava.incentive.v1beta1.MultiRewardPeriodOfClaimType)
     - [Multiplier](#kava.incentive.v1beta1.Multiplier)
     - [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom)
     - [Params](#kava.incentive.v1beta1.Params)
@@ -4740,10 +4741,27 @@ MultiRewardPeriod supports multiple reward types
 
 
 
+<a name="kava.incentive.v1beta1.MultiRewardPeriodOfClaimType"></a>
+
+### MultiRewardPeriodOfClaimType
+MultiRewardPeriodOfClaimType stores mutiple reward types of a claim type
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `claim_type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
+| `reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.Multiplier"></a>
 
 ### Multiplier
-Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
+Multiplier amount the claim rewards get increased by, along with how long the
+claim rewards are locked
 
 
 | Field | Type | Label | Description |
@@ -4790,6 +4808,7 @@ Params
 | `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 | `savings_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 | `earn_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
+| `reward_periods` | [MultiRewardPeriodOfClaimType](#kava.incentive.v1beta1.MultiRewardPeriodOfClaimType) | repeated |  |
 
 
 
