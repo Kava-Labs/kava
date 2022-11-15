@@ -26,8 +26,7 @@ func (k Keeper) AccumulateRewards(
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	adapter := k.GetSourceAdapter(claimType)
-	totalSource := adapter.TotalSharesBySource(ctx, rewardPeriod.CollateralType)
+	totalSource := k.adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
 
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
@@ -137,12 +136,11 @@ func (k Keeper) GetSynchronizedClaim(
 		return false
 	})
 
-	adapter := k.GetSourceAdapter(claimType)
-	accShares := adapter.OwnerSharesBySource(ctx, owner, sourceIDs)
+	accShares := k.adapters.OwnerSharesBySource(ctx, claimType, owner, sourceIDs)
 
 	// Synchronize claim for each source ID
-	for _, sourceID := range sourceIDs {
-		claim = k.synchronizeClaim(ctx, claim, sourceID, owner, accShares[sourceID])
+	for _, share := range accShares {
+		claim = k.synchronizeClaim(ctx, claim, share.ID, owner, share.Shares)
 	}
 
 	return claim, true

@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"fmt"
-	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -10,15 +9,19 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+// SourceAdapters is a collection of source adapters.
 type SourceAdapters struct {
 	adapters map[types.ClaimType]types.SourceAdapter
 }
 
+// SourceShare is a single share from a source with it's corresponding ID.
 type SourceShare struct {
 	ID     string
 	Shares sdk.Dec
 }
 
+// NewSourceAdapters returns a new SourceAdapters instance with all available
+// source adapters.
 func NewSourceAdapters(
 	swapKeeper types.SwapKeeper,
 ) SourceAdapters {
@@ -29,6 +32,8 @@ func NewSourceAdapters(
 	}
 }
 
+// OwnerSharesBySource returns a slice of SourceShares for each sourceID from a
+// specified owner. The slice is sorted by sourceID.
 func (a SourceAdapters) OwnerSharesBySource(
 	ctx sdk.Context,
 	claimType types.ClaimType,
@@ -42,21 +47,32 @@ func (a SourceAdapters) OwnerSharesBySource(
 
 	ownerShares := adapter.OwnerSharesBySource(ctx, owner, sourceIDs)
 
-	var sortedSourceIDs []string
-	for sourceID := range ownerShares {
-		sortedSourceIDs = append(sortedSourceIDs, sourceID)
-	}
-
-	// Sort source IDs to ensure deterministic order of claim syncs
-	sort.Strings(sortedSourceIDs)
-
 	var shares []SourceShare
-	for _, sourceID := range sortedSourceIDs {
+	for _, sourceID := range sourceIDs {
+		singleShares, found := ownerShares[sourceID]
+		if !found {
+			panic(fmt.Sprintf("no source shares for claimType %s and source %s", claimType, sourceID))
+		}
+
 		shares = append(shares, SourceShare{
 			ID:     sourceID,
-			Shares: ownerShares[sourceID],
+			Shares: singleShares,
 		})
 	}
 
 	return shares
+}
+
+// TotalSharesBySource returns the total shares of a given claimType and sourceID.
+func (a SourceAdapters) TotalSharesBySource(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	sourceID string,
+) sdk.Dec {
+	adapter, found := a.adapters[claimType]
+	if !found {
+		panic(fmt.Sprintf("no source share fetcher for claim type %s", claimType))
+	}
+
+	return adapter.TotalSharesBySource(ctx, sourceID)
 }
