@@ -94,6 +94,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 				},
 			},
 			suite.genesisTime.Add(5*oneYear),
+			types.DefaultMultiRewardPeriodsOfClaimType,
 		),
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
@@ -165,6 +166,7 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				},
 			},
 			genesisTime.Add(5*oneYear),
+			types.DefaultMultiRewardPeriodsOfClaimType,
 		),
 		types.NewGenesisRewardState(
 			types.AccumulationTimes{

@@ -15,21 +15,23 @@ import (
 
 // Parameter keys and default values
 var (
-	KeyUSDXMintingRewardPeriods = []byte("USDXMintingRewardPeriods")
-	KeyHardSupplyRewardPeriods  = []byte("HardSupplyRewardPeriods")
-	KeyHardBorrowRewardPeriods  = []byte("HardBorrowRewardPeriods")
-	KeyDelegatorRewardPeriods   = []byte("DelegatorRewardPeriods")
-	KeySwapRewardPeriods        = []byte("SwapRewardPeriods")
-	KeySavingsRewardPeriods     = []byte("SavingsRewardPeriods")
-	KeyEarnRewardPeriods        = []byte("EarnRewardPeriods")
-	KeyClaimEnd                 = []byte("ClaimEnd")
-	KeyMultipliers              = []byte("ClaimMultipliers")
+	KeyUSDXMintingRewardPeriods      = []byte("USDXMintingRewardPeriods")
+	KeyHardSupplyRewardPeriods       = []byte("HardSupplyRewardPeriods")
+	KeyHardBorrowRewardPeriods       = []byte("HardBorrowRewardPeriods")
+	KeyDelegatorRewardPeriods        = []byte("DelegatorRewardPeriods")
+	KeySwapRewardPeriods             = []byte("SwapRewardPeriods")
+	KeySavingsRewardPeriods          = []byte("SavingsRewardPeriods")
+	KeyEarnRewardPeriods             = []byte("EarnRewardPeriods")
+	KeyClaimEnd                      = []byte("ClaimEnd")
+	KeyMultipliers                   = []byte("ClaimMultipliers")
+	KeyMultiRewardPeriodsOfClaimType = []byte("MultiRewardPeriodsOfClaimType")
 
-	DefaultActive             = false
-	DefaultRewardPeriods      = RewardPeriods{}
-	DefaultMultiRewardPeriods = MultiRewardPeriods{}
-	DefaultMultipliers        = MultipliersPerDenoms{}
-	DefaultClaimEnd           = tmtime.Canonical(time.Unix(1, 0))
+	DefaultActive                        = false
+	DefaultRewardPeriods                 = RewardPeriods{}
+	DefaultMultiRewardPeriods            = MultiRewardPeriods{}
+	DefaultMultipliers                   = MultipliersPerDenoms{}
+	DefaultMultiRewardPeriodsOfClaimType = MultiRewardPeriodsOfClaimType{}
+	DefaultClaimEnd                      = tmtime.Canonical(time.Unix(1, 0))
 
 	BondDenom              = "ukava"
 	USDXMintingRewardDenom = "ukava"
@@ -44,6 +46,7 @@ func NewParams(
 	hardSupply, hardBorrow, delegator, swap, savings, earn MultiRewardPeriods,
 	multipliers MultipliersPerDenoms,
 	claimEnd time.Time,
+	rewardPeriods MultiRewardPeriodsOfClaimType,
 ) Params {
 	return Params{
 		USDXMintingRewardPeriods: usdxMinting,
@@ -52,8 +55,10 @@ func NewParams(
 		DelegatorRewardPeriods:   delegator,
 		SwapRewardPeriods:        swap,
 		SavingsRewardPeriods:     savings,
+		EarnRewardPeriods:        earn,
 		ClaimMultipliers:         multipliers,
 		ClaimEnd:                 claimEnd,
+		RewardPeriods:            rewardPeriods,
 	}
 }
 
@@ -69,6 +74,7 @@ func DefaultParams() Params {
 		DefaultMultiRewardPeriods,
 		DefaultMultipliers,
 		DefaultClaimEnd,
+		DefaultMultiRewardPeriodsOfClaimType,
 	)
 }
 
@@ -89,6 +95,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyEarnRewardPeriods, &p.EarnRewardPeriods, validateMultiRewardPeriodsParam),
 		paramtypes.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersPerDenomParam),
 		paramtypes.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
+		paramtypes.NewParamSetPair(KeyMultiRewardPeriodsOfClaimType, &p.RewardPeriods, validatedRewardPeriodsParam),
 	}
 }
 
@@ -164,6 +171,15 @@ func validateClaimEndParam(i interface{}) error {
 		return fmt.Errorf("end time should not be zero")
 	}
 	return nil
+}
+
+func validatedRewardPeriodsParam(i interface{}) error {
+	periods, ok := i.(MultiRewardPeriodsOfClaimType)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return periods.Validate()
 }
 
 // NewRewardPeriod returns a new RewardPeriod
