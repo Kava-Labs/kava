@@ -50,8 +50,8 @@ message MultiRewardPeriod {
   ];
 }
 
-// MultiRewardPeriodOfClaimType stores mutiple reward types of a claim type
-message MultiRewardPeriodOfClaimType {
+// TypedMultiRewardPeriod stores mutiple reward types of a claim type
+message TypedMultiRewardPeriod {
   ClaimType claim_type = 1;
   repeated MultiRewardPeriod reward_periods = 2 [
     (gogoproto.castrepeated) = "MultiRewardPeriods",
@@ -130,8 +130,8 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
-  repeated MultiRewardPeriodOfClaimType reward_periods = 10 [
-    (gogoproto.castrepeated) = "MultiRewardPeriodsOfClaimType",
+  repeated TypedMultiRewardPeriod reward_periods = 10 [
+    (gogoproto.castrepeated) = "TypedMultiRewardPeriods",
     (gogoproto.nullable) = false
   ];
 }

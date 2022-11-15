@@ -94,7 +94,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 				},
 			},
 			suite.genesisTime.Add(5*oneYear),
-			types.DefaultMultiRewardPeriodsOfClaimType,
+			types.DefaultTypedMultiRewardPeriods,
 		),
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
@@ -166,8 +166,8 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				},
 			},
 			genesisTime.Add(5*oneYear),
-			types.MultiRewardPeriodsOfClaimType{
-				types.NewMultiRewardPeriodOfClaimType(
+			types.TypedMultiRewardPeriods{
+				types.NewTypedMultiRewardPeriod(
 					types.CLAIM_TYPE_SWAP,
 					types.MultiRewardPeriods{
 						types.NewMultiRewardPeriod(true, "ukava", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354))),
