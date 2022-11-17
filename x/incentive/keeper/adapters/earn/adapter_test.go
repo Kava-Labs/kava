@@ -227,7 +227,7 @@ func (suite *EarnAdapterTestSuite) TestEarnAdapter_TotalSharesBySource() {
 	earnKeeper.SetParams(suite.ctx, earntypes.NewParams(
 		earntypes.AllowedVaults{
 			earntypes.NewAllowedVault(
-				"ukava",
+				vaultDenomA,
 				earntypes.StrategyTypes{earntypes.STRATEGY_TYPE_SAVINGS},
 				false,
 				nil,
