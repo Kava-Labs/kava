@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/incentive/keeper/accumulators"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -14,26 +15,13 @@ func (k Keeper) AccumulateRewards(
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
 ) {
-	previousAccrualTime, found := k.GetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	indexes, found := k.GetRewardIndexesOfClaimType(ctx, claimType, rewardPeriod.CollateralType)
-	if !found {
-		indexes = types.RewardIndexes{}
-	}
-
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	totalSource := k.adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
-
-	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
-
-	k.SetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-	if len(acc.Indexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.SetRewardIndexes(ctx, claimType, rewardPeriod.CollateralType, acc.Indexes)
+	switch claimType {
+	case types.CLAIM_TYPE_EARN:
+		panic("unimplemented")
+	default:
+		accumulators.
+			NewBaseAccumulator(k, k.Adapters).
+			AccumulateRewards(ctx, claimType, rewardPeriod)
 	}
 }
 
@@ -136,7 +124,7 @@ func (k Keeper) GetSynchronizedClaim(
 		return false
 	})
 
-	accShares := k.adapters.OwnerSharesBySource(ctx, claimType, owner, sourceIDs)
+	accShares := k.Adapters.OwnerSharesBySource(ctx, claimType, owner, sourceIDs)
 
 	// Synchronize claim for each source ID
 	for _, share := range accShares {

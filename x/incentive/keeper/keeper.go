@@ -26,7 +26,7 @@ type Keeper struct {
 	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
 
-	adapters adapters.SourceAdapters
+	Adapters adapters.SourceAdapters
 
 	// Keepers used for APY queries
 	mintKeeper      types.MintKeeper
@@ -59,7 +59,7 @@ func NewKeeper(
 		liquidKeeper:  lqk,
 		earnKeeper:    ek,
 
-		adapters: adapters.NewSourceAdapters(
+		Adapters: adapters.NewSourceAdapters(
 			swpk,
 			ek,
 		),
