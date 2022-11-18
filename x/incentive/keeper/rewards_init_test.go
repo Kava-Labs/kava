@@ -37,7 +37,7 @@ func (suite *InitializeClaimTests) TestClaimAddedWhenClaimDoesNotExistAndNoRewar
 
 	suite.keeper.InitializeClaim(suite.ctx, claimType, collateralType, owner)
 
-	syncedClaim, found := suite.keeper.GetClaim(suite.ctx, claimType, owner)
+	syncedClaim, found := suite.keeper.Store.GetClaim(suite.ctx, claimType, owner)
 	suite.True(found)
 	// A new claim should have empty indexes. It doesn't strictly need the collateralType either.
 	expectedIndexes := types.MultiRewardIndexes{{
@@ -72,7 +72,7 @@ func (suite *InitializeClaimTests) TestClaimAddedWhenClaimDoesNotExistAndRewards
 
 	suite.keeper.InitializeClaim(suite.ctx, claimType, collateralType, owner)
 
-	syncedClaim, found := suite.keeper.GetClaim(suite.ctx, claimType, owner)
+	syncedClaim, found := suite.keeper.Store.GetClaim(suite.ctx, claimType, owner)
 	suite.True(found)
 	// a new claim should start with the current global indexes
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
@@ -107,13 +107,13 @@ func (suite *InitializeClaimTests) TestClaimUpdatedWhenClaimExistsAndNoRewards()
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	// no global indexes stored as the new pool is not rewarded
 
 	suite.keeper.InitializeClaim(suite.ctx, claimType, newCollateralType, claim.Owner)
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// The preexisting indexes shouldn't be changed. It doesn't strictly need the new collateralType either.
 	expectedIndexes := types.MultiRewardIndexes{
 		{
@@ -163,7 +163,7 @@ func (suite *InitializeClaimTests) TestClaimUpdatedWhenClaimExistsAndRewardsExis
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -179,7 +179,7 @@ func (suite *InitializeClaimTests) TestClaimUpdatedWhenClaimExistsAndRewardsExis
 
 	suite.keeper.InitializeClaim(suite.ctx, claimType, newCollateralType, claim.Owner)
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// only the indexes for the new pool should be updated
 	expectedIndexes := types.MultiRewardIndexes{
 		{

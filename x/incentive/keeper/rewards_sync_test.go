@@ -51,7 +51,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenGlobalIndexesHaveIncreas
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -70,7 +70,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenGlobalIndexesHaveIncreas
 
 	suite.keeper.SynchronizeClaim(suite.ctx, claimType, collateralType, claim.Owner, userShares.ToDec())
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// indexes updated from global
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
 	// new reward is (new index - old index) * user shares
@@ -104,7 +104,7 @@ func (suite *SynchronizeClaimTests) TestClaimUnchangedWhenGlobalIndexesUnchanged
 		Reward:        arbitraryCoins(),
 		RewardIndexes: unchangingIndexes,
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	suite.storeGlobalIndexes(claimType, unchangingIndexes)
 
@@ -112,7 +112,7 @@ func (suite *SynchronizeClaimTests) TestClaimUnchangedWhenGlobalIndexesUnchanged
 
 	suite.keeper.SynchronizeClaim(suite.ctx, claimType, collateralType, claim.Owner, userShares.ToDec())
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// claim should have the same rewards and indexes as before
 	suite.Equal(claim, syncedClaim)
 }
@@ -141,7 +141,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenNewRewardAdded() {
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -171,7 +171,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenNewRewardAdded() {
 
 	suite.keeper.SynchronizeClaim(suite.ctx, claimType, newlyRewardcollateralType, claim.Owner, userShares.ToDec())
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// the new indexes should be added to the claim, but the old ones should be unchanged
 	newlyRewrdedIndexes, _ := globalIndexes.Get(newlyRewardcollateralType)
 	expectedIndexes := claim.RewardIndexes.With(newlyRewardcollateralType, newlyRewrdedIndexes)
@@ -197,7 +197,7 @@ func (suite *SynchronizeClaimTests) TestClaimUnchangedWhenNoReward() {
 		Reward:        arbitraryCoins(),
 		RewardIndexes: nonEmptyMultiRewardIndexes,
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	// No global indexes stored as this pool is not rewarded
 
@@ -205,7 +205,7 @@ func (suite *SynchronizeClaimTests) TestClaimUnchangedWhenNoReward() {
 
 	suite.keeper.SynchronizeClaim(suite.ctx, claimType, collateralType, claim.Owner, userShares.ToDec())
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	suite.Equal(claim, syncedClaim)
 }
 
@@ -233,7 +233,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenNewRewardDenomAdded() {
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -258,7 +258,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenNewRewardDenomAdded() {
 
 	suite.keeper.SynchronizeClaim(suite.ctx, claimType, collateralType, claim.Owner, userShares.ToDec())
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// indexes should have the new reward denom added
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
 	// new reward is (new index - old index) * shares
@@ -293,7 +293,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenGlobalIndexesIncreasedAn
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -312,7 +312,7 @@ func (suite *SynchronizeClaimTests) TestClaimUpdatedWhenGlobalIndexesIncreasedAn
 
 	suite.keeper.SynchronizeClaim(suite.ctx, claimType, collateralType, claim.Owner, userShares.ToDec())
 
-	syncedClaim, _ := suite.keeper.GetClaim(suite.ctx, claimType, claim.Owner)
+	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// indexes updated from global
 	suite.Equal(globalIndexes, syncedClaim.RewardIndexes)
 	// reward is unchanged
@@ -339,7 +339,7 @@ func (suite *SynchronizeClaimTests) TestGetSyncedClaim_ClaimUnchangedWhenNoGloba
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	// no global indexes for any pool
 
@@ -377,7 +377,7 @@ func (suite *SynchronizeClaimTests) TestGetSyncedClaim_ClaimUpdatedWhenMissingIn
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -437,7 +437,7 @@ func (suite *SynchronizeClaimTests) TestGetSyncedClaim_ClaimUpdatedWhenMissingIn
 			},
 		},
 	}
-	suite.keeper.SetClaim(suite.ctx, claim)
+	suite.keeper.Store.SetClaim(suite.ctx, claim)
 
 	globalIndexes := types.MultiRewardIndexes{
 		{

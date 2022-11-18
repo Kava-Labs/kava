@@ -20,13 +20,13 @@ func (suite *KeeperTestSuite) TestGetSetDeleteClaims() {
 				nonEmptyMultiRewardIndexes,
 			)
 
-			_, found := suite.keeper.GetClaim(suite.ctx, claimType, suite.addrs[0])
+			_, found := suite.keeper.Store.GetClaim(suite.ctx, claimType, suite.addrs[0])
 			suite.Require().False(found)
 
 			suite.Require().NotPanics(func() {
-				suite.keeper.SetClaim(suite.ctx, c)
+				suite.keeper.Store.SetClaim(suite.ctx, c)
 			})
-			testC, found := suite.keeper.GetClaim(suite.ctx, claimType, suite.addrs[0])
+			testC, found := suite.keeper.Store.GetClaim(suite.ctx, claimType, suite.addrs[0])
 			suite.Require().True(found)
 			suite.Require().Equal(c, testC)
 
@@ -38,14 +38,14 @@ func (suite *KeeperTestSuite) TestGetSetDeleteClaims() {
 				}
 
 				otherClaimType := types.ClaimType(otherClaimTypeValue)
-				_, found := suite.keeper.GetClaim(suite.ctx, otherClaimType, suite.addrs[0])
+				_, found := suite.keeper.Store.GetClaim(suite.ctx, otherClaimType, suite.addrs[0])
 				suite.Require().False(found, "claim type %s should not exist", otherClaimTypeName)
 			}
 
 			suite.Require().NotPanics(func() {
-				suite.keeper.DeleteClaim(suite.ctx, claimType, suite.addrs[0])
+				suite.keeper.Store.DeleteClaim(suite.ctx, claimType, suite.addrs[0])
 			})
-			_, found = suite.keeper.GetClaim(suite.ctx, claimType, suite.addrs[0])
+			_, found = suite.keeper.Store.GetClaim(suite.ctx, claimType, suite.addrs[0])
 			suite.Require().False(found)
 		})
 	}
@@ -65,14 +65,14 @@ func (suite *KeeperTestSuite) TestIterateClaims() {
 	}
 
 	for _, claim := range claims {
-		suite.keeper.SetClaim(suite.ctx, claim)
+		suite.keeper.Store.SetClaim(suite.ctx, claim)
 	}
 
 	for _, claimTypeValue := range types.ClaimType_value {
 		claimType := types.ClaimType(claimTypeValue)
 
 		// Claims of specific claim type only should be returned
-		claims := suite.keeper.GetClaims(suite.ctx, claimType)
+		claims := suite.keeper.Store.GetClaims(suite.ctx, claimType)
 		suite.Require().Len(claims, 2)
 		suite.Require().Equalf(
 			claims, types.Claims{
@@ -83,7 +83,7 @@ func (suite *KeeperTestSuite) TestIterateClaims() {
 		)
 	}
 
-	allClaims := suite.keeper.GetAllClaims(suite.ctx)
+	allClaims := suite.keeper.Store.GetAllClaims(suite.ctx)
 	suite.Require().Len(allClaims, len(claims))
 	suite.Require().ElementsMatch(allClaims, claims, "GetAllClaims() should return claims of all types")
 }
@@ -111,11 +111,11 @@ func (suite *KeeperTestSuite) TestGetSetRewardAccrualTimes() {
 		suite.Run(tc.name, func() {
 			suite.SetupApp()
 
-			_, found := suite.keeper.GetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey)
+			_, found := suite.keeper.Store.GetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey)
 			suite.False(found)
 
 			setFunc := func() {
-				suite.keeper.SetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey, tc.accrualTime)
+				suite.keeper.Store.SetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey, tc.accrualTime)
 			}
 			if tc.panics {
 				suite.Panics(setFunc)
@@ -131,11 +131,11 @@ func (suite *KeeperTestSuite) TestGetSetRewardAccrualTimes() {
 					continue
 				}
 
-				_, found := suite.keeper.GetRewardAccrualTime(suite.ctx, claimType, tc.subKey)
+				_, found := suite.keeper.Store.GetRewardAccrualTime(suite.ctx, claimType, tc.subKey)
 				suite.False(found, "reward accrual time for claim type %s should not exist", claimType)
 			}
 
-			storedTime, found := suite.keeper.GetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey)
+			storedTime, found := suite.keeper.Store.GetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, tc.subKey)
 			suite.True(found)
 			suite.Equal(tc.accrualTime, storedTime)
 		})
@@ -213,11 +213,11 @@ func (suite *KeeperTestSuite) TestGetSetRewardIndexes() {
 		suite.Run(tc.name, func() {
 			suite.SetupApp()
 
-			_, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
+			_, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
 			suite.False(found)
 
 			setFunc := func() {
-				suite.keeper.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType, tc.indexes)
+				suite.keeper.Store.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType, tc.indexes)
 			}
 			if tc.panics {
 				suite.Panics(setFunc)
@@ -226,7 +226,7 @@ func (suite *KeeperTestSuite) TestGetSetRewardIndexes() {
 				suite.NotPanics(setFunc)
 			}
 
-			storedIndexes, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
+			storedIndexes, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, tc.collateralType)
 			suite.True(found)
 			suite.Equal(tc.wantIndex, storedIndexes)
 
@@ -239,7 +239,7 @@ func (suite *KeeperTestSuite) TestGetSetRewardIndexes() {
 				otherClaimType := types.ClaimType(otherClaimTypeValue)
 
 				// Other claim types should not be affected
-				_, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, otherClaimType, tc.collateralType)
+				_, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.ctx, otherClaimType, tc.collateralType)
 				suite.False(found)
 			}
 		})
@@ -252,11 +252,11 @@ func (suite *KeeperTestSuite) TestIterateRewardAccrualTimes() {
 	expectedAccrualTimes := nonEmptyAccrualTimes
 
 	for _, at := range expectedAccrualTimes {
-		suite.keeper.SetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, at.denom, at.time)
+		suite.keeper.Store.SetRewardAccrualTime(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, at.denom, at.time)
 	}
 
 	var actualAccrualTimes []accrualtime
-	suite.keeper.IterateRewardAccrualTimesByClaimType(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, func(denom string, accrualTime time.Time) bool {
+	suite.keeper.Store.IterateRewardAccrualTimesByClaimType(suite.ctx, types.CLAIM_TYPE_USDX_MINTING, func(denom string, accrualTime time.Time) bool {
 		actualAccrualTimes = append(actualAccrualTimes, accrualtime{denom: denom, time: accrualTime})
 		return false
 	})
@@ -278,7 +278,7 @@ func (suite *KeeperTestSuite) TestIterateAllRewardAccrualTimes() {
 		}
 
 		for _, at := range nonEmptyAccrualTimes {
-			suite.keeper.SetRewardAccrualTime(suite.ctx, claimType, at.denom, at.time)
+			suite.keeper.Store.SetRewardAccrualTime(suite.ctx, claimType, at.denom, at.time)
 
 			expectedAccrualTimes = append(expectedAccrualTimes, types.NewAccrualTime(
 				claimType,
@@ -290,7 +290,7 @@ func (suite *KeeperTestSuite) TestIterateAllRewardAccrualTimes() {
 	}
 
 	var actualAccrualTimes types.AccrualTimes
-	suite.keeper.IterateRewardAccrualTimes(
+	suite.keeper.Store.IterateRewardAccrualTimes(
 		suite.ctx,
 		func(accrualTime types.AccrualTime) bool {
 			actualAccrualTimes = append(actualAccrualTimes, accrualTime)
@@ -354,16 +354,16 @@ func (suite *KeeperTestSuite) TestIterateRewardIndexes() {
 	}
 
 	for _, mi := range swapMultiIndexes {
-		suite.keeper.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, mi.CollateralType, mi.RewardIndexes)
+		suite.keeper.Store.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_SWAP, mi.CollateralType, mi.RewardIndexes)
 	}
 
 	for _, mi := range earnMultiIndexes {
 		// These should be excluded when iterating over swap indexes
-		suite.keeper.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_EARN, mi.CollateralType, mi.RewardIndexes)
+		suite.keeper.Store.SetRewardIndexes(suite.ctx, types.CLAIM_TYPE_EARN, mi.CollateralType, mi.RewardIndexes)
 	}
 
 	actualMultiIndexesMap := make(map[types.ClaimType]types.MultiRewardIndexes)
-	suite.keeper.IterateRewardIndexesByClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, func(rewardIndex types.TypedRewardIndexes) bool {
+	suite.keeper.Store.IterateRewardIndexesByClaimType(suite.ctx, types.CLAIM_TYPE_SWAP, func(rewardIndex types.TypedRewardIndexes) bool {
 		actualMultiIndexesMap[rewardIndex.ClaimType] = actualMultiIndexesMap[rewardIndex.ClaimType].With(rewardIndex.CollateralType, rewardIndex.RewardIndexes)
 		return false
 	})
@@ -407,12 +407,12 @@ func (suite *KeeperTestSuite) TestIterateAllRewardIndexes() {
 		claimType := types.ClaimType(claimTypeValue)
 
 		for _, mi := range multiIndexes {
-			suite.keeper.SetRewardIndexes(suite.ctx, claimType, mi.CollateralType, mi.RewardIndexes)
+			suite.keeper.Store.SetRewardIndexes(suite.ctx, claimType, mi.CollateralType, mi.RewardIndexes)
 		}
 	}
 
 	actualMultiIndexesMap := make(map[types.ClaimType]types.MultiRewardIndexes)
-	suite.keeper.IterateRewardIndexes(suite.ctx, func(rewardIndex types.TypedRewardIndexes) bool {
+	suite.keeper.Store.IterateRewardIndexes(suite.ctx, func(rewardIndex types.TypedRewardIndexes) bool {
 		actualMultiIndexesMap[rewardIndex.ClaimType] = actualMultiIndexesMap[rewardIndex.ClaimType].With(rewardIndex.CollateralType, rewardIndex.RewardIndexes)
 		return false
 	})

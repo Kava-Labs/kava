@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/incentive/keeper/accumulators"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -20,7 +21,7 @@ func (k Keeper) AccumulateRewards(
 	case types.CLAIM_TYPE_EARN:
 		accumulator = NewEarnAccumulator(k, k.liquidKeeper, k.earnKeeper)
 	default:
-		accumulator = NewBasicAccumulator(k)
+		accumulator = accumulators.NewBasicAccumulator(k.Store, k.Adapters)
 	}
 
 	accumulator.AccumulateRewards(ctx, claimType, rewardPeriod)
@@ -34,18 +35,18 @@ func (k Keeper) InitializeClaim(
 	sourceID string,
 	owner sdk.AccAddress,
 ) {
-	claim, found := k.GetClaim(ctx, claimType, owner)
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
 		claim = types.NewClaim(claimType, owner, sdk.Coins{}, nil)
 	}
 
-	globalRewardIndexes, found := k.GetRewardIndexesOfClaimType(ctx, claimType, sourceID)
+	globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claimType, sourceID)
 	if !found {
 		globalRewardIndexes = types.RewardIndexes{}
 	}
 
 	claim.RewardIndexes = claim.RewardIndexes.With(sourceID, globalRewardIndexes)
-	k.SetClaim(ctx, claim)
+	k.Store.SetClaim(ctx, claim)
 }
 
 // SynchronizeClaim updates the claim object by adding any accumulated rewards
@@ -57,13 +58,13 @@ func (k Keeper) SynchronizeClaim(
 	owner sdk.AccAddress,
 	shares sdk.Dec,
 ) {
-	claim, found := k.GetClaim(ctx, claimType, owner)
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
 		return
 	}
 
 	claim = k.synchronizeClaim(ctx, claim, sourceID, owner, shares)
-	k.SetClaim(ctx, claim)
+	k.Store.SetClaim(ctx, claim)
 }
 
 // synchronizeClaim updates the reward and indexes in a claim for one sourceID.
@@ -74,7 +75,7 @@ func (k *Keeper) synchronizeClaim(
 	owner sdk.AccAddress,
 	shares sdk.Dec,
 ) types.Claim {
-	globalRewardIndexes, found := k.GetRewardIndexesOfClaimType(ctx, claim.Type, sourceID)
+	globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claim.Type, sourceID)
 	if !found {
 		// The global factor is only not found if
 		// - the pool has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -113,14 +114,14 @@ func (k Keeper) GetSynchronizedClaim(
 	claimType types.ClaimType,
 	owner sdk.AccAddress,
 ) (types.Claim, bool) {
-	claim, found := k.GetClaim(ctx, claimType, owner)
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
 		return types.Claim{}, false
 	}
 
 	// Fetch all source IDs from indexes
 	var sourceIDs []string
-	k.IterateRewardIndexesByClaimType(ctx, claimType, func(rewardIndexes types.TypedRewardIndexes) bool {
+	k.Store.IterateRewardIndexesByClaimType(ctx, claimType, func(rewardIndexes types.TypedRewardIndexes) bool {
 		sourceIDs = append(sourceIDs, rewardIndexes.CollateralType)
 		return false
 	})

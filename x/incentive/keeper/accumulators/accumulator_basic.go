@@ -1,8 +1,10 @@
-package keeper
+package accumulators
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters"
+	"github.com/kava-labs/kava/x/incentive/keeper/store"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -10,15 +12,20 @@ import (
 // interface. This applies to all claim types except for those with custom
 // accumulator logic e.g. Earn.
 type BasicAccumulator struct {
-	keeper Keeper
+	store    store.IncentiveStore
+	adapters adapters.SourceAdapters
 }
 
 var _ types.RewardAccumulator = BasicAccumulator{}
 
 // NewBasicAccumulator returns a new BasicAccumulator.
-func NewBasicAccumulator(k Keeper) BasicAccumulator {
+func NewBasicAccumulator(
+	store store.IncentiveStore,
+	adapters adapters.SourceAdapters,
+) BasicAccumulator {
 	return BasicAccumulator{
-		keeper: k,
+		store:    store,
+		adapters: adapters,
 	}
 }
 
@@ -30,26 +37,26 @@ func (k BasicAccumulator) AccumulateRewards(
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
 ) error {
-	previousAccrualTime, found := k.keeper.Store.GetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType)
+	previousAccrualTime, found := k.store.GetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
 	}
 
-	indexes, found := k.keeper.Store.GetRewardIndexesOfClaimType(ctx, claimType, rewardPeriod.CollateralType)
+	indexes, found := k.store.GetRewardIndexesOfClaimType(ctx, claimType, rewardPeriod.CollateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSource := k.keeper.Adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
+	totalSource := k.adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
 
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
-	k.keeper.Store.SetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	k.store.SetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
-		k.keeper.Store.SetRewardIndexes(ctx, claimType, rewardPeriod.CollateralType, acc.Indexes)
+		k.store.SetRewardIndexes(ctx, claimType, rewardPeriod.CollateralType, acc.Indexes)
 	}
 
 	return nil
