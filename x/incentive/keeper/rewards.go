@@ -19,7 +19,7 @@ func (k Keeper) AccumulateRewards(
 
 	switch claimType {
 	case types.CLAIM_TYPE_EARN:
-		accumulator = NewEarnAccumulator(k, k.liquidKeeper, k.earnKeeper)
+		accumulator = accumulators.NewEarnAccumulator(k.Store, k.liquidKeeper, k.earnKeeper)
 	default:
 		accumulator = accumulators.NewBasicAccumulator(k.Store, k.Adapters)
 	}
