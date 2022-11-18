@@ -1,8 +1,15 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"errors"
+	"fmt"
+	"sort"
+	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -10,45 +17,239 @@ import (
 // interface. This applies to all claim types except for those with custom
 // accumulator logic e.g. Earn.
 type EarnAccumulator struct {
-	keeper Keeper
+	keeper       Keeper
+	liquidKeeper types.LiquidKeeper
+	earnKeeper   types.EarnKeeper
 }
 
 var _ types.RewardAccumulator = EarnAccumulator{}
 
 // NewEarnAccumulator returns a new EarnAccumulator.
-func NewEarnAccumulator(k Keeper) EarnAccumulator {
+func NewEarnAccumulator(
+	k Keeper,
+	liquidKeeper types.LiquidKeeper,
+	earnKeeper types.EarnKeeper,
+) EarnAccumulator {
 	return EarnAccumulator{
-		keeper: k,
+		keeper:       k,
+		liquidKeeper: liquidKeeper,
+		earnKeeper:   earnKeeper,
 	}
 }
 
 // AccumulateRewards calculates new rewards to distribute this block and updates
 // the global indexes to reflect this. The provided rewardPeriod must be valid
 // to avoid panics in calculating time durations.
-func (k EarnAccumulator) AccumulateRewards(
+func (a EarnAccumulator) AccumulateRewards(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
+) error {
+	if rewardPeriod.CollateralType == "bkava" {
+		return a.accumulateEarnBkavaRewards(ctx, rewardPeriod)
+	}
+
+	a.keeper.accumulateEarnRewards(
+		ctx,
+		rewardPeriod.CollateralType,
+		rewardPeriod.Start,
+		rewardPeriod.End,
+		sdk.NewDecCoinsFromCoins(rewardPeriod.RewardsPerSecond...),
+	)
+
+	return nil
+}
+
+// accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
+// *all* bkava vaults.
+func (k EarnAccumulator) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
+	// All bkava vault denoms
+	bkavaVaultsDenoms := make(map[string]bool)
+
+	// bkava vault denoms from earn records (non-empty vaults)
+	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
+		if k.liquidKeeper.IsDerivativeDenom(ctx, record.TotalShares.Denom) {
+			bkavaVaultsDenoms[record.TotalShares.Denom] = true
+		}
+
+		return false
+	})
+
+	// bkava vault denoms from past incentive indexes, may include vaults
+	// that were fully withdrawn.
+	k.keeper.IterateEarnRewardIndexes(ctx, func(vaultDenom string, indexes types.RewardIndexes) (stop bool) {
+		if k.liquidKeeper.IsDerivativeDenom(ctx, vaultDenom) {
+			bkavaVaultsDenoms[vaultDenom] = true
+		}
+
+		return false
+	})
+
+	totalBkavaValue, err := k.liquidKeeper.GetTotalDerivativeValue(ctx)
+	if err != nil {
+		return err
+	}
+
+	i := 0
+	sortedBkavaVaultsDenoms := make([]string, len(bkavaVaultsDenoms))
+	for vaultDenom := range bkavaVaultsDenoms {
+		sortedBkavaVaultsDenoms[i] = vaultDenom
+		i++
+	}
+
+	// Sort the vault denoms to ensure deterministic iteration order.
+	sort.Strings(sortedBkavaVaultsDenoms)
+
+	// Accumulate rewards for each bkava vault.
+	for _, bkavaDenom := range sortedBkavaVaultsDenoms {
+		derivativeValue, err := k.liquidKeeper.GetDerivativeValue(ctx, bkavaDenom)
+		if err != nil {
+			return err
+		}
+
+		k.accumulateBkavaEarnRewards(
+			ctx,
+			bkavaDenom,
+			rewardPeriod.Start,
+			rewardPeriod.End,
+			GetProportionalRewardsPerSecond(
+				rewardPeriod,
+				totalBkavaValue.Amount,
+				derivativeValue.Amount,
+			),
+		)
+	}
+
+	return nil
+}
+
+func (k EarnAccumulator) accumulateBkavaEarnRewards(
+	ctx sdk.Context,
+	collateralType string,
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
 ) {
-	previousAccrualTime, found := k.keeper.GetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType)
+	// Collect staking rewards for this validator, does not have any start/end
+	// period time restrictions.
+	stakingRewards := k.collectDerivativeStakingRewards(ctx, collateralType)
+
+	// Collect incentive rewards
+	// **Total rewards** for vault per second, NOT per share
+	perSecondRewards := k.collectPerSecondRewards(
+		ctx,
+		collateralType,
+		periodStart,
+		periodEnd,
+		periodRewardsPerSecond,
+	)
+
+	// **Total rewards** for vault per second, NOT per share
+	rewards := stakingRewards.Add(perSecondRewards...)
+
+	// Distribute rewards by incrementing indexes
+	indexes, found := k.keeper.GetEarnRewardIndexes(ctx, collateralType)
+	if !found {
+		indexes = types.RewardIndexes{}
+	}
+
+	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
+	var increment types.RewardIndexes
+	if totalSourceShares.GT(sdk.ZeroDec()) {
+		// Divide total rewards by total shares to get the reward **per share**
+		// Leave as nil if no source shares
+		increment = types.NewRewardIndexesFromCoins(rewards).Quo(totalSourceShares)
+	}
+	updatedIndexes := indexes.Add(increment)
+
+	if len(updatedIndexes) > 0 {
+		// the store panics when setting empty or nil indexes
+		k.keeper.SetEarnRewardIndexes(ctx, collateralType, updatedIndexes)
+	}
+}
+
+func (k EarnAccumulator) collectDerivativeStakingRewards(ctx sdk.Context, collateralType string) sdk.DecCoins {
+	rewards, err := k.liquidKeeper.CollectStakingRewardsByDenom(ctx, collateralType, types.IncentiveMacc)
+	if err != nil {
+		if !errors.Is(err, distrtypes.ErrNoValidatorDistInfo) &&
+			!errors.Is(err, distrtypes.ErrEmptyDelegationDistInfo) {
+			panic(fmt.Sprintf("failed to collect staking rewards for %s: %s", collateralType, err))
+		}
+
+		// otherwise there's no validator or delegation yet
+		rewards = nil
+	}
+	return sdk.NewDecCoinsFromCoins(rewards...)
+}
+
+func (k EarnAccumulator) collectPerSecondRewards(
+	ctx sdk.Context,
+	collateralType string,
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+) sdk.DecCoins {
+	previousAccrualTime, found := k.keeper.GetEarnRewardAccrualTime(ctx, collateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
 	}
 
-	indexes, found := k.keeper.GetRewardIndexesOfClaimType(ctx, claimType, rewardPeriod.CollateralType)
+	rewards, accumulatedTo := types.CalculatePerSecondRewards(
+		periodStart,
+		periodEnd,
+		periodRewardsPerSecond,
+		previousAccrualTime,
+		ctx.BlockTime(),
+	)
+
+	k.keeper.SetEarnRewardAccrualTime(ctx, collateralType, accumulatedTo)
+
+	// Don't need to move funds as they're assumed to be in the IncentiveMacc module account already.
+	return rewards
+}
+
+func (k EarnAccumulator) accumulateEarnRewards(
+	ctx sdk.Context,
+	collateralType string,
+	periodStart time.Time,
+	periodEnd time.Time,
+	periodRewardsPerSecond sdk.DecCoins,
+) {
+	previousAccrualTime, found := k.keeper.GetEarnRewardAccrualTime(ctx, collateralType)
+	if !found {
+		previousAccrualTime = ctx.BlockTime()
+	}
+
+	indexes, found := k.keeper.GetEarnRewardIndexes(ctx, collateralType)
 	if !found {
 		indexes = types.RewardIndexes{}
 	}
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSource := k.keeper.Adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
+	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
 
-	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
+	acc.AccumulateDecCoins(
+		periodStart,
+		periodEnd,
+		periodRewardsPerSecond,
+		totalSourceShares,
+		ctx.BlockTime(),
+	)
 
-	k.keeper.SetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
+	k.keeper.SetEarnRewardAccrualTime(ctx, collateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
 		// the store panics when setting empty or nil indexes
-		k.keeper.SetRewardIndexes(ctx, claimType, rewardPeriod.CollateralType, acc.Indexes)
+		k.keeper.SetEarnRewardIndexes(ctx, collateralType, acc.Indexes)
 	}
+}
+
+// getEarnTotalSourceShares fetches the sum of all source shares for a earn reward.
+// In the case of earn, these are the total (earn module) shares in a particular vault.
+func (k EarnAccumulator) getEarnTotalSourceShares(ctx sdk.Context, vaultDenom string) sdk.Dec {
+	totalShares, found := k.earnKeeper.GetVaultTotalShares(ctx, vaultDenom)
+	if !found {
+		return sdk.ZeroDec()
+	}
+	return totalShares.Amount
 }

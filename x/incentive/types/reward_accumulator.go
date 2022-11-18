@@ -7,5 +7,5 @@ type RewardAccumulator interface {
 		ctx sdk.Context,
 		claimType ClaimType,
 		rewardPeriod MultiRewardPeriod,
-	)
+	) error
 }

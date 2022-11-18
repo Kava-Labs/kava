@@ -29,7 +29,7 @@ func (k BasicAccumulator) AccumulateRewards(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
-) {
+) error {
 	previousAccrualTime, found := k.keeper.GetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType)
 	if !found {
 		previousAccrualTime = ctx.BlockTime()
@@ -51,4 +51,6 @@ func (k BasicAccumulator) AccumulateRewards(
 		// the store panics when setting empty or nil indexes
 		k.keeper.SetRewardIndexes(ctx, claimType, rewardPeriod.CollateralType, acc.Indexes)
 	}
+
+	return nil
 }
