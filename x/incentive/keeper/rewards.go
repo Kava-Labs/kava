@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/incentive/keeper/accumulators"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -15,14 +14,16 @@ func (k Keeper) AccumulateRewards(
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
 ) {
+	var accumulator types.RewardAccumulator
+
 	switch claimType {
 	case types.CLAIM_TYPE_EARN:
-		panic("unimplemented")
+		accumulator = NewEarnAccumulator(k)
 	default:
-		accumulators.
-			NewBaseAccumulator(k, k.Adapters).
-			AccumulateRewards(ctx, claimType, rewardPeriod)
+		accumulator = NewBasicAccumulator(k)
 	}
+
+	accumulator.AccumulateRewards(ctx, claimType, rewardPeriod)
 }
 
 // InitializeClaim creates a new claim with zero rewards and indexes matching

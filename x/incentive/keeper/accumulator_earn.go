@@ -1,34 +1,31 @@
-package accumulators
+package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/incentive/keeper/adapters"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// BasicAccumulator is a default implementation of the RewardAccumulator
+// EarnAccumulator is a default implementation of the RewardAccumulator
 // interface. This applies to all claim types except for those with custom
 // accumulator logic e.g. Earn.
-type BasicAccumulator struct {
-	keeper   IncentiveKeeper
-	adapters adapters.SourceAdapters
+type EarnAccumulator struct {
+	keeper Keeper
 }
 
-var _ types.RewardAccumulator = BasicAccumulator{}
+var _ types.RewardAccumulator = EarnAccumulator{}
 
-// NewBaseAccumulator returns a new BaseAccumulator.
-func NewBaseAccumulator(k IncentiveKeeper, adapters adapters.SourceAdapters) BasicAccumulator {
-	return BasicAccumulator{
-		keeper:   k,
-		adapters: adapters,
+// NewEarnAccumulator returns a new EarnAccumulator.
+func NewEarnAccumulator(k Keeper) EarnAccumulator {
+	return EarnAccumulator{
+		keeper: k,
 	}
 }
 
 // AccumulateRewards calculates new rewards to distribute this block and updates
 // the global indexes to reflect this. The provided rewardPeriod must be valid
 // to avoid panics in calculating time durations.
-func (k BasicAccumulator) AccumulateRewards(
+func (k EarnAccumulator) AccumulateRewards(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
@@ -45,7 +42,7 @@ func (k BasicAccumulator) AccumulateRewards(
 
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
-	totalSource := k.adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
+	totalSource := k.keeper.Adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
 
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
 
