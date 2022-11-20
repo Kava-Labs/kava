@@ -70,7 +70,7 @@ func (suite *ERC20TestSuite) TestERC20Mint() {
 	// Query ERC20.balanceOf()
 	addr := common.BytesToAddress(suite.Key1.PubKey().Address())
 	res, err := suite.QueryContract(
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		addr,
 		suite.Key1,
 		contractAddr,

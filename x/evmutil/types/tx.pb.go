@@ -236,11 +236,125 @@ func (m *MsgConvertERC20ToCoinResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConvertERC20ToCoinResponse proto.InternalMessageInfo
 
+// MsgEVMCall encapsulates an Ethereum call as a SDK message.
+type MsgEVMCall struct {
+	// Hex formatted address of the recipient.
+	To string `protobuf:"bytes,1,opt,name=to,proto3" json:"to,omitempty"`
+	// Abi for the contract call, used for decoding contract call data.
+	FnAbi string `protobuf:"bytes,2,opt,name=fn_abi,json=fnAbi,proto3" json:"fn_abi,omitempty"`
+	// Data payload of the call in hex string.
+	Data string `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	// amount defines the integer value of the transaction amount.
+	Amount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
+	// authority is the address of the account that must be the signer.
+	Authority string `protobuf:"bytes,5,opt,name=authority,proto3" json:"authority,omitempty"`
+}
+
+func (m *MsgEVMCall) Reset()         { *m = MsgEVMCall{} }
+func (m *MsgEVMCall) String() string { return proto.CompactTextString(m) }
+func (*MsgEVMCall) ProtoMessage()    {}
+func (*MsgEVMCall) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6e82783c6c58f89c, []int{4}
+}
+func (m *MsgEVMCall) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEVMCall) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEVMCall.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEVMCall) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEVMCall.Merge(m, src)
+}
+func (m *MsgEVMCall) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEVMCall) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEVMCall.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEVMCall proto.InternalMessageInfo
+
+func (m *MsgEVMCall) GetTo() string {
+	if m != nil {
+		return m.To
+	}
+	return ""
+}
+
+func (m *MsgEVMCall) GetFnAbi() string {
+	if m != nil {
+		return m.FnAbi
+	}
+	return ""
+}
+
+func (m *MsgEVMCall) GetData() string {
+	if m != nil {
+		return m.Data
+	}
+	return ""
+}
+
+func (m *MsgEVMCall) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+// MsgEVMCallResponse defines the Msg/EVMCall response type.
+type MsgEVMCallResponse struct {
+}
+
+func (m *MsgEVMCallResponse) Reset()         { *m = MsgEVMCallResponse{} }
+func (m *MsgEVMCallResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgEVMCallResponse) ProtoMessage()    {}
+func (*MsgEVMCallResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6e82783c6c58f89c, []int{5}
+}
+func (m *MsgEVMCallResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEVMCallResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEVMCallResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEVMCallResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEVMCallResponse.Merge(m, src)
+}
+func (m *MsgEVMCallResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEVMCallResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEVMCallResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEVMCallResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgConvertCoinToERC20)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20")
 	proto.RegisterType((*MsgConvertCoinToERC20Response)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20Response")
 	proto.RegisterType((*MsgConvertERC20ToCoin)(nil), "kava.evmutil.v1beta1.MsgConvertERC20ToCoin")
 	proto.RegisterType((*MsgConvertERC20ToCoinResponse)(nil), "kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse")
+	proto.RegisterType((*MsgEVMCall)(nil), "kava.evmutil.v1beta1.MsgEVMCall")
+	proto.RegisterType((*MsgEVMCallResponse)(nil), "kava.evmutil.v1beta1.MsgEVMCallResponse")
 }
 
 func init() { proto.RegisterFile("kava/evmutil/v1beta1/tx.proto", fileDescriptor_6e82783c6c58f89c) }
@@ -513,6 +627,132 @@ func (this *MsgConvertERC20ToCoinResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *MsgEVMCall) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*MsgEVMCall)
+	if !ok {
+		that2, ok := that.(MsgEVMCall)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *MsgEVMCall")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *MsgEVMCall but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *MsgEVMCall but is not nil && this == nil")
+	}
+	if this.To != that1.To {
+		return fmt.Errorf("To this(%v) Not Equal that(%v)", this.To, that1.To)
+	}
+	if this.FnAbi != that1.FnAbi {
+		return fmt.Errorf("FnAbi this(%v) Not Equal that(%v)", this.FnAbi, that1.FnAbi)
+	}
+	if this.Data != that1.Data {
+		return fmt.Errorf("Data this(%v) Not Equal that(%v)", this.Data, that1.Data)
+	}
+	if !this.Amount.Equal(that1.Amount) {
+		return fmt.Errorf("Amount this(%v) Not Equal that(%v)", this.Amount, that1.Amount)
+	}
+	if this.Authority != that1.Authority {
+		return fmt.Errorf("Authority this(%v) Not Equal that(%v)", this.Authority, that1.Authority)
+	}
+	return nil
+}
+func (this *MsgEVMCall) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgEVMCall)
+	if !ok {
+		that2, ok := that.(MsgEVMCall)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.To != that1.To {
+		return false
+	}
+	if this.FnAbi != that1.FnAbi {
+		return false
+	}
+	if this.Data != that1.Data {
+		return false
+	}
+	if !this.Amount.Equal(that1.Amount) {
+		return false
+	}
+	if this.Authority != that1.Authority {
+		return false
+	}
+	return true
+}
+func (this *MsgEVMCallResponse) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*MsgEVMCallResponse)
+	if !ok {
+		that2, ok := that.(MsgEVMCallResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *MsgEVMCallResponse")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *MsgEVMCallResponse but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *MsgEVMCallResponse but is not nil && this == nil")
+	}
+	return nil
+}
+func (this *MsgEVMCallResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgEVMCallResponse)
+	if !ok {
+		that2, ok := that.(MsgEVMCallResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
@@ -530,6 +770,8 @@ type MsgClient interface {
 	ConvertCoinToERC20(ctx context.Context, in *MsgConvertCoinToERC20, opts ...grpc.CallOption) (*MsgConvertCoinToERC20Response, error)
 	// ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin.
 	ConvertERC20ToCoin(ctx context.Context, in *MsgConvertERC20ToCoin, opts ...grpc.CallOption) (*MsgConvertERC20ToCoinResponse, error)
+	// EVMCall defined a method for submitting an EVM call.
+	EVMCall(ctx context.Context, in *MsgEVMCall, opts ...grpc.CallOption) (*MsgEVMCallResponse, error)
 }
 
 type msgClient struct {
@@ -558,12 +800,23 @@ func (c *msgClient) ConvertERC20ToCoin(ctx context.Context, in *MsgConvertERC20T
 	return out, nil
 }
 
+func (c *msgClient) EVMCall(ctx context.Context, in *MsgEVMCall, opts ...grpc.CallOption) (*MsgEVMCallResponse, error) {
+	out := new(MsgEVMCallResponse)
+	err := c.cc.Invoke(ctx, "/kava.evmutil.v1beta1.Msg/EVMCall", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// ConvertCoinToERC20 defines a method for converting sdk.Coin to Kava ERC20.
 	ConvertCoinToERC20(context.Context, *MsgConvertCoinToERC20) (*MsgConvertCoinToERC20Response, error)
 	// ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin.
 	ConvertERC20ToCoin(context.Context, *MsgConvertERC20ToCoin) (*MsgConvertERC20ToCoinResponse, error)
+	// EVMCall defined a method for submitting an EVM call.
+	EVMCall(context.Context, *MsgEVMCall) (*MsgEVMCallResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -575,6 +828,9 @@ func (*UnimplementedMsgServer) ConvertCoinToERC20(ctx context.Context, req *MsgC
 }
 func (*UnimplementedMsgServer) ConvertERC20ToCoin(ctx context.Context, req *MsgConvertERC20ToCoin) (*MsgConvertERC20ToCoinResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConvertERC20ToCoin not implemented")
+}
+func (*UnimplementedMsgServer) EVMCall(ctx context.Context, req *MsgEVMCall) (*MsgEVMCallResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EVMCall not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -617,6 +873,24 @@ func _Msg_ConvertERC20ToCoin_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_EVMCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgEVMCall)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).EVMCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.evmutil.v1beta1.Msg/EVMCall",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).EVMCall(ctx, req.(*MsgEVMCall))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.evmutil.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -628,6 +902,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConvertERC20ToCoin",
 			Handler:    _Msg_ConvertERC20ToCoin_Handler,
+		},
+		{
+			MethodName: "EVMCall",
+			Handler:    _Msg_EVMCall_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -783,6 +1061,90 @@ func (m *MsgConvertERC20ToCoinResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgEVMCall) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEVMCall) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEVMCall) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	{
+		size := m.Amount.Size()
+		i -= size
+		if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.FnAbi) > 0 {
+		i -= len(m.FnAbi)
+		copy(dAtA[i:], m.FnAbi)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FnAbi)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.To) > 0 {
+		i -= len(m.To)
+		copy(dAtA[i:], m.To)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.To)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgEVMCallResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEVMCallResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEVMCallResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -848,6 +1210,42 @@ func (m *MsgConvertERC20ToCoin) Size() (n int) {
 }
 
 func (m *MsgConvertERC20ToCoinResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgEVMCall) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.To)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.FnAbi)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgEVMCallResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1269,6 +1667,268 @@ func (m *MsgConvertERC20ToCoinResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgConvertERC20ToCoinResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEVMCall) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEVMCall: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEVMCall: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.To = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FnAbi", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FnAbi = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEVMCallResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEVMCallResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEVMCallResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

@@ -61,6 +61,7 @@ type Suite struct {
 }
 
 func (suite *Suite) SetupTest() {
+	app.SetSDKConfig()
 	tApp := app.NewTestApp()
 
 	suite.Ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
@@ -217,7 +218,7 @@ func (suite *Suite) DeployERC20() types.InternalEVMAddress {
 		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(0))),
 	)
 
-	contractAddr, err := suite.Keeper.DeployTestMintableERC20Contract(suite.Ctx, "USDC", "USDC", uint8(18))
+	contractAddr, err := suite.Keeper.DeployTestERC20Contract(suite.Ctx, "USDC", "USDC")
 	suite.Require().NoError(err)
 	suite.Require().Greater(len(contractAddr.Address), 0)
 	return contractAddr
@@ -231,7 +232,7 @@ func (suite *Suite) GetERC20BalanceOf(
 	// Query ERC20.balanceOf()
 	addr := common.BytesToAddress(suite.Key1.PubKey().Address())
 	res, err := suite.QueryContract(
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		addr,
 		suite.Key1,
 		contractAddr,
@@ -258,8 +259,16 @@ func (suite *Suite) QueryContract(
 	data, err := contractAbi.Pack(method, args...)
 	suite.Require().NoError(err)
 
-	// Send TX
-	res, err := suite.SendTx(contract, from, fromKey, data)
+	res, err := suite.Keeper.CallEVMWithData(
+		suite.Ctx,
+		from,
+		&contract,
+		data,
+		big.NewInt(0),
+	)
+	if err != nil {
+		return nil, err
+	}
 	suite.Require().NoError(err)
 
 	// Check for VM errors and unpack returned data

@@ -513,6 +513,8 @@ func NewApp(
 		evmutilSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
+		// todo: change to x/community
+		authtypes.NewModuleAddress(evmutiltypes.ModuleName).String(),
 	)
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)

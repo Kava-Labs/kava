@@ -48,7 +48,7 @@ func (k Keeper) CallEVM(
 		)
 	}
 
-	resp, err := k.CallEVMWithData(ctx, from, &contract, data)
+	resp, err := k.CallEVMWithData(ctx, from, &contract, data, big.NewInt(0))
 	if err != nil {
 		return nil, sdkerrors.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
 	}
@@ -63,6 +63,7 @@ func (k Keeper) CallEVMWithData(
 	from common.Address,
 	contract *types.InternalEVMAddress,
 	data []byte,
+	amount *big.Int,
 ) (*evmtypes.MsgEthereumTxResponse, error) {
 	nonce, err := k.accountKeeper.GetSequence(ctx, from.Bytes())
 	if err != nil {
@@ -110,7 +111,7 @@ func (k Keeper) CallEVMWithData(
 		from,
 		to,
 		nonce,
-		big.NewInt(0), // amount
+		amount,        // amount
 		gasRes.Gas,    // gasLimit
 		big.NewInt(0), // gasFeeCap
 		big.NewInt(0), // gasTipCap
@@ -122,11 +123,15 @@ func (k Keeper) CallEVMWithData(
 
 	res, err := k.evmKeeper.ApplyMessage(ethGasContext, msg, evmtypes.NewNoOpTracer(), true)
 	if err != nil {
+		if len(res.Ret) > 0 {
+			return nil, evmtypes.NewExecErrorWithReason(res.Ret)
+		}
 		return nil, err
 	}
 
 	if res.Failed() {
-		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, res.VmError)
+		retErr := evmtypes.NewExecErrorWithReason(res.Ret)
+		return nil, retErr
 	}
 
 	ctx.GasMeter().ConsumeGas(res.GasUsed, "evm gas consumed")

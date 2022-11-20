@@ -138,10 +138,10 @@ func (k Keeper) UnlockERC20Tokens(
 	}
 	res, err := k.CallEVM(
 		ctx,
-		types.ERC20MintableBurnableContract.ABI, // abi
-		types.ModuleEVMAddress,                  // from addr
-		pair.GetAddress(),                       // contract addr
-		"transfer",                              // method
+		types.CustomERC20Contract.ABI, // abi
+		types.ModuleEVMAddress,        // from addr
+		pair.GetAddress(),             // contract addr
+		"transfer",                    // method
 		// Transfer ERC20 args
 		receiver.Address,
 		amount,
@@ -188,10 +188,10 @@ func (k Keeper) LockERC20Tokens(
 
 	res, err := k.CallEVM(
 		ctx,
-		types.ERC20MintableBurnableContract.ABI, // abi
-		initiator.Address,                       // from addr
-		contractAddr,                            // contract addr
-		"transfer",                              // method
+		types.CustomERC20Contract.ABI, // abi
+		initiator.Address,             // from addr
+		contractAddr,                  // contract addr
+		"transfer",                    // method
 		// Transfer ERC20 args
 		types.ModuleEVMAddress,
 		amount,

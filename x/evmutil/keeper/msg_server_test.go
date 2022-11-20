@@ -1,11 +1,15 @@
 package keeper_test
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -95,7 +99,7 @@ func (suite *MsgServerSuite) TestConvertCoinToERC20() {
 				suite.Require().NoError(err)
 
 				bal := suite.GetERC20BalanceOf(
-					types.ERC20MintableBurnableContract.ABI,
+					types.CustomERC20Contract.ABI,
 					pair.GetAddress(),
 					testutil.MustNewInternalEVMAddressFromString(tc.msg.Receiver),
 				)
@@ -229,7 +233,7 @@ func (suite *MsgServerSuite) TestConvertERC20ToCoin() {
 
 				// validate user balance after conversion
 				bal := suite.GetERC20BalanceOf(
-					types.ERC20MintableBurnableContract.ABI,
+					types.CustomERC20Contract.ABI,
 					pair.GetAddress(),
 					testutil.MustNewInternalEVMAddressFromString(tc.msg.Initiator),
 				)
@@ -261,6 +265,248 @@ func (suite *MsgServerSuite) TestConvertERC20ToCoin() {
 				suite.Require().Error(err)
 				suite.Require().Contains(err.Error(), tc.errArgs.contains)
 			}
+		})
+	}
+}
+
+func (suite *MsgServerSuite) TestEVMCall() {
+	userAddr := app.RandomAddress()
+	userEvmAddr := common.BytesToAddress(userAddr.Bytes())
+	contractAddr := suite.DeployERC20()
+
+	authorityModule := types.ModuleName // todo: change to x/community
+	authorityAct := suite.AccountKeeper.GetModuleAccount(suite.Ctx, authorityModule)
+	authorityAddr := authorityAct.GetAddress().String()
+	authorityEvmAddr := types.NewInternalEVMAddress(common.BytesToAddress(authorityAct.GetAddress().Bytes()))
+	erc20StartingBal := big.NewInt(1000)
+
+	validFnAbi := `{
+		"inputs": [
+			{ "type": "address", "name": "to" },
+			{ "type": "uint256", "name": "amount" }
+		],
+		"name": "transfer",
+		"type": "function"
+	}`
+	validData := fmt.Sprintf(
+		"0x%s%s%s",
+		"a9059cbb", // transfer(address,uint256)
+		hexutil.Encode(common.LeftPadBytes(userEvmAddr.Bytes(), 32))[2:],
+		hexutil.Encode(common.LeftPadBytes(big.NewInt(30).Bytes(), 32))[2:],
+	)
+
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name       string
+		msg        types.MsgEVMCall
+		expUsdcBal sdk.Int
+		errArgs    errArgs
+	}{
+		{
+			"valid - contract call",
+			types.MsgEVMCall{
+				To:        contractAddr.String(),
+				FnAbi:     validFnAbi,
+				Data:      validData,
+				Authority: authorityAddr,
+				Amount:    sdk.ZeroInt(),
+			},
+			sdk.NewInt(970),
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
+			"valid - transfer call",
+			types.MsgEVMCall{
+				To:        userEvmAddr.String(),
+				Amount:    keeper.ConversionMultiplier.Mul(sdk.NewInt(11)),
+				Authority: authorityAddr,
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
+			"invalid - authority not target module",
+			types.MsgEVMCall{
+				To:        userEvmAddr.String(),
+				Amount:    sdk.NewInt(12),
+				Authority: userAddr.String(),
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "invalid authority;",
+			},
+		},
+		{
+			"invalid - to address is not evm address",
+			types.MsgEVMCall{
+				To:        userAddr.String(),
+				Amount:    sdk.NewInt(12),
+				Authority: authorityAddr,
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "to 'kava1r35v2uc9p9slrx3t0sux29t44gwcgfnzpz3uf9' is not hex address",
+			},
+		},
+		{
+			"invalid - with data but no fnAbi",
+			types.MsgEVMCall{
+				To:        contractAddr.String(),
+				Data:      validData,
+				Authority: authorityAddr,
+				Amount:    sdk.ZeroInt(),
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "fnAbi is not provided",
+			},
+		},
+		{
+			"invalid - hex data cannot be parsed",
+			types.MsgEVMCall{
+				To:        contractAddr.String(),
+				FnAbi:     validFnAbi,
+				Data:      "hello",
+				Authority: authorityAddr,
+				Amount:    sdk.ZeroInt(),
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "invalid data format: hex string without 0x prefix",
+			},
+		},
+		{
+			"invalid - calling non-existent contract function",
+			types.MsgEVMCall{
+				To: contractAddr.String(),
+				FnAbi: `{
+					"inputs": [
+						{ "type": "address", "name": "to" },
+						{ "type": "uint256", "name": "amount" }
+					],
+					"name": "badFn",
+					"type": "function"
+				}`,
+				Data: fmt.Sprintf(
+					"0x%s%s%s",
+					"dee4aafc", // badFn(address,uint256)
+					hexutil.Encode(common.LeftPadBytes(userEvmAddr.Bytes(), 32))[2:],
+					hexutil.Encode(common.LeftPadBytes(big.NewInt(30).Bytes(), 32))[2:],
+				),
+				Amount:    sdk.ZeroInt(),
+				Authority: authorityAddr,
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "evm call failed: execution reverted: evm transaction execution failed",
+			},
+		},
+		{
+			"invalid - sending eth to contract fn that is not payable",
+			types.MsgEVMCall{
+				To:        contractAddr.String(),
+				FnAbi:     validFnAbi,
+				Data:      validData,
+				Authority: authorityAddr,
+				Amount:    sdk.NewInt(10),
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "evm call failed: execution reverted",
+			},
+		},
+		{
+			"invalid - contract throws an error",
+			types.MsgEVMCall{
+				To: contractAddr.String(),
+				FnAbi: `{
+					"inputs": [],
+					"name": "triggerError",
+					"type": "function"
+				}`,
+				Data:      "0xbcffd7cf",
+				Authority: authorityAddr,
+				Amount:    sdk.ZeroInt(),
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "this function will always trigger an error",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			contractAddr := suite.DeployERC20()
+
+			// give invoker account some erc20 and kava to being with
+			err := suite.Keeper.MintERC20(
+				suite.Ctx,
+				contractAddr,
+				authorityEvmAddr,
+				erc20StartingBal,
+			)
+			suite.Require().NoError(err)
+			authorityCoin := sdk.NewCoin("ukava", sdk.NewInt(100))
+			err = suite.App.FundModuleAccount(suite.Ctx, authorityModule, sdk.NewCoins(authorityCoin))
+			suite.Require().NoError(err)
+
+			// validate msg
+			err = tc.msg.ValidateBasic()
+			if !tc.errArgs.expectPass && err != nil {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
+				return
+			}
+
+			_, err = suite.msgServer.EVMCall(sdk.WrapSDKContext(suite.Ctx), &tc.msg)
+			expectedKavaBal := authorityCoin.Amount.Mul(keeper.ConversionMultiplier)
+
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+				if !tc.msg.Amount.IsNil() {
+					expectedKavaBal = expectedKavaBal.Sub(tc.msg.Amount)
+				}
+
+				// msg server event
+				suite.EventsContains(suite.GetEvents(),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+						sdk.NewAttribute(sdk.AttributeKeySender, tc.msg.Authority),
+					))
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
+			}
+
+			// validate authority kava balance
+			coinBal := suite.EvmBankKeeper.GetBalance(suite.Ctx, authorityAct.GetAddress(), keeper.EvmDenom)
+			suite.Require().Equal(expectedKavaBal, coinBal.Amount, "user akava balance is invalid")
+
+			// validate authority erc20 balance after msg
+			bal := suite.GetERC20BalanceOf(
+				types.CustomERC20Contract.ABI,
+				contractAddr,
+				authorityEvmAddr,
+			)
+			suite.Require().Equal(tc.expUsdcBal.BigInt(), bal, "user erc20 balance is invalid")
 		})
 	}
 }
