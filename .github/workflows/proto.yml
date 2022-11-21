@@ -4,8 +4,8 @@ on:
   push
 
 jobs:
-  check-proto-deps:
-    name: "Check Proto Deps"
+  check-proto:
+    name: "Check Proto"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,3 +15,9 @@ jobs:
           cache: true
       - run: go mod download
       - run: make check-proto-deps
+      - run: make check-proto-lint
+      - run: make check-proto-format
+      - run: make check-proto-breaking
+      - run: make check-proto-gen
+      - run: make check-proto-gen-doc
+      - run: make check-proto-gen-swagger
