@@ -106,6 +106,9 @@ import (
 	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	"github.com/kava-labs/kava/x/community"
+	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earn "github.com/kava-labs/kava/x/earn"
 	earnclient "github.com/kava-labs/kava/x/earn/client"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
@@ -206,6 +209,7 @@ var (
 		earn.AppModuleBasic{},
 		router.AppModuleBasic{},
 		kavamint.AppModuleBasic{},
+		community.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -234,6 +238,7 @@ var (
 		earntypes.ModuleAccountName:     nil,
 		kavadisttypes.FundModuleAccount: nil,
 		kavaminttypes.ModuleAccountName: {authtypes.Minter},
+		communitytypes.ModuleName:       nil,
 	}
 )
 
@@ -306,6 +311,7 @@ type App struct {
 	earnKeeper       earnkeeper.Keeper
 	routerKeeper     routerkeeper.Keeper
 	kavamintKeeper   kavamintkeeper.Keeper
+	communityKeeper  communitykeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -626,6 +632,10 @@ func NewApp(
 		&savingsKeeper,
 		app.distrKeeper,
 	)
+	app.communityKeeper = communitykeeper.NewKeeper(
+		app.accountKeeper,
+		app.bankKeeper,
+	)
 	app.kavamintKeeper = kavamintkeeper.NewKeeper(
 		appCodec,
 		keys[kavaminttypes.StoreKey],
@@ -634,6 +644,7 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 		authtypes.FeeCollectorName, // same fee collector as vanilla sdk
+		// TODO: pass community module account name
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
@@ -756,6 +767,7 @@ func NewApp(
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
 		kavamint.NewAppModule(appCodec, app.kavamintKeeper, app.accountKeeper),
+		community.NewAppModule(app.communityKeeper, app.accountKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -781,6 +793,7 @@ func NewApp(
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
 		kavadisttypes.ModuleName,
+		communitytypes.ModuleName,
 		// Auction begin blocker will close out expired auctions and pay debt back to cdp.
 		// It should be run before cdp begin blocker which cancels out debt with stable and starts more auctions.
 		auctiontypes.ModuleName,
@@ -850,6 +863,7 @@ func NewApp(
 		earntypes.ModuleName,
 		routertypes.ModuleName,
 		kavaminttypes.ModuleName,
+		communitytypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -882,6 +896,7 @@ func NewApp(
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
 		earntypes.ModuleName,
+		communitytypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
 		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it

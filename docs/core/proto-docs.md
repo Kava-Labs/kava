@@ -178,6 +178,18 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
+    - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
+    - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
+  
+    - [Query](#kava.community.v1beta1.Query)
+  
+- [kava/community/v1beta1/tx.proto](#kava/community/v1beta1/tx.proto)
+    - [MsgFundCommunityPool](#kava.community.v1beta1.MsgFundCommunityPool)
+    - [MsgFundCommunityPoolResponse](#kava.community.v1beta1.MsgFundCommunityPoolResponse)
+  
+    - [Msg](#kava.community.v1beta1.Msg)
+  
 - [kava/earn/v1beta1/strategy.proto](#kava/earn/v1beta1/strategy.proto)
     - [StrategyType](#kava.earn.v1beta1.StrategyType)
   
@@ -2821,6 +2833,109 @@ Msg defines the committee Msg service
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
 | `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/community/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/query.proto
+
+
+
+<a name="kava.community.v1beta1.QueryBalanceRequest"></a>
+
+### QueryBalanceRequest
+QueryBalanceRequest defines the request type for querying x/community balance.
+
+
+
+
+
+
+<a name="kava.community.v1beta1.QueryBalanceResponse"></a>
+
+### QueryBalanceResponse
+QueryBalanceResponse defines the response type for querying x/community balance.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `coins` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.community.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for x/community.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
+
+ <!-- end services -->
+
+
+
+<a name="kava/community/v1beta1/tx.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/tx.proto
+
+
+
+<a name="kava.community.v1beta1.MsgFundCommunityPool"></a>
+
+### MsgFundCommunityPool
+MsgFundCommunityPool allows an account to directly fund the community module account.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+| `depositor` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.MsgFundCommunityPoolResponse"></a>
+
+### MsgFundCommunityPoolResponse
+MsgFundCommunityPoolResponse defines the Msg/FundCommunityPool response type.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.community.v1beta1.Msg"></a>
+
+### Msg
+Msg defines the community Msg service.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `FundCommunityPool` | [MsgFundCommunityPool](#kava.community.v1beta1.MsgFundCommunityPool) | [MsgFundCommunityPoolResponse](#kava.community.v1beta1.MsgFundCommunityPoolResponse) | FundCommunityPool defines a method to allow an account to directly fund the community module account. | |
 
  <!-- end services -->
 
