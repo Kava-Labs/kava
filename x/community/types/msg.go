@@ -21,7 +21,7 @@ func NewMsgFundCommunityPool(depositor sdk.AccAddress, amount sdk.Coins) MsgFund
 }
 
 // Route return the message type used for routing the message.
-func (msg MsgFundCommunityPool) Route() string { return sdk.MsgTypeURL(&msg) }
+func (msg MsgFundCommunityPool) Route() string { return ModuleName }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
 func (msg MsgFundCommunityPool) Type() string { return sdk.MsgTypeURL(&msg) }
