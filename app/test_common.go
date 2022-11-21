@@ -196,7 +196,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTi
 // CheckBalance requires the account address has the expected amount of coins.
 func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAddress, expectedCoins sdk.Coins) {
 	coins := tApp.GetBankKeeper().GetAllBalances(ctx, owner)
-	require.True(t, coins.IsEqual(expectedCoins))
+	require.Equal(t, expectedCoins, coins)
 }
 
 // GetModuleAccountBalance gets the current balance of the denom for a module account

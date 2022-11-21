@@ -35,6 +35,7 @@ func (AppModuleBasic) Name() string {
 }
 
 // RegisterLegacyAminoCodec register module codec
+// Deprecated: unused but necessary to fulfill AppModuleBasic interface
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
@@ -55,6 +56,7 @@ func (a AppModuleBasic) RegisterInterfaces(registry codectypes.InterfaceRegistry
 }
 
 // RegisterRESTRoutes registers REST routes for the module.
+// Deprecated: unused but necessary to fulfill AppModuleBasic interface
 func (a AppModuleBasic) RegisterRESTRoutes(_ client.Context, _ *mux.Router) {}
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
@@ -102,12 +104,15 @@ func (am AppModule) Name() string {
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route module message route name
+// Deprecated: unused but necessary to fulfill AppModule interface
 func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // QuerierRoute module querier route name
+// Deprecated: unused but necessary to fulfill AppModule interface
 func (AppModule) QuerierRoute() string { return "" }
 
 // LegacyQuerierHandler returns no sdk.Querier.
+// Deprecated: unused but necessary to fulfill AppModule interface
 func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
 	return nil
 }

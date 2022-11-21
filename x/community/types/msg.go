@@ -6,11 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
 )
 
-const (
-	// TypeMsgFundCommunityPool represents the type string for MsgFundCommunityPool
-	TypeMsgFundCommunityPool = "fund_community_pool"
-)
-
 // ensure Msg interface compliance at compile time
 var (
 	_ sdk.Msg            = &MsgFundCommunityPool{}
@@ -26,10 +21,10 @@ func NewMsgFundCommunityPool(depositor sdk.AccAddress, amount sdk.Coins) MsgFund
 }
 
 // Route return the message type used for routing the message.
-func (msg MsgFundCommunityPool) Route() string { return RouterKey }
+func (msg MsgFundCommunityPool) Route() string { return sdk.MsgTypeURL(&msg) }
 
 // Type returns a human-readable string for the message, intended for utilization within tags.
-func (msg MsgFundCommunityPool) Type() string { return TypeMsgFundCommunityPool }
+func (msg MsgFundCommunityPool) Type() string { return sdk.MsgTypeURL(&msg) }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgFundCommunityPool) ValidateBasic() error {
