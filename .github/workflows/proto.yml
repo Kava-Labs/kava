@@ -13,6 +13,7 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - run: git fetch origin master
       - run: go mod download
       - run: make install-build-deps
       - run: make check-proto-deps
