@@ -1,19 +1,95 @@
-#!/usr/bin/make -f
+################################################################################
+###                             Project Info                                 ###
+################################################################################
+PROJECT_NAME := kava# unique namespace for project
 
-VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
-TM_PKG_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
-COSMOS_PKG_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
-COMMIT := $(shell git log -1 --format='%H')
+GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+GIT_COMMIT := $(shell git rev-parse HEAD)
+GIT_COMMIT_SHORT := $(shell git rev-parse --short HEAD)
+
+BRANCH_PREFIX := $(shell echo $(GIT_BRANCH) | sed 's/\/.*//g')# eg release, master, feat
+
+ifeq ($(BRANCH_PREFIX),release)
+# we are on a release branch, set version to the last or current tag
+VERSION := $(shell git describe --tags)# use current tag or most recent tag + number of commits + g + abbrivated commit
+VERSION_NUMBER := $(shell echo $(VERSION) | sed 's/^v//')# drop the "v" prefix for versions
+else
+# we are not on a release branch, and do not have clean tag history (etc v0.19.0-xx-gxx will not make sense to use)
+VERSION := $(GIT_COMMIT_SHORT)
+VERSION_NUMBER := $(VERSION)
+endif
+
+TENDERMINT_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
+COSMOS_SDK_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
+
+.PHONY: print-version
+print-version:
+	@echo "kava $(VERSION)\ntendermint $(TENDERMINT_VERSION)\ncosmos $(COSMOS_SDK_VERSION)"
+
+################################################################################
+###                             Project Settings                             ###
+################################################################################
 LEDGER_ENABLED ?= true
-PROJECT_NAME = kava
 DOCKER:=docker
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
 HTTPS_GIT := https://github.com/Kava-Labs/kava.git
 
-export GO111MODULE = on
+################################################################################
+###                             Machine Info                                 ###
+################################################################################
+OS_FAMILY := $(shell uname -s)
+MACHINE := $(shell uname -m)
 
+NATIVE_GO_OS := $(shell echo $(OS_FAMILY) | tr '[:upper:]' '[:lower:]')# Linux -> linux, Darwin -> darwin
+
+NATIVE_GO_ARCH := $(MACHINE)
+ifeq ($(MACHINE),x86_64)
+NATIVE_GO_ARCH := amd64# x86_64 -> amd64
+endif
+ifeq ($(MACHINE),aarch64)
+NATIVE_GO_ARCH := arm64# aarch64 -> arm64
+endif
+
+TARGET_GO_OS ?= $(NATIVE_GO_OS)
+TARGET_GO_ARCH ?= $(NATIVE_GO_ARCH)
+.PHONY: print-machine-info
+print-machine-info:
+	@echo "platform $(NATIVE_GO_OS)/$(NATIVE_GO_ARCH)"
+	@echo "target $(TARGET_GO_OS)/$(TARGET_GO_ARCH)"
+
+################################################################################
+###                             PATHS                                        ###
+################################################################################
+BUILD_DIR := build# build files
+BIN_DIR := $(BUILD_DIR)/bin# for binary dev dependencies
+BUILD_CACHE_DIR := $(BUILD_DIR)/.cache# caching for non-artifact outputs
+OUT_DIR := out# for artifact intermediates and outputs
+
+ROOT_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))# absolute path to root
+export PATH := $(ROOT_DIR)/$(BIN_DIR):$(PATH)# add local bin first in path
+
+.PHONY: print-path
+print-path:
+	@echo $(PATH)
+
+.PHONY: print-paths
+print-paths:
+	@echo "build $(BUILD_DIR)\nbin $(BIN_DIR)\ncache $(BUILD_CACHE_DIR)\nout $(OUT_DIR)"
+
+.PHONY: clean
+clean:
+	@rm -rf $(BIN_DIR) $(BUILD_CACHE_DIR) $(OUT_DIR)
+
+################################################################################
+###                             Dev Setup                                    ###
+################################################################################
+include $(BUILD_DIR)/deps.mk
+
+include $(BUILD_DIR)/proto.mk
+include $(BUILD_DIR)/proto-deps.mk
+
+#export GO111MODULE = on
 # process build tags
-
 build_tags = netgo
 ifeq ($(LEDGER_ENABLED),true)
   ifeq ($(OS),Windows_NT)
@@ -55,10 +131,10 @@ build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
 
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=kava \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=kava \
-		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
-		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) \
+		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION_NUMBER) \
+		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(GIT_COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
-		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TM_PKG_VERSION)
+		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TENDERMINT_VERSION)
 
 # DB backend selection
 ifeq (cleveldb,$(findstring cleveldb,$(COSMOS_BUILD_OPTIONS)))
@@ -122,9 +198,6 @@ go.sum: go.mod
 	@echo "--> Ensuring dependencies have not been modified"
 	@go mod verify
 
-clean:
-	rm -rf build/
-
 ########################################
 ### Linting
 
@@ -170,43 +243,10 @@ start:
 	./contrib/devnet/init-new-chain.sh
 	kava start
 
-###############################################################################
-###                                Protobuf                                 ###
-###############################################################################
-
-include proto/proto-deps.mk
-
-protoVer=v0.7
-protoImageName=tendermintdev/sdk-proto-gen:$(protoVer)
-containerProtoGen=$(PROJECT_NAME)-proto-gen-$(protoVer)
-containerProtoGenAny=$(PROJECT_NAME)-proto-gen-any-$(protoVer)
-containerProtoGenSwagger=$(PROJECT_NAME)-proto-gen-swagger-$(protoVer)
-containerProtoFmt=$(PROJECT_NAME)-proto-fmt-$(protoVer)
-
-proto-all: proto-gen proto-format proto-lint proto-swagger-gen
-
-proto-gen:
-	@echo "Generating Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGen}$$"; then docker start -a $(containerProtoGen); else docker run --name $(containerProtoGen) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protocgen.sh; fi
-
-proto-swagger-gen:
-	@echo "Generating Protobuf Swagger"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoGenSwagger}$$"; then docker start -a $(containerProtoGenSwagger); else docker run --name $(containerProtoGenSwagger) -v $(CURDIR):/workspace --workdir /workspace $(protoImageName) \
-		sh ./scripts/protoc-swagger-gen.sh; fi
-
-proto-format:
-	@echo "Formatting Protobuf files"
-	@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
-		find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -style=file -i {} \; ; fi
-
-proto-lint:
-	@$(DOCKER_BUF) lint --error-format=json
-
-proto-check-breaking:
-	@$(DOCKER_BUF) breaking --against $(HTTPS_GIT)#branch=master
-
-.PHONY: proto-all proto-gen proto-gen-any proto-swagger-gen proto-format proto-lint proto-check-breaking
+#proto-format:
+#@echo "Formatting Protobuf files"
+#@if docker ps -a --format '{{.Names}}' | grep -Eq "^${containerProtoFmt}$$"; then docker start -a $(containerProtoFmt); else docker run --name $(containerProtoFmt) -v $(CURDIR):/workspace --workdir /workspace tendermintdev/docker-build-proto \
+#find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -style=file -i {} \; ; fi
 
 ########################################
 ### Testing

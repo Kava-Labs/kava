@@ -1,0 +1,54 @@
+.PHONY: proto-lint check-proto-lint
+proto-lint check-proto-lint: install-build-deps
+	@echo "Linting proto file"
+	@buf lint
+
+.PHONY: proto-gen
+proto-gen: install-build-deps
+	@echo "Generating go proto files"
+	@buf generate --template proto/buf.gen.gogo.yaml proto
+	@cp -r out/github.com/kava-labs/kava/* ./
+	@rm -rf out/github.com
+
+.PHONY: check-proto-gen
+check-proto-gen: proto-gen ## Return error code 1 if proto gen changes files
+	@git diff --exit-code **/*.pb.go > /dev/null || (echo "Protobuf generated go files are not up to date! Please run \`make proto-gen\`."; exit 1)
+
+.PHONY: proto-gen-doc
+proto-gen-doc: install-build-deps
+	@echo "Generating proto doc"
+	@buf generate --template proto/buf.gen.doc.yaml proto
+
+.PHONY: check-proto-gen-doc
+check-proto-gen-doc: proto-gen-doc ## Return error code 1 if proto gen changes files
+	@git diff --exit-code docs/core/proto-docs.md > /dev/null || (echo "Protobuf doc is not up to date! Please run \`make proto-gen-doc\`."; exit 1)
+
+.PHONY: proto-gen-swagger
+proto-gen-swagger: install-build-deps
+	@echo "Generating proto swagger"
+	@buf generate --template proto/buf.gen.swagger.yaml proto
+	@swagger-combine client/docs/config.json -o client/docs/swagger-ui/swagger.yaml -f yaml --continueOnConflictingPaths true --includeDefinitions true
+	@rm -rf out/swagger
+
+.PHONY: check-proto-gen-swagger
+check-proto-gen-swagger: proto-gen-swagger ## Return error code 1 if proto gen changes files
+	@git diff --exit-code client/docs/swagger-ui/swagger.yaml > /dev/null || (echo "Protobuf swagger is not up to date! Please run \`make proto-gen-swagger\`."; exit 1)
+
+.PHONY: proto-format
+proto-format: install-build-deps
+	@find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -style=file -i {} \;
+
+.PHONY: check-proto-format
+check-proto-format: proto-format
+	@git diff --exit-code proto/**/*.proto > /dev/null || (echo "Protobuf format is not up to date! Please run \`make proto-format\`."; exit 1)
+
+.PHONY: check-proto-breaking
+check-proto-breaking: install-build-deps
+	@echo "Checking for proto backward compatibility"
+	@buf breaking --against '.git#branch=master'
+
+.PHONY: proto-gen-all
+proto-gen-all: proto-gen proto-gen-doc proto-gen-swagger
+
+.PHONY: proto-all
+proto-all: proto-update-deps proto-lint proto-format check-proto-breaking proto-gen-all
