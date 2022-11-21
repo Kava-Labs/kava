@@ -13,13 +13,12 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      - run: git fetch origin master
       - run: go mod download
       - run: make install-build-deps
       - run: make check-proto-deps
       - run: make check-proto-lint
       - run: make check-proto-format
-      - run: make check-proto-breaking
+      - run: make check-proto-breaking-remote
       - run: make check-proto-gen
       - run: make check-proto-gen-doc
       - run: make check-proto-gen-swagger
