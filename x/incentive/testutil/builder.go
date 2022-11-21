@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -189,6 +190,52 @@ func (builder IncentiveGenesisBuilder) WithInitializedEarnRewardPeriod(period ty
 
 func (builder IncentiveGenesisBuilder) WithSimpleEarnRewardPeriod(ctype string, rewardsPerSecond sdk.Coins) IncentiveGenesisBuilder {
 	return builder.WithInitializedEarnRewardPeriod(builder.simpleRewardPeriod(ctype, rewardsPerSecond))
+}
+
+// WithInitializedRewardPeriod adds an initialized typed reward period.
+func (builder IncentiveGenesisBuilder) WithInitializedRewardPeriod(
+	claimType types.ClaimType,
+	periods types.MultiRewardPeriods,
+) IncentiveGenesisBuilder {
+	// Append to claim type if it exists -- claim types must be unique in RewardPeriods field
+	found := false
+	for _, rewardPeriod := range builder.Params.RewardPeriods {
+		if rewardPeriod.ClaimType == claimType {
+			rewardPeriod.RewardPeriods = append(rewardPeriod.RewardPeriods, periods...)
+		}
+	}
+
+	// Add new reward period for claim type
+	if !found {
+		builder.Params.RewardPeriods = append(builder.Params.RewardPeriods, types.NewTypedMultiRewardPeriod(claimType, periods))
+	}
+
+	for _, period := range periods {
+		accumulationTimeForPeriod := types.NewAccrualTime(claimType, period.CollateralType, builder.genesisTime)
+		builder.AccrualTimes = append(
+			builder.AccrualTimes,
+			accumulationTimeForPeriod,
+		)
+
+		if err := builder.AccrualTimes.Validate(); err != nil {
+			panic(fmt.Errorf("invalid accrual times: %w", err))
+		}
+	}
+
+	return builder
+}
+
+func (builder IncentiveGenesisBuilder) WithSimpleRewardPeriod(
+	claimType types.ClaimType,
+	collateralType string,
+	rewardsPerSecond sdk.Coins,
+) IncentiveGenesisBuilder {
+	builder.WithInitializedRewardPeriod(
+		claimType,
+		types.MultiRewardPeriods{builder.simpleRewardPeriod(collateralType, rewardsPerSecond)},
+	)
+
+	return builder
 }
 
 func (builder IncentiveGenesisBuilder) WithMultipliers(multipliers types.MultipliersPerDenoms) IncentiveGenesisBuilder {

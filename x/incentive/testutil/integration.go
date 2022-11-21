@@ -468,6 +468,28 @@ func (suite *IntegrationTester) StoredEarnIndexesEqual(denom string, expected ty
 	}
 }
 
+func (suite *IntegrationTester) StoredTimeEquals(claimType types.ClaimType, denom string, expected time.Time) {
+	storedTime, found := suite.App.GetIncentiveKeeper().Store.GetRewardAccrualTime(suite.Ctx, claimType, denom)
+	suite.Equal(found, expected != time.Time{}, "expected time is %v but time found = %v", expected, found)
+	if found {
+		suite.Equal(expected, storedTime)
+	} else {
+		suite.Empty(storedTime)
+	}
+}
+
+func (suite *IntegrationTester) StoredIndexesEqual(claimType types.ClaimType, denom string, expected types.RewardIndexes) {
+	storedIndexes, found := suite.App.GetIncentiveKeeper().Store.GetRewardIndexesOfClaimType(suite.Ctx, claimType, denom)
+	suite.Equal(found, expected != nil)
+
+	if found {
+		suite.Equal(expected, storedIndexes)
+	} else {
+		// Can't compare Equal for types.RewardIndexes(nil) vs types.RewardIndexes{}
+		suite.Empty(storedIndexes)
+	}
+}
+
 func (suite *IntegrationTester) AddIncentiveEarnMultiRewardPeriod(period types.MultiRewardPeriod) {
 	ik := suite.App.GetIncentiveKeeper()
 	params := ik.GetParams(suite.Ctx)
@@ -484,6 +506,44 @@ func (suite *IntegrationTester) AddIncentiveEarnMultiRewardPeriod(period types.M
 	}
 
 	params.EarnRewardPeriods = append(params.EarnRewardPeriods, period)
+
+	suite.NoError(params.Validate())
+	ik.SetParams(suite.Ctx, params)
+}
+
+func (suite *IntegrationTester) AddIncentiveMultiRewardPeriod(
+	claimType types.ClaimType,
+	period types.MultiRewardPeriod,
+) {
+	ik := suite.App.GetIncentiveKeeper()
+	params := ik.GetParams(suite.Ctx)
+
+	for i, rewardPeriod := range params.RewardPeriods {
+		if claimType == rewardPeriod.ClaimType {
+			for _, reward := range rewardPeriod.RewardPeriods {
+				if reward.CollateralType == period.CollateralType {
+					// Replace existing reward period if the collateralType exists.
+					// Params are invalid if there are multiple reward periods for the
+					// same collateral type.
+					params.EarnRewardPeriods[i] = period
+					ik.SetParams(suite.Ctx, params)
+					return
+				}
+			}
+
+			// Claim type period exists but not the specific collateral type
+			params.RewardPeriods[i].RewardPeriods = append(params.RewardPeriods[i].RewardPeriods, period)
+			return
+		}
+	}
+
+	// Claim type does not exist in params
+	params.RewardPeriods = append(params.RewardPeriods, types.NewTypedMultiRewardPeriod(
+		claimType,
+		types.MultiRewardPeriods{
+			period,
+		},
+	))
 
 	suite.NoError(params.Validate())
 	ik.SetParams(suite.Ctx, params)

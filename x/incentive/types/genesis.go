@@ -216,10 +216,18 @@ type AccrualTimes []AccrualTime
 
 // Validate performs validation of AccrualTimes
 func (gats AccrualTimes) Validate() error {
+	seenAccrualTimes := make(map[string]bool)
+
 	for _, gat := range gats {
 		if err := gat.Validate(); err != nil {
 			return err
 		}
+
+		key := fmt.Sprintf("%s-%s", gat.ClaimType, gat.CollateralType)
+		if seenAccrualTimes[key] {
+			return fmt.Errorf("duplicate accrual time found for %s", key)
+		}
+		seenAccrualTimes[key] = true
 	}
 	return nil
 }

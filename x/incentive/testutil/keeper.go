@@ -46,3 +46,9 @@ func (keeper TestKeeper) StoreGlobalEarnIndexes(ctx sdk.Context, indexes types.M
 		keeper.SetEarnRewardIndexes(ctx, i.CollateralType, i.RewardIndexes)
 	}
 }
+
+func (keeper TestKeeper) StoreGlobalIndexes(ctx sdk.Context, claimType types.ClaimType, indexes types.MultiRewardIndexes) {
+	for _, i := range indexes {
+		keeper.Store.SetRewardIndexes(ctx, claimType, i.CollateralType, i.RewardIndexes)
+	}
+}
