@@ -14,7 +14,7 @@ func (k Keeper) AccumulateRewards(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
-) {
+) error {
 	var accumulator types.RewardAccumulator
 
 	switch claimType {
@@ -24,7 +24,7 @@ func (k Keeper) AccumulateRewards(
 		accumulator = accumulators.NewBasicAccumulator(k.Store, k.Adapters)
 	}
 
-	accumulator.AccumulateRewards(ctx, claimType, rewardPeriod)
+	return accumulator.AccumulateRewards(ctx, claimType, rewardPeriod)
 }
 
 // InitializeClaim creates a new claim with zero rewards and indexes matching

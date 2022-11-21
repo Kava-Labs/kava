@@ -198,17 +198,15 @@ func (builder IncentiveGenesisBuilder) WithInitializedRewardPeriod(
 	periods types.MultiRewardPeriods,
 ) IncentiveGenesisBuilder {
 	// Append to claim type if it exists -- claim types must be unique in RewardPeriods field
-	found := false
 	for _, rewardPeriod := range builder.Params.RewardPeriods {
 		if rewardPeriod.ClaimType == claimType {
 			rewardPeriod.RewardPeriods = append(rewardPeriod.RewardPeriods, periods...)
+			return builder
 		}
 	}
 
 	// Add new reward period for claim type
-	if !found {
-		builder.Params.RewardPeriods = append(builder.Params.RewardPeriods, types.NewTypedMultiRewardPeriod(claimType, periods))
-	}
+	builder.Params.RewardPeriods = append(builder.Params.RewardPeriods, types.NewTypedMultiRewardPeriod(claimType, periods))
 
 	for _, period := range periods {
 		accumulationTimeForPeriod := types.NewAccrualTime(claimType, period.CollateralType, builder.genesisTime)
@@ -230,12 +228,10 @@ func (builder IncentiveGenesisBuilder) WithSimpleRewardPeriod(
 	collateralType string,
 	rewardsPerSecond sdk.Coins,
 ) IncentiveGenesisBuilder {
-	builder.WithInitializedRewardPeriod(
+	return builder.WithInitializedRewardPeriod(
 		claimType,
 		types.MultiRewardPeriods{builder.simpleRewardPeriod(collateralType, rewardsPerSecond)},
 	)
-
-	return builder
 }
 
 func (builder IncentiveGenesisBuilder) WithMultipliers(multipliers types.MultipliersPerDenoms) IncentiveGenesisBuilder {
