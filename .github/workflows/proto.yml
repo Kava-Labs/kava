@@ -14,6 +14,7 @@ jobs:
           go-version-file: go.mod
           cache: true
       - run: go mod download
+      - run: make install-build-deps
       - run: make check-proto-deps
       - run: make check-proto-lint
       - run: make check-proto-format
