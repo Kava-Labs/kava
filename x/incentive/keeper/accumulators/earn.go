@@ -14,9 +14,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// EarnAccumulator is a default implementation of the RewardAccumulator
-// interface. This applies to all claim types except for those with custom
-// accumulator logic e.g. Earn.
+// EarnAccumulator is an accumulator for Earn claim types. This includes
+// claiming staking rewards and reward distribution for liquid kava.
 type EarnAccumulator struct {
 	store        store.IncentiveStore
 	liquidKeeper types.LiquidKeeper
@@ -46,6 +45,14 @@ func (a EarnAccumulator) AccumulateRewards(
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
 ) error {
+	if claimType != types.CLAIM_TYPE_EARN {
+		panic(fmt.Sprintf(
+			"invalid claim type for earn accumulator, expected %s but got %s",
+			types.CLAIM_TYPE_EARN,
+			claimType,
+		))
+	}
+
 	if rewardPeriod.CollateralType == "bkava" {
 		return a.accumulateEarnBkavaRewards(ctx, rewardPeriod)
 	}
