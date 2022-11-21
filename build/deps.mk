@@ -45,6 +45,7 @@ endif
 ifeq ($(OS_FAMILY),Darwin)
 PROTOC_PLATFORM := osx
 endif
+PROTOC_MACHINE := $(MACHINE)
 ifeq ($(MACHINE),amd64)
 PROTOC_MACHINE := x86_64
 endif
