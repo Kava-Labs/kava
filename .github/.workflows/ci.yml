@@ -1,0 +1,37 @@
+name: Continuous Integration
+on:
+  pull_request:
+    # run CI on pull requests to master or a release branch
+    branches:
+      - master
+      - 'releases/**'
+  push:
+    # run CI on any push to the master branch
+    branches:
+      - master
+      - ls-kava-ci
+# concurrently lint, build, and run tests against kava based off current commit
+jobs:
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: build application
+        run: make build
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: run unit tests
+        run: make test
