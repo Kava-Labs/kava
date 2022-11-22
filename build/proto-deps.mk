@@ -49,11 +49,11 @@ proto-update-deps: check-rsync ## Update all third party proto files
 	@mkdir -p $(COSMOS_PROTO_TYPES)
 	@cp $(COSMOS_PROTO_PATH)/proto/cosmos_proto/cosmos.proto $(COSMOS_PROTO_TYPES)/cosmos.proto
 
-	@$(RSYNC_BIN) -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(GOGO_PATH)/gogoproto third_party/proto
-	@$(RSYNC_BIN) -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(TENDERMINT_PATH)/proto third_party
-	@$(RSYNC_BIN) -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(COSMOS_SDK_PATH)/proto third_party
-	@$(RSYNC_BIN) -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(IBC_GO_PATH)/proto third_party
-	@$(RSYNC_BIN) -r --chmod 644 --include "*.proto" --include='*/' --exclude='*' $(ETHERMINT_PATH)/proto third_party
+	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(GOGO_PATH)/gogoproto third_party/proto
+	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(TENDERMINT_PATH)/proto third_party
+	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(COSMOS_SDK_PATH)/proto third_party
+	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(IBC_GO_PATH)/proto third_party
+	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(ETHERMINT_PATH)/proto third_party
 	@cp -f $(IBC_GO_PATH)/third_party/proto/proofs.proto third_party/proto/proofs.proto
 
 .PHONY: check-proto-deps
