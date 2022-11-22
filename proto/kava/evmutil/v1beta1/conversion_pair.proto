@@ -3,8 +3,8 @@ package kava.evmutil.v1beta1;
 
 import "gogoproto/gogo.proto";
 
-option go_package                    = "github.com/kava-labs/kava/x/evmutil/types";
-option (gogoproto.equal_all)         = true;
+option go_package = "github.com/kava-labs/kava/x/evmutil/types";
+option (gogoproto.equal_all) = true;
 option (gogoproto.verbose_equal_all) = true;
 
 // ConversionPair defines a Kava ERC20 address and corresponding denom that is
@@ -13,7 +13,10 @@ message ConversionPair {
   option (gogoproto.goproto_getters) = false;
 
   // ERC20 address of the token on the Kava EVM
-  bytes kava_erc20_address = 1 [(gogoproto.customname) = "KavaERC20Address", (gogoproto.casttype) = "HexBytes"];
+  bytes kava_erc20_address = 1 [
+    (gogoproto.customname) = "KavaERC20Address",
+    (gogoproto.casttype) = "HexBytes"
+  ];
 
   // Denom of the corresponding sdk.Coin
   string denom = 2;

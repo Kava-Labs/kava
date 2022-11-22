@@ -1,12 +1,12 @@
 syntax = "proto3";
 package kava.evmutil.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
-option go_package                    = "github.com/kava-labs/kava/x/evmutil/types";
-option (gogoproto.equal_all)         = true;
+option go_package = "github.com/kava-labs/kava/x/evmutil/types";
+option (gogoproto.equal_all) = true;
 option (gogoproto.verbose_equal_all) = true;
 
 // Msg defines the evmutil Msg service.
@@ -41,9 +41,9 @@ message MsgConvertERC20ToCoin {
   string kava_erc20_address = 3 [(gogoproto.customname) = "KavaERC20Address"];
   // ERC20 token amount to convert.
   string amount = 4 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }
 

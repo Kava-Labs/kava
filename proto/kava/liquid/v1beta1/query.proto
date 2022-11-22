@@ -1,12 +1,12 @@
 syntax = "proto3";
 package kava.liquid.v1beta1;
 
-import "gogoproto/gogo.proto";
-import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
 
-option go_package                      = "github.com/kava-labs/kava/x/liquid/types";
+option go_package = "github.com/kava-labs/kava/x/liquid/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Query defines the gRPC querier service for liquid module
@@ -45,6 +45,8 @@ message QueryTotalSupplyResponse {
   // Height is the block height at which these totals apply
   int64 height = 1;
   // Result is a list of coins supplied to liquid
-  repeated cosmos.base.v1beta1.Coin result = 2
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin result = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

@@ -1,12 +1,12 @@
 syntax = "proto3";
 package kava.evmutil.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 import "kava/evmutil/v1beta1/conversion_pair.proto";
 
-option go_package                    = "github.com/kava-labs/kava/x/evmutil/types";
-option (gogoproto.equal_all)         = true;
+option go_package = "github.com/kava-labs/kava/x/evmutil/types";
+option (gogoproto.equal_all) = true;
 option (gogoproto.verbose_equal_all) = true;
 
 // GenesisState defines the evmutil module's genesis state.
@@ -25,14 +25,14 @@ message Account {
 
   bytes address = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
 
   // balance indicates the amount of akava owned by the address.
   string balance = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }
 
@@ -40,6 +40,8 @@ message Account {
 message Params {
   // enabled_conversion_pairs defines the list of conversion pairs allowed to be
   // converted between Kava ERC20 and sdk.Coin
-  repeated ConversionPair enabled_conversion_pairs = 4
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "ConversionPairs"];
+  repeated ConversionPair enabled_conversion_pairs = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "ConversionPairs"
+  ];
 }

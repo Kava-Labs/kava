@@ -1,12 +1,11 @@
 syntax = "proto3";
 package kava.incentive.v1beta1;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/incentive/types";
-
 option (gogoproto.goproto_getters_all) = false;
 
 // -------------- Base Claim Types, Reward Indexes --------------
@@ -15,7 +14,7 @@ option (gogoproto.goproto_getters_all) = false;
 message BaseClaim {
   bytes owner = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
 
   cosmos.base.v1beta1.Coin reward = 2 [(gogoproto.nullable) = false];
@@ -25,97 +24,145 @@ message BaseClaim {
 message BaseMultiClaim {
   bytes owner = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
 
-  repeated cosmos.base.v1beta1.Coin reward = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin reward = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // RewardIndex stores reward accumulation information
 message RewardIndex {
   string collateral_type = 1;
 
-  bytes reward_factor = 2
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  bytes reward_factor = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // RewardIndexesProto defines a Protobuf wrapper around a RewardIndexes slice
 message RewardIndexesProto {
-  repeated RewardIndex reward_indexes = 1 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+  repeated RewardIndex reward_indexes = 1 [
+    (gogoproto.castrepeated) = "RewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // TypedRewardIndexes defines a RewardIndexes slice with its corresponding
 // claim and collateral type
 message TypedRewardIndexes {
-  ClaimType            claim_type      = 1;
-  string               collateral_type = 2;
-  repeated RewardIndex reward_indexes  = 3 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+  ClaimType claim_type = 1;
+  string collateral_type = 2;
+  repeated RewardIndex reward_indexes = 3 [
+    (gogoproto.castrepeated) = "RewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MultiRewardIndex stores reward accumulation information on multiple reward types
 message MultiRewardIndex {
   string collateral_type = 1;
 
-  repeated RewardIndex reward_indexes = 2 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+  repeated RewardIndex reward_indexes = 2 [
+    (gogoproto.castrepeated) = "RewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MultiRewardIndexesProto defines a Protobuf wrapper around a MultiRewardIndexes slice
 message MultiRewardIndexesProto {
-  repeated MultiRewardIndex multi_reward_indexes = 1
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex multi_reward_indexes = 1 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // -------------- Custom Claim Types --------------
 
 // USDXMintingClaim is for USDX minting rewards
 message USDXMintingClaim {
-  BaseClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseClaim base_claim = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
-  repeated RewardIndex reward_indexes = 2 [(gogoproto.castrepeated) = "RewardIndexes", (gogoproto.nullable) = false];
+  repeated RewardIndex reward_indexes = 2 [
+    (gogoproto.castrepeated) = "RewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // HardLiquidityProviderClaim stores the hard liquidity provider rewards that can be claimed by owner
 message HardLiquidityProviderClaim {
-  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseMultiClaim base_claim = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
-  repeated MultiRewardIndex supply_reward_indexes = 2
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex supply_reward_indexes = 2 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 
-  repeated MultiRewardIndex borrow_reward_indexes = 3
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex borrow_reward_indexes = 3 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // DelegatorClaim stores delegation rewards that can be claimed by owner
 message DelegatorClaim {
-  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseMultiClaim base_claim = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
-  repeated MultiRewardIndex reward_indexes = 2
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex reward_indexes = 2 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // SwapClaim stores the swap rewards that can be claimed by owner
 message SwapClaim {
-  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseMultiClaim base_claim = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
-  repeated MultiRewardIndex reward_indexes = 2
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex reward_indexes = 2 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // SavingsClaim stores the savings rewards that can be claimed by owner
 message SavingsClaim {
-  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseMultiClaim base_claim = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
-  repeated MultiRewardIndex reward_indexes = 2
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex reward_indexes = 2 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // EarnClaim stores the earn rewards that can be claimed by owner
 message EarnClaim {
-  BaseMultiClaim base_claim = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseMultiClaim base_claim = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
-  repeated MultiRewardIndex reward_indexes = 2
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex reward_indexes = 2 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // ClaimType is the type of claim
@@ -146,12 +193,16 @@ message Claim {
 
   bytes owner = 2 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
 
-  repeated cosmos.base.v1beta1.Coin reward = 3
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin reward = 3 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 
-  repeated MultiRewardIndex reward_indexes = 4
-      [(gogoproto.castrepeated) = "MultiRewardIndexes", (gogoproto.nullable) = false];
+  repeated MultiRewardIndex reward_indexes = 4 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
 }

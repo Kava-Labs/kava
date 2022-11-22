@@ -26,12 +26,12 @@ message Params {
 message Asset {
   option (gogoproto.goproto_stringer) = false;
 
-  string          owner             = 1;
-  string          denom             = 2;
+  string owner = 1;
+  string denom = 2;
   repeated string blocked_addresses = 3;
-  bool            paused            = 4;
-  bool            blockable         = 5;
-  RateLimit       rate_limit        = 6 [(gogoproto.nullable) = false];
+  bool paused = 4;
+  bool blockable = 5;
+  RateLimit rate_limit = 6 [(gogoproto.nullable) = false];
 }
 
 // RateLimit parameters for rate-limiting the supply of an issued asset
@@ -40,11 +40,14 @@ message RateLimit {
 
   bytes limit = 2 [
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false,
-    (gogoproto.jsontag)    = "limit,omitempty"
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "limit,omitempty"
   ];
 
-  google.protobuf.Duration time_period = 3 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  google.protobuf.Duration time_period = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true
+  ];
 }
 
 // AssetSupply contains information about an asset's rate-limited supply (the
@@ -54,5 +57,8 @@ message AssetSupply {
 
   cosmos.base.v1beta1.Coin current_supply = 1 [(gogoproto.nullable) = false];
 
-  google.protobuf.Duration time_elapsed = 2 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  google.protobuf.Duration time_elapsed = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true
+  ];
 }

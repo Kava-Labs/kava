@@ -1,9 +1,9 @@
 syntax = "proto3";
 package kava.hard.v1beta1;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/hard/types";
 
@@ -23,9 +23,11 @@ service Msg {
 
 // MsgDeposit defines the Msg/Deposit request type.
 message MsgDeposit {
-  string   depositor                       = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  repeated cosmos.base.v1beta1.Coin amount = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgDepositResponse defines the Msg/Deposit response type.
@@ -33,9 +35,11 @@ message MsgDepositResponse {}
 
 // MsgWithdraw defines the Msg/Withdraw request type.
 message MsgWithdraw {
-  string   depositor                       = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  repeated cosmos.base.v1beta1.Coin amount = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  string depositor = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgWithdrawResponse defines the Msg/Withdraw response type.
@@ -43,9 +47,11 @@ message MsgWithdrawResponse {}
 
 // MsgBorrow defines the Msg/Borrow request type.
 message MsgBorrow {
-  string   borrower                        = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  repeated cosmos.base.v1beta1.Coin amount = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  string borrower = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgBorrowResponse defines the Msg/Borrow response type.
@@ -53,10 +59,12 @@ message MsgBorrowResponse {}
 
 // MsgRepay defines the Msg/Repay request type.
 message MsgRepay {
-  string   sender                          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string   owner                           = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  repeated cosmos.base.v1beta1.Coin amount = 3
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  string sender = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgRepayResponse defines the Msg/Repay response type.
@@ -64,7 +72,7 @@ message MsgRepayResponse {}
 
 // MsgLiquidate defines the Msg/Liquidate request type.
 message MsgLiquidate {
-  string keeper   = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string keeper = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string borrower = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
