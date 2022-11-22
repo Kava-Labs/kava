@@ -15,20 +15,20 @@ import (
 
 // Keeper of the kavamint store
 type Keeper struct {
-	cdc               codec.BinaryCodec
-	storeKey          sdk.StoreKey
-	paramSpace        paramtypes.Subspace
-	stakingKeeper     types.StakingKeeper
-	bankKeeper        types.BankKeeper
-	feeCollectorName  string
-	communityPoolName string
+	cdc                            codec.BinaryCodec
+	storeKey                       sdk.StoreKey
+	paramSpace                     paramtypes.Subspace
+	stakingKeeper                  types.StakingKeeper
+	bankKeeper                     types.BankKeeper
+	stakingRewardsFeeCollectorName string
+	communityPoolModuleAccountName string
 }
 
 // NewKeeper creates a new kavamint Keeper instance
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper,
-	feeCollectorName string, communityPoolName string,
+	stakingRewardsFeeCollectorName string, communityPoolModuleAccountName string,
 ) Keeper {
 	// ensure kavamint module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -41,13 +41,13 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:               cdc,
-		storeKey:          key,
-		paramSpace:        paramSpace,
-		stakingKeeper:     sk,
-		bankKeeper:        bk,
-		feeCollectorName:  feeCollectorName,
-		communityPoolName: communityPoolName,
+		cdc:                            cdc,
+		storeKey:                       key,
+		paramSpace:                     paramSpace,
+		stakingKeeper:                  sk,
+		bankKeeper:                     bk,
+		stakingRewardsFeeCollectorName: stakingRewardsFeeCollectorName,
+		communityPoolModuleAccountName: communityPoolModuleAccountName,
 	}
 }
 
@@ -92,13 +92,13 @@ func (k Keeper) MintCoins(ctx sdk.Context, newCoins sdk.Coins) error {
 // AddCollectedFees implements an alias call to the underlying supply keeper's
 // AddCollectedFees to be used in BeginBlocker.
 func (k Keeper) AddCollectedFees(ctx sdk.Context, fees sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.feeCollectorName, fees)
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.stakingRewardsFeeCollectorName, fees)
 }
 
 // FundCommunityPool implements an alias call to the underlying supply keeper's
 // FundCommunityPool to be used in BeginBlocker.
 func (k Keeper) FundCommunityPool(ctx sdk.Context, funds sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.communityPoolName, funds)
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.communityPoolModuleAccountName, funds)
 }
 
 // TotalSupply implements an alias call to the underlying supply keeper's
