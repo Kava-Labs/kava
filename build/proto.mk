@@ -1,12 +1,12 @@
 .PHONY: proto-lint check-proto-lint
 proto-lint check-proto-lint: install-build-deps
 	@echo "Linting proto file"
-	@buf lint
+	@$(BUF) lint
 
 .PHONY: proto-gen
 proto-gen: install-build-deps
 	@echo "Generating go proto files"
-	@buf generate --template proto/buf.gen.gogo.yaml proto
+	@$(BUF) generate --template proto/buf.gen.gogo.yaml proto
 	@cp -r out/github.com/kava-labs/kava/* ./
 	@rm -rf out/github.com
 
@@ -17,7 +17,7 @@ check-proto-gen: proto-gen ## Return error code 1 if proto gen changes files
 .PHONY: proto-gen-doc
 proto-gen-doc: install-build-deps
 	@echo "Generating proto doc"
-	@buf generate --template proto/buf.gen.doc.yaml proto
+	@$(BUF) generate --template proto/buf.gen.doc.yaml proto
 
 .PHONY: check-proto-gen-doc
 check-proto-gen-doc: proto-gen-doc ## Return error code 1 if proto gen changes files
@@ -26,8 +26,8 @@ check-proto-gen-doc: proto-gen-doc ## Return error code 1 if proto gen changes f
 .PHONY: proto-gen-swagger
 proto-gen-swagger: install-build-deps
 	@echo "Generating proto swagger"
-	@buf generate --template proto/buf.gen.swagger.yaml proto
-	@swagger-combine client/docs/config.json -o client/docs/swagger-ui/swagger.yaml -f yaml --continueOnConflictingPaths true --includeDefinitions true
+	@$(BUF) generate --template proto/buf.gen.swagger.yaml proto
+	@$(SWAGGER_COMBINE) client/docs/config.json -o client/docs/swagger-ui/swagger.yaml -f yaml --continueOnConflictingPaths true --includeDefinitions true
 	@rm -rf out/swagger
 
 .PHONY: check-proto-gen-swagger
@@ -35,8 +35,9 @@ check-proto-gen-swagger: proto-gen-swagger ## Return error code 1 if proto gen c
 	@git diff --exit-code client/docs/swagger-ui/swagger.yaml > /dev/null || (echo "Protobuf swagger is not up to date! Please run \`make proto-gen-swagger\`."; exit 1)
 
 .PHONY: proto-format
+	@echo "Formatting proto files"
 proto-format: install-build-deps
-	@find ./ -not -path "./third_party/*" -name *.proto -exec clang-format -style=file -i {} \;
+	@$(BUF) format -w proto
 
 .PHONY: check-proto-format
 check-proto-format: proto-format
@@ -45,12 +46,12 @@ check-proto-format: proto-format
 .PHONY: check-proto-breaking
 check-proto-breaking: install-build-deps
 	@echo "Checking for proto backward compatibility"
-	@buf breaking --against '.git#branch=master'
+	@$(BUF) breaking --against '.git#branch=master'
 
 .PHONY: check-proto-breaking-remote
 check-proto-breaking-remote: install-build-deps
 	@echo "Checking for proto backward compatibility"
-	@buf breaking --against '$(HTTPS_GIT)#branch=master'
+	@$(BUF) breaking --against '$(HTTPS_GIT)#branch=master'
 
 .PHONY: proto-gen-all
 proto-gen-all: proto-gen proto-gen-doc proto-gen-swagger

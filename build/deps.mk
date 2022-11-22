@@ -70,8 +70,11 @@ $(PROTOC_VERSION_FILE):
 	@cp $(BUILD_CACHE_DIR)/protoc/bin/protoc $(BIN_DIR)/protoc
 	@rm -rf $(BUILD_CACHE_DIR)/protoc
 
-$(BIN_DIR)/protoc: $(PROTOC_VERSION_FILE)
-	@echo "installed $(shell protoc --version)"
+PROTOC := $(BIN_DIR)/protoc
+BUILD_DEPS = $(PROTOC)
+
+$(PROTOC): $(PROTOC_VERSION_FILE)
+	@echo "installed $(shell $(PROTOC) --version)"
 
 ################################################################################
 ###                             Buf Install                                  ###
@@ -92,11 +95,11 @@ $(BUF_VERSION_FILE):
 	@cp $(BUILD_CACHE_DIR)/buf/buf/bin/buf $(BIN_DIR)/buf
 	@rm -rf $(BUILD_CACHE_DIR)/buf
 
-$(BIN_DIR)/buf: $(BUF_VERSION_FILE)
-	@echo "installed buf $(shell buf --version)"
+BUF := $(BIN_DIR)/buf
+BUILD_DEPS += $(BUF)
 
-.PHONY: install-build-deps
-install-build-deps: $(BIN_DIR)/protoc $(BIN_DIR)/buf
+$(BUF): $(BUF_VERSION_FILE)
+	@echo "installed buf $(shell $(BUF) --version)"
 
 ################################################################################
 ###                             gocomos proto plugin                         ###
@@ -115,7 +118,10 @@ $(PROTOC_GEN_GOCOSMOS_VERSION_FILE):
 	GOBIN=$(ROOT_DIR)/$(BIN_DIR) go install ./protoc-gen-gocosmos
 	@rm -rf $(BUILD_CACHE_DIR)/protoc-gen-gocosmos
 
-$(BIN_DIR)/protoc-gen-gocosmos: $(PROTOC_GEN_GOCOSMOS_VERSION_FILE)
+PROTOC_GEN_GOCOSMOS := $(BIN_DIR)/protoc-gen-gocosmos
+BUILD_DEPS += $(PROTOC_GEN_GOCOSMOS)
+
+$(PROTOC_GEN_GOCOSMOS): $(PROTOC_GEN_GOCOSMOS_VERSION_FILE)
 	@echo "installed protoc-gen-gocosmos $(PROTOC_GEN_GOCOSMOS_VERSION)"
 
 ################################################################################
@@ -136,26 +142,30 @@ $(PROTOC_GEN_GRPC_GATEWAY_VERSION_FILE):
 	GOBIN=$(ROOT_DIR)/$(BIN_DIR) go install ./protoc-gen-swagger
 	@rm -rf $(BUILD_CACHE_DIR)/protoc-gen-grpc-gateway
 
-$(BIN_DIR)/protoc-gen-grpc-gateway: $(PROTOC_GEN_GRPC_GATEWAY_VERSION_FILE)
+PROTOC_GEN_GRPC_GATEWAY := $(BIN_DIR)/protoc-gen-grpc-gateway
+BUILD_DEPS += $(PROTOC_GEN_GRPC_GATEWAY)
+
+$(PROTOC_GEN_GRPC_GATEWAY): $(PROTOC_GEN_GRPC_GATEWAY_VERSION_FILE)
 	@echo "installed protoc-gen-grpc-gateway $(PROTOC_GEN_GRPC_GATEWAY_VERSION)"
 
-$(BIN_DIR)/protoc-gen-swagger: $(PROTOC_GEN_GRPC_GATEWAY_VERSION_FILE)
-	@echo "installed protoc-gen-swagger $(PROTOC_GEN_GRPC_GATEWAY_VERSION)"
+PROTOC_GEN_SWAGGER := $(BIN_DIR)/protoc-gen-swagger
+BUILD_DEPS += $(PROTOC_GEN_SWAGGER)
 
-.PHONY: install-build-deps
-install-build-deps: $(BIN_DIR)/protoc $(BIN_DIR)/buf $(BIN_DIR)/protoc-gen-gocosmos $(BIN_DIR)/protoc-gen-grpc-gateway $(BIN_DIR)/protoc-gen-swagger
+$(PROTOC_GEN_SWAGGER): $(PROTOC_GEN_GRPC_GATEWAY_VERSION_FILE)
+	@echo "installed protoc-gen-swagger $(PROTOC_GEN_GRPC_GATEWAY_VERSION)"
 
 ################################################################################
 ###                        Proto Gen Doc Install                             ###
 ################################################################################
-PROTOC_GEN_DOC_VERSION_FILE := $(BUILD_CACHE_DIR)/protoc-gen-doc-$(PROTOC_GEN_DOC).version
+PROTOC_GEN_DOC_VERSION_FILE := $(BUILD_CACHE_DIR)/protoc-gen-doc-$(PROTOC_GEN_DOC_VERSION).version
 
 ifeq ($(OS_FAMILY),Linux)
 PROTOC_GEN_DOC_PLATFORM := linux
 endif
 ifeq ($(OS_FAMILY),Darwin)
-PROTOC_GEN_DOC_PLATFORM := darwing
+PROTOC_GEN_DOC_PLATFORM := darwin
 endif
+PROTOC_GEN_DOC_MACHINE := $(MACHINE)
 ifeq ($(MACHINE),x86_64)
 PROTOC_GEN_DOC_MACHINE := amd64
 endif
@@ -177,8 +187,11 @@ $(PROTOC_GEN_DOC_VERSION_FILE):
 	@cp $(BUILD_CACHE_DIR)/protoc-gen-doc/protoc-gen-doc $(BIN_DIR)/protoc-gen-doc
 	@rm -rf $(BUILD_CACHE_DIR)/protoc-gen-doc
 
-$(BIN_DIR)/protoc-gen-doc: $(PROTOC_GEN_DOC_VERSION_FILE)
-	@echo "installed protoc-gen-doc $(shell protoc-gen-doc --version)"
+PROTOC_GEN_DOC := $(BIN_DIR)/protoc-gen-doc
+BUILD_DEPS += $(PROTOC_GEN_DOC)
+
+$(PROTOC_GEN_DOC): $(PROTOC_GEN_DOC_VERSION_FILE)
+	@echo "installed protoc-gen-doc $(shell $(PROTOC_GEN_DOC) --version)"
 
 ################################################################################
 ###                        Swagger Combine                                   ###
@@ -192,8 +205,14 @@ $(SWAGGER_COMBINE_VERSION_FILE):
 	@npm install --silent --no-progress --prefix $(BUILD_CACHE_DIR) swagger-combine@$(shell echo $(SWAGGER_COMBINE_VERSION) | sed s/^v//)
 	@ln -sf ../.cache/node_modules/.bin/swagger-combine $(BIN_DIR)/swagger-combine
 
-$(BIN_DIR)/swagger-combine: $(SWAGGER_COMBINE_VERSION_FILE)
-	@echo "installed swagger-combine $(shell swagger-combine -v)"
+SWAGGER_COMBINE := $(BIN_DIR)/swagger-combine
+BUILD_DEPS += $(SWAGGER_COMBINE)
 
+$(SWAGGER_COMBINE): $(SWAGGER_COMBINE_VERSION_FILE)
+	@echo "installed swagger-combine $(shell $(SWAGGER_COMBINE) -v)"
+
+################################################################################
+###                        Build Deps                                        ###
+################################################################################
 .PHONY: install-build-deps
-install-build-deps: $(BIN_DIR)/protoc $(BIN_DIR)/buf $(BIN_DIR)/protoc-gen-gocosmos $(BIN_DIR)/protoc-gen-grpc-gateway $(BIN_DIR)/protoc-gen-doc $(BIN_DIR)/swagger-combine
+install-build-deps: $(BUILD_DEPS)
