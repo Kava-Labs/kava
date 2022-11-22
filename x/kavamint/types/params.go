@@ -15,8 +15,8 @@ var (
 	KeyStakingRewardsApy      = []byte("StakingRewardsApy")
 
 	DefaultPreviousBlockTime      = tmtime.Canonical(time.Unix(1, 0))
-	DefaultCommunityPoolInflation = sdk.MustNewDecFromStr("0.900000000000000000")
-	DefaultStakingRewardsApy      = sdk.MustNewDecFromStr("0.200000000000000000")
+	DefaultCommunityPoolInflation = sdk.ZeroDec()
+	DefaultStakingRewardsApy      = sdk.ZeroDec()
 
 	// rates larger than 17,650% are out of bounds
 	// this is due to the necessary conversion of yearly rate to per second rate
