@@ -111,7 +111,7 @@ func (suite *abciTestSuite) TestBeginBlockerMintsExpectedTokens() {
 		},
 		{
 			name:                   "handles extra long block time",
-			blockTime:              60, // like if we're upgrading the network takes an hour to get back up
+			blockTime:              60, // like if we're upgrading the network & it takes an hour to get back up
 			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
 			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
 			bondedRatio:            sdk.NewDecWithPrec(35, 2),
