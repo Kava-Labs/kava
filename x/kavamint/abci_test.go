@@ -12,6 +12,7 @@ import (
 
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	"github.com/kava-labs/kava/x/kavamint"
+	"github.com/kava-labs/kava/x/kavamint/keeper"
 	"github.com/kava-labs/kava/x/kavamint/testutil"
 	"github.com/kava-labs/kava/x/kavamint/types"
 )
@@ -57,6 +58,17 @@ func (suite *abciTestSuite) TestBeginBlockerMintsExpectedTokens() {
 		expCommunityPoolBalance sdk.Int
 		expFeeCollectorBalance  sdk.Int
 	}{
+		{
+			name:                   "sanity check: a year of seconds mints total yearly inflation",
+			blockTime:              keeper.SecondsPerYear,
+			communityPoolInflation: sdk.NewDecWithPrec(20, 2),
+			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
+			bondedRatio:            sdk.NewDecWithPrec(50, 2),
+			// 20% inflation on 1e10 tokens -> 2e9 minted
+			expCommunityPoolBalance: sdk.NewInt(2e9),
+			// 20% APY, 50% bonded (5e9) -> 1e9 minted
+			expFeeCollectorBalance: sdk.NewInt(1e9),
+		},
 		{
 			name:                    "mints staking rewards, handles 0 community pool inflation",
 			blockTime:               6,
