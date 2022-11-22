@@ -1,8 +1,11 @@
 package kavamint
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/kavamint/keeper"
+	"github.com/kava-labs/kava/x/kavamint/types"
 )
 
 // BeginBlocker mints & distributes new tokens for the previous block.
@@ -11,9 +14,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	if !found {
 		previousBlockTime = ctx.BlockTime()
 	}
+	secondsPassed := ctx.BlockTime().Sub(previousBlockTime).Seconds()
 	// calculate totals before any minting is done to prevent new mints affecting the values
-	totalBonded := k.TotalBondedTokens(ctx)
 	totalSupply := k.TotalSupply(ctx)
+	totalBonded := k.TotalBondedTokens(ctx)
 
 	// ------------- Staking Rewards -------------
 	stakingRewardCoins, err := k.AccumulateStakingRewards(ctx, totalBonded, previousBlockTime)
@@ -51,5 +55,14 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// bookkeep the previous block time
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())
 
-	// TODO: emit event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeMint,
+			sdk.NewAttribute(types.AttributeKeyTotalSupply, totalSupply.String()),
+			sdk.NewAttribute(types.AttributeKeyTotalBonded, totalBonded.String()),
+			sdk.NewAttribute(types.AttributeSecondsPassed, fmt.Sprintf("%f", secondsPassed)),
+			sdk.NewAttribute(types.AttributeKeyCommunityPoolMint, communityPoolInflation.String()),
+			sdk.NewAttribute(types.AttributeKeyStakingRewardMint, stakingRewardCoins.String()),
+		),
+	)
 }
