@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -11,63 +9,26 @@ const (
 	SecondsPerYear = uint64(31536000)
 )
 
-// AccumulateStakingRewards calculates the number of coins that should be minted for staking rewards
-// given the staking rewards APY and the time of last accumulation.
-// The amount is the total_bonded_tokens * spy
-// where spy is the staking_rewards_apy converted to a compound-per-second rate over a period of
-// seconds_since_last_accumulation.
-func (k Keeper) AccumulateStakingRewards(
+// AccumulateInflation calculates the number of coins that should be minted to match a yearly `rate`
+// for interest compounded each second of the year over `secondsSinceLastMint` seconds.
+// `basis` is the base amount of coins that is inflated.
+func (k Keeper) AccumulateInflation(
 	ctx sdk.Context,
-	totalBonded sdk.Int,
-	since time.Time,
+	rate sdk.Dec,
+	basis sdk.Int,
+	secondsSinceLastMint float64,
 ) (sdk.Coins, error) {
-	params := k.GetParams(ctx)
 	bondDenom := k.BondDenom(ctx)
 
-	// determine seconds passed since this block time
-	// truncate the float with uint64(). remaining fraction of second will be picked up in next block.
-	secondsSinceLastBlock := ctx.BlockTime().Sub(since).Seconds()
-
 	// calculate the rate factor based on apy & seconds passed since last block
-	stakingRewardsRate, err := CalculateInflationRate(params.StakingRewardsApy, uint64(secondsSinceLastBlock))
+	inflationRate, err := CalculateInflationRate(rate, uint64(secondsSinceLastMint))
 	if err != nil {
 		return sdk.NewCoins(), err
 	}
 
-	stakingRewardsAmount := stakingRewardsRate.MulInt(totalBonded).TruncateInt()
+	amount := inflationRate.MulInt(basis).TruncateInt()
 
-	return sdk.NewCoins(sdk.NewCoin(bondDenom, stakingRewardsAmount)), nil
-}
-
-// AccumulateCommunityPoolInflation calculates the number of coins that should be minted for community pool
-// inflation.
-// The amount is the total_supply * spy * seconds_since_last_accumulation
-// where spy is the community_pool_inflation converted to a compound-per-second rate over a period
-// of seconds_since_last_accumulation.
-func (k Keeper) AccumulateCommunityPoolInflation(
-	ctx sdk.Context,
-	totalSupply sdk.Int,
-	since time.Time,
-) (sdk.Coins, error) {
-	params := k.GetParams(ctx)
-	bondDenom := k.BondDenom(ctx)
-
-	// determine seconds passed since this block time
-	// truncate the float with uint64(). remaining fraction of second will be picked up in next block.
-	secondsSinceLastBlock := ctx.BlockTime().Sub(since).Seconds()
-
-	// calculate the rate factor based on apy & seconds passed since last block
-	communityInflationRate, err := CalculateInflationRate(
-		params.CommunityPoolInflation,
-		uint64(secondsSinceLastBlock),
-	)
-	if err != nil {
-		return sdk.NewCoins(), err
-	}
-
-	communityInflationAmount := communityInflationRate.MulInt(totalSupply).TruncateInt()
-
-	return sdk.NewCoins(sdk.NewCoin(bondDenom, communityInflationAmount)), nil
+	return sdk.NewCoins(sdk.NewCoin(bondDenom, amount)), nil
 }
 
 // CalculateInflationRate converts an APY into the factor corresponding with that APY's accumulation

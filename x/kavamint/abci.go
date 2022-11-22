@@ -10,17 +10,22 @@ import (
 
 // BeginBlocker mints & distributes new tokens for the previous block.
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
+	params := k.GetParams(ctx)
+	// determine seconds since last mint
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
 	if !found {
 		previousBlockTime = ctx.BlockTime()
 	}
 	secondsPassed := ctx.BlockTime().Sub(previousBlockTime).Seconds()
+
 	// calculate totals before any minting is done to prevent new mints affecting the values
 	totalSupply := k.TotalSupply(ctx)
 	totalBonded := k.TotalBondedTokens(ctx)
 
 	// ------------- Staking Rewards -------------
-	stakingRewardCoins, err := k.AccumulateStakingRewards(ctx, totalBonded, previousBlockTime)
+	stakingRewardCoins, err := k.AccumulateInflation(
+		ctx, params.StakingRewardsApy, totalBonded, secondsPassed,
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +41,9 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	}
 
 	// ------------- Community Pool -------------
-	communityPoolInflation, err := k.AccumulateCommunityPoolInflation(ctx, totalSupply, previousBlockTime)
+	communityPoolInflation, err := k.AccumulateInflation(
+		ctx, params.CommunityPoolInflation, totalSupply, secondsPassed,
+	)
 	if err != nil {
 		panic(err)
 	}
