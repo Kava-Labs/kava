@@ -1,9 +1,9 @@
 syntax = "proto3";
 package kava.kavadist.v1beta1;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "kava/kavadist/v1beta1/params.proto";
 
 option go_package = "github.com/kava-labs/kava/x/kavadist/types";
@@ -34,6 +34,8 @@ message QueryBalanceRequest {}
 
 // QueryBalanceResponse defines the response type for querying x/kavadist balance.
 message QueryBalanceResponse {
-  repeated cosmos.base.v1beta1.Coin coins = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin coins = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }

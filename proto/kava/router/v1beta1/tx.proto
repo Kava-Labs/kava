@@ -1,11 +1,11 @@
 syntax = "proto3";
 package kava.router.v1beta1;
 
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
-option go_package                      = "github.com/kava-labs/kava/x/router/types";
+option go_package = "github.com/kava-labs/kava/x/router/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Msg defines the router Msg service.
@@ -34,6 +34,7 @@ message MsgMintDeposit {
   // amount is the delegation balance to convert
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
+
 // MsgMintDepositResponse defines the Msg/MsgMintDeposit response type.
 message MsgMintDepositResponse {}
 
@@ -47,6 +48,7 @@ message MsgDelegateMintDeposit {
   // amount is the tokens to delegate
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
+
 // MsgDelegateMintDepositResponse defines the Msg/MsgDelegateMintDeposit response type.
 message MsgDelegateMintDepositResponse {}
 
@@ -59,6 +61,7 @@ message MsgWithdrawBurn {
   // amount is the staked token equivalent to withdraw
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
+
 // MsgWithdrawBurnResponse defines the Msg/MsgWithdrawBurn response type.
 message MsgWithdrawBurnResponse {}
 
@@ -72,5 +75,6 @@ message MsgWithdrawBurnUndelegate {
   // amount is the staked token equivalent to withdraw
   cosmos.base.v1beta1.Coin amount = 3 [(gogoproto.nullable) = false];
 }
+
 // MsgWithdrawBurnUndelegateResponse defines the Msg/MsgWithdrawBurnUndelegate response type.
 message MsgWithdrawBurnUndelegateResponse {}

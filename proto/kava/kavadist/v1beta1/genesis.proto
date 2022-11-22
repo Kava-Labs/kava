@@ -11,5 +11,8 @@ option go_package = "github.com/kava-labs/kava/x/kavadist/types";
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
 
-  google.protobuf.Timestamp previous_block_time = 2 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  google.protobuf.Timestamp previous_block_time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
 }

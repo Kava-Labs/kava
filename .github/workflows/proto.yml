@@ -1,0 +1,24 @@
+name: Protobuf Checks
+
+on:
+  push
+
+jobs:
+  check-proto:
+    name: "Check Proto"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go mod download
+      - run: make install-build-deps
+      - run: make check-proto-deps
+      - run: make check-proto-lint
+      - run: make check-proto-format
+      - run: make check-proto-breaking-remote
+      - run: make check-proto-gen
+      - run: make check-proto-gen-doc
+      - run: make check-proto-gen-swagger

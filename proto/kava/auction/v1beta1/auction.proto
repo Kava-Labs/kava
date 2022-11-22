@@ -1,13 +1,12 @@
 syntax = "proto3";
 package kava.auction.v1beta1;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
-import "google/protobuf/timestamp.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/kava-labs/kava/x/auction/types";
-
 option (gogoproto.goproto_getters_all) = false;
 
 // BaseAuction defines common attributes of all auctions
@@ -22,16 +21,22 @@ message BaseAuction {
 
   bytes bidder = 4 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
 
   cosmos.base.v1beta1.Coin bid = 5 [(gogoproto.nullable) = false];
 
   bool has_received_bids = 6;
 
-  google.protobuf.Timestamp end_time = 7 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp end_time = 7 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
 
-  google.protobuf.Timestamp max_end_time = 8 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp max_end_time = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
 }
 
 // SurplusAuction is a forward auction that burns what it receives from bids.
@@ -39,7 +44,10 @@ message BaseAuction {
 message SurplusAuction {
   option (cosmos_proto.implements_interface) = "Auction";
 
-  BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseAuction base_auction = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 }
 
 // DebtAuction is a reverse auction that mints what it pays out.
@@ -48,7 +56,10 @@ message SurplusAuction {
 message DebtAuction {
   option (cosmos_proto.implements_interface) = "Auction";
 
-  BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseAuction base_auction = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
   cosmos.base.v1beta1.Coin corresponding_debt = 2 [(gogoproto.nullable) = false];
 }
@@ -61,7 +72,10 @@ message DebtAuction {
 message CollateralAuction {
   option (cosmos_proto.implements_interface) = "Auction";
 
-  BaseAuction base_auction = 1 [(gogoproto.embed) = true, (gogoproto.nullable) = false];
+  BaseAuction base_auction = 1 [
+    (gogoproto.embed) = true,
+    (gogoproto.nullable) = false
+  ];
 
   cosmos.base.v1beta1.Coin corresponding_debt = 2 [(gogoproto.nullable) = false];
 
@@ -74,9 +88,11 @@ message CollateralAuction {
 message WeightedAddresses {
   repeated bytes addresses = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
 
-  repeated bytes weights = 2
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  repeated bytes weights = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }

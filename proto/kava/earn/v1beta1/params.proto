@@ -1,12 +1,15 @@
 syntax = "proto3";
 package kava.earn.v1beta1;
 
-option go_package = "github.com/kava-labs/kava/x/earn/types";
-
 import "gogoproto/gogo.proto";
 import "kava/earn/v1beta1/vault.proto";
 
+option go_package = "github.com/kava-labs/kava/x/earn/types";
+
 // Params defines the parameters of the earn module.
 message Params {
-  repeated AllowedVault allowed_vaults = 1 [(gogoproto.castrepeated) = "AllowedVaults", (gogoproto.nullable) = false];
+  repeated AllowedVault allowed_vaults = 1 [
+    (gogoproto.castrepeated) = "AllowedVaults",
+    (gogoproto.nullable) = false
+  ];
 }

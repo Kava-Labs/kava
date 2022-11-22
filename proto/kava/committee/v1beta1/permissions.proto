@@ -23,15 +23,17 @@ message TextPermission {
 
 // ParamsChangePermission allows any parameter or sub parameter change proposal.
 message ParamsChangePermission {
-  option (cosmos_proto.implements_interface)          = "Permission";
-  repeated AllowedParamsChange allowed_params_changes = 1
-      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "AllowedParamsChanges"];
+  option (cosmos_proto.implements_interface) = "Permission";
+  repeated AllowedParamsChange allowed_params_changes = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "AllowedParamsChanges"
+  ];
 }
 
 // AllowedParamsChange contains data on the allowed parameter changes for subspace, key, and sub params requirements.
 message AllowedParamsChange {
   string subspace = 1;
-  string key      = 2;
+  string key = 2;
 
   // Requirements for when the subparam value is a single record. This contains list of allowed attribute keys that can
   // be changed on the subparam record.

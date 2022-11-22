@@ -1,16 +1,15 @@
 syntax = "proto3";
 package kava.committee.v1beta1;
 
-option go_package = "github.com/kava-labs/kava/x/committee/types";
-
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/any.proto";
-import "cosmos_proto/cosmos.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
+import "google/protobuf/timestamp.proto";
 import "kava/committee/v1beta1/genesis.proto";
 
+option go_package = "github.com/kava-labs/kava/x/committee/types";
 option (gogoproto.goproto_getters_all) = false;
 
 // Query defines the gRPC querier service for committee module
@@ -88,11 +87,16 @@ message QueryProposalRequest {
 
 // QueryProposalResponse defines the response type for querying x/committee proposal.
 message QueryProposalResponse {
-  google.protobuf.Any pub_proposal = 1
-      [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content", (gogoproto.customname) = "PubProposal"];
-  uint64                    id           = 2 [(gogoproto.customname) = "ID"];
-  uint64                    committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
-  google.protobuf.Timestamp deadline     = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Any pub_proposal = 1 [
+    (cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content",
+    (gogoproto.customname) = "PubProposal"
+  ];
+  uint64 id = 2 [(gogoproto.customname) = "ID"];
+  uint64 committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
+  google.protobuf.Timestamp deadline = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
 }
 
 // QueryNextProposalIDRequest defines the request type for querying x/committee NextProposalID.
@@ -105,8 +109,8 @@ message QueryNextProposalIDResponse {
 
 // QueryVotesRequest defines the request type for querying x/committee votes.
 message QueryVotesRequest {
-  uint64                                proposal_id = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination  = 2;
+  uint64 proposal_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryVotesResponse defines the response type for querying x/committee votes.
@@ -121,14 +125,14 @@ message QueryVotesResponse {
 // QueryVoteRequest defines the request type for querying x/committee vote.
 message QueryVoteRequest {
   uint64 proposal_id = 1;
-  string voter       = 2;
+  string voter = 2;
 }
 
 // QueryVoteResponse defines the response type for querying x/committee vote.
 message QueryVoteResponse {
-  uint64   proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
-  string   voter       = 2;
-  VoteType vote_type   = 3;
+  uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
+  string voter = 2;
+  VoteType vote_type = 3;
 }
 
 // QueryTallyRequest defines the request type for querying x/committee tally.
@@ -139,22 +143,36 @@ message QueryTallyRequest {
 // QueryTallyResponse defines the response type for querying x/committee tally.
 message QueryTallyResponse {
   uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
-  string yes_votes   = 2
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string no_votes = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string current_votes = 4
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string possible_votes = 5
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string vote_threshold = 6
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
-  string quorum = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string yes_votes = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string no_votes = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string current_votes = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string possible_votes = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string vote_threshold = 6 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string quorum = 7 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // QueryRawParamsRequest defines the request type for querying x/committee raw params.
 message QueryRawParamsRequest {
   string subspace = 1;
-  string key      = 2;
+  string key = 2;
 }
 
 // QueryRawParamsResponse defines the response type for querying x/committee raw params.
