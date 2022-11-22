@@ -388,7 +388,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUnchangedWhenBlockT
 	// This does not run any x/mint or x/distribution BeginBlockers
 	earnKeeper := suite.App.GetEarnKeeper()
 	accumulators.
-		NewEarnAccumulator(suite.keeper.Store, suite.App.GetLiquidKeeper(), &earnKeeper).
+		NewEarnAccumulator(suite.keeper.Store, suite.App.GetLiquidKeeper(), &earnKeeper, suite.keeper.Adapters).
 		AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_EARN, period)
 
 	// check time and factors

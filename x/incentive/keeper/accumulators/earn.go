@@ -10,6 +10,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters"
 	"github.com/kava-labs/kava/x/incentive/keeper/store"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -20,6 +21,7 @@ type EarnAccumulator struct {
 	store        store.IncentiveStore
 	liquidKeeper types.LiquidKeeper
 	earnKeeper   types.EarnKeeper
+	adapters     adapters.SourceAdapters
 }
 
 var _ types.RewardAccumulator = EarnAccumulator{}
@@ -29,11 +31,13 @@ func NewEarnAccumulator(
 	store store.IncentiveStore,
 	liquidKeeper types.LiquidKeeper,
 	earnKeeper types.EarnKeeper,
+	adapters adapters.SourceAdapters,
 ) EarnAccumulator {
 	return EarnAccumulator{
 		store:        store,
 		liquidKeeper: liquidKeeper,
 		earnKeeper:   earnKeeper,
+		adapters:     adapters,
 	}
 }
 
@@ -57,15 +61,8 @@ func (a EarnAccumulator) AccumulateRewards(
 		return a.accumulateEarnBkavaRewards(ctx, rewardPeriod)
 	}
 
-	a.accumulateEarnRewards(
-		ctx,
-		rewardPeriod.CollateralType,
-		rewardPeriod.Start,
-		rewardPeriod.End,
-		sdk.NewDecCoinsFromCoins(rewardPeriod.RewardsPerSecond...),
-	)
-
-	return nil
+	// Non bkava vaults use the basic accumulator.
+	return NewBasicAccumulator(a.store, a.adapters).AccumulateRewards(ctx, claimType, rewardPeriod)
 }
 
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
@@ -245,42 +242,6 @@ func (k EarnAccumulator) collectPerSecondRewards(
 
 	// Don't need to move funds as they're assumed to be in the IncentiveMacc module account already.
 	return rewards
-}
-
-func (k EarnAccumulator) accumulateEarnRewards(
-	ctx sdk.Context,
-	collateralType string,
-	periodStart time.Time,
-	periodEnd time.Time,
-	periodRewardsPerSecond sdk.DecCoins,
-) {
-	previousAccrualTime, found := k.store.GetRewardAccrualTime(ctx, types.CLAIM_TYPE_EARN, collateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
-	}
-
-	indexes, found := k.store.GetRewardIndexesOfClaimType(ctx, types.CLAIM_TYPE_EARN, collateralType)
-	if !found {
-		indexes = types.RewardIndexes{}
-	}
-
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
-
-	acc.AccumulateDecCoins(
-		periodStart,
-		periodEnd,
-		periodRewardsPerSecond,
-		totalSourceShares,
-		ctx.BlockTime(),
-	)
-
-	k.store.SetRewardAccrualTime(ctx, types.CLAIM_TYPE_EARN, collateralType, acc.PreviousAccumulationTime)
-	if len(acc.Indexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.store.SetRewardIndexes(ctx, types.CLAIM_TYPE_EARN, collateralType, acc.Indexes)
-	}
 }
 
 // getEarnTotalSourceShares fetches the sum of all source shares for a earn reward.
