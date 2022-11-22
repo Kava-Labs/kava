@@ -10,6 +10,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 	"github.com/kava-labs/kava/x/kavamint"
 	"github.com/kava-labs/kava/x/kavamint/keeper"
 	"github.com/kava-labs/kava/x/kavamint/testutil"
@@ -38,60 +39,144 @@ func (suite *abciTestSuite) CheckKavamintBalance(ctx sdk.Context, expectedAmount
 	suite.CheckModuleBalance(ctx, types.ModuleName, expectedAmount)
 }
 
+func (suite *abciTestSuite) CheckCommunityPoolBalance(ctx sdk.Context, expectedAmount sdk.Int) {
+	suite.CheckModuleBalance(ctx, communitytypes.ModuleAccountName, expectedAmount)
+}
+
 func TestGRPCQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(abciTestSuite))
 }
 
-func (suite *abciTestSuite) TestBeginBlockerMintsStakingRewards() {
-	ctx, kavamintKeeper := suite.Ctx, suite.KavamintTestSuite.Keeper
+func (suite *abciTestSuite) TestBeginBlockerMintsExpectedTokens() {
+	testCases := []struct {
+		name                    string
+		blockTime               uint64
+		communityPoolInflation  sdk.Dec
+		stakingRewardsApy       sdk.Dec
+		bondedRatio             sdk.Dec
+		setup                   func()
+		expCommunityPoolBalance sdk.Int
+		expFeeCollectorBalance  sdk.Int
+	}{
+		{
+			name:                   "sanity check: a year of seconds mints total yearly inflation",
+			blockTime:              keeper.SecondsPerYear,
+			communityPoolInflation: sdk.NewDecWithPrec(20, 2),
+			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
+			bondedRatio:            sdk.NewDecWithPrec(50, 2),
+			// 20% inflation on 1e10 tokens -> 2e9 minted
+			expCommunityPoolBalance: sdk.NewInt(2e9),
+			// 20% APY, 50% bonded (5e9) -> 1e9 minted
+			expFeeCollectorBalance: sdk.NewInt(1e9),
+		},
+		{
+			name:                    "mints staking rewards, handles 0 community pool inflation",
+			blockTime:               6,
+			communityPoolInflation:  sdk.ZeroDec(),
+			stakingRewardsApy:       sdk.NewDecWithPrec(20, 2),
+			bondedRatio:             sdk.NewDecWithPrec(40, 2),
+			expCommunityPoolBalance: sdk.ZeroInt(),
+			// 20% APY for 6 seconds
+			// bond ratio is 40%, so total supply * ratio = 1e10 * .4
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10*.4
+			// => 138.75 => truncated to 138 tokens.
+			expFeeCollectorBalance: sdk.NewInt(138),
+		},
+		{
+			name:                   "mints community pool inflation, handles 0 staking rewards",
+			blockTime:              6,
+			communityPoolInflation: sdk.NewDecWithPrec(80, 2),
+			stakingRewardsApy:      sdk.ZeroDec(),
+			bondedRatio:            sdk.NewDecWithPrec(40, 2),
+			// 80% APY for 6 seconds
+			// total supply = 1e10
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.80%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10
+			// => 1118.32 => truncated to 1118 tokens.
+			expCommunityPoolBalance: sdk.NewInt(1118),
+			expFeeCollectorBalance:  sdk.ZeroInt(),
+		},
+		{
+			name:                    "mints no tokens if all inflation is zero",
+			blockTime:               6,
+			communityPoolInflation:  sdk.ZeroDec(),
+			stakingRewardsApy:       sdk.ZeroDec(),
+			bondedRatio:             sdk.NewDecWithPrec(40, 2),
+			expCommunityPoolBalance: sdk.ZeroInt(),
+			expFeeCollectorBalance:  sdk.ZeroInt(),
+		},
+		{
+			name:                   "mints community pool inflation and staking rewards",
+			blockTime:              6,
+			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
+			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
+			bondedRatio:            sdk.NewDecWithPrec(35, 2),
+			// 50% APY for 6 seconds
+			// total supply = 1e10
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.5%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10
+			// => 771.43 => truncated to 771 tokens.
+			expCommunityPoolBalance: sdk.NewInt(771),
+			// 20% APY for 6 seconds
+			// total bonded = 1e10 * 35%
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10*.35
+			// => 121.41 => truncated to 121 tokens.
+			expFeeCollectorBalance: sdk.NewInt(121),
+		},
+		{
+			name:                   "handles extra long block time",
+			blockTime:              60, // like if we're upgrading the network & it takes an hour to get back up
+			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
+			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
+			bondedRatio:            sdk.NewDecWithPrec(35, 2),
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.5%2C31536000%5D%5C%2841%29%2C60%5D-1%5C%2841%29*1e10
+			expCommunityPoolBalance: sdk.NewInt(7714),
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C60%5D-1%5C%2841%29*1e10*.35
+			expFeeCollectorBalance: sdk.NewInt(1214),
+		},
+	}
 
-	bondDenom := kavamintKeeper.BondDenom(ctx)
-	bondedRatio := sdk.OneDec()
-	blockTime := uint64(6) // 6 seconds
-	stakingApy := sdk.NewDecWithPrec(20, 2)
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
 
-	kavamintKeeper.SetParams(ctx, types.NewParams(sdk.ZeroDec(), stakingApy))
-	kavamintKeeper.SetPreviousBlockTime(ctx, ctx.BlockTime())
+			// set store and params
+			suite.Keeper.SetPreviousBlockTime(suite.Ctx, suite.Ctx.BlockTime())
+			suite.Keeper.SetParams(
+				suite.Ctx,
+				types.NewParams(tc.communityPoolInflation, tc.stakingRewardsApy),
+			)
 
-	// determine factor based on 20% APY, compounded per second, for 6 seconds
-	rate, err := keeper.CalculateInflationRate(stakingApy, blockTime)
-	suite.Require().NoError(err)
+			// set bonded token ratio
+			suite.SetBondedTokenRatio(tc.bondedRatio)
+			staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-	// set bonded token ratio
-	totalSupply := suite.SetBondedTokenRatio(bondedRatio)
-	staking.EndBlocker(ctx, suite.StakingKeeper)
+			// run begin blocker
+			kavamint.BeginBlocker(suite.Ctx, suite.Keeper)
 
-	kavamint.BeginBlocker(ctx, kavamintKeeper)
+			// expect everything empty to start
+			suite.CheckFeeCollectorBalance(suite.Ctx, sdk.ZeroInt())
+			suite.CheckKavamintBalance(suite.Ctx, sdk.ZeroInt())
+			suite.CheckCommunityPoolBalance(suite.Ctx, sdk.ZeroInt())
 
-	// expect nothing added to fee pool.
-	suite.CheckFeeCollectorBalance(ctx, sdk.ZeroInt())
-	// expect nothing in kavamint module
-	suite.CheckKavamintBalance(ctx, sdk.ZeroInt())
+			// expect initial block time set
+			startBlockTime, startTimeFound := suite.Keeper.GetPreviousBlockTime(suite.Ctx)
+			suite.Require().True(startTimeFound)
+			suite.Require().Equal(suite.Ctx.BlockTime(), startBlockTime)
 
-	// expect block time set
-	startBlockTime, startTimeFound := kavamintKeeper.GetPreviousBlockTime(ctx)
-	suite.Require().True(startTimeFound)
-	suite.Require().Equal(ctx.BlockTime(), startBlockTime)
+			// run begin blocker again to mint inflation
+			ctx2 := suite.Ctx.WithBlockTime(suite.Ctx.BlockTime().Add(time.Second * time.Duration(tc.blockTime)))
+			kavamint.BeginBlocker(ctx2, suite.Keeper)
 
-	// begin blocker again
-	ctx2 := ctx.WithBlockTime(ctx.BlockTime().Add(time.Second * time.Duration(blockTime)))
-	kavamint.BeginBlocker(ctx2, kavamintKeeper)
+			// check expected balances
+			suite.CheckCommunityPoolBalance(ctx2, tc.expCommunityPoolBalance)
+			suite.CheckFeeCollectorBalance(ctx2, tc.expFeeCollectorBalance)
 
-	// expect amount added to fee pool.
-	expectedAmount := rate.MulInt(totalSupply.AmountOf(bondDenom)).TruncateInt()
-	suite.CheckFeeCollectorBalance(ctx2, expectedAmount)
-	// now, ensure that amount is what we expect
-	// 20% APY for 6 seconds
-	// bond ratio is 100%, so total supply = bonded supply = 1e10
-	// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C6%5D-1%5C%2841%29*1e10
-	// => 346.88 => truncated to 346 tokens.
-	suite.CheckFeeCollectorBalance(ctx2, sdk.NewInt(346))
+			// x/kavamint balance should always be 0 because 100% should be transferred out every block
+			suite.CheckKavamintBalance(ctx2, sdk.ZeroInt())
 
-	// kavamint balance should still be 0 because 100% was transferred out
-	suite.CheckKavamintBalance(ctx2, sdk.ZeroInt())
-
-	// expect time to be updated
-	endBlockTime, endTimeFound := kavamintKeeper.GetPreviousBlockTime(ctx)
-	suite.Require().True(endTimeFound)
-	suite.Require().Equal(ctx2.BlockTime(), endBlockTime)
+			// expect time to be updated
+			endBlockTime, endTimeFound := suite.Keeper.GetPreviousBlockTime(ctx2)
+			suite.Require().True(endTimeFound)
+			suite.Require().Equal(ctx2.BlockTime(), endBlockTime)
+		})
+	}
 }

@@ -37,7 +37,9 @@ func (s msgServer) FundCommunityPool(goCtx context.Context, msg *types.MsgFundCo
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeyAction, types.AttributeValueFundCommunityPool),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.Depositor),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.String()),
 		),
 	)
 
