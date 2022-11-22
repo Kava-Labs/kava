@@ -4,7 +4,9 @@ package types
 const (
 	EventTypeMint = ModuleName
 
-	AttributeKeyBondedRatio      = "bonded_ratio"
-	AttributeKeyInflation        = "inflation"
-	AttributeKeyAnnualProvisions = "annual_provisions"
+	AttributeKeyTotalSupply       = "total_supply"
+	AttributeKeyTotalBonded       = "total_bonded"
+	AttributeSecondsPassed        = "seconds_since_last_mint"
+	AttributeKeyCommunityPoolMint = "minted_community_pool_inflation"
+	AttributeKeyStakingRewardMint = "minted_staking_rewards"
 )

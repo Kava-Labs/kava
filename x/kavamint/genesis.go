@@ -12,10 +12,10 @@ import (
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, ak types.AccountKeeper, data *types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
 
-	// only set the previous block time if it's different than default
-	if !data.PreviousBlockTime.Equal(types.DefaultPreviousBlockTime) {
-		keeper.SetPreviousBlockTime(ctx, data.PreviousBlockTime)
+	if data.PreviousBlockTime.IsZero() {
+		panic(fmt.Sprintf("No previous_block_time set in genesis state of %s module", types.ModuleName))
 	}
+	keeper.SetPreviousBlockTime(ctx, data.PreviousBlockTime)
 
 	if macc := ak.GetModuleAccount(ctx, types.ModuleName); macc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))

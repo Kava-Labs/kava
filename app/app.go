@@ -644,7 +644,7 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 		authtypes.FeeCollectorName, // same fee collector as vanilla sdk
-		// TODO: pass community module account name
+		communitytypes.ModuleAccountName,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(

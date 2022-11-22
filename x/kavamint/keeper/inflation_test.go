@@ -99,7 +99,7 @@ func (suite *InflationTestSuite) TestCalculateInflationFactor() {
 			preciseToDecimal: 16,
 		},
 		{
-			name:             "example: 10,000 percent for 10 seconds, precise to 15 decimals",
+			name:             "example: 10,000 percent for 10 seconds, precise to 13 decimals",
 			apy:              sdk.NewDecWithPrec(10000, 2),
 			secondsPassed:    10,
 			expectedRate:     sdk.MustNewDecFromStr("0.000001463446186527"),

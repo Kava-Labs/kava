@@ -20,7 +20,7 @@ type KavamintTestSuite struct {
 	Keeper        keeper.Keeper
 	StakingKeeper stakingkeeper.Keeper
 
-	bondDenom string
+	BondDenom string
 }
 
 func (suite *KavamintTestSuite) SetupTest() {
@@ -31,7 +31,7 @@ func (suite *KavamintTestSuite) SetupTest() {
 	suite.Keeper = suite.App.GetKavamintKeeper()
 	suite.StakingKeeper = suite.App.GetStakingKeeper()
 
-	suite.bondDenom = suite.Keeper.BondDenom(suite.Ctx)
+	suite.BondDenom = suite.Keeper.BondDenom(suite.Ctx)
 }
 
 // SetBondedTokenRatio mints the total supply to an account and creates a validator with a self
@@ -42,7 +42,7 @@ func (suite *KavamintTestSuite) SetBondedTokenRatio(ratio sdk.Dec) sdk.Coins {
 	address := app.RandomAddress()
 
 	supplyAmount := sdk.NewInt(1e10)
-	totalSupply := sdk.NewCoins(sdk.NewCoin(suite.bondDenom, supplyAmount))
+	totalSupply := sdk.NewCoins(sdk.NewCoin(suite.BondDenom, supplyAmount))
 	amountToBond := ratio.MulInt(supplyAmount).TruncateInt()
 
 	// fund account that will create validator with total supply
