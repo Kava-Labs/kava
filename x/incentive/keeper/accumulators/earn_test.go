@@ -24,9 +24,10 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestEarnAccumulator_OnlyEarn
 
 		if claimType == types.CLAIM_TYPE_EARN {
 			suite.NotPanics(func() {
-				accumulators.
+				err := accumulators.
 					NewEarnAccumulator(suite.keeper.Store, suite.App.GetLiquidKeeper(), &earnKeeper, suite.keeper.Adapters).
 					AccumulateRewards(suite.Ctx, claimType, period)
+				suite.NoError(err)
 			})
 
 			continue
@@ -39,9 +40,10 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestEarnAccumulator_OnlyEarn
 				claimType,
 			),
 			func() {
-				accumulators.
+				err := accumulators.
 					NewEarnAccumulator(suite.keeper.Store, suite.App.GetLiquidKeeper(), &earnKeeper, suite.keeper.Adapters).
 					AccumulateRewards(suite.Ctx, claimType, period)
+				suite.NoError(err)
 			},
 		)
 	}

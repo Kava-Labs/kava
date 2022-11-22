@@ -442,7 +442,8 @@ func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys
 	initCoins := sdk.NewCoins(sdk.NewCoin(suite.App.GetStakingKeeper().BondDenom(ctx), accAmt))
 
 	for _, pk := range pubKeys {
-		suite.App.FundAccount(ctx, sdk.AccAddress(pk.Address()), initCoins)
+		err := suite.App.FundAccount(ctx, sdk.AccAddress(pk.Address()), initCoins)
+		suite.Require().NoError(err)
 	}
 }
 

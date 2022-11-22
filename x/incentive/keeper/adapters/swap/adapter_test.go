@@ -92,7 +92,7 @@ func (suite *SwapAdapterTestSuite) TestSwapAdapter_OwnerSharesBySource() {
 		sdk.ZeroDec(),
 	))
 
-	suite.app.FundAccount(
+	err := suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
@@ -100,7 +100,9 @@ func (suite *SwapAdapterTestSuite) TestSwapAdapter_OwnerSharesBySource() {
 			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
 		),
 	)
-	suite.app.FundAccount(
+	suite.NoError(err)
+
+	err = suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
@@ -108,8 +110,9 @@ func (suite *SwapAdapterTestSuite) TestSwapAdapter_OwnerSharesBySource() {
 			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
 		),
 	)
+	suite.NoError(err)
 
-	err := swapKeeper.Deposit(
+	err = swapKeeper.Deposit(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoin(poolDenomA, sdk.NewInt(100)),
@@ -219,22 +222,22 @@ func (suite *SwapAdapterTestSuite) TestSwapAdapter_TotalSharesBySource() {
 		sdk.ZeroDec(),
 	))
 
-	suite.app.FundAccount(
+	suite.NoError(suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
 			sdk.NewCoin(poolDenomA, sdk.NewInt(1000000000000)),
 			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
 		),
-	)
-	suite.app.FundAccount(
+	))
+	suite.NoError(suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
 			sdk.NewCoin(poolDenomA, sdk.NewInt(1000000000000)),
 			sdk.NewCoin(poolDenomB, sdk.NewInt(1000000000000)),
 		),
-	)
+	))
 
 	err := swapKeeper.Deposit(
 		suite.ctx,

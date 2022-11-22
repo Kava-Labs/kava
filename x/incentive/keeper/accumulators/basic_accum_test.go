@@ -143,7 +143,8 @@ func (suite *BasicAccumulatorTestSuite) TestStateUpdatedWhenBlockTimeHasIncrease
 		cs(c("swap", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	err = suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	suite.Require().NoError(err)
 
 	// check time and factors
 
@@ -199,7 +200,8 @@ func (suite *BasicAccumulatorTestSuite) TestStateUnchangedWhenBlockTimeHasNotInc
 		cs(c("swap", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	err = suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	suite.Require().NoError(err)
 
 	// check time and factors
 
@@ -244,7 +246,8 @@ func (suite *BasicAccumulatorTestSuite) TestNoAccumulationWhenSourceSharesAreZer
 		cs(c("swap", 2000), c("ukava", 1000)), // same denoms as in global indexes
 	)
 
-	suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	err := suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	suite.Require().NoError(err)
 
 	// check time and factors
 
@@ -271,7 +274,8 @@ func (suite *BasicAccumulatorTestSuite) TestStateAddedWhenStateDoesNotExist() {
 	firstAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.Ctx = suite.Ctx.WithBlockTime(firstAccrualTime)
 
-	suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	err = suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	suite.Require().NoError(err)
 
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
@@ -281,7 +285,8 @@ func (suite *BasicAccumulatorTestSuite) TestStateAddedWhenStateDoesNotExist() {
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
 	suite.Ctx = suite.Ctx.WithBlockTime(secondAccrualTime)
 
-	suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	err = suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	suite.Require().NoError(err)
 
 	// After the second accumulation both current block time and indexes should be stored.
 	suite.StoredTimeEquals(types.CLAIM_TYPE_SWAP, pool, secondAccrualTime)
@@ -315,7 +320,8 @@ func (suite *BasicAccumulatorTestSuite) TestNoPanicWhenStateDoesNotExist() {
 	// No increment and no previous indexes stored, results in an updated of nil. Setting this in the state panics.
 	// Check there is no panic.
 	suite.NotPanics(func() {
-		suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+		err := suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+		suite.Require().NoError(err)
 	})
 
 	suite.StoredTimeEquals(types.CLAIM_TYPE_SWAP, pool, accrualTime)
@@ -361,7 +367,8 @@ func (suite *BasicAccumulatorTestSuite) TestNoAccumulationWhenBeforeStartTime() 
 
 	suite.Ctx = suite.Ctx.WithBlockTime(firstAccrualTime)
 
-	suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	err = suite.keeper.AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_SWAP, period)
+	suite.Require().NoError(err)
 
 	// The accrual time should be updated, but the indexes unchanged
 	suite.StoredTimeEquals(types.CLAIM_TYPE_SWAP, pool, firstAccrualTime)
