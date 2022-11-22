@@ -520,12 +520,12 @@ func (suite *IntegrationTester) AddIncentiveMultiRewardPeriod(
 
 	for i, rewardPeriod := range params.RewardPeriods {
 		if claimType == rewardPeriod.ClaimType {
-			for _, reward := range rewardPeriod.RewardPeriods {
+			for j, reward := range rewardPeriod.RewardPeriods {
 				if reward.CollateralType == period.CollateralType {
 					// Replace existing reward period if the collateralType exists.
 					// Params are invalid if there are multiple reward periods for the
 					// same collateral type.
-					params.EarnRewardPeriods[i] = period
+					params.RewardPeriods[i].RewardPeriods[j] = period
 					ik.SetParams(suite.Ctx, params)
 					return
 				}
