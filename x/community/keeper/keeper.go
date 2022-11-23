@@ -43,3 +43,8 @@ func (k Keeper) GetModuleAccountBalance(ctx sdk.Context) sdk.Coins {
 func (k Keeper) FundCommunityPool(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error {
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleAccountName, amount)
 }
+
+// DistributeFromCommunityPool transfers coins from the community pool to recipient.
+func (k Keeper) DistributeFromCommunityPool(ctx sdk.Context, recipient sdk.AccAddress, amount sdk.Coins) error {
+	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, recipient, amount)
+}
