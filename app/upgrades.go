@@ -1,13 +1,9 @@
 package app
 
 import (
-	"fmt"
-
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -30,12 +26,6 @@ var (
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			app.Logger().Info("initializing x/community module account (the new community pool)")
-			InitializeModuleAccount(ctx, communitytypes.ModuleAccountName, app.accountKeeper, app.bankKeeper, app.distrKeeper)
-
-			app.Logger().Info("initializing x/kavamint module account")
-			InitializeModuleAccount(ctx, kavaminttypes.ModuleAccountName, app.accountKeeper, app.bankKeeper, app.distrKeeper)
-
 			app.Logger().Info("transferring original community pool funds to new community pool")
 			MoveCommunityPoolFunds(ctx, app.distrKeeper, app.bankKeeper)
 
@@ -75,47 +65,6 @@ func (app App) RegisterUpgradeHandlers() {
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
 	}
-}
-
-// InitializeModuleAccount initializes a new module account with the given moduleAccountName.
-// If a non-module account already exists with the corresponding address, its funds are transferred
-// to the CommunityPool auth fee pool.
-func InitializeModuleAccount(
-	ctx sdk.Context,
-	moduleAccountName string,
-	accountKeeper authkeeper.AccountKeeper,
-	bankKeeper bankkeeper.Keeper,
-	distKeeper distrkeeper.Keeper,
-) {
-	maccAddr, perms := accountKeeper.GetModuleAddressAndPermissions(moduleAccountName)
-	if maccAddr == nil {
-		panic(fmt.Sprintf("%s module account not configured in app", moduleAccountName))
-	}
-
-	accountI := accountKeeper.GetAccount(ctx, maccAddr)
-	// if account already exists and is a module account, return
-	_, ok := accountI.(authtypes.ModuleAccountI)
-	if ok {
-		return
-	}
-
-	// if account exists and is not a module account, transfer funds to original community pool
-	// the funds will get redistributed back to the account once MoveCommunityPoolFunds runs
-	if accountI != nil {
-		// transfer balance if it exists
-		coins := bankKeeper.GetAllBalances(ctx, maccAddr)
-		if !coins.IsZero() {
-			err := distKeeper.FundCommunityPool(ctx, coins, maccAddr)
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
-
-	// instantiate new module account
-	modAcc := authtypes.NewEmptyModuleAccount(moduleAccountName, perms...)
-	modAccI := (accountKeeper.NewAccount(ctx, modAcc)).(authtypes.ModuleAccountI) // set and increment the account number
-	accountKeeper.SetModuleAccount(ctx, modAccI)
 }
 
 // MoveCommunityPoolFunds takes the full balance of the original community pool (the auth fee pool)
