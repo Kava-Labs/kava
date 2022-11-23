@@ -175,9 +175,9 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava.exe ./cmd/kava
+	go build -mod=readonly $(BUILD_FLAGS) -o out/$(shell go env GOOS)/kava.exe ./cmd/kava
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava ./cmd/kava
+	go build -mod=readonly $(BUILD_FLAGS) -o out/$(shell go env GOOS)/kava ./cmd/kava
 endif
 
 build-linux: go.sum
