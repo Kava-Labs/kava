@@ -80,6 +80,25 @@ func LegacyAccrualTimeKeyFromClaimType(claimType types.ClaimType) []byte {
 	}
 }
 
+func LegacyRewardIndexesKeyFromClaimType(claimType types.ClaimType) []byte {
+	switch claimType {
+	case types.CLAIM_TYPE_HARD_BORROW:
+		panic("todo")
+	case types.CLAIM_TYPE_HARD_SUPPLY:
+		panic("todo")
+	case types.CLAIM_TYPE_EARN:
+		return EarnRewardIndexesKeyPrefix
+	case types.CLAIM_TYPE_SAVINGS:
+		panic("todo")
+	case types.CLAIM_TYPE_SWAP:
+		panic("todo")
+	case types.CLAIM_TYPE_USDX_MINTING:
+		panic("todo")
+	default:
+		panic(fmt.Sprintf("unrecognized claim type: %s", claimType))
+	}
+}
+
 // MigrateAccrualTimes migrates accrual times from v1 to v2
 func MigrateAccrualTimes(
 	store sdk.KVStore,
@@ -112,6 +131,38 @@ func MigrateAccrualTimes(
 
 		// Set in the **newStore** for the new store prefix
 		bz := cdc.MustMarshal(&at)
+		newStore.Set(types.GetKeyFromSourceID(sourceID), bz)
+	}
+
+	return nil
+}
+
+// MigrateRewardIndexes migrates reward indexes from v1 to v2
+func MigrateRewardIndexes(
+	store sdk.KVStore,
+	cdc codec.BinaryCodec,
+	claimType types.ClaimType,
+) error {
+	newStore := prefix.NewStore(store, types.GetRewardIndexesKeyPrefix(claimType))
+
+	legacyPrefix := LegacyRewardIndexesKeyFromClaimType(claimType)
+	oldStore := prefix.NewStore(store, legacyPrefix)
+	iterator := sdk.KVStorePrefixIterator(oldStore, []byte{})
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var proto types.RewardIndexesProto
+		cdc.MustUnmarshal(iterator.Value(), &proto)
+
+		sourceID := string(iterator.Key())
+
+		rewardIndex := types.NewTypedRewardIndexes(
+			claimType,
+			sourceID,
+			proto.RewardIndexes,
+		)
+
+		bz := cdc.MustMarshal(&rewardIndex)
 		newStore.Set(types.GetKeyFromSourceID(sourceID), bz)
 	}
 

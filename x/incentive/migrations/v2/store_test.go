@@ -85,3 +85,21 @@ func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
 	suite.Require().True(found)
 	suite.Require().Equal(accrualTime1, accrualTime)
 }
+
+func (suite *StoreMigrateTestSuite) TestMigrateRewardIndexes() {
+	store := suite.Ctx.KVStore(suite.storeKey)
+	vaultDenom := "ukava"
+
+	rewardIndexes := types.RewardIndexes{
+		types.NewRewardIndex("ukava", sdk.NewDec(1)),
+		types.NewRewardIndex("hard", sdk.NewDec(2)),
+	}
+	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom, rewardIndexes)
+
+	err := v2.MigrateRewardIndexes(store, suite.cdc, types.CLAIM_TYPE_EARN)
+	suite.Require().NoError(err)
+
+	rewardIndexesMigrated, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom)
+	suite.Require().True(found)
+	suite.Require().Equal(rewardIndexes, rewardIndexesMigrated)
+}
