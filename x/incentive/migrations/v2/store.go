@@ -1,11 +1,13 @@
 package v2
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v1types "github.com/kava-labs/kava/x/incentive/migrations/v2/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -14,24 +16,30 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 	store := ctx.KVStore(storeKey)
 
 	// Migrate earn claims
-	if err := migrateEarnClaims(store, cdc); err != nil {
+	if err := MigrateEarnClaims(store, cdc); err != nil {
+		return err
+	}
+
+	// Migrate accrual times
+	if err := MigrateAccrualTimes(store, cdc, types.CLAIM_TYPE_EARN); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func migrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
+// MigrateEarnClaims migrates earn claims from v1 to v2
+func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	newStore := prefix.NewStore(store, types.GetClaimKeyPrefix(types.CLAIM_TYPE_EARN))
 
 	iterator := sdk.KVStorePrefixIterator(store, EarnClaimKeyPrefix)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var c v1types.EarnClaim
+		var c types.EarnClaim
 		cdc.MustUnmarshal(iterator.Value(), &c)
 
 		if err := c.Validate(); err != nil {
-			return err
+			return fmt.Errorf("invalid v1 EarnClaim: %w", err)
 		}
 
 		// Convert to the new Claim type
@@ -39,8 +47,12 @@ func migrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 			types.CLAIM_TYPE_EARN,
 			c.Owner,
 			c.Reward,
-			MultiRewardIndexesV1ToV2(c.RewardIndexes),
+			c.RewardIndexes,
 		)
+
+		if err := newClaim.Validate(); err != nil {
+			return fmt.Errorf("invalid v2 EarnClaim: %w", err)
+		}
 
 		// Set in the **newStore** for the new store prefix
 		newStore.Set(c.Owner, cdc.MustMarshal(&newClaim))
@@ -49,20 +61,59 @@ func migrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-func RewardIndexesV1ToV2(v1 v1types.RewardIndexes) types.RewardIndexes {
-	v2 := make(types.RewardIndexes, len(v1))
-	for i, r := range v1 {
-		v2[i] = types.NewRewardIndex(r.CollateralType, r.RewardFactor)
+func LegacyAccrualTimeKeyFromClaimType(claimType types.ClaimType) []byte {
+	switch claimType {
+	case types.CLAIM_TYPE_HARD_BORROW:
+		panic("todo")
+	case types.CLAIM_TYPE_HARD_SUPPLY:
+		panic("todo")
+	case types.CLAIM_TYPE_EARN:
+		return PreviousEarnRewardAccrualTimeKeyPrefix
+	case types.CLAIM_TYPE_SAVINGS:
+		panic("todo")
+	case types.CLAIM_TYPE_SWAP:
+		panic("todo")
+	case types.CLAIM_TYPE_USDX_MINTING:
+		panic("todo")
+	default:
+		panic(fmt.Sprintf("unrecognized claim type: %s", claimType))
 	}
-
-	return v2
 }
 
-func MultiRewardIndexesV1ToV2(v1 v1types.MultiRewardIndexes) types.MultiRewardIndexes {
-	v2 := make(types.MultiRewardIndexes, len(v1))
-	for i, r := range v1 {
-		v2[i] = types.NewMultiRewardIndex(r.CollateralType, RewardIndexesV1ToV2(r.RewardIndexes))
+// MigrateAccrualTimes migrates accrual times from v1 to v2
+func MigrateAccrualTimes(
+	store sdk.KVStore,
+	cdc codec.BinaryCodec,
+	claimType types.ClaimType,
+) error {
+	newStore := prefix.NewStore(store, types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
+
+	// Need prefix.NewStore instead of using it directly in the iterator, as
+	// there would be an extra space in the key
+	legacyPrefix := LegacyAccrualTimeKeyFromClaimType(claimType)
+	oldStore := prefix.NewStore(store, legacyPrefix)
+	iterator := sdk.KVStorePrefixIterator(oldStore, []byte{})
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var blockTime time.Time
+		if err := blockTime.UnmarshalBinary(iterator.Value()); err != nil {
+			panic(err)
+		}
+
+		sourceID := string(iterator.Key())
+		fmt.Printf("iterator key '%b'", iterator.Key())
+
+		fmt.Printf("migrating accrual time for claim type %s, source id %v: %s", claimType, sourceID, blockTime)
+		at := types.NewAccrualTime(claimType, sourceID, blockTime)
+		if err := at.Validate(); err != nil {
+			return fmt.Errorf("invalid v2 accrual time for claim type %s: %w", claimType, err)
+		}
+
+		// Set in the **newStore** for the new store prefix
+		bz := cdc.MustMarshal(&at)
+		newStore.Set(types.GetKeyFromSourceID(sourceID), bz)
 	}
 
-	return v2
+	return nil
 }
