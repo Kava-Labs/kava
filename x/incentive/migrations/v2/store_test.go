@@ -66,6 +66,10 @@ func (suite *StoreMigrateTestSuite) TestMigrateEarnClaims() {
 	claim, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_EARN, claim1.Owner)
 	suite.Require().True(found)
 	suite.Require().Equal(claim1.Owner, claim.Owner)
+
+	// Ensure removed from old store
+	_, found = suite.keeper.GetEarnClaim(suite.Ctx, claim1.Owner)
+	suite.Require().False(found)
 }
 
 func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
@@ -84,6 +88,10 @@ func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
 	accrualTime, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom)
 	suite.Require().True(found)
 	suite.Require().Equal(accrualTime1, accrualTime)
+
+	// Ensure removed from old store
+	_, found = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, vaultDenom)
+	suite.Require().False(found)
 }
 
 func (suite *StoreMigrateTestSuite) TestMigrateRewardIndexes() {
@@ -102,4 +110,8 @@ func (suite *StoreMigrateTestSuite) TestMigrateRewardIndexes() {
 	rewardIndexesMigrated, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom)
 	suite.Require().True(found)
 	suite.Require().Equal(rewardIndexes, rewardIndexesMigrated)
+
+	// Ensure removed from old store
+	_, found = suite.keeper.GetEarnRewardIndexes(suite.Ctx, vaultDenom)
+	suite.Require().False(found)
 }

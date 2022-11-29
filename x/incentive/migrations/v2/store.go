@@ -32,7 +32,8 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	newStore := prefix.NewStore(store, types.GetClaimKeyPrefix(types.CLAIM_TYPE_EARN))
 
-	iterator := sdk.KVStorePrefixIterator(store, EarnClaimKeyPrefix)
+	oldStore := prefix.NewStore(store, EarnClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(oldStore, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var c types.EarnClaim
@@ -56,6 +57,9 @@ func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 
 		// Set in the **newStore** for the new store prefix
 		newStore.Set(c.Owner, cdc.MustMarshal(&newClaim))
+
+		// Remove the old claim in the old store
+		oldStore.Delete(iterator.Key())
 	}
 
 	return nil
@@ -132,6 +136,9 @@ func MigrateAccrualTimes(
 		// Set in the **newStore** for the new store prefix
 		bz := cdc.MustMarshal(&at)
 		newStore.Set(types.GetKeyFromSourceID(sourceID), bz)
+
+		// Remove the old accrual time in the old store
+		oldStore.Delete(iterator.Key())
 	}
 
 	return nil
@@ -164,6 +171,9 @@ func MigrateRewardIndexes(
 
 		bz := cdc.MustMarshal(&rewardIndex)
 		newStore.Set(types.GetKeyFromSourceID(sourceID), bz)
+
+		// Remove the old reward indexes in the old store
+		oldStore.Delete(iterator.Key())
 	}
 
 	return nil
