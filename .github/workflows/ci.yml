@@ -1,0 +1,78 @@
+name: Continuous Integration
+on:
+  pull_request:
+    # run CI on pull requests to master or a release branch
+    branches:
+      - master
+      - 'releases/**'
+  push:
+    # run CI on any push to the master branch
+    branches:
+      - master
+# concurrently lint, build, and run tests against kava based off current commit
+jobs:
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+          check-latest: true
+          cache: true
+      - name: build application
+        run: make build
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+          check-latest: true
+          cache: true
+      - name: run unit tests
+        run: make test
+  # only run on merges to master
+  publish:
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'master'
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+          check-latest: true
+          cache: true
+      - name: build application
+        run: make build
+      - name: run unit tests
+        run: make test
+      - name: set build tag
+        run: echo "BUILD_TAG=$(date +%s)-$(git rev-parse HEAD | cut -c 1-8)" >> $GITHUB_ENV
+      - name: build rocksdb dependency
+        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
+        env:
+          ROCKSDB_VERSION: v7.7.3
+      - name: Build and upload release artifacts
+        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/publish-internal-release-artifacts.sh
+        env:
+          BUILD_TAG: ${{ env.BUILD_TAG }}
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
