@@ -56,62 +56,104 @@ func (suite *StoreMigrateTestSuite) TestMigrateEarnClaims() {
 			}),
 		},
 	)
+
+	claim2 := types.NewEarnClaim(
+		suite.Addrs[1],
+		sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+		types.MultiRewardIndexes{
+			types.NewMultiRewardIndex("ukava", types.RewardIndexes{
+				types.NewRewardIndex("ukava", sdk.NewDec(1)),
+			}),
+		},
+	)
+
 	suite.keeper.SetEarnClaim(suite.Ctx, claim1)
+	suite.keeper.SetEarnClaim(suite.Ctx, claim2)
 
 	// Run earn claim migrations
 	err := v2.MigrateEarnClaims(store, suite.cdc)
 	suite.Require().NoError(err)
 
 	// Check that the claim was migrated correctly
-	claim, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_EARN, claim1.Owner)
+	newClaim1, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_EARN, claim1.Owner)
 	suite.Require().True(found)
-	suite.Require().Equal(claim1.Owner, claim.Owner)
+	suite.Require().Equal(claim1.Owner, newClaim1.Owner)
+
+	newClaim2, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_EARN, claim2.Owner)
+	suite.Require().True(found)
+	suite.Require().Equal(claim2.Owner, newClaim2.Owner)
 
 	// Ensure removed from old store
 	_, found = suite.keeper.GetEarnClaim(suite.Ctx, claim1.Owner)
+	suite.Require().False(found)
+
+	_, found = suite.keeper.GetEarnClaim(suite.Ctx, claim2.Owner)
 	suite.Require().False(found)
 }
 
 func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
 	store := suite.Ctx.KVStore(suite.storeKey)
-	vaultDenom := "ukava"
+	vaultDenom1 := "ukava"
+	vaultDenom2 := "usdc"
 
 	// Create v1 accrual times
-	accrualTime1 := time.Now().UTC()
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom, accrualTime1)
+	accrualTime1 := time.Now()
+	accrualTime2 := time.Now().Add(time.Hour * 24)
+	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom1, accrualTime1)
+	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom2, accrualTime2)
 
 	// Run accrual time migrations
 	err := v2.MigrateAccrualTimes(store, suite.cdc, types.CLAIM_TYPE_EARN)
 	suite.Require().NoError(err)
 
 	// Check that the accrual time was migrated correctly
-	accrualTime, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom)
+	newAccrualTime1, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom1)
 	suite.Require().True(found)
-	suite.Require().Equal(accrualTime1, accrualTime)
+	suite.Require().Equal(accrualTime1.Unix(), newAccrualTime1.Unix())
+
+	newAccrualTime2, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom2)
+	suite.Require().True(found)
+	suite.Require().Equal(accrualTime2.Unix(), newAccrualTime2.Unix())
 
 	// Ensure removed from old store
-	_, found = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, vaultDenom)
+	_, found = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, vaultDenom1)
+	suite.Require().False(found)
+	_, found = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, vaultDenom2)
 	suite.Require().False(found)
 }
 
 func (suite *StoreMigrateTestSuite) TestMigrateRewardIndexes() {
 	store := suite.Ctx.KVStore(suite.storeKey)
-	vaultDenom := "ukava"
+	vaultDenom1 := "ukava"
+	vaultDenom2 := "usdc"
 
-	rewardIndexes := types.RewardIndexes{
+	rewardIndexes1 := types.RewardIndexes{
 		types.NewRewardIndex("ukava", sdk.NewDec(1)),
 		types.NewRewardIndex("hard", sdk.NewDec(2)),
 	}
-	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom, rewardIndexes)
+	rewardIndexes2 := types.RewardIndexes{
+		types.NewRewardIndex("ukava", sdk.NewDec(4)),
+		types.NewRewardIndex("swp", sdk.NewDec(10)),
+	}
+
+	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom1, rewardIndexes1)
+	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom2, rewardIndexes2)
 
 	err := v2.MigrateRewardIndexes(store, suite.cdc, types.CLAIM_TYPE_EARN)
 	suite.Require().NoError(err)
 
-	rewardIndexesMigrated, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom)
+	newRewardIndexes1, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom1)
 	suite.Require().True(found)
-	suite.Require().Equal(rewardIndexes, rewardIndexesMigrated)
+	suite.Require().Equal(rewardIndexes1, newRewardIndexes1)
+
+	newRewardIndexes2, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom2)
+	suite.Require().True(found)
+	suite.Require().Equal(rewardIndexes2, newRewardIndexes2)
 
 	// Ensure removed from old store
-	_, found = suite.keeper.GetEarnRewardIndexes(suite.Ctx, vaultDenom)
+	_, found = suite.keeper.GetEarnRewardIndexes(suite.Ctx, vaultDenom1)
+	suite.Require().False(found)
+
+	_, found = suite.keeper.GetEarnRewardIndexes(suite.Ctx, vaultDenom2)
 	suite.Require().False(found)
 }
