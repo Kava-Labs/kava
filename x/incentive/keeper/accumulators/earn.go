@@ -189,7 +189,7 @@ func (k EarnAccumulator) accumulateBkavaEarnRewards(
 		indexes = types.RewardIndexes{}
 	}
 
-	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
+	totalSourceShares := k.adapters.TotalSharesBySource(ctx, types.CLAIM_TYPE_EARN, collateralType)
 	var increment types.RewardIndexes
 	if totalSourceShares.GT(sdk.ZeroDec()) {
 		// Divide total rewards by total shares to get the reward **per share**
@@ -242,14 +242,4 @@ func (k EarnAccumulator) collectPerSecondRewards(
 
 	// Don't need to move funds as they're assumed to be in the IncentiveMacc module account already.
 	return rewards
-}
-
-// getEarnTotalSourceShares fetches the sum of all source shares for a earn reward.
-// In the case of earn, these are the total (earn module) shares in a particular vault.
-func (k EarnAccumulator) getEarnTotalSourceShares(ctx sdk.Context, vaultDenom string) sdk.Dec {
-	totalShares, found := k.earnKeeper.GetVaultTotalShares(ctx, vaultDenom)
-	if !found {
-		return sdk.ZeroDec()
-	}
-	return totalShares.Amount
 }
