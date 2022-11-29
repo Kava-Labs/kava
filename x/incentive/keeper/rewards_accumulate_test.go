@@ -21,7 +21,7 @@ func (suite *AccumulateTestSuite) storedTimeEquals(
 	poolID string,
 	expected time.Time,
 ) {
-	storedTime, found := suite.keeper.GetRewardAccrualTime(suite.ctx, claimType, poolID)
+	storedTime, found := suite.keeper.Store.GetRewardAccrualTime(suite.ctx, claimType, poolID)
 	suite.True(found)
 	suite.Equal(expected, storedTime)
 }
@@ -31,7 +31,7 @@ func (suite *AccumulateTestSuite) storedIndexesEquals(
 	poolID string,
 	expected types.RewardIndexes,
 ) {
-	storedIndexes, found := suite.keeper.GetRewardIndexesOfClaimType(suite.ctx, claimType, poolID)
+	storedIndexes, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.ctx, claimType, poolID)
 	suite.Equal(found, expected != nil)
 	if found {
 		suite.Equal(expected, storedIndexes)
@@ -63,7 +63,7 @@ func (suite *AccumulateTestSuite) TestStateUpdatedWhenBlockTimeHasIncreased() {
 		},
 	})
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
+	suite.keeper.Store.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
 
 	newAccrualTime := previousAccrualTime.Add(1 * time.Hour)
 	suite.ctx = suite.ctx.WithBlockTime(newAccrualTime)
@@ -117,7 +117,7 @@ func (suite *AccumulateTestSuite) TestStateUnchangedWhenBlockTimeHasNotIncreased
 	}
 	suite.storeGlobalIndexes(claimType, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
+	suite.keeper.Store.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
 
 	suite.ctx = suite.ctx.WithBlockTime(previousAccrualTime)
 
@@ -163,7 +163,7 @@ func (suite *AccumulateTestSuite) TestNoAccumulationWhenSourceSharesAreZero() {
 	}
 	suite.storeGlobalIndexes(claimType, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
+	suite.keeper.Store.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(7 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
@@ -283,7 +283,7 @@ func (suite *AccumulateTestSuite) TestNoAccumulationWhenBeforeStartTime() {
 	}
 	suite.storeGlobalIndexes(claimType, previousIndexes)
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
+	suite.keeper.Store.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
 
 	firstAccrualTime := previousAccrualTime.Add(10 * time.Second)
 
@@ -314,7 +314,7 @@ func (suite *AccumulateTestSuite) TestPanicWhenCurrentTimeLessThanPrevious() {
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
-	suite.keeper.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
+	suite.keeper.Store.SetRewardAccrualTime(suite.ctx, claimType, pool, previousAccrualTime)
 
 	firstAccrualTime := time.Time{}
 

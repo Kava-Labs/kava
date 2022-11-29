@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/incentive/keeper/accumulators"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -13,28 +14,17 @@ func (k Keeper) AccumulateRewards(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	rewardPeriod types.MultiRewardPeriod,
-) {
-	previousAccrualTime, found := k.GetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType)
-	if !found {
-		previousAccrualTime = ctx.BlockTime()
+) error {
+	var accumulator types.RewardAccumulator
+
+	switch claimType {
+	case types.CLAIM_TYPE_EARN:
+		accumulator = accumulators.NewEarnAccumulator(k.Store, k.liquidKeeper, k.earnKeeper, k.Adapters)
+	default:
+		accumulator = accumulators.NewBasicAccumulator(k.Store, k.Adapters)
 	}
 
-	indexes, found := k.GetRewardIndexesOfClaimType(ctx, claimType, rewardPeriod.CollateralType)
-	if !found {
-		indexes = types.RewardIndexes{}
-	}
-
-	acc := types.NewAccumulator(previousAccrualTime, indexes)
-
-	totalSource := k.adapters.TotalSharesBySource(ctx, claimType, rewardPeriod.CollateralType)
-
-	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
-
-	k.SetRewardAccrualTime(ctx, claimType, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
-	if len(acc.Indexes) > 0 {
-		// the store panics when setting empty or nil indexes
-		k.SetRewardIndexes(ctx, claimType, rewardPeriod.CollateralType, acc.Indexes)
-	}
+	return accumulator.AccumulateRewards(ctx, claimType, rewardPeriod)
 }
 
 // InitializeClaim creates a new claim with zero rewards and indexes matching
@@ -45,18 +35,18 @@ func (k Keeper) InitializeClaim(
 	sourceID string,
 	owner sdk.AccAddress,
 ) {
-	claim, found := k.GetClaim(ctx, claimType, owner)
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
 		claim = types.NewClaim(claimType, owner, sdk.Coins{}, nil)
 	}
 
-	globalRewardIndexes, found := k.GetRewardIndexesOfClaimType(ctx, claimType, sourceID)
+	globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claimType, sourceID)
 	if !found {
 		globalRewardIndexes = types.RewardIndexes{}
 	}
 
 	claim.RewardIndexes = claim.RewardIndexes.With(sourceID, globalRewardIndexes)
-	k.SetClaim(ctx, claim)
+	k.Store.SetClaim(ctx, claim)
 }
 
 // SynchronizeClaim updates the claim object by adding any accumulated rewards
@@ -68,13 +58,13 @@ func (k Keeper) SynchronizeClaim(
 	owner sdk.AccAddress,
 	shares sdk.Dec,
 ) {
-	claim, found := k.GetClaim(ctx, claimType, owner)
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
 		return
 	}
 
 	claim = k.synchronizeClaim(ctx, claim, sourceID, owner, shares)
-	k.SetClaim(ctx, claim)
+	k.Store.SetClaim(ctx, claim)
 }
 
 // synchronizeClaim updates the reward and indexes in a claim for one sourceID.
@@ -85,7 +75,7 @@ func (k *Keeper) synchronizeClaim(
 	owner sdk.AccAddress,
 	shares sdk.Dec,
 ) types.Claim {
-	globalRewardIndexes, found := k.GetRewardIndexesOfClaimType(ctx, claim.Type, sourceID)
+	globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claim.Type, sourceID)
 	if !found {
 		// The global factor is only not found if
 		// - the pool has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -124,19 +114,19 @@ func (k Keeper) GetSynchronizedClaim(
 	claimType types.ClaimType,
 	owner sdk.AccAddress,
 ) (types.Claim, bool) {
-	claim, found := k.GetClaim(ctx, claimType, owner)
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
 		return types.Claim{}, false
 	}
 
 	// Fetch all source IDs from indexes
 	var sourceIDs []string
-	k.IterateRewardIndexesByClaimType(ctx, claimType, func(rewardIndexes types.TypedRewardIndexes) bool {
+	k.Store.IterateRewardIndexesByClaimType(ctx, claimType, func(rewardIndexes types.TypedRewardIndexes) bool {
 		sourceIDs = append(sourceIDs, rewardIndexes.CollateralType)
 		return false
 	})
 
-	accShares := k.adapters.OwnerSharesBySource(ctx, claimType, owner, sourceIDs)
+	accShares := k.Adapters.OwnerSharesBySource(ctx, claimType, owner, sourceIDs)
 
 	// Synchronize claim for each source ID
 	for _, share := range accShares {

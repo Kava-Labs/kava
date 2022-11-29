@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters"
+	"github.com/kava-labs/kava/x/incentive/keeper/store"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -26,7 +27,8 @@ type Keeper struct {
 	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
 
-	adapters adapters.SourceAdapters
+	Adapters adapters.SourceAdapters
+	Store    store.IncentiveStore
 
 	// Keepers used for APY queries
 	mintKeeper      types.MintKeeper
@@ -59,10 +61,11 @@ func NewKeeper(
 		liquidKeeper:  lqk,
 		earnKeeper:    ek,
 
-		adapters: adapters.NewSourceAdapters(
+		Adapters: adapters.NewSourceAdapters(
 			swpk,
 			ek,
 		),
+		Store: store.NewIncentiveStore(cdc, key),
 
 		mintKeeper:      mk,
 		distrKeeper:     dk,
@@ -889,278 +892,4 @@ func (k Keeper) IterateEarnRewardAccrualTimes(ctx sdk.Context, cb func(string, t
 			break
 		}
 	}
-}
-
-// -----------------------------------------------------------------------------
-// New deduplicated methods
-
-// GetClaim returns the claim in the store corresponding the the owner and
-// claimType, and a boolean for if the claim was found
-func (k Keeper) GetClaim(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	addr sdk.AccAddress,
-) (types.Claim, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetClaimKeyPrefix(claimType))
-	bz := store.Get(addr)
-	if bz == nil {
-		return types.Claim{}, false
-	}
-	var c types.Claim
-	k.cdc.MustUnmarshal(bz, &c)
-	return c, true
-}
-
-// SetClaim sets the claim in the store corresponding to the owner and claimType
-func (k Keeper) SetClaim(
-	ctx sdk.Context,
-	c types.Claim,
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetClaimKeyPrefix(c.Type))
-	bz := k.cdc.MustMarshal(&c)
-	store.Set(c.Owner, bz)
-}
-
-// DeleteClaim deletes the claim in the store corresponding to the owner and claimType
-func (k Keeper) DeleteClaim(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	owner sdk.AccAddress,
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetClaimKeyPrefix(claimType))
-	store.Delete(owner)
-}
-
-// IterateClaimsByClaimType iterates over all claim objects in the store of a given
-// claimType and preforms a callback function
-func (k Keeper) IterateClaimsByClaimType(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	cb func(c types.Claim) (stop bool),
-) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.GetClaimKeyPrefix(claimType))
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var c types.Claim
-		k.cdc.MustUnmarshal(iterator.Value(), &c)
-		if cb(c) {
-			break
-		}
-	}
-}
-
-// GetClaims returns all Claim objects in the store of a given claimType
-func (k Keeper) GetClaims(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-) types.Claims {
-	var cs types.Claims
-	k.IterateClaimsByClaimType(ctx, claimType, func(c types.Claim) (stop bool) {
-		cs = append(cs, c)
-		return false
-	})
-
-	return cs
-}
-
-// IterateClaims iterates over all claim objects of any claimType in the
-// store and preforms a callback function
-func (k Keeper) IterateClaims(
-	ctx sdk.Context,
-	cb func(c types.Claim) (stop bool),
-) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.ClaimKeyPrefix)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var c types.Claim
-		k.cdc.MustUnmarshal(iterator.Value(), &c)
-		if cb(c) {
-			break
-		}
-	}
-}
-
-// GetAllClaims returns all Claim objects in the store of any claimType
-func (k Keeper) GetAllClaims(ctx sdk.Context) types.Claims {
-	var cs types.Claims
-	k.IterateClaims(ctx, func(c types.Claim) (stop bool) {
-		cs = append(cs, c)
-		return false
-	})
-
-	return cs
-}
-
-// GetRewardAccrualTime fetches the last time rewards were accrued for the
-// specified ClaimType and sourceID.
-func (k Keeper) GetRewardAccrualTime(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	sourceID string,
-) (time.Time, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
-	b := store.Get(types.GetKeyFromSourceID(sourceID))
-	if b == nil {
-		return time.Time{}, false
-	}
-	var accrualTime types.AccrualTime
-	k.cdc.MustUnmarshal(b, &accrualTime)
-
-	return accrualTime.PreviousAccumulationTime, true
-}
-
-// SetRewardAccrualTime stores the last time rewards were accrued for the
-// specified ClaimType and sourceID.
-func (k Keeper) SetRewardAccrualTime(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	sourceID string,
-	blockTime time.Time,
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
-
-	at := types.NewAccrualTime(claimType, sourceID, blockTime)
-	bz := k.cdc.MustMarshal(&at)
-	store.Set(types.GetKeyFromSourceID(sourceID), bz)
-}
-
-// IterateRewardAccrualTimesByClaimType iterates over all reward accrual times of a given
-// claimType and performs a callback function.
-func (k Keeper) IterateRewardAccrualTimesByClaimType(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	cb func(string, time.Time) (stop bool),
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetPreviousRewardAccrualTimeKeyPrefix(claimType))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var accrualTime types.AccrualTime
-		k.cdc.MustUnmarshal(iterator.Value(), &accrualTime)
-
-		if cb(accrualTime.CollateralType, accrualTime.PreviousAccumulationTime) {
-			break
-		}
-	}
-}
-
-// IterateRewardAccrualTimes iterates over all reward accrual times of any
-// claimType and performs a callback function.
-func (k Keeper) IterateRewardAccrualTimes(
-	ctx sdk.Context,
-	cb func(types.AccrualTime) (stop bool),
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousRewardAccrualTimeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var accrualTime types.AccrualTime
-		k.cdc.MustUnmarshal(iterator.Value(), &accrualTime)
-
-		if cb(accrualTime) {
-			break
-		}
-	}
-}
-
-// GetAllRewardAccrualTimes returns all reward accrual times of any claimType.
-func (k Keeper) GetAllRewardAccrualTimes(ctx sdk.Context) types.AccrualTimes {
-	var ats types.AccrualTimes
-	k.IterateRewardAccrualTimes(
-		ctx,
-		func(accrualTime types.AccrualTime) bool {
-			ats = append(ats, accrualTime)
-			return false
-		},
-	)
-
-	return ats
-}
-
-// SetRewardIndexes stores the global reward indexes that track total rewards of
-// a given claim type and collateralType.
-func (k Keeper) SetRewardIndexes(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	collateralType string,
-	indexes types.RewardIndexes,
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetRewardIndexesKeyPrefix(claimType))
-	bz := k.cdc.MustMarshal(&types.TypedRewardIndexes{
-		ClaimType:      claimType,
-		CollateralType: collateralType,
-		RewardIndexes:  indexes,
-	})
-	store.Set(types.GetKeyFromSourceID(collateralType), bz)
-}
-
-// GetRewardIndexesOfClaimType fetches the global reward indexes that track total rewards
-// of a given claimType and collateralType.
-func (k Keeper) GetRewardIndexesOfClaimType(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	collateralType string,
-) (types.RewardIndexes, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetRewardIndexesKeyPrefix(claimType))
-	bz := store.Get(types.GetKeyFromSourceID(collateralType))
-	if bz == nil {
-		return types.RewardIndexes{}, false
-	}
-
-	var proto types.TypedRewardIndexes
-	k.cdc.MustUnmarshal(bz, &proto)
-	return proto.RewardIndexes, true
-}
-
-// IterateRewardIndexesByClaimType iterates over all reward index objects in the store of a
-// given ClaimType and performs a callback function.
-func (k Keeper) IterateRewardIndexesByClaimType(
-	ctx sdk.Context,
-	claimType types.ClaimType,
-	cb func(types.TypedRewardIndexes) (stop bool),
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.GetRewardIndexesKeyPrefix(claimType))
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var typedRewardIndexes types.TypedRewardIndexes
-		k.cdc.MustUnmarshal(iterator.Value(), &typedRewardIndexes)
-
-		if cb(typedRewardIndexes) {
-			break
-		}
-	}
-}
-
-// IterateRewardIndexes iterates over all reward index objects in the store
-// of all ClaimTypes and performs a callback function.
-func (k Keeper) IterateRewardIndexes(
-	ctx sdk.Context,
-	cb func(types.TypedRewardIndexes) (stop bool),
-) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.RewardIndexesKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		var typedRewardIndexes types.TypedRewardIndexes
-		k.cdc.MustUnmarshal(iterator.Value(), &typedRewardIndexes)
-
-		if cb(typedRewardIndexes) {
-			break
-		}
-	}
-}
-
-// GetRewardIndexes returns all reward indexes of any claimType.
-func (k Keeper) GetRewardIndexes(ctx sdk.Context) types.TypedRewardIndexesList {
-	var tril types.TypedRewardIndexesList
-	k.IterateRewardIndexes(
-		ctx,
-		func(typedRewardIndexes types.TypedRewardIndexes) bool {
-			tril = append(tril, typedRewardIndexes)
-			return false
-		},
-	)
-
-	return tril
 }

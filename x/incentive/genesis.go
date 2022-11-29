@@ -46,12 +46,12 @@ func InitGenesis(
 
 	// Set Claims of all types
 	for _, claim := range gs.Claims {
-		k.SetClaim(ctx, claim)
+		k.Store.SetClaim(ctx, claim)
 	}
 
 	// Set AccrualTimes of all types
 	for _, accrualTime := range gs.AccrualTimes {
-		k.SetRewardAccrualTime(
+		k.Store.SetRewardAccrualTime(
 			ctx,
 			accrualTime.ClaimType,
 			accrualTime.CollateralType,
@@ -61,7 +61,7 @@ func InitGenesis(
 
 	// Set RewardIndexes of all types
 	for _, rewardIndex := range gs.RewardIndexes {
-		k.SetRewardIndexes(ctx, rewardIndex.ClaimType, rewardIndex.CollateralType, rewardIndex.RewardIndexes)
+		k.Store.SetRewardIndexes(ctx, rewardIndex.ClaimType, rewardIndex.CollateralType, rewardIndex.RewardIndexes)
 	}
 
 	// Legacy claims and indexes below
@@ -168,9 +168,9 @@ func InitGenesis(
 func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 
-	claims := k.GetAllClaims(ctx)
-	accrualTimes := k.GetAllRewardAccrualTimes(ctx)
-	rewardIndexes := k.GetRewardIndexes(ctx)
+	claims := k.Store.GetAllClaims(ctx)
+	accrualTimes := k.Store.GetAllRewardAccrualTimes(ctx)
+	rewardIndexes := k.Store.GetRewardIndexes(ctx)
 
 	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
 	usdxRewardState := getUSDXMintingGenesisRewardState(ctx, k)
