@@ -24,12 +24,14 @@ var (
 	KeyEarnRewardPeriods        = []byte("EarnRewardPeriods")
 	KeyClaimEnd                 = []byte("ClaimEnd")
 	KeyMultipliers              = []byte("ClaimMultipliers")
+	KeyTypedMultiRewardPeriods  = []byte("TypedMultiRewardPeriods")
 
-	DefaultActive             = false
-	DefaultRewardPeriods      = RewardPeriods{}
-	DefaultMultiRewardPeriods = MultiRewardPeriods{}
-	DefaultMultipliers        = MultipliersPerDenoms{}
-	DefaultClaimEnd           = tmtime.Canonical(time.Unix(1, 0))
+	DefaultActive                  = false
+	DefaultRewardPeriods           = RewardPeriods{}
+	DefaultMultiRewardPeriods      = MultiRewardPeriods{}
+	DefaultMultipliers             = MultipliersPerDenoms{}
+	DefaultTypedMultiRewardPeriods = TypedMultiRewardPeriods{}
+	DefaultClaimEnd                = tmtime.Canonical(time.Unix(1, 0))
 
 	BondDenom              = "ukava"
 	USDXMintingRewardDenom = "ukava"
@@ -44,6 +46,7 @@ func NewParams(
 	hardSupply, hardBorrow, delegator, swap, savings, earn MultiRewardPeriods,
 	multipliers MultipliersPerDenoms,
 	claimEnd time.Time,
+	rewardPeriods TypedMultiRewardPeriods,
 ) Params {
 	return Params{
 		USDXMintingRewardPeriods: usdxMinting,
@@ -52,8 +55,10 @@ func NewParams(
 		DelegatorRewardPeriods:   delegator,
 		SwapRewardPeriods:        swap,
 		SavingsRewardPeriods:     savings,
+		EarnRewardPeriods:        earn,
 		ClaimMultipliers:         multipliers,
 		ClaimEnd:                 claimEnd,
+		RewardPeriods:            rewardPeriods,
 	}
 }
 
@@ -69,6 +74,7 @@ func DefaultParams() Params {
 		DefaultMultiRewardPeriods,
 		DefaultMultipliers,
 		DefaultClaimEnd,
+		DefaultTypedMultiRewardPeriods,
 	)
 }
 
@@ -89,6 +95,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyEarnRewardPeriods, &p.EarnRewardPeriods, validateMultiRewardPeriodsParam),
 		paramtypes.NewParamSetPair(KeyMultipliers, &p.ClaimMultipliers, validateMultipliersPerDenomParam),
 		paramtypes.NewParamSetPair(KeyClaimEnd, &p.ClaimEnd, validateClaimEndParam),
+		paramtypes.NewParamSetPair(KeyTypedMultiRewardPeriods, &p.RewardPeriods, validatedRewardPeriodsParam),
 	}
 }
 
@@ -164,6 +171,15 @@ func validateClaimEndParam(i interface{}) error {
 		return fmt.Errorf("end time should not be zero")
 	}
 	return nil
+}
+
+func validatedRewardPeriodsParam(i interface{}) error {
+	periods, ok := i.(TypedMultiRewardPeriods)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return periods.Validate()
 }
 
 // NewRewardPeriod returns a new RewardPeriod
@@ -302,6 +318,48 @@ func (mrps MultiRewardPeriods) Validate() error {
 			return err
 		}
 		seenPeriods[rp.CollateralType] = true
+	}
+
+	return nil
+}
+
+// NewTypedMultiRewardPeriod returns a new TypedMultiRewardPeriod
+func NewTypedMultiRewardPeriod(claimType ClaimType, rewardPeriods MultiRewardPeriods) TypedMultiRewardPeriod {
+	return TypedMultiRewardPeriod{
+		ClaimType:     claimType,
+		RewardPeriods: rewardPeriods,
+	}
+}
+
+// Validate performs a basic check of a TypedMultiRewardPeriod fields.
+func (mrp TypedMultiRewardPeriod) Validate() error {
+	if err := mrp.ClaimType.Validate(); err != nil {
+		return fmt.Errorf("invalid claim type: %w", err)
+	}
+	if err := mrp.RewardPeriods.Validate(); err != nil {
+		return fmt.Errorf("invalid reward periods: %w", err)
+	}
+
+	return nil
+}
+
+// TypedMultiRewardPeriods array of TypedMultiRewardPeriod
+type TypedMultiRewardPeriods []TypedMultiRewardPeriod
+
+// Validate checks if all the TypedMultiRewardPeriods are valid and there
+// are no duplicated entries.
+func (mrps TypedMultiRewardPeriods) Validate() error {
+	seenClaimTypes := make(map[ClaimType]bool)
+	for _, mrp := range mrps {
+		if seenClaimTypes[mrp.ClaimType] {
+			return fmt.Errorf("duplicated reward period with claim type %s", mrp.ClaimType)
+		}
+
+		if err := mrp.Validate(); err != nil {
+			return fmt.Errorf("invalid reward period for claimType %s: %w", mrp.ClaimType, err)
+		}
+
+		seenClaimTypes[mrp.ClaimType] = true
 	}
 
 	return nil

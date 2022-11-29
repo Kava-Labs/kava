@@ -56,6 +56,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						},
 					},
 					time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+					DefaultTypedMultiRewardPeriods,
 				),
 				USDXRewardState: GenesisRewardState{
 					AccumulationTimes: AccumulationTimes{{
