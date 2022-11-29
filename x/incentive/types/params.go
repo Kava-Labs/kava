@@ -133,6 +133,10 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validatedRewardPeriodsParam(p.RewardPeriods); err != nil {
+		return err
+	}
+
 	return nil
 }
 
