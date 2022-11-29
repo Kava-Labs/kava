@@ -65,44 +65,6 @@ func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-func LegacyAccrualTimeKeyFromClaimType(claimType types.ClaimType) []byte {
-	switch claimType {
-	case types.CLAIM_TYPE_HARD_BORROW:
-		panic("todo")
-	case types.CLAIM_TYPE_HARD_SUPPLY:
-		panic("todo")
-	case types.CLAIM_TYPE_EARN:
-		return PreviousEarnRewardAccrualTimeKeyPrefix
-	case types.CLAIM_TYPE_SAVINGS:
-		panic("todo")
-	case types.CLAIM_TYPE_SWAP:
-		panic("todo")
-	case types.CLAIM_TYPE_USDX_MINTING:
-		panic("todo")
-	default:
-		panic(fmt.Sprintf("unrecognized claim type: %s", claimType))
-	}
-}
-
-func LegacyRewardIndexesKeyFromClaimType(claimType types.ClaimType) []byte {
-	switch claimType {
-	case types.CLAIM_TYPE_HARD_BORROW:
-		panic("todo")
-	case types.CLAIM_TYPE_HARD_SUPPLY:
-		panic("todo")
-	case types.CLAIM_TYPE_EARN:
-		return EarnRewardIndexesKeyPrefix
-	case types.CLAIM_TYPE_SAVINGS:
-		panic("todo")
-	case types.CLAIM_TYPE_SWAP:
-		panic("todo")
-	case types.CLAIM_TYPE_USDX_MINTING:
-		panic("todo")
-	default:
-		panic(fmt.Sprintf("unrecognized claim type: %s", claimType))
-	}
-}
-
 // MigrateAccrualTimes migrates accrual times from v1 to v2
 func MigrateAccrualTimes(
 	store sdk.KVStore,
