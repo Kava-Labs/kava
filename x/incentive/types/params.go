@@ -368,3 +368,14 @@ func (mrps TypedMultiRewardPeriods) Validate() error {
 
 	return nil
 }
+
+// GetRewardPeriodsOfClaimType returns the reward periods of a specific ClaimType
+func (mrps TypedMultiRewardPeriods) GetRewardPeriodsOfClaimType(claimType ClaimType) MultiRewardPeriods {
+	for _, mrp := range mrps {
+		if mrp.ClaimType == claimType {
+			return mrp.RewardPeriods
+		}
+	}
+
+	return nil
+}
