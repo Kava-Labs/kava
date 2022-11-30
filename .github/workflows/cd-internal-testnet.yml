@@ -1,0 +1,15 @@
+name: Continuous Deployment (Internal Testnet)
+# run after every successful CI job of new commits to the master branch
+on:
+  workflow_run:
+    workflows: [Continuous Integration (Kava Master)]
+    types:
+      - completed
+  push:
+    branches:
+      - ls-internal-testnet-cd-pipeline
+jobs:
+  # run default ci checks against master branch
+  no-op:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/ci-lint.yml
