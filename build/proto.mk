@@ -53,7 +53,7 @@ check-proto-breaking: install-build-deps
 .PHONY: check-proto-breaking-remote
 check-proto-breaking-remote: install-build-deps
 	@echo "Checking for proto backward compatibility"
-	@$(BUF) breaking --against '$(HTTPS_GIT)#$(BUF_CHECK_BREAKING_AGAINST)'
+	$(BUF) breaking --against '$(HTTPS_GIT)#branch=$(GIT_BRANCH),$(BUF_CHECK_BREAKING_AGAINST)'
 
 .PHONY: proto-gen-all
 proto-gen-all: proto-gen proto-gen-doc proto-gen-swagger
