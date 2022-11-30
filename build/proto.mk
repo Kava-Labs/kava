@@ -44,6 +44,7 @@ check-proto-format: proto-format
 	@git diff --exit-code proto/**/*.proto > /dev/null || (echo "Protobuf format is not up to date! Please run \`make proto-format\`."; exit 1)
 
 BUF_CHECK_BREAKING_AGAINST ?= ref=HEAD~1
+BUF_CHECK_BREAKING_AGAINST_REMOTE ?= branch=$(GIT_BRANCH),$(BUF_CHECK_BREAKING_AGAINST)
 
 .PHONY: check-proto-breaking
 check-proto-breaking: install-build-deps
@@ -53,7 +54,7 @@ check-proto-breaking: install-build-deps
 .PHONY: check-proto-breaking-remote
 check-proto-breaking-remote: install-build-deps
 	@echo "Checking for proto backward compatibility"
-	@$(BUF) breaking --against '$(HTTPS_GIT)#$(BUF_CHECK_BREAKING_AGAINST)'
+	$(BUF) breaking --against '$(HTTPS_GIT)#$(BUF_CHECK_BREAKING_AGAINST_REMOTE)'
 
 .PHONY: proto-gen-all
 proto-gen-all: proto-gen proto-gen-doc proto-gen-swagger
