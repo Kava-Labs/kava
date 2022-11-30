@@ -1,15 +1,14 @@
 syntax = "proto3";
 package kava.liquid.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/liquid/types";
 
 // Msg defines the liquid Msg service.
 service Msg {
-
   // MintDerivative defines a method for converting a delegation into staking deriviatives.
   rpc MintDerivative(MsgMintDerivative) returns (MsgMintDerivativeResponse);
 
@@ -47,8 +46,8 @@ message MsgBurnDerivative {
 message MsgBurnDerivativeResponse {
   // received is the number of delegation shares sent to the sender
   string received = 1 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }

@@ -1,8 +1,8 @@
 syntax = "proto3";
 package kava.committee.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -12,21 +12,27 @@ option go_package = "github.com/kava-labs/kava/x/committee/types";
 message GenesisState {
   option (gogoproto.goproto_getters) = false;
 
-  uint64   next_proposal_id               = 1 [(gogoproto.customname) = "NextProposalID"];
+  uint64 next_proposal_id = 1 [(gogoproto.customname) = "NextProposalID"];
   repeated google.protobuf.Any committees = 2 [(cosmos_proto.accepts_interface) = "Committee"];
-  repeated Proposal            proposals  = 3 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "Proposals"];
-  repeated Vote                votes      = 4 [(gogoproto.nullable) = false];
+  repeated Proposal proposals = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "Proposals"
+  ];
+  repeated Vote votes = 4 [(gogoproto.nullable) = false];
 }
 
 // Proposal is an internal record of a governance proposal submitted to a committee.
 message Proposal {
-  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_getters) = false;
   option (gogoproto.goproto_stringer) = false;
 
-  google.protobuf.Any       content      = 1 [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content"];
-  uint64                    id           = 2 [(gogoproto.customname) = "ID"];
-  uint64                    committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
-  google.protobuf.Timestamp deadline     = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Any content = 1 [(cosmos_proto.accepts_interface) = "cosmos.gov.v1beta1.Content"];
+  uint64 id = 2 [(gogoproto.customname) = "ID"];
+  uint64 committee_id = 3 [(gogoproto.customname) = "CommitteeID"];
+  google.protobuf.Timestamp deadline = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
 }
 
 // Vote is an internal record of a single governance vote.
@@ -34,9 +40,9 @@ message Vote {
   option (gogoproto.goproto_getters) = false;
 
   uint64 proposal_id = 1 [(gogoproto.customname) = "ProposalID"];
-  bytes  voter       = 2 [
+  bytes voter = 2 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
   VoteType vote_type = 3;
 }

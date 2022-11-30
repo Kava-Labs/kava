@@ -1,8 +1,8 @@
 syntax = "proto3";
 package kava.issuance.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/issuance/types";
 
@@ -26,12 +26,12 @@ service Msg {
 
 // MsgIssueTokens represents a message used by the issuer to issue new tokens
 message MsgIssueTokens {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                   sender   = 1;
-  cosmos.base.v1beta1.Coin tokens   = 2 [(gogoproto.nullable) = false];
-  string                   receiver = 3;
+  string sender = 1;
+  cosmos.base.v1beta1.Coin tokens = 2 [(gogoproto.nullable) = false];
+  string receiver = 3;
 }
 
 // MsgIssueTokensResponse defines the Msg/IssueTokens response type.
@@ -39,10 +39,10 @@ message MsgIssueTokensResponse {}
 
 // MsgRedeemTokens represents a message used by the issuer to redeem (burn) tokens
 message MsgRedeemTokens {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                   sender = 1;
+  string sender = 1;
   cosmos.base.v1beta1.Coin tokens = 2 [(gogoproto.nullable) = false];
 }
 
@@ -51,11 +51,11 @@ message MsgRedeemTokensResponse {}
 
 // MsgBlockAddress represents a message used by the issuer to block an address from holding or transferring tokens
 message MsgBlockAddress {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string sender          = 1;
-  string denom           = 2;
+  string sender = 1;
+  string denom = 2;
   string blocked_address = 3;
 }
 
@@ -64,11 +64,11 @@ message MsgBlockAddressResponse {}
 
 // MsgUnblockAddress message type used by the issuer to unblock an address from holding or transferring tokens
 message MsgUnblockAddress {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string sender          = 1;
-  string denom           = 2;
+  string sender = 1;
+  string denom = 2;
   string blocked_address = 3;
 }
 
@@ -77,12 +77,12 @@ message MsgUnblockAddressResponse {}
 
 // MsgSetPauseStatus message type used by the issuer to pause or unpause status
 message MsgSetPauseStatus {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   string sender = 1;
-  string denom  = 2;
-  bool   status = 3;
+  string denom = 2;
+  bool status = 3;
 }
 
 // MsgSetPauseStatusResponse defines the Msg/SetPauseStatus response type.

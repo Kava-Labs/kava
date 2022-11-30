@@ -1,9 +1,9 @@
 syntax = "proto3";
 package kava.issuance.v1beta1;
 
-import "kava/issuance/v1beta1/genesis.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "kava/issuance/v1beta1/genesis.proto";
 
 option go_package = "github.com/kava-labs/kava/x/issuance/types";
 

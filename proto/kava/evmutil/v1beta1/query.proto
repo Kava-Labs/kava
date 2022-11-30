@@ -5,8 +5,8 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "kava/evmutil/v1beta1/genesis.proto";
 
-option go_package                    = "github.com/kava-labs/kava/x/evmutil/types";
-option (gogoproto.equal_all)         = true;
+option go_package = "github.com/kava-labs/kava/x/evmutil/types";
+option (gogoproto.equal_all) = true;
 option (gogoproto.verbose_equal_all) = true;
 
 // Query defines the gRPC querier service for evmutil module

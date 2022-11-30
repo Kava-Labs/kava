@@ -13,7 +13,6 @@
 
 # Exclude build files
 vendor
-build
 
 # IDE files
 *.vscode
@@ -24,3 +23,16 @@ docs/.vuepress/dist
 
 # Ignore macOS file system metadata
 .DS_Store
+
+# Ignore build outputs
+out
+
+# Ignore build cache dir
+build/.cache
+
+# Ignore installed binaires
+build/bin
+
+# Ignore build dirs
+build/darwin
+build/linux

@@ -1,9 +1,9 @@
 syntax = "proto3";
 package kava.bep3.v1beta1;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/bep3/types";
 
@@ -22,17 +22,19 @@ service Msg {
 // MsgCreateAtomicSwap defines the Msg/CreateAtomicSwap request type.
 message MsgCreateAtomicSwap {
   option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.equal)            = false;
-  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
-  string   from                            = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string   to                              = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string   recipient_other_chain           = 3;
-  string   sender_other_chain              = 4;
-  string   random_number_hash              = 5;
-  int64    timestamp                       = 6;
-  repeated cosmos.base.v1beta1.Coin amount = 7
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string to = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string recipient_other_chain = 3;
+  string sender_other_chain = 4;
+  string random_number_hash = 5;
+  int64 timestamp = 6;
+  repeated cosmos.base.v1beta1.Coin amount = 7 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
   uint64 height_span = 8;
 }
 
@@ -42,11 +44,11 @@ message MsgCreateAtomicSwapResponse {}
 // MsgClaimAtomicSwap defines the Msg/ClaimAtomicSwap request type.
 message MsgClaimAtomicSwap {
   option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.equal)            = false;
-  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
-  string from          = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string swap_id       = 2 [(gogoproto.customname) = "SwapID"];
+  string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string swap_id = 2 [(gogoproto.customname) = "SwapID"];
   string random_number = 3;
 }
 
@@ -56,10 +58,10 @@ message MsgClaimAtomicSwapResponse {}
 // MsgRefundAtomicSwap defines the Msg/RefundAtomicSwap request type.
 message MsgRefundAtomicSwap {
   option (gogoproto.goproto_stringer) = false;
-  option (gogoproto.equal)            = false;
-  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
 
-  string from    = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string swap_id = 2 [(gogoproto.customname) = "SwapID"];
 }
 

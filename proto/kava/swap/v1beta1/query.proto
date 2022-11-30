@@ -1,14 +1,14 @@
 syntax = "proto3";
 package kava.swap.v1beta1;
 
-option go_package = "github.com/kava-labs/kava/x/swap/types";
-
-import "gogoproto/gogo.proto";
-import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
 import "kava/swap/v1beta1/swap.proto";
+
+option go_package = "github.com/kava-labs/kava/x/swap/types";
 
 // Query defines the gRPC querier service for swap module
 service Query {
@@ -62,13 +62,15 @@ message PoolResponse {
   // name represents the name of the pool
   string name = 1;
   // coins represents the total reserves of the pool
-  repeated cosmos.base.v1beta1.Coin coins = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin coins = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
   //  total_shares represents the total shares of the pool
   string total_shares = 3 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }
 
@@ -104,11 +106,13 @@ message DepositResponse {
   string pool_id = 2;
   // shares_owned presents the shares owned by the depositor for the pool
   string shares_owned = 3 [
-    (cosmos_proto.scalar)  = "cosmos.AddressString",
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
   // shares_value represents the coin value of the shares_owned
-  repeated cosmos.base.v1beta1.Coin shares_value = 4
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin shares_value = 4 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
 }

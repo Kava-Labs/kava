@@ -1,8 +1,8 @@
 syntax = "proto3";
 package kava.auction.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
 
 option go_package = "github.com/kava-labs/kava/x/auction/types";
 
@@ -14,7 +14,7 @@ service Msg {
 
 // MsgPlaceBid represents a message used by bidders to place bids on auctions
 message MsgPlaceBid {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   uint64 auction_id = 1;

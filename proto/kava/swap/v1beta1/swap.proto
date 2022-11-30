@@ -1,23 +1,26 @@
 syntax = "proto3";
 package kava.swap.v1beta1;
 
-option go_package = "github.com/kava-labs/kava/x/swap/types";
-
-import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/swap/types";
 
 // Params defines the parameters for the swap module.
 message Params {
   option (gogoproto.goproto_stringer) = false; // false here because we define Stringer method in params.go
 
   // allowed_pools defines that pools that are allowed to be created
-  repeated AllowedPool allowed_pools = 1 [(gogoproto.castrepeated) = "AllowedPools", (gogoproto.nullable) = false];
+  repeated AllowedPool allowed_pools = 1 [
+    (gogoproto.castrepeated) = "AllowedPools",
+    (gogoproto.nullable) = false
+  ];
   // swap_fee defines the swap fee for all pools
   string swap_fee = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }
 
@@ -42,9 +45,9 @@ message PoolRecord {
   cosmos.base.v1beta1.Coin reserves_b = 3 [(gogoproto.nullable) = false];
   // total_shares is the total distrubuted shares of the pool
   string total_shares = 4 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }
 
@@ -53,14 +56,14 @@ message ShareRecord {
   // depositor represents the owner of the shares
   bytes depositor = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
   // pool_id represents the pool the shares belong to
   string pool_id = 2 [(gogoproto.customname) = "PoolID"];
   // shares_owned represents the number of shares owned by depsoitor for the pool_id
   string shares_owned = 3 [
-    (cosmos_proto.scalar)  = "cosmos.Int",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }

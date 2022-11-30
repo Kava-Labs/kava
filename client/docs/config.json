@@ -13,7 +13,7 @@
   "schemes": ["https"],
   "apis": [
     {
-      "url": "./tmp-swagger-gen/kava/auction/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/auction/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Auction"
@@ -30,7 +30,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/bep3/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/bep3/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "BEP3"
@@ -47,7 +47,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/cdp/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/cdp/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "CDP"
@@ -64,7 +64,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/committee/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/committee/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Committee"
@@ -81,7 +81,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/earn/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/earn/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Earn"
@@ -98,7 +98,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/hard/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/hard/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Hard"
@@ -115,7 +115,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/issuance/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/issuance/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Issuance"
@@ -132,7 +132,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/kavadist/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/kavadist/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Kavadist"
@@ -149,7 +149,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/liquid/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/liquid/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Liquid"
@@ -166,7 +166,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/pricefeed/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/pricefeed/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Pricefeed"
@@ -183,7 +183,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/swap/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/swap/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Swap"
@@ -200,7 +200,7 @@
       }
     },
     {
-      "url": "./tmp-swagger-gen/kava/savings/v1beta1/query.swagger.json",
+      "url": "./out/swagger/kava/savings/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
           "Query": "Savings"

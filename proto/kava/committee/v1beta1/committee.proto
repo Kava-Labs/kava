@@ -1,41 +1,45 @@
 syntax = "proto3";
 package kava.committee.v1beta1;
 
-import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 
 option go_package = "github.com/kava-labs/kava/x/committee/types";
-
 option (gogoproto.goproto_getters_all) = false;
 
 // BaseCommittee is a common type shared by all Committees
 message BaseCommittee {
   option (cosmos_proto.implements_interface) = "Committee";
-  option (gogoproto.goproto_stringer)        = false;
+  option (gogoproto.goproto_stringer) = false;
 
-  uint64         id          = 1 [(gogoproto.customname) = "ID"];
-  string         description = 2;
-  repeated bytes members     = 3 [
+  uint64 id = 1 [(gogoproto.customname) = "ID"];
+  string description = 2;
+  repeated bytes members = 3 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
   repeated google.protobuf.Any permissions = 4 [(cosmos_proto.accepts_interface) = "Permission"];
 
   // Smallest percentage that must vote for a proposal to pass
-  string vote_threshold = 5
-      [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string vote_threshold = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 
   // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
-  google.protobuf.Duration proposal_duration = 6 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
-  TallyOption              tally_option      = 7;
+  google.protobuf.Duration proposal_duration = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true
+  ];
+  TallyOption tally_option = 7;
 }
 
 // MemberCommittee is an alias of BaseCommittee
 message MemberCommittee {
   option (cosmos_proto.implements_interface) = "Committee";
-  option (gogoproto.goproto_stringer)        = false;
+  option (gogoproto.goproto_stringer) = false;
 
   BaseCommittee base_committee = 1 [(gogoproto.embed) = true];
 }
@@ -43,10 +47,13 @@ message MemberCommittee {
 // TokenCommittee supports voting on proposals by token holders
 message TokenCommittee {
   option (cosmos_proto.implements_interface) = "Committee";
-  option (gogoproto.goproto_stringer)        = false;
+  option (gogoproto.goproto_stringer) = false;
 
   BaseCommittee base_committee = 1 [(gogoproto.embed) = true];
-  string quorum = 2 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string quorum = 2 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
   string tally_denom = 3;
 }
 

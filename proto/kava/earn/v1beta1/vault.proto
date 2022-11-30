@@ -1,11 +1,11 @@
 syntax = "proto3";
 package kava.earn.v1beta1;
 
-option go_package = "github.com/kava-labs/kava/x/earn/types";
-
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "kava/earn/v1beta1/strategy.proto";
+
+option go_package = "github.com/kava-labs/kava/x/earn/types";
 
 // AllowedVault is a vault that is allowed to be created. These can be
 // modified via parameter governance.
@@ -26,7 +26,7 @@ message AllowedVault {
   // this should be empty and ignored.
   repeated bytes allowed_depositors = 4 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
 }
 
@@ -41,20 +41,23 @@ message VaultShareRecord {
   // Depositor represents the owner of the shares
   bytes depositor = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressBytes",
-    (gogoproto.casttype)  = "github.com/cosmos/cosmos-sdk/types.AccAddress"
+    (gogoproto.casttype) = "github.com/cosmos/cosmos-sdk/types.AccAddress"
   ];
   // Shares represent the vault shares owned by the depositor.
-  repeated VaultShare shares = 2 [(gogoproto.castrepeated) = "VaultShares", (gogoproto.nullable) = false];
+  repeated VaultShare shares = 2 [
+    (gogoproto.castrepeated) = "VaultShares",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // VaultShare defines shares of a vault owned by a depositor.
 message VaultShare {
   option (gogoproto.goproto_stringer) = false;
 
-  string denom  = 1;
+  string denom = 1;
   string amount = 2 [
-    (cosmos_proto.scalar)  = "cosmos.Dec",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ];
 }

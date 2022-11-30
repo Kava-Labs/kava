@@ -29,19 +29,19 @@ service Msg {
 // Selection is a pair of denom and multiplier name. It holds the choice of multiplier a user makes when they claim a
 // denom.
 message Selection {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string denom           = 1;
+  string denom = 1;
   string multiplier_name = 2;
 }
 
 // MsgClaimUSDXMintingReward message type used to claim USDX minting rewards
 message MsgClaimUSDXMintingReward {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string sender          = 1;
+  string sender = 1;
   string multiplier_name = 2;
 }
 
@@ -50,11 +50,14 @@ message MsgClaimUSDXMintingRewardResponse {}
 
 // MsgClaimHardReward message type used to claim Hard liquidity provider rewards
 message MsgClaimHardReward {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string             sender          = 1;
-  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+  string sender = 1;
+  repeated Selection denoms_to_claim = 2 [
+    (gogoproto.castrepeated) = "Selections",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgClaimHardRewardResponse defines the Msg/ClaimHardReward response type.
@@ -62,11 +65,14 @@ message MsgClaimHardRewardResponse {}
 
 // MsgClaimDelegatorReward message type used to claim delegator rewards
 message MsgClaimDelegatorReward {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string             sender          = 1;
-  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+  string sender = 1;
+  repeated Selection denoms_to_claim = 2 [
+    (gogoproto.castrepeated) = "Selections",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgClaimDelegatorRewardResponse defines the Msg/ClaimDelegatorReward response type.
@@ -74,11 +80,14 @@ message MsgClaimDelegatorRewardResponse {}
 
 // MsgClaimSwapReward message type used to claim delegator rewards
 message MsgClaimSwapReward {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string             sender          = 1;
-  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+  string sender = 1;
+  repeated Selection denoms_to_claim = 2 [
+    (gogoproto.castrepeated) = "Selections",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgClaimSwapRewardResponse defines the Msg/ClaimSwapReward response type.
@@ -86,11 +95,14 @@ message MsgClaimSwapRewardResponse {}
 
 // MsgClaimSavingsReward message type used to claim savings rewards
 message MsgClaimSavingsReward {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string             sender          = 1;
-  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+  string sender = 1;
+  repeated Selection denoms_to_claim = 2 [
+    (gogoproto.castrepeated) = "Selections",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgClaimSavingsRewardResponse defines the Msg/ClaimSavingsReward response type.
@@ -98,11 +110,14 @@ message MsgClaimSavingsRewardResponse {}
 
 // MsgClaimEarnReward message type used to claim earn rewards
 message MsgClaimEarnReward {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
-  string             sender          = 1;
-  repeated Selection denoms_to_claim = 2 [(gogoproto.castrepeated) = "Selections", (gogoproto.nullable) = false];
+  string sender = 1;
+  repeated Selection denoms_to_claim = 2 [
+    (gogoproto.castrepeated) = "Selections",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgClaimEarnRewardResponse defines the Msg/ClaimEarnReward response type.

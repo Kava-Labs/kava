@@ -1,0 +1,5 @@
+version: v1
+plugins:
+  - name: swagger
+    out: out/swagger
+    opt: logtostderr=true,fqn_for_swagger_name=true,simple_operation_ids=true

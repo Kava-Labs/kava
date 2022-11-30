@@ -1,13 +1,13 @@
 syntax = "proto3";
 package kava.bep3.v1beta1;
 
-import "kava/bep3/v1beta1/bep3.proto";
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
-import "google/api/annotations.proto";
-import "cosmos/base/v1beta1/coin.proto";
-import "google/protobuf/duration.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/duration.proto";
+import "kava/bep3/v1beta1/bep3.proto";
 
 option go_package = "github.com/kava-labs/kava/x/bep3/types";
 
@@ -50,7 +50,7 @@ message QueryParamsResponse {
 
 // QueryAssetSupplyRequest is the request type for the Query/AssetSupply RPC method.
 message QueryAssetSupplyRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // denom filters the asset response for the specified denom
@@ -68,7 +68,10 @@ message AssetSupplyResponse {
   // time_limited_current_supply represents the time limited current supply of an asset
   cosmos.base.v1beta1.Coin time_limited_current_supply = 4 [(gogoproto.nullable) = false];
   // time_elapsed represents the time elapsed
-  google.protobuf.Duration time_elapsed = 5 [(gogoproto.nullable) = false, (gogoproto.stdduration) = true];
+  google.protobuf.Duration time_elapsed = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true
+  ];
 }
 
 // QueryAssetSupplyResponse is the response type for the Query/AssetSupply RPC method.
@@ -79,7 +82,7 @@ message QueryAssetSupplyResponse {
 
 // QueryAssetSuppliesRequest is the request type for the Query/AssetSupplies RPC method.
 message QueryAssetSuppliesRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 }
 
@@ -91,7 +94,7 @@ message QueryAssetSuppliesResponse {
 
 // QueryAtomicSwapRequest is the request type for the Query/AtomicSwap RPC method.
 message QueryAtomicSwapRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // swap_id represents the id of the swap to query
@@ -108,8 +111,10 @@ message AtomicSwapResponse {
   // id represents the id of the atomic swap
   string id = 1;
   // amount represents the amount being swapped
-  repeated cosmos.base.v1beta1.Coin amount = 2
-      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.nullable) = false];
+  repeated cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.nullable) = false
+  ];
   // random_number_hash represents the hash of the random number
   string random_number_hash = 3;
   // expire_height represents the height when the swap expires
@@ -136,7 +141,7 @@ message AtomicSwapResponse {
 
 // QueryAtomicSwapsRequest is the request type for the Query/AtomicSwaps RPC method.
 message QueryAtomicSwapsRequest {
-  option (gogoproto.equal)           = false;
+  option (gogoproto.equal) = false;
   option (gogoproto.goproto_getters) = false;
 
   // involve filters by address
