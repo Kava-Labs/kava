@@ -64,6 +64,7 @@ func NewKeeper(
 		Adapters: adapters.NewSourceAdapters(
 			swpk,
 			ek,
+			svk,
 		),
 		Store: store.NewIncentiveStore(cdc, key),
 
