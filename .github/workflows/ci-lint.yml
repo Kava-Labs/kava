@@ -1,0 +1,16 @@
+name: Lint Checks
+on:
+  workflow_call:
+# run per commit ci checks against this commit
+jobs:
+  proto-lint:
+    uses: ./.github/workflows/proto.yml
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review

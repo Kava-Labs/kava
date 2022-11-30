@@ -6,8 +6,8 @@ on:
       - master
 jobs:
   # run per commit ci checks against master branch
-  commit-checks:
-    uses: ./.github/workflows/ci-commit.yml
+  lint-checks:
+    uses: ./.github/workflows/ci-lint.yml
   # run default ci checks against master branch
   default-checks:
     uses: ./.github/workflows/ci-default.yml
@@ -15,7 +15,7 @@ jobs:
   # configurations for databases, cpu architectures and operating systems
   publish-internal:
     # only run if all checks pass
-    needs: [commit-checks, default-checks]
+    needs: [lint-checks, default-checks]
     runs-on: ubuntu-latest
     steps:
       - name: set build tag
