@@ -7,6 +7,7 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
@@ -189,7 +190,7 @@ func (h Hooks) AfterVaultDepositCreated(
 	depositor sdk.AccAddress,
 	_ sdk.Dec,
 ) {
-	h.k.InitializeEarnReward(ctx, vaultDenom, depositor)
+	h.k.InitializeClaim(ctx, types.CLAIM_TYPE_EARN, vaultDenom, depositor)
 }
 
 // BeforeVaultDepositModified function that runs before a vault deposit is modified
@@ -199,5 +200,5 @@ func (h Hooks) BeforeVaultDepositModified(
 	depositor sdk.AccAddress,
 	sharesOwned sdk.Dec,
 ) {
-	h.k.SynchronizeEarnReward(ctx, vaultDenom, depositor, sharesOwned)
+	h.k.SynchronizeClaim(ctx, types.CLAIM_TYPE_EARN, vaultDenom, depositor, sharesOwned)
 }
