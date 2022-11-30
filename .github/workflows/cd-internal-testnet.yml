@@ -2,7 +2,7 @@ name: Continuous Deployment (Internal Testnet)
 # run after every successful CI job of new commits to the master branch
 on:
   workflow_run:
-    workflows: [Continuous Integration (Kava Master)]
+    workflows: ["Continuous Integration (Kava Master)", "Continuous Integration (Commit)"]
     types:
       - completed
   push:
