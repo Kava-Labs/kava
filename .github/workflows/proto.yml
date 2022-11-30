@@ -20,7 +20,7 @@ jobs:
       - run: make check-proto-lint
       - run: make check-proto-format
       - run: make check-proto-breaking-remote
-      - run: BUF_CHECK_BREAKING_AGAINST="branch=$GITHUB_BASE_REF" make check-proto-breaking-remote
+      - run: BUF_CHECK_BREAKING_AGAINST_REMOTE="branch=$GITHUB_BASE_REF" make check-proto-breaking-remote
         if: github.event_name == 'pull_request'
       - run: make check-proto-gen
       - run: make check-proto-gen-doc
