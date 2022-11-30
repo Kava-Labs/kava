@@ -48,7 +48,7 @@ BUF_CHECK_BREAKING_AGAINST ?= ref=HEAD~1
 .PHONY: check-proto-breaking
 check-proto-breaking: install-build-deps
 	@echo "Checking for proto backward compatibility"
-	$(BUF) breaking --against '.git#$(BUF_CHECK_BREAKING_AGAINST)'
+	@$(BUF) breaking --against '.git#$(BUF_CHECK_BREAKING_AGAINST)'
 
 .PHONY: check-proto-breaking-remote
 check-proto-breaking-remote: install-build-deps

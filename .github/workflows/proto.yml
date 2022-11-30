@@ -1,7 +1,10 @@
 name: Protobuf Checks
 
 on:
-  push
+  push:
+  pull_request:
+    branches:
+      - master
 
 jobs:
   check-proto:
@@ -19,6 +22,8 @@ jobs:
       - run: make check-proto-lint
       - run: make check-proto-format
       - run: make check-proto-breaking-remote
+      - run: BUF_CHECK_BREAKING_AGAINST="branch=master" make check-proto-breaking-remote
+        if: github.event_name == 'pull_request'
       - run: make check-proto-gen
       - run: make check-proto-gen-doc
       - run: make check-proto-gen-swagger
