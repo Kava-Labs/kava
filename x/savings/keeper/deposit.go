@@ -25,7 +25,6 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	if foundDeposit {
 		deposit.Amount = deposit.Amount.Add(currDeposit.Amount...)
 		k.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
-
 	}
 
 	k.SetDeposit(ctx, deposit)

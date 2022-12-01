@@ -26,6 +26,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
+	k.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
+
 	deposit.Amount = deposit.Amount.Sub(amount)
 	if deposit.Amount.Empty() {
 		k.DeleteDeposit(ctx, deposit)
