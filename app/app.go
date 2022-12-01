@@ -524,13 +524,17 @@ func NewApp(
 
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
 
+	app.communityKeeper = communitykeeper.NewKeeper(
+		app.accountKeeper,
+		app.bankKeeper,
+	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
 		kavadistSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
-		app.distrKeeper,
+		app.communityKeeper,
 		app.loadBlockedMaccAddrs(),
 	)
 
@@ -631,10 +635,6 @@ func NewApp(
 		&hardKeeper,
 		&savingsKeeper,
 		app.distrKeeper,
-	)
-	app.communityKeeper = communitykeeper.NewKeeper(
-		app.accountKeeper,
-		app.bankKeeper,
 	)
 	app.kavamintKeeper = kavamintkeeper.NewKeeper(
 		appCodec,
