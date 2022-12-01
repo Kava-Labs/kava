@@ -24,9 +24,11 @@ For each yearly rate set in the parameters, an equivalent rate for the number of
 **example**:
 Assume `CommunityPoolInflation` is 20%, the `TotalSupply` is 1e10 tokens and `secondsSinceLastBlock` is 5 seconds. The number of tokens minted is determined to be 289 tokens.
 
-$ ({\sqrt[secondsPerYear]{1 + CommunityPoolInflation}}^{secondsSinceLastBlock} - 1)*TotalSupply $
-$ = ({\sqrt[31,536,000]{1.2}}^{5} - 1)*1e10 $
-$ \approx 289$
+```math
+({\sqrt[secondsPerYear]{1 + CommunityPoolInflation}}^{secondsSinceLastBlock} - 1)*TotalSupply
+= ({\sqrt[31,536,000]{1.2}}^{5} - 1)*1e10
+\approx 289
+```
 
 ## Staking Reward Distribution
 
