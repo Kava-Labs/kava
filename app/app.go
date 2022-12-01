@@ -634,7 +634,7 @@ func NewApp(
 		&app.liquidKeeper,
 		&hardKeeper,
 		&savingsKeeper,
-		app.distrKeeper,
+		communitytypes.ModuleAccountName,
 	)
 	app.kavamintKeeper = kavamintkeeper.NewKeeper(
 		appCodec,
