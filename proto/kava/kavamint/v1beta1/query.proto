@@ -35,5 +35,8 @@ message QueryInflationRequest {}
 message QueryInflationResponse {
   // inflation is the current minting inflation value.
   // example "0.990000000000000000" - 99% inflation
-  bytes inflation = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  bytes inflation = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }

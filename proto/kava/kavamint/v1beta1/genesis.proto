@@ -14,5 +14,8 @@ message GenesisState {
 
   // PreviousBlockTime holds the last last time tokens were minted.
   // On first block, tokens will be minted for total number of seconds passed since this time.
-  google.protobuf.Timestamp previous_block_time = 2 [(gogoproto.stdtime) = true, (gogoproto.nullable) = false];
+  google.protobuf.Timestamp previous_block_time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
 }
