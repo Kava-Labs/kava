@@ -933,6 +933,9 @@
       "proposals": [],
       "votes": []
     },
+    "community": {
+      "params": {}
+    },
     "crisis": {
       "constant_fee": {
         "denom": "ukava",
@@ -941,7 +944,7 @@
     },
     "distribution": {
       "params": {
-        "community_tax": "0.020000000000000000",
+        "community_tax": "0.000000000000000000",
         "base_proposer_reward": "0.010000000000000000",
         "bonus_proposer_reward": "0.040000000000000000",
         "withdraw_addr_enabled": true
@@ -2306,19 +2309,26 @@
       },
       "previous_block_time": "1970-01-01T00:00:01Z"
     },
+    "kavamint": {
+      "params": {
+        "community_pool_inflation": "0.200000000000000000",
+        "staking_rewards_apy": "0.150000000000000000"
+      },
+      "previous_block_time": "2022-05-25T17:00:00Z"
+    },
     "liquid": {
       "params": {}
     },
     "mint": {
       "minter": {
-        "inflation": "0.130000000000000000",
+        "inflation": "0.000000000000000000",
         "annual_provisions": "0.000000000000000000"
       },
       "params": {
         "mint_denom": "ukava",
         "inflation_rate_change": "0.130000000000000000",
-        "inflation_max": "0.200000000000000000",
-        "inflation_min": "0.070000000000000000",
+        "inflation_max": "0.000000000000000000",
+        "inflation_min": "0.000000000000000000",
         "goal_bonded": "0.670000000000000000",
         "blocks_per_year": "6311520"
       }
