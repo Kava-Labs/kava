@@ -1,4 +1,4 @@
-package v2
+package v3
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 	return nil
 }
 
-// MigrateEarnClaims migrates earn claims from v1 to v2
+// MigrateEarnClaims migrates earn claims from v2 to v3
 func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	newStore := prefix.NewStore(store, types.GetClaimKeyPrefix(types.CLAIM_TYPE_EARN))
 
@@ -42,7 +42,7 @@ func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 		cdc.MustUnmarshal(iterator.Value(), &c)
 
 		if err := c.Validate(); err != nil {
-			return fmt.Errorf("invalid v1 EarnClaim: %w", err)
+			return fmt.Errorf("invalid v2 EarnClaim: %w", err)
 		}
 
 		// Convert to the new Claim type
@@ -54,7 +54,7 @@ func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 		)
 
 		if err := newClaim.Validate(); err != nil {
-			return fmt.Errorf("invalid v2 EarnClaim: %w", err)
+			return fmt.Errorf("invalid v3 EarnClaim: %w", err)
 		}
 
 		// Set in the **newStore** for the new store prefix
@@ -67,7 +67,7 @@ func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 	return nil
 }
 
-// MigrateAccrualTimes migrates accrual times from v1 to v2
+// MigrateAccrualTimes migrates accrual times from v2 to v3
 func MigrateAccrualTimes(
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
@@ -92,7 +92,7 @@ func MigrateAccrualTimes(
 
 		at := types.NewAccrualTime(claimType, sourceID, blockTime)
 		if err := at.Validate(); err != nil {
-			return fmt.Errorf("invalid v2 accrual time for claim type %s: %w", claimType, err)
+			return fmt.Errorf("invalid v3 accrual time for claim type %s: %w", claimType, err)
 		}
 
 		// Set in the **newStore** for the new store prefix
@@ -106,7 +106,7 @@ func MigrateAccrualTimes(
 	return nil
 }
 
-// MigrateRewardIndexes migrates reward indexes from v1 to v2
+// MigrateRewardIndexes migrates reward indexes from v2 to v3
 func MigrateRewardIndexes(
 	store sdk.KVStore,
 	cdc codec.BinaryCodec,
