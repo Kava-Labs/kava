@@ -15,13 +15,15 @@ import (
 func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 
-	// Migrate earn claims
 	if err := MigrateEarnClaims(store, cdc); err != nil {
 		return err
 	}
 
-	// Migrate accrual times
 	if err := MigrateAccrualTimes(store, cdc, types.CLAIM_TYPE_EARN); err != nil {
+		return err
+	}
+
+	if err := MigrateRewardIndexes(store, cdc, types.CLAIM_TYPE_EARN); err != nil {
 		return err
 	}
 
@@ -87,9 +89,7 @@ func MigrateAccrualTimes(
 		}
 
 		sourceID := string(iterator.Key())
-		fmt.Printf("iterator key '%b'", iterator.Key())
 
-		fmt.Printf("migrating accrual time for claim type %s, source id %v: %s", claimType, sourceID, blockTime)
 		at := types.NewAccrualTime(claimType, sourceID, blockTime)
 		if err := at.Validate(); err != nil {
 			return fmt.Errorf("invalid v2 accrual time for claim type %s: %w", claimType, err)
