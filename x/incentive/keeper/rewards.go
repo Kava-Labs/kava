@@ -29,12 +29,25 @@ func (k Keeper) AccumulateRewards(
 
 // InitializeClaim creates a new claim with zero rewards and indexes matching
 // the global indexes. If the claim already exists it just updates the indexes.
+// This sets the claim in the store.
 func (k Keeper) InitializeClaim(
 	ctx sdk.Context,
 	claimType types.ClaimType,
 	sourceID string,
 	owner sdk.AccAddress,
 ) {
+	claim := k.initializeClaim(ctx, claimType, sourceID, owner)
+	k.Store.SetClaim(ctx, claim)
+}
+
+// initializeClaim creates a new claim with zero rewards and indexes matching
+// the global indexes. If the claim already exists it just updates the indexes.
+func (k Keeper) initializeClaim(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	sourceID string,
+	owner sdk.AccAddress,
+) types.Claim {
 	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
 		claim = types.NewClaim(claimType, owner, sdk.Coins{}, nil)
@@ -46,7 +59,7 @@ func (k Keeper) InitializeClaim(
 	}
 
 	claim.RewardIndexes = claim.RewardIndexes.With(sourceID, globalRewardIndexes)
-	k.Store.SetClaim(ctx, claim)
+	return claim
 }
 
 // SynchronizeClaim updates the claim object by adding any accumulated rewards
@@ -60,10 +73,13 @@ func (k Keeper) SynchronizeClaim(
 ) {
 	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
-		return
+		// If this is a new claim, initialize the claim to the current global indexes
+		claim = k.initializeClaim(ctx, claimType, sourceID, owner)
+	} else {
+		// Otherwise, update the claim with any new rewards and the new global indexes
+		claim = k.synchronizeClaim(ctx, claim, sourceID, owner, shares)
 	}
 
-	claim = k.synchronizeClaim(ctx, claim, sourceID, owner, shares)
 	k.Store.SetClaim(ctx, claim)
 }
 

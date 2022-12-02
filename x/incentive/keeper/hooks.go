@@ -171,14 +171,24 @@ func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, deposit
 
 // ------------------- Savings Module Hooks -------------------
 
-// AfterSavingsDepositCreated function that runs after a deposit is created
+// AfterSavingsDepositCreated function that runs after a deposit is created.
+// There is only 1 savings Deposit object per account, so all of the Deposit
+// coins passed in are new and should be initialized.
 func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, deposit savingstypes.Deposit) {
 	for _, coin := range deposit.Amount {
-		h.k.InitializeClaim(ctx, types.CLAIM_TYPE_SAVINGS, coin.Denom, deposit.Depositor)
+		h.k.SynchronizeClaim(
+			ctx,
+			types.CLAIM_TYPE_SAVINGS,
+			coin.Denom,
+			deposit.Depositor,
+			coin.Amount.ToDec(),
+		)
 	}
 }
 
-// BeforeSavingsDepositModified function that runs before a deposit is modified
+// BeforeSavingsDepositModified function that runs before a deposit is modified.
+// This may include a mix of new and old coins, so we need to sync the old coins
+// and initialize the new coins.
 func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit) {
 	for _, coin := range deposit.Amount {
 		h.k.SynchronizeClaim(
