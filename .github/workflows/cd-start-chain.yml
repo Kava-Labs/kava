@@ -1,0 +1,31 @@
+name: Start Chain
+
+on:
+  workflow_call:
+    inputs:
+      chain-id:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+    secrets:
+      CI_AWS_KEY_ID:
+        required: true
+      CI_AWS_KEY_SECRET:
+        required: true
+
+jobs:
+  # allow nodes to start processing requests from users
+  serve-traffic:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: bring the chain online
+        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/exit-standby-all-chain-nodes.sh
+        env:
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}

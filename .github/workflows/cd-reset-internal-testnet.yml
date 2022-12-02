@@ -1,0 +1,36 @@
+name: Reset Internal Testnet
+
+on:
+  workflow_call:
+    inputs:
+      chain-id:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+    secrets:
+      CI_AWS_KEY_ID:
+        required: true
+      CI_AWS_KEY_SECRET:
+        required: true
+
+# in order:
+# enter standby (prevents autoscaling group from killing node during deploy)
+# stop kava
+# take ebs + zfs snapshots
+# download updated binary and genesis
+# reset application database state (only done on internal testnet)
+jobs:
+  place-chain-nodes-on-standby:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: take the chain offline
+        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/put-all-chain-nodes-on-standby.sh
+        env:
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}

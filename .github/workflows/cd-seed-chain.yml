@@ -1,0 +1,11 @@
+name: Seed Chain
+
+on:
+  workflow_call:
+
+jobs:
+  no-op:
+    runs-on: ubuntu-latest
+    steps:
+      - name: no-op
+        run: echo "Hello World"
