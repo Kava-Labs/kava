@@ -44,7 +44,7 @@ func NewKeeper(
 }
 
 // SetHooks adds hooks to the keeper.
-func (k *Keeper) SetHooks(hooks types.MultiSavingsHooks) *Keeper {
+func (k *Keeper) SetHooks(hooks types.SavingsHooks) *Keeper {
 	if k.hooks != nil {
 		panic("cannot set savings hooks twice")
 	}

@@ -22,3 +22,8 @@ func (k Keeper) BeforeSavingsDepositModified(ctx sdk.Context, deposit types.Depo
 		k.hooks.BeforeSavingsDepositModified(ctx, deposit, incomingDenoms)
 	}
 }
+
+// ClearHooks clears the hooks on the keeper
+func (k *Keeper) ClearHooks() {
+	k.hooks = nil
+}

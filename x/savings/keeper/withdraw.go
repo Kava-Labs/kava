@@ -26,7 +26,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
-	k.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
+	// No new coins are added to the deposit, so we pass nil to incomingDenoms
+	k.BeforeSavingsDepositModified(ctx, deposit, nil)
 
 	deposit.Amount = deposit.Amount.Sub(amount)
 	if deposit.Amount.Empty() {

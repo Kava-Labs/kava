@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -19,17 +21,24 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		return err
 	}
 
-	currDeposit, foundDeposit := k.GetDeposit(ctx, depositor)
-
-	deposit := types.NewDeposit(depositor, coins)
+	deposit, foundDeposit := k.GetDeposit(ctx, depositor)
 	if foundDeposit {
-		deposit.Amount = deposit.Amount.Add(currDeposit.Amount...)
+		// Call hook with the **old** deposit and the new denoms
+		fmt.Printf("BeforeSavingsDepositModified(ctx, %v %v)\n", deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
 		k.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
+
+		// Update existing deposit with new coins
+		deposit.Amount = deposit.Amount.Add(coins...)
+	} else {
+		// Create new deposit with the provided coins
+		deposit = types.NewDeposit(depositor, coins)
 	}
 
+	fmt.Printf("SetDeposit: %v\n", deposit)
 	k.SetDeposit(ctx, deposit)
 
 	if !foundDeposit {
+		fmt.Printf("AfterSavingsDepositCreated: %v\n", deposit)
 		k.AfterSavingsDepositCreated(ctx, deposit)
 	}
 
