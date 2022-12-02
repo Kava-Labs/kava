@@ -46,7 +46,7 @@ func (suite *StoreMigrateTestSuite) SetupTest() {
 func (suite *StoreMigrateTestSuite) TestMigrateEarnClaims() {
 	store := suite.Ctx.KVStore(suite.storeKey)
 
-	// Create v1 earn claims
+	// Create v2 earn claims
 	claim1 := types.NewEarnClaim(
 		suite.Addrs[0],
 		sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
@@ -96,7 +96,7 @@ func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
 	vaultDenom1 := "ukava"
 	vaultDenom2 := "usdc"
 
-	// Create v1 accrual times
+	// Create v2 accrual times
 	accrualTime1 := time.Now()
 	accrualTime2 := time.Now().Add(time.Hour * 24)
 	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom1, accrualTime1)
