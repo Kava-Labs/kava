@@ -221,9 +221,7 @@ func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddre
 		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
 	}
 
-	k.SynchronizeSavingsClaim(ctx, owner)
-
-	syncedClaim, found := k.GetSavingsClaim(ctx, owner)
+	syncedClaim, found := k.GetSynchronizedClaim(ctx, types.CLAIM_TYPE_SAVINGS, owner)
 	if !found {
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
@@ -244,14 +242,14 @@ func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddre
 
 	// remove claimed coins (NOT reward coins)
 	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
-	k.SetSavingsClaim(ctx, syncedClaim)
+	k.Store.SetClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeClaim,
 			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
 			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.Type.String()),
 		),
 	)
 	return nil
