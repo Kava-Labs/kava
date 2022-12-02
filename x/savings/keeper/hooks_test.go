@@ -42,7 +42,6 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor_1.GetAddress(), cs(deposit0)),
-		[]string{deposit1.Denom},
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -64,7 +63,6 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor_1.GetAddress(), cs(deposit0, deposit1)),
-		nil, // Deposit to existing denom
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -72,8 +70,6 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		cs(deposit2),
 	)
 	suite.Require().NoError(err)
-
-	suite.FailNow("meow")
 
 	depositor_2 := suite.CreateAccountWithAddress(
 		sdk.AccAddress("depositor 2---------"),
@@ -87,7 +83,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 	savingsHooks.On(
 		"AfterSavingsDepositCreated",
 		suite.ctx,
-		types.NewDeposit(depositor_1.GetAddress(), cs(deposit0)),
+		types.NewDeposit(depositor_2.GetAddress(), cs(deposit0)),
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -101,7 +97,6 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor_2.GetAddress(), cs(deposit0)),
-		[]string{deposit1.Denom},
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -117,8 +112,8 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 	// third deposit into pool calls BeforeSavingsDepositModified with shares from last deposit
 	savingsHooks.On(
 		"BeforeSavingsDepositModified",
-		types.NewDeposit(depositor_2.GetAddress(), cs(deposit0, deposit1)),
-		[]string{deposit2.Denom},
+		suite.ctx,
+		accDeposit,
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -134,8 +129,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 	savingsHooks.On(
 		"BeforeSavingsDepositModified",
 		suite.ctx,
-		types.NewDeposit(depositor_1.GetAddress(), cs(deposit0, deposit1, deposit2)),
-		nil, // No new coins added
+		accDeposit,
 	).Once()
 	err = suite.keeper.Withdraw(
 		suite.ctx,
@@ -154,8 +148,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 	savingsHooks.On(
 		"BeforeSavingsDepositModified",
 		suite.ctx,
-		types.NewDeposit(depositor_2.GetAddress(), cs(deposit0, deposit1, deposit2)),
-		nil,
+		accDeposit,
 	).Once()
 	err = suite.keeper.Withdraw(suite.ctx, depositor_2.GetAddress(), cs(partialWithdraw1))
 	suite.Require().NoError(err)
@@ -169,8 +162,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 	savingsHooks.On(
 		"BeforeSavingsDepositModified",
 		suite.ctx,
-		types.NewDeposit(depositor_2.GetAddress(), cs(deposit0, deposit1, deposit2.Sub(partialWithdraw2))),
-		nil,
+		accDeposit,
 	).Once()
 	err = suite.keeper.Withdraw(
 		suite.ctx,
@@ -186,8 +178,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 	savingsHooks.On(
 		"BeforeSavingsDepositModified",
 		suite.ctx,
-		types.NewDeposit(depositor_2.GetAddress(), cs(deposit0, deposit1, deposit2.Sub(partialWithdraw1).Sub(partialWithdraw2))),
-		nil,
+		accDeposit,
 	).Once()
 	err = suite.keeper.Withdraw(
 		suite.ctx,
@@ -282,11 +273,10 @@ func (suite *KeeperTestSuite) TestHooks_HookOrdering() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor.GetAddress(), cs(depositA)),
-		[]string{depositB.Denom},
 	).Run(func(args mock.Arguments) {
 		accDeposit, found := suite.keeper.GetDeposit(suite.ctx, depositor.GetAddress())
 		suite.Require().True(found, "expected share record to exist")
-		suite.Equal(depositB, accDeposit.Amount.AmountOf(denom1), "expected hook to be called before shares are updated")
+		suite.Equal(depositA.Amount, accDeposit.Amount.AmountOf(denom0), "expected hook to be called before shares are updated")
 	})
 	err = suite.keeper.Deposit(suite.ctx, depositor.GetAddress(), cs(depositB))
 	suite.Require().NoError(err)
@@ -296,8 +286,7 @@ func (suite *KeeperTestSuite) TestHooks_HookOrdering() {
 	savingsHooks.On(
 		"BeforeSavingsDepositModified",
 		suite.ctx,
-		types.NewDeposit(depositor.GetAddress(), cs(depositA)),
-		[]string{depositB.Denom},
+		types.NewDeposit(depositor.GetAddress(), cs(depositA, depositB)),
 	).Run(func(args mock.Arguments) {
 		accDeposit, found := suite.keeper.GetDeposit(suite.ctx, depositor.GetAddress())
 		suite.Require().True(found, "expected share record to exist")

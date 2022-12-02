@@ -29,7 +29,7 @@ type AccountKeeper interface {
 // SavingsHooks event hooks for other keepers to run code in response to Savings modifications
 type SavingsHooks interface {
 	AfterSavingsDepositCreated(ctx sdk.Context, deposit Deposit)
-	BeforeSavingsDepositModified(ctx sdk.Context, deposit Deposit, incomingDenoms []string)
+	BeforeSavingsDepositModified(ctx sdk.Context, deposit Deposit)
 }
 
 type LiquidKeeper interface {

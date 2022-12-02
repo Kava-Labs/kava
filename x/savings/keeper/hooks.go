@@ -17,9 +17,9 @@ func (k Keeper) AfterSavingsDepositCreated(ctx sdk.Context, deposit types.Deposi
 }
 
 // BeforeSavingsDepositModified - call hook if registered
-func (k Keeper) BeforeSavingsDepositModified(ctx sdk.Context, deposit types.Deposit, incomingDenoms []string) {
+func (k Keeper) BeforeSavingsDepositModified(ctx sdk.Context, deposit types.Deposit) {
 	if k.hooks != nil {
-		k.hooks.BeforeSavingsDepositModified(ctx, deposit, incomingDenoms)
+		k.hooks.BeforeSavingsDepositModified(ctx, deposit)
 	}
 }
 

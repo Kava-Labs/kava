@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -23,9 +21,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 
 	deposit, foundDeposit := k.GetDeposit(ctx, depositor)
 	if foundDeposit {
-		// Call hook with the **old** deposit and the new denoms
-		fmt.Printf("BeforeSavingsDepositModified(ctx, %v %v)\n", deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
-		k.BeforeSavingsDepositModified(ctx, deposit, setDifference(getDenoms(coins), getDenoms(deposit.Amount)))
+		// Call hook with the deposit before it is modified
+		k.BeforeSavingsDepositModified(ctx, deposit)
 
 		// Update existing deposit with new coins
 		deposit.Amount = deposit.Amount.Add(coins...)
@@ -34,11 +31,9 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		deposit = types.NewDeposit(depositor, coins)
 	}
 
-	fmt.Printf("SetDeposit: %v\n", deposit)
 	k.SetDeposit(ctx, deposit)
 
 	if !foundDeposit {
-		fmt.Printf("AfterSavingsDepositCreated: %v\n", deposit)
 		k.AfterSavingsDepositCreated(ctx, deposit)
 	}
 
@@ -85,12 +80,4 @@ func setDifference(a, b []string) (diff []string) {
 		}
 	}
 	return
-}
-
-func getDenoms(coins sdk.Coins) []string {
-	denoms := []string{}
-	for _, coin := range coins {
-		denoms = append(denoms, coin.Denom)
-	}
-	return denoms
 }

@@ -19,9 +19,9 @@ func (_m *SavingsHooks) AfterSavingsDepositCreated(ctx types.Context, deposit sa
 	_m.Called(ctx, deposit)
 }
 
-// BeforeSavingsDepositModified provides a mock function with given fields: ctx, deposit, incomingDenoms
-func (_m *SavingsHooks) BeforeSavingsDepositModified(ctx types.Context, deposit savingstypes.Deposit, incomingDenoms []string) {
-	_m.Called(ctx, deposit, incomingDenoms)
+// BeforeSavingsDepositModified provides a mock function with given fields: ctx, deposit
+func (_m *SavingsHooks) BeforeSavingsDepositModified(ctx types.Context, deposit savingstypes.Deposit) {
+	_m.Called(ctx, deposit)
 }
 
 type mockConstructorTestingTNewSavingsHooks interface {

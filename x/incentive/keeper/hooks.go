@@ -179,15 +179,14 @@ func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, deposit savingstypes.
 }
 
 // BeforeSavingsDepositModified function that runs before a deposit is modified
-func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit, incomingDenoms []string) {
-	// h.k.SynchronizeSavingsReward(ctx, deposit, incomingDenoms)
-	for _, coin := range incomingDenoms {
+func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit) {
+	for _, coin := range deposit.Amount {
 		h.k.SynchronizeClaim(
 			ctx,
 			types.CLAIM_TYPE_SAVINGS,
-			coin,
+			coin.Denom,
 			deposit.Depositor,
-			deposit.Amount.AmountOf(coin).ToDec(),
+			coin.Amount.ToDec(),
 		)
 	}
 }
