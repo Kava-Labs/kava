@@ -12,7 +12,7 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/stretchr/testify/suite"
 
-	v2 "github.com/kava-labs/kava/x/incentive/migrations/v2"
+	v3 "github.com/kava-labs/kava/x/incentive/migrations/v3"
 )
 
 type StoreMigrateTestSuite struct {
@@ -71,7 +71,7 @@ func (suite *StoreMigrateTestSuite) TestMigrateEarnClaims() {
 	suite.keeper.SetEarnClaim(suite.Ctx, claim2)
 
 	// Run earn claim migrations
-	err := v2.MigrateEarnClaims(store, suite.cdc)
+	err := v3.MigrateEarnClaims(store, suite.cdc)
 	suite.Require().NoError(err)
 
 	// Check that the claim was migrated correctly
@@ -103,7 +103,7 @@ func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
 	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom2, accrualTime2)
 
 	// Run accrual time migrations
-	err := v2.MigrateAccrualTimes(store, suite.cdc, types.CLAIM_TYPE_EARN)
+	err := v3.MigrateAccrualTimes(store, suite.cdc, types.CLAIM_TYPE_EARN)
 	suite.Require().NoError(err)
 
 	// Check that the accrual time was migrated correctly
@@ -139,7 +139,7 @@ func (suite *StoreMigrateTestSuite) TestMigrateRewardIndexes() {
 	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom1, rewardIndexes1)
 	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom2, rewardIndexes2)
 
-	err := v2.MigrateRewardIndexes(store, suite.cdc, types.CLAIM_TYPE_EARN)
+	err := v3.MigrateRewardIndexes(store, suite.cdc, types.CLAIM_TYPE_EARN)
 	suite.Require().NoError(err)
 
 	newRewardIndexes1, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom1)

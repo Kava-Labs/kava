@@ -11,7 +11,7 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// MigrateStore performs in-place migrations from incentive ConsensusVersion 1 to 2.
+// MigrateStore performs in-place migrations from incentive ConsensusVersion 2 to 3.
 func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
 
