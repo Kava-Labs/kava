@@ -17,7 +17,7 @@ type MintGenesisBuilder struct {
 
 var _ GenesisBuilder = (*MintGenesisBuilder)(nil)
 
-func NewMintGenesisBuilder() MintGenesisBuilder {
+func newMintGenesisBuilder() MintGenesisBuilder {
 	gen := minttypes.DefaultGenesisState()
 	gen.Params.MintDenom = "ukava"
 

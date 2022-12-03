@@ -63,12 +63,6 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) SetupTest() {
 
 	stakingBuilder := testutil.NewStakingGenesisBuilder()
 
-	mintBuilder := testutil.NewMintGenesisBuilder().
-		WithInflationMax(sdk.ZeroDec()).
-		WithInflationMin(sdk.ZeroDec()).
-		WithMinter(sdk.ZeroDec(), sdk.ZeroDec()).
-		WithMintDenom("ukava")
-
 	kavamintBuilder := testutil.NewKavamintGenesisBuilder().
 		WithStakingRewardsApy(sdk.MustNewDecFromStr("0.2")).
 		WithPreviousBlockTime(suite.GenesisTime)
@@ -79,7 +73,6 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) SetupTest() {
 		savingsBuilder,
 		earnBuilder,
 		stakingBuilder,
-		mintBuilder,
 		kavamintBuilder,
 	)
 }
