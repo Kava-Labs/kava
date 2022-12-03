@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -92,11 +91,6 @@ type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
 	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
-}
-
-// MintKeeper defines the required methods needed by this modules keeper
-type MintKeeper interface {
-	GetMinter(ctx sdk.Context) (minter minttypes.Minter)
 }
 
 // KavamintKeeper defines the required methods needed by this modules keeper

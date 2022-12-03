@@ -18,8 +18,6 @@ import (
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	distkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -44,6 +42,7 @@ import (
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavamintkeeper "github.com/kava-labs/kava/x/kavamint/keeper"
+	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
@@ -98,7 +97,6 @@ func (tApp TestApp) GetAccountKeeper() authkeeper.AccountKeeper { return tApp.ac
 func (tApp TestApp) GetBankKeeper() bankkeeper.Keeper           { return tApp.bankKeeper }
 func (tApp TestApp) GetStakingKeeper() stakingkeeper.Keeper     { return tApp.stakingKeeper }
 func (tApp TestApp) GetSlashingKeeper() slashingkeeper.Keeper   { return tApp.slashingKeeper }
-func (tApp TestApp) GetMintKeeper() mintkeeper.Keeper           { return tApp.mintKeeper }
 func (tApp TestApp) GetDistrKeeper() distkeeper.Keeper          { return tApp.distrKeeper }
 func (tApp TestApp) GetGovKeeper() govkeeper.Keeper             { return tApp.govKeeper }
 func (tApp TestApp) GetCrisisKeeper() crisiskeeper.Keeper       { return tApp.crisisKeeper }
@@ -212,11 +210,11 @@ func (tApp TestApp) GetModuleAccountBalance(ctx sdk.Context, moduleName string, 
 
 // FundAccount is a utility function that funds an account by minting and sending the coins to the address.
 func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
-	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
+	if err := tApp.bankKeeper.MintCoins(ctx, kavaminttypes.ModuleAccountName, amounts); err != nil {
 		return err
 	}
 
-	return tApp.bankKeeper.SendCoinsFromModuleToAccount(ctx, minttypes.ModuleName, addr, amounts)
+	return tApp.bankKeeper.SendCoinsFromModuleToAccount(ctx, kavaminttypes.ModuleAccountName, addr, amounts)
 }
 
 // NewQueryServerTestHelper creates a new QueryServiceTestHelper that wraps the provided sdk.Context.
@@ -226,11 +224,11 @@ func (tApp TestApp) NewQueryServerTestHelper(ctx sdk.Context) *baseapp.QueryServ
 
 // FundModuleAccount is a utility function that funds a module account by minting and sending the coins to the address.
 func (tApp TestApp) FundModuleAccount(ctx sdk.Context, recipientMod string, amounts sdk.Coins) error {
-	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
+	if err := tApp.bankKeeper.MintCoins(ctx, kavaminttypes.ModuleAccountName, amounts); err != nil {
 		return err
 	}
 
-	return tApp.bankKeeper.SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, recipientMod, amounts)
+	return tApp.bankKeeper.SendCoinsFromModuleToModule(ctx, kavaminttypes.ModuleAccountName, recipientMod, amounts)
 }
 
 // CreateNewUnbondedValidator creates a new validator in the staking module.

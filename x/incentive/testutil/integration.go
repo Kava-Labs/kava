@@ -68,13 +68,6 @@ func (suite *IntegrationTester) WithGenesisTime(genesisTime time.Time) {
 }
 
 func (suite *IntegrationTester) StartChainWithBuilders(builders ...GenesisBuilder) {
-	noMintInflation := newMintGenesisBuilder().
-		WithInflationMax(sdk.ZeroDec()).
-		WithInflationMin(sdk.ZeroDec()).
-		WithMinter(sdk.ZeroDec(), sdk.ZeroDec()).
-		WithMintDenom("ukava")
-	builders = append(builders, noMintInflation)
-
 	var builtGenStates []app.GenesisState
 	for _, builder := range builders {
 		builtGenStates = append(builtGenStates, builder.BuildMarshalled(suite.App.AppCodec()))
