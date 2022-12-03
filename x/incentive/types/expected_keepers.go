@@ -99,6 +99,11 @@ type MintKeeper interface {
 	GetMinter(ctx sdk.Context) (minter minttypes.Minter)
 }
 
+// KavamintKeeper defines the required methods needed by this modules keeper
+type KavamintKeeper interface {
+	GetStakingApy(ctx sdk.Context) sdk.Dec
+}
+
 // DistrKeeper defines the required methods needed by this modules keeper
 type DistrKeeper interface {
 	GetCommunityTax(ctx sdk.Context) (percent sdk.Dec)

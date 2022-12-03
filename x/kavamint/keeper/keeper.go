@@ -87,6 +87,12 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSpace.SetParamSet(ctx, &params)
 }
 
+// GetStakingApy returns the APY minted for staking rewards
+func (k Keeper) GetStakingApy(ctx sdk.Context) sdk.Dec {
+	params := k.GetParams(ctx)
+	return params.StakingRewardsApy
+}
+
 // BondDenom implements an alias call to the underlying staking keeper's BondDenom.
 func (k Keeper) BondDenom(ctx sdk.Context) string {
 	return k.stakingKeeper.BondDenom(ctx)

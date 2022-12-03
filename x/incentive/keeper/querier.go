@@ -422,18 +422,8 @@ func queryGetAPYs(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 
 // GetStakingAPR returns the total APR for staking and incentive rewards
 func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, error) {
-	// Get staking APR + incentive APR
-	inflationRate := k.mintKeeper.GetMinter(ctx).Inflation
-	communityTax := k.distrKeeper.GetCommunityTax(ctx)
-
-	bondedTokens := k.stakingKeeper.TotalBondedTokens(ctx)
-	circulatingSupply := k.bankKeeper.GetSupply(ctx, types.BondDenom)
-
-	// Staking APR = (Inflation Rate * (1 - Community Tax)) / (Bonded Tokens / Circulating Supply)
-	stakingAPR := inflationRate.
-		Mul(sdk.OneDec().Sub(communityTax)).
-		Quo(bondedTokens.ToDec().
-			Quo(circulatingSupply.Amount.ToDec()))
+	// Get staking APR
+	stakingAPR := k.kavamintKeeper.GetStakingApy(ctx)
 
 	// Get incentive APR
 	bkavaRewardPeriod, found := params.EarnRewardPeriods.GetMultiRewardPeriod(liquidtypes.DefaultDerivativeDenom)

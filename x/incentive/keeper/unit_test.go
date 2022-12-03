@@ -79,7 +79,7 @@ func (suite *unitTester) NewKeeper(
 	return keeper.NewKeeper(
 		suite.cdc, suite.incentiveStoreKey, paramSubspace,
 		bk, cdpk, hk, ak, stk, swk, svk, lqk, ek,
-		nil, nil, nil,
+		nil, nil, nil, nil,
 	)
 }
 
@@ -160,6 +160,7 @@ type TestKeeperBuilder struct {
 	earnKeeper    types.EarnKeeper
 
 	// Keepers used for APY queries
+	kavamintKeeper  types.KavamintKeeper
 	mintKeeper      types.MintKeeper
 	distrKeeper     types.DistrKeeper
 	pricefeedKeeper types.PricefeedKeeper
@@ -216,6 +217,11 @@ func (tk *TestKeeperBuilder) WithMintKeeper(k types.MintKeeper) *TestKeeperBuild
 	return tk
 }
 
+func (tk *TestKeeperBuilder) WithKavamintKeeper(k types.KavamintKeeper) *TestKeeperBuilder {
+	tk.kavamintKeeper = k
+	return tk
+}
+
 func (tk *TestKeeperBuilder) WithEarnKeeper(k types.EarnKeeper) *TestKeeperBuilder {
 	tk.earnKeeper = k
 	return tk
@@ -231,7 +237,7 @@ func (tk *TestKeeperBuilder) Build() keeper.Keeper {
 		tk.cdc, tk.key, tk.paramSubspace,
 		tk.bankKeeper, tk.cdpKeeper, tk.hardKeeper, tk.accountKeeper,
 		tk.stakingKeeper, tk.swapKeeper, tk.savingsKeeper, tk.liquidKeeper,
-		tk.earnKeeper, tk.mintKeeper, tk.distrKeeper, tk.pricefeedKeeper,
+		tk.earnKeeper, tk.mintKeeper, tk.distrKeeper, tk.pricefeedKeeper, tk.kavamintKeeper,
 	)
 }
 
@@ -666,6 +672,31 @@ func (k *fakeMintKeeper) setMinter(minter minttypes.Minter) *fakeMintKeeper {
 
 func (k *fakeMintKeeper) GetMinter(ctx sdk.Context) (minter minttypes.Minter) {
 	return k.minter
+}
+
+type fakeKavamintKeeper struct {
+	stakingApy         sdk.Dec
+	communityInflation sdk.Dec
+}
+
+var _ types.KavamintKeeper = newFakeKavamintKeeper()
+
+func newFakeKavamintKeeper() *fakeKavamintKeeper {
+	return &fakeKavamintKeeper{}
+}
+
+func (k *fakeKavamintKeeper) setStakingApy(apy sdk.Dec) *fakeKavamintKeeper {
+	k.stakingApy = apy
+	return k
+}
+
+func (k *fakeKavamintKeeper) setCommunityInflation(inflation sdk.Dec) *fakeKavamintKeeper {
+	k.communityInflation = inflation
+	return k
+}
+
+func (k *fakeKavamintKeeper) GetStakingApy(ctx sdk.Context) (apy sdk.Dec) {
+	return k.stakingApy
 }
 
 type fakePricefeedKeeper struct {
