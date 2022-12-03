@@ -1,6 +1,8 @@
 package testutil
 
 import (
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
@@ -37,4 +39,21 @@ func (builder KavamintGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.G
 	return app.GenesisState{
 		kavaminttypes.ModuleName: cdc.MustMarshalJSON(&built),
 	}
+}
+
+func (builder KavamintGenesisBuilder) WithPreviousBlockTime(t time.Time) KavamintGenesisBuilder {
+	builder.PreviousBlockTime = t
+	return builder
+}
+
+func (builder KavamintGenesisBuilder) WithStakingRewardsApy(apy sdk.Dec) KavamintGenesisBuilder {
+	builder.Params.StakingRewardsApy = apy
+	return builder
+}
+
+func (builder KavamintGenesisBuilder) WithCommunityPoolInflation(
+	inflation sdk.Dec,
+) KavamintGenesisBuilder {
+	builder.Params.CommunityPoolInflation = inflation
+	return builder
 }
