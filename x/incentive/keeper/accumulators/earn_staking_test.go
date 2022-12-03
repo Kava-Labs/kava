@@ -64,10 +64,14 @@ func (suite *EarnAccumulatorStakingRewardsTestSuite) SetupTest() {
 	stakingBuilder := testutil.NewStakingGenesisBuilder()
 
 	mintBuilder := testutil.NewMintGenesisBuilder().
-		WithInflationMax(sdk.OneDec()).
-		WithInflationMin(sdk.OneDec()).
-		WithMinter(sdk.OneDec(), sdk.ZeroDec()).
+		WithInflationMax(sdk.ZeroDec()).
+		WithInflationMin(sdk.ZeroDec()).
+		WithMinter(sdk.ZeroDec(), sdk.ZeroDec()).
 		WithMintDenom("ukava")
+
+	kavamintBuilder := testutil.NewKavamintGenesisBuilder().
+		WithStakingRewardsApy(sdk.MustNewDecFromStr("0.2")).
+		WithPreviousBlockTime(suite.GenesisTime)
 
 	suite.StartChainWithBuilders(
 		authBuilder,
@@ -76,6 +80,7 @@ func (suite *EarnAccumulatorStakingRewardsTestSuite) SetupTest() {
 		earnBuilder,
 		stakingBuilder,
 		mintBuilder,
+		kavamintBuilder,
 	)
 }
 
@@ -136,6 +141,7 @@ func (suite *EarnAccumulatorStakingRewardsTestSuite) TestStakingRewardsDistribut
 
 	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom1, suite.Ctx.BlockTime())
 	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom2, suite.Ctx.BlockTime())
+	suite.App.GetKavamintKeeper().SetPreviousBlockTime(suite.Ctx, suite.Ctx.BlockTime())
 
 	val := suite.GetAbciValidator(suite.valAddrs[0])
 

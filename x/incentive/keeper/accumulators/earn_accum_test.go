@@ -66,10 +66,14 @@ func (suite *AccumulateEarnRewardsIntegrationTests) SetupTest() {
 	stakingBuilder := testutil.NewStakingGenesisBuilder()
 
 	mintBuilder := testutil.NewMintGenesisBuilder().
-		WithInflationMax(sdk.OneDec()).
-		WithInflationMin(sdk.OneDec()).
-		WithMinter(sdk.OneDec(), sdk.ZeroDec()).
+		WithInflationMax(sdk.ZeroDec()).
+		WithInflationMin(sdk.ZeroDec()).
+		WithMinter(sdk.ZeroDec(), sdk.ZeroDec()).
 		WithMintDenom("ukava")
+
+	kavamintBuilder := testutil.NewKavamintGenesisBuilder().
+		WithStakingRewardsApy(sdk.MustNewDecFromStr("0.2")).
+		WithPreviousBlockTime(suite.GenesisTime)
 
 	suite.StartChainWithBuilders(
 		authBuilder,
@@ -78,6 +82,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) SetupTest() {
 		earnBuilder,
 		stakingBuilder,
 		mintBuilder,
+		kavamintBuilder,
 	)
 }
 
@@ -316,7 +321,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor:   d("4.154285714285714285").Add(stakingRewardIndexes0),
+			RewardFactor:   d("4.154285714285714286").Add(stakingRewardIndexes0),
 		},
 	})
 
