@@ -223,11 +223,13 @@ func (action MsgEVMCall) Decode() ([]interface{}, error) {
 	}
 
 	for _, v := range d.Methods {
+		// validate the first 4 bytes of data with method signature
 		if !bytes.Equal(v.ID, data[:4]) {
 			return nil, fmt.Errorf("failed to validate fn signature `%s` with data `%s`", v.Sig, hexutil.Encode(data[:4]))
 		}
 
-		val, err := v.Inputs.Unpack(data[4:]) // remove first 4 bytes of function signature
+		// attempt to unpack params data by removing the first bytes of the method signature
+		val, err := v.Inputs.Unpack(data[4:])
 		if err != nil {
 			return nil, fmt.Errorf("unable to decode data: %s", err)
 		}

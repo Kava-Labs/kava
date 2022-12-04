@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/kava-labs/kava/app"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -274,7 +275,7 @@ func (suite *MsgServerSuite) TestEVMCall() {
 	userEvmAddr := common.BytesToAddress(userAddr.Bytes())
 	contractAddr := suite.DeployERC20()
 
-	authorityModule := types.ModuleName // todo: change to x/community
+	authorityModule := communitytypes.ModuleAccountName
 	authorityAct := suite.AccountKeeper.GetModuleAccount(suite.Ctx, authorityModule)
 	authorityAddr := authorityAct.GetAddress().String()
 	authorityEvmAddr := types.NewInternalEVMAddress(common.BytesToAddress(authorityAct.GetAddress().Bytes()))
@@ -307,7 +308,7 @@ func (suite *MsgServerSuite) TestEVMCall() {
 		errArgs    errArgs
 	}{
 		{
-			"valid - contract call",
+			"valid - erc20 contract transfer call",
 			types.MsgEVMCall{
 				To:        contractAddr.String(),
 				FnAbi:     validFnAbi,
@@ -330,6 +331,75 @@ func (suite *MsgServerSuite) TestEVMCall() {
 			sdk.NewInt(1000),
 			errArgs{
 				expectPass: true,
+			},
+		},
+		{
+			"valid - payable deposit",
+			types.MsgEVMCall{
+				To:     userEvmAddr.String(),
+				Amount: keeper.ConversionMultiplier.Mul(sdk.NewInt(11)),
+				FnAbi: `{
+					"inputs": [],
+					"name": "deposit",
+					"type": "function"
+				}`,
+				Data: fmt.Sprintf(
+					"0x%s",
+					"d0e30db0", // deposit()
+				),
+				Authority: authorityAddr,
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
+			"valid - extra data passed after valid fn data",
+			types.MsgEVMCall{
+				To:        contractAddr.String(),
+				FnAbi:     validFnAbi,
+				Data:      validData + "00ab",
+				Authority: authorityAddr,
+				Amount:    sdk.ZeroInt(),
+			},
+			sdk.NewInt(970),
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
+			"invalid - insufficient funds",
+			types.MsgEVMCall{
+				To:    contractAddr.String(),
+				FnAbi: validFnAbi,
+				Data: fmt.Sprintf(
+					"0x%s%s%s",
+					"a9059cbb", // transfer(address,uint256)
+					hexutil.Encode(common.LeftPadBytes(userEvmAddr.Bytes(), 32))[2:],
+					hexutil.Encode(common.LeftPadBytes(big.NewInt(2000).Bytes(), 32))[2:],
+				),
+				Authority: authorityAddr,
+				Amount:    sdk.ZeroInt(),
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "transfer amount exceeds balance",
+			},
+		},
+		{
+			"invalid - no input data",
+			types.MsgEVMCall{
+				To:        contractAddr.String(),
+				FnAbi:     validFnAbi,
+				Authority: authorityAddr,
+				Amount:    sdk.ZeroInt(),
+			},
+			sdk.NewInt(1000),
+			errArgs{
+				expectPass: false,
+				contains:   "evm transaction execution failed",
 			},
 		},
 		{
