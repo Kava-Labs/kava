@@ -49,6 +49,10 @@ func (suite *KavamintTestSuite) SetBondedTokenRatio(ratio sdk.Dec) sdk.Coins {
 	err := suite.App.FundAccount(suite.Ctx, address, totalSupply)
 	suite.Require().NoError(err)
 
+	if ratio.IsZero() {
+		return totalSupply
+	}
+
 	// create a validator with self delegation such that ratio is achieved
 	err = suite.App.CreateNewUnbondedValidator(suite.Ctx, sdk.ValAddress(address), amountToBond)
 	suite.Require().NoError(err)

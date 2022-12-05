@@ -47,7 +47,7 @@ func TestGRPCQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(abciTestSuite))
 }
 
-func (suite *abciTestSuite) TestBeginBlockerMintsExpectedTokens() {
+func (suite *abciTestSuite) Test_BeginBlocker_MintsExpectedTokens() {
 	testCases := []struct {
 		name                    string
 		blockTime               uint64
@@ -179,4 +179,19 @@ func (suite *abciTestSuite) TestBeginBlockerMintsExpectedTokens() {
 			suite.Require().Equal(ctx2.BlockTime(), endBlockTime)
 		})
 	}
+}
+
+func (suite *abciTestSuite) Test_BeginBlocker_DefaultsToBlockTime() {
+	suite.SetupTest()
+
+	// unset previous block time
+	suite.Keeper.SetPreviousBlockTime(suite.Ctx, time.Time{})
+
+	// run begin blocker
+	kavamint.BeginBlocker(suite.Ctx, suite.Keeper)
+
+	// ensure block time gets set
+	blockTime, found := suite.Keeper.GetPreviousBlockTime(suite.Ctx)
+	suite.True(found)
+	suite.Equal(suite.Ctx.BlockTime(), blockTime)
 }

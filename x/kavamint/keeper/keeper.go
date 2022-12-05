@@ -13,6 +13,30 @@ import (
 	"github.com/kava-labs/kava/x/kavamint/types"
 )
 
+type KeeperI interface {
+	GetParams(ctx sdk.Context) (params types.Params)
+	SetParams(ctx sdk.Context, params types.Params)
+
+	BondDenom(ctx sdk.Context) string
+	TotalSupply(ctx sdk.Context) sdk.Int
+	TotalBondedTokens(ctx sdk.Context) sdk.Int
+
+	MintCoins(ctx sdk.Context, newCoins sdk.Coins) error
+	AddCollectedFees(ctx sdk.Context, fees sdk.Coins) error
+	FundCommunityPool(ctx sdk.Context, funds sdk.Coins) error
+
+	GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool)
+	SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time)
+
+	CumulativeInflation(ctx sdk.Context) sdk.Dec
+	AccumulateInflation(
+		ctx sdk.Context,
+		rate sdk.Dec,
+		basis sdk.Int,
+		secondsSinceLastMint float64,
+	) (sdk.Coins, error)
+}
+
 // Keeper of the kavamint store
 type Keeper struct {
 	cdc                            codec.BinaryCodec
@@ -23,6 +47,8 @@ type Keeper struct {
 	stakingRewardsFeeCollectorName string
 	communityPoolModuleAccountName string
 }
+
+var _ KeeperI = Keeper{}
 
 // NewKeeper creates a new kavamint Keeper instance
 func NewKeeper(

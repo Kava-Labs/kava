@@ -21,13 +21,13 @@ func DefaultGenesisState() *GenesisState {
 	}
 }
 
-// ValidateGenesis validates the provided genesis state to ensure the
+// Validate validates the provided genesis state to ensure the
 // expected invariants holds.
-func ValidateGenesis(data GenesisState) error {
-	if err := data.Params.Validate(); err != nil {
+func (gs GenesisState) Validate() error {
+	if err := gs.Params.Validate(); err != nil {
 		return err
 	}
-	if data.PreviousBlockTime.IsZero() {
+	if gs.PreviousBlockTime.IsZero() {
 		return fmt.Errorf("previous block time not set")
 	}
 	return nil

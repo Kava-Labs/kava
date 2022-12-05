@@ -126,6 +126,11 @@ func (suite *InflationTestSuite) TestCalculateInflationFactor() {
 			suite.requireWithinError(tc.expectedRate, actualRate, marginOfError)
 		})
 	}
+
+	suite.Run("errors when rate is too high", func() {
+		_, err := keeper.CalculateInflationRate(types.MaxMintingRate.Add(sdk.OneDec()), 100)
+		suite.Error(err)
+	})
 }
 
 func (suite *InflationTestSuite) requireWithinError(expected, actual, margin sdk.Dec) {

@@ -9,11 +9,11 @@ import (
 )
 
 // BeginBlocker mints & distributes new tokens for the previous block.
-func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
+func BeginBlocker(ctx sdk.Context, k keeper.KeeperI) {
 	params := k.GetParams(ctx)
 	// determine seconds since last mint
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
-	if !found {
+	if !found || previousBlockTime.IsZero() {
 		previousBlockTime = ctx.BlockTime()
 	}
 	secondsPassed := ctx.BlockTime().Sub(previousBlockTime).Seconds()

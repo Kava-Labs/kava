@@ -26,8 +26,8 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, ak types.AccountKeeper, 
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
 	params := keeper.GetParams(ctx)
 	previousBlockTime, found := keeper.GetPreviousBlockTime(ctx)
-	if !found {
-		previousBlockTime = types.DefaultPreviousBlockTime
+	if !found || previousBlockTime.IsZero() {
+		previousBlockTime = ctx.BlockTime()
 	}
 	return types.NewGenesisState(params, previousBlockTime)
 }
