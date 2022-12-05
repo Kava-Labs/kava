@@ -1,4 +1,4 @@
-package hard_borrow_test
+package hard_supply_test
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_borrow"
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_supply"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -126,7 +126,7 @@ func (suite *HardBorrowAdapterTestSuite) SetupTest() {
 }
 
 func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource_Empty() {
-	adapter := hard_borrow.NewSourceAdapter(suite.app.GetHardKeeper())
+	adapter := hard_supply.NewSourceAdapter(suite.app.GetHardKeeper())
 
 	tests := []struct {
 		name          string
@@ -173,7 +173,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
 		),
 	)
 	suite.NoError(err)
@@ -182,17 +182,17 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
 		),
 	)
 	suite.NoError(err)
 
-	// Actual borrows now
+	// Borrows should not affect owner shares
 	err = hardKeeper.Borrow(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(10)),
 		),
 	)
 	suite.NoError(err)
@@ -201,12 +201,12 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(25)),
 		),
 	)
 	suite.NoError(err)
 
-	adapter := hard_borrow.NewSourceAdapter(suite.app.GetHardKeeper())
+	adapter := hard_supply.NewSourceAdapter(suite.app.GetHardKeeper())
 
 	tests := []struct {
 		name          string
@@ -258,7 +258,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 }
 
 func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource_Empty() {
-	adapter := hard_borrow.NewSourceAdapter(suite.app.GetHardKeeper())
+	adapter := hard_supply.NewSourceAdapter(suite.app.GetHardKeeper())
 
 	tests := []struct {
 		name         string
@@ -293,7 +293,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
 		),
 	)
 	suite.NoError(err)
@@ -302,16 +302,17 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
 		),
 	)
 	suite.NoError(err)
 
+	// Borrows should not affect total shares
 	err = hardKeeper.Borrow(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(10)),
 		),
 	)
 	suite.NoError(err)
@@ -320,12 +321,12 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(25)),
 		),
 	)
 	suite.NoError(err)
 
-	adapter := hard_borrow.NewSourceAdapter(suite.app.GetHardKeeper())
+	adapter := hard_supply.NewSourceAdapter(suite.app.GetHardKeeper())
 
 	tests := []struct {
 		name         string
