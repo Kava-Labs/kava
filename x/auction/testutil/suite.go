@@ -91,7 +91,7 @@ func (suite *Suite) AddCoinsToAccount(addr sdk.AccAddress, coins sdk.Coins) {
 // AddCoinsToModule adds coins to a named module account
 func (suite *Suite) AddCoinsToNamedModule(moduleName string, amount sdk.Coins) {
 	// Does not use suite.BankKeeper.MintCoins as module account would not have permission to mint
-	err := simapp.FundModuleAccount(suite.BankKeeper, suite.Ctx, moduleName, amount)
+	err := suite.App.FundModuleAccount(suite.Ctx, moduleName, amount)
 	suite.Require().NoError(err)
 }
 
