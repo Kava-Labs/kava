@@ -6,6 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/earn"
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_borrow"
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_supply"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/savings"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/swap"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -25,15 +27,18 @@ type SourceShare struct {
 // NewSourceAdapters returns a new SourceAdapters instance with all available
 // source adapters.
 func NewSourceAdapters(
+	hardKeeper types.HardKeeper,
 	swapKeeper types.SwapKeeper,
 	earnKeeper types.EarnKeeper,
 	savingsKeeper types.SavingsKeeper,
 ) SourceAdapters {
 	return SourceAdapters{
 		adapters: map[types.ClaimType]types.SourceAdapter{
-			types.CLAIM_TYPE_EARN:    earn.NewSourceAdapter(earnKeeper),
-			types.CLAIM_TYPE_SAVINGS: savings.NewSourceAdapter(savingsKeeper),
-			types.CLAIM_TYPE_SWAP:    swap.NewSourceAdapter(swapKeeper),
+			types.CLAIM_TYPE_HARD_BORROW: hard_borrow.NewSourceAdapter(hardKeeper),
+			types.CLAIM_TYPE_HARD_SUPPLY: hard_supply.NewSourceAdapter(hardKeeper),
+			types.CLAIM_TYPE_EARN:        earn.NewSourceAdapter(earnKeeper),
+			types.CLAIM_TYPE_SAVINGS:     savings.NewSourceAdapter(savingsKeeper),
+			types.CLAIM_TYPE_SWAP:        swap.NewSourceAdapter(swapKeeper),
 		},
 	}
 }

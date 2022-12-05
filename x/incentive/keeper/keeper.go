@@ -62,6 +62,7 @@ func NewKeeper(
 		earnKeeper:    ek,
 
 		Adapters: adapters.NewSourceAdapters(
+			hk,
 			swpk,
 			ek,
 			svk,
