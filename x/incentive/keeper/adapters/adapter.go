@@ -7,6 +7,7 @@ import (
 
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/earn"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_borrow"
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_supply"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/swap"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -32,6 +33,7 @@ func NewSourceAdapters(
 	return SourceAdapters{
 		adapters: map[types.ClaimType]types.SourceAdapter{
 			types.CLAIM_TYPE_HARD_BORROW: hard_borrow.NewSourceAdapter(hardKeeper),
+			types.CLAIM_TYPE_HARD_SUPPLY: hard_supply.NewSourceAdapter(hardKeeper),
 			types.CLAIM_TYPE_SWAP:        swap.NewSourceAdapter(swapKeeper),
 			types.CLAIM_TYPE_EARN:        earn.NewSourceAdapter(earnKeeper),
 		},
