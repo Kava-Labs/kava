@@ -8,7 +8,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -116,7 +115,7 @@ func (suite *KeeperTestSuite) CreateAccountWithAddress(addr sdk.AccAddress, init
 	acc := ak.NewAccountWithAddress(suite.ctx, addr)
 	ak.SetAccount(suite.ctx, acc)
 
-	err := simapp.FundAccount(suite.app.GetBankKeeper(), suite.ctx, acc.GetAddress(), initialBalance)
+	err := suite.app.FundAccount(suite.ctx, acc.GetAddress(), initialBalance)
 	suite.Require().NoError(err)
 
 	return acc
