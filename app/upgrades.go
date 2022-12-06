@@ -7,7 +7,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -28,10 +27,6 @@ func (app App) RegisterUpgradeHandlers() {
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("transferring original community pool funds to new community pool")
 			MoveCommunityPoolFunds(ctx, app.distrKeeper, app.bankKeeper)
-
-			// min & max inflation -> 0%
-			app.Logger().Info("disabling x/mint inflation")
-			DisableMintInflation(ctx, app.mintKeeper)
 
 			// community_tax -> 0%
 			app.Logger().Info("disabling x/distribution community tax")
@@ -59,6 +54,9 @@ func (app App) RegisterUpgradeHandlers() {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				kavaminttypes.StoreKey,
+			},
+			Deleted: []string{
+				minttypes.StoreKey,
 			},
 		}
 
@@ -94,17 +92,6 @@ func MoveCommunityPoolFunds(
 	feePool := distKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = leftoverDust
 	distKeeper.SetFeePool(ctx, feePool)
-}
-
-func DisableMintInflation(ctx sdk.Context, mintKeeper mintkeeper.Keeper) {
-	// set params to have min & max inflation of 0%
-	params := mintKeeper.GetParams(ctx)
-	params.InflationMax = sdk.ZeroDec()
-	params.InflationMin = sdk.ZeroDec()
-	mintKeeper.SetParams(ctx, params)
-
-	// set minter state to reflect 0% inflation
-	mintKeeper.SetMinter(ctx, minttypes.NewMinter(sdk.ZeroDec(), sdk.ZeroDec()))
 }
 
 func DisableCommunityTax(ctx sdk.Context, distrKeeper distrkeeper.Keeper) {
