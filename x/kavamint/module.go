@@ -15,6 +15,8 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"github.com/kava-labs/kava/x/kavamint/client/cli"
 	"github.com/kava-labs/kava/x/kavamint/keeper"
 	"github.com/kava-labs/kava/x/kavamint/types"
@@ -66,6 +68,8 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 
+	// add x/mint query handler for better 3rd party compatibility
+	minttypes.RegisterQueryHandlerClient(context.Background(), mux, minttypes.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns no root tx command for the kavamint module.
@@ -118,6 +122,11 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 // module-specific gRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterQueryServer(cfg.QueryServer(), am.keeper)
+
+	// register x/mint query server.
+	// x/mint was replaced by this module but we still want 3rd parties to be able to
+	// request the original sdk endpoints.
+	minttypes.RegisterQueryServer(cfg.QueryServer(), keeper.NewMintQueryServer(am.keeper))
 }
 
 // InitGenesis performs genesis initialization for the kavamint module. It returns

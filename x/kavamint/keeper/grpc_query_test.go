@@ -5,11 +5,15 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 
+	"github.com/kava-labs/kava/x/kavamint/keeper"
 	"github.com/kava-labs/kava/x/kavamint/testutil"
 	"github.com/kava-labs/kava/x/kavamint/types"
 )
@@ -17,7 +21,8 @@ import (
 type grpcQueryTestSuite struct {
 	testutil.KavamintTestSuite
 
-	queryClient types.QueryClient
+	queryClient     types.QueryClient
+	mintQueryClient minttypes.QueryClient
 }
 
 func (suite *grpcQueryTestSuite) SetupTest() {
@@ -26,6 +31,10 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, suite.Keeper)
 	suite.queryClient = types.NewQueryClient(queryHelper)
+
+	mintQueryServer := keeper.NewMintQueryServer(suite.Keeper)
+	minttypes.RegisterQueryServer(queryHelper, mintQueryServer)
+	suite.mintQueryClient = minttypes.NewQueryClient(queryHelper)
 }
 
 func TestGRPCQueryTestSuite(t *testing.T) {
@@ -116,6 +125,35 @@ func (suite *grpcQueryTestSuite) TestGRPCInflationQuery() {
 			suite.Require().NoError(err)
 			suite.Require().Equal(inflation.Inflation, kavamintKeeper.CumulativeInflation(ctx))
 			suite.Require().Equal(inflation.Inflation, tc.expectedInflation)
+
+			// ensure overridden x/mint query for inflation returns the adjusted inflation
+			// the adjusted inflation is the inflation that returns the correct staking apy for the
+			// standard staking apy calculation used by third parties:
+			// staking_apy = (inflation - community_tax) * total_supply / total_bonded
+			// => inflation = staking_apy * total_bonded / total_supply
+			expectedAdjustedInflation := tc.stakingApy.Mul(tc.bondedRatio)
+			mintQ, err := suite.mintQueryClient.Inflation(
+				context.Background(),
+				&minttypes.QueryInflationRequest{},
+			)
+			suite.NoError(err)
+			suite.Equal(expectedAdjustedInflation, mintQ.Inflation)
 		})
 	}
+}
+
+func (suite *grpcQueryTestSuite) TestUnimplementedMintQueries() {
+	suite.SetupTest()
+
+	suite.Run("Params is unimplemented", func() {
+		_, err := suite.mintQueryClient.Params(context.Background(), nil)
+		suite.Error(err)
+		suite.Equal(codes.Unimplemented, status.Code(err))
+	})
+
+	suite.Run("AnnualProvisions is unimplemented", func() {
+		_, err := suite.mintQueryClient.AnnualProvisions(context.Background(), nil)
+		suite.Error(err)
+		suite.Equal(codes.Unimplemented, status.Code(err))
+	})
 }
