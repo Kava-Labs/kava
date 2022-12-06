@@ -9,6 +9,8 @@ option go_package = "github.com/kava-labs/kava/x/kavamint/types";
 
 // GenesisState defines the kavamint module's genesis state.
 message GenesisState {
+  option (gogoproto.goproto_getters) = false;
+
   // Params defines all the parameters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
 
