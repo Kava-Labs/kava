@@ -12,7 +12,7 @@ option go_package = "github.com/kava-labs/kava/x/kavamint/types";
 service Query {
   // Params queries the parameters of x/kavamint module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/kava/kavamint/v1beta1/parameters";
+    option (google.api.http).get = "/kava/kavamint/v1beta1/params";
   }
 
   // Inflation queries x/kavamint for the overall cumulative inflation rate of KAVA.
