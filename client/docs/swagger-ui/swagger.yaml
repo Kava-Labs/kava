@@ -12033,6 +12033,101 @@ paths:
                       format: byte
       tags:
         - Savings
+  /kava/kavamint/v1beta1/inflation:
+    get:
+      summary: >-
+        Inflation queries x/kavamint for the overall cumulative inflation rate
+        of KAVA.
+      operationId: KavamintInflation
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              inflation:
+                type: string
+                title: |-
+                  inflation is the current minting inflation value.
+                  example "0.990000000000000000" - 99% inflation
+            description: >-
+              QueryInflationResponse is the response type for the
+              Query/Inflation RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Kavamint
+  /kava/kavamint/v1beta1/params:
+    get:
+      summary: Params queries the parameters of x/kavamint module.
+      operationId: KavamintParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  community_pool_inflation:
+                    type: string
+                    description: >-
+                      yearly inflation of total token supply minted to the
+                      community pool.
+                  staking_rewards_apy:
+                    type: string
+                    description: >-
+                      yearly inflation of bonded tokens minted for staking
+                      rewards to validators.
+                title: Params wraps the governance parameters for the kavamint module
+            description: >-
+              QueryParamsResponse defines the response type for querying
+              x/kavamint parameters.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Kavamint
   /node_info:
     get:
       description: Information about the connected node
@@ -57671,6 +57766,49 @@ definitions:
     description: >-
       TotalSupplyResponse defines the response type for the Query/TotalSupply
       method.
+  kava.kavamint.v1beta1.Params:
+    type: object
+    properties:
+      community_pool_inflation:
+        type: string
+        description: yearly inflation of total token supply minted to the community pool.
+      staking_rewards_apy:
+        type: string
+        description: >-
+          yearly inflation of bonded tokens minted for staking rewards to
+          validators.
+    title: Params wraps the governance parameters for the kavamint module
+  kava.kavamint.v1beta1.QueryInflationResponse:
+    type: object
+    properties:
+      inflation:
+        type: string
+        title: |-
+          inflation is the current minting inflation value.
+          example "0.990000000000000000" - 99% inflation
+    description: >-
+      QueryInflationResponse is the response type for the Query/Inflation RPC
+      method.
+  kava.kavamint.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          community_pool_inflation:
+            type: string
+            description: >-
+              yearly inflation of total token supply minted to the community
+              pool.
+          staking_rewards_apy:
+            type: string
+            description: >-
+              yearly inflation of bonded tokens minted for staking rewards to
+              validators.
+        title: Params wraps the governance parameters for the kavamint module
+    description: >-
+      QueryParamsResponse defines the response type for querying x/kavamint
+      parameters.
   CheckTxResult:
     type: object
     properties:

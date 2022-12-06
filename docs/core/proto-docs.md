@@ -5882,8 +5882,8 @@ Params wraps the governance parameters for the kavamint module
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `community_pool_inflation` | [bytes](#bytes) |  | yearly inflation of total token supply minted to the community pool. |
-| `staking_rewards_apy` | [bytes](#bytes) |  | yearly inflation of bonded tokens minted for staking rewards to validators. |
+| `community_pool_inflation` | [string](#string) |  | yearly inflation of total token supply minted to the community pool. |
+| `staking_rewards_apy` | [string](#string) |  | yearly inflation of bonded tokens minted for staking rewards to validators. |
 
 
 
@@ -5956,7 +5956,7 @@ QueryInflationResponse is the response type for the Query/Inflation RPC method.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `inflation` | [bytes](#bytes) |  | inflation is the current minting inflation value. example "0.990000000000000000" - 99% inflation |
+| `inflation` | [string](#string) |  | inflation is the current minting inflation value. example "0.990000000000000000" - 99% inflation |
 
 
 
@@ -6001,7 +6001,7 @@ Query defines the gRPC querier service for kavamint.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
-| `Params` | [QueryParamsRequest](#kava.kavamint.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavamint.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavamint module. | GET|/kava/kavamint/v1beta1/parameters|
+| `Params` | [QueryParamsRequest](#kava.kavamint.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.kavamint.v1beta1.QueryParamsResponse) | Params queries the parameters of x/kavamint module. | GET|/kava/kavamint/v1beta1/params|
 | `Inflation` | [QueryInflationRequest](#kava.kavamint.v1beta1.QueryInflationRequest) | [QueryInflationResponse](#kava.kavamint.v1beta1.QueryInflationResponse) | Inflation queries x/kavamint for the overall cumulative inflation rate of KAVA. | GET|/kava/kavamint/v1beta1/inflation|
 
  <!-- end services -->
