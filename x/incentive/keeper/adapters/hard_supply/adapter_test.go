@@ -125,46 +125,6 @@ func (suite *HardBorrowAdapterTestSuite) SetupTest() {
 	)
 }
 
-func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource_Empty() {
-	adapter := hard_supply.NewSourceAdapter(suite.app.GetHardKeeper())
-
-	tests := []struct {
-		name          string
-		giveOwner     sdk.AccAddress
-		giveSourceIDs []string
-		wantShares    map[string]sdk.Dec
-	}{
-		{
-			"empty requests",
-			suite.addrs[0],
-			[]string{},
-			map[string]sdk.Dec{},
-		},
-		{
-			"empty denoms are zero",
-			suite.addrs[0],
-			[]string{
-				"denom1",
-				"denom2",
-				"denom3",
-			},
-			map[string]sdk.Dec{
-				"denom1": sdk.ZeroDec(),
-				"denom2": sdk.ZeroDec(),
-				"denom3": sdk.ZeroDec(),
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			shares := adapter.OwnerSharesBySource(suite.ctx, tt.giveOwner, tt.giveSourceIDs)
-
-			suite.Equal(tt.wantShares, shares)
-		})
-	}
-}
-
 func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 	hardKeeper := suite.app.GetHardKeeper()
 
@@ -251,35 +211,6 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
 			shares := adapter.OwnerSharesBySource(suite.ctx, tt.giveOwner, tt.giveSourceIDs)
-
-			suite.Equal(tt.wantShares, shares)
-		})
-	}
-}
-
-func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource_Empty() {
-	adapter := hard_supply.NewSourceAdapter(suite.app.GetHardKeeper())
-
-	tests := []struct {
-		name         string
-		giveSourceID string
-		wantShares   sdk.Dec
-	}{
-		{
-			"empty/invalid denom are zero",
-			"unknown",
-			sdk.ZeroDec(),
-		},
-		{
-			"invalid request returns zero",
-			"",
-			sdk.ZeroDec(),
-		},
-	}
-
-	for _, tt := range tests {
-		suite.Run(tt.name, func() {
-			shares := adapter.TotalSharesBySource(suite.ctx, tt.giveSourceID)
 
 			suite.Equal(tt.wantShares, shares)
 		})
