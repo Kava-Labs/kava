@@ -2,6 +2,18 @@ name: Validate Internal Testnet
 
 on:
   workflow_call:
+    inputs:
+      chain-rpc-endpoint:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+    secrets:
+      CI_AWS_KEY_ID:
+        required: true
+      CI_AWS_KEY_SECRET:
+        required: true
 
 jobs:
   no-op:
