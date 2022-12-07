@@ -77,7 +77,7 @@ func (k Keeper) SynchronizeClaim(
 		claim = k.initializeClaim(ctx, claimType, sourceID, owner)
 	} else {
 		// Otherwise, update the claim with any new rewards and the new global indexes
-		claim = k.synchronizeClaim(ctx, claim, sourceID, owner, shares)
+		claim = k.synchronizeClaim(ctx, claim, sourceID, shares)
 	}
 
 	k.Store.SetClaim(ctx, claim)
@@ -88,7 +88,6 @@ func (k *Keeper) synchronizeClaim(
 	ctx sdk.Context,
 	claim types.Claim,
 	sourceID string,
-	owner sdk.AccAddress,
 	shares sdk.Dec,
 ) types.Claim {
 	globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claim.Type, sourceID)
@@ -146,7 +145,7 @@ func (k Keeper) GetSynchronizedClaim(
 
 	// Synchronize claim for each source ID
 	for _, share := range accShares {
-		claim = k.synchronizeClaim(ctx, claim, share.ID, owner, share.Shares)
+		claim = k.synchronizeClaim(ctx, claim, share.ID, share.Shares)
 	}
 
 	return claim, true
