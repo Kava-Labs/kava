@@ -5,10 +5,6 @@ on:
     workflows: [Continuous Integration (Kava Master)]
     types:
       - completed
-  push:
-    # run CI on any push to the master branch
-    branches:
-      - ls-internal-testnet-cd-pipeline
 
 jobs:
   # in order:
@@ -33,6 +29,9 @@ jobs:
     with:
       aws-region: us-east-1
       chain-id: demo_2221-17000
+      ssm-document-name: kava-demonet-node-update
+      playbook-name: start-chain-api-playbook.yml
+      playbook-infrastructure-branch: ls-deploy-testnet-for-cd-prototyping
     secrets: inherit
     needs: [reset-chain-to-zero-state]
 
@@ -41,12 +40,3 @@ jobs:
     uses: ./.github/workflows/cd-seed-chain.yml
     secrets: inherit
     needs: [start-chain-api]
-
-  # is the api up, are new blocks being created, are api canary tests passing?
-  validate-chain-state:
-    uses: ./.github/workflows/cd-validate-internal-testnet.yml
-    secrets: inherit
-    needs: [seed-chain-state]
-    with:
-      aws-region: us-east-1
-      chain-rpc-endpoint: rpc.data.demonnet.us-east.production.kava.io:443
