@@ -51,7 +51,7 @@ func TestGenesis_Validation(t *testing.T) {
 			"",
 		},
 		{
-			"vali - no time set",
+			"valid - no time set",
 			types.NewGenesisState(
 				newValidParams(t),
 				time.Time{},
