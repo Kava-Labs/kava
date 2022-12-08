@@ -2,10 +2,67 @@ name: Seed Chain
 
 on:
   workflow_call:
+    inputs:
+      chain-api-url:
+        required: true
+        type: string
+      chain-id:
+        required: true
+        type: string
+      seed-script-filename:
+        required: true
+        type: string
+    secrets:
+      DEV_WALLET_MNEMONIC:
+        required: true
 
 jobs:
-  no-op:
+  seed-chain-state:
     runs-on: ubuntu-latest
     steps:
-      - name: no-op
-        run: echo "Hello World"
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+          check-latest: true
+          cache: true
+      - name: build kava binary
+        run: make install
+      - name: checkout go evm tools repo
+        uses: actions/checkout@v3
+        with:
+          repository: ethereum/go-ethereum
+          path: go-ethereum
+      - name: install go evm tools
+        run: |
+          make
+          make devtools
+        working-directory: go-ethereum
+      - name: checkout kava bridge repo for deploying evm contracts
+        uses: actions/checkout@v3
+        with:
+          repository: Kava-Labs/kava-bridge
+          path: kava-bridge
+          ref: master
+      - name: install nodeJS
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version: 18
+          cache-dependency-path: kava-bridge/contract/package.json
+      - name: "install ERC20 contract deployment dependencies"
+        run: "npm install"
+        working-directory: kava-bridge/contract
+      - name: compile default erc20 contracts
+        run: make compile-contracts
+        working-directory: kava-bridge
+      - name: run seed scripts
+        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/${SEED_SCRIPT_FILENAME}
+        working-directory: kava-bridge/contract
+        env:
+          CHAIN_API_URL: ${{ inputs.chain-api-url }}
+          CHAIN_ID: ${{ inputs.chain-id }}
+          DEV_WALLET_MNEMONIC: ${{ secrets.DEV_WALLET_MNEMONIC }}
+          SEED_SCRIPT_FILENAME: ${{ inputs.seed-script-filename }}

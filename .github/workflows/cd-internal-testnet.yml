@@ -5,10 +5,6 @@ on:
     workflows: [Continuous Integration (Kava Master)]
     types:
       - completed
-  push:
-      # run CI on any push to the feature branch
-      branches:
-        - ls-internal-testnet-cd-pipeline
 
 jobs:
   # in order:
@@ -18,7 +14,7 @@ jobs:
   # download updated binary and genesis
   # reset application database state (only done on internal testnet)
   reset-chain-to-zero-state:
-     # only start cd pipeline if last ci run was successful
+    # only start cd pipeline if last ci run was successful
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/cd-reset-internal-testnet.yml
     with:
@@ -26,7 +22,7 @@ jobs:
       chain-id: demo_2221-17000
       ssm-document-name: kava-demonet-node-update
       playbook-name: reset-internal-testnet-playbook.yml
-      playbook-infrastructure-branch: ls-deploy-testnet-for-cd-prototyping
+      playbook-infrastructure-branch: master
     secrets: inherit
 
   # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
@@ -37,12 +33,16 @@ jobs:
       chain-id: demo_2221-17000
       ssm-document-name: kava-demonet-node-update
       playbook-name: start-chain-api-playbook.yml
-      playbook-infrastructure-branch: ls-deploy-testnet-for-cd-prototyping
+      playbook-infrastructure-branch: master
     secrets: inherit
     needs: [reset-chain-to-zero-state]
 
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
   seed-chain-state:
     uses: ./.github/workflows/cd-seed-chain.yml
+    with:
+      chain-api-url: https://rpc.data.demonet.us-east.production.kava.io:443
+      chain-id: kava_2221-17000
+      seed-script-filename: seed-internal-testnet.sh
     secrets: inherit
     needs: [start-chain-api]

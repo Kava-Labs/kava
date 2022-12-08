@@ -50,7 +50,7 @@ jobs:
           repository: Kava-Labs/infrastructure
           token: ${{ secrets.KAVA_PRIVATE_GITHUB_ACCESS_TOKEN }}
           path: infrastructure
-          ref: ls-deploy-testnet-for-cd-prototyping
+          ref: master
       - name: set up Go
         uses: actions/setup-go@v3
         with:
