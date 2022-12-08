@@ -4,51 +4,27 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/community/keeper"
+	"github.com/kava-labs/kava/x/community/testutil"
 	"github.com/kava-labs/kava/x/community/types"
 )
 
 // Test suite used for all keeper tests
 type KeeperTestSuite struct {
-	suite.Suite
-	App        app.TestApp
-	Ctx        sdk.Context
-	Keeper     keeper.Keeper
-	BankKeeper bankkeeper.Keeper
+	testutil.Suite
 }
 
 // The default state used by each test
 func (suite *KeeperTestSuite) SetupTest() {
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-
-	tApp.InitializeFromGenesisStates()
-
-	suite.App = tApp
-	suite.Ctx = ctx
-	suite.Keeper = tApp.GetCommunityKeeper()
-	suite.BankKeeper = tApp.GetBankKeeper()
+	suite.Suite.SetupTest()
 }
 
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
-// CreateFundedAccount creates a random account and mints `coins` to it.
-func (suite *KeeperTestSuite) CreateFundedAccount(coins sdk.Coins) sdk.AccAddress {
-	addr := app.RandomAddress()
-	err := suite.App.FundAccount(suite.Ctx, addr, coins)
-	suite.Require().NoError(err)
-	return addr
-}
-
-func (suite *KeeperTestSuite) TestFundCommunityPool() {
+func (suite *KeeperTestSuite) TestCommunityPool() {
 	suite.SetupTest()
 	maccAddr := suite.App.GetAccountKeeper().GetModuleAddress(types.ModuleAccountName)
 
@@ -58,11 +34,30 @@ func (suite *KeeperTestSuite) TestFundCommunityPool() {
 	)
 	sender := suite.CreateFundedAccount(funds)
 
-	err := suite.Keeper.FundCommunityPool(suite.Ctx, sender, funds)
-	suite.Require().NoError(err)
+	suite.Run("FundCommunityPool", func() {
+		err := suite.Keeper.FundCommunityPool(suite.Ctx, sender, funds)
+		suite.Require().NoError(err)
 
-	// check that community pool received balance
-	suite.App.CheckBalance(suite.T(), suite.Ctx, maccAddr, funds)
-	// check that sender had balance deducted
-	suite.App.CheckBalance(suite.T(), suite.Ctx, sender, sdk.NewCoins())
+		// check that community pool received balance
+		suite.App.CheckBalance(suite.T(), suite.Ctx, maccAddr, funds)
+		// check that sender had balance deducted
+		suite.App.CheckBalance(suite.T(), suite.Ctx, sender, sdk.NewCoins())
+	})
+
+	// send it back
+	suite.Run("DistributeFromCommunityPool - valid", func() {
+		err := suite.Keeper.DistributeFromCommunityPool(suite.Ctx, sender, funds)
+		suite.Require().NoError(err)
+
+		// community pool has funds deducted
+		suite.App.CheckBalance(suite.T(), suite.Ctx, maccAddr, sdk.NewCoins())
+		// receiver receives the funds
+		suite.App.CheckBalance(suite.T(), suite.Ctx, sender, funds)
+	})
+
+	// can't send more than we have!
+	suite.Run("DistributeFromCommunityPool - insufficient funds", func() {
+		err := suite.Keeper.DistributeFromCommunityPool(suite.Ctx, sender, funds)
+		suite.Require().ErrorContains(err, "insufficient funds")
+	})
 }

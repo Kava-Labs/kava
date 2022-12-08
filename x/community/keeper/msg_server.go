@@ -24,10 +24,12 @@ var _ types.MsgServer = msgServer{}
 func (s msgServer) FundCommunityPool(goCtx context.Context, msg *types.MsgFundCommunityPool) (*types.MsgFundCommunityPoolResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
-	if err != nil {
+	if err := msg.ValidateBasic(); err != nil {
 		return nil, err
 	}
+
+	// above validation will fail if depositor is invalid
+	depositor := sdk.MustAccAddressFromBech32(msg.Depositor)
 
 	if err := s.keeper.FundCommunityPool(ctx, depositor, msg.Amount); err != nil {
 		return nil, err
