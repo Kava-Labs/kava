@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -25,7 +24,7 @@ type KeeperI interface {
 	AddCollectedFees(ctx sdk.Context, fees sdk.Coins) error
 	FundCommunityPool(ctx sdk.Context, funds sdk.Coins) error
 
-	GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool)
+	GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time)
 	SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time)
 
 	CumulativeInflation(ctx sdk.Context) sdk.Dec
@@ -56,11 +55,6 @@ func NewKeeper(
 	sk types.StakingKeeper, ak types.AccountKeeper, bk types.BankKeeper,
 	stakingRewardsFeeCollectorName string, communityPoolModuleAccountName string,
 ) Keeper {
-	// ensure kavamint module account is set
-	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
-		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
-	}
-
 	// set KeyTable if it has not already been set
 	if !paramSpace.HasKeyTable() {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
@@ -152,21 +146,30 @@ func (k Keeper) CumulativeInflation(ctx sdk.Context) sdk.Dec {
 }
 
 // GetPreviousBlockTime get the blocktime for the previous block
-func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
+func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PreviousBlockTimeKey)
+
 	b := store.Get(types.PreviousBlockTimeKey)
 	if b == nil {
-		return time.Time{}, false
+		return blockTime
 	}
+
 	if err := blockTime.UnmarshalBinary(b); err != nil {
 		panic(err)
 	}
-	return blockTime, true
+
+	return
 }
 
 // SetPreviousBlockTime set the time of the previous block
 func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PreviousBlockTimeKey)
+
+	if blockTime.IsZero() {
+		store.Delete(types.PreviousBlockTimeKey)
+		return
+	}
+
 	b, err := blockTime.MarshalBinary()
 	if err != nil {
 		panic(err)

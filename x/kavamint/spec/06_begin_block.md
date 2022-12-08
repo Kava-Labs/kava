@@ -11,7 +11,7 @@ At the start of each block, new KAVA tokens are minted and distributed
 func BeginBlocker(ctx sdk.Context, k Keeper) {
   params := k.GetParams(ctx)
   // fetch the last block time from state
-  previousBlockTime, found := k.GetPreviousBlockTime(ctx)
+  previousBlockTime := k.GetPreviousBlockTime(ctx)
   secondsPassed := ctx.BlockTime().Sub(previousBlockTime).Seconds()
 
   // determine totals before any new mints

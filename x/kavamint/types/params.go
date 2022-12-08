@@ -2,28 +2,25 @@ package types
 
 import (
 	fmt "fmt"
-	time "time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
-// Parameter keys & defaults
+// Parameter keys and default values
 var (
 	KeyCommunityPoolInflation = []byte("CommunityPoolInflation")
 	KeyStakingRewardsApy      = []byte("StakingRewardsApy")
 
-	DefaultPreviousBlockTime      = tmtime.Canonical(time.Unix(1, 0))
+	// default inflation values are zero
 	DefaultCommunityPoolInflation = sdk.ZeroDec()
 	DefaultStakingRewardsApy      = sdk.ZeroDec()
 
-	// rates larger than 17,650% are out of bounds
-	// this is due to the necessary conversion of yearly rate to per second rate
-	// TODO consider lowering max rate. when it's this large the precision is very bad.
-	MaxMintingRate = sdk.NewDecWithPrec(1765, 1)
+	// MaxMintingRate returns the per second rate equivalent to 10,000% per year
+	MaxMintingRate = sdk.MustNewDecFromStr("0.000000146028999310")
 )
 
+// NewParams returns new Params with inflation rates set
 func NewParams(communityPoolInflation sdk.Dec, stakingRewardsApy sdk.Dec) Params {
 	return Params{
 		CommunityPoolInflation: communityPoolInflation,
@@ -31,7 +28,7 @@ func NewParams(communityPoolInflation sdk.Dec, stakingRewardsApy sdk.Dec) Params
 	}
 }
 
-// ParamKeyTable Key declaration for parameters
+// ParamKeyTable returns the key table for the kavamint module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
@@ -44,6 +41,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	}
 }
 
+// DefaultParams returns default valid parameters for the kavamint module
 func DefaultParams() Params {
 	return NewParams(DefaultCommunityPoolInflation, DefaultStakingRewardsApy)
 }
@@ -56,12 +54,20 @@ func (p *Params) Validate() error {
 	return validateStakingRewardsApy(p.StakingRewardsApy)
 }
 
+// String implements fmt.Stringer
+func (p Params) String() string {
+	return fmt.Sprintf(`Params:
+	CommunityPoolInflation: %s
+	StakingRewardsApy: %s`,
+		p.CommunityPoolInflation, p.StakingRewardsApy)
+}
+
 func validateCommunityPoolInflation(i interface{}) error {
 	rate, ok := i.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	return validateRateWithinBounds(rate)
+	return validateRate(rate)
 }
 
 func validateStakingRewardsApy(i interface{}) error {
@@ -69,16 +75,13 @@ func validateStakingRewardsApy(i interface{}) error {
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	return validateRateWithinBounds(rate)
+	return validateRate(rate)
 }
 
-// validateRateWithinBounds ensure that the given rate falls within the allowed bounds: [0, MaxMintingRate]
-func validateRateWithinBounds(rate sdk.Dec) error {
-	if rate.BigInt().Sign() == -1 {
-		return fmt.Errorf("rate must be >= 0")
-	}
-	if MaxMintingRate.LT(rate) {
-		return fmt.Errorf("rate out of bounds. the max allowed rate is %s", MaxMintingRate)
+// validateRate ensures rate is properly initialized (non-nil), not negative, and not greater than the max rate
+func validateRate(rate sdk.Dec) error {
+	if rate.IsNil() || rate.IsNegative() || rate.GT(MaxMintingRate) {
+		return fmt.Errorf(fmt.Sprintf("invalid rate: %s", rate))
 	}
 	return nil
 }

@@ -8,6 +8,7 @@ option go_package = "github.com/kava-labs/kava/x/kavamint/types";
 
 // Params wraps the governance parameters for the kavamint module
 message Params {
+  option (gogoproto.goproto_stringer) = false;
   option (gogoproto.goproto_getters) = false;
 
   // yearly inflation of total token supply minted to the community pool.

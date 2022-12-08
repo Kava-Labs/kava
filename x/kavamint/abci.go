@@ -12,8 +12,8 @@ import (
 func BeginBlocker(ctx sdk.Context, k keeper.KeeperI) {
 	params := k.GetParams(ctx)
 	// determine seconds since last mint
-	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
-	if !found || previousBlockTime.IsZero() {
+	previousBlockTime := k.GetPreviousBlockTime(ctx)
+	if previousBlockTime.IsZero() {
 		previousBlockTime = ctx.BlockTime()
 	}
 	secondsPassed := ctx.BlockTime().Sub(previousBlockTime).Seconds()
