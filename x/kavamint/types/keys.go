@@ -12,11 +12,7 @@ const (
 
 	// QuerierRoute is the querier route for the minting store.
 	QuerierRoute = StoreKey
-
-	// Query endpoints supported by kavamint
-	QueryParameters = "parameters"
-	QueryInflation  = "inflation"
 )
 
 // PreviousBlockTimeKey is the store key for the previous block time
-var PreviousBlockTimeKey = []byte{0x00}
+var PreviousBlockTimeKey = []byte{0x01}
