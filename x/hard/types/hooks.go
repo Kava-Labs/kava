@@ -18,9 +18,9 @@ func (h MultiHARDHooks) AfterDepositCreated(ctx sdk.Context, deposit Deposit) {
 }
 
 // BeforeDepositModified runs before a deposit is modified
-func (h MultiHARDHooks) BeforeDepositModified(ctx sdk.Context, deposit Deposit) {
+func (h MultiHARDHooks) BeforeDepositModified(ctx sdk.Context, deposit Deposit, newDepositDenoms []string) {
 	for i := range h {
-		h[i].BeforeDepositModified(ctx, deposit)
+		h[i].BeforeDepositModified(ctx, deposit, newDepositDenoms)
 	}
 }
 

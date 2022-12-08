@@ -14,7 +14,9 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	if !found {
 		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
-	k.BeforeDepositModified(ctx, existingDeposit)
+
+	// No denoms are added when withdrawing, so pass nil
+	k.BeforeDepositModified(ctx, existingDeposit, nil)
 
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
 	if hasExistingBorrow {

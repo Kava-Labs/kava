@@ -40,8 +40,19 @@ func (k Keeper) InitializeClaim(
 		claim = types.NewClaim(claimType, owner, sdk.Coins{}, nil)
 	}
 
+	claim = k.initializeClaim(ctx, claim, sourceIDs)
+	k.Store.SetClaim(ctx, claim)
+}
+
+// initializeClaim updates an existing claim's specified reward indexes to match
+// the global indexes.
+func (k Keeper) initializeClaim(
+	ctx sdk.Context,
+	claim types.Claim,
+	sourceIDs []string,
+) types.Claim {
 	for _, sourceID := range sourceIDs {
-		globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claimType, sourceID)
+		globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claim.Type, sourceID)
 		if !found {
 			globalRewardIndexes = types.RewardIndexes{}
 		}
@@ -49,7 +60,7 @@ func (k Keeper) InitializeClaim(
 		claim.RewardIndexes = claim.RewardIndexes.With(sourceID, globalRewardIndexes)
 	}
 
-	k.Store.SetClaim(ctx, claim)
+	return claim
 }
 
 // InitializeClaimSingleReward creates a new claim with zero rewards and indexes matching
@@ -81,6 +92,7 @@ func (k Keeper) SynchronizeClaim(
 	claimType types.ClaimType,
 	owner sdk.AccAddress,
 	shareCoins sdk.DecCoins,
+	initializeSourceIDs []string,
 ) {
 	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
@@ -91,6 +103,8 @@ func (k Keeper) SynchronizeClaim(
 		claim = k.synchronizeClaimSingleReward(ctx, claim, coin.Denom, coin.Amount)
 	}
 
+	// Does nothing if initializeSourceIDs is empty
+	claim = k.initializeClaim(ctx, claim, initializeSourceIDs)
 	k.Store.SetClaim(ctx, claim)
 }
 

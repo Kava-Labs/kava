@@ -25,7 +25,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	// Call incentive hook
 	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, depositor)
 	if hasExistingDeposit {
-		k.BeforeDepositModified(ctx, existingDeposit)
+		newDenoms := setDifference(getDenoms(coins), getDenoms(existingDeposit.Amount))
+		k.BeforeDepositModified(ctx, existingDeposit, newDenoms)
 	}
 
 	// Sync any outstanding interest

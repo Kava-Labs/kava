@@ -49,17 +49,16 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 
 // AfterDepositCreated function that runs after a deposit is created
 func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
-
-	sourceIDs := make([]string, len(deposit.Amount))
-	for i, coin := range deposit.Amount {
-		sourceIDs[i] = coin.Denom
-	}
-
-	h.k.InitializeClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, deposit.Depositor, sourceIDs)
+	h.k.InitializeClaim(
+		ctx,
+		types.CLAIM_TYPE_HARD_SUPPLY,
+		deposit.Depositor,
+		getDenoms(deposit.Amount),
+	)
 }
 
 // BeforeDepositModified function that runs before a deposit is modified
-func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
+func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit, newDenoms []string) {
 	normalizedDeposit, err := deposit.NormalizedDeposit()
 	if err != nil {
 		panic(fmt.Sprintf(
@@ -69,25 +68,20 @@ func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit)
 		))
 	}
 
-	h.k.SynchronizeClaim(ctx, types.CLAIM_TYPE_HARD_BORROW, deposit.Depositor, normalizedDeposit)
+	h.k.SynchronizeClaim(
+		ctx,
+		types.CLAIM_TYPE_HARD_BORROW,
+		deposit.Depositor,
+		normalizedDeposit,
+		// New deposit denoms to initialize
+		newDenoms,
+	)
 }
 
 // AfterDepositModified function that runs after a deposit is modified
 func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
+	// TODO: Not necessary other than removal of old denoms from claim
 	h.k.UpdateHardSupplyIndexDenoms(ctx, deposit)
-
-	var denoms []string
-	for _, coin := range deposit.Amount {
-		denoms = append(denoms, coin.Denom)
-	}
-
-	// Remove any rewards that were accrued for denoms that are no longer being deposited
-	h.k.PruneClaimRewards(
-		ctx,
-		types.CLAIM_TYPE_HARD_SUPPLY,
-		deposit.Depositor,
-		denoms,
-	)
 }
 
 // AfterBorrowCreated function that runs after a borrow is created

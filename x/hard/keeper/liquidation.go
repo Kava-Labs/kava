@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"sort"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -29,7 +27,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 	}
 
 	// Call incentive hooks
-	k.BeforeDepositModified(ctx, deposit)
+	k.BeforeDepositModified(ctx, deposit, nil)
 	k.BeforeBorrowModified(ctx, borrow)
 
 	k.SyncBorrowInterest(ctx, borrower)
@@ -400,28 +398,4 @@ func (k Keeper) LoadLiquidationData(ctx sdk.Context, deposit types.Deposit, borr
 	}
 
 	return liqMap, nil
-}
-
-func getDenoms(coins sdk.Coins) []string {
-	denoms := []string{}
-	for _, coin := range coins {
-		denoms = append(denoms, coin.Denom)
-	}
-	return denoms
-}
-
-func removeDuplicates(one []string, two []string) []string {
-	check := make(map[string]int)
-	fullList := append(one, two...)
-
-	res := []string{}
-	for _, val := range fullList {
-		check[val] = 1
-	}
-
-	for key := range check {
-		res = append(res, key)
-	}
-	sort.Strings(res)
-	return res
 }
