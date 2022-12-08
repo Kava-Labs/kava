@@ -134,3 +134,29 @@ func (k Keeper) GetSynchronizedClaim(
 
 	return claim, true
 }
+
+func (k Keeper) PruneClaimRewards(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	owner sdk.AccAddress,
+	activeSourceIDs []string,
+) {
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
+	if !found {
+		// Nothing to prune
+		return
+	}
+
+	claimIndexDenoms := claim.RewardIndexes.GetCollateralTypes()
+
+	// claimIndexDenoms - activeSourceIDs
+	inactiveSourceIDs := setDifference(claimIndexDenoms, activeSourceIDs)
+
+	// Remove rewards that aren't contained in the active source IDs, e.g.
+	// assets that are no longer deposited.
+	for _, denom := range inactiveSourceIDs {
+		claim.RewardIndexes = claim.RewardIndexes.RemoveRewardIndex(denom)
+	}
+
+	k.Store.SetClaim(ctx, claim)
+}

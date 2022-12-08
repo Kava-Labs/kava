@@ -1,12 +1,15 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive/types"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
@@ -46,17 +49,43 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 
 // AfterDepositCreated function that runs after a deposit is created
 func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
-	h.k.InitializeHardSupplyReward(ctx, deposit)
+	for _, coin := range deposit.Amount {
+		h.k.InitializeClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, coin.Denom, deposit.Depositor)
+	}
 }
 
 // BeforeDepositModified function that runs before a deposit is modified
 func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
-	h.k.SynchronizeHardSupplyReward(ctx, deposit)
+	normalizedDeposit, err := deposit.NormalizedDeposit()
+	if err != nil {
+		panic(fmt.Sprintf(
+			"during deposit reward sync, could not get normalized deposit for %s: %s",
+			deposit.Depositor,
+			err.Error(),
+		))
+	}
+
+	for _, coin := range normalizedDeposit {
+		h.k.SynchronizeClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, coin.Denom, deposit.Depositor, coin.Amount)
+	}
 }
 
 // AfterDepositModified function that runs after a deposit is modified
 func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
 	h.k.UpdateHardSupplyIndexDenoms(ctx, deposit)
+
+	var denoms []string
+	for _, coin := range deposit.Amount {
+		denoms = append(denoms, coin.Denom)
+	}
+
+	// Remove any rewards that were accrued for denoms that are no longer being deposited
+	h.k.PruneClaimRewards(
+		ctx,
+		types.CLAIM_TYPE_HARD_SUPPLY,
+		deposit.Depositor,
+		denoms,
+	)
 }
 
 // AfterBorrowCreated function that runs after a borrow is created
