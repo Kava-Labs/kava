@@ -65,7 +65,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	})
 
 	k.IterateBorrows(ctx, func(b types.Borrow) bool {
-		k.BeforeBorrowModified(ctx, b)
+		k.BeforeBorrowModified(ctx, b, nil)
 		syncedBorrow, found := k.GetSyncedBorrow(ctx, b.Borrower)
 		if !found {
 			panic(fmt.Sprintf("syncable borrow not found for %s", b.Borrower))

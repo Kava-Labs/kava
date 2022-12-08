@@ -31,7 +31,8 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, borrower)
 	if hasExistingBorrow {
-		k.BeforeBorrowModified(ctx, existingBorrow)
+		newDenoms := setDifference(getDenoms(coins), getDenoms(existingBorrow.Amount))
+		k.BeforeBorrowModified(ctx, existingBorrow, newDenoms)
 	}
 
 	k.SyncSupplyInterest(ctx, borrower)

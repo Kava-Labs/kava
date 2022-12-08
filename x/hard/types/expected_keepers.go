@@ -54,6 +54,6 @@ type HARDHooks interface {
 	BeforeDepositModified(ctx sdk.Context, deposit Deposit, newDepositDenoms []string)
 	AfterDepositModified(ctx sdk.Context, deposit Deposit)
 	AfterBorrowCreated(ctx sdk.Context, borrow Borrow)
-	BeforeBorrowModified(ctx sdk.Context, borrow Borrow)
+	BeforeBorrowModified(ctx sdk.Context, borrow Borrow, newBorrowDenoms []string)
 	AfterBorrowModified(ctx sdk.Context, borrow Borrow)
 }

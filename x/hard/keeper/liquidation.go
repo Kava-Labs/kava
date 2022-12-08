@@ -26,9 +26,9 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return types.ErrBorrowNotFound
 	}
 
-	// Call incentive hooks
+	// Call incentive hooks, no new denoms so both are nil
 	k.BeforeDepositModified(ctx, deposit, nil)
-	k.BeforeBorrowModified(ctx, borrow)
+	k.BeforeBorrowModified(ctx, borrow, nil)
 
 	k.SyncBorrowInterest(ctx, borrower)
 	k.SyncSupplyInterest(ctx, borrower)

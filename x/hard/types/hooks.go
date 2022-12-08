@@ -39,9 +39,9 @@ func (h MultiHARDHooks) AfterBorrowCreated(ctx sdk.Context, borrow Borrow) {
 }
 
 // BeforeBorrowModified runs before a borrow is modified
-func (h MultiHARDHooks) BeforeBorrowModified(ctx sdk.Context, borrow Borrow) {
+func (h MultiHARDHooks) BeforeBorrowModified(ctx sdk.Context, borrow Borrow, newBorrowDenoms []string) {
 	for i := range h {
-		h[i].BeforeBorrowModified(ctx, borrow)
+		h[i].BeforeBorrowModified(ctx, borrow, newBorrowDenoms)
 	}
 }
 

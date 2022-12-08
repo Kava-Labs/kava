@@ -20,7 +20,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
 	if hasExistingBorrow {
-		k.BeforeBorrowModified(ctx, existingBorrow)
+		// No denoms are newly borrowed when withdrawing, so pass nil
+		k.BeforeBorrowModified(ctx, existingBorrow, nil)
 	}
 
 	// Sync interest

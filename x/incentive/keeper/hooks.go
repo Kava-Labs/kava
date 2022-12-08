@@ -84,17 +84,37 @@ func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) 
 
 // AfterBorrowCreated function that runs after a borrow is created
 func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow) {
-	h.k.InitializeHardBorrowReward(ctx, borrow)
+	h.k.InitializeClaim(
+		ctx,
+		types.CLAIM_TYPE_HARD_BORROW,
+		borrow.Borrower,
+		getDenoms(borrow.Amount),
+	)
 }
 
 // BeforeBorrowModified function that runs before a borrow is modified
-func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
-	h.k.SynchronizeHardBorrowReward(ctx, borrow)
+func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow, newDenoms []string) {
+	normalizedBorrow, err := borrow.NormalizedBorrow()
+	if err != nil {
+		panic(fmt.Sprintf(
+			"during borrow reward sync, could not get normalized borrow for %s: %s",
+			borrow.Borrower,
+			err.Error(),
+		))
+	}
+
+	h.k.SynchronizeClaim(
+		ctx,
+		types.CLAIM_TYPE_HARD_BORROW,
+		borrow.Borrower,
+		normalizedBorrow,
+		// New borrow denoms to initialize
+		newDenoms,
+	)
 }
 
 // AfterBorrowModified function that runs after a borrow is modified
 func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
-	h.k.UpdateHardBorrowIndexDenoms(ctx, borrow)
 }
 
 /* ------------------- Staking Module Hooks -------------------

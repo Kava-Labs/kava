@@ -38,9 +38,9 @@ func (k Keeper) AfterBorrowCreated(ctx sdk.Context, borrow types.Borrow) {
 }
 
 // BeforeBorrowModified - call hook if registered
-func (k Keeper) BeforeBorrowModified(ctx sdk.Context, borrow types.Borrow) {
+func (k Keeper) BeforeBorrowModified(ctx sdk.Context, borrow types.Borrow, newBorrowDenoms []string) {
 	if k.hooks != nil {
-		k.hooks.BeforeBorrowModified(ctx, borrow)
+		k.hooks.BeforeBorrowModified(ctx, borrow, newBorrowDenoms)
 	}
 }
 

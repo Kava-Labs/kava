@@ -15,7 +15,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 		return types.ErrBorrowNotFound
 	}
 	// Call incentive hook
-	k.BeforeBorrowModified(ctx, borrow)
+	k.BeforeBorrowModified(ctx, borrow, nil)
 
 	// Sync borrow interest so loan is up-to-date
 	k.SyncBorrowInterest(ctx, owner)
