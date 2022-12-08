@@ -32,8 +32,33 @@ func (k Keeper) AccumulateRewards(
 func (k Keeper) InitializeClaim(
 	ctx sdk.Context,
 	claimType types.ClaimType,
-	sourceID string,
 	owner sdk.AccAddress,
+	sourceIDs []string,
+) {
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
+	if !found {
+		claim = types.NewClaim(claimType, owner, sdk.Coins{}, nil)
+	}
+
+	for _, sourceID := range sourceIDs {
+		globalRewardIndexes, found := k.Store.GetRewardIndexesOfClaimType(ctx, claimType, sourceID)
+		if !found {
+			globalRewardIndexes = types.RewardIndexes{}
+		}
+
+		claim.RewardIndexes = claim.RewardIndexes.With(sourceID, globalRewardIndexes)
+	}
+
+	k.Store.SetClaim(ctx, claim)
+}
+
+// InitializeClaimSingleReward creates a new claim with zero rewards and indexes matching
+// the global indexes. If the claim already exists it just updates the indexes.
+func (k Keeper) InitializeClaimSingleReward(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	owner sdk.AccAddress,
+	sourceID string,
 ) {
 	claim, found := k.Store.GetClaim(ctx, claimType, owner)
 	if !found {
@@ -49,13 +74,33 @@ func (k Keeper) InitializeClaim(
 	k.Store.SetClaim(ctx, claim)
 }
 
-// SynchronizeClaim updates the claim object by adding any accumulated rewards
-// and updating the reward index value.
+// SynchronizeClaim updates the claim object same as SynchronizeClaimSingleReward,
+// but with multiple share coins.
 func (k Keeper) SynchronizeClaim(
 	ctx sdk.Context,
 	claimType types.ClaimType,
-	sourceID string,
 	owner sdk.AccAddress,
+	shareCoins sdk.DecCoins,
+) {
+	claim, found := k.Store.GetClaim(ctx, claimType, owner)
+	if !found {
+		return
+	}
+
+	for _, coin := range shareCoins {
+		claim = k.synchronizeClaimSingleReward(ctx, claim, coin.Denom, coin.Amount)
+	}
+
+	k.Store.SetClaim(ctx, claim)
+}
+
+// SynchronizeClaimSingleReward updates the claim object by adding any
+// accumulated rewards and updating the reward index value.
+func (k Keeper) SynchronizeClaimSingleReward(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+	owner sdk.AccAddress,
+	sourceID string,
 	shares sdk.Dec,
 ) {
 	claim, found := k.Store.GetClaim(ctx, claimType, owner)
@@ -63,12 +108,12 @@ func (k Keeper) SynchronizeClaim(
 		return
 	}
 
-	claim = k.synchronizeClaim(ctx, claim, sourceID, shares)
+	claim = k.synchronizeClaimSingleReward(ctx, claim, sourceID, shares)
 	k.Store.SetClaim(ctx, claim)
 }
 
-// synchronizeClaim updates the reward and indexes in a claim for one sourceID.
-func (k *Keeper) synchronizeClaim(
+// synchronizeClaimSingleReward updates the reward and indexes in a claim for one sourceID.
+func (k *Keeper) synchronizeClaimSingleReward(
 	ctx sdk.Context,
 	claim types.Claim,
 	sourceID string,
@@ -129,7 +174,7 @@ func (k Keeper) GetSynchronizedClaim(
 
 	// Synchronize claim for each source ID
 	for _, share := range accShares {
-		claim = k.synchronizeClaim(ctx, claim, share.ID, share.Shares)
+		claim = k.synchronizeClaimSingleReward(ctx, claim, share.ID, share.Shares)
 	}
 
 	return claim, true

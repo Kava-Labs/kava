@@ -49,9 +49,13 @@ func (h Hooks) BeforeCDPModified(ctx sdk.Context, cdp cdptypes.CDP) {
 
 // AfterDepositCreated function that runs after a deposit is created
 func (h Hooks) AfterDepositCreated(ctx sdk.Context, deposit hardtypes.Deposit) {
-	for _, coin := range deposit.Amount {
-		h.k.InitializeClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, coin.Denom, deposit.Depositor)
+
+	sourceIDs := make([]string, len(deposit.Amount))
+	for i, coin := range deposit.Amount {
+		sourceIDs[i] = coin.Denom
 	}
+
+	h.k.InitializeClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, deposit.Depositor, sourceIDs)
 }
 
 // BeforeDepositModified function that runs before a deposit is modified
@@ -65,9 +69,7 @@ func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit)
 		))
 	}
 
-	for _, coin := range normalizedDeposit {
-		h.k.SynchronizeClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, coin.Denom, deposit.Depositor, coin.Amount)
-	}
+	h.k.SynchronizeClaim(ctx, types.CLAIM_TYPE_HARD_BORROW, deposit.Depositor, normalizedDeposit)
 }
 
 // AfterDepositModified function that runs after a deposit is modified

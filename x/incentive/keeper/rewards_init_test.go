@@ -35,7 +35,7 @@ func (suite *InitializeClaimTests) TestClaimAddedWhenClaimDoesNotExistAndNoRewar
 
 	// no global indexes stored as this pool is not rewarded
 
-	suite.keeper.InitializeClaim(suite.ctx, claimType, collateralType, owner)
+	suite.keeper.InitializeClaimSingleReward(suite.ctx, claimType, owner, collateralType)
 
 	syncedClaim, found := suite.keeper.Store.GetClaim(suite.ctx, claimType, owner)
 	suite.True(found)
@@ -70,7 +70,7 @@ func (suite *InitializeClaimTests) TestClaimAddedWhenClaimDoesNotExistAndRewards
 	}
 	suite.storeGlobalIndexes(claimType, globalIndexes)
 
-	suite.keeper.InitializeClaim(suite.ctx, claimType, collateralType, owner)
+	suite.keeper.InitializeClaimSingleReward(suite.ctx, claimType, owner, collateralType)
 
 	syncedClaim, found := suite.keeper.Store.GetClaim(suite.ctx, claimType, owner)
 	suite.True(found)
@@ -111,7 +111,7 @@ func (suite *InitializeClaimTests) TestClaimUpdatedWhenClaimExistsAndNoRewards()
 
 	// no global indexes stored as the new pool is not rewarded
 
-	suite.keeper.InitializeClaim(suite.ctx, claimType, newCollateralType, claim.Owner)
+	suite.keeper.InitializeClaimSingleReward(suite.ctx, claimType, claim.Owner, newCollateralType)
 
 	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// The preexisting indexes shouldn't be changed. It doesn't strictly need the new collateralType either.
@@ -177,7 +177,7 @@ func (suite *InitializeClaimTests) TestClaimUpdatedWhenClaimExistsAndRewardsExis
 	}
 	suite.storeGlobalIndexes(claimType, globalIndexes)
 
-	suite.keeper.InitializeClaim(suite.ctx, claimType, newCollateralType, claim.Owner)
+	suite.keeper.InitializeClaimSingleReward(suite.ctx, claimType, claim.Owner, newCollateralType)
 
 	syncedClaim, _ := suite.keeper.Store.GetClaim(suite.ctx, claimType, claim.Owner)
 	// only the indexes for the new pool should be updated
