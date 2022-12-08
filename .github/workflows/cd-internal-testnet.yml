@@ -2,11 +2,41 @@ name: Continuous Deployment (Internal Testnet)
 # run after every successful CI job of new commits to the master branch
 on:
   workflow_run:
-    workflows: [Continuous Integration (Kava Master), Continuous Integration (Commit)]
+    workflows: [Continuous Integration (Kava Master)]
     types:
       - completed
+
 jobs:
-  # run default ci checks against master branch
-  no-op:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/ci-lint.yml
+  # in order:
+  # enter standby (prevents autoscaling group from killing node during deploy)
+  # stop kava
+  # take ebs + zfs snapshots
+  # download updated binary and genesis
+  # reset application database state (only done on internal testnet)
+  reset-chain-to-zero-state:
+    uses: ./.github/workflows/cd-reset-internal-testnet.yml
+    with:
+      aws-region: us-east-1
+      chain-id: demo_2221-17000
+      ssm-document-name: kava-demonet-node-update
+      playbook-name: reset-internal-testnet-playbook.yml
+      playbook-infrastructure-branch: ls-deploy-testnet-for-cd-prototyping
+    secrets: inherit
+
+  # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
+  start-chain-api:
+    uses: ./.github/workflows/cd-start-chain.yml
+    with:
+      aws-region: us-east-1
+      chain-id: demo_2221-17000
+      ssm-document-name: kava-demonet-node-update
+      playbook-name: start-chain-api-playbook.yml
+      playbook-infrastructure-branch: ls-deploy-testnet-for-cd-prototyping
+    secrets: inherit
+    needs: [reset-chain-to-zero-state]
+
+  # setup test and development accounts and balances, deploy contracts by calling the chain's api
+  seed-chain-state:
+    uses: ./.github/workflows/cd-seed-chain.yml
+    secrets: inherit
+    needs: [start-chain-api]
