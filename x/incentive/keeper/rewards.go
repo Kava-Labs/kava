@@ -105,6 +105,16 @@ func (k Keeper) SynchronizeClaim(
 
 	// Does nothing if initializeSourceIDs is empty
 	claim = k.initializeClaim(ctx, claim, initializeSourceIDs)
+
+	// Prune any rewards that are no longer active in the source.
+	// e.g. withdrawn deposits.
+	activeDenoms := append(getDecCoinsDenoms(shareCoins), initializeSourceIDs...)
+	claim = k.PruneClaimRewards(
+		ctx,
+		claim,
+		activeDenoms,
+	)
+
 	k.Store.SetClaim(ctx, claim)
 }
 
@@ -196,16 +206,9 @@ func (k Keeper) GetSynchronizedClaim(
 
 func (k Keeper) PruneClaimRewards(
 	ctx sdk.Context,
-	claimType types.ClaimType,
-	owner sdk.AccAddress,
+	claim types.Claim,
 	activeSourceIDs []string,
-) {
-	claim, found := k.Store.GetClaim(ctx, claimType, owner)
-	if !found {
-		// Nothing to prune
-		return
-	}
-
+) types.Claim {
 	claimIndexDenoms := claim.RewardIndexes.GetCollateralTypes()
 
 	// claimIndexDenoms - activeSourceIDs
@@ -217,5 +220,5 @@ func (k Keeper) PruneClaimRewards(
 		claim.RewardIndexes = claim.RewardIndexes.RemoveRewardIndex(denom)
 	}
 
-	k.Store.SetClaim(ctx, claim)
+	return claim
 }

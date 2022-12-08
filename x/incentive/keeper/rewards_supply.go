@@ -310,3 +310,11 @@ func getDenoms(coins sdk.Coins) []string {
 	}
 	return denoms
 }
+
+func getDecCoinsDenoms(coins sdk.DecCoins) []string {
+	denoms := []string{}
+	for _, coin := range coins {
+		denoms = append(denoms, coin.Denom)
+	}
+	return denoms
+}

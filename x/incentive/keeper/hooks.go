@@ -80,8 +80,6 @@ func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit,
 
 // AfterDepositModified function that runs after a deposit is modified
 func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
-	// TODO: Not necessary other than removal of old denoms from claim
-	h.k.UpdateHardSupplyIndexDenoms(ctx, deposit)
 }
 
 // AfterBorrowCreated function that runs after a borrow is created
