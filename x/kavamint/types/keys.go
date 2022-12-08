@@ -15,4 +15,4 @@ const (
 )
 
 // PreviousBlockTimeKey is the store key for the previous block time
-var PreviousBlockTimeKey = []byte{0x01}
+var PreviousBlockTimeKey = []byte{0x00}
