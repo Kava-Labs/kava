@@ -20,14 +20,10 @@ const secondsPerYear = 31536000
 
 func newValidParams(t *testing.T) types.Params {
 	// 50%
-	poolRate, err := sdk.MustNewDecFromStr("1.5").ApproxRoot(secondsPerYear)
-	require.NoError(t, err)
-	poolRate = poolRate.Sub(sdk.OneDec())
+	poolRate := sdk.MustNewDecFromStr("0.5")
 
 	// 10%
-	stakingRate, err := sdk.MustNewDecFromStr("1.1").ApproxRoot(secondsPerYear)
-	require.NoError(t, err)
-	stakingRate = stakingRate.Sub(sdk.OneDec())
+	stakingRate := sdk.MustNewDecFromStr("0.1")
 
 	params := types.NewParams(poolRate, stakingRate)
 	require.NoError(t, params.Validate())
@@ -47,14 +43,15 @@ func TestParams_Default(t *testing.T) {
 	assert.Equal(t, defaultParams.CommunityPoolInflation, sdk.ZeroDec(), "expected default staking inflation to be zero")
 }
 
-func TestParams_MaxInflationRate_DerivedCorrectly(t *testing.T) {
-	maxYearlyRate := sdk.NewDec(100) // 10,000%, should never be a reason to exceed this value
+func TestParams_MaxInflationRate_ApproxRootDoesNotPanic(t *testing.T) {
+	require.Equal(t, sdk.NewDec(100), types.MaxMintingRate) // 10,000%, should never be a reason to exceed this value
+	maxYearlyRate := types.MaxMintingRate
 
-	expectedMaxRate, err := maxYearlyRate.ApproxRoot(secondsPerYear)
-	require.NoError(t, err)
-	expectedMaxRate = expectedMaxRate.Sub(sdk.OneDec())
-
-	require.Equal(t, expectedMaxRate, types.MaxMintingRate)
+	require.NotPanics(t, func() {
+		expectedMaxRate, err := maxYearlyRate.ApproxRoot(secondsPerYear)
+		require.NoError(t, err)
+		expectedMaxRate = expectedMaxRate.Sub(sdk.OneDec())
+	})
 }
 
 func TestParams_MaxInflationRate_DoesNotOverflow(t *testing.T) {
@@ -62,10 +59,14 @@ func TestParams_MaxInflationRate_DoesNotOverflow(t *testing.T) {
 	totalSupply := sdk.NewDec(1e14) // 100 trillion starting supply
 	years := uint64(25)             // calculate over 50 years
 
+	perSecondMaxRate, err := maxRate.ApproxRoot(secondsPerYear)
+	require.NoError(t, err)
+	perSecondMaxRate = perSecondMaxRate.Sub(sdk.OneDec())
+
 	var finalSupply sdk.Int
 
 	require.NotPanics(t, func() {
-		compoundedRate := maxRate.Power(years * secondsPerYear)
+		compoundedRate := perSecondMaxRate.Power(years * secondsPerYear)
 		finalSupply = totalSupply.Mul(compoundedRate).RoundInt()
 
 	})
@@ -168,7 +169,7 @@ func TestParams_Validation(t *testing.T) {
 			testFn: func(params *types.Params) {
 				params.CommunityPoolInflation = types.MaxMintingRate.Add(sdk.NewDecWithPrec(1, 18))
 			},
-			expectedErr: "invalid rate: 0.000000146028999311",
+			expectedErr: "invalid rate: 100.000000000000000001",
 		},
 		{
 			name: "nil staking inflation",
@@ -216,7 +217,7 @@ func TestParams_Validation(t *testing.T) {
 			testFn: func(params *types.Params) {
 				params.StakingRewardsApy = types.MaxMintingRate.Add(sdk.NewDecWithPrec(1, 18))
 			},
-			expectedErr: "invalid rate: 0.000000146028999311",
+			expectedErr: "invalid rate: 100.000000000000000001",
 		},
 	}
 

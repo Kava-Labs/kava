@@ -64,7 +64,7 @@ func TestGenesis_Validation(t *testing.T) {
 				types.NewParams(types.MaxMintingRate.Add(sdk.NewDecWithPrec(1, 18)), sdk.ZeroDec()),
 				time.Now(),
 			),
-			"invalid rate: 0.000000146028999311",
+			"invalid rate: 100.000000000000000001",
 		},
 		{
 			"invalid - staking reward inflation param too big",
@@ -73,7 +73,7 @@ func TestGenesis_Validation(t *testing.T) {
 				types.NewParams(sdk.ZeroDec(), types.MaxMintingRate.Add(sdk.NewDecWithPrec(1, 18))),
 				time.Now(),
 			),
-			"invalid rate: 0.000000146028999311",
+			"invalid rate: 100.000000000000000001",
 		},
 		{
 			"invalid - negative community inflation param",

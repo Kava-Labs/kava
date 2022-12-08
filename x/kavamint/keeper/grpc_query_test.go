@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/kavamint/testutil"
 	"github.com/kava-labs/kava/x/kavamint/types"
@@ -59,39 +60,39 @@ func (suite *grpcQueryTestSuite) TestGRPCInflationQuery() {
 		{
 			name:               "no community inflation means only staking contributes",
 			communityInflation: sdk.NewDec(0),
-			stakingApy:         sdk.NewDecWithPrec(1, 10),
+			stakingApy:         sdk.NewDec(1),
 			bondedRatio:        sdk.NewDecWithPrec(34, 2),
-			expectedInflation:  sdk.NewDecWithPrec(34, 12),
+			expectedInflation:  sdk.NewDecWithPrec(34, 2),
 		},
 		{
 			name:               "no staking apy means only inflation contributes",
-			communityInflation: sdk.NewDecWithPrec(75, 10),
+			communityInflation: sdk.NewDecWithPrec(75, 2),
 			stakingApy:         sdk.NewDec(0),
 			bondedRatio:        sdk.NewDecWithPrec(40, 2),
-			expectedInflation:  sdk.NewDecWithPrec(75, 10),
+			expectedInflation:  sdk.NewDecWithPrec(75, 2),
 		},
 		{
 			name:               "staking and community inflation combines (100 percent bonded)",
-			communityInflation: sdk.NewDecWithPrec(1, 10),
-			stakingApy:         sdk.NewDecWithPrec(50, 12),
+			communityInflation: sdk.NewDec(1),
+			stakingApy:         sdk.NewDecWithPrec(50, 2),
 			bondedRatio:        sdk.NewDec(1),
-			expectedInflation:  sdk.NewDecWithPrec(150, 12),
+			expectedInflation:  sdk.NewDecWithPrec(150, 2),
 		},
 		{
 			name:               "staking and community inflation combines (40 percent bonded)",
-			communityInflation: sdk.NewDecWithPrec(90, 10),
-			stakingApy:         sdk.NewDecWithPrec(25, 10),
+			communityInflation: sdk.NewDecWithPrec(90, 2),
+			stakingApy:         sdk.NewDecWithPrec(25, 2),
 			bondedRatio:        sdk.NewDecWithPrec(40, 2),
 			// 90 + .4*25 = 100
-			expectedInflation: sdk.NewDecWithPrec(1, 8),
+			expectedInflation: sdk.NewDec(1),
 		},
 		{
 			name:               "staking and community inflation combines (25 percent bonded)",
-			communityInflation: sdk.NewDecWithPrec(90, 10),
-			stakingApy:         sdk.NewDecWithPrec(20, 10),
+			communityInflation: sdk.NewDecWithPrec(90, 2),
+			stakingApy:         sdk.NewDecWithPrec(20, 2),
 			bondedRatio:        sdk.NewDecWithPrec(25, 2),
 			// 90 + .25*20 = 95
-			expectedInflation: sdk.NewDecWithPrec(95, 10),
+			expectedInflation: sdk.NewDecWithPrec(95, 2),
 		},
 	}
 
@@ -111,11 +112,10 @@ func (suite *grpcQueryTestSuite) TestGRPCInflationQuery() {
 			staking.EndBlocker(ctx, suite.StakingKeeper)
 
 			// query inflation & check for expected results
-			response, err := queryClient.Inflation(context.Background(), &types.QueryInflationRequest{})
+			inflation, err := queryClient.Inflation(context.Background(), &types.QueryInflationRequest{})
 			suite.Require().NoError(err)
-
-			suite.Require().Equal(kavamintKeeper.CumulativeInflation(ctx), response.Inflation)
-			suite.Require().Equal(tc.expectedInflation, response.Inflation)
+			suite.Require().Equal(inflation.Inflation, kavamintKeeper.CumulativeInflation(ctx))
+			suite.Require().Equal(inflation.Inflation, tc.expectedInflation)
 		})
 	}
 }

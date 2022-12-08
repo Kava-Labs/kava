@@ -19,7 +19,7 @@ type genesisTestSuite struct {
 
 func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 	invalidState := types.NewGenesisState(
-		types.NewParams(sdk.OneDec(), sdk.OneDec()), // rate over max
+		types.NewParams(sdk.OneDec(), types.MaxMintingRate.Add(sdk.OneDec())), // rate over max
 		time.Time{},
 	)
 

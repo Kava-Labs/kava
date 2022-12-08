@@ -17,7 +17,7 @@ var (
 	DefaultStakingRewardsApy      = sdk.ZeroDec()
 
 	// MaxMintingRate returns the per second rate equivalent to 10,000% per year
-	MaxMintingRate = sdk.MustNewDecFromStr("0.000000146028999310")
+	MaxMintingRate = sdk.NewDec(100)
 )
 
 // NewParams returns new Params with inflation rates set
