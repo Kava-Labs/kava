@@ -10,6 +10,7 @@
 
 # Output of the go coverage tool
 *.out
+cover.html
 
 # Exclude build files
 vendor

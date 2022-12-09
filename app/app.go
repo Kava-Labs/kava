@@ -508,20 +508,6 @@ func NewApp(
 
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
 
-	app.communityKeeper = communitykeeper.NewKeeper(
-		app.accountKeeper,
-		app.bankKeeper,
-	)
-	app.kavadistKeeper = kavadistkeeper.NewKeeper(
-		appCodec,
-		keys[kavadisttypes.StoreKey],
-		kavadistSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-		app.communityKeeper,
-		app.loadBlockedMaccAddrs(),
-	)
-
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
@@ -620,6 +606,22 @@ func NewApp(
 		&savingsKeeper,
 		communitytypes.ModuleAccountName,
 	)
+
+	app.communityKeeper = communitykeeper.NewKeeper(
+		app.accountKeeper,
+		app.bankKeeper,
+		hardKeeper,
+	)
+	app.kavadistKeeper = kavadistkeeper.NewKeeper(
+		appCodec,
+		keys[kavadisttypes.StoreKey],
+		kavadistSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.communityKeeper,
+		app.loadBlockedMaccAddrs(),
+	)
+
 	app.kavamintKeeper = kavamintkeeper.NewKeeper(
 		appCodec,
 		keys[kavaminttypes.StoreKey],
@@ -694,6 +696,7 @@ func NewApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
 		AddRoute(earntypes.RouterKey, earn.NewCommunityPoolProposalHandler(app.earnKeeper)).
+		AddRoute(communitytypes.RouterKey, community.NewCommunityPoolProposalHandler(app.communityKeeper)).
 		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,

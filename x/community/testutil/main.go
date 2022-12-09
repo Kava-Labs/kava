@@ -9,6 +9,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community/keeper"
+	"github.com/kava-labs/kava/x/community/types"
 )
 
 // Test suite used for all community tests
@@ -17,6 +18,8 @@ type Suite struct {
 	App    app.TestApp
 	Ctx    sdk.Context
 	Keeper keeper.Keeper
+
+	MaccAddress sdk.AccAddress
 }
 
 // The default state used by each test
@@ -30,6 +33,10 @@ func (suite *Suite) SetupTest() {
 	suite.App = tApp
 	suite.Ctx = ctx
 	suite.Keeper = tApp.GetCommunityKeeper()
+	communityPoolAddress := tApp.GetAccountKeeper().GetModuleAddress(types.ModuleAccountName)
+	// hello, greppers!
+	suite.Equal("kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5", communityPoolAddress.String())
+	suite.MaccAddress = communityPoolAddress
 }
 
 // CreateFundedAccount creates a random account and mints `coins` to it.
