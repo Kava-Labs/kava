@@ -350,7 +350,7 @@ func (suite *MsgServerSuite) TestEVMCall() {
 			},
 		},
 		{
-			"valid - extra data passed after valid fn data",
+			"invalid - extra data passed after valid fn data",
 			types.MsgEVMCall{
 				To:        contractAddr.String(),
 				FnAbi:     validFnAbi,
@@ -360,7 +360,8 @@ func (suite *MsgServerSuite) TestEVMCall() {
 			},
 			sdk.NewInt(970),
 			errArgs{
-				expectPass: true,
+				expectPass: false,
+				contains:   "invalid call data: call data does not match unpacked data",
 			},
 		},
 		{

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -231,5 +232,16 @@ func (action MsgEVMCall) Decode() ([]interface{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode method args: %s", err)
 	}
+
+	packedData, err := method.Inputs.Pack(val...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to pack decoded data: %s", err)
+	}
+
+	// verify call data is the same as unpacked data
+	if !bytes.Equal(packedData, data[4:]) {
+		return nil, fmt.Errorf("invalid call data: call data does not match unpacked data")
+	}
+
 	return val, nil
 }

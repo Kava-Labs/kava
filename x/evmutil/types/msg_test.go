@@ -402,7 +402,7 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 			},
 		},
 		{
-			name: "valid - extra value is passed but only needed params are decoded",
+			name: "invalid - extra param data is passed",
 			msg: types.MsgEVMCall{
 				To:        contractAddr,
 				FnAbi:     validFnAbi,
@@ -412,7 +412,8 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 			},
 			params: validParams,
 			errArgs: errArgs{
-				expectPass: true,
+				expectPass: false,
+				contains:   "invalid call data: call data does not match unpacked data",
 			},
 		},
 	}
