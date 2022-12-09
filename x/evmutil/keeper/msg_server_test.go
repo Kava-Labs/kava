@@ -289,12 +289,7 @@ func (suite *MsgServerSuite) TestEVMCall() {
 		"name": "transfer",
 		"type": "function"
 	}`
-	validData := fmt.Sprintf(
-		"0x%s%s%s",
-		"a9059cbb", // transfer(address,uint256)
-		hexutil.Encode(common.LeftPadBytes(userEvmAddr.Bytes(), 32))[2:],
-		hexutil.Encode(common.LeftPadBytes(big.NewInt(30).Bytes(), 32))[2:],
-	)
+	validData := encodeTransferFn(userEvmAddr, 30)
 
 	type errArgs struct {
 		expectPass bool
@@ -371,14 +366,9 @@ func (suite *MsgServerSuite) TestEVMCall() {
 		{
 			"invalid - insufficient funds",
 			types.MsgEVMCall{
-				To:    contractAddr.String(),
-				FnAbi: validFnAbi,
-				Data: fmt.Sprintf(
-					"0x%s%s%s",
-					"a9059cbb", // transfer(address,uint256)
-					hexutil.Encode(common.LeftPadBytes(userEvmAddr.Bytes(), 32))[2:],
-					hexutil.Encode(common.LeftPadBytes(big.NewInt(2000).Bytes(), 32))[2:],
-				),
+				To:        contractAddr.String(),
+				FnAbi:     validFnAbi,
+				Data:      encodeTransferFn(userEvmAddr, 2000),
 				Authority: authorityAddr,
 				Amount:    sdk.ZeroInt(),
 			},
@@ -472,8 +462,8 @@ func (suite *MsgServerSuite) TestEVMCall() {
 				Data: fmt.Sprintf(
 					"0x%s%s%s",
 					"dee4aafc", // badFn(address,uint256)
-					hexutil.Encode(common.LeftPadBytes(userEvmAddr.Bytes(), 32))[2:],
-					hexutil.Encode(common.LeftPadBytes(big.NewInt(30).Bytes(), 32))[2:],
+					encodeAddress(userEvmAddr),
+					encodeInt(30),
 				),
 				Amount:    sdk.ZeroInt(),
 				Authority: authorityAddr,
@@ -508,7 +498,7 @@ func (suite *MsgServerSuite) TestEVMCall() {
 					"name": "triggerError",
 					"type": "function"
 				}`,
-				Data:      "0xbcffd7cf",
+				Data:      "0xbcffd7cf", // call triggerError
 				Authority: authorityAddr,
 				Amount:    sdk.ZeroInt(),
 			},
@@ -579,4 +569,21 @@ func (suite *MsgServerSuite) TestEVMCall() {
 			suite.Require().Equal(tc.expUsdcBal.BigInt(), bal, "user erc20 balance is invalid")
 		})
 	}
+}
+
+func encodeTransferFn(addr common.Address, amt int64) string {
+	return fmt.Sprintf(
+		"0x%s%s%s",
+		"a9059cbb", // transfer(address,uint256)
+		encodeAddress(addr),
+		encodeInt(amt),
+	)
+}
+
+func encodeAddress(addr common.Address) string {
+	return hexutil.Encode(common.LeftPadBytes(addr.Bytes(), 32))[2:]
+}
+
+func encodeInt(amt int64) string {
+	return hexutil.Encode(common.LeftPadBytes(big.NewInt(amt).Bytes(), 32))[2:]
 }

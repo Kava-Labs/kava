@@ -66,7 +66,7 @@ message MsgConvertCoinToERC20 {
 
 ## MsgEVMCall
 
-`MsgEVMCall` convert calls the EVM with data.
+`MsgEVMCall` calls the EVM with data.
 
 ```protobuf
 service Msg {

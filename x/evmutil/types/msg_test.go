@@ -1,6 +1,8 @@
 package types_test
 
 import (
+	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -9,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 func TestMsgConvertCoinToERC20(t *testing.T) {
@@ -207,6 +210,13 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		contains   string
 	}
 
+	contractAddr := "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3"
+	authority := "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w"
+	validParams := make([]interface{}, 2)
+	validAddr := common.HexToAddress("0x71586E5B3468B5720BAa9162A02366Fae6933BfE")
+	validAmt := int64(10)
+	validParams[0] = validAddr
+	validParams[1] = sdk.NewInt(validAmt).BigInt()
 	validFnAbi := `{
 		"inputs": [
 			{ "type": "address", "name": "to" },
@@ -215,11 +225,7 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		"name": "transfer",
 		"type": "function"
 	}`
-	validData := "0xa9059cbb00000000000000000000000071586e5b3468b5720baa9162a02366fae6933bfe000000000000000000000000000000000000000000000000000000000000000a"
-
-	validParams := make([]interface{}, 2)
-	validParams[0] = common.HexToAddress("0x71586E5B3468B5720BAa9162A02366Fae6933BfE")
-	validParams[1] = sdk.NewInt(10).BigInt()
+	validData := encodeTransferFn(validAddr, validAmt)
 
 	tests := []struct {
 		name    string
@@ -230,11 +236,11 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "valid contract call",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				FnAbi:     validFnAbi,
 				Data:      validData,
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			params: validParams,
 			errArgs: errArgs{
@@ -244,9 +250,9 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "valid non-contract call",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				Amount:    sdk.OneInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: true,
@@ -255,10 +261,10 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "invalid - data with no abi",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				Data:      validData,
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -268,9 +274,9 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "invalid - 'to' not hex address",
 			msg: types.MsgEVMCall{
-				To:        "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				To:        authority,
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -280,7 +286,7 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "invalid - invalid authority",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				Amount:    sdk.ZeroInt(),
 				Authority: "",
 			},
@@ -292,9 +298,9 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "invalid - negative amount",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				Amount:    sdk.NewInt(-10),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -304,21 +310,22 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "invalid - cannot decode data with fnAbi",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				FnAbi:     validFnAbi,
 				Data:      "0xa9059cbb00",
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "unable to decode data",
+				contains:   "unable to decode method args: abi",
 			},
 		},
 		{
 			name: "invalid - fnAbi does not match params",
 			msg: types.MsgEVMCall{
-				To: "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To: contractAddr,
+				// transfer params is reversed
 				FnAbi: `{
 					"inputs": [
 						{ "type": "uint256", "name": "amount" },
@@ -329,34 +336,40 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 				}`,
 				Data:      validData,
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
+				contains:   "method not found in fnAbi: 0xa9059cbb",
 			},
 		},
 		{
 			name: "invalid - data fn signature mismatch",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
-				FnAbi:     validFnAbi,
-				Data:      "0xa9059cab00000000000000000000000071586e5b3468b5720baa9162a02366fae6933bfe000000000000000000000000000000000000000000000000000000000000000a",
+				To:    contractAddr,
+				FnAbi: validFnAbi,
+				Data: fmt.Sprintf(
+					"0x%s%s%s",
+					"5d359fbd", // transfer(address,uint64)
+					encodeAddress(validAddr),
+					encodeInt(validAmt),
+				),
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "failed to validate fn signature `transfer(address,uint256)` with data `0xa9059cab`",
+				contains:   "method not found in fnAbi: 0x5d359fbd",
 			},
 		},
 		{
 			name: "invalid - fnAbi invalid",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				FnAbi:     "100",
 				Data:      validData,
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -366,11 +379,11 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "invalid - data must be hex string",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
+				To:        contractAddr,
 				FnAbi:     validFnAbi,
 				Data:      "100",
 				Amount:    sdk.ZeroInt(),
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -380,12 +393,26 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 		{
 			name: "invalid - no amount",
 			msg: types.MsgEVMCall{
-				To:        "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3",
-				Authority: "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+				To:        contractAddr,
+				Authority: authority,
 			},
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "amount must not be nil",
+			},
+		},
+		{
+			name: "valid - extra value is passed but only needed params are decoded",
+			msg: types.MsgEVMCall{
+				To:        contractAddr,
+				FnAbi:     validFnAbi,
+				Data:      fmt.Sprintf("%s%s", validData, encodeInt(100)),
+				Amount:    sdk.ZeroInt(),
+				Authority: authority,
+			},
+			params: validParams,
+			errArgs: errArgs{
+				expectPass: true,
 			},
 		},
 	}
@@ -408,4 +435,21 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 			}
 		})
 	}
+}
+
+func encodeTransferFn(addr common.Address, amt int64) string {
+	return fmt.Sprintf(
+		"0x%s%s%s",
+		"a9059cbb", // transfer(address,uint256)
+		encodeAddress(addr),
+		encodeInt(amt),
+	)
+}
+
+func encodeAddress(addr common.Address) string {
+	return hexutil.Encode(common.LeftPadBytes(addr.Bytes(), 32))[2:]
+}
+
+func encodeInt(amt int64) string {
+	return hexutil.Encode(common.LeftPadBytes(big.NewInt(amt).Bytes(), 32))[2:]
 }

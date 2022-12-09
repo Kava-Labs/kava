@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"strings"
@@ -222,18 +221,15 @@ func (action MsgEVMCall) Decode() ([]interface{}, error) {
 		return nil, fmt.Errorf("failed to parse a single method from fnAbi: methods parsed %d", len(d.Methods))
 	}
 
-	for _, v := range d.Methods {
-		// validate the first 4 bytes of data with method signature
-		if !bytes.Equal(v.ID, data[:4]) {
-			return nil, fmt.Errorf("failed to validate fn signature `%s` with data `%s`", v.Sig, hexutil.Encode(data[:4]))
-		}
-
-		// attempt to unpack params data by removing the first bytes of the method signature
-		val, err := v.Inputs.Unpack(data[4:])
-		if err != nil {
-			return nil, fmt.Errorf("unable to decode data: %s", err)
-		}
-		return val, nil
+	method, err := d.MethodById(data[:4])
+	if err != nil {
+		return nil, fmt.Errorf("method not found in fnAbi: %s", hexutil.Encode(data[:4]))
 	}
-	return nil, fmt.Errorf("cannot decode MsgEVMCall")
+
+	// attempt to unpack params data by removing the first bytes of the method signature
+	val, err := method.Inputs.Unpack(data[4:])
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode method args: %s", err)
+	}
+	return val, nil
 }
