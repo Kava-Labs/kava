@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
@@ -30,6 +29,18 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 	liquidStakedTokens := int64(60_000_000_000000)
 	totalSupply := int64(289_138_414_286684)
 
+	// inflation values below are used to regression test the switch from x/mint to x/kavamint
+	// rather than define the total inflation w/ a community tax, we now directly define
+	// inflation for staking rewards & inflation for the community pool.
+	// derive these values from the above values in order to verify no change to output
+	bondedRatio := sdk.NewDec(bondedTokens).Quo(sdk.NewDec(totalSupply))
+	communityInflation := inflation.
+		Mul(communityTax).
+		Quo(bondedRatio)
+	stakingRewardsApy := inflation.
+		Mul(sdk.OneDec().Sub(communityTax)).
+		Quo(bondedRatio)
+
 	usdcDenom := "erc20/multichain/usdc"
 	usdcSupply := int64(2_500_000_000000)
 
@@ -38,12 +49,10 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 		addVault(usdcDenom, earntypes.NewVaultShare(usdcDenom, sdk.NewDec(usdcSupply)))
 
 	suite.keeper = suite.NewTestKeeper(&fakeParamSubspace{}).
-		WithDistrKeeper(
-			newFakeDistrKeeper().setCommunityTax(communityTax),
-		).
-		WithMintKeeper(
-			newFakeMintKeeper().
-				setMinter(minttypes.NewMinter(inflation, sdk.OneDec())),
+		WithKavamintKeeper(
+			newFakeKavamintKeeper().
+				setCommunityInflation(communityInflation).
+				setStakingApy(stakingRewardsApy),
 		).
 		WithStakingKeeper(
 			newFakeStakingKeeper().addBondedTokens(bondedTokens),

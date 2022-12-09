@@ -73,11 +73,9 @@ func (suite *BasicAccumulatorTestSuite) SetupTest() {
 
 	stakingBuilder := testutil.NewStakingGenesisBuilder()
 
-	mintBuilder := testutil.NewMintGenesisBuilder().
-		WithInflationMax(sdk.OneDec()).
-		WithInflationMin(sdk.OneDec()).
-		WithMinter(sdk.OneDec(), sdk.ZeroDec()).
-		WithMintDenom("ukava")
+	kavamintBuilder := testutil.NewKavamintGenesisBuilder().
+		WithStakingRewardsApy(sdk.MustNewDecFromStr("0.2")).
+		WithPreviousBlockTime(suite.GenesisTime)
 
 	suite.StartChainWithBuilders(
 		authBuilder,
@@ -85,7 +83,7 @@ func (suite *BasicAccumulatorTestSuite) SetupTest() {
 		savingsBuilder,
 		earnBuilder,
 		stakingBuilder,
-		mintBuilder,
+		kavamintBuilder,
 	)
 
 	suite.pool = swaptypes.PoolID(poolDenomA, poolDenomB)

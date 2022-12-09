@@ -31,7 +31,7 @@ type Keeper struct {
 	Store    store.IncentiveStore
 
 	// Keepers used for APY queries
-	mintKeeper      types.MintKeeper
+	kavamintKeeper  types.KavamintKeeper
 	distrKeeper     types.DistrKeeper
 	pricefeedKeeper types.PricefeedKeeper
 }
@@ -41,7 +41,7 @@ func NewKeeper(
 	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
 	swpk types.SwapKeeper, svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
-	mk types.MintKeeper, dk types.DistrKeeper, pfk types.PricefeedKeeper,
+	kmk types.KavamintKeeper, dk types.DistrKeeper, pfk types.PricefeedKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -67,7 +67,7 @@ func NewKeeper(
 		),
 		Store: store.NewIncentiveStore(cdc, key),
 
-		mintKeeper:      mk,
+		kavamintKeeper:  kmk,
 		distrKeeper:     dk,
 		pricefeedKeeper: pfk,
 	}

@@ -3,7 +3,6 @@ package testutil
 import (
 	"github.com/stretchr/testify/suite"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -78,48 +77,15 @@ func (suite *Suite) SetupTest(numAddrs int) {
 	suite.AccountKeeper = tApp.GetAccountKeeper()
 }
 
-// CreateAccount adds coins to an account address
-func (suite *Suite) AddCoinsToAccount(addr sdk.AccAddress, coins sdk.Coins) {
-	ak := suite.App.GetAccountKeeper()
-	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
-	ak.SetAccount(suite.Ctx, acc)
-
-	err := simapp.FundAccount(suite.BankKeeper, suite.Ctx, acc.GetAddress(), coins)
-	suite.Require().NoError(err)
-}
-
 // AddCoinsToModule adds coins to a named module account
 func (suite *Suite) AddCoinsToNamedModule(moduleName string, amount sdk.Coins) {
 	// Does not use suite.BankKeeper.MintCoins as module account would not have permission to mint
-	err := simapp.FundModuleAccount(suite.BankKeeper, suite.Ctx, moduleName, amount)
+	err := suite.App.FundModuleAccount(suite.Ctx, moduleName, amount)
 	suite.Require().NoError(err)
 }
-
-// NewModuleAccountFromAddr creates a new module account from the provided address with the provided balance
-// func (suite *Suite) NewModuleAccount(moduleName string, balance sdk.Coins) authtypes.AccountI {
-// 	ak := suite.App.GetAccountKeeper()
-
-// 	modAccAddr := authtypes.NewModuleAddress(moduleName)
-// 	acc := ak.NewAccountWithAddress(suite.Ctx, modAccAddr)
-// 	ak.SetAccount(suite.Ctx, acc)
-
-// 	err := simapp.FundModuleAccount(suite.BankKeeper, suite.Ctx, moduleName, balance)
-// 	suite.Require().NoError(err)
-
-// 	return acc
-// }
 
 // CheckAccountBalanceEqual asserts that
 func (suite *Suite) CheckAccountBalanceEqual(owner sdk.AccAddress, expectedCoins sdk.Coins) {
 	balances := suite.BankKeeper.GetAllBalances(suite.Ctx, owner)
 	suite.Equal(expectedCoins, balances)
 }
-
-// // CheckModuleAccountBalanceEqual asserts that a named module account balance matches the provided coins
-// func (suite *Suite) CheckModuleAccountBalanceEqual(moduleName string, coins sdk.Coins) {
-// 	balance := suite.BankKeeper.GetAllBalances(
-// 		suite.Ctx,
-// 		suite.AccountKeeper.GetModuleAddress(moduleName),
-// 	)
-// 	suite.Equal(coins, balance, fmt.Sprintf("expected module account balance to equal coins %s, but got %s", coins, balance))
-// }

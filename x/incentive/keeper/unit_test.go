@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -160,7 +159,7 @@ type TestKeeperBuilder struct {
 	earnKeeper    types.EarnKeeper
 
 	// Keepers used for APY queries
-	mintKeeper      types.MintKeeper
+	kavamintKeeper  types.KavamintKeeper
 	distrKeeper     types.DistrKeeper
 	pricefeedKeeper types.PricefeedKeeper
 }
@@ -185,7 +184,6 @@ func (suite *unitTester) NewTestKeeper(
 		savingsKeeper:   nil,
 		liquidKeeper:    nil,
 		earnKeeper:      nil,
-		mintKeeper:      nil,
 		distrKeeper:     nil,
 		pricefeedKeeper: nil,
 	}
@@ -211,8 +209,8 @@ func (tk *TestKeeperBuilder) WithStakingKeeper(k types.StakingKeeper) *TestKeepe
 	return tk
 }
 
-func (tk *TestKeeperBuilder) WithMintKeeper(k types.MintKeeper) *TestKeeperBuilder {
-	tk.mintKeeper = k
+func (tk *TestKeeperBuilder) WithKavamintKeeper(k types.KavamintKeeper) *TestKeeperBuilder {
+	tk.kavamintKeeper = k
 	return tk
 }
 
@@ -231,7 +229,7 @@ func (tk *TestKeeperBuilder) Build() keeper.Keeper {
 		tk.cdc, tk.key, tk.paramSubspace,
 		tk.bankKeeper, tk.cdpKeeper, tk.hardKeeper, tk.accountKeeper,
 		tk.stakingKeeper, tk.swapKeeper, tk.savingsKeeper, tk.liquidKeeper,
-		tk.earnKeeper, tk.mintKeeper, tk.distrKeeper, tk.pricefeedKeeper,
+		tk.earnKeeper, tk.kavamintKeeper, tk.distrKeeper, tk.pricefeedKeeper,
 	)
 }
 
@@ -649,23 +647,29 @@ func (k *fakeDistrKeeper) GetCommunityTax(ctx sdk.Context) (percent sdk.Dec) {
 	return k.communityTax
 }
 
-type fakeMintKeeper struct {
-	minter minttypes.Minter
+type fakeKavamintKeeper struct {
+	stakingApy         sdk.Dec
+	communityInflation sdk.Dec
 }
 
-var _ types.MintKeeper = newFakeMintKeeper()
+var _ types.KavamintKeeper = newFakeKavamintKeeper()
 
-func newFakeMintKeeper() *fakeMintKeeper {
-	return &fakeMintKeeper{}
+func newFakeKavamintKeeper() *fakeKavamintKeeper {
+	return &fakeKavamintKeeper{}
 }
 
-func (k *fakeMintKeeper) setMinter(minter minttypes.Minter) *fakeMintKeeper {
-	k.minter = minter
+func (k *fakeKavamintKeeper) setStakingApy(apy sdk.Dec) *fakeKavamintKeeper {
+	k.stakingApy = apy
 	return k
 }
 
-func (k *fakeMintKeeper) GetMinter(ctx sdk.Context) (minter minttypes.Minter) {
-	return k.minter
+func (k *fakeKavamintKeeper) setCommunityInflation(inflation sdk.Dec) *fakeKavamintKeeper {
+	k.communityInflation = inflation
+	return k
+}
+
+func (k *fakeKavamintKeeper) GetStakingApy(ctx sdk.Context) (apy sdk.Dec) {
+	return k.stakingApy
 }
 
 type fakePricefeedKeeper struct {

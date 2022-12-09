@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/evmutil/keeper"
@@ -130,9 +129,8 @@ func (suite *invariantTestSuite) TestSmallBalances() {
 	// add same number of ukava to avoid breaking other invariants
 	amt := sdk.NewCoins(sdk.NewInt64Coin(keeper.CosmosDenom, 1))
 	suite.Require().NoError(
-		suite.BankKeeper.MintCoins(suite.Ctx, minttypes.ModuleName, amt),
+		suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, amt),
 	)
-	suite.BankKeeper.SendCoinsFromModuleToModule(suite.Ctx, minttypes.ModuleName, types.ModuleName, amt)
 
 	message, broken := suite.runInvariant("small-balances", keeper.SmallBalancesInvariant)
 	suite.Equal("evmutil: small balances broken invariant\nminor balances not all less than overflow\n", message)

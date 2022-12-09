@@ -7,7 +7,6 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
@@ -37,6 +36,7 @@ func (suite *invariantTestSuite) SetupTest() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addrs = addrs
 
+	suite.tApp = tApp
 	suite.ctx = ctx
 	suite.keeper = tApp.GetSavingsKeeper()
 	suite.bankKeeper = tApp.GetBankKeeper()
@@ -63,7 +63,7 @@ func (suite *invariantTestSuite) SetupValidState() {
 		depositAmt,
 	))
 
-	err := simapp.FundModuleAccount(suite.bankKeeper, suite.ctx, types.ModuleName, depositAmt)
+	err := suite.tApp.FundModuleAccount(suite.ctx, types.ModuleName, depositAmt)
 	suite.Require().NoError(err)
 }
 

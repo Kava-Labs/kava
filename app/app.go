@@ -49,9 +49,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	"github.com/cosmos/cosmos-sdk/x/mint"
-	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -167,7 +164,6 @@ var (
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
-		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(
 			paramsclient.ProposalHandler,
@@ -218,7 +214,6 @@ var (
 	mAccPerms = map[string][]string{
 		authtypes.FeeCollectorName:      nil,
 		distrtypes.ModuleName:           nil,
-		minttypes.ModuleName:            {authtypes.Minter},
 		stakingtypes.BondedPoolName:     {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName:  {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:             {authtypes.Burner},
@@ -282,7 +277,6 @@ type App struct {
 	bankKeeper       bankkeeper.Keeper
 	capabilityKeeper *capabilitykeeper.Keeper
 	stakingKeeper    stakingkeeper.Keeper
-	mintKeeper       mintkeeper.Keeper
 	distrKeeper      distrkeeper.Keeper
 	govKeeper        govkeeper.Keeper
 	paramsKeeper     paramskeeper.Keeper
@@ -357,7 +351,7 @@ func NewApp(
 
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
-		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey,
+		distrtypes.StoreKey, slashingtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey,
 		upgradetypes.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		evmtypes.StoreKey, feemarkettypes.StoreKey, authzkeeper.StoreKey,
@@ -390,7 +384,6 @@ func NewApp(
 	authSubspace := app.paramsKeeper.Subspace(authtypes.ModuleName)
 	bankSubspace := app.paramsKeeper.Subspace(banktypes.ModuleName)
 	stakingSubspace := app.paramsKeeper.Subspace(stakingtypes.ModuleName)
-	mintSubspace := app.paramsKeeper.Subspace(minttypes.ModuleName)
 	distrSubspace := app.paramsKeeper.Subspace(distrtypes.ModuleName)
 	slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.ModuleName)
 	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
@@ -447,15 +440,6 @@ func NewApp(
 		keys[authzkeeper.StoreKey],
 		appCodec,
 		app.BaseApp.MsgServiceRouter(),
-	)
-	app.mintKeeper = mintkeeper.NewKeeper(
-		appCodec,
-		keys[minttypes.StoreKey],
-		mintSubspace,
-		&app.stakingKeeper,
-		app.accountKeeper,
-		app.bankKeeper,
-		authtypes.FeeCollectorName,
 	)
 	app.distrKeeper = distrkeeper.NewKeeper(
 		appCodec,
@@ -660,7 +644,7 @@ func NewApp(
 		&savingsKeeper,
 		&app.liquidKeeper,
 		&earnKeeper,
-		app.mintKeeper,
+		app.kavamintKeeper,
 		app.distrKeeper,
 		app.pricefeedKeeper,
 	)
@@ -736,7 +720,6 @@ func NewApp(
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper),
 		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
-		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
 		params.NewAppModule(app.paramsKeeper),
@@ -779,9 +762,7 @@ func NewApp(
 		// Committee begin blocker changes module params by enacting proposals.
 		// Run before to ensure params are updated together before state changes.
 		committeetypes.ModuleName,
-		minttypes.ModuleName,
-		// Kavamint registers with the vanilla mint module.
-		// Must be run before distribution module in order to generate block staking rewards.
+		// Kavamint must be registered before distribution module in order to generate block staking rewards.
 		kavaminttypes.ModuleName,
 		distrtypes.ModuleName,
 		// During begin block slashing happens after distr.BeginBlocker so that
@@ -836,7 +817,6 @@ func NewApp(
 		capabilitytypes.ModuleName,
 		incentivetypes.ModuleName,
 		issuancetypes.ModuleName,
-		minttypes.ModuleName,
 		slashingtypes.ModuleName,
 		distrtypes.ModuleName,
 		auctiontypes.ModuleName,
@@ -875,7 +855,6 @@ func NewApp(
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName, // iterates over validators, run after staking
 		govtypes.ModuleName,
-		minttypes.ModuleName,
 		kavaminttypes.ModuleName,
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,

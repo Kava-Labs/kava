@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -58,7 +57,7 @@ func (suite *Suite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance
 	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
 	ak.SetAccount(suite.Ctx, acc)
 
-	err := simapp.FundAccount(suite.BankKeeper, suite.Ctx, acc.GetAddress(), initialBalance)
+	err := suite.App.FundAccount(suite.Ctx, acc.GetAddress(), initialBalance)
 	suite.Require().NoError(err)
 
 	return acc
@@ -85,7 +84,7 @@ func (suite *Suite) CreateVestingAccountWithAddress(addr sdk.AccAddress, initial
 
 // AddCoinsToModule adds coins to the a module account, creating it if it doesn't exist.
 func (suite *Suite) AddCoinsToModule(module string, amount sdk.Coins) {
-	err := simapp.FundModuleAccount(suite.BankKeeper, suite.Ctx, module, amount)
+	err := suite.App.FundModuleAccount(suite.Ctx, module, amount)
 	suite.Require().NoError(err)
 }
 

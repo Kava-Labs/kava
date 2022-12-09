@@ -14,7 +14,6 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -39,6 +38,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/types"
+	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
 )
 
 type Suite struct {
@@ -348,11 +348,11 @@ func (suite *Suite) SendTx(
 }
 
 func (suite *Suite) MintFeeCollector(coins sdk.Coins) {
-	err := suite.App.GetBankKeeper().MintCoins(suite.Ctx, minttypes.ModuleName, coins)
+	err := suite.App.GetBankKeeper().MintCoins(suite.Ctx, kavaminttypes.ModuleAccountName, coins)
 	suite.Require().NoError(err)
 	err = suite.App.GetBankKeeper().SendCoinsFromModuleToModule(
 		suite.Ctx,
-		minttypes.ModuleName,
+		kavaminttypes.ModuleAccountName,
 		authtypes.FeeCollectorName,
 		coins,
 	)
