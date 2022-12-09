@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -22,6 +23,7 @@ import (
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -34,12 +36,14 @@ import (
 	bep3keeper "github.com/kava-labs/kava/x/bep3/keeper"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
 	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
+	kavamintkeeper "github.com/kava-labs/kava/x/kavamint/keeper"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
@@ -65,7 +69,7 @@ var (
 //	However this leads to a lot of duplicated logic similar to InitGenesis methods.
 //	So TestApp.InitializeFromGenesisStates() will call InitGenesis with the default genesis state.
 //	and TestApp.InitializeFromGenesisStates(authState, cdpState) will do the same but overwrite the auth and cdp sections of the default genesis state
-//	Creating the genesis states can be combersome, but helper methods can make it easier such as NewAuthGenStateFromAccounts below.
+//	Creating the genesis states can be cumbersome, but helper methods can make it easier such as NewAuthGenStateFromAccounts below.
 type TestApp struct {
 	App
 }
@@ -117,6 +121,8 @@ func (tApp TestApp) GetFeeMarketKeeper() feemarketkeeper.Keeper { return tApp.fe
 func (tApp TestApp) GetLiquidKeeper() liquidkeeper.Keeper       { return tApp.liquidKeeper }
 func (tApp TestApp) GetEarnKeeper() earnkeeper.Keeper           { return tApp.earnKeeper }
 func (tApp TestApp) GetRouterKeeper() routerkeeper.Keeper       { return tApp.routerKeeper }
+func (tApp TestApp) GetKavamintKeeper() kavamintkeeper.Keeper   { return tApp.kavamintKeeper }
+func (tApp TestApp) GetCommunityKeeper() communitykeeper.Keeper { return tApp.communityKeeper }
 
 func (tApp TestApp) GetKeys() map[string]*sdk.KVStoreKey {
 	return tApp.keys
@@ -197,6 +203,13 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 	require.Equal(t, expectedCoins, coins)
 }
 
+// GetModuleAccountBalance gets the current balance of the denom for a module account
+func (tApp TestApp) GetModuleAccountBalance(ctx sdk.Context, moduleName string, denom string) sdk.Int {
+	moduleAcc := tApp.accountKeeper.GetModuleAccount(ctx, moduleName)
+	balance := tApp.bankKeeper.GetBalance(ctx, moduleAcc.GetAddress(), denom)
+	return balance.Amount
+}
+
 // FundAccount is a utility function that funds an account by minting and sending the coins to the address.
 func (tApp TestApp) FundAccount(ctx sdk.Context, addr sdk.AccAddress, amounts sdk.Coins) error {
 	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
@@ -218,6 +231,26 @@ func (tApp TestApp) FundModuleAccount(ctx sdk.Context, recipientMod string, amou
 	}
 
 	return tApp.bankKeeper.SendCoinsFromModuleToModule(ctx, minttypes.ModuleName, recipientMod, amounts)
+}
+
+// CreateNewUnbondedValidator creates a new validator in the staking module.
+// New validators are unbonded until the end blocker is run.
+func (tApp TestApp) CreateNewUnbondedValidator(ctx sdk.Context, valAddress sdk.ValAddress, selfDelegation sdk.Int) error {
+	msg, err := stakingtypes.NewMsgCreateValidator(
+		valAddress,
+		ed25519.GenPrivKey().PubKey(),
+		sdk.NewCoin(tApp.stakingKeeper.BondDenom(ctx), selfDelegation),
+		stakingtypes.Description{},
+		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		sdk.NewInt(1e6),
+	)
+	if err != nil {
+		return err
+	}
+
+	msgServer := stakingkeeper.NewMsgServerImpl(tApp.stakingKeeper)
+	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(ctx), msg)
+	return err
 }
 
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.

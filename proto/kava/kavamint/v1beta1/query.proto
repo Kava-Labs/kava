@@ -1,0 +1,44 @@
+syntax = "proto3";
+package kava.kavamint.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "kava/kavamint/v1beta1/kavamint.proto";
+
+option go_package = "github.com/kava-labs/kava/x/kavamint/types";
+
+// Query defines the gRPC querier service for kavamint.
+service Query {
+  // Params queries the parameters of x/kavamint module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/kavamint/v1beta1/params";
+  }
+
+  // Inflation queries x/kavamint for the overall cumulative inflation rate of KAVA.
+  rpc Inflation(QueryInflationRequest) returns (QueryInflationResponse) {
+    option (google.api.http).get = "/kava/kavamint/v1beta1/inflation";
+  }
+}
+
+// QueryParamsRequest defines the request type for querying x/kavamint parameters.
+message QueryParamsRequest {}
+
+// QueryParamsResponse defines the response type for querying x/kavamint parameters.
+message QueryParamsResponse {
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryInflationRequest is the request type for the Query/Inflation RPC method.
+message QueryInflationRequest {}
+
+// QueryInflationResponse is the response type for the Query/Inflation RPC method.
+message QueryInflationResponse {
+  // inflation is the current minting inflation value.
+  // example "0.990000000000000000" - 99% inflation
+  string inflation = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}

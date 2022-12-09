@@ -9,8 +9,13 @@ import (
 
 // HandleCommunityPoolDepositProposal is a handler for executing a passed community pool deposit proposal
 func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolDepositProposal) error {
-	fundAcc := k.accountKeeper.GetModuleAccount(ctx, kavadisttypes.FundModuleAccount)
-	if err := k.distKeeper.DistributeFromFeePool(ctx, sdk.NewCoins(p.Amount), fundAcc.GetAddress()); err != nil {
+	// move funds from community pool to the funding account
+	if err := k.bankKeeper.SendCoinsFromModuleToModule(
+		ctx,
+		k.communityPoolMaccName,
+		kavadisttypes.FundModuleAccount,
+		sdk.NewCoins(p.Amount),
+	); err != nil {
 		return err
 	}
 
@@ -32,18 +37,13 @@ func HandleCommunityPoolWithdrawProposal(ctx sdk.Context, k Keeper, p *types.Com
 	}
 
 	// Move funds to the community pool manually
-	err = k.bankKeeper.SendCoinsFromModuleToModule(
+	if err := k.bankKeeper.SendCoinsFromModuleToModule(
 		ctx,
 		kavadisttypes.FundModuleAccount,
-		k.distKeeper.GetDistributionAccount(ctx).GetName(),
+		k.communityPoolMaccName,
 		sdk.NewCoins(withdrawAmount),
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
-	feePool := k.distKeeper.GetFeePool(ctx)
-	newCommunityPool := feePool.CommunityPool.Add(sdk.NewDecCoinFromCoin(withdrawAmount))
-	feePool.CommunityPool = newCommunityPool
-	k.distKeeper.SetFeePool(ctx, feePool)
 	return nil
 }

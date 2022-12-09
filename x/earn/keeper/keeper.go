@@ -22,8 +22,8 @@ type Keeper struct {
 	hardKeeper    types.HardKeeper
 	savingsKeeper types.SavingsKeeper
 
-	// Keeper for community pool transfers
-	distKeeper types.DistributionKeeper
+	// name of module account the community pool deposit/withdraw proposals use
+	communityPoolMaccName string
 }
 
 // NewKeeper creates a new keeper
@@ -36,7 +36,7 @@ func NewKeeper(
 	liquidKeeper types.LiquidKeeper,
 	hardKeeper types.HardKeeper,
 	savingsKeeper types.SavingsKeeper,
-	distKeeper types.DistributionKeeper,
+	communityPoolMaccName string,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -51,7 +51,8 @@ func NewKeeper(
 		liquidKeeper:  liquidKeeper,
 		hardKeeper:    hardKeeper,
 		savingsKeeper: savingsKeeper,
-		distKeeper:    distKeeper,
+
+		communityPoolMaccName: communityPoolMaccName,
 	}
 }
 

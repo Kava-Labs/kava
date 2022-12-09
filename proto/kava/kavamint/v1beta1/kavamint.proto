@@ -1,0 +1,26 @@
+syntax = "proto3";
+package kava.kavamint.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/kavamint/types";
+
+// Params wraps the governance parameters for the kavamint module
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // yearly inflation of total token supply minted to the community pool.
+  string community_pool_inflation = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // yearly inflation of bonded tokens minted for staking rewards to validators.
+  string staking_rewards_apy = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}

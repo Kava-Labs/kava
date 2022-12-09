@@ -69,6 +69,8 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) SetupTest() {
 		WithMinter(sdk.OneDec(), sdk.ZeroDec()).
 		WithMintDenom("ukava")
 
+	kavamintBuilder := testutil.NewKavamintGenesisBuilder()
+
 	suite.StartChainWithBuilders(
 		authBuilder,
 		incentiveBuilder,
@@ -76,6 +78,7 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) SetupTest() {
 		earnBuilder,
 		stakingBuilder,
 		mintBuilder,
+		kavamintBuilder,
 	)
 }
 
