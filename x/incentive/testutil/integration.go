@@ -437,6 +437,12 @@ func (suite *IntegrationTester) EarnRewardEquals(owner sdk.AccAddress, expected 
 	suite.Truef(expected.IsEqual(claim.Reward), "expected earn claim reward to be %s, but got %s", expected, claim.Reward)
 }
 
+func (suite *IntegrationTester) RewardEquals(claimType types.ClaimType, owner sdk.AccAddress, expected sdk.Coins) {
+	claim, found := suite.App.GetIncentiveKeeper().Store.GetClaim(suite.Ctx, claimType, owner)
+	suite.Require().Truef(found, "expected claim to be found for %s", owner)
+	suite.Truef(expected.IsEqual(claim.Reward), "expected reward to be %s, but got %s", expected, claim.Reward)
+}
+
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
 func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdk.Int) {
 	initCoins := sdk.NewCoins(sdk.NewCoin(suite.App.GetStakingKeeper().BondDenom(ctx), accAmt))

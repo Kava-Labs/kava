@@ -16,8 +16,8 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimMultiDenom() {
 		WithSimpleAccount(receiverAddr, nil)
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6))).
-		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6)))
+		WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_SUPPLY, "bnb", cs(c("hard", 1e6), c("swap", 1e6))).
+		WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, "bnb", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -51,8 +51,10 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimMultiDenom() {
 		{Length: (17+31)*secondsPerDay - 7, Amount: cs(expectedRewardsHard)},
 		{Length: (28 + 31 + 30 + 31 + 30) * secondsPerDay, Amount: cs(expectedRewardsSwap)}, // second length is stacked on top of the first
 	})
+
 	// Check that claimed coins have been removed from a claim's reward
-	suite.HardRewardEquals(userAddr, nil)
+	suite.RewardEquals(types.CLAIM_TYPE_HARD_SUPPLY, userAddr, nil)
+	suite.RewardEquals(types.CLAIM_TYPE_HARD_BORROW, userAddr, nil)
 }
 
 func (suite *HandlerTestSuite) TestPayoutHardClaimSingleDenom() {
@@ -62,8 +64,8 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimSingleDenom() {
 		WithSimpleAccount(userAddr, cs(c("bnb", 1e12)))
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleSupplyRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6))).
-		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6), c("swap", 1e6)))
+		WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_SUPPLY, "bnb", cs(c("hard", 1e6), c("swap", 1e6))).
+		WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, "bnb", cs(c("hard", 1e6), c("swap", 1e6)))
 
 	suite.SetupWithGenState(authBulder, incentBuilder)
 
@@ -96,5 +98,6 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimSingleDenom() {
 	})
 
 	// Check that claimed coins have been removed from a claim's reward
-	suite.HardRewardEquals(userAddr, cs(c("hard", 2*7*1e6)))
+	suite.RewardEquals(types.CLAIM_TYPE_HARD_SUPPLY, userAddr, cs(c("hard", 7*1e6)))
+	suite.RewardEquals(types.CLAIM_TYPE_HARD_BORROW, userAddr, cs(c("hard", 7*1e6)))
 }
