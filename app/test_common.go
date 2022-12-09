@@ -124,6 +124,10 @@ func (tApp TestApp) GetRouterKeeper() routerkeeper.Keeper       { return tApp.ro
 func (tApp TestApp) GetKavamintKeeper() kavamintkeeper.Keeper   { return tApp.kavamintKeeper }
 func (tApp TestApp) GetCommunityKeeper() communitykeeper.Keeper { return tApp.communityKeeper }
 
+func (tApp TestApp) GetKeys() map[string]*sdk.KVStoreKey {
+	return tApp.keys
+}
+
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino

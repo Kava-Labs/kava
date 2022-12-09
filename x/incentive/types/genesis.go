@@ -200,6 +200,10 @@ func NewAccrualTime(claimType ClaimType, collateralType string, prevTime time.Ti
 
 // Validate performs validation of AccrualTime
 func (at AccrualTime) Validate() error {
+	if at.PreviousAccumulationTime.IsZero() {
+		return fmt.Errorf("previous accumulation time cannot be zero")
+	}
+
 	if err := at.ClaimType.Validate(); err != nil {
 		return err
 	}

@@ -1,0 +1,82 @@
+name: Reset Internal Testnet
+
+on:
+  workflow_call:
+    inputs:
+      chain-id:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+      ssm-document-name:
+          required: true
+          type: string
+      playbook-name:
+          required: true
+          type: string
+      playbook-infrastructure-branch:
+          required: true
+          type: string
+    secrets:
+      CI_AWS_KEY_ID:
+        required: true
+      CI_AWS_KEY_SECRET:
+        required: true
+      KAVA_PRIVATE_GITHUB_ACCESS_TOKEN:
+        required: true
+
+# in order:
+# enter standby (prevents autoscaling group from killing node during deploy)
+# stop kava
+# download updated binary and genesis
+# reset application database state (only done on internal testnet)
+jobs:
+  place-chain-nodes-on-standby:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: take the chain offline
+        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/put-all-chain-nodes-on-standby.sh
+        env:
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
+      - name: checkout infrastructure repo
+        uses: actions/checkout@v3
+        with:
+          repository: Kava-Labs/infrastructure
+          token: ${{ secrets.KAVA_PRIVATE_GITHUB_ACCESS_TOKEN }}
+          path: infrastructure
+          ref: ls-deploy-testnet-for-cd-prototyping
+      - name: set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+          check-latest: true
+          cache: true
+      - name: build kava node updater
+        run:  cd infrastructure/cli/kava-node-updater && make install && cd ../../../
+      - name: run reset playbook on all chain nodes
+        run: |
+          kava-node-updater \
+            --debug \
+            --max-retries=2 \
+            --aws-ssm-document-name=$SSM_DOCUMENT_NAME \
+            --infrastructure-git-pointer=$PLAYBOOK_INFRASTRUCTURE_BRANCH \
+            --update-playbook-filename=$PLAYBOOK_NAME \
+            --chain-id=$CHAIN_ID \
+            --max-upgrade-batch-size=0 \
+            --node-states=Standby \
+            --wait-for-node-sync-after-upgrade=false
+        env:
+          SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
+          PLAYBOOK_NAME: ${{ inputs.playbook-name }}
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
+          AWS_SDK_LOAD_CONFIG: 1
+          PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
