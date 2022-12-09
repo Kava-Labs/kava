@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/stretchr/testify/suite"
 
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	"github.com/kava-labs/kava/x/kavamint"
@@ -41,8 +42,8 @@ func (suite *abciTestSuite) CheckCommunityPoolBalance(ctx sdk.Context, expectedA
 	suite.CheckModuleBalance(ctx, communitytypes.ModuleAccountName, expectedAmount)
 }
 
-func TestGRPCQueryTestSuite(t *testing.T) {
-	//suite.Run(t, new(abciTestSuite))
+func TestABCITestSuite(t *testing.T) {
+	suite.Run(t, new(abciTestSuite))
 }
 
 func (suite *abciTestSuite) Test_BeginBlocker_MintsExpectedTokens() {
