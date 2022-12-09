@@ -1,0 +1,33 @@
+syntax = "proto3";
+package kava.community.v1beta1;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/community/types";
+
+// CommunityPoolLendDepositProposal deposits from the community pool into lend
+message CommunityPoolLendDepositProposal {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string title = 1;
+  string description = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// CommunityPoolLendWithdrawProposal withdraws a lend position back to the community pool
+message CommunityPoolLendWithdrawProposal {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string title = 1;
+  string description = 2;
+  repeated cosmos.base.v1beta1.Coin amount = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

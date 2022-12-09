@@ -178,6 +178,10 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
+    - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
+    - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
+  
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
@@ -2833,6 +2837,56 @@ Msg defines the committee Msg service
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `SubmitProposal` | [MsgSubmitProposal](#kava.committee.v1beta1.MsgSubmitProposal) | [MsgSubmitProposalResponse](#kava.committee.v1beta1.MsgSubmitProposalResponse) | SubmitProposal defines a method for submitting a committee proposal | |
 | `Vote` | [MsgVote](#kava.committee.v1beta1.MsgVote) | [MsgVoteResponse](#kava.committee.v1beta1.MsgVoteResponse) | Vote defines a method for voting on a proposal | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/community/v1beta1/proposal.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/proposal.proto
+
+
+
+<a name="kava.community.v1beta1.CommunityPoolLendDepositProposal"></a>
+
+### CommunityPoolLendDepositProposal
+CommunityPoolLendDepositProposal deposits from the community pool into lend
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.CommunityPoolLendWithdrawProposal"></a>
+
+### CommunityPoolLendWithdrawProposal
+CommunityPoolLendWithdrawProposal withdraws a lend position back to the community pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
