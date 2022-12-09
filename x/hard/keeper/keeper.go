@@ -53,6 +53,11 @@ func (k *Keeper) SetHooks(hooks types.HARDHooks) *Keeper {
 	return k
 }
 
+// ClearHooks clears the hooks on the keeper
+func (k *Keeper) ClearHooks() {
+	k.hooks = nil
+}
+
 // GetDeposit returns a deposit from the store for a particular depositor address, deposit denom
 func (k Keeper) GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (types.Deposit, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
@@ -219,7 +224,7 @@ func (k Keeper) DeleteMoneyMarket(ctx sdk.Context, denom string) {
 }
 
 // IterateMoneyMarkets iterates over all money markets objects in the store and performs a callback function
-// 		that returns both the money market and the key (denom) it's stored under
+// that returns both the money market and the key (denom) it's stored under
 func (k Keeper) IterateMoneyMarkets(ctx sdk.Context, cb func(denom string, moneyMarket types.MoneyMarket) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.MoneyMarketsPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
