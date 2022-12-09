@@ -90,6 +90,7 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	kavadistrquery "github.com/kava-labs/kava/app/query/distribution"
 	"github.com/kava-labs/kava/x/auction"
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
@@ -898,7 +899,7 @@ func NewApp(
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
-	app.mm.RegisterServices(app.configurator)
+	app.RegisterServices(app.configurator)
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// It needs to be called after `app.mm` and `app.configurator` are set.
@@ -969,6 +970,28 @@ func NewApp(
 	app.ScopedTransferKeeper = scopedTransferKeeper
 
 	return app
+}
+
+func (app *App) RegisterServices(cfg module.Configurator) {
+	// Register services from all unmodified modules
+	for _, module := range app.mm.Modules {
+		// skip registration of distribution services
+		if module.Name() == distrtypes.ModuleName {
+			continue
+		}
+		module.RegisterServices(cfg)
+	}
+
+	// register ditribution services except query server
+	distrtypes.RegisterMsgServer(cfg.MsgServer(), distrkeeper.NewMsgServerImpl(app.distrKeeper))
+	cfg.RegisterMigration(
+		distrtypes.ModuleName,
+		1,
+		distrkeeper.NewMigrator(app.distrKeeper).Migrate1to2,
+	)
+
+	// register fake distribution query server
+	distrtypes.RegisterQueryServer(cfg.QueryServer(), kavadistrquery.NewQueryServer(app.distrKeeper, app.communityKeeper))
 }
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
