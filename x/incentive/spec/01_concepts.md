@@ -23,16 +23,17 @@ First, every block, the amount of rewards to be distributed in that block are di
 Then, if a user has deposited (say into a CDP) at the very start of the chain (and never changed their deposit), their current reward balance can be calculated at any time $t$ as
 
 $$
-\texttt{rewards}_t = \texttt{global\_indexes}_t \cdot \texttt{source\_shares}_t
+\texttt{rewards}_ t = \texttt{globalIndexes}_ t \cdot \texttt{sourceShares}_ t
 $$
 
 If a user modifies their source shares (at say time $t-10$) we can still calculate their total rewards:
 
 $$
-\texttt{rewards}_t = \text{rewards accrued up to time t-10} + \text{rewards accrued from time t-10 to time t}
+\texttt{rewards}_ t= \text{rewards accrued up to time t-10} + \text{rewards accrued from time t-10 to time t}
 $$
+
 $$
-\texttt{rewards}_t = \texttt{global\_indexes}_{t-10} \cdot \texttt{source\_shares}_{t-10} + (\texttt{global\_indexes}_t - \texttt{global\_indexes}_{t-10}) \cdot \texttt{source\_shares}_t
+\texttt{rewards}_ t = \texttt{globalIndexes}_ {t-10} \cdot \texttt{sourceShares}_ {t-10} + (\texttt{globalIndexes}_ t - \texttt{globalIndexes}_ {t-10}) \cdot \texttt{sourceShares}_ t
 $$
 
 This generalizes to any number of source share modifications.
@@ -40,10 +41,10 @@ This generalizes to any number of source share modifications.
 In code, to avoid storing the entire history of a user's source shares and global index values, rewards are calculated on every source shares change and added to a reward balance:
 
 $$
-\texttt{rewards}_t = \texttt{reward\_balance}_{t -10} + (\texttt{global\_indexes}_t - \texttt{global\_indexes}_{t-10}) \cdot \texttt{source\_shares}_t
+\texttt{rewards}_ t = \texttt{rewardBalance}_ {t -10} + (\texttt{globalIndexes}_ t - \texttt{globalIndexes}_ {t-10}) \cdot \texttt{sourceShares}_ t
 $$
 
-Old values of $\texttt{reward\_balance}$ and $\texttt{global\_indexes}$ ares stored in a `Claim` object for each user.
+Old values of $\texttt{rewardBalance}$ and $\texttt{globalIndexes}$ ares stored in a `Claim` object for each user.
 
 Listeners on external modules fire to update these values when source shares change. For example when a user deposits to hard, a method in incentive is called that calculates the rewards accrued since the last time their deposit changed. These must be called whenever source shares change, otherwise incorrect rewards will be distributed.
 
