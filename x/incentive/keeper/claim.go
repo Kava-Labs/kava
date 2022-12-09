@@ -58,7 +58,12 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 
 // ClaimHardReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
-func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
+func (k Keeper) ClaimHardReward(
+	ctx sdk.Context,
+	owner, receiver sdk.AccAddress,
+	denom string,
+	multiplierName string,
+) error {
 	if err := k.isClaimEnd(ctx); err != nil {
 		return err
 	}
@@ -69,16 +74,20 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
 	}
 
+	var borrowErr error
+	var supplyErr error
+
 	if borrowFound {
-		if err := k.claimReward(ctx, borrowClaim, receiver, denom, multiplierName); err != nil {
-			return err
-		}
+		borrowErr = k.claimReward(ctx, borrowClaim, receiver, denom, multiplierName)
 	}
 
 	if supplyFound {
-		if err := k.claimReward(ctx, supplyClaim, receiver, denom, multiplierName); err != nil {
-			return err
-		}
+		supplyErr = k.claimReward(ctx, supplyClaim, receiver, denom, multiplierName)
+	}
+
+	// Only return an error if both claims failed
+	if borrowErr != nil && supplyErr != nil {
+		return borrowErr
 	}
 
 	return nil

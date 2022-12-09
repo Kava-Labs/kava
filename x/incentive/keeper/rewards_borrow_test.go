@@ -53,7 +53,7 @@ func (suite *BorrowIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 			Denom:       "hard",
 			Multipliers: types.Multipliers{types.NewMultiplier("large", 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
-		WithSimpleBorrowRewardPeriod("bnb", cs(c("hard", 1e6))) // only borrow rewards
+		WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, "bnb", cs(c("hard", 1e6))) // only borrow rewards
 
 	suite.SetApp()
 	suite.WithGenesisTime(suite.genesisTime)
@@ -239,7 +239,7 @@ func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).
-				WithSimpleBorrowRewardPeriod(tc.args.borrow.Denom, tc.args.rewardsPerSecond)
+				WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, tc.args.borrow.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
@@ -257,12 +257,13 @@ func (suite *BorrowRewardsTestSuite) TestAccumulateHardBorrowRewards() {
 			hard.BeginBlocker(runCtx, suite.hardKeeper)
 
 			// Accumulate hard borrow rewards for the deposit denom
-			multiRewardPeriod, found := suite.keeper.GetHardBorrowRewardPeriods(runCtx, tc.args.borrow.Denom)
+			multiRewardPeriod, found := suite.keeper.GetRewardPeriods(runCtx, types.CLAIM_TYPE_HARD_BORROW, tc.args.borrow.Denom)
 			suite.Require().True(found)
-			suite.keeper.AccumulateHardBorrowRewards(runCtx, multiRewardPeriod)
+
+			suite.keeper.AccumulateRewards(runCtx, types.CLAIM_TYPE_HARD_BORROW, multiRewardPeriod)
 
 			// Check that each expected reward index matches the current stored reward index for the denom
-			globalRewardIndexes, found := suite.keeper.GetHardBorrowRewardIndexes(runCtx, tc.args.borrow.Denom)
+			globalRewardIndexes, found := suite.keeper.Store.GetRewardIndexesOfClaimType(runCtx, types.CLAIM_TYPE_HARD_BORROW, tc.args.borrow.Denom)
 			suite.Require().True(found)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				globalRewardIndex, found := globalRewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
@@ -392,7 +393,7 @@ func (suite *BorrowRewardsTestSuite) TestInitializeHardBorrowRewards() {
 
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime)
 			for moneyMarketDenom, rewardsPerSecond := range tc.args.moneyMarketRewardDenoms {
-				incentBuilder = incentBuilder.WithSimpleBorrowRewardPeriod(moneyMarketDenom, rewardsPerSecond)
+				incentBuilder = incentBuilder.WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, moneyMarketDenom, rewardsPerSecond)
 			}
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
@@ -404,9 +405,9 @@ func (suite *BorrowRewardsTestSuite) TestInitializeHardBorrowRewards() {
 			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, tc.args.borrow)
 			suite.Require().NoError(err)
 
-			claim, foundClaim := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claim, foundClaim := suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(foundClaim)
-			suite.Require().Equal(tc.args.expectedClaimBorrowRewardIndexes, claim.BorrowRewardIndexes)
+			suite.Require().Equal(tc.args.expectedClaimBorrowRewardIndexes, claim.RewardIndexes)
 		})
 	}
 }
@@ -581,7 +582,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().WithGenesisTime(suite.genesisTime)
 			if tc.args.rewardsPerSecond != nil {
-				incentBuilder = incentBuilder.WithSimpleBorrowRewardPeriod(tc.args.incentiveBorrowRewardDenom, tc.args.rewardsPerSecond)
+				incentBuilder = incentBuilder.WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, tc.args.incentiveBorrowRewardDenom, tc.args.rewardsPerSecond)
 			}
 			// Set the minimum borrow to 0 to allow testing small borrows
 			hardBuilder := NewHardGenStateMulti(suite.genesisTime).WithMinBorrow(sdk.ZeroDec())
@@ -603,9 +604,9 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			suite.Require().NoError(err)
 
 			// Check that Hard hooks initialized a HardLiquidityProviderClaim
-			claim, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claim, found := suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(found)
-			multiRewardIndex, _ := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
+			multiRewardIndex, _ := claim.RewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				currRewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
@@ -641,7 +642,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			})
 
 			// Check that the global reward index's reward factor and user's claim have been updated as expected
-			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claim, found = suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(found)
 			globalRewardIndexes, foundGlobalRewardIndexes := suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
 			if len(tc.args.rewardsPerSecond) > 0 {
@@ -653,7 +654,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 					suite.Require().Equal(expectedRewardIndex, globalRewardIndex)
 
 					// Check that the user's claim's reward index matches the corresponding global reward index
-					multiRewardIndex, found := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
+					multiRewardIndex, found := claim.RewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 					suite.Require().True(found)
 					rewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 					suite.Require().True(found)
@@ -755,7 +756,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			// Check that the global reward index's reward factor and user's claim have been updated as expected
 			globalRewardIndexes, found = suite.keeper.GetHardBorrowRewardIndexes(suite.ctx, tc.args.borrow.Denom)
 			suite.Require().True(found)
-			claim, found = suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claim, found = suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(found)
 
 			for _, expectedRewardIndex := range tc.args.updatedExpectedRewardIndexes {
@@ -764,7 +765,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 				suite.Require().True(found)
 				suite.Require().Equal(expectedRewardIndex, globalRewardIndex)
 				// Check that the user's claim's reward index matches the corresponding global reward index
-				multiRewardIndex, found := claim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
+				multiRewardIndex, found := claim.RewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 				suite.Require().True(found)
 				rewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
@@ -905,10 +906,10 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).
-				WithSimpleBorrowRewardPeriod("bnb", tc.args.rewardsPerSecond).
-				WithSimpleBorrowRewardPeriod("ukava", tc.args.rewardsPerSecond).
-				WithSimpleBorrowRewardPeriod("btcb", tc.args.rewardsPerSecond).
-				WithSimpleBorrowRewardPeriod("xrp", tc.args.rewardsPerSecond)
+				WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, "bnb", tc.args.rewardsPerSecond).
+				WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, "ukava", tc.args.rewardsPerSecond).
+				WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, "btcb", tc.args.rewardsPerSecond).
+				WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, "xrp", tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
@@ -921,22 +922,22 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			suite.Require().NoError(err)
 
 			// Confirm that claim exists but no borrow reward indexes have been added
-			claimAfterDeposit, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claimAfterDeposit, found := suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(found)
-			suite.Require().Equal(0, len(claimAfterDeposit.BorrowRewardIndexes))
+			suite.Require().Equal(0, len(claimAfterDeposit.RewardIndexes))
 
 			// User borrows (first time)
 			err = suite.hardKeeper.Borrow(suite.ctx, userAddr, tc.args.firstBorrow)
 			suite.Require().NoError(err)
 
 			// Confirm that claim's borrow reward indexes have been updated
-			claimAfterFirstBorrow, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claimAfterFirstBorrow, found := suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.firstBorrow {
-				_, hasIndex := claimAfterFirstBorrow.HasBorrowRewardIndex(coin.Denom)
+				_, hasIndex := claimAfterFirstBorrow.HasRewardIndex(coin.Denom)
 				suite.Require().True(hasIndex)
 			}
-			suite.Require().True(len(claimAfterFirstBorrow.BorrowRewardIndexes) == len(tc.args.firstBorrow))
+			suite.Require().True(len(claimAfterFirstBorrow.RewardIndexes) == len(tc.args.firstBorrow))
 
 			// User modifies their Borrow by either repaying or borrowing more
 			if tc.args.modification.repay {
@@ -947,10 +948,10 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 			suite.Require().NoError(err)
 
 			// Confirm that claim's borrow reward indexes contain expected values
-			claimAfterModification, found := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claimAfterModification, found := suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(found)
 			for _, coin := range tc.args.modification.coins {
-				_, hasIndex := claimAfterModification.HasBorrowRewardIndex(coin.Denom)
+				_, hasIndex := claimAfterModification.HasRewardIndex(coin.Denom)
 				if tc.args.modification.repay {
 					// Only false if denom is repaid in full
 					if tc.args.modification.coins.AmountOf(coin.Denom).GTE(tc.args.firstBorrow.AmountOf(coin.Denom)) {
@@ -960,7 +961,7 @@ func (suite *BorrowRewardsTestSuite) TestUpdateHardBorrowIndexDenoms() {
 					suite.Require().True(hasIndex)
 				}
 			}
-			suite.Require().True(len(claimAfterModification.BorrowRewardIndexes) == len(tc.args.expectedBorrowIndexDenoms))
+			suite.Require().True(len(claimAfterModification.RewardIndexes) == len(tc.args.expectedBorrowIndexDenoms))
 		})
 	}
 }
@@ -1007,7 +1008,7 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 
 			incentBuilder := testutil.NewIncentiveGenesisBuilder().
 				WithGenesisTime(suite.genesisTime).
-				WithSimpleBorrowRewardPeriod(tc.args.borrow.Denom, tc.args.rewardsPerSecond)
+				WithSimpleRewardPeriod(types.CLAIM_TYPE_HARD_BORROW, tc.args.borrow.Denom, tc.args.rewardsPerSecond)
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, NewHardGenStateMulti(suite.genesisTime))
 
@@ -1038,9 +1039,9 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
 
 			// Confirm that the user's claim hasn't been synced
-			claimPre, foundPre := suite.keeper.GetHardLiquidityProviderClaim(suite.ctx, userAddr)
+			claimPre, foundPre := suite.keeper.Store.GetClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
 			suite.Require().True(foundPre)
-			multiRewardIndexPre, _ := claimPre.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
+			multiRewardIndexPre, _ := claimPre.RewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				currRewardIndex, found := multiRewardIndexPre.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
@@ -1048,10 +1049,12 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 			}
 
 			// Check that the synced claim held in memory has properly simulated syncing
-			syncedClaim := suite.keeper.SimulateHardSynchronization(suite.ctx, claimPre)
+			syncedClaim, found := suite.keeper.GetSynchronizedClaim(suite.ctx, types.CLAIM_TYPE_HARD_SUPPLY, userAddr)
+			suite.Require().True(found)
+
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				// Check that the user's claim's reward index matches the expected reward index
-				multiRewardIndex, found := syncedClaim.BorrowRewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
+				multiRewardIndex, found := syncedClaim.RewardIndexes.GetRewardIndex(tc.args.borrow.Denom)
 				suite.Require().True(found)
 				rewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)

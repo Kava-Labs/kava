@@ -109,6 +109,16 @@ func (c Claim) Validate() error {
 	return nil
 }
 
+// HasRewardIndex check if a claim has a reward index for the input collateralType.
+func (c Claim) HasRewardIndex(collateralType string) (int64, bool) {
+	for index, ri := range c.RewardIndexes {
+		if ri.CollateralType == collateralType {
+			return int64(index), true
+		}
+	}
+	return 0, false
+}
+
 // NewUSDXMintingClaim returns a new USDXMintingClaim
 func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes RewardIndexes) USDXMintingClaim {
 	return USDXMintingClaim{

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -48,7 +49,10 @@ func (k msgServer) ClaimHardReward(goCtx context.Context, msg *types.MsgClaimHar
 	for _, selection := range msg.DenomsToClaim {
 		err := k.keeper.ClaimHardReward(ctx, sender, sender, selection.Denom, selection.MultiplierName)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf(
+				"failed to claim hard reward %s with %s multiplier: %w",
+				selection.Denom, selection.MultiplierName, err,
+			)
 		}
 
 	}
