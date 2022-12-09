@@ -59,50 +59,28 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 // ClaimHardReward pays out funds from a claim to a receiver account.
 // Rewards are removed from a claim and paid out according to the multiplier, which reduces the reward amount in exchange for shorter vesting times.
 func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress, denom string, multiplierName string) error {
-	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
-	}
-
-	claimEnd := k.GetClaimEnd(ctx)
-
-	if ctx.BlockTime().After(claimEnd) {
-		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
-	}
-
-	k.SynchronizeHardLiquidityProviderClaim(ctx, owner)
-
-	syncedClaim, found := k.GetHardLiquidityProviderClaim(ctx, owner)
-	if !found {
-		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
-	}
-
-	amt := syncedClaim.Reward.AmountOf(denom)
-
-	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
-	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
-	if rewardCoins.IsZero() {
-		return types.ErrZeroClaim
-	}
-	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
-
-	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
-	if err != nil {
+	if err := k.isClaimEnd(ctx); err != nil {
 		return err
 	}
 
-	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
-	k.SetHardLiquidityProviderClaim(ctx, syncedClaim)
+	borrowClaim, borrowFound := k.GetSynchronizedClaim(ctx, types.CLAIM_TYPE_HARD_BORROW, owner)
+	supplyClaim, supplyFound := k.GetSynchronizedClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, owner)
+	if !borrowFound && !supplyFound {
+		return sdkerrors.Wrapf(types.ErrClaimNotFound, "address: %s", owner)
+	}
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeClaim,
-			sdk.NewAttribute(types.AttributeKeyClaimedBy, owner.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
-			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
-		),
-	)
+	if borrowFound {
+		if err := k.claimReward(ctx, borrowClaim, receiver, denom, multiplierName); err != nil {
+			return err
+		}
+	}
+
+	if supplyFound {
+		if err := k.claimReward(ctx, supplyClaim, receiver, denom, multiplierName); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -302,5 +280,63 @@ func (k Keeper) ClaimEarnReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.GetType()),
 		),
 	)
+	return nil
+}
+
+func (k Keeper) claimReward(
+	ctx sdk.Context,
+	syncedClaim types.Claim,
+	receiver sdk.AccAddress,
+	denom string,
+	multiplierName string,
+) error {
+	multiplier, found := k.GetMultiplierByDenom(ctx, denom, multiplierName)
+	if !found {
+		return sdkerrors.Wrapf(types.ErrInvalidMultiplier, "denom '%s' has no multiplier '%s'", denom, multiplierName)
+	}
+
+	claimEnd := k.GetClaimEnd(ctx)
+
+	if ctx.BlockTime().After(claimEnd) {
+		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
+	}
+
+	amt := syncedClaim.Reward.AmountOf(denom)
+
+	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
+	if rewardCoins.IsZero() {
+		return types.ErrZeroClaim
+	}
+	length := k.GetPeriodLength(ctx.BlockTime(), multiplier.MonthsLockup)
+
+	err := k.SendTimeLockedCoinsToAccount(ctx, types.IncentiveMacc, receiver, rewardCoins, length)
+	if err != nil {
+		return err
+	}
+
+	// remove claimed coins (NOT reward coins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	k.Store.SetClaim(ctx, syncedClaim)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeClaim,
+			sdk.NewAttribute(types.AttributeKeyClaimedBy, syncedClaim.Owner.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimAmount, claimingCoins.String()),
+			sdk.NewAttribute(types.AttributeKeyClaimType, syncedClaim.Type.String()),
+		),
+	)
+
+	return nil
+}
+
+func (k Keeper) isClaimEnd(ctx sdk.Context) error {
+	claimEnd := k.GetClaimEnd(ctx)
+
+	if ctx.BlockTime().After(claimEnd) {
+		return sdkerrors.Wrapf(types.ErrClaimExpired, "block time %s > claim end time %s", ctx.BlockTime(), claimEnd)
+	}
+
 	return nil
 }
