@@ -44,7 +44,7 @@ $$
 \texttt{rewards}_ t = \texttt{rewardBalance}_ {t -10} + (\texttt{globalIndexes}_ t - \texttt{globalIndexes}_ {t-10}) \cdot \texttt{sourceShares}_ t
 $$
 
-Old values of $\texttt{rewardBalance}$ and $\texttt{globalIndexes}$ ares stored in a `Claim` object for each user as `Claim.rewardBalance` and `Claim.rewardIndexes` respectively.
+Old values of $\texttt{rewardBalance}$ and $\texttt{globalIndexes}$ ares stored in a `Claim` object for each user as `rewardBalance` and `rewardIndexes` respectively.
 
 Listeners on external modules fire to update these values when source shares change. For example, when a user deposits to hard, a method in incentive is called. This fundamental operation is called "sync". It calculates the rewards accrued since last time the `sourceShares` changed, adds it to the claim, and stores the current `globalIndexes` in the `rewardIndexes`. Sync must be called whenever source shares change, otherwise incorrect rewards will be distributed.
 
