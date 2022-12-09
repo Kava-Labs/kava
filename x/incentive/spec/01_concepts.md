@@ -44,20 +44,18 @@ $$
 \texttt{rewards}_ t = \texttt{rewardBalance}_ {t -10} + (\texttt{globalIndexes}_ t - \texttt{globalIndexes}_ {t-10}) \cdot \texttt{sourceShares}_ t
 $$
 
-Old values of $\texttt{rewardBalance}$ and $\texttt{globalIndexes}$ ares stored in a `Claim` object for each user.
+Old values of $\texttt{rewardBalance}$ and $\texttt{globalIndexes}$ ares stored in a `Claim` object for each user as `Claim.rewardBalance` and `Claim.rewardIndexes` respectively.
 
-Listeners on external modules fire to update these values when source shares change. For example when a user deposits to hard, a method in incentive is called that calculates the rewards accrued since the last time their deposit changed. These must be called whenever source shares change, otherwise incorrect rewards will be distributed.
+Listeners on external modules fire to update these values when source shares change. For example, when a user deposits to hard, a method in incentive is called. This fundamental operation is called "sync". It calculates the rewards accrued since last time the `sourceShares` changed, adds it to the claim, and stores the current `globalIndexes` in the `rewardIndexes`. Sync must be called whenever source shares change, otherwise incorrect rewards will be distributed.
 
-The fundamental operation is called "sync".
+Enumeration of 'sync' input states:
+- `sourceShares`, `globalIndexes`, or `rewardIndexes` should never be negative
+- `globalIndexes` >= `rewardIndexes` (global indexes must never decrease)
+- `globalIndexes` and `rewardIndexes` can be positive or 0, where not existing in the store is counted as 0
 
-Enumeration of input states:
-- `source_shares`, `global_indexes`, or `claim_indexes` should never be negative
-- `global_indexes` >= `claim_indexes`
-- `global_indexes` and `claim_indexes` can be positive or 0, where not existing in the store is counted as 0
+- `sourceShares` are the value before the update (eg before a hard deposit)
 
-- `source_shares` are the value before the update (eg before a hard deposit)
-
- | `global_indexes` | `claim_indexes` | `source_shares` | description                                                                                                                                                                                                                                                |
+ | `globalIndexes` | `rewardIndexes` | `sourceShares` | description                                                                                                                                                                                                                                                |
  |------------------|-----------------|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
  | positive         | positive        | positive        | normal sync                                                                                                                                                                                                                                                |
  | positive         | positive        | 0               | normal (can happen when a user is creating a deposit (so shares are increasing from 0))                                                                                                                                                                    |
@@ -82,8 +80,8 @@ The code is further complicated by:
 - Savings and hard hooks trigger any time one in a group of source shares change, but don't identify which changed.
 - The hard `BeforeXModified` hooks don't show source shares that have increased from zero (eg when a new denom is deposited to an existing deposit). So there is an additional `AfterXModified` hook, and the claim indexes double up as a copy of the borrow/deposit denoms.
 - The sync operation is split between two methods to try to protect against indexes being deleted.
-    - `InitXRewards` performs a sync assuming source shares are 0, it mostly fires in cases where `source_shares` = 0 above (except for hard and supply)
-    - `SyncXRewards` performs a sync, but skips it if `global_indexes` are not found or `claim_indexes` are not found (only when claim object not found)
+    - `InitXRewards` performs a sync assuming source shares are 0, it mostly fires in cases where `sourceShares` = 0 above (except for hard and supply)
+    - `SyncXRewards` performs a sync, but skips it if `globalIndexes` are not found or `rewardIndexes` are not found (only when claim object not found)
 - Usdx rewards do not support multiple reward denoms.
 
 ## HARD Token distribution
