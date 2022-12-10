@@ -88,8 +88,6 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	k.IncrementSuppliedCoins(ctx, coins)
 	if !foundDeposit { // User's first deposit
 		k.AfterDepositCreated(ctx, deposit)
-	} else {
-		k.AfterDepositModified(ctx, deposit)
 	}
 
 	ctx.EventManager().EmitEvent(

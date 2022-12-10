@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"testing"
 	"time"
 
 	"github.com/kava-labs/kava/app"
@@ -25,6 +26,10 @@ type HooksTestSuite struct {
 
 	tokenA string
 	tokenB string
+}
+
+func TestHooksTestSuite(t *testing.T) {
+	suite.Run(t, new(HooksTestSuite))
 }
 
 // The default state used by each test
@@ -285,14 +290,16 @@ func (suite *HooksTestSuite) TestHooks_HookOrdering() {
 	depositA := sdk.NewCoin(suite.tokenA, sdk.NewInt(10e6))
 	depositB := sdk.NewCoin(suite.tokenB, sdk.NewInt(50e6))
 
-	interestFactorValue, foundValue := suite.keeper.GetSupplyInterestFactor(suite.ctx, depositA.Denom)
-	suite.Require().True(foundValue)
+	_, foundValue := suite.keeper.GetSupplyInterestFactor(suite.ctx, depositA.Denom)
+	suite.Require().False(foundValue)
 
 	interestFactors := types.SupplyInterestFactors{}
-	interestFactors = interestFactors.SetInterestFactor(depositA.Denom, interestFactorValue)
+	interestFactors = interestFactors.SetInterestFactor(depositA.Denom, sdk.OneDec())
+
+	expectedDeposit := types.NewDeposit(suite.addrs[0], cs(depositA), interestFactors)
 
 	hardHooks.On("AfterDepositCreated", suite.ctx,
-		types.NewDeposit(suite.addrs[0], cs(depositA), interestFactors), // new deposit created
+		expectedDeposit, // new deposit created
 	).Run(func(args mock.Arguments) {
 		_, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 		suite.Require().True(found, "expected after hook to be called after deposit is updated")
@@ -313,14 +320,20 @@ func (suite *HooksTestSuite) TestHooks_HookOrdering() {
 
 	deposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
-	hardHooks.On("BeforeDepositModified", suite.ctx,
-		deposit,    // existing deposit modified
-		[]string{}, // no new denoms when withdrawing
-	).Run(func(args mock.Arguments) {
-		existingDeposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
-		suite.Require().True(found, "expected share record to exist")
-		suite.Equal(deposit, existingDeposit, "expected hook to be called before shares are updated")
-	})
+
+	suite.T().Logf("expected BeforeDepositModified(ctx, %v, %v)\n ", deposit, []string{})
+	hardHooks.
+		On(
+			"BeforeDepositModified",
+			suite.ctx,
+			deposit,    // existing deposit modified
+			[]string{}, // no new denoms when withdrawing
+		).
+		Run(func(args mock.Arguments) {
+			existingDeposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
+			suite.Require().True(found, "expected share record to exist")
+			suite.Equal(deposit, existingDeposit, "expected hook to be called before shares are updated")
+		})
 	err = suite.keeper.Withdraw(suite.ctx, suite.addrs[0], deposit.Amount)
 	suite.Require().NoError(err)
 }
