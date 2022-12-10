@@ -22,6 +22,9 @@ type HooksTestSuite struct {
 	app    app.TestApp
 	ctx    sdk.Context
 	addrs  []sdk.AccAddress
+
+	tokenA string
+	tokenB string
 }
 
 // The default state used by each test
@@ -29,13 +32,14 @@ func (suite *HooksTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
+	suite.tokenA = "ukava"
+	suite.tokenB = "bnb"
+
 	suite.app = app.NewTestApp()
-	ctx := suite.app.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	_, suite.addrs = app.GeneratePrivKeyAddressPairs(2)
 	keeper := suite.app.GetHardKeeper()
-	suite.ctx = ctx
+	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.keeper = keeper
-	suite.addrs = addrs
 
 	hardGS := types.NewGenesisState(types.NewParams(
 		types.MoneyMarkets{
@@ -115,6 +119,13 @@ func (suite *HooksTestSuite) SetupTest() {
 			pricefeedtypes.ModuleName: suite.app.AppCodec().MustMarshalJSON(&pricefeedGS),
 			types.ModuleName:          suite.app.AppCodec().MustMarshalJSON(&hardGS),
 		})
+
+	balance := sdk.NewCoins(
+		sdk.NewCoin(suite.tokenA, sdk.NewInt(1000e6)),
+		sdk.NewCoin(suite.tokenB, sdk.NewInt(1000e6)),
+	)
+
+	suite.Require().NoError(suite.app.FundAccount(suite.ctx, suite.addrs[0], balance))
 }
 
 func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
@@ -122,54 +133,19 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 	hardHooks := mocks.NewHARDHooks(suite.T())
 	suite.keeper.SetHooks(hardHooks)
 
-	tokenA := "ukava"
-	tokenB := "bnb"
-
-	suite.keeper.SetParams(suite.ctx, types.NewParams(
-		types.MoneyMarkets{
-			types.NewMoneyMarket("ukava",
-				types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
-				"kava:usd",          // Market ID
-				sdk.NewInt(KAVA_CF), // Conversion Factor
-				types.NewInterestRateModel(
-					sdk.MustNewDecFromStr("0.05"),
-					sdk.MustNewDecFromStr("2"),
-					sdk.MustNewDecFromStr("0.8"),
-					sdk.MustNewDecFromStr("10"),
-				),
-				sdk.MustNewDecFromStr("0.05"),
-				sdk.ZeroDec(), // Keeper Reward Percentage
-			),
-			types.NewMoneyMarket("bnb",
-				types.NewBorrowLimit(false, sdk.NewDec(100000000*BNB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
-				"bnb:usd",          // Market ID
-				sdk.NewInt(BNB_CF), // Conversion Factor
-				types.NewInterestRateModel(
-					sdk.MustNewDecFromStr("0.05"),
-					sdk.MustNewDecFromStr("2"),
-					sdk.MustNewDecFromStr("0.8"),
-					sdk.MustNewDecFromStr("10"),
-				),
-				sdk.MustNewDecFromStr("0.05"),
-				sdk.ZeroDec()), // Keeper Reward Percentage
-		},
-		sdk.NewDec(10),
-	))
-
 	balance := sdk.NewCoins(
-		sdk.NewCoin(tokenA, sdk.NewInt(1000e6)),
-		sdk.NewCoin(tokenB, sdk.NewInt(1000e6)),
+		sdk.NewCoin(suite.tokenA, sdk.NewInt(1000e6)),
+		sdk.NewCoin(suite.tokenB, sdk.NewInt(1000e6)),
 	)
 
-	_, addrs := app.GeneratePrivKeyAddressPairs(2)
-	suite.Require().NoError(suite.app.FundAccount(suite.ctx, addrs[0], balance))
-	suite.Require().NoError(suite.app.FundAccount(suite.ctx, addrs[1], balance))
+	suite.Require().NoError(suite.app.FundAccount(suite.ctx, suite.addrs[0], balance))
+	suite.Require().NoError(suite.app.FundAccount(suite.ctx, suite.addrs[1], balance))
 
-	depositor_1 := addrs[0]
-	depositor_2 := addrs[1]
+	depositor_1 := suite.addrs[0]
+	depositor_2 := suite.addrs[1]
 
-	depositA := sdk.NewCoin(tokenA, sdk.NewInt(10e6))
-	depositB := sdk.NewCoin(tokenB, sdk.NewInt(50e6))
+	depositA := sdk.NewCoin(suite.tokenA, sdk.NewInt(10e6))
+	depositB := sdk.NewCoin(suite.tokenB, sdk.NewInt(50e6))
 
 	suite.Run("deposit 1", func() {
 		// first deposit creates deposit - calls AfterDepositCreated with initial shares
@@ -281,64 +257,22 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 func (suite *HooksTestSuite) TestHooks_NoPanicsOnNilHooks() {
 	suite.keeper.ClearHooks()
 
-	tokenA := "ukava"
-	tokenB := "bnb"
-
-	suite.keeper.SetParams(suite.ctx, types.NewParams(
-		types.MoneyMarkets{
-			types.NewMoneyMarket("ukava",
-				types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
-				"kava:usd",          // Market ID
-				sdk.NewInt(KAVA_CF), // Conversion Factor
-				types.NewInterestRateModel(
-					sdk.MustNewDecFromStr("0.05"),
-					sdk.MustNewDecFromStr("2"),
-					sdk.MustNewDecFromStr("0.8"),
-					sdk.MustNewDecFromStr("10"),
-				),
-				sdk.MustNewDecFromStr("0.05"),
-				sdk.ZeroDec(), // Keeper Reward Percentage
-			),
-			types.NewMoneyMarket("bnb",
-				types.NewBorrowLimit(false, sdk.NewDec(100000000*BNB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
-				"bnb:usd",          // Market ID
-				sdk.NewInt(BNB_CF), // Conversion Factor
-				types.NewInterestRateModel(
-					sdk.MustNewDecFromStr("0.05"),
-					sdk.MustNewDecFromStr("2"),
-					sdk.MustNewDecFromStr("0.8"),
-					sdk.MustNewDecFromStr("10"),
-				),
-				sdk.MustNewDecFromStr("0.05"),
-				sdk.ZeroDec()), // Keeper Reward Percentage
-		},
-		sdk.NewDec(10),
-	))
-
-	balance := sdk.NewCoins(
-		sdk.NewCoin(tokenA, sdk.NewInt(1000e6)),
-		sdk.NewCoin(tokenB, sdk.NewInt(1000e6)),
-	)
-
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	suite.Require().NoError(suite.app.FundAccount(suite.ctx, addrs[0], balance))
-
-	depositA := sdk.NewCoin(tokenA, sdk.NewInt(10e6))
-	depositB := sdk.NewCoin(tokenB, sdk.NewInt(50e6))
+	depositA := sdk.NewCoin(suite.tokenA, sdk.NewInt(10e6))
+	depositB := sdk.NewCoin(suite.tokenB, sdk.NewInt(50e6))
 
 	// deposit create pool should not panic when hooks are not set
-	err := suite.keeper.Deposit(suite.ctx, addrs[0], cs(depositA, depositB))
+	err := suite.keeper.Deposit(suite.ctx, suite.addrs[0], cs(depositA, depositB))
 	suite.Require().NoError(err)
 
 	// existing deposit should not panic with hooks are not set
-	err = suite.keeper.Deposit(suite.ctx, addrs[0], cs(depositB))
+	err = suite.keeper.Deposit(suite.ctx, suite.addrs[0], cs(depositB))
 	suite.Require().NoError(err)
 
 	// withdraw of shares should not panic when hooks are not set
-	shareRecord, found := suite.keeper.GetDeposit(suite.ctx, addrs[0])
+	shareRecord, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 
-	err = suite.keeper.Withdraw(suite.ctx, addrs[0], shareRecord.Amount)
+	err = suite.keeper.Withdraw(suite.ctx, suite.addrs[0], shareRecord.Amount)
 	suite.Require().NoError(err)
 }
 
@@ -348,19 +282,8 @@ func (suite *HooksTestSuite) TestHooks_HookOrdering() {
 	hardHooks := mocks.NewHARDHooks(suite.T())
 	suite.keeper.SetHooks(hardHooks)
 
-	tokenA := "ukava"
-	tokenB := "bnb"
-
-	balance := sdk.NewCoins(
-		sdk.NewCoin(tokenA, sdk.NewInt(1000e6)),
-		sdk.NewCoin(tokenB, sdk.NewInt(1000e6)),
-	)
-
-	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	suite.Require().NoError(suite.app.FundAccount(suite.ctx, addrs[0], balance))
-
-	depositA := sdk.NewCoin(tokenA, sdk.NewInt(10e6))
-	depositB := sdk.NewCoin(tokenB, sdk.NewInt(50e6))
+	depositA := sdk.NewCoin(suite.tokenA, sdk.NewInt(10e6))
+	depositB := sdk.NewCoin(suite.tokenB, sdk.NewInt(50e6))
 
 	interestFactorValue, foundValue := suite.keeper.GetSupplyInterestFactor(suite.ctx, depositA.Denom)
 	suite.Require().True(foundValue)
@@ -369,35 +292,35 @@ func (suite *HooksTestSuite) TestHooks_HookOrdering() {
 	interestFactors = interestFactors.SetInterestFactor(depositA.Denom, interestFactorValue)
 
 	hardHooks.On("AfterDepositCreated", suite.ctx,
-		types.NewDeposit(addrs[0], cs(depositA), interestFactors), // new deposit created
+		types.NewDeposit(suite.addrs[0], cs(depositA), interestFactors), // new deposit created
 	).Run(func(args mock.Arguments) {
-		_, found := suite.keeper.GetDeposit(suite.ctx, addrs[0])
+		_, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 		suite.Require().True(found, "expected after hook to be called after deposit is updated")
 	})
-	err := suite.keeper.Deposit(suite.ctx, addrs[0], cs(depositA))
+	err := suite.keeper.Deposit(suite.ctx, suite.addrs[0], cs(depositA))
 	suite.Require().NoError(err)
 
 	hardHooks.On("BeforeDepositModified", suite.ctx,
-		types.NewDeposit(addrs[0], cs(depositA), interestFactors), // existing deposit modified
+		types.NewDeposit(suite.addrs[0], cs(depositA), interestFactors), // existing deposit modified
 		[]string{depositB.Denom},
 	).Run(func(args mock.Arguments) {
-		deposit, found := suite.keeper.GetDeposit(suite.ctx, addrs[0])
+		deposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 		suite.Require().True(found, "expected deposit to exist")
 		suite.Equal(cs(depositA), deposit.Amount, "expected hook to be called before deposit is updated")
 	})
-	err = suite.keeper.Deposit(suite.ctx, addrs[0], cs(depositB))
+	err = suite.keeper.Deposit(suite.ctx, suite.addrs[0], cs(depositB))
 	suite.Require().NoError(err)
 
-	deposit, found := suite.keeper.GetDeposit(suite.ctx, addrs[0])
+	deposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 	hardHooks.On("BeforeDepositModified", suite.ctx,
 		deposit,    // existing deposit modified
 		[]string{}, // no new denoms when withdrawing
 	).Run(func(args mock.Arguments) {
-		existingDeposit, found := suite.keeper.GetDeposit(suite.ctx, addrs[0])
+		existingDeposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 		suite.Require().True(found, "expected share record to exist")
 		suite.Equal(deposit, existingDeposit, "expected hook to be called before shares are updated")
 	})
-	err = suite.keeper.Withdraw(suite.ctx, addrs[0], deposit.Amount)
+	err = suite.keeper.Withdraw(suite.ctx, suite.addrs[0], deposit.Amount)
 	suite.Require().NoError(err)
 }
