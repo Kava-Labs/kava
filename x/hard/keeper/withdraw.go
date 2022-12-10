@@ -79,9 +79,6 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
-	// Call incentive hook
-	k.AfterDepositModified(ctx, deposit)
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHardWithdrawal,

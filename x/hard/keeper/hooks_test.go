@@ -321,7 +321,6 @@ func (suite *HooksTestSuite) TestHooks_HookOrdering() {
 	deposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
 	suite.Require().True(found)
 
-	suite.T().Logf("expected BeforeDepositModified(ctx, %v, %v)\n ", deposit, []string{})
 	hardHooks.
 		On(
 			"BeforeDepositModified",
@@ -334,6 +333,7 @@ func (suite *HooksTestSuite) TestHooks_HookOrdering() {
 			suite.Require().True(found, "expected share record to exist")
 			suite.Equal(deposit, existingDeposit, "expected hook to be called before shares are updated")
 		})
+
 	err = suite.keeper.Withdraw(suite.ctx, suite.addrs[0], deposit.Amount)
 	suite.Require().NoError(err)
 }
