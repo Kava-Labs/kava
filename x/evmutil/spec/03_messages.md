@@ -63,3 +63,40 @@ message MsgConvertCoinToERC20 {
 - The `EnabledConversionPairs` param from `x/evmutil` is checked to ensure the conversion pair is enabled.
 - The specified sdk.Coin is moved from the initiator's address to the module account and burned.
 - The same amount of ERC20 coins are sent from the `x/evmutil` module account to the 0x receiver address.
+
+## MsgEVMCall
+
+`MsgEVMCall` calls the EVM with data.
+
+```protobuf
+service Msg {
+  // EVMCall defined a method for submitting an EVM call.
+  rpc EVMCall(MsgEVMCall) returns (MsgEVMCallResponse);
+}
+
+// MsgEVMCall encapsulates an Ethereum call as a SDK message.
+message MsgEVMCall {
+  // Hex formatted address of the recipient.
+  string to = 1;
+
+  // Abi for the contract call, used for decoding contract call data.
+  string fn_abi = 2;
+
+  // Data payload of the call in hex string.
+  string data = 3;
+
+  // amount defines the integer value of the transaction amount.
+  string amount = 4 [
+    (cosmos_proto.scalar)  = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+
+  // authority is the address of the account that must be the signer.
+  string authority = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+```
+
+### State Changes
+
+- EVM is called from the msg authority's 0x address with the provided data and amount. The msg authority must be the module's expected authority bech32 address. By default, this is the x/community module.

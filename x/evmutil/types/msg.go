@@ -1,18 +1,28 @@
 package types
 
 import (
+	"bytes"
+	"errors"
+	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 // ensure Msg interface compliance at compile time
 var (
 	_ sdk.Msg            = &MsgConvertCoinToERC20{}
 	_ sdk.Msg            = &MsgConvertERC20ToCoin{}
+	_ sdk.Msg            = &MsgEVMCall{}
 	_ legacytx.LegacyMsg = &MsgConvertCoinToERC20{}
 	_ legacytx.LegacyMsg = &MsgConvertERC20ToCoin{}
+	_ legacytx.LegacyMsg = &MsgEVMCall{}
 )
 
 // legacy message types
@@ -143,4 +153,95 @@ func (msg MsgConvertERC20ToCoin) Route() string {
 // Type implements the LegacyMsg.Type method.
 func (msg MsgConvertERC20ToCoin) Type() string {
 	return TypeMsgConvertERC20ToCoin
+}
+
+// Route implements Msg
+func (msg MsgEVMCall) Route() string { return types.RouterKey }
+
+// Type implements Msg
+func (msg MsgEVMCall) Type() string { return sdk.MsgTypeURL(&msg) }
+
+// ValidateBasic implements Msg
+func (msg MsgEVMCall) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromBech32(msg.Authority); err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid authority address: %s", err)
+	}
+
+	if !common.IsHexAddress(msg.To) {
+		return sdkerrors.ErrInvalidAddress.Wrapf("to '%s' is not hex address", msg.To)
+	}
+
+	if msg.Amount.IsNil() {
+		return fmt.Errorf("amount must not be nil")
+	}
+
+	if msg.Amount.IsNegative() {
+		return fmt.Errorf("amount cannot be negative: %s", msg.Amount)
+	}
+
+	// validate data & fnabi
+	if len(msg.Data) > 0 {
+		if len(msg.FnAbi) == 0 {
+			return fmt.Errorf("fnAbi is not provided: this required when passing in data")
+		}
+		if _, err := msg.Decode(); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// GetSignBytes implements Msg
+func (msg MsgEVMCall) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners implements Msg
+func (msg MsgEVMCall) GetSigners() []sdk.AccAddress {
+	authority, _ := sdk.AccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{authority}
+}
+
+func (action MsgEVMCall) Decode() ([]interface{}, error) {
+	if len(action.FnAbi) == 0 {
+		return nil, errors.New("cannot decode MsgEVMCall: empty fnAbi")
+	}
+
+	d, err := abi.JSON(strings.NewReader(fmt.Sprintf("[%s]", action.FnAbi)))
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse fn abi: %s", err)
+	}
+	data, err := hexutil.Decode(action.Data)
+	if err != nil {
+		return nil, fmt.Errorf("invalid data format: %s", err)
+	}
+
+	if len(d.Methods) != 1 {
+		return nil, fmt.Errorf("failed to parse a single method from fnAbi: methods parsed %d", len(d.Methods))
+	}
+
+	method, err := d.MethodById(data[:4])
+	if err != nil {
+		return nil, fmt.Errorf("method not found in fnAbi: %s", hexutil.Encode(data[:4]))
+	}
+
+	// attempt to unpack params data by removing the first bytes of the method signature
+	val, err := method.Inputs.Unpack(data[4:])
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode method args: %s", err)
+	}
+
+	packedData, err := method.Inputs.Pack(val...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to pack decoded data: %s", err)
+	}
+
+	// verify call data is the same as unpacked data
+	if !bytes.Equal(packedData, data[4:]) {
+		return nil, fmt.Errorf("invalid call data: call data does not match unpacked data")
+	}
+
+	return val, nil
 }

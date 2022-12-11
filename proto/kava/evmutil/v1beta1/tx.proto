@@ -16,6 +16,9 @@ service Msg {
 
   // ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin.
   rpc ConvertERC20ToCoin(MsgConvertERC20ToCoin) returns (MsgConvertERC20ToCoinResponse);
+
+  // EVMCall defined a method for submitting an EVM call.
+  rpc EVMCall(MsgEVMCall) returns (MsgEVMCallResponse);
 }
 
 // MsgConvertCoinToERC20 defines a conversion from sdk.Coin to Kava ERC20.
@@ -50,3 +53,28 @@ message MsgConvertERC20ToCoin {
 // MsgConvertERC20ToCoinResponse defines the response value from
 // Msg/MsgConvertERC20ToCoin.
 message MsgConvertERC20ToCoinResponse {}
+
+// MsgEVMCall encapsulates an Ethereum call as a SDK message.
+message MsgEVMCall {
+  // Hex formatted address of the recipient.
+  string to = 1;
+
+  // Abi for the contract call, used for decoding contract call data.
+  string fn_abi = 2;
+
+  // Data payload of the call in hex string.
+  string data = 3;
+
+  // amount defines the integer value of the transaction amount.
+  string amount = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // authority is the address of the account that must be the signer.
+  string authority = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// MsgEVMCallResponse defines the Msg/EVMCall response type.
+message MsgEVMCallResponse {}

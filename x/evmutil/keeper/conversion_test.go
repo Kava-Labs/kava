@@ -100,7 +100,7 @@ func (suite *ConversionTestSuite) TestUnlockERC20Tokens() {
 
 	// Check balance of recipient
 	bal := suite.GetERC20BalanceOf(
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		pair.GetAddress(),
 		recipient,
 	)
@@ -108,7 +108,7 @@ func (suite *ConversionTestSuite) TestUnlockERC20Tokens() {
 
 	// Check balance of module account
 	bal = suite.GetERC20BalanceOf(
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		pair.GetAddress(),
 		moduleAddr,
 	)
@@ -182,7 +182,7 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20() {
 
 	// Module bal should also decrease
 	moduleBal := suite.GetERC20BalanceOf(
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		pair.GetAddress(),
 		moduleAddr,
 	)
@@ -195,7 +195,7 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20() {
 
 	// Recipient balance should increase by same amount
 	recipientBal := suite.GetERC20BalanceOf(
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		pair.GetAddress(),
 		recipientAcc,
 	)
@@ -302,7 +302,7 @@ func (suite *ConversionTestSuite) TestConvertERC20ToCoin() {
 
 	// Module bal should also decrease
 	userBal := suite.GetERC20BalanceOf(
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		pair.GetAddress(),
 		userEvmAddr,
 	)

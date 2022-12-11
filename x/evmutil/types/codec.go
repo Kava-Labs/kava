@@ -13,12 +13,14 @@ import (
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgConvertCoinToERC20{}, "evmutil/MsgConvertCoinToERC20", nil)
 	cdc.RegisterConcrete(&MsgConvertERC20ToCoin{}, "evmutil/MsgConvertERC20ToCoin", nil)
+	cdc.RegisterConcrete(&MsgEVMCall{}, "evmutil/MsgEVMCall", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgConvertCoinToERC20{},
 		&MsgConvertERC20ToCoin{},
+		&MsgEVMCall{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
