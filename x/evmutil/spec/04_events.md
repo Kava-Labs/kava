@@ -29,3 +29,13 @@ The evmutil module emits the following events:
 | convert_coin_to_erc20 | amount        | `{amount}`         |
 | message               | module        | evmutil            |
 | message               | sender        | {'sender address}' |
+
+### MsgEVMCall
+
+| Type     | Attribute Key  | Attribute Value    |
+| -------- | -------------- | ------------------ |
+| evm_call | sender         | `{initiator}`      |
+| evm_call | evm_to_address | `{erc20 address}`  |
+| evm_call | amount         | `{amount}`         |
+| message  | module         | evmutil            |
+| message  | sender         | {'sender address}' |

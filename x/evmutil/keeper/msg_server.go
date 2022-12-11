@@ -3,8 +3,12 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -101,4 +105,67 @@ func (s msgServer) ConvertERC20ToCoin(
 	)
 
 	return &types.MsgConvertERC20ToCoinResponse{}, nil
+}
+
+// MsgEVMCall executes the msg data again the go-ethereum EVM.
+func (k msgServer) EVMCall(goCtx context.Context, msg *types.MsgEVMCall) (*types.MsgEVMCallResponse, error) {
+	expMsgAuthority := k.keeper.GetAuthority()
+	if expMsgAuthority != msg.Authority {
+		return nil, sdkerrors.Wrapf(types.ErrInvalidSigner, "invalid authority; expected %s, got %s", expMsgAuthority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	toAddr, err := types.NewInternalEVMAddressFromString(msg.To)
+	if err != nil {
+		return nil, fmt.Errorf("invalid to evm address: %w", err)
+	}
+
+	// convert empty data to valid hex string
+	msgData := msg.Data
+	if len(msg.Data) == 0 {
+		msgData = "0x"
+	}
+
+	data, err := hexutil.Decode(msgData)
+	if err != nil {
+		return nil, fmt.Errorf("unable to decode msg data: %w", err)
+	}
+	authorityAddr, err := sdk.AccAddressFromBech32(expMsgAuthority)
+	if err != nil {
+		return nil, fmt.Errorf("invalid authority address: %w", err)
+	}
+	authorityEvmAddr := common.BytesToAddress(authorityAddr.Bytes())
+
+	amt := msg.Amount.BigInt()
+	if amt == nil {
+		amt = big.NewInt(0)
+	}
+	_, err = k.keeper.CallEVMWithData(
+		ctx,
+		authorityEvmAddr,
+		&toAddr,
+		data,
+		amt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("evm call failed: %w", err)
+	}
+
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeEVMCall,
+		sdk.NewAttribute(sdk.AttributeKeySender, authorityAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyEVMToAddress, toAddr.String()),
+		sdk.NewAttribute(types.AttributeKeyAmount, amt.String()),
+	))
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Authority),
+		),
+	)
+
+	return &types.MsgEVMCallResponse{}, nil
 }

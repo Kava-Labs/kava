@@ -236,47 +236,167 @@ func (m *MsgConvertERC20ToCoinResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConvertERC20ToCoinResponse proto.InternalMessageInfo
 
+// MsgEVMCall encapsulates an Ethereum call as a SDK message.
+type MsgEVMCall struct {
+	// Hex formatted address of the recipient.
+	To string `protobuf:"bytes,1,opt,name=to,proto3" json:"to,omitempty"`
+	// Abi for the contract call, used for decoding contract call data.
+	FnAbi string `protobuf:"bytes,2,opt,name=fn_abi,json=fnAbi,proto3" json:"fn_abi,omitempty"`
+	// Data payload of the call in hex string.
+	Data string `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	// amount defines the integer value of the transaction amount.
+	Amount github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=amount,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"amount"`
+	// authority is the address of the account that must be the signer.
+	Authority string `protobuf:"bytes,5,opt,name=authority,proto3" json:"authority,omitempty"`
+}
+
+func (m *MsgEVMCall) Reset()         { *m = MsgEVMCall{} }
+func (m *MsgEVMCall) String() string { return proto.CompactTextString(m) }
+func (*MsgEVMCall) ProtoMessage()    {}
+func (*MsgEVMCall) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6e82783c6c58f89c, []int{4}
+}
+func (m *MsgEVMCall) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEVMCall) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEVMCall.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEVMCall) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEVMCall.Merge(m, src)
+}
+func (m *MsgEVMCall) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEVMCall) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEVMCall.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEVMCall proto.InternalMessageInfo
+
+func (m *MsgEVMCall) GetTo() string {
+	if m != nil {
+		return m.To
+	}
+	return ""
+}
+
+func (m *MsgEVMCall) GetFnAbi() string {
+	if m != nil {
+		return m.FnAbi
+	}
+	return ""
+}
+
+func (m *MsgEVMCall) GetData() string {
+	if m != nil {
+		return m.Data
+	}
+	return ""
+}
+
+func (m *MsgEVMCall) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+// MsgEVMCallResponse defines the Msg/EVMCall response type.
+type MsgEVMCallResponse struct {
+}
+
+func (m *MsgEVMCallResponse) Reset()         { *m = MsgEVMCallResponse{} }
+func (m *MsgEVMCallResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgEVMCallResponse) ProtoMessage()    {}
+func (*MsgEVMCallResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_6e82783c6c58f89c, []int{5}
+}
+func (m *MsgEVMCallResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgEVMCallResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgEVMCallResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgEVMCallResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgEVMCallResponse.Merge(m, src)
+}
+func (m *MsgEVMCallResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgEVMCallResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgEVMCallResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgEVMCallResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgConvertCoinToERC20)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20")
 	proto.RegisterType((*MsgConvertCoinToERC20Response)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20Response")
 	proto.RegisterType((*MsgConvertERC20ToCoin)(nil), "kava.evmutil.v1beta1.MsgConvertERC20ToCoin")
 	proto.RegisterType((*MsgConvertERC20ToCoinResponse)(nil), "kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse")
+	proto.RegisterType((*MsgEVMCall)(nil), "kava.evmutil.v1beta1.MsgEVMCall")
+	proto.RegisterType((*MsgEVMCallResponse)(nil), "kava.evmutil.v1beta1.MsgEVMCallResponse")
 }
 
 func init() { proto.RegisterFile("kava/evmutil/v1beta1/tx.proto", fileDescriptor_6e82783c6c58f89c) }
 
 var fileDescriptor_6e82783c6c58f89c = []byte{
-	// 469 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0xb1, 0x6e, 0x13, 0x31,
-	0x18, 0x8e, 0x5b, 0x54, 0x11, 0xb3, 0x54, 0x56, 0x90, 0xd2, 0x88, 0x3a, 0x55, 0x06, 0x54, 0x84,
-	0xe2, 0x6b, 0x52, 0xc4, 0xc4, 0x42, 0xa2, 0x0e, 0x55, 0xd5, 0xe5, 0xc8, 0xc4, 0x12, 0xf9, 0x2e,
-	0xd6, 0x61, 0xb5, 0x67, 0x47, 0xb6, 0x73, 0x2a, 0x0f, 0xc0, 0xce, 0x13, 0x30, 0xf3, 0x00, 0x7d,
-	0x88, 0x8e, 0x55, 0x27, 0xc4, 0x10, 0x95, 0xcb, 0x33, 0xb0, 0x23, 0xfb, 0x9c, 0xeb, 0x09, 0x4e,
-	0x44, 0x9d, 0xce, 0xf6, 0xf7, 0xfd, 0xfe, 0xbf, 0xef, 0xfb, 0xcf, 0x70, 0xff, 0x82, 0x66, 0x34,
-	0x60, 0x59, 0xba, 0x30, 0xfc, 0x32, 0xc8, 0x06, 0x11, 0x33, 0x74, 0x10, 0x98, 0x2b, 0x32, 0x57,
-	0xd2, 0x48, 0xd4, 0xb2, 0x30, 0xf1, 0x30, 0xf1, 0x70, 0x07, 0xc7, 0x52, 0xa7, 0x52, 0x07, 0x11,
-	0xd5, 0xac, 0xac, 0x89, 0x25, 0x17, 0x45, 0x55, 0x67, 0xaf, 0xc0, 0xa7, 0x6e, 0x17, 0x14, 0x1b,
-	0x0f, 0xb5, 0x12, 0x99, 0xc8, 0xe2, 0xdc, 0xae, 0x8a, 0xd3, 0xde, 0x37, 0x00, 0x9f, 0x9f, 0xeb,
-	0x64, 0x2c, 0x45, 0xc6, 0x94, 0x19, 0x4b, 0x2e, 0x26, 0xf2, 0x24, 0x1c, 0x0f, 0x8f, 0xd0, 0x5b,
-	0xd8, 0xe4, 0x82, 0x1b, 0x4e, 0x8d, 0x54, 0x6d, 0x70, 0x00, 0x0e, 0x9b, 0xa3, 0xf6, 0xdd, 0x75,
-	0xbf, 0xe5, 0x2f, 0x7d, 0x3f, 0x9b, 0x29, 0xa6, 0xf5, 0x07, 0xa3, 0xb8, 0x48, 0xc2, 0x07, 0x2a,
-	0xea, 0xc0, 0xa7, 0x8a, 0xc5, 0x8c, 0x67, 0x4c, 0xb5, 0xb7, 0x6c, 0x59, 0x58, 0xee, 0xd1, 0x00,
-	0xee, 0xd0, 0x54, 0x2e, 0x84, 0x69, 0x6f, 0x1f, 0x80, 0xc3, 0x67, 0xc3, 0x3d, 0xe2, 0x6f, 0xb3,
-	0x7e, 0xd6, 0x26, 0x89, 0x55, 0x11, 0x7a, 0x62, 0xaf, 0x0b, 0xf7, 0x6b, 0xf5, 0x85, 0x4c, 0xcf,
-	0xa5, 0xd0, 0xac, 0xf7, 0x65, 0xab, 0xea, 0xc0, 0x61, 0x13, 0x69, 0x89, 0xe8, 0xc5, 0x3f, 0x0e,
-	0xaa, 0x3a, 0xdf, 0xfc, 0xad, 0xf3, 0x3f, 0xf6, 0x1e, 0x1c, 0x8c, 0x20, 0xb2, 0x83, 0x99, 0x32,
-	0x15, 0x0f, 0x8f, 0xa6, 0xb4, 0x60, 0x39, 0x37, 0xcd, 0x51, 0x2b, 0x5f, 0x76, 0x77, 0xcf, 0x68,
-	0x46, 0x9d, 0x08, 0x7f, 0x43, 0xb8, 0x6b, 0xf9, 0x27, 0x96, 0xee, 0x4f, 0xd0, 0xa4, 0x4c, 0xe1,
-	0x89, 0xab, 0x7b, 0x77, 0xb3, 0xec, 0x36, 0x7e, 0x2e, 0xbb, 0x2f, 0x13, 0x6e, 0x3e, 0x2d, 0x22,
-	0x12, 0xcb, 0xd4, 0x8f, 0xce, 0x7f, 0xfa, 0x7a, 0x76, 0x11, 0x98, 0xcf, 0x73, 0xa6, 0xc9, 0xa9,
-	0x30, 0x77, 0xd7, 0x7d, 0xe8, 0x55, 0x9e, 0x0a, 0x53, 0x1f, 0x54, 0x25, 0x86, 0x75, 0x50, 0xc3,
-	0xdf, 0x00, 0x6e, 0x9f, 0xeb, 0x04, 0x65, 0x10, 0xd5, 0x8c, 0xfb, 0x35, 0xa9, 0xfb, 0xe1, 0x48,
-	0x6d, 0xf6, 0x9d, 0xe3, 0x47, 0x90, 0xd7, 0xfd, 0x2b, 0x7d, 0xab, 0x43, 0xda, 0xd8, 0xb7, 0x42,
-	0xde, 0xdc, 0xb7, 0xc6, 0xf7, 0xe8, 0xec, 0xfe, 0x17, 0x06, 0xdf, 0x73, 0x0c, 0x6e, 0x72, 0x0c,
-	0x6e, 0x73, 0x0c, 0xee, 0x73, 0x0c, 0xbe, 0xae, 0x70, 0xe3, 0x76, 0x85, 0x1b, 0x3f, 0x56, 0xb8,
-	0xf1, 0xf1, 0x55, 0x25, 0x78, 0xdb, 0xa0, 0x7f, 0x49, 0x23, 0xed, 0x56, 0xc1, 0x55, 0xf9, 0x42,
-	0x5d, 0xfe, 0xd1, 0x8e, 0x7b, 0x36, 0xc7, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x08, 0x7a, 0x44,
-	0xee, 0xbe, 0x03, 0x00, 0x00,
+	// 562 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0xcf, 0x6e, 0xd3, 0x30,
+	0x18, 0xaf, 0xbb, 0xad, 0x50, 0x23, 0xa1, 0xc9, 0xea, 0xa4, 0xae, 0x62, 0x69, 0xd5, 0x03, 0x2a,
+	0x42, 0x4d, 0xd6, 0x0e, 0x71, 0xe2, 0xb2, 0x56, 0x3d, 0x4c, 0x53, 0x2f, 0xa1, 0x70, 0xe0, 0x52,
+	0x39, 0xa9, 0x97, 0x59, 0x6b, 0xed, 0x2a, 0x76, 0xa3, 0xed, 0x01, 0xb8, 0xf3, 0x04, 0x9c, 0x79,
+	0x80, 0x3d, 0xc4, 0x0e, 0x1c, 0xa6, 0x49, 0x48, 0x88, 0x43, 0x35, 0xd2, 0x17, 0x41, 0x4e, 0x9c,
+	0x34, 0x82, 0x40, 0xc5, 0x61, 0xa7, 0xd8, 0xdf, 0xf7, 0xfb, 0xfe, 0xfc, 0xbe, 0xef, 0x17, 0xc3,
+	0x83, 0x0b, 0x1c, 0x60, 0x8b, 0x04, 0xb3, 0x85, 0xa4, 0x53, 0x2b, 0xe8, 0x38, 0x44, 0xe2, 0x8e,
+	0x25, 0x2f, 0xcd, 0xb9, 0xcf, 0x25, 0x47, 0x15, 0xe5, 0x36, 0xb5, 0xdb, 0xd4, 0xee, 0x9a, 0xe1,
+	0x72, 0x31, 0xe3, 0xc2, 0x72, 0xb0, 0x20, 0x69, 0x8c, 0xcb, 0x29, 0x8b, 0xa3, 0x6a, 0xfb, 0xb1,
+	0x7f, 0x1c, 0xdd, 0xac, 0xf8, 0xa2, 0x5d, 0x15, 0x8f, 0x7b, 0x3c, 0xb6, 0xab, 0x53, 0x6c, 0x6d,
+	0x7e, 0x06, 0x70, 0x6f, 0x28, 0xbc, 0x3e, 0x67, 0x01, 0xf1, 0x65, 0x9f, 0x53, 0x36, 0xe2, 0x03,
+	0xbb, 0xdf, 0x3d, 0x44, 0xaf, 0x61, 0x99, 0x32, 0x2a, 0x29, 0x96, 0xdc, 0xaf, 0x82, 0x06, 0x68,
+	0x95, 0x7b, 0xd5, 0xbb, 0xeb, 0x76, 0x45, 0x27, 0x3d, 0x9e, 0x4c, 0x7c, 0x22, 0xc4, 0x5b, 0xe9,
+	0x53, 0xe6, 0xd9, 0x6b, 0x28, 0xaa, 0xc1, 0xc7, 0x3e, 0x71, 0x09, 0x0d, 0x88, 0x5f, 0x2d, 0xaa,
+	0x30, 0x3b, 0xbd, 0xa3, 0x0e, 0x2c, 0xe1, 0x19, 0x5f, 0x30, 0x59, 0xdd, 0x6a, 0x80, 0xd6, 0x93,
+	0xee, 0xbe, 0xa9, 0xb3, 0x29, 0x3e, 0x09, 0x49, 0x53, 0x75, 0x61, 0x6b, 0x60, 0xb3, 0x0e, 0x0f,
+	0x72, 0xfb, 0xb3, 0x89, 0x98, 0x73, 0x26, 0x48, 0xf3, 0x63, 0x31, 0xcb, 0x20, 0xf2, 0x8d, 0xb8,
+	0x02, 0xa2, 0x67, 0x7f, 0x30, 0xc8, 0xf6, 0xf9, 0xea, 0xf7, 0x3e, 0xff, 0x41, 0x6f, 0xcd, 0xa0,
+	0x07, 0x91, 0x5a, 0xcc, 0x98, 0xf8, 0x6e, 0xf7, 0x70, 0x8c, 0x63, 0x54, 0xc4, 0xa6, 0xdc, 0xab,
+	0x84, 0xcb, 0xfa, 0xee, 0x29, 0x0e, 0x70, 0xd4, 0x84, 0xce, 0x60, 0xef, 0x2a, 0xfc, 0x40, 0xc1,
+	0xb5, 0x05, 0x8d, 0xd2, 0x29, 0x6c, 0x47, 0x71, 0x6f, 0x6e, 0x96, 0xf5, 0xc2, 0x8f, 0x65, 0xfd,
+	0xb9, 0x47, 0xe5, 0xf9, 0xc2, 0x31, 0x5d, 0x3e, 0xd3, 0xab, 0xd3, 0x9f, 0xb6, 0x98, 0x5c, 0x58,
+	0xf2, 0x6a, 0x4e, 0x84, 0x79, 0xc2, 0xe4, 0xdd, 0x75, 0x1b, 0xea, 0x2e, 0x4f, 0x98, 0xcc, 0x1f,
+	0x54, 0x66, 0x0c, 0xe9, 0xa0, 0xbe, 0x01, 0x08, 0x87, 0xc2, 0x1b, 0xbc, 0x1f, 0xf6, 0xf1, 0x74,
+	0x8a, 0x9e, 0xc2, 0xa2, 0xe4, 0x7a, 0x2c, 0x45, 0xc9, 0xd1, 0x1e, 0x2c, 0x9d, 0xb1, 0x31, 0x76,
+	0xa8, 0xde, 0xda, 0xce, 0x19, 0x3b, 0x76, 0x28, 0x42, 0x70, 0x7b, 0x82, 0x25, 0x8e, 0x29, 0xda,
+	0xd1, 0xf9, 0x61, 0x08, 0x28, 0xc1, 0xe1, 0x85, 0x3c, 0xe7, 0x3e, 0x95, 0x57, 0xd5, 0x9d, 0x4d,
+	0x82, 0x4b, 0xa1, 0xcd, 0x0a, 0x44, 0x6b, 0x5a, 0x09, 0xdb, 0xee, 0xd7, 0x22, 0xdc, 0x1a, 0x0a,
+	0x0f, 0x05, 0x10, 0xe5, 0x88, 0xfb, 0xa5, 0x99, 0xf7, 0x7b, 0x99, 0xb9, 0x4a, 0xab, 0x1d, 0xfd,
+	0x07, 0x38, 0xa9, 0x9f, 0xa9, 0x9b, 0x95, 0xe4, 0xc6, 0xba, 0x19, 0xf0, 0xe6, 0xba, 0x39, 0x5b,
+	0x46, 0xef, 0xe0, 0xa3, 0x64, 0xc3, 0x8d, 0xbf, 0xc6, 0x6b, 0x44, 0xad, 0xb5, 0x09, 0x91, 0xa4,
+	0xed, 0x9d, 0xde, 0xff, 0x34, 0xc0, 0x97, 0xd0, 0x00, 0x37, 0xa1, 0x01, 0x6e, 0x43, 0x03, 0xdc,
+	0x87, 0x06, 0xf8, 0xb4, 0x32, 0x0a, 0xb7, 0x2b, 0xa3, 0xf0, 0x7d, 0x65, 0x14, 0x3e, 0xbc, 0xc8,
+	0x2c, 0x5f, 0x65, 0x6d, 0x4f, 0xb1, 0x23, 0xa2, 0x93, 0x75, 0x99, 0x3e, 0x73, 0x91, 0x06, 0x9c,
+	0x52, 0xf4, 0xf6, 0x1c, 0xfd, 0x0a, 0x00, 0x00, 0xff, 0xff, 0xc3, 0xd1, 0xf4, 0xdf, 0x03, 0x05,
+	0x00, 0x00,
 }
 
 func (this *MsgConvertCoinToERC20) VerboseEqual(that interface{}) error {
@@ -513,6 +633,132 @@ func (this *MsgConvertERC20ToCoinResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *MsgEVMCall) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*MsgEVMCall)
+	if !ok {
+		that2, ok := that.(MsgEVMCall)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *MsgEVMCall")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *MsgEVMCall but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *MsgEVMCall but is not nil && this == nil")
+	}
+	if this.To != that1.To {
+		return fmt.Errorf("To this(%v) Not Equal that(%v)", this.To, that1.To)
+	}
+	if this.FnAbi != that1.FnAbi {
+		return fmt.Errorf("FnAbi this(%v) Not Equal that(%v)", this.FnAbi, that1.FnAbi)
+	}
+	if this.Data != that1.Data {
+		return fmt.Errorf("Data this(%v) Not Equal that(%v)", this.Data, that1.Data)
+	}
+	if !this.Amount.Equal(that1.Amount) {
+		return fmt.Errorf("Amount this(%v) Not Equal that(%v)", this.Amount, that1.Amount)
+	}
+	if this.Authority != that1.Authority {
+		return fmt.Errorf("Authority this(%v) Not Equal that(%v)", this.Authority, that1.Authority)
+	}
+	return nil
+}
+func (this *MsgEVMCall) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgEVMCall)
+	if !ok {
+		that2, ok := that.(MsgEVMCall)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.To != that1.To {
+		return false
+	}
+	if this.FnAbi != that1.FnAbi {
+		return false
+	}
+	if this.Data != that1.Data {
+		return false
+	}
+	if !this.Amount.Equal(that1.Amount) {
+		return false
+	}
+	if this.Authority != that1.Authority {
+		return false
+	}
+	return true
+}
+func (this *MsgEVMCallResponse) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*MsgEVMCallResponse)
+	if !ok {
+		that2, ok := that.(MsgEVMCallResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *MsgEVMCallResponse")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *MsgEVMCallResponse but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *MsgEVMCallResponse but is not nil && this == nil")
+	}
+	return nil
+}
+func (this *MsgEVMCallResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgEVMCallResponse)
+	if !ok {
+		that2, ok := that.(MsgEVMCallResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
@@ -530,6 +776,8 @@ type MsgClient interface {
 	ConvertCoinToERC20(ctx context.Context, in *MsgConvertCoinToERC20, opts ...grpc.CallOption) (*MsgConvertCoinToERC20Response, error)
 	// ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin.
 	ConvertERC20ToCoin(ctx context.Context, in *MsgConvertERC20ToCoin, opts ...grpc.CallOption) (*MsgConvertERC20ToCoinResponse, error)
+	// EVMCall defined a method for submitting an EVM call.
+	EVMCall(ctx context.Context, in *MsgEVMCall, opts ...grpc.CallOption) (*MsgEVMCallResponse, error)
 }
 
 type msgClient struct {
@@ -558,12 +806,23 @@ func (c *msgClient) ConvertERC20ToCoin(ctx context.Context, in *MsgConvertERC20T
 	return out, nil
 }
 
+func (c *msgClient) EVMCall(ctx context.Context, in *MsgEVMCall, opts ...grpc.CallOption) (*MsgEVMCallResponse, error) {
+	out := new(MsgEVMCallResponse)
+	err := c.cc.Invoke(ctx, "/kava.evmutil.v1beta1.Msg/EVMCall", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// ConvertCoinToERC20 defines a method for converting sdk.Coin to Kava ERC20.
 	ConvertCoinToERC20(context.Context, *MsgConvertCoinToERC20) (*MsgConvertCoinToERC20Response, error)
 	// ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin.
 	ConvertERC20ToCoin(context.Context, *MsgConvertERC20ToCoin) (*MsgConvertERC20ToCoinResponse, error)
+	// EVMCall defined a method for submitting an EVM call.
+	EVMCall(context.Context, *MsgEVMCall) (*MsgEVMCallResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -575,6 +834,9 @@ func (*UnimplementedMsgServer) ConvertCoinToERC20(ctx context.Context, req *MsgC
 }
 func (*UnimplementedMsgServer) ConvertERC20ToCoin(ctx context.Context, req *MsgConvertERC20ToCoin) (*MsgConvertERC20ToCoinResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConvertERC20ToCoin not implemented")
+}
+func (*UnimplementedMsgServer) EVMCall(ctx context.Context, req *MsgEVMCall) (*MsgEVMCallResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EVMCall not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -617,6 +879,24 @@ func _Msg_ConvertERC20ToCoin_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_EVMCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgEVMCall)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).EVMCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.evmutil.v1beta1.Msg/EVMCall",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).EVMCall(ctx, req.(*MsgEVMCall))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.evmutil.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -628,6 +908,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConvertERC20ToCoin",
 			Handler:    _Msg_ConvertERC20ToCoin_Handler,
+		},
+		{
+			MethodName: "EVMCall",
+			Handler:    _Msg_EVMCall_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -783,6 +1067,90 @@ func (m *MsgConvertERC20ToCoinResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgEVMCall) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEVMCall) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEVMCall) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	{
+		size := m.Amount.Size()
+		i -= size
+		if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.FnAbi) > 0 {
+		i -= len(m.FnAbi)
+		copy(dAtA[i:], m.FnAbi)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FnAbi)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.To) > 0 {
+		i -= len(m.To)
+		copy(dAtA[i:], m.To)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.To)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgEVMCallResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgEVMCallResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgEVMCallResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -848,6 +1216,42 @@ func (m *MsgConvertERC20ToCoin) Size() (n int) {
 }
 
 func (m *MsgConvertERC20ToCoinResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgEVMCall) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.To)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.FnAbi)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Amount.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgEVMCallResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1269,6 +1673,268 @@ func (m *MsgConvertERC20ToCoinResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgConvertERC20ToCoinResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEVMCall) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEVMCall: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEVMCall: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.To = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FnAbi", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FnAbi = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgEVMCallResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgEVMCallResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgEVMCallResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
