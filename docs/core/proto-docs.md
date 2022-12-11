@@ -258,6 +258,8 @@
     - [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response)
     - [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin)
     - [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse)
+    - [MsgEVMCall](#kava.evmutil.v1beta1.MsgEVMCall)
+    - [MsgEVMCallResponse](#kava.evmutil.v1beta1.MsgEVMCallResponse)
   
     - [Msg](#kava.evmutil.v1beta1.Msg)
   
@@ -3743,6 +3745,35 @@ Msg/MsgConvertERC20ToCoin.
 
 
 
+
+<a name="kava.evmutil.v1beta1.MsgEVMCall"></a>
+
+### MsgEVMCall
+MsgEVMCall encapsulates an Ethereum call as a SDK message.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `to` | [string](#string) |  | Hex formatted address of the recipient. |
+| `fn_abi` | [string](#string) |  | Abi for the contract call, used for decoding contract call data. |
+| `data` | [string](#string) |  | Data payload of the call in hex string. |
+| `amount` | [string](#string) |  | amount defines the integer value of the transaction amount. |
+| `authority` | [string](#string) |  | authority is the address of the account that must be the signer. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgEVMCallResponse"></a>
+
+### MsgEVMCallResponse
+MsgEVMCallResponse defines the Msg/EVMCall response type.
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -3759,6 +3790,7 @@ Msg defines the evmutil Msg service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `ConvertCoinToERC20` | [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20) | [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response) | ConvertCoinToERC20 defines a method for converting sdk.Coin to Kava ERC20. | |
 | `ConvertERC20ToCoin` | [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin) | [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse) | ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin. | |
+| `EVMCall` | [MsgEVMCall](#kava.evmutil.v1beta1.MsgEVMCall) | [MsgEVMCallResponse](#kava.evmutil.v1beta1.MsgEVMCallResponse) | EVMCall defined a method for submitting an EVM call. | |
 
  <!-- end services -->
 

@@ -24,25 +24,25 @@ import (
 )
 
 var (
-	//go:embed ethermint_json/ERC20MintableBurnable.json
-	ERC20MintableBurnableJSON []byte
+	//go:embed contracts/CustomERC20.json
+	CustomERC20JSON []byte
 
-	// ERC20MintableBurnableContract is the compiled erc20 contract
-	ERC20MintableBurnableContract evmtypes.CompiledContract
+	// CustomERC20Contract is the compiled erc20 contract
+	CustomERC20Contract evmtypes.CompiledContract
 
-	// ERC20MintableBurnableAddress is the erc20 module address
-	ERC20MintableBurnableAddress common.Address
+	// CustomERC20JSONAddress is the erc20 module address
+	CustomERC20JSONAddress common.Address
 )
 
 func init() {
-	ERC20MintableBurnableAddress = ModuleEVMAddress
+	CustomERC20JSONAddress = ModuleEVMAddress
 
-	err := json.Unmarshal(ERC20MintableBurnableJSON, &ERC20MintableBurnableContract)
+	err := json.Unmarshal(CustomERC20JSON, &CustomERC20Contract)
 	if err != nil {
 		panic(err)
 	}
 
-	if len(ERC20MintableBurnableContract.Bin) == 0 {
+	if len(CustomERC20Contract.Bin) == 0 {
 		panic("load contract failed")
 	}
 }

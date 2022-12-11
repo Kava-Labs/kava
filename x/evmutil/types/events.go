@@ -7,6 +7,7 @@ const (
 	// Event Types
 	EventTypeConvertERC20ToCoin = "convert_erc20_to_coin"
 	EventTypeConvertCoinToERC20 = "convert_coin_to_erc20"
+	EventTypeEVMCall            = "evm_call"
 
 	// Event Attributes - Common
 	AttributeKeyReceiver = "receiver"
@@ -15,4 +16,7 @@ const (
 	// Event Attributes - Conversions
 	AttributeKeyInitiator    = "initiator"
 	AttributeKeyERC20Address = "erc20_address"
+
+	// Event Attributes - EVMCall
+	AttributeKeyEVMToAddress = "evm_to_address"
 )

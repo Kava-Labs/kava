@@ -52,7 +52,7 @@ func (suite *invariantTestSuite) SetupValidState() {
 	// Module account balance 0 -> 1000
 	_, err = suite.Keeper.CallEVM(
 		suite.Ctx,
-		types.ERC20MintableBurnableContract.ABI,
+		types.CustomERC20Contract.ABI,
 		suite.Key1Addr.Address,
 		suite.contractAddr,
 		"convertToCoin",
