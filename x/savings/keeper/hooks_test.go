@@ -42,6 +42,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor_1.GetAddress(), cs(deposit0)),
+		[]string{deposit1.Denom},
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -63,6 +64,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor_1.GetAddress(), cs(deposit0, deposit1)),
+		[]string(nil), // no new denoms
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -97,6 +99,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor_2.GetAddress(), cs(deposit0)),
+		[]string{deposit1.Denom},
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -114,6 +117,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		accDeposit,
+		[]string(nil),
 	).Once()
 	err = suite.keeper.Deposit(
 		suite.ctx,
@@ -130,6 +134,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		accDeposit,
+		[]string(nil),
 	).Once()
 	err = suite.keeper.Withdraw(
 		suite.ctx,
@@ -149,6 +154,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		accDeposit,
+		[]string(nil),
 	).Once()
 	err = suite.keeper.Withdraw(suite.ctx, depositor_2.GetAddress(), cs(partialWithdraw1))
 	suite.Require().NoError(err)
@@ -163,6 +169,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		accDeposit,
+		[]string(nil),
 	).Once()
 	err = suite.keeper.Withdraw(
 		suite.ctx,
@@ -179,6 +186,7 @@ func (suite *KeeperTestSuite) TestHooks_DepositAndWithdraw() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		accDeposit,
+		[]string(nil),
 	).Once()
 	err = suite.keeper.Withdraw(
 		suite.ctx,
@@ -273,6 +281,7 @@ func (suite *KeeperTestSuite) TestHooks_HookOrdering() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor.GetAddress(), cs(depositA)),
+		[]string{depositB.Denom},
 	).Run(func(args mock.Arguments) {
 		accDeposit, found := suite.keeper.GetDeposit(suite.ctx, depositor.GetAddress())
 		suite.Require().True(found, "expected share record to exist")
@@ -287,6 +296,7 @@ func (suite *KeeperTestSuite) TestHooks_HookOrdering() {
 		"BeforeSavingsDepositModified",
 		suite.ctx,
 		types.NewDeposit(depositor.GetAddress(), cs(depositA, depositB)),
+		[]string(nil),
 	).Run(func(args mock.Arguments) {
 		accDeposit, found := suite.keeper.GetDeposit(suite.ctx, depositor.GetAddress())
 		suite.Require().True(found, "expected share record to exist")

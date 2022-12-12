@@ -22,7 +22,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	deposit, foundDeposit := k.GetDeposit(ctx, depositor)
 	if foundDeposit {
 		// Call hook with the deposit before it is modified
-		k.BeforeSavingsDepositModified(ctx, deposit)
+		newDenoms := setDifference(getDenoms(coins), getDenoms(deposit.Amount))
+		k.BeforeSavingsDepositModified(ctx, deposit, newDenoms)
 
 		// Update existing deposit with new coins
 		deposit.Amount = deposit.Amount.Add(coins...)

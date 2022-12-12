@@ -26,7 +26,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 
-	k.BeforeSavingsDepositModified(ctx, deposit)
+	// No new denoms when withdrawing
+	k.BeforeSavingsDepositModified(ctx, deposit, nil)
 
 	deposit.Amount = deposit.Amount.Sub(amount)
 	if deposit.Amount.Empty() {
@@ -62,4 +63,12 @@ func (k Keeper) CalculateWithdrawAmount(available sdk.Coins, request sdk.Coins) 
 		}
 	}
 	return result, nil
+}
+
+func getDenoms(coins sdk.Coins) []string {
+	denoms := []string{}
+	for _, coin := range coins {
+		denoms = append(denoms, coin.Denom)
+	}
+	return denoms
 }

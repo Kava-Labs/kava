@@ -189,7 +189,7 @@ func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, deposit savingstypes.
 // BeforeSavingsDepositModified function that runs before a deposit is modified.
 // This may include a mix of new and old coins, so we need to sync the old coins
 // and initialize the new coins.
-func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit) {
+func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit, newDenoms []string) {
 	for _, coin := range deposit.Amount {
 		h.k.SynchronizeClaim(
 			ctx,
@@ -197,6 +197,16 @@ func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstype
 			coin.Denom,
 			deposit.Depositor,
 			coin.Amount.ToDec(),
+		)
+	}
+
+	// New coins are not included in deposit, initialized separately
+	for _, denom := range newDenoms {
+		h.k.InitializeClaim(
+			ctx,
+			types.CLAIM_TYPE_SAVINGS,
+			denom,
+			deposit.Depositor,
 		)
 	}
 }
