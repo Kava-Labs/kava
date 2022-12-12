@@ -16,12 +16,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	}
 
 	// No denoms are added when withdrawing
-	k.BeforeDepositModified(ctx, existingDeposit, []string{})
+	k.BeforeDepositModified(ctx, existingDeposit, nil)
 
 	existingBorrow, hasExistingBorrow := k.GetBorrow(ctx, depositor)
 	if hasExistingBorrow {
 		// No denoms are newly borrowed when withdrawing
-		k.BeforeBorrowModified(ctx, existingBorrow, []string{})
+		k.BeforeBorrowModified(ctx, existingBorrow, nil)
 	}
 
 	// Sync interest

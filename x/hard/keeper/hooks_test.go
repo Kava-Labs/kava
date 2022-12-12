@@ -153,16 +153,20 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 	depositB := sdk.NewCoin(suite.tokenB, sdk.NewInt(50e6))
 
 	suite.Run("deposit 1", func() {
+		interestFactors := types.SupplyInterestFactors{}
+		interestFactors = interestFactors.SetInterestFactor(depositA.Denom, sdk.OneDec())
+		expectedDeposit := types.NewDeposit(depositor_1, cs(depositA), interestFactors)
+
 		// first deposit creates deposit - calls AfterDepositCreated with initial shares
-		hardHooks.On("AfterDepositCreated", suite.ctx, types.NewDeposit(depositor_1, cs(depositA), nil)).Once()
+		hardHooks.On("AfterDepositCreated", suite.ctx, expectedDeposit).Once()
 		err := suite.keeper.Deposit(suite.ctx, depositor_1, cs(depositA))
 		suite.Require().NoError(err)
 
 		// second deposit adds to deposit - calls BeforeDepositModified
 		// shares given are the initial shares, along with a slice that includes new deposit denoms
 		hardHooks.On("BeforeDepositModified", suite.ctx,
-			types.NewDeposit(depositor_1, cs(depositA), nil), // old deposit
-			[]string{depositB.Denom},                         // new deposit denoms
+			expectedDeposit,          // old deposit
+			[]string{depositB.Denom}, // new deposit denoms
 		).Once()
 		err = suite.keeper.Deposit(suite.ctx, depositor_1, cs(depositB))
 		suite.Require().NoError(err)
@@ -174,24 +178,29 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 		// third deposit adds to deposit - calls BeforeDepositModified
 		// shares given are the shares added in previous deposit, not the shares added to the deposit now
 		hardHooks.On("BeforeDepositModified", suite.ctx,
-			deposit,    // previous deposit
-			[]string{}, // no new denoms
+			deposit,       // previous deposit
+			[]string(nil), // no new denoms
 		).Once()
+
 		err = suite.keeper.Deposit(suite.ctx, depositor_1, cs(depositB))
 		suite.Require().NoError(err)
 	})
 
 	suite.Run("deposit 2", func() {
+		interestFactors := types.SupplyInterestFactors{}
+		interestFactors = interestFactors.SetInterestFactor(depositA.Denom, sdk.OneDec())
+		expectedDeposit := types.NewDeposit(depositor_2, cs(depositA), interestFactors)
+
 		// first deposit creates deposit - calls BeforeDepositModified with initial shares
-		hardHooks.On("AfterDepositCreated", suite.ctx, types.NewDeposit(depositor_2, cs(depositA), nil)).Once()
+		hardHooks.On("AfterDepositCreated", suite.ctx, expectedDeposit).Once()
 		err := suite.keeper.Deposit(suite.ctx, depositor_2, cs(depositA))
 		suite.Require().NoError(err)
 
 		// second deposit adds to deposit - calls BeforeDepositModified
 		// shares given are the initial shares, along with a slice that includes new deposit denoms
 		hardHooks.On("BeforeDepositModified", suite.ctx,
-			types.NewDeposit(depositor_2, cs(depositA), nil), // old deposit
-			[]string{depositB.Denom},                         // new deposit denoms
+			expectedDeposit,          // old deposit
+			[]string{depositB.Denom}, // new deposit denoms
 		).Once()
 		err = suite.keeper.Deposit(suite.ctx, depositor_2, cs(depositB))
 		suite.Require().NoError(err)
@@ -203,8 +212,8 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 		// third deposit adds to deposit - calls BeforeDepositModified
 		// shares given are the shares added in previous deposit, not the shares added to the deposit now
 		hardHooks.On("BeforeDepositModified", suite.ctx,
-			deposit,    // previous deposit
-			[]string{}, // no new denoms
+			deposit,       // previous deposit
+			[]string(nil), // no new denoms
 		).Once()
 		err = suite.keeper.Deposit(suite.ctx, depositor_2, cs(depositB))
 		suite.Require().NoError(err)
@@ -223,7 +232,10 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 		deposit, found := suite.keeper.GetDeposit(suite.ctx, depositor_1)
 		suite.Require().True(found)
 		// all shares given to BeforeDepositModified
-		hardHooks.On("BeforeDepositModified", suite.ctx, deposit, []string{}).Once()
+		hardHooks.On("BeforeDepositModified", suite.ctx,
+			deposit,
+			[]string(nil),
+		).Once()
 		err := suite.keeper.Withdraw(suite.ctx, depositor_1, deposit.Amount)
 		suite.Require().NoError(err)
 	})
@@ -235,7 +247,10 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 
 		partialWithdraw := sdk.NewCoin(deposit.Amount[0].Denom, deposit.Amount[0].Amount.QuoRaw(3))
 		// all shares given to before deposit modified even with partial withdraw
-		hardHooks.On("BeforeDepositModified", suite.ctx, deposit, nil).Once()
+		hardHooks.On("BeforeDepositModified", suite.ctx,
+			deposit,
+			[]string(nil),
+		).Once()
 		err := suite.keeper.Withdraw(suite.ctx, depositor_2, cs(partialWithdraw))
 		suite.Require().NoError(err)
 
@@ -244,7 +259,10 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 		suite.Require().True(found)
 		partialWithdraw = sdk.NewCoin(deposit.Amount[1].Denom, deposit.Amount[1].Amount.QuoRaw(2))
 		// all shares given to before deposit modified even with partial withdraw
-		hardHooks.On("BeforeDepositModified", suite.ctx, deposit, nil).Once()
+		hardHooks.On("BeforeDepositModified", suite.ctx,
+			deposit,
+			[]string(nil),
+		).Once()
 		err = suite.keeper.Withdraw(suite.ctx, depositor_2, cs(partialWithdraw))
 		suite.Require().NoError(err)
 
@@ -253,7 +271,10 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 		suite.Require().True(found)
 
 		// all shares given to before deposit modified even with partial withdraw
-		hardHooks.On("BeforeDepositModified", suite.ctx, deposit, nil).Once()
+		hardHooks.On("BeforeDepositModified", suite.ctx,
+			deposit,
+			[]string(nil),
+		).Once()
 		err = suite.keeper.Withdraw(suite.ctx, depositor_2, deposit.Amount)
 		suite.Require().NoError(err)
 	})
@@ -325,8 +346,8 @@ func (suite *HooksTestSuite) TestHooks_HookOrdering() {
 		On(
 			"BeforeDepositModified",
 			suite.ctx,
-			deposit,    // existing deposit modified
-			[]string{}, // no new denoms when withdrawing
+			deposit,       // existing deposit modified
+			[]string(nil), // no new denoms when withdrawing
 		).
 		Run(func(args mock.Arguments) {
 			existingDeposit, found := suite.keeper.GetDeposit(suite.ctx, suite.addrs[0])
