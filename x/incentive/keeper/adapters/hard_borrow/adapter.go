@@ -1,6 +1,8 @@
 package hard_borrow
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -32,16 +34,21 @@ func (f SourceAdapter) OwnerSharesBySource(
 	owner sdk.AccAddress,
 	sourceIDs []string,
 ) map[string]sdk.Dec {
-	borrowCoins := sdk.NewCoins()
+	borrowCoins := sdk.NewDecCoins()
 
 	accBorrow, found := f.keeper.GetBorrow(ctx, owner)
 	if found {
-		borrowCoins = accBorrow.Amount
+		normalizedBorrow, err := accBorrow.NormalizedBorrow()
+		if err != nil {
+			panic(fmt.Errorf("failed to normalize hard borrow for owner %s: %w", owner, err))
+		}
+
+		borrowCoins = normalizedBorrow
 	}
 
 	shares := make(map[string]sdk.Dec)
 	for _, id := range sourceIDs {
-		shares[id] = borrowCoins.AmountOf(id).ToDec()
+		shares[id] = borrowCoins.AmountOf(id)
 	}
 
 	return shares
