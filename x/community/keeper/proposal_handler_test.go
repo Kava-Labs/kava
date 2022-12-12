@@ -2,11 +2,13 @@ package keeper_test
 
 import (
 	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community/keeper"
 	"github.com/kava-labs/kava/x/community/testutil"
 	"github.com/kava-labs/kava/x/community/types"
@@ -14,6 +16,8 @@ import (
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
+
+const chainID = "kavatest_2221-1"
 
 func ukava(amt int64) sdk.Coins {
 	return sdk.NewCoins(sdk.NewInt64Coin("ukava", amt))
@@ -26,7 +30,12 @@ func otherdenom(amt int64) sdk.Coins {
 }
 
 type proposalTestSuite struct {
-	testutil.Suite
+	suite.Suite
+
+	App         app.TestApp
+	Ctx         sdk.Context
+	Keeper      keeper.Keeper
+	MaccAddress sdk.AccAddress
 
 	hardKeeper hardkeeper.Keeper
 }
@@ -36,12 +45,33 @@ func TestProposalTestSuite(t *testing.T) {
 }
 
 func (suite *proposalTestSuite) SetupTest() {
-	suite.Suite.SetupTest()
+	app.SetSDKConfig()
 
-	// setup money markets for kava & usdx
+	genTime := tmtime.Now()
+
+	hardGS, pricefeedGS := testutil.NewLendGenesisBuilder().
+		WithMarket("ukava", "kava:usd", sdk.OneDec()).
+		WithMarket("usdx", "usdx:usd", sdk.OneDec()).
+		Build()
+
+	tApp := app.NewTestApp()
+	ctx := tApp.NewContext(true, tmproto.Header{
+		Height:  1,
+		Time:    genTime,
+		ChainID: chainID,
+	})
+
+	tApp.InitializeFromGenesisStatesWithTimeAndChainID(
+		genTime, chainID,
+		app.GenesisState{hardtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)},
+		app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+	)
+
+	suite.App = tApp
+	suite.Ctx = ctx
+	suite.Keeper = tApp.GetCommunityKeeper()
+	suite.MaccAddress = tApp.GetAccountKeeper().GetModuleAddress(types.ModuleAccountName)
 	suite.hardKeeper = suite.App.GetHardKeeper()
-	suite.SetupMoneyMarket("ukava", "kava:usd")
-	suite.SetupMoneyMarket("usdx", "usdx:usd")
 
 	// give the community pool some funds
 	// ukava
@@ -57,25 +87,6 @@ func (suite *proposalTestSuite) SetupTest() {
 	suite.NoError(err)
 }
 
-func (suite *proposalTestSuite) SetupMoneyMarket(denom, spotMarketId string) {
-	// add money market to hard
-	suite.hardKeeper.SetMoneyMarket(
-		suite.Ctx,
-		denom,
-		hardtypes.NewMoneyMarket(denom, hardtypes.NewBorrowLimit(false, sdk.NewDec(1e15), sdk.MustNewDecFromStr("0.6")), spotMarketId, sdk.NewInt(1e6), hardtypes.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-	)
-
-	// setup pricefeed
-	pfk := suite.App.GetPriceFeedKeeper()
-	pfk.SetParams(suite.Ctx, pricefeedtypes.NewParams(
-		[]pricefeedtypes.Market{
-			{MarketID: spotMarketId, BaseAsset: denom, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
-		},
-	))
-	_, err := pfk.SetPrice(suite.Ctx, sdk.AccAddress{}, spotMarketId, sdk.OneDec(), time.Now().Add(1*time.Hour))
-	suite.NoError(err)
-}
-
 func (suite *proposalTestSuite) TestCommunityLendDepositProposal() {
 	testCases := []struct {
 		name             string
@@ -84,12 +95,20 @@ func (suite *proposalTestSuite) TestCommunityLendDepositProposal() {
 		expectedDeposits []sdk.Coins
 	}{
 		{
-			name: "valid - one proposal",
+			name: "valid - one proposal, one denom",
 			proposals: []*types.CommunityPoolLendDepositProposal{
 				{Amount: ukava(1e8)},
 			},
 			expectedErr:      "",
 			expectedDeposits: []sdk.Coins{ukava(1e8)},
+		},
+		{
+			name: "valid - one proposal, multiple denoms",
+			proposals: []*types.CommunityPoolLendDepositProposal{
+				{Amount: ukava(1e8).Add(usdx(1e8)...)},
+			},
+			expectedErr:      "",
+			expectedDeposits: []sdk.Coins{ukava(1e8).Add(usdx(1e8)...)},
 		},
 		{
 			name: "valid - multiple proposals, same denom",
