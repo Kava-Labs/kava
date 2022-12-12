@@ -1,6 +1,8 @@
 package hard_supply
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -32,16 +34,21 @@ func (f SourceAdapter) OwnerSharesBySource(
 	owner sdk.AccAddress,
 	sourceIDs []string,
 ) map[string]sdk.Dec {
-	depositCoins := sdk.NewCoins()
+	depositCoins := sdk.NewDecCoins()
 
 	deposit, found := f.keeper.GetDeposit(ctx, owner)
 	if found {
-		depositCoins = deposit.Amount
+		normalizedDeposit, err := deposit.NormalizedDeposit()
+		if err != nil {
+			panic(fmt.Errorf("failed to normalize hard deposit for owner %s: %w", owner, err))
+		}
+
+		depositCoins = normalizedDeposit
 	}
 
 	shares := make(map[string]sdk.Dec)
 	for _, id := range sourceIDs {
-		shares[id] = depositCoins.AmountOf(id).ToDec()
+		shares[id] = depositCoins.AmountOf(id)
 	}
 
 	return shares
