@@ -23,13 +23,6 @@ func (k Keeper) BeforeDepositModified(ctx sdk.Context, deposit types.Deposit, ne
 	}
 }
 
-// AfterDepositModified - call hook if registered
-func (k Keeper) AfterDepositModified(ctx sdk.Context, deposit types.Deposit) {
-	if k.hooks != nil {
-		k.hooks.AfterDepositModified(ctx, deposit)
-	}
-}
-
 // AfterBorrowCreated - call hook if registered
 func (k Keeper) AfterBorrowCreated(ctx sdk.Context, borrow types.Borrow) {
 	if k.hooks != nil {
@@ -41,12 +34,5 @@ func (k Keeper) AfterBorrowCreated(ctx sdk.Context, borrow types.Borrow) {
 func (k Keeper) BeforeBorrowModified(ctx sdk.Context, borrow types.Borrow, newBorrowDenoms []string) {
 	if k.hooks != nil {
 		k.hooks.BeforeBorrowModified(ctx, borrow, newBorrowDenoms)
-	}
-}
-
-// AfterBorrowModified - call hook if registered
-func (k Keeper) AfterBorrowModified(ctx sdk.Context, borrow types.Borrow) {
-	if k.hooks != nil {
-		k.hooks.AfterBorrowModified(ctx, borrow)
 	}
 }

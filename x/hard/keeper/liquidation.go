@@ -61,11 +61,9 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 
 	deposit.Amount = sdk.NewCoins()
 	k.DeleteDeposit(ctx, deposit)
-	k.AfterDepositModified(ctx, deposit)
 
 	borrow.Amount = sdk.NewCoins()
 	k.DeleteBorrow(ctx, borrow)
-	k.AfterBorrowModified(ctx, borrow)
 	return nil
 }
 

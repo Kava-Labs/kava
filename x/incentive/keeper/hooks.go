@@ -78,10 +78,6 @@ func (h Hooks) BeforeDepositModified(ctx sdk.Context, deposit hardtypes.Deposit,
 	)
 }
 
-// AfterDepositModified function that runs after a deposit is modified
-func (h Hooks) AfterDepositModified(ctx sdk.Context, deposit hardtypes.Deposit) {
-}
-
 // AfterBorrowCreated function that runs after a borrow is created
 func (h Hooks) AfterBorrowCreated(ctx sdk.Context, borrow hardtypes.Borrow) {
 	h.k.InitializeClaim(
@@ -111,10 +107,6 @@ func (h Hooks) BeforeBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow, ne
 		// New borrow denoms to initialize
 		newDenoms,
 	)
-}
-
-// AfterBorrowModified function that runs after a borrow is modified
-func (h Hooks) AfterBorrowModified(ctx sdk.Context, borrow hardtypes.Borrow) {
 }
 
 /* ------------------- Staking Module Hooks -------------------
