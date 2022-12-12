@@ -66,9 +66,6 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 		return err
 	}
 
-	// Call incentive hook
-	k.AfterBorrowModified(ctx, borrow)
-
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeHardRepay,

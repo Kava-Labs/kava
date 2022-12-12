@@ -25,7 +25,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 	// Call incentive hooks
 	existingDeposit, hasExistingDeposit := k.GetDeposit(ctx, borrower)
 	if hasExistingDeposit {
-		// Borrowing won't add any new denoms to the deposit, so pass nil
+		// Borrowing won't add any new denoms to the deposit
 		k.BeforeDepositModified(ctx, existingDeposit, nil)
 	}
 
@@ -97,8 +97,6 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 
 	if !hasExistingBorrow {
 		k.AfterBorrowCreated(ctx, borrow)
-	} else {
-		k.AfterBorrowModified(ctx, borrow)
 	}
 
 	ctx.EventManager().EmitEvent(
