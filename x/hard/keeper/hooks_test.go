@@ -152,6 +152,8 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 	depositA := sdk.NewCoin(suite.tokenA, sdk.NewInt(10e6))
 	depositB := sdk.NewCoin(suite.tokenB, sdk.NewInt(50e6))
 
+	borrowA := sdk.NewCoin(suite.tokenB, sdk.NewInt(5e6))
+
 	suite.Run("deposit 1", func() {
 		interestFactors := types.SupplyInterestFactors{}
 		interestFactors = interestFactors.SetInterestFactor(depositA.Denom, sdk.OneDec())
@@ -220,11 +222,61 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 	})
 
 	suite.Run("borrow", func() {
+		deposit, found := suite.keeper.GetDeposit(suite.ctx, depositor_1)
+		suite.Require().True(found)
 
+		suite.T().Logf("deposit: %v", deposit)
+
+		hardHooks.On("BeforeDepositModified", suite.ctx,
+			deposit,       // previous deposit
+			[]string(nil), // no new denoms when borrowing
+		).Once()
+
+		interestFactors := types.BorrowInterestFactors{}
+		interestFactors = interestFactors.SetInterestFactor(borrowA.Denom, sdk.OneDec())
+		expectedBorrow := types.NewBorrow(depositor_1, cs(borrowA), interestFactors)
+
+		hardHooks.On("AfterBorrowCreated", suite.ctx,
+			expectedBorrow, // new borrow
+		).Once()
+		err := suite.keeper.Borrow(suite.ctx, depositor_1, cs(borrowA))
+		suite.Require().NoError(err)
 	})
 
-	suite.Run("repay", func() {
+	// Depositor 2 borrows but does not repay
+	suite.Run("borrow 2", func() {
+		deposit, found := suite.keeper.GetDeposit(suite.ctx, depositor_2)
+		suite.Require().True(found)
 
+		suite.T().Logf("deposit: %v", deposit)
+
+		hardHooks.On("BeforeDepositModified", suite.ctx,
+			deposit,       // previous deposit
+			[]string(nil), // no new denoms when borrowing
+		).Once()
+
+		interestFactors := types.BorrowInterestFactors{}
+		interestFactors = interestFactors.SetInterestFactor(borrowA.Denom, sdk.OneDec())
+		expectedBorrow := types.NewBorrow(depositor_2, cs(borrowA), interestFactors)
+
+		hardHooks.On("AfterBorrowCreated", suite.ctx,
+			expectedBorrow, // new borrow
+		).Once()
+		err := suite.keeper.Borrow(suite.ctx, depositor_2, cs(borrowA))
+		suite.Require().NoError(err)
+	})
+
+	suite.Run("repay 1", func() {
+		borrow, found := suite.keeper.GetBorrow(suite.ctx, depositor_1)
+		suite.Require().True(found)
+
+		hardHooks.On("BeforeBorrowModified", suite.ctx,
+			borrow,
+			[]string(nil),
+		).Once()
+
+		err := suite.keeper.Repay(suite.ctx, depositor_1, depositor_1, cs(borrowA))
+		suite.Require().NoError(err)
 	})
 
 	suite.Run("withdraw full", func() {
@@ -241,7 +293,15 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 	})
 
 	suite.Run("withdraw partial", func() {
-		// test hooks on partial withdraw
+		borrow, found := suite.keeper.GetBorrow(suite.ctx, depositor_2)
+		suite.Require().True(found)
+
+		hardHooks.On("BeforeBorrowModified", suite.ctx,
+			borrow,
+			[]string(nil),
+		).Once()
+
+		// test hooks on partial withdraw, WITH borrow still outstanding
 		deposit, found := suite.keeper.GetDeposit(suite.ctx, depositor_2)
 		suite.Require().True(found)
 
@@ -254,6 +314,11 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 		err := suite.keeper.Withdraw(suite.ctx, depositor_2, cs(partialWithdraw))
 		suite.Require().NoError(err)
 
+		hardHooks.On("BeforeBorrowModified", suite.ctx,
+			borrow,
+			[]string(nil),
+		).Once()
+
 		// test hooks on second partial withdraw
 		deposit, found = suite.keeper.GetDeposit(suite.ctx, depositor_2)
 		suite.Require().True(found)
@@ -264,6 +329,14 @@ func (suite *HooksTestSuite) TestHooks_DepositBorrowAndWithdraw() {
 			[]string(nil),
 		).Once()
 		err = suite.keeper.Withdraw(suite.ctx, depositor_2, cs(partialWithdraw))
+		suite.Require().NoError(err)
+
+		// Repay borrow to before withdraw all shares
+		hardHooks.On("BeforeBorrowModified", suite.ctx,
+			borrow,
+			[]string(nil),
+		).Once()
+		err = suite.keeper.Repay(suite.ctx, depositor_2, depositor_2, cs(borrowA))
 		suite.Require().NoError(err)
 
 		// test hooks withdraw all shares with second depositor
