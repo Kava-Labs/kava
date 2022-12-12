@@ -178,6 +178,7 @@ var (
 			earnclient.DepositProposalHandler,
 			earnclient.WithdrawProposalHandler,
 			communityclient.LendDepositProposalHandler,
+			communityclient.LendWithdrawProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},

@@ -36,3 +36,28 @@ func TestParseDepositProposal(t *testing.T) {
 	require.Equal(t, "Deposit some KAVA from community pool to Lend!", proposal.Description)
 	require.Equal(t, expectedAmount, proposal.Amount)
 }
+
+func TestParseWithdrawProposal(t *testing.T) {
+	cdc := codec.NewAminoCodec(codec.NewLegacyAmino())
+	okJSON := testutil.WriteToNewTempFile(t, `
+{
+  "title": "Community Pool Lend Withdraw",
+  "description": "Withdraw some KAVA from community pool to Lend!",
+  "amount": [
+    {
+      "denom": "ukava",
+      "amount": "100000000000"
+    }
+  ]
+}
+`)
+	proposal, err := utils.ParseCommunityPoolLendWithdrawProposal(cdc, okJSON.Name())
+	require.NoError(t, err)
+
+	expectedAmount, err := sdk.ParseCoinsNormalized("100000000000ukava")
+	require.NoError(t, err)
+
+	require.Equal(t, "Community Pool Lend Withdraw", proposal.Title)
+	require.Equal(t, "Withdraw some KAVA from community pool to Lend!", proposal.Description)
+	require.Equal(t, expectedAmount, proposal.Amount)
+}
