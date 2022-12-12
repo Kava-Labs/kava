@@ -47,20 +47,6 @@ func (suite *invariantTestSuite) SetupValidState() {
 
 	err := suite.Keeper.MintERC20(suite.Ctx, suite.contractAddr, suite.Key1Addr, big.NewInt(1000000))
 	suite.Require().NoError(err)
-
-	// key1 ERC20 bal -10000, sdk.Coin +1000
-	// Module account balance 0 -> 1000
-	_, err = suite.Keeper.CallEVM(
-		suite.Ctx,
-		types.CustomERC20Contract.ABI,
-		suite.Key1Addr.Address,
-		suite.contractAddr,
-		"convertToCoin",
-		// convertToCoin ERC20 args
-		suite.Key1Addr.Address,
-		big.NewInt(1000),
-	)
-	suite.Require().NoError(err)
 }
 
 // RegisterRoutes implements sdk.InvariantRegistry
