@@ -115,7 +115,7 @@ func (suite *KeeperTestSuite) CreateAccount(initialBalance sdk.Coins) authtypes.
 	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
 	ak.SetAccount(suite.ctx, acc)
 
-	err := simapp.FundAccount(suite.app.GetBankKeeper(), suite.ctx, acc.GetAddress(), initialBalance)
+	err := suite.app.FundAccount(suite.ctx, acc.GetAddress(), initialBalance)
 	suite.Require().NoError(err)
 
 	return acc
