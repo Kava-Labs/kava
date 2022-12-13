@@ -51,3 +51,21 @@ func (suite keeperTestSuite) TestPreviousBlockTime_Persistance() {
 	keeper.SetPreviousBlockTime(suite.Ctx, newTime)
 	suite.Equal(keeper.GetPreviousBlockTime(suite.Ctx), newTime)
 }
+
+func (suite keeperTestSuite) Test_GetStakingApy() {
+	suite.SetupTest()
+
+	testCases := []sdk.Dec{
+		sdk.ZeroDec(),
+		sdk.MustNewDecFromStr("0.000005"),
+		sdk.MustNewDecFromStr("0.15"),
+		sdk.OneDec(),
+		types.MaxMintingRate,
+	}
+
+	for _, tc := range testCases {
+		params := types.NewParams(sdk.ZeroDec(), tc)
+		suite.Keeper.SetParams(suite.Ctx, params)
+		suite.Equal(tc, suite.Keeper.GetStakingApy(suite.Ctx))
+	}
+}
