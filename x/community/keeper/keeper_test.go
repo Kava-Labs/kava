@@ -40,6 +40,7 @@ func (suite *KeeperTestSuite) TestCommunityPool() {
 
 		// check that community pool received balance
 		suite.App.CheckBalance(suite.T(), suite.Ctx, maccAddr, funds)
+		suite.Equal(funds, suite.Keeper.GetModuleAccountBalance(suite.Ctx))
 		// check that sender had balance deducted
 		suite.App.CheckBalance(suite.T(), suite.Ctx, sender, sdk.NewCoins())
 	})
@@ -51,12 +52,14 @@ func (suite *KeeperTestSuite) TestCommunityPool() {
 
 		// community pool has funds deducted
 		suite.App.CheckBalance(suite.T(), suite.Ctx, maccAddr, sdk.NewCoins())
+		suite.Equal(sdk.NewCoins(), suite.Keeper.GetModuleAccountBalance(suite.Ctx))
 		// receiver receives the funds
 		suite.App.CheckBalance(suite.T(), suite.Ctx, sender, funds)
 	})
 
 	// can't send more than we have!
 	suite.Run("DistributeFromCommunityPool - insufficient funds", func() {
+		suite.Equal(sdk.NewCoins(), suite.Keeper.GetModuleAccountBalance(suite.Ctx))
 		err := suite.Keeper.DistributeFromCommunityPool(suite.Ctx, sender, funds)
 		suite.Require().ErrorContains(err, "insufficient funds")
 	})
