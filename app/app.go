@@ -104,6 +104,7 @@ import (
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/community"
+	communityclient "github.com/kava-labs/kava/x/community/client"
 	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earn "github.com/kava-labs/kava/x/earn"
@@ -176,6 +177,8 @@ var (
 			committeeclient.ProposalHandler,
 			earnclient.DepositProposalHandler,
 			earnclient.WithdrawProposalHandler,
+			communityclient.LendDepositProposalHandler,
+			communityclient.LendWithdrawProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
