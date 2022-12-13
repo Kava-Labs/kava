@@ -146,6 +146,19 @@ func (suite *InflationTestSuite) TestCalculateInflationFactor() {
 	})
 }
 
+func (suite *InflationTestSuite) Test_AccumulateInflation_FailsWithInvalidRate() {
+	oob := sdk.NewDec(177)
+	minter := keeper.NewMinter(
+		"out-of-bounds-minter",
+		oob,
+		sdk.OneInt(),
+		"uakva",
+		"ignored",
+	)
+	_, err := minter.AccumulateInflation(1)
+	suite.ErrorContains(err, "out of bounds")
+}
+
 func (suite *InflationTestSuite) requireWithinError(expected, actual, margin sdk.Dec) {
 	suite.Require().Truef(
 		actual.Sub(expected).Abs().LTE(margin),
