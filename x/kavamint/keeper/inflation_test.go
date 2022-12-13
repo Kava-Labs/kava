@@ -116,7 +116,8 @@ func (suite *InflationTestSuite) TestCalculateInflationFactor() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			actualRate, err := keeper.CalculateInflationRate(tc.apy, tc.secondsPassed)
+			minter := keeper.NewMinter(tc.name, tc.apy, sdk.ZeroInt(), "ukava", "ignored")
+			actualRate, err := minter.CalculateInflationRate(tc.secondsPassed)
 			suite.Require().NoError(err)
 
 			marginOfError := sdk.ZeroDec()

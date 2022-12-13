@@ -13,14 +13,17 @@ const (
 	SecondsPerYear = uint64(31536000)
 )
 
+// Minter wraps the logic of a single source of inflation. It calculates the amount of coins to be
+// minted to match a yearly `rate` of inflating the `basis`.
 type Minter struct {
-	name         string
-	rate         sdk.Dec
-	basis        sdk.Int
-	destMaccName string
-	mintDenom    string
+	name         string  // name of the minting. used as event attribute to report how much is minted
+	rate         sdk.Dec // the yearly apy of the mint. ex. 20% => 0.2
+	basis        sdk.Int // the base amount of coins that is inflated
+	destMaccName string  // the destination module account name to mint coins to
+	mintDenom    string  // denom of coin this minter is responsible for minting
 }
 
+// NewMinter returns creates a new source of minting inflation
 func NewMinter(
 	name string, rate sdk.Dec, basis sdk.Int, mintDenom string, destMaccName string,
 ) Minter {
@@ -33,6 +36,9 @@ func NewMinter(
 	}
 }
 
+// AccumulateInflation calculates the number of coins that should be minted to match a yearly `rate`
+// for interest compounded each second of the year over `secondsPassed` seconds.
+// `basis` is the base amount of coins that is inflated.
 func (m Minter) AccumulateInflation(secondsPassed uint64) (sdk.Coin, error) {
 	// calculate the rate factor based on apy & seconds passed since last block
 	inflationRate, err := m.CalculateInflationRate(secondsPassed)
@@ -43,6 +49,8 @@ func (m Minter) AccumulateInflation(secondsPassed uint64) (sdk.Coin, error) {
 	return sdk.NewCoin(m.mintDenom, amount), nil
 }
 
+// CalculateInflationRate converts an APY into the factor corresponding with that APY's accumulation
+// over a period of secondsPassed seconds.
 func (m Minter) CalculateInflationRate(secondsPassed uint64) (sdk.Dec, error) {
 	perSecondInterestRate, err := apyToSpy(m.rate.Add(sdk.OneDec()))
 	if err != nil {
@@ -52,6 +60,8 @@ func (m Minter) CalculateInflationRate(secondsPassed uint64) (sdk.Dec, error) {
 	return rate.Sub(sdk.OneDec()), nil
 }
 
+// AccumulateAndMintInflation defines the sources of inflation, determines the seconds passed since
+// the last mint, and then mints each source of inflation to the defined destination.
 func (k Keeper) AccumulateAndMintInflation(ctx sdk.Context) error {
 	params := k.GetParams(ctx)
 	// determine seconds since last mint
@@ -130,39 +140,6 @@ func (k Keeper) AccumulateAndMintInflation(ctx sdk.Context) error {
 	)
 
 	return nil
-}
-
-// AccumulateInflation calculates the number of coins that should be minted to match a yearly `rate`
-// for interest compounded each second of the year over `secondsSinceLastMint` seconds.
-// `basis` is the base amount of coins that is inflated.
-func (k Keeper) AccumulateInflation(
-	ctx sdk.Context,
-	rate sdk.Dec,
-	basis sdk.Int,
-	secondsSinceLastMint float64,
-) (sdk.Coins, error) {
-	bondDenom := k.BondDenom(ctx)
-
-	// calculate the rate factor based on apy & seconds passed since last block
-	inflationRate, err := CalculateInflationRate(rate, uint64(secondsSinceLastMint))
-	if err != nil {
-		return sdk.NewCoins(), err
-	}
-
-	amount := inflationRate.MulInt(basis).TruncateInt()
-
-	return sdk.NewCoins(sdk.NewCoin(bondDenom, amount)), nil
-}
-
-// CalculateInflationRate converts an APY into the factor corresponding with that APY's accumulation
-// over a period of secondsPassed seconds.
-func CalculateInflationRate(apy sdk.Dec, secondsPassed uint64) (sdk.Dec, error) {
-	perSecondInterestRate, err := apyToSpy(apy.Add(sdk.OneDec()))
-	if err != nil {
-		return sdk.ZeroDec(), err
-	}
-	rate := perSecondInterestRate.Power(secondsPassed)
-	return rate.Sub(sdk.OneDec()), nil
 }
 
 // apyToSpy converts the input annual interest rate. For example, 10% apy would be passed as 1.10.

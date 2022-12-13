@@ -28,13 +28,6 @@ type KeeperI interface {
 	SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time)
 
 	AccumulateAndMintInflation(ctx sdk.Context) error
-	CumulativeInflation(ctx sdk.Context) sdk.Dec
-	AccumulateInflation(
-		ctx sdk.Context,
-		rate sdk.Dec,
-		basis sdk.Int,
-		secondsSinceLastMint float64,
-	) (sdk.Coins, error)
 }
 
 // Keeper of the kavamint store
