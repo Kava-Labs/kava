@@ -45,7 +45,7 @@ jobs:
         with:
           repository: Kava-Labs/kava-bridge
           path: kava-bridge
-          ref: master
+          ref: main
       - name: install nodeJS
         uses: actions/setup-node@v3
         with:
