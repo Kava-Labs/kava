@@ -89,7 +89,7 @@ func (k Keeper) totalBondedTokens(ctx sdk.Context) sdk.Int {
 // transfers them to the designated module account.
 // if `newCoins` is empty or zero, this method is a noop.
 func (k Keeper) mintCoinsToModule(ctx sdk.Context, newCoins sdk.Coins, destMaccName string) error {
-	if newCoins.Empty() {
+	if newCoins.IsZero() {
 		// skip as no coins need to be minted
 		return nil
 	}
