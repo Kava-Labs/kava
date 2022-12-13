@@ -8,7 +8,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/testutil"
-	"github.com/kava-labs/kava/x/community/types"
 )
 
 type genesisTestSuite struct {
@@ -32,12 +31,8 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 		community.InitGenesis(suite.Ctx, suite.Keeper, accountKeeper)
 	})
 
-	communityPoolAddress := accountKeeper.GetModuleAddress(types.ModuleAccountName)
-	// hello, greppers!
-	suite.Equal("kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5", communityPoolAddress.String())
-
 	// check for module account this way b/c GetModuleAccount creates if not existing.
-	acc := accountKeeper.GetAccount(suite.Ctx, communityPoolAddress)
+	acc := accountKeeper.GetAccount(suite.Ctx, suite.MaccAddress)
 	suite.NotNil(acc)
 	_, ok := acc.(authtypes.ModuleAccountI)
 	suite.True(ok)

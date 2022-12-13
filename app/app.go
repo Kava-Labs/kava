@@ -508,20 +508,6 @@ func NewApp(
 
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
 
-	app.communityKeeper = communitykeeper.NewKeeper(
-		app.accountKeeper,
-		app.bankKeeper,
-	)
-	app.kavadistKeeper = kavadistkeeper.NewKeeper(
-		appCodec,
-		keys[kavadisttypes.StoreKey],
-		kavadistSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-		app.communityKeeper,
-		app.loadBlockedMaccAddrs(),
-	)
-
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
@@ -620,6 +606,23 @@ func NewApp(
 		&savingsKeeper,
 		communitytypes.ModuleAccountName,
 	)
+
+	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
+	app.communityKeeper = communitykeeper.NewKeeper(
+		app.accountKeeper,
+		app.bankKeeper,
+		hardKeeper,
+	)
+	app.kavadistKeeper = kavadistkeeper.NewKeeper(
+		appCodec,
+		keys[kavadisttypes.StoreKey],
+		kavadistSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+		app.communityKeeper,
+		app.loadBlockedMaccAddrs(),
+	)
+
 	app.kavamintKeeper = kavamintkeeper.NewKeeper(
 		appCodec,
 		keys[kavaminttypes.StoreKey],
@@ -694,6 +697,7 @@ func NewApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
 		AddRoute(earntypes.RouterKey, earn.NewCommunityPoolProposalHandler(app.earnKeeper)).
+		AddRoute(communitytypes.RouterKey, community.NewCommunityPoolProposalHandler(app.communityKeeper)).
 		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 	app.govKeeper = govkeeper.NewKeeper(
 		appCodec,
@@ -1046,14 +1050,22 @@ func (app *App) RegisterTendermintService(clientCtx client.Context) {
 // loadBlockedMaccAddrs returns a map indicating the blocked status of each module account address
 func (app *App) loadBlockedMaccAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
-	kavadistMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName)
-	earnMaccAddr := app.accountKeeper.GetModuleAddress(earntypes.ModuleName)
-	liquidMaccAddr := app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName)
-	kavadistFundMaccAddr := app.accountKeeper.GetModuleAddress(kavadisttypes.FundModuleAccount)
+	allowedMaccs := map[string]bool{
+		// kavadist
+		app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName).String(): true,
+		// earn
+		app.accountKeeper.GetModuleAddress(earntypes.ModuleName).String(): true,
+		// liquid
+		app.accountKeeper.GetModuleAddress(liquidtypes.ModuleName).String(): true,
+		// kavadist fund
+		app.accountKeeper.GetModuleAddress(kavadisttypes.FundModuleAccount).String(): true,
+		// community
+		app.accountKeeper.GetModuleAddress(communitytypes.ModuleAccountName).String(): true,
+	}
 
 	for addr := range modAccAddrs {
-		// Set the kavadist and earn module account address as unblocked
-		if addr == kavadistMaccAddr.String() || addr == earnMaccAddr.String() || addr == liquidMaccAddr.String() || addr == kavadistFundMaccAddr.String() {
+		// Set allowed module accounts as unblocked
+		if allowedMaccs[addr] {
 			modAccAddrs[addr] = false
 		}
 	}

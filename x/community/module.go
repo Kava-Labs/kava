@@ -109,7 +109,7 @@ func (am AppModule) Route() sdk.Route { return sdk.Route{} }
 
 // QuerierRoute module querier route name
 // Deprecated: unused but necessary to fulfill AppModule interface
-func (AppModule) QuerierRoute() string { return "" }
+func (AppModule) QuerierRoute() string { return types.RouterKey }
 
 // LegacyQuerierHandler returns no sdk.Querier.
 // Deprecated: unused but necessary to fulfill AppModule interface
