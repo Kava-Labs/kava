@@ -72,10 +72,10 @@ func (k Keeper) AccumulateAndMintInflation(ctx sdk.Context) error {
 	secondsPassed := ctx.BlockTime().Sub(previousBlockTime).Seconds()
 
 	// calculate totals before any minting is done to prevent new mints affecting the values
-	totalSupply := k.TotalSupply(ctx)
-	totalBonded := k.TotalBondedTokens(ctx)
+	totalSupply := k.totalSupply(ctx)
+	totalBonded := k.totalBondedTokens(ctx)
 
-	bondDenom := k.BondDenom(ctx)
+	bondDenom := k.bondDenom(ctx)
 
 	// define minters for each contributing piece of inflation
 	minters := []Minter{
@@ -105,25 +105,17 @@ func (k Keeper) AccumulateAndMintInflation(ctx sdk.Context) error {
 			return err
 		}
 
+		// mint & transfer coins
 		inflation := sdk.NewCoins(amount)
+		if err := k.mintCoinsToModule(ctx, inflation, minter.destMaccName); err != nil {
+			return err
+		}
+
+		// add attribute to event
 		mintEventAttrs = append(mintEventAttrs, sdk.NewAttribute(
 			minter.name,
 			inflation.String(),
 		))
-
-		if inflation.IsZero() {
-			continue
-		}
-
-		// mint the coins
-		if err := k.MintCoins(ctx, inflation); err != nil {
-			return err
-		}
-		// transfer to destination module
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, minter.destMaccName, inflation)
-		if err != nil {
-			return err
-		}
 	}
 
 	// ------------- Bookkeeping -------------

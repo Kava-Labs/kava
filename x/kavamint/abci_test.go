@@ -104,6 +104,15 @@ func (suite *abciTestSuite) Test_BeginBlocker_MintsExpectedTokens() {
 			expFeeCollectorBalance:  sdk.ZeroInt(),
 		},
 		{
+			name:                    "mints no tokens if zero seconds passed",
+			blockTime:               0,
+			communityPoolInflation:  sdk.NewDecWithPrec(50, 2),
+			stakingRewardsApy:       sdk.NewDecWithPrec(20, 2),
+			bondedRatio:             sdk.NewDecWithPrec(35, 2),
+			expCommunityPoolBalance: sdk.ZeroInt(),
+			expFeeCollectorBalance:  sdk.ZeroInt(),
+		},
+		{
 			name:                   "mints community pool inflation and staking rewards",
 			blockTime:              6,
 			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
