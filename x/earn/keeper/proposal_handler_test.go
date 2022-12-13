@@ -51,7 +51,6 @@ func (suite *proposalTestSuite) TestCommunityWithdrawProposal() {
 	depositAmount := sdk.NewCoin("ukava", sdk.NewInt(10000000))
 	suite.Require().NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
 
-	// TODO update to STRATEGY_TYPE_SAVINGS once implemented
 	suite.CreateVault("ukava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 	deposit := types.NewCommunityPoolDepositProposal("test title",
 		"desc", depositAmount)
