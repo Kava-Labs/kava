@@ -5,6 +5,10 @@ on:
     workflows: [Continuous Integration (Kava Master)]
     types:
       - completed
+  push:
+      # run CD on any push to the development branch
+      branches:
+        - ls-internal-testnet-cd-go-live
 
 jobs:
   # in order:
