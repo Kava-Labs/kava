@@ -5,10 +5,6 @@ on:
     workflows: [Continuous Integration (Kava Master)]
     types:
       - completed
-  push:
-      # run CD on any push to the development branch
-      branches:
-        - ls-internal-testnet-cd-go-live
 
 jobs:
   # in order:
@@ -23,8 +19,8 @@ jobs:
     uses: ./.github/workflows/cd-reset-internal-testnet.yml
     with:
       aws-region: us-east-1
-      chain-id: demo_2221-17000
-      ssm-document-name: kava-demonet-node-update
+      chain-id: kava_2221-17000
+      ssm-document-name: kava-testnet-internal-node-update
       playbook-name: reset-internal-testnet-playbook.yml
       playbook-infrastructure-branch: master
     secrets: inherit
@@ -34,8 +30,8 @@ jobs:
     uses: ./.github/workflows/cd-start-chain.yml
     with:
       aws-region: us-east-1
-      chain-id: demo_2221-17000
-      ssm-document-name: kava-demonet-node-update
+      chain-id: kava_2221-17000
+      ssm-document-name: kava-testnet-internal-node-update
       playbook-name: start-chain-api-playbook.yml
       playbook-infrastructure-branch: master
     secrets: inherit
@@ -45,8 +41,9 @@ jobs:
   seed-chain-state:
     uses: ./.github/workflows/cd-seed-chain.yml
     with:
-      chain-api-url: https://rpc.data.demonet.us-east.production.kava.io:443
+      chain-api-url: https://rpc.app.internal.testnet.us-east.production.kava.io:443
       chain-id: kava_2221-17000
       seed-script-filename: seed-internal-testnet.sh
+      erc20-deployer-network-name: internal_testnet
     secrets: inherit
     needs: [start-chain-api]

@@ -12,6 +12,9 @@ on:
       seed-script-filename:
         required: true
         type: string
+      erc20-deployer-network-name:
+        required: true
+        type: string
     secrets:
       DEV_WALLET_MNEMONIC:
         required: true
@@ -66,3 +69,4 @@ jobs:
           CHAIN_ID: ${{ inputs.chain-id }}
           DEV_WALLET_MNEMONIC: ${{ secrets.DEV_WALLET_MNEMONIC }}
           SEED_SCRIPT_FILENAME: ${{ inputs.seed-script-filename }}
+          ERC20_DEPLOYER_NETWORK_NAME: ${{ inputs.erc20-deployer-network-name }}
