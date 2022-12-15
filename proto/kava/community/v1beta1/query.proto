@@ -2,6 +2,7 @@ syntax = "proto3";
 package kava.community.v1beta1;
 
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
@@ -13,6 +14,12 @@ service Query {
   rpc Balance(QueryBalanceRequest) returns (QueryBalanceResponse) {
     option (google.api.http).get = "/kava/community/v1beta1/balance";
   }
+
+  // LegacyCommunityPool queries the balance of all coins of the legacy community pool.
+  // The legacy community pool is a subaccount of the fee pool and has been replaced by x/community.
+  rpc LegacyCommunityPool(QueryLegacyCommunityPoolRequest) returns (QueryLegacyCommunityPoolResponse) {
+    option (google.api.http).get = "/kava/community/v1beta1/legacy_community_pool";
+  }
 }
 
 // QueryBalanceRequest defines the request type for querying x/community balance.
@@ -23,5 +30,17 @@ message QueryBalanceResponse {
   repeated cosmos.base.v1beta1.Coin coins = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// QueryLegacyCommunityPoolRequest defines the request type for querying the legacy community pool balance.
+message QueryLegacyCommunityPoolRequest {}
+
+// QueryLegacyCommunityPoolResponse defines the response type for querying legacy community pool.
+message QueryLegacyCommunityPoolResponse {
+  string address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated cosmos.base.v1beta1.DecCoin balance = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
   ];
 }
