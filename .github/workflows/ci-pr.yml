@@ -14,4 +14,7 @@ jobs:
     if: always() # always run so we metric failures and successes
     with:
       aws-region: us-east-1
+      metric-name: kava.releases.pr
+      namespace: Kava/ContinuousIntegration
     secrets: inherit
+    needs: [default]

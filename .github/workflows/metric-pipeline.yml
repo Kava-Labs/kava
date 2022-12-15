@@ -6,6 +6,12 @@ on:
       aws-region:
         required: true
         type: string
+      metric-name:
+        required: true
+        type: string
+      namespace:
+        required: true
+        type: string
     secrets:
       CI_AWS_KEY_ID:
         required: true
@@ -24,7 +30,10 @@ jobs:
           aws-secret-access-key: ${{ secrets.CI_AWS_KEY_SECRET }}
           aws-region: ${{ inputs.aws-region }}
         if: always()  # Setup credentials even if the workflow failed
-      - name: Log Build
+      - name: Metric Pipleline Success
         # replace TAG by the latest tag in the repository
         uses: ros-tooling/action-cloudwatch-metrics@0.0.5
         if: always()  # Need to run to log the workflow failure
+        with:
+          metric-name: ${{ inputs.metric-name }}
+          namespace: ${{ inputs.namespace }}
