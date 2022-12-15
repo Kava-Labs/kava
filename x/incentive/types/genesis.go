@@ -18,9 +18,8 @@ var (
 	DefaultEarnClaims = EarnClaims{}
 
 	// New fields
-	DefaultClaims                 = Claims{}
-	DefaultAccrualTimes           = AccrualTimes{}
-	DefaultTypedRewardIndexesList = TypedRewardIndexesList{}
+	DefaultClaims       = Claims{}
+	DefaultAccrualTimes = AccrualTimes{}
 )
 
 // NewGenesisState returns a new genesis state
@@ -31,7 +30,6 @@ func NewGenesisState(
 	uc USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
 	earnc EarnClaims,
 	accrualTimes AccrualTimes,
-	rewardIndexes TypedRewardIndexesList,
 ) GenesisState {
 	return GenesisState{
 		Params: params,
@@ -53,9 +51,8 @@ func NewGenesisState(
 
 		// New fields
 		// Claims of all types
-		Claims:        c,
-		AccrualTimes:  accrualTimes,
-		RewardIndexes: rewardIndexes,
+		Claims:       c,
+		AccrualTimes: accrualTimes,
 	}
 }
 
@@ -78,7 +75,6 @@ func DefaultGenesisState() GenesisState {
 		SavingsClaims:               DefaultSavingsClaims,
 		EarnClaims:                  DefaultEarnClaims,
 		AccrualTimes:                DefaultAccrualTimes,
-		RewardIndexes:               DefaultTypedRewardIndexesList,
 	}
 }
 
@@ -137,11 +133,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.AccrualTimes.Validate(); err != nil {
-		return err
-	}
-
-	return gs.RewardIndexes.Validate()
+	return gs.AccrualTimes.Validate()
 }
 
 // NewGenesisRewardState returns a new GenesisRewardState

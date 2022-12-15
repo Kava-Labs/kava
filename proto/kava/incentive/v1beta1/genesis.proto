@@ -110,9 +110,4 @@ message GenesisState {
     (gogoproto.castrepeated) = "AccrualTimes",
     (gogoproto.nullable) = false
   ];
-
-  repeated TypedRewardIndexes reward_indexes = 17 [
-    (gogoproto.castrepeated) = "TypedRewardIndexesList",
-    (gogoproto.nullable) = false
-  ];
 }
