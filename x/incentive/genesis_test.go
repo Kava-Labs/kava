@@ -102,7 +102,6 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
-		types.DefaultClaims,
 		types.DefaultUSDXClaims,
 		types.DefaultHardClaims,
 		types.DefaultDelegatorClaims,
@@ -220,14 +219,6 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				types.NewMultiRewardIndex("usdx", types.RewardIndexes{{CollateralType: "usdx", RewardFactor: d("0.2")}}),
 			},
 		),
-		types.Claims{
-			types.NewClaim(
-				types.CLAIM_TYPE_USDX_MINTING,
-				suite.addrs[3],
-				nil,
-				types.MultiRewardIndexes{{CollateralType: "btcb/usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "swap", RewardFactor: d("0.0")}}}},
-			),
-		},
 		types.USDXMintingClaims{
 			types.NewUSDXMintingClaim(
 				suite.addrs[0],

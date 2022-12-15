@@ -86,10 +86,5 @@ message GenesisState {
     (gogoproto.castrepeated) = "EarnClaims",
     (gogoproto.nullable) = false
   ];
-
-  repeated Claim claims = 15 [
-    (gogoproto.castrepeated) = "Claims",
-    (gogoproto.nullable) = false
-  ];
-
+  
 }

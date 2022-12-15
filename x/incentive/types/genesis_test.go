@@ -68,17 +68,16 @@ func TestGenesisState_Validate(t *testing.T) {
 						RewardIndexes:  normalRewardIndexes,
 					}},
 				},
-				Claims: Claims{
+				USDXMintingClaims: USDXMintingClaims{
 					{
-						Type:   CLAIM_TYPE_USDX_MINTING,
-						Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
-						Reward: cs(c("ukava", 100000000)),
-						RewardIndexes: []MultiRewardIndex{
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
+						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
-								RewardIndexes: RewardIndexes{
-									NewRewardIndex(USDXMintingRewardDenom, sdk.ZeroDec()),
-								},
+								RewardFactor:   sdk.ZeroDec(),
 							},
 						},
 					},
@@ -102,7 +101,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						RewardIndexes:  normalRewardIndexes,
 					}},
 				},
-				Claims: DefaultClaims,
+				USDXMintingClaims: DefaultUSDXClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -114,17 +113,16 @@ func TestGenesisState_Validate(t *testing.T) {
 			genesis: GenesisState{
 				Params:          DefaultParams(),
 				USDXRewardState: DefaultGenesisRewardState,
-				Claims: Claims{
+				USDXMintingClaims: USDXMintingClaims{
 					{
-						Type:   CLAIM_TYPE_USDX_MINTING,
-						Owner:  nil, // invalid address
-						Reward: cs(c("ukava", 100000000)),
-						RewardIndexes: []MultiRewardIndex{
+						BaseClaim: BaseClaim{
+							Owner:  nil, // invalid address
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
+						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
-								RewardIndexes: RewardIndexes{
-									NewRewardIndex(USDXMintingRewardDenom, sdk.ZeroDec()),
-								},
+								RewardFactor:   sdk.ZeroDec(),
 							},
 						},
 					},
