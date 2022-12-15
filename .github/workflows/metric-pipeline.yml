@@ -1,0 +1,30 @@
+name: Metric Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      aws-region:
+        required: true
+        type: string
+    secrets:
+      CI_AWS_KEY_ID:
+        required: true
+      CI_AWS_KEY_SECRET:
+        required: true
+
+jobs:
+  metric-pipeline-result:
+    runs-on: ubuntu-latest
+    steps:
+      # Make sure the secrets are stored in you repo settings
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.CI_AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.CI_AWS_KEY_SECRET }}
+          aws-region: ${{ inputs.aws-region }}
+        if: always()  # Setup credentials even if the workflow failed
+      - name: Log Build
+        # replace TAG by the latest tag in the repository
+        uses: ros-tooling/action-cloudwatch-metrics@0.0.5
+        if: always()  # Need to run to log the workflow failure
