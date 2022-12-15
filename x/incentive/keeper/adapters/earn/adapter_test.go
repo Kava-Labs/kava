@@ -101,22 +101,22 @@ func (suite *EarnAdapterTestSuite) TestEarnAdapter_OwnerSharesBySource() {
 		},
 	))
 
-	suite.NoError(suite.app.FundAccount(
+	suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
 			sdk.NewCoin(vaultDenomA, sdk.NewInt(1000000000000)),
 			sdk.NewCoin(vaultDenomB, sdk.NewInt(1000000000000)),
 		),
-	))
-	suite.NoError(suite.app.FundAccount(
+	)
+	suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
 			sdk.NewCoin(vaultDenomA, sdk.NewInt(1000000000000)),
 			sdk.NewCoin(vaultDenomB, sdk.NewInt(1000000000000)),
 		),
-	))
+	)
 
 	err := earnKeeper.Deposit(
 		suite.ctx,
@@ -235,22 +235,22 @@ func (suite *EarnAdapterTestSuite) TestEarnAdapter_TotalSharesBySource() {
 		},
 	))
 
-	suite.NoError(suite.app.FundAccount(
+	suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
 			sdk.NewCoin(vaultDenomA, sdk.NewInt(1000000000000)),
 			sdk.NewCoin(vaultDenomB, sdk.NewInt(1000000000000)),
 		),
-	))
-	suite.NoError(suite.app.FundAccount(
+	)
+	suite.app.FundAccount(
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
 			sdk.NewCoin(vaultDenomA, sdk.NewInt(1000000000000)),
 			sdk.NewCoin(vaultDenomB, sdk.NewInt(1000000000000)),
 		),
-	))
+	)
 
 	err := earnKeeper.Deposit(
 		suite.ctx,

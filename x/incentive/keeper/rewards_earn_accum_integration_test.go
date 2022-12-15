@@ -381,8 +381,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUnchangedWhenBlockT
 
 	// Must manually accumulate rewards as BeginBlockers only run when the block time increases
 	// This does not run any x/mint or x/distribution BeginBlockers
-	err = suite.keeper.AccumulateEarnRewards(suite.Ctx, period)
-	suite.NoError(err)
+	suite.keeper.AccumulateEarnRewards(suite.Ctx, period)
 
 	// check time and factors
 
@@ -645,8 +644,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoPanicWhenStateDoesNotE
 	suite.NotPanics(func() {
 		// This does not update any state, as there are no bkava vaults
 		// to iterate over, denoms are unknown
-		err := suite.keeper.AccumulateEarnRewards(suite.Ctx, period)
-		suite.NoError(err)
+		suite.keeper.AccumulateEarnRewards(suite.Ctx, period)
 	})
 
 	// Times are not stored for vaults with no state
