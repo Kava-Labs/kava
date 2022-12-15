@@ -59,10 +59,7 @@ func NewKeeper(
 		liquidKeeper:  lqk,
 		earnKeeper:    ek,
 
-		adapters: adapters.NewSourceAdapters(
-			swpk,
-			ek,
-		),
+		adapters: adapters.NewSourceAdapters(swpk),
 
 		kavamintKeeper:  kmk,
 		distrKeeper:     dk,
