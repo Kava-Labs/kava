@@ -4,7 +4,6 @@ package kava.incentive.v1beta1;
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
-import "kava/incentive/v1beta1/claims.proto";
 
 option go_package = "github.com/kava-labs/kava/x/incentive/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -50,17 +49,7 @@ message MultiRewardPeriod {
   ];
 }
 
-// TypedMultiRewardPeriod stores mutiple reward types of a claim type
-message TypedMultiRewardPeriod {
-  ClaimType claim_type = 1;
-  repeated MultiRewardPeriod reward_periods = 2 [
-    (gogoproto.castrepeated) = "MultiRewardPeriods",
-    (gogoproto.nullable) = false
-  ];
-}
-
-// Multiplier amount the claim rewards get increased by, along with how long the
-// claim rewards are locked
+// Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
 message Multiplier {
   string name = 1;
 
@@ -127,11 +116,6 @@ message Params {
 
   repeated MultiRewardPeriod earn_reward_periods = 9 [
     (gogoproto.castrepeated) = "MultiRewardPeriods",
-    (gogoproto.nullable) = false
-  ];
-
-  repeated TypedMultiRewardPeriod reward_periods = 10 [
-    (gogoproto.castrepeated) = "TypedMultiRewardPeriods",
     (gogoproto.nullable) = false
   ];
 }
