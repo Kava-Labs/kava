@@ -24,3 +24,8 @@ type HardKeeper interface {
 	Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error
 	Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error
 }
+
+// DistributionKeeper defines the contract needed to be fulfilled for distribution dependencies.
+type DistributionKeeper interface {
+	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
+}

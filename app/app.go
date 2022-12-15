@@ -614,6 +614,7 @@ func NewApp(
 	app.communityKeeper = communitykeeper.NewKeeper(
 		app.accountKeeper,
 		app.bankKeeper,
+		app.distrKeeper,
 		hardKeeper,
 	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
