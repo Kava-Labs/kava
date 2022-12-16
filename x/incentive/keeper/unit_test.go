@@ -120,7 +120,7 @@ func (suite *unitTester) storeGlobalEarnIndexes(indexes types.MultiRewardIndexes
 
 func (suite *unitTester) storeGlobalIndexes(claimType types.ClaimType, indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
-		suite.keeper.SetRewardIndexes(suite.ctx, claimType, i.CollateralType, i.RewardIndexes)
+		suite.keeper.Store.SetRewardIndexes(suite.ctx, claimType, i.CollateralType, i.RewardIndexes)
 	}
 }
 

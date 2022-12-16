@@ -1,4 +1,4 @@
-package keeper_test
+package accumulators_test
 
 import (
 	"testing"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	"github.com/kava-labs/kava/x/incentive/keeper/accumulators"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -17,7 +18,7 @@ import (
 type AccumulateEarnRewardsIntegrationTests struct {
 	testutil.IntegrationTester
 
-	keeper    TestKeeper
+	keeper    testutil.TestKeeper
 	userAddrs []sdk.AccAddress
 	valAddrs  []sdk.ValAddress
 }
@@ -29,7 +30,7 @@ func TestAccumulateEarnRewardsIntegrationTests(t *testing.T) {
 func (suite *AccumulateEarnRewardsIntegrationTests) SetupTest() {
 	suite.IntegrationTester.SetupTest()
 
-	suite.keeper = TestKeeper{
+	suite.keeper = testutil.TestKeeper{
 		Keeper: suite.App.GetIncentiveKeeper(),
 	}
 
@@ -49,7 +50,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) SetupTest() {
 
 	incentiveBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.GenesisTime).
-		WithSimpleEarnRewardPeriod("bkava", cs())
+		WithSimpleRewardPeriod(types.CLAIM_TYPE_EARN, "bkava", cs())
 
 	savingsBuilder := testutil.NewSavingsGenesisBuilder().
 		WithSupportedDenoms("bkava")
@@ -79,7 +80,8 @@ func (suite *AccumulateEarnRewardsIntegrationTests) SetupTest() {
 }
 
 func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-	suite.AddIncentiveEarnMultiRewardPeriod(
+	suite.AddIncentiveMultiRewardPeriod(
+		types.CLAIM_TYPE_EARN,
 		types.NewMultiRewardPeriod(
 			true,
 			"bkava",         // reward period is set for "bkava" to apply to all vaults
@@ -128,9 +130,9 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		},
 	}
 
-	suite.keeper.storeGlobalEarnIndexes(suite.Ctx, globalIndexes)
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative0.Denom, suite.Ctx.BlockTime())
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative1.Denom, suite.Ctx.BlockTime())
+	suite.keeper.StoreGlobalIndexes(suite.Ctx, types.CLAIM_TYPE_EARN, globalIndexes)
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
@@ -163,8 +165,8 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 
 	// check time and factors
 
-	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
-	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	stakingRewardIndexes0 := validatorRewards[suite.valAddrs[0].String()].
 		AmountOf("ukava").
@@ -176,7 +178,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		ToDec().
 		Quo(derivative1.Amount.ToDec())
 
-	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative0.Denom, types.RewardIndexes{
 		{
 			CollateralType: "earn",
 			RewardFactor:   d("7.22"),
@@ -186,7 +188,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 			RewardFactor:   d("3.64").Add(stakingRewardIndexes0),
 		},
 	})
-	suite.StoredEarnIndexesEqual(derivative1.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative1.Denom, types.RewardIndexes{
 		{
 			CollateralType: "earn",
 			RewardFactor:   d("7.22"),
@@ -199,7 +201,8 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 }
 
 func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTimeHasIncreased_partialDeposit() {
-	suite.AddIncentiveEarnMultiRewardPeriod(
+	suite.AddIncentiveMultiRewardPeriod(
+		types.CLAIM_TYPE_EARN,
 		types.NewMultiRewardPeriod(
 			true,
 			"bkava",         // reward period is set for "bkava" to apply to all vaults
@@ -253,10 +256,10 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		},
 	}
 
-	suite.keeper.storeGlobalEarnIndexes(suite.Ctx, globalIndexes)
+	suite.keeper.StoreGlobalIndexes(suite.Ctx, types.CLAIM_TYPE_EARN, globalIndexes)
 
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative0.Denom, suite.Ctx.BlockTime())
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative1.Denom, suite.Ctx.BlockTime())
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
@@ -289,8 +292,8 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 
 	// check time and factors
 
-	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
-	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	// Divided by deposit amounts, not bank supply amounts
 	stakingRewardIndexes0 := validatorRewards[suite.valAddrs[0].String()].
@@ -304,7 +307,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		Quo(depositAmount1.Amount.ToDec())
 
 	// Slightly increased rewards due to less bkava deposited
-	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative0.Denom, types.RewardIndexes{
 		{
 			CollateralType: "earn",
 			RewardFactor:   d("8.248571428571428571"),
@@ -315,7 +318,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		},
 	})
 
-	suite.StoredEarnIndexesEqual(derivative1.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative1.Denom, types.RewardIndexes{
 		{
 			CollateralType: "earn",
 			RewardFactor:   d("14.42"),
@@ -366,10 +369,10 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUnchangedWhenBlockT
 			},
 		},
 	}
-	suite.keeper.storeGlobalEarnIndexes(suite.Ctx, previousIndexes)
+	suite.keeper.StoreGlobalIndexes(suite.Ctx, types.CLAIM_TYPE_EARN, previousIndexes)
 
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative0.Denom, suite.Ctx.BlockTime())
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative1.Denom, suite.Ctx.BlockTime())
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	period := types.NewMultiRewardPeriod(
 		true,
@@ -381,25 +384,29 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUnchangedWhenBlockT
 
 	// Must manually accumulate rewards as BeginBlockers only run when the block time increases
 	// This does not run any x/mint or x/distribution BeginBlockers
-	err = suite.keeper.AccumulateEarnRewards(suite.Ctx, period)
+	earnKeeper := suite.App.GetEarnKeeper()
+	err = accumulators.
+		NewEarnAccumulator(suite.keeper.Store, suite.App.GetLiquidKeeper(), &earnKeeper, suite.keeper.Adapters).
+		AccumulateRewards(suite.Ctx, types.CLAIM_TYPE_EARN, period)
 	suite.NoError(err)
 
 	// check time and factors
 
-	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
-	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	expected, f := previousIndexes.Get(derivative0.Denom)
 	suite.True(f)
-	suite.StoredEarnIndexesEqual(derivative0.Denom, expected)
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative0.Denom, expected)
 
 	expected, f = previousIndexes.Get(derivative1.Denom)
 	suite.True(f)
-	suite.StoredEarnIndexesEqual(derivative1.Denom, expected)
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative1.Denom, expected)
 }
 
 func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSourceSharesAreZero() {
-	suite.AddIncentiveEarnMultiRewardPeriod(
+	suite.AddIncentiveMultiRewardPeriod(
+		types.CLAIM_TYPE_EARN,
 		types.NewMultiRewardPeriod(
 			true,
 			"bkava",         // reward period is set for "bkava" to apply to all vaults
@@ -444,10 +451,10 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSource
 			},
 		},
 	}
-	suite.keeper.storeGlobalEarnIndexes(suite.Ctx, previousIndexes)
+	suite.keeper.StoreGlobalIndexes(suite.Ctx, types.CLAIM_TYPE_EARN, previousIndexes)
 
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative0.Denom, suite.Ctx.BlockTime())
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, derivative1.Denom, suite.Ctx.BlockTime())
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.keeper.Store.SetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
@@ -474,20 +481,21 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSource
 	)
 	// check time and factors
 
-	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
-	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	expected, f := previousIndexes.Get(derivative0.Denom)
 	suite.True(f)
-	suite.StoredEarnIndexesEqual(derivative0.Denom, expected)
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative0.Denom, expected)
 
 	expected, f = previousIndexes.Get(derivative1.Denom)
 	suite.True(f)
-	suite.StoredEarnIndexesEqual(derivative1.Denom, expected)
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative1.Denom, expected)
 }
 
 func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesNotExist() {
-	suite.AddIncentiveEarnMultiRewardPeriod(
+	suite.AddIncentiveMultiRewardPeriod(
+		types.CLAIM_TYPE_EARN,
 		types.NewMultiRewardPeriod(
 			true,
 			"bkava",         // reward period is set for "bkava" to apply to all vaults
@@ -530,8 +538,8 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 	)
 
 	// After the second accumulation both current block time and indexes should be stored.
-	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
-	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	validatorRewards0, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
 
@@ -547,17 +555,17 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
-	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
-	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	// First accumulation can have staking rewards, but no other rewards
-	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative0.Denom, types.RewardIndexes{
 		{
 			CollateralType: "ukava",
 			RewardFactor:   firstStakingRewardIndexes0,
 		},
 	})
-	suite.StoredEarnIndexesEqual(derivative1.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative1.Denom, types.RewardIndexes{
 		{
 			CollateralType: "ukava",
 			RewardFactor:   firstStakingRewardIndexes1,
@@ -584,8 +592,8 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 	)
 
 	// After the second accumulation both current block time and indexes should be stored.
-	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
-	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, suite.Ctx.BlockTime())
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, suite.Ctx.BlockTime())
 
 	validatorRewards1, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
 
@@ -601,7 +609,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 
 	// Second accumulation has both staking rewards and incentive rewards
 	// ukava incentive rewards: 3600 * 1000 / (2 * 1000000) == 1.8
-	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative0.Denom, types.RewardIndexes{
 		{
 			CollateralType: "ukava",
 			// Incentive rewards + both staking rewards
@@ -612,7 +620,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 			RewardFactor:   d("3.6"),
 		},
 	})
-	suite.StoredEarnIndexesEqual(derivative1.Denom, types.RewardIndexes{
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative1.Denom, types.RewardIndexes{
 		{
 			CollateralType: "ukava",
 			// Incentive rewards + both staking rewards
@@ -650,8 +658,8 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoPanicWhenStateDoesNotE
 	})
 
 	// Times are not stored for vaults with no state
-	suite.StoredEarnTimeEquals(derivative0.Denom, time.Time{})
-	suite.StoredEarnTimeEquals(derivative1.Denom, time.Time{})
-	suite.StoredEarnIndexesEqual(derivative0.Denom, nil)
-	suite.StoredEarnIndexesEqual(derivative1.Denom, nil)
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative0.Denom, time.Time{})
+	suite.StoredTimeEquals(types.CLAIM_TYPE_EARN, derivative1.Denom, time.Time{})
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative0.Denom, nil)
+	suite.StoredIndexesEqual(types.CLAIM_TYPE_EARN, derivative1.Denom, nil)
 }

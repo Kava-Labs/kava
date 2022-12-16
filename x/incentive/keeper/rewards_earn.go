@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	"github.com/kava-labs/kava/x/incentive/keeper/accumulators"
 	"github.com/kava-labs/kava/x/incentive/types"
 
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -30,34 +31,6 @@ func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiR
 	)
 
 	return nil
-}
-
-func GetProportionalRewardsPerSecond(
-	rewardPeriod types.MultiRewardPeriod,
-	totalBkavaSupply sdk.Int,
-	singleBkavaSupply sdk.Int,
-) sdk.DecCoins {
-	// Rate per bkava-xxx = rewardsPerSecond * % of bkava-xxx
-	//                    = rewardsPerSecond * (bkava-xxx / total bkava)
-	//                    = (rewardsPerSecond * bkava-xxx) / total bkava
-
-	newRate := sdk.NewDecCoins()
-
-	// Prevent division by zero, if there are no total shares then there are no
-	// rewards.
-	if totalBkavaSupply.IsZero() {
-		return newRate
-	}
-
-	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
-		scaledAmount := rewardCoin.Amount.ToDec().
-			Mul(singleBkavaSupply.ToDec()).
-			Quo(totalBkavaSupply.ToDec())
-
-		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
-	}
-
-	return newRate
 }
 
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
@@ -112,7 +85,7 @@ func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.M
 			bkavaDenom,
 			rewardPeriod.Start,
 			rewardPeriod.End,
-			GetProportionalRewardsPerSecond(
+			accumulators.GetProportionalRewardsPerSecond(
 				rewardPeriod,
 				totalBkavaValue.Amount,
 				derivativeValue.Amount,

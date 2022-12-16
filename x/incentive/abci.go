@@ -39,7 +39,9 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// New generic RewardPeriods
 	for _, mrp := range params.RewardPeriods {
 		for _, rp := range mrp.RewardPeriods {
-			k.AccumulateRewards(ctx, mrp.ClaimType, rp)
+			if err := k.AccumulateRewards(ctx, mrp.ClaimType, rp); err != nil {
+				panic(fmt.Errorf("failed to accumulate rewards for claim type %s: %w", mrp.ClaimType, err))
+			}
 		}
 	}
 }
