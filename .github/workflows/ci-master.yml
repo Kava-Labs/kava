@@ -45,6 +45,7 @@ jobs:
     uses: ./.github/workflows/ci-docker.yml
     with:
       dockerhub-username: pirtleshell
+    secrets: inherit
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes
