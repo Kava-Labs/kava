@@ -56,10 +56,6 @@ func NewKeeper(
 		liquidKeeper:  lqk,
 		earnKeeper:    ek,
 
-		adapters: map[types.ClaimType]types.SourceAdapter{
-			types.CLAIM_TYPE_SWAP: swap.NewSourceAdapter(swpk),
-		},
-
 		kavamintKeeper:  kmk,
 		distrKeeper:     dk,
 		pricefeedKeeper: pfk,
