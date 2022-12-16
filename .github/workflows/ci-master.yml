@@ -39,6 +39,12 @@ jobs:
           AWS_REGION: us-east-1
           AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
+  docker:
+    # only run if all checks pass
+    needs: [lint-checks, default-checks]
+    uses: ./.github/workflows/ci-docker.yml
+    with:
+      dockerhub-username: pirtleshell
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes
