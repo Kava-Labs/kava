@@ -1,6 +1,8 @@
 package types
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
 const (
 	// ModuleName The name that will be used throughout the module
@@ -80,4 +82,9 @@ func GetRewardIndexesKeyPrefix(claimType ClaimType) []byte {
 // key prefix for the given ClaimType.
 func GetPreviousRewardAccrualTimeKeyPrefix(claimType ClaimType) []byte {
 	return getKeyPrefix(PreviousRewardAccrualTimeKeyPrefix, claimType)
+}
+
+// GetKeyFromSourceID returns the store key for the given source ID.
+func GetKeyFromSourceID(sourceID string) []byte {
+	return []byte(sourceID)
 }

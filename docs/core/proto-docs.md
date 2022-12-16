@@ -349,6 +349,7 @@
     - [RewardPeriod](#kava.incentive.v1beta1.RewardPeriod)
   
 - [kava/incentive/v1beta1/genesis.proto](#kava/incentive/v1beta1/genesis.proto)
+    - [AccrualTime](#kava.incentive.v1beta1.AccrualTime)
     - [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime)
     - [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState)
     - [GenesisState](#kava.incentive.v1beta1.GenesisState)
@@ -5023,6 +5024,25 @@ RewardPeriod stores the state of an ongoing reward
 
 
 
+<a name="kava.incentive.v1beta1.AccrualTime"></a>
+
+### AccrualTime
+AccrualTime stores the previous reward distribution time and its
+corresponding collateral type and claim type. This is the new version of
+AccumulationTime that is used for the new claim types.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `claim_type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `previous_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+
 <a name="kava.incentive.v1beta1.AccumulationTime"></a>
 
 ### AccumulationTime
@@ -5078,6 +5098,7 @@ GenesisState is the state that must be provided at genesis.
 | `earn_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
 | `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
 | `claims` | [Claim](#kava.incentive.v1beta1.Claim) | repeated |  |
+| `accrual_times` | [AccrualTime](#kava.incentive.v1beta1.AccrualTime) | repeated |  |
 
 
 

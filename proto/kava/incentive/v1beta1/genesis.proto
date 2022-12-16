@@ -14,9 +14,23 @@ option (gogoproto.goproto_getters_all) = false;
 
 // AccumulationTime stores the previous reward distribution time and its corresponding collateral type
 message AccumulationTime {
+  option deprecated = true;
+
   string collateral_type = 1;
 
   google.protobuf.Timestamp previous_accumulation_time = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true
+  ];
+}
+
+// AccrualTime stores the previous reward distribution time and its
+// corresponding collateral type and claim type. This is the new version of
+// AccumulationTime that is used for the new claim types.
+message AccrualTime {
+  ClaimType claim_type = 1;
+  string collateral_type = 2;
+  google.protobuf.Timestamp previous_accumulation_time = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true
   ];
@@ -92,4 +106,8 @@ message GenesisState {
     (gogoproto.nullable) = false
   ];
 
+  repeated AccrualTime accrual_times = 16 [
+    (gogoproto.castrepeated) = "AccrualTimes",
+    (gogoproto.nullable) = false
+  ];
 }

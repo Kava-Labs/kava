@@ -49,6 +49,18 @@ func InitGenesis(
 		k.SetClaim(ctx, claim)
 	}
 
+	// Set AccrualTimes of all types
+	for _, accrualTime := range gs.AccrualTimes {
+		k.SetRewardAccrualTime(
+			ctx,
+			accrualTime.ClaimType,
+			accrualTime.CollateralType,
+			accrualTime.PreviousAccumulationTime,
+		)
+	}
+
+	// Legacy claims and indexes below
+
 	// USDX Minting
 	for _, claim := range gs.USDXMintingClaims {
 		k.SetUSDXMintingClaim(ctx, claim)
@@ -152,6 +164,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	params := k.GetParams(ctx)
 
 	claims := k.GetAllClaims(ctx)
+	accrualTimes := k.GetAllRewardAccrualTimes(ctx)
 
 	usdxClaims := k.GetAllUSDXMintingClaims(ctx)
 	usdxRewardState := getUSDXMintingGenesisRewardState(ctx, k)
@@ -178,6 +191,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		usdxRewardState, hardSupplyRewardState, hardBorrowRewardState, delegatorRewardState, swapRewardState, savingsRewardState, earnRewardState,
 		// Claims
 		claims, usdxClaims, hardClaims, delegatorClaims, swapClaims, savingsClaims, earnClaims,
+		accrualTimes,
 	)
 }
 
