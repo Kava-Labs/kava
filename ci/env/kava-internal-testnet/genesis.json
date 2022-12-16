@@ -2479,9 +2479,7 @@
       },
       "previous_block_time": "2022-05-25T17:00:00Z"
     },
-    "liquid": {
-      "params": {}
-    },
+    "liquid": {},
     "params": null,
     "pricefeed": {
       "params": {
