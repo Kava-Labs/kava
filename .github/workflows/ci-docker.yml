@@ -2,10 +2,12 @@ name: Build & Publish Docker Images
 
 on:
   workflow_call:
-    secrets:
-      DOCKERHUB_USERNAME:
+    inputs:
+      dockerhub-username:
         required: true
-      DOCKERHUB_TOKEN:
+        type: string
+    secrets:
+      CI_DOCKERHUB_TOKEN:
         required: true
 
 # runs in ci-master after successful checks
@@ -33,8 +35,8 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ inputs.dockerhub-username }}
+          password: ${{ secrets.CI_DOCKERHUB_TOKEN }}
       # publish to docker hub, tag with short git hash
       - name: Build and push
         uses: docker/build-push-action@v3

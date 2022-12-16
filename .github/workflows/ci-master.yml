@@ -43,6 +43,8 @@ jobs:
     # only run if all checks pass
     needs: [lint-checks, default-checks]
     uses: ./.github/workflows/ci-docker.yml
+    with:
+      dockerhub-username: pirtleshell
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes
