@@ -1,12 +1,14 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/swap"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -24,6 +26,8 @@ type Keeper struct {
 	savingsKeeper types.SavingsKeeper
 	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
+
+	adapters map[types.ClaimType]types.SourceAdapter
 
 	// Keepers used for APY queries
 	kavamintKeeper  types.KavamintKeeper
@@ -889,6 +893,15 @@ func (k Keeper) IterateEarnRewardAccrualTimes(ctx sdk.Context, cb func(string, t
 
 // -----------------------------------------------------------------------------
 // New deduplicated methods
+
+func (k Keeper) GetSourceAdapter(claimType types.ClaimType) types.SourceAdapter {
+	fetcher, found := k.adapters[claimType]
+	if !found {
+		panic(fmt.Sprintf("no source share fetcher for claim type %s", claimType))
+	}
+
+	return fetcher
+}
 
 // GetClaim returns the claim in the store corresponding the the owner and
 // claimType, and a boolean for if the claim was found
