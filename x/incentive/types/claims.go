@@ -700,3 +700,51 @@ func (mris MultiRewardIndexes) copy() MultiRewardIndexes {
 	copy(newIndexes, mris)
 	return newIndexes
 }
+
+// NewTypedRewardIndexes returns a new TypedRewardIndexes
+func NewTypedRewardIndexes(
+	claimType ClaimType,
+	collateralType string,
+	rewardIndexes RewardIndexes,
+) TypedRewardIndexes {
+	return TypedRewardIndexes{
+		ClaimType:      claimType,
+		CollateralType: collateralType,
+		RewardIndexes:  rewardIndexes,
+	}
+}
+
+// Validate performs a basic check of a TypedRewardIndexes fields
+func (tril TypedRewardIndexes) Validate() error {
+	if err := tril.ClaimType.Validate(); err != nil {
+		return err
+	}
+
+	if tril.CollateralType == "" {
+		return errors.New("collateral type cannot be empty")
+	}
+
+	return tril.RewardIndexes.Validate()
+}
+
+// TypedRewardIndexesList is a list of TypedRewardIndexes
+type TypedRewardIndexesList []TypedRewardIndexes
+
+// Validate validates a slice of TypedRewardIndexesList
+func (tril TypedRewardIndexesList) Validate() error {
+	seen := make(map[string]bool)
+
+	for _, tri := range tril {
+		if err := tri.Validate(); err != nil {
+			return err
+		}
+
+		// Composite key of claim type and collateral type
+		key := fmt.Sprintf("%s/%s", tri.ClaimType, tri.CollateralType)
+		if seen[key] {
+			return fmt.Errorf("duplicate TypedRewardIndexes found: %s", key)
+		}
+		seen[key] = true
+	}
+	return nil
+}
