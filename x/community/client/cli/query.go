@@ -20,6 +20,7 @@ func GetQueryCmd() *cobra.Command {
 
 	commands := []*cobra.Command{
 		GetCmdQueryBalance(),
+		LegacyCommunityPoolCmd(),
 	}
 
 	for _, cmd := range commands {
@@ -45,6 +46,29 @@ func GetCmdQueryBalance() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			res, err := queryClient.Balance(cmd.Context(), &types.QueryBalanceRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+}
+
+// LegacyCommunityPoolCmd implements a command to return the legacy community pool balance.
+func LegacyCommunityPoolCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "legacy-community-pool",
+		Short: "Query the current balance of the legacy community pool",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.LegacyCommunityPool(cmd.Context(), &types.QueryLegacyCommunityPoolRequest{})
 			if err != nil {
 				return err
 			}
