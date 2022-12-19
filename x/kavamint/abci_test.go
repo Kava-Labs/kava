@@ -104,6 +104,15 @@ func (suite *abciTestSuite) Test_BeginBlocker_MintsExpectedTokens() {
 			expFeeCollectorBalance:  sdk.ZeroInt(),
 		},
 		{
+			name:                    "mints no tokens if zero seconds passed",
+			blockTime:               0,
+			communityPoolInflation:  sdk.NewDecWithPrec(50, 2),
+			stakingRewardsApy:       sdk.NewDecWithPrec(20, 2),
+			bondedRatio:             sdk.NewDecWithPrec(35, 2),
+			expCommunityPoolBalance: sdk.ZeroInt(),
+			expFeeCollectorBalance:  sdk.ZeroInt(),
+		},
+		{
 			name:                   "mints community pool inflation and staking rewards",
 			blockTime:              6,
 			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
@@ -121,8 +130,8 @@ func (suite *abciTestSuite) Test_BeginBlocker_MintsExpectedTokens() {
 			expFeeCollectorBalance: sdk.NewInt(121),
 		},
 		{
-			name:                   "handles extra long block time",
-			blockTime:              60, // like if we're upgrading the network & it takes an hour to get back up
+			name:                   "handles long block time",
+			blockTime:              60, // a minute
 			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
 			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
 			bondedRatio:            sdk.NewDecWithPrec(35, 2),
@@ -130,6 +139,17 @@ func (suite *abciTestSuite) Test_BeginBlocker_MintsExpectedTokens() {
 			expCommunityPoolBalance: sdk.NewInt(7714),
 			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C60%5D-1%5C%2841%29*1e10*.35
 			expFeeCollectorBalance: sdk.NewInt(1214),
+		},
+		{
+			name:                   "handles extra long block time",
+			blockTime:              3 * 3600, // three hours
+			communityPoolInflation: sdk.NewDecWithPrec(50, 2),
+			stakingRewardsApy:      sdk.NewDecWithPrec(20, 2),
+			bondedRatio:            sdk.NewDecWithPrec(35, 2),
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.5%2C31536000%5D%5C%2841%29%2C3*3600%5D-1%5C%2841%29*1e10
+			expCommunityPoolBalance: sdk.NewInt(1388675),
+			// https://www.wolframalpha.com/input?i2d=true&i=%5C%2840%29Power%5B%5C%2840%29Surd%5B1.20%2C31536000%5D%5C%2841%29%2C3*3600%5D-1%5C%2841%29*1e10*.35
+			expFeeCollectorBalance: sdk.NewInt(218542),
 		},
 	}
 

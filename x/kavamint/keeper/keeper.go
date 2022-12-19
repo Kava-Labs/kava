@@ -12,28 +12,9 @@ import (
 	"github.com/kava-labs/kava/x/kavamint/types"
 )
 
+// KeeperI is the required keeper interface for x/kavamint's begin blocker
 type KeeperI interface {
-	GetParams(ctx sdk.Context) (params types.Params)
-	SetParams(ctx sdk.Context, params types.Params)
-
-	BondDenom(ctx sdk.Context) string
-	TotalSupply(ctx sdk.Context) sdk.Int
-	TotalBondedTokens(ctx sdk.Context) sdk.Int
-
-	MintCoins(ctx sdk.Context, newCoins sdk.Coins) error
-	AddCollectedFees(ctx sdk.Context, fees sdk.Coins) error
-	FundCommunityPool(ctx sdk.Context, funds sdk.Coins) error
-
-	GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time)
-	SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time)
-
-	CumulativeInflation(ctx sdk.Context) sdk.Dec
-	AccumulateInflation(
-		ctx sdk.Context,
-		rate sdk.Dec,
-		basis sdk.Int,
-		secondsSinceLastMint float64,
-	) (sdk.Coins, error)
+	AccumulateAndMintInflation(ctx sdk.Context) error
 }
 
 // Keeper of the kavamint store
@@ -93,44 +74,40 @@ func (k Keeper) GetStakingApy(ctx sdk.Context) sdk.Dec {
 	return params.StakingRewardsApy
 }
 
-// BondDenom implements an alias call to the underlying staking keeper's BondDenom.
-func (k Keeper) BondDenom(ctx sdk.Context) string {
+// bondDenom implements an alias call to the underlying staking keeper's BondDenom.
+func (k Keeper) bondDenom(ctx sdk.Context) string {
 	return k.stakingKeeper.BondDenom(ctx)
 }
 
-// TotalBondedTokens implements an alias call to the underlying staking keeper's
+// totalBondedTokens implements an alias call to the underlying staking keeper's
 // TotalBondedTokens to be used in BeginBlocker.
-func (k Keeper) TotalBondedTokens(ctx sdk.Context) sdk.Int {
+func (k Keeper) totalBondedTokens(ctx sdk.Context) sdk.Int {
 	return k.stakingKeeper.TotalBondedTokens(ctx)
 }
 
-// MintCoins implements an alias call to the underlying supply keeper's
-// MintCoins to be used in BeginBlocker.
-func (k Keeper) MintCoins(ctx sdk.Context, newCoins sdk.Coins) error {
-	if newCoins.Empty() {
+// mintCoinsToModule mints teh desired coins to the x/kavamint module account and then
+// transfers them to the designated module account.
+// if `newCoins` is empty or zero, this method is a noop.
+func (k Keeper) mintCoinsToModule(ctx sdk.Context, newCoins sdk.Coins, destMaccName string) error {
+	if newCoins.IsZero() {
 		// skip as no coins need to be minted
 		return nil
 	}
 
-	return k.bankKeeper.MintCoins(ctx, types.ModuleName, newCoins)
+	// mint the coins
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleAccountName, newCoins)
+	if err != nil {
+		return nil
+	}
+
+	// transfer them to the desired destination module account
+	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, destMaccName, newCoins)
 }
 
-// AddCollectedFees implements an alias call to the underlying supply keeper's
-// AddCollectedFees to be used in BeginBlocker.
-func (k Keeper) AddCollectedFees(ctx sdk.Context, fees sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.stakingRewardsFeeCollectorName, fees)
-}
-
-// FundCommunityPool implements an alias call to the underlying supply keeper's
-// FundCommunityPool to be used in BeginBlocker.
-func (k Keeper) FundCommunityPool(ctx sdk.Context, funds sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, k.communityPoolModuleAccountName, funds)
-}
-
-// TotalSupply implements an alias call to the underlying supply keeper's
+// totalSupply implements an alias call to the underlying supply keeper's
 // GetSupply for the mint denom to be used in calculating cumulative inflation.
-func (k Keeper) TotalSupply(ctx sdk.Context) sdk.Int {
-	return k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
+func (k Keeper) totalSupply(ctx sdk.Context) sdk.Int {
+	return k.bankKeeper.GetSupply(ctx, k.bondDenom(ctx)).Amount
 }
 
 func (k Keeper) CumulativeInflation(ctx sdk.Context) sdk.Dec {
@@ -141,8 +118,8 @@ func (k Keeper) CumulativeInflation(ctx sdk.Context) sdk.Dec {
 	totalInflation = totalInflation.Add(params.CommunityPoolInflation)
 
 	// staking rewards contribution is the apy * bonded_ratio
-	bondedSupply := k.TotalBondedTokens(ctx)
-	totalSupply := k.TotalSupply(ctx)
+	bondedSupply := k.totalBondedTokens(ctx)
+	totalSupply := k.totalSupply(ctx)
 	bondedRatio := sdk.NewDecFromInt(bondedSupply).QuoInt(totalSupply)
 	inflationFromStakingRewards := params.StakingRewardsApy.Mul(bondedRatio)
 

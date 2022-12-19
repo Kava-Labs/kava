@@ -116,7 +116,8 @@ func (suite *InflationTestSuite) TestCalculateInflationFactor() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			actualRate, err := keeper.CalculateInflationRate(tc.apy, tc.secondsPassed)
+			minter := keeper.NewMinter(tc.name, tc.apy, sdk.ZeroInt(), "ukava", "ignored")
+			actualRate, err := minter.CalculateInflationRate(tc.secondsPassed)
 			suite.Require().NoError(err)
 
 			marginOfError := sdk.ZeroDec()
@@ -127,11 +128,35 @@ func (suite *InflationTestSuite) TestCalculateInflationFactor() {
 		})
 	}
 
-	// TODO: nick bring back
-	//suite.Run("errors when rate is too high", func() {
-	//	_, err := keeper.CalculateInflationRate(types.MaxMintingRate.Add(sdk.OneDec()), 100)
-	//	suite.Error(err)
-	//})
+	suite.Run("errors with out-of-bounds when rate is too high", func() {
+		// Dec.ApproxRoot will error w/ out-of-bounds when rate is >176.5
+		oob := sdk.NewDec(177)
+		minter := keeper.NewMinter(
+			"out-of-bounds-minter",
+			oob,
+			sdk.OneInt(),
+			"uakva",
+			"ignored",
+		)
+		_, err := minter.CalculateInflationRate(100)
+		suite.Error(err)
+
+		// ensure max mint rate is less than out-of-bounds value
+		suite.True(types.MaxMintingRate.LT(oob))
+	})
+}
+
+func (suite *InflationTestSuite) Test_AccumulateInflation_FailsWithInvalidRate() {
+	oob := sdk.NewDec(177)
+	minter := keeper.NewMinter(
+		"out-of-bounds-minter",
+		oob,
+		sdk.OneInt(),
+		"uakva",
+		"ignored",
+	)
+	_, err := minter.AccumulateInflation(1)
+	suite.ErrorContains(err, "out of bounds")
 }
 
 func (suite *InflationTestSuite) requireWithinError(expected, actual, margin sdk.Dec) {
