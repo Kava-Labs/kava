@@ -19,12 +19,24 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		return err
 	}
 
-	if err := MigrateAccrualTimes(store, cdc, types.CLAIM_TYPE_EARN); err != nil {
+	if err := MigrateHardClaims(store, cdc); err != nil {
 		return err
 	}
 
-	if err := MigrateRewardIndexes(store, cdc, types.CLAIM_TYPE_EARN); err != nil {
-		return err
+	migrateClaimTypes := []types.ClaimType{
+		types.CLAIM_TYPE_HARD_BORROW,
+		types.CLAIM_TYPE_HARD_SUPPLY,
+		types.CLAIM_TYPE_EARN,
+	}
+
+	for _, claimType := range migrateClaimTypes {
+		if err := MigrateAccrualTimes(store, cdc, claimType); err != nil {
+			return err
+		}
+
+		if err := MigrateRewardIndexes(store, cdc, claimType); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -62,6 +74,60 @@ func MigrateEarnClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 
 		// Remove the old claim in the old store
 		oldStore.Delete(iterator.Key())
+	}
+
+	return nil
+}
+
+// MigrateHardClaims migrates hard claims from v2 to v3
+func MigrateHardClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
+	newSupplyStore := prefix.NewStore(store, types.GetClaimKeyPrefix(types.CLAIM_TYPE_HARD_SUPPLY))
+	newBorrowStore := prefix.NewStore(store, types.GetClaimKeyPrefix(types.CLAIM_TYPE_HARD_BORROW))
+
+	oldStore := prefix.NewStore(store, HardLiquidityClaimKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(oldStore, []byte{})
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var c types.HardLiquidityProviderClaim
+		cdc.MustUnmarshal(iterator.Value(), &c)
+
+		if err := c.Validate(); err != nil {
+			return fmt.Errorf("invalid v2 EarnClaim: %w", err)
+		}
+
+		// Remove the old claim in the old store
+		oldStore.Delete(iterator.Key())
+
+		// Convert to two new Claim types for supply and borrow
+		newSupplyClaim := types.NewClaim(
+			types.CLAIM_TYPE_HARD_SUPPLY,
+			c.Owner,
+			c.Reward,
+			c.SupplyRewardIndexes,
+		)
+		if err := newSupplyClaim.Validate(); err != nil {
+			return fmt.Errorf("invalid v3 hard supply claim: %w", err)
+		}
+
+		newSupplyStore.Set(c.Owner, cdc.MustMarshal(&newSupplyClaim))
+
+		if len(c.BorrowRewardIndexes) == 0 {
+			continue
+		}
+
+		newBorrowClaim := types.NewClaim(
+			types.CLAIM_TYPE_HARD_BORROW,
+			c.Owner,
+			// Empty reward coins as to not duplicate rewards
+			sdk.NewCoins(),
+			c.BorrowRewardIndexes,
+		)
+
+		if err := newBorrowClaim.Validate(); err != nil {
+			return fmt.Errorf("invalid v3 hard borrow claim: %w", err)
+		}
+
+		newBorrowStore.Set(c.Owner, cdc.MustMarshal(&newBorrowClaim))
 	}
 
 	return nil

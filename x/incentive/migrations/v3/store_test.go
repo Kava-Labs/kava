@@ -91,6 +91,73 @@ func (suite *StoreMigrateTestSuite) TestMigrateEarnClaims() {
 	suite.Require().False(found)
 }
 
+func (suite *StoreMigrateTestSuite) TestMigrateHardClaims() {
+	store := suite.Ctx.KVStore(suite.storeKey)
+
+	// Create v2 earn claims
+	claim1 := types.NewHardLiquidityProviderClaim(
+		suite.Addrs[0],
+		sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+		types.MultiRewardIndexes{
+			types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
+				types.NewRewardIndex("bnb", sdk.NewDec(1)),
+			}),
+		},
+		types.MultiRewardIndexes{
+			types.NewMultiRewardIndex("bnb-b", types.RewardIndexes{
+				types.NewRewardIndex("bnb", sdk.NewDec(2)),
+			}),
+		},
+	)
+
+	claim2 := types.NewHardLiquidityProviderClaim(
+		suite.Addrs[1],
+		sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+		types.MultiRewardIndexes{
+			types.NewMultiRewardIndex("ukava", types.RewardIndexes{
+				types.NewRewardIndex("ukava", sdk.NewDec(1)),
+			}),
+		},
+		// No borrows
+		nil,
+	)
+
+	suite.keeper.SetHardLiquidityProviderClaim(suite.Ctx, claim1)
+	suite.keeper.SetHardLiquidityProviderClaim(suite.Ctx, claim2)
+
+	// Run earn claim migrations
+	err := v3.MigrateHardClaims(store, suite.cdc)
+	suite.Require().NoError(err)
+
+	// Check that the claim was migrated correctly
+	// Two claims, one for supply and one for borrow
+	newClaim1Supply, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_SUPPLY, claim1.Owner)
+	suite.Require().True(found)
+	suite.Require().Equal(claim1.Owner, newClaim1Supply.Owner)
+	suite.Require().Equal(claim1.SupplyRewardIndexes, newClaim1Supply.RewardIndexes)
+
+	newClaim1Borrow, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_BORROW, claim1.Owner)
+	suite.Require().True(found)
+	suite.Require().Equal(claim1.BorrowRewardIndexes, newClaim1Borrow.RewardIndexes)
+	suite.Require().Equal(sdk.Coins(nil), newClaim1Borrow.Reward, "borrow claim should have no rewards")
+
+	// Second claim has no borrows so only one supply claim
+	newClaim2Supply, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_SUPPLY, claim2.Owner)
+	suite.Require().True(found)
+	suite.Require().Equal(claim2.Owner, newClaim2Supply.Owner)
+	suite.Require().Equal(claim2.SupplyRewardIndexes, newClaim2Supply.RewardIndexes)
+
+	_, found = suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_BORROW, claim2.Owner)
+	suite.Require().False(found, "borrow claim should not exist if old claim has no borrows")
+
+	// Ensure removed from old store
+	_, found = suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, claim1.Owner)
+	suite.Require().False(found)
+
+	_, found = suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, claim2.Owner)
+	suite.Require().False(found)
+}
+
 func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
 	store := suite.Ctx.KVStore(suite.storeKey)
 	vaultDenom1 := "ukava"
