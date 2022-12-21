@@ -48,10 +48,10 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$DAI_CONTRACT
 
 # give dev-wallet enough delegation power to pass proposals by itself
 # enumerate all genesis validators
-GENTX_VALIDATORS=($(curl -s "${CHAIN_API_URL}" | jq -r '.result.genesis.app_state.genutil.gen_txs[].body.messages[0].validator_address'))
+GENTX_VALIDATORS=("kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp" "kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s")
 
 # issue 300KAVA to delegate to each validator
-kava tx issuance issue "$((${#GENTX_VALIDATORS[@]}*300000000))"ukava kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq \
+kava tx issuance issue 600000000ukava kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq \
   --from dev-wallet --gas-prices 0.5ukava -y
 
 # delegate 300KAVA to each validator

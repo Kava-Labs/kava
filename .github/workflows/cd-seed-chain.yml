@@ -61,8 +61,6 @@ jobs:
       - name: compile default erc20 contracts
         run: make compile-contracts
         working-directory: kava-bridge
-      - name: install jq
-        run: sudo apt-get install -y jq
       - name: run seed scripts
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/${SEED_SCRIPT_FILENAME}
         working-directory: kava-bridge/contract
