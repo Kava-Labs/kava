@@ -94,68 +94,157 @@ func (suite *StoreMigrateTestSuite) TestMigrateEarnClaims() {
 func (suite *StoreMigrateTestSuite) TestMigrateHardClaims() {
 	store := suite.Ctx.KVStore(suite.storeKey)
 
-	// Create v2 earn claims
-	claim1 := types.NewHardLiquidityProviderClaim(
-		suite.Addrs[0],
-		sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
-		types.MultiRewardIndexes{
-			types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
-				types.NewRewardIndex("bnb", sdk.NewDec(1)),
-			}),
+	tests := []struct {
+		name                   string
+		giveV2Claim            types.HardLiquidityProviderClaim
+		wantV3ClaimSupplyFound bool
+		wantV3ClaimSupply      types.Claim
+		wantV3ClaimBorrowFound bool
+		wantV3ClaimBorrow      types.Claim
+	}{
+		{
+			name: "supply and borrow",
+			giveV2Claim: types.NewHardLiquidityProviderClaim(
+				suite.Addrs[0],
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
+						types.NewRewardIndex("ukava", sdk.NewDec(1)),
+					}),
+				},
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-b", types.RewardIndexes{
+						types.NewRewardIndex("hard", sdk.NewDec(2)),
+					}),
+				},
+			),
+			wantV3ClaimSupplyFound: true,
+			wantV3ClaimSupply: types.NewClaim(
+				types.CLAIM_TYPE_HARD_SUPPLY,
+				suite.Addrs[0],
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
+						types.NewRewardIndex("ukava", sdk.NewDec(1)),
+					}),
+				},
+			),
+			wantV3ClaimBorrowFound: true,
+			wantV3ClaimBorrow: types.NewClaim(
+				types.CLAIM_TYPE_HARD_BORROW,
+				suite.Addrs[0],
+				// Reward coins only in one new claim
+				sdk.Coins(nil),
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-b", types.RewardIndexes{
+						types.NewRewardIndex("hard", sdk.NewDec(2)),
+					}),
+				},
+			),
 		},
-		types.MultiRewardIndexes{
-			types.NewMultiRewardIndex("bnb-b", types.RewardIndexes{
-				types.NewRewardIndex("bnb", sdk.NewDec(2)),
-			}),
+		{
+			name: "supply only",
+			giveV2Claim: types.NewHardLiquidityProviderClaim(
+				suite.Addrs[1],
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
+						types.NewRewardIndex("ukava", sdk.NewDec(1)),
+					}),
+				},
+				types.MultiRewardIndexes{},
+			),
+			wantV3ClaimSupplyFound: true,
+			wantV3ClaimSupply: types.NewClaim(
+				types.CLAIM_TYPE_HARD_SUPPLY,
+				suite.Addrs[1],
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-a", types.RewardIndexes{
+						types.NewRewardIndex("ukava", sdk.NewDec(1)),
+					}),
+				},
+			),
+			wantV3ClaimBorrowFound: false,
 		},
-	)
-
-	claim2 := types.NewHardLiquidityProviderClaim(
-		suite.Addrs[1],
-		sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
-		types.MultiRewardIndexes{
-			types.NewMultiRewardIndex("ukava", types.RewardIndexes{
-				types.NewRewardIndex("ukava", sdk.NewDec(1)),
-			}),
+		{
+			name: "borrow only",
+			giveV2Claim: types.NewHardLiquidityProviderClaim(
+				suite.Addrs[2],
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes{},
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-b", types.RewardIndexes{
+						types.NewRewardIndex("hard", sdk.NewDec(2)),
+					}),
+				},
+			),
+			wantV3ClaimSupplyFound: false,
+			wantV3ClaimBorrowFound: true,
+			wantV3ClaimBorrow: types.NewClaim(
+				types.CLAIM_TYPE_HARD_BORROW,
+				suite.Addrs[2],
+				// Reward coins exists still in the one new claim
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes{
+					types.NewMultiRewardIndex("bnb-b", types.RewardIndexes{
+						types.NewRewardIndex("hard", sdk.NewDec(2)),
+					}),
+				},
+			),
 		},
-		// No borrows
-		nil,
-	)
+		{
+			name: "no reward indexes",
+			giveV2Claim: types.NewHardLiquidityProviderClaim(
+				suite.Addrs[3],
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes{},
+				types.MultiRewardIndexes{},
+			),
+			wantV3ClaimSupplyFound: true,
+			wantV3ClaimSupply: types.NewClaim(
+				types.CLAIM_TYPE_HARD_SUPPLY,
+				suite.Addrs[3],
+				sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				types.MultiRewardIndexes(nil),
+			),
+			wantV3ClaimBorrowFound: false,
+		},
+	}
 
-	suite.keeper.SetHardLiquidityProviderClaim(suite.Ctx, claim1)
-	suite.keeper.SetHardLiquidityProviderClaim(suite.Ctx, claim2)
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			suite.keeper.SetHardLiquidityProviderClaim(suite.Ctx, tt.giveV2Claim)
 
-	// Run earn claim migrations
-	err := v3.MigrateHardClaims(store, suite.cdc)
-	suite.Require().NoError(err)
+			err := v3.MigrateHardClaims(store, suite.cdc)
+			suite.Require().NoError(err)
 
-	// Check that the claim was migrated correctly
-	// Two claims, one for supply and one for borrow
-	newClaim1Supply, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_SUPPLY, claim1.Owner)
-	suite.Require().True(found)
-	suite.Require().Equal(claim1.Owner, newClaim1Supply.Owner)
-	suite.Require().Equal(claim1.SupplyRewardIndexes, newClaim1Supply.RewardIndexes)
+			// Check supply claim
+			newClaimSupply, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_SUPPLY, tt.giveV2Claim.Owner)
+			if tt.wantV3ClaimSupplyFound {
+				suite.Require().True(found)
+				suite.Require().Equal(tt.wantV3ClaimSupply, newClaimSupply)
+			} else {
+				suite.Require().Falsef(found, "expected supply claim to not be found, but it was found: %s", newClaimSupply)
+			}
 
-	newClaim1Borrow, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_BORROW, claim1.Owner)
-	suite.Require().True(found)
-	suite.Require().Equal(claim1.BorrowRewardIndexes, newClaim1Borrow.RewardIndexes)
-	suite.Require().Equal(sdk.Coins(nil), newClaim1Borrow.Reward, "borrow claim should have no rewards")
+			// Check borrow claim
+			newClaimBorrow, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_BORROW, tt.giveV2Claim.Owner)
+			if tt.wantV3ClaimBorrowFound {
+				suite.Require().True(found)
+				suite.Require().Equal(tt.wantV3ClaimBorrow, newClaimBorrow)
+			} else {
+				suite.Require().Falsef(found, "expected borrow claim to not be found, but it was found: %s", newClaimBorrow)
+			}
 
-	// Second claim has no borrows so only one supply claim
-	newClaim2Supply, found := suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_SUPPLY, claim2.Owner)
-	suite.Require().True(found)
-	suite.Require().Equal(claim2.Owner, newClaim2Supply.Owner)
-	suite.Require().Equal(claim2.SupplyRewardIndexes, newClaim2Supply.RewardIndexes)
+			totalNewReward := newClaimBorrow.Reward.Add(newClaimSupply.Reward...)
+			suite.Require().Equal(tt.giveV2Claim.Reward, totalNewReward, "total new reward coins should equal old reward coins")
 
-	_, found = suite.keeper.Store.GetClaim(suite.Ctx, types.CLAIM_TYPE_HARD_BORROW, claim2.Owner)
-	suite.Require().False(found, "borrow claim should not exist if old claim has no borrows")
-
-	// Ensure removed from old store
-	_, found = suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, claim1.Owner)
-	suite.Require().False(found)
-
-	_, found = suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, claim2.Owner)
-	suite.Require().False(found)
+			// Check old claim is deleted
+			_, found = suite.keeper.GetHardLiquidityProviderClaim(suite.Ctx, tt.giveV2Claim.Owner)
+			suite.Require().False(found)
+		})
+	}
 }
 
 func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {

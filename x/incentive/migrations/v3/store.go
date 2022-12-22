@@ -95,39 +95,50 @@ func MigrateHardClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 			return fmt.Errorf("invalid v2 EarnClaim: %w", err)
 		}
 
+		rewardCoins := c.Reward
+
+		hasRewardAndNoIndexes := len(c.Reward) > 0 &&
+			len(c.SupplyRewardIndexes) == 0 &&
+			len(c.BorrowRewardIndexes) == 0
+
+		// If there are reward coins and no reward indexes, then we still make
+		// a claim for the supply type to preserve the reward coins.
+		if len(c.SupplyRewardIndexes) > 0 || hasRewardAndNoIndexes {
+			// Convert to two new Claim types for supply and borrow
+			newSupplyClaim := types.NewClaim(
+				types.CLAIM_TYPE_HARD_SUPPLY,
+				c.Owner,
+				rewardCoins,
+				c.SupplyRewardIndexes,
+			)
+			if err := newSupplyClaim.Validate(); err != nil {
+				return fmt.Errorf("invalid v3 hard supply claim: %w", err)
+			}
+
+			newSupplyStore.Set(c.Owner, cdc.MustMarshal(&newSupplyClaim))
+
+			// Empty reward coins as to not duplicate rewards
+			rewardCoins = sdk.NewCoins()
+		}
+
+		if len(c.BorrowRewardIndexes) > 0 {
+			newBorrowClaim := types.NewClaim(
+				types.CLAIM_TYPE_HARD_BORROW,
+				c.Owner,
+				// This can be empty if there were supply reward indexes
+				rewardCoins,
+				c.BorrowRewardIndexes,
+			)
+
+			if err := newBorrowClaim.Validate(); err != nil {
+				return fmt.Errorf("invalid v3 hard borrow claim: %w", err)
+			}
+
+			newBorrowStore.Set(c.Owner, cdc.MustMarshal(&newBorrowClaim))
+		}
+
 		// Remove the old claim in the old store
 		oldStore.Delete(iterator.Key())
-
-		// Convert to two new Claim types for supply and borrow
-		newSupplyClaim := types.NewClaim(
-			types.CLAIM_TYPE_HARD_SUPPLY,
-			c.Owner,
-			c.Reward,
-			c.SupplyRewardIndexes,
-		)
-		if err := newSupplyClaim.Validate(); err != nil {
-			return fmt.Errorf("invalid v3 hard supply claim: %w", err)
-		}
-
-		newSupplyStore.Set(c.Owner, cdc.MustMarshal(&newSupplyClaim))
-
-		if len(c.BorrowRewardIndexes) == 0 {
-			continue
-		}
-
-		newBorrowClaim := types.NewClaim(
-			types.CLAIM_TYPE_HARD_BORROW,
-			c.Owner,
-			// Empty reward coins as to not duplicate rewards
-			sdk.NewCoins(),
-			c.BorrowRewardIndexes,
-		)
-
-		if err := newBorrowClaim.Validate(); err != nil {
-			return fmt.Errorf("invalid v3 hard borrow claim: %w", err)
-		}
-
-		newBorrowStore.Set(c.Owner, cdc.MustMarshal(&newBorrowClaim))
 	}
 
 	return nil
