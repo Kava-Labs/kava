@@ -147,7 +147,7 @@ message SavingsClaim {
   BaseMultiClaim base_claim = 1 [
     (gogoproto.embed) = true,
     (gogoproto.nullable) = false
-  ];
+    ];
 
   repeated MultiRewardIndex reward_indexes = 2 [
     (gogoproto.castrepeated) = "MultiRewardIndexes",
@@ -162,7 +162,7 @@ message EarnClaim {
   BaseMultiClaim base_claim = 1 [
     (gogoproto.embed) = true,
     (gogoproto.nullable) = false
-  ];
+];
 
   repeated MultiRewardIndex reward_indexes = 2 [
     (gogoproto.castrepeated) = "MultiRewardIndexes",

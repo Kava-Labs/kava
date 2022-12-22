@@ -86,4 +86,5 @@ message GenesisState {
     (gogoproto.castrepeated) = "EarnClaims",
     (gogoproto.nullable) = false
   ];
+  
 }
