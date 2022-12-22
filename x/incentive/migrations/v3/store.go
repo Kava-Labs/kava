@@ -11,6 +11,12 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+var MigrateClaimTypes = []types.ClaimType{
+	types.CLAIM_TYPE_HARD_BORROW,
+	types.CLAIM_TYPE_HARD_SUPPLY,
+	types.CLAIM_TYPE_EARN,
+}
+
 // MigrateStore performs in-place migrations from incentive ConsensusVersion 2 to 3.
 func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
 	store := ctx.KVStore(storeKey)
@@ -23,13 +29,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.Binar
 		return err
 	}
 
-	migrateClaimTypes := []types.ClaimType{
-		types.CLAIM_TYPE_HARD_BORROW,
-		types.CLAIM_TYPE_HARD_SUPPLY,
-		types.CLAIM_TYPE_EARN,
-	}
-
-	for _, claimType := range migrateClaimTypes {
+	for _, claimType := range MigrateClaimTypes {
 		if err := MigrateAccrualTimes(store, cdc, claimType); err != nil {
 			return err
 		}

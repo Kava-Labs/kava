@@ -249,39 +249,65 @@ func (suite *StoreMigrateTestSuite) TestMigrateHardClaims() {
 
 func (suite *StoreMigrateTestSuite) TestMigrateAccrualTimes() {
 	store := suite.Ctx.KVStore(suite.storeKey)
-	vaultDenom1 := "ukava"
-	vaultDenom2 := "usdc"
+	denom1 := "ukava"
+	denom2 := "usdc"
 
-	// Create v2 accrual times
-	accrualTime1 := time.Now()
-	accrualTime2 := time.Now().Add(time.Hour * 24)
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom1, accrualTime1)
-	suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, vaultDenom2, accrualTime2)
+	for i, claimType := range v3.MigrateClaimTypes {
+		suite.Run(claimType.String(), func() {
+			// Create v2 accrual times, make each claimType have a different time
+			accrualTime1 := time.Now().Add(time.Duration(i) * time.Hour)
+			accrualTime2 := accrualTime1.Add(time.Hour * 24)
 
-	// Run accrual time migrations
-	err := v3.MigrateAccrualTimes(store, suite.cdc, types.CLAIM_TYPE_EARN)
-	suite.Require().NoError(err)
+			switch claimType {
+			case types.CLAIM_TYPE_EARN:
+				suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, denom1, accrualTime1)
+				suite.keeper.SetEarnRewardAccrualTime(suite.Ctx, denom2, accrualTime2)
+			case types.CLAIM_TYPE_HARD_SUPPLY:
+				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.Ctx, denom1, accrualTime1)
+				suite.keeper.SetPreviousHardSupplyRewardAccrualTime(suite.Ctx, denom2, accrualTime2)
+			case types.CLAIM_TYPE_HARD_BORROW:
+				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.Ctx, denom1, accrualTime1)
+				suite.keeper.SetPreviousHardBorrowRewardAccrualTime(suite.Ctx, denom2, accrualTime2)
+			}
 
-	// Check that the accrual time was migrated correctly
-	newAccrualTime1, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom1)
-	suite.Require().True(found)
-	suite.Require().Equal(accrualTime1.Unix(), newAccrualTime1.Unix())
+			// Run accrual time migrations
+			err := v3.MigrateAccrualTimes(store, suite.cdc, claimType)
+			suite.Require().NoError(err)
 
-	newAccrualTime2, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom2)
-	suite.Require().True(found)
-	suite.Require().Equal(accrualTime2.Unix(), newAccrualTime2.Unix())
+			// Check that the accrual time was migrated correctly
+			newAccrualTime1, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, claimType, denom1)
+			suite.Require().True(found)
+			suite.Require().Equal(accrualTime1.Unix(), newAccrualTime1.Unix())
 
-	// Ensure removed from old store
-	_, found = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, vaultDenom1)
-	suite.Require().False(found)
-	_, found = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, vaultDenom2)
-	suite.Require().False(found)
+			newAccrualTime2, found := suite.keeper.Store.GetRewardAccrualTime(suite.Ctx, claimType, denom2)
+			suite.Require().True(found)
+			suite.Require().Equal(accrualTime2.Unix(), newAccrualTime2.Unix())
+
+			var found1, found2 bool
+
+			// Ensure removed from old store
+			switch claimType {
+			case types.CLAIM_TYPE_EARN:
+				_, found1 = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, denom1)
+				_, found2 = suite.keeper.GetEarnRewardAccrualTime(suite.Ctx, denom2)
+			case types.CLAIM_TYPE_HARD_SUPPLY:
+				_, found1 = suite.keeper.GetPreviousHardSupplyRewardAccrualTime(suite.Ctx, denom1)
+				_, found2 = suite.keeper.GetPreviousHardSupplyRewardAccrualTime(suite.Ctx, denom2)
+			case types.CLAIM_TYPE_HARD_BORROW:
+				_, found1 = suite.keeper.GetPreviousHardSupplyRewardAccrualTime(suite.Ctx, denom1)
+				_, found2 = suite.keeper.GetPreviousHardSupplyRewardAccrualTime(suite.Ctx, denom2)
+			}
+
+			suite.Require().Falsef(found1, "expected old accrual time 1 to be deleted, but it was found for claim type %s", claimType)
+			suite.Require().Falsef(found2, "expected old accrual time 2 to be deleted, but it was found for claim type %s", claimType)
+		})
+	}
 }
 
 func (suite *StoreMigrateTestSuite) TestMigrateRewardIndexes() {
 	store := suite.Ctx.KVStore(suite.storeKey)
-	vaultDenom1 := "ukava"
-	vaultDenom2 := "usdc"
+	denom1 := "ukava"
+	denom2 := "usdc"
 
 	rewardIndexes1 := types.RewardIndexes{
 		types.NewRewardIndex("ukava", sdk.NewDec(1)),
@@ -292,24 +318,48 @@ func (suite *StoreMigrateTestSuite) TestMigrateRewardIndexes() {
 		types.NewRewardIndex("swp", sdk.NewDec(10)),
 	}
 
-	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom1, rewardIndexes1)
-	suite.keeper.SetEarnRewardIndexes(suite.Ctx, vaultDenom2, rewardIndexes2)
+	for _, claimType := range v3.MigrateClaimTypes {
+		suite.Run(claimType.String(), func() {
+			switch claimType {
+			case types.CLAIM_TYPE_EARN:
+				suite.keeper.SetEarnRewardIndexes(suite.Ctx, denom1, rewardIndexes1)
+				suite.keeper.SetEarnRewardIndexes(suite.Ctx, denom2, rewardIndexes2)
+			case types.CLAIM_TYPE_HARD_SUPPLY:
+				suite.keeper.SetHardSupplyRewardIndexes(suite.Ctx, denom1, rewardIndexes1)
+				suite.keeper.SetHardSupplyRewardIndexes(suite.Ctx, denom2, rewardIndexes2)
+			case types.CLAIM_TYPE_HARD_BORROW:
+				suite.keeper.SetHardBorrowRewardIndexes(suite.Ctx, denom1, rewardIndexes1)
+				suite.keeper.SetHardBorrowRewardIndexes(suite.Ctx, denom2, rewardIndexes2)
+			}
 
-	err := v3.MigrateRewardIndexes(store, suite.cdc, types.CLAIM_TYPE_EARN)
-	suite.Require().NoError(err)
+			err := v3.MigrateRewardIndexes(store, suite.cdc, claimType)
+			suite.Require().NoError(err)
 
-	newRewardIndexes1, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom1)
-	suite.Require().True(found)
-	suite.Require().Equal(rewardIndexes1, newRewardIndexes1)
+			newRewardIndexes1, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, claimType, denom1)
+			suite.Require().True(found)
+			suite.Require().Equal(rewardIndexes1, newRewardIndexes1)
 
-	newRewardIndexes2, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, types.CLAIM_TYPE_EARN, vaultDenom2)
-	suite.Require().True(found)
-	suite.Require().Equal(rewardIndexes2, newRewardIndexes2)
+			newRewardIndexes2, found := suite.keeper.Store.GetRewardIndexesOfClaimType(suite.Ctx, claimType, denom2)
+			suite.Require().True(found)
+			suite.Require().Equal(rewardIndexes2, newRewardIndexes2)
 
-	// Ensure removed from old store
-	_, found = suite.keeper.GetEarnRewardIndexes(suite.Ctx, vaultDenom1)
-	suite.Require().False(found)
+			var found1, found2 bool
 
-	_, found = suite.keeper.GetEarnRewardIndexes(suite.Ctx, vaultDenom2)
-	suite.Require().False(found)
+			// Ensure removed from old store
+			switch claimType {
+			case types.CLAIM_TYPE_EARN:
+				_, found1 = suite.keeper.GetEarnRewardIndexes(suite.Ctx, denom1)
+				_, found2 = suite.keeper.GetEarnRewardIndexes(suite.Ctx, denom2)
+			case types.CLAIM_TYPE_HARD_SUPPLY:
+				_, found1 = suite.keeper.GetHardSupplyRewardIndexes(suite.Ctx, denom1)
+				_, found2 = suite.keeper.GetHardSupplyRewardIndexes(suite.Ctx, denom2)
+			case types.CLAIM_TYPE_HARD_BORROW:
+				_, found1 = suite.keeper.GetHardBorrowRewardIndexes(suite.Ctx, denom1)
+				_, found2 = suite.keeper.GetHardBorrowRewardIndexes(suite.Ctx, denom2)
+			}
+
+			suite.Require().Falsef(found1, "expected old reward indexes 1 to be deleted, but it was found for claim type %s", claimType)
+			suite.Require().Falsef(found2, "expected old reward indexes 2 to be deleted, but it was found for claim type %s", claimType)
+		})
+	}
 }
