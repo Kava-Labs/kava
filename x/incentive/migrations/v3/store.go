@@ -117,7 +117,7 @@ func MigrateHardClaims(store sdk.KVStore, cdc codec.BinaryCodec) error {
 
 			newSupplyStore.Set(c.Owner, cdc.MustMarshal(&newSupplyClaim))
 
-			// Empty reward coins as to not duplicate rewards
+			// Empty reward coins as to not duplicate rewards if there are borrow indexes
 			rewardCoins = sdk.NewCoins()
 		}
 
