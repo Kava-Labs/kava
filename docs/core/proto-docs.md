@@ -327,7 +327,6 @@
 - [kava/incentive/v1beta1/claims.proto](#kava/incentive/v1beta1/claims.proto)
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
-    - [Claim](#kava.incentive.v1beta1.Claim)
     - [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim)
     - [EarnClaim](#kava.incentive.v1beta1.EarnClaim)
     - [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim)
@@ -337,10 +336,7 @@
     - [RewardIndexesProto](#kava.incentive.v1beta1.RewardIndexesProto)
     - [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim)
     - [SwapClaim](#kava.incentive.v1beta1.SwapClaim)
-    - [TypedRewardIndexes](#kava.incentive.v1beta1.TypedRewardIndexes)
     - [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim)
-  
-    - [ClaimType](#kava.incentive.v1beta1.ClaimType)
   
 - [kava/incentive/v1beta1/params.proto](#kava/incentive/v1beta1/params.proto)
     - [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod)
@@ -348,10 +344,8 @@
     - [MultipliersPerDenom](#kava.incentive.v1beta1.MultipliersPerDenom)
     - [Params](#kava.incentive.v1beta1.Params)
     - [RewardPeriod](#kava.incentive.v1beta1.RewardPeriod)
-    - [TypedMultiRewardPeriod](#kava.incentive.v1beta1.TypedMultiRewardPeriod)
   
 - [kava/incentive/v1beta1/genesis.proto](#kava/incentive/v1beta1/genesis.proto)
-    - [AccrualTime](#kava.incentive.v1beta1.AccrualTime)
     - [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime)
     - [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState)
     - [GenesisState](#kava.incentive.v1beta1.GenesisState)
@@ -4705,24 +4699,6 @@ BaseMultiClaim is a claim with multiple reward coin types
 
 
 
-<a name="kava.incentive.v1beta1.Claim"></a>
-
-### Claim
-Claim stores any generic rewards that can be claimed by owner
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
-| `owner` | [bytes](#bytes) |  |  |
-| `reward` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
-| `reward_indexes` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
-
-
-
-
-
-
 <a name="kava.incentive.v1beta1.DelegatorClaim"></a>
 
 ### DelegatorClaim
@@ -4866,24 +4842,6 @@ SwapClaim stores the swap rewards that can be claimed by owner
 
 
 
-<a name="kava.incentive.v1beta1.TypedRewardIndexes"></a>
-
-### TypedRewardIndexes
-TypedRewardIndexes defines a RewardIndexes slice with its corresponding
-claim and collateral type
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `claim_type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
-| `collateral_type` | [string](#string) |  |  |
-| `reward_indexes` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
-
-
-
-
-
-
 <a name="kava.incentive.v1beta1.USDXMintingClaim"></a>
 
 ### USDXMintingClaim
@@ -4900,24 +4858,6 @@ USDXMintingClaim is for USDX minting rewards
 
 
  <!-- end messages -->
-
-
-<a name="kava.incentive.v1beta1.ClaimType"></a>
-
-### ClaimType
-ClaimType is the type of claim
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| CLAIM_TYPE_UNSPECIFIED | 0 | indicates an invalid claim type |
-| CLAIM_TYPE_HARD_BORROW | 1 | claim type for hard borrow rewards |
-| CLAIM_TYPE_HARD_SUPPLY | 2 | claim type for hard supply rewards |
-| CLAIM_TYPE_DELEGATOR | 3 | claim type for delegator rewards |
-| CLAIM_TYPE_EARN | 4 | claim type for earn rewards |
-| CLAIM_TYPE_SAVINGS | 5 | claim type for savings rewards |
-| CLAIM_TYPE_SWAP | 6 | claim type for swap rewards |
-| CLAIM_TYPE_USDX_MINTING | 7 | claim type for usdx minting rewards |
-
 
  <!-- end enums -->
 
@@ -4956,8 +4896,7 @@ MultiRewardPeriod supports multiple reward types
 <a name="kava.incentive.v1beta1.Multiplier"></a>
 
 ### Multiplier
-Multiplier amount the claim rewards get increased by, along with how long the
-claim rewards are locked
+Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
 
 
 | Field | Type | Label | Description |
@@ -5004,7 +4943,6 @@ Params
 | `claim_end` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
 | `savings_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
 | `earn_reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
-| `reward_periods` | [TypedMultiRewardPeriod](#kava.incentive.v1beta1.TypedMultiRewardPeriod) | repeated |  |
 
 
 
@@ -5029,22 +4967,6 @@ RewardPeriod stores the state of an ongoing reward
 
 
 
-
-<a name="kava.incentive.v1beta1.TypedMultiRewardPeriod"></a>
-
-### TypedMultiRewardPeriod
-TypedMultiRewardPeriod stores mutiple reward types of a claim type
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `claim_type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
-| `reward_periods` | [MultiRewardPeriod](#kava.incentive.v1beta1.MultiRewardPeriod) | repeated |  |
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -5059,25 +4981,6 @@ TypedMultiRewardPeriod stores mutiple reward types of a claim type
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/incentive/v1beta1/genesis.proto
-
-
-
-<a name="kava.incentive.v1beta1.AccrualTime"></a>
-
-### AccrualTime
-AccrualTime stores the previous reward distribution time and its
-corresponding collateral type and claim type. This is the new version of
-AccumulationTime that is used for the new claim types.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `claim_type` | [ClaimType](#kava.incentive.v1beta1.ClaimType) |  |  |
-| `collateral_type` | [string](#string) |  |  |
-| `previous_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
-
-
-
 
 
 
@@ -5135,9 +5038,6 @@ GenesisState is the state that must be provided at genesis.
 | `savings_claims` | [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim) | repeated |  |
 | `earn_reward_state` | [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState) |  |  |
 | `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
-| `claims` | [Claim](#kava.incentive.v1beta1.Claim) | repeated |  |
-| `accrual_times` | [AccrualTime](#kava.incentive.v1beta1.AccrualTime) | repeated |  |
-| `reward_indexes` | [TypedRewardIndexes](#kava.incentive.v1beta1.TypedRewardIndexes) | repeated |  |
 
 
 

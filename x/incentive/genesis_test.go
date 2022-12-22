@@ -94,7 +94,6 @@ func (suite *GenesisTestSuite) SetupTest() {
 				},
 			},
 			suite.genesisTime.Add(5*oneYear),
-			types.DefaultTypedMultiRewardPeriods,
 		),
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
@@ -103,15 +102,12 @@ func (suite *GenesisTestSuite) SetupTest() {
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
 		types.DefaultGenesisRewardState,
-		types.DefaultClaims,
 		types.DefaultUSDXClaims,
 		types.DefaultHardClaims,
 		types.DefaultDelegatorClaims,
 		types.DefaultSwapClaims,
 		types.DefaultSavingsClaims,
 		types.DefaultEarnClaims,
-		types.DefaultAccrualTimes,
-		types.DefaultTypedRewardIndexesList,
 	)
 
 	cdc := suite.app.AppCodec()
@@ -166,14 +162,6 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				},
 			},
 			genesisTime.Add(5*oneYear),
-			types.TypedMultiRewardPeriods{
-				types.NewTypedMultiRewardPeriod(
-					types.CLAIM_TYPE_SWAP,
-					types.MultiRewardPeriods{
-						types.NewMultiRewardPeriod(true, "ukava", genesisTime.Add(-1*oneYear), genesisTime.Add(oneYear), cs(c("hard", 122354))),
-					},
-				),
-			},
 		),
 		types.NewGenesisRewardState(
 			types.AccumulationTimes{
@@ -231,14 +219,6 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				types.NewMultiRewardIndex("usdx", types.RewardIndexes{{CollateralType: "usdx", RewardFactor: d("0.2")}}),
 			},
 		),
-		types.Claims{
-			types.NewClaim(
-				types.CLAIM_TYPE_USDX_MINTING,
-				suite.addrs[3],
-				nil,
-				types.MultiRewardIndexes{{CollateralType: "btcb/usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "swap", RewardFactor: d("0.0")}}}},
-			),
-		},
 		types.USDXMintingClaims{
 			types.NewUSDXMintingClaim(
 				suite.addrs[0],
@@ -292,14 +272,6 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 				nil,
 				types.MultiRewardIndexes{{CollateralType: "usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "earn", RewardFactor: d("0.0")}}}},
 			),
-		},
-		types.AccrualTimes{
-			types.NewAccrualTime(types.CLAIM_TYPE_USDX_MINTING, "usdx", genesisTime.Add(-2*time.Hour)),
-		},
-		types.TypedRewardIndexesList{
-			types.NewTypedRewardIndexes(types.CLAIM_TYPE_EARN, "ukava", types.RewardIndexes{
-				types.NewRewardIndex("ukava", d("0.1")),
-			}),
 		},
 	)
 

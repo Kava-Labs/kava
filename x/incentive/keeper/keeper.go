@@ -7,8 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/incentive/keeper/adapters"
-	"github.com/kava-labs/kava/x/incentive/keeper/store"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -26,9 +24,6 @@ type Keeper struct {
 	savingsKeeper types.SavingsKeeper
 	liquidKeeper  types.LiquidKeeper
 	earnKeeper    types.EarnKeeper
-
-	Adapters adapters.SourceAdapters
-	Store    store.IncentiveStore
 
 	// Keepers used for APY queries
 	kavamintKeeper  types.KavamintKeeper
@@ -60,12 +55,6 @@ func NewKeeper(
 		savingsKeeper: svk,
 		liquidKeeper:  lqk,
 		earnKeeper:    ek,
-
-		Adapters: adapters.NewSourceAdapters(
-			swpk,
-			ek,
-		),
-		Store: store.NewIncentiveStore(cdc, key),
 
 		kavamintKeeper:  kmk,
 		distrKeeper:     dk,

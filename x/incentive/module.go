@@ -21,9 +21,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-// ConsensusVersion defines the current module consensus version.
-const ConsensusVersion = 3
-
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
@@ -84,7 +81,7 @@ func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sd
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 {
-	return ConsensusVersion
+	return 1
 }
 
 // GetTxCmd returns the root tx command for the incentive module.

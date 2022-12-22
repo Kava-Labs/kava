@@ -16,22 +16,14 @@ var (
 		MultiRewardIndexes{},
 	)
 	DefaultEarnClaims = EarnClaims{}
-
-	// New fields
-	DefaultClaims                 = Claims{}
-	DefaultAccrualTimes           = AccrualTimes{}
-	DefaultTypedRewardIndexesList = TypedRewardIndexesList{}
 )
 
 // NewGenesisState returns a new genesis state
 func NewGenesisState(
 	params Params,
 	usdxState, hardSupplyState, hardBorrowState, delegatorState, swapState, savingsState, earnState GenesisRewardState,
-	c Claims,
-	uc USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
+	c USDXMintingClaims, hc HardLiquidityProviderClaims, dc DelegatorClaims, sc SwapClaims, savingsc SavingsClaims,
 	earnc EarnClaims,
-	accrualTimes AccrualTimes,
-	rewardIndexes TypedRewardIndexesList,
 ) GenesisState {
 	return GenesisState{
 		Params: params,
@@ -44,18 +36,12 @@ func NewGenesisState(
 		SavingsRewardState:    savingsState,
 		EarnRewardState:       earnState,
 
-		USDXMintingClaims:           uc,
+		USDXMintingClaims:           c,
 		HardLiquidityProviderClaims: hc,
 		DelegatorClaims:             dc,
 		SwapClaims:                  sc,
 		SavingsClaims:               savingsc,
 		EarnClaims:                  earnc,
-
-		// New fields
-		// Claims of all types
-		Claims:        c,
-		AccrualTimes:  accrualTimes,
-		RewardIndexes: rewardIndexes,
 	}
 }
 
@@ -70,15 +56,12 @@ func DefaultGenesisState() GenesisState {
 		SwapRewardState:             DefaultGenesisRewardState,
 		SavingsRewardState:          DefaultGenesisRewardState,
 		EarnRewardState:             DefaultGenesisRewardState,
-		Claims:                      DefaultClaims,
 		USDXMintingClaims:           DefaultUSDXClaims,
 		HardLiquidityProviderClaims: DefaultHardClaims,
 		DelegatorClaims:             DefaultDelegatorClaims,
 		SwapClaims:                  DefaultSwapClaims,
 		SavingsClaims:               DefaultSavingsClaims,
 		EarnClaims:                  DefaultEarnClaims,
-		AccrualTimes:                DefaultAccrualTimes,
-		RewardIndexes:               DefaultTypedRewardIndexesList,
 	}
 }
 
@@ -128,20 +111,7 @@ func (gs GenesisState) Validate() error {
 		return err
 	}
 
-	if err := gs.EarnClaims.Validate(); err != nil {
-		return err
-	}
-
-	// Refactored methods -- these will eventually replace the claim and state methods above
-	if err := gs.Claims.Validate(); err != nil {
-		return err
-	}
-
-	if err := gs.AccrualTimes.Validate(); err != nil {
-		return err
-	}
-
-	return gs.RewardIndexes.Validate()
+	return gs.EarnClaims.Validate()
 }
 
 // NewGenesisRewardState returns a new GenesisRewardState
@@ -185,53 +155,6 @@ func (gats AccumulationTimes) Validate() error {
 		if err := gat.Validate(); err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-// NewAccrualTime returns a new AccrualTime
-func NewAccrualTime(claimType ClaimType, collateralType string, prevTime time.Time) AccrualTime {
-	return AccrualTime{
-		ClaimType:                claimType,
-		CollateralType:           collateralType,
-		PreviousAccumulationTime: prevTime,
-	}
-}
-
-// Validate performs validation of AccrualTime
-func (at AccrualTime) Validate() error {
-	if at.PreviousAccumulationTime.IsZero() {
-		return fmt.Errorf("previous accumulation time cannot be zero")
-	}
-
-	if err := at.ClaimType.Validate(); err != nil {
-		return err
-	}
-
-	if len(at.CollateralType) == 0 {
-		return fmt.Errorf("collateral type cannot be empty")
-	}
-
-	return nil
-}
-
-// AccrualTimes slice of AccrualTime
-type AccrualTimes []AccrualTime
-
-// Validate performs validation of AccrualTimes
-func (gats AccrualTimes) Validate() error {
-	seenAccrualTimes := make(map[string]bool)
-
-	for _, gat := range gats {
-		if err := gat.Validate(); err != nil {
-			return err
-		}
-
-		key := fmt.Sprintf("%s-%s", gat.ClaimType, gat.CollateralType)
-		if seenAccrualTimes[key] {
-			return fmt.Errorf("duplicate accrual time found for %s", key)
-		}
-		seenAccrualTimes[key] = true
 	}
 	return nil
 }

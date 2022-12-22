@@ -57,58 +57,6 @@ func (c BaseMultiClaim) Validate() error {
 	return nil
 }
 
-// Validate checks if a ClaimType is valid
-func (ct ClaimType) Validate() error {
-	switch ct {
-	case CLAIM_TYPE_HARD_BORROW,
-		CLAIM_TYPE_HARD_SUPPLY,
-		CLAIM_TYPE_DELEGATOR,
-		CLAIM_TYPE_EARN,
-		CLAIM_TYPE_SAVINGS,
-		CLAIM_TYPE_SWAP,
-		CLAIM_TYPE_USDX_MINTING:
-		return nil
-	default:
-		return fmt.Errorf("invalid claim type: %v", ct)
-	}
-}
-
-// NewClaim returns a new Claim
-func NewClaim(
-	claimType ClaimType,
-	owner sdk.AccAddress,
-	reward sdk.Coins,
-	rewardIndexes MultiRewardIndexes,
-) Claim {
-	return Claim{
-		Type:          claimType,
-		Owner:         owner,
-		Reward:        reward,
-		RewardIndexes: rewardIndexes,
-	}
-}
-
-// Validate performs a basic check of a Claim
-func (c Claim) Validate() error {
-	if err := c.Type.Validate(); err != nil {
-		return err
-	}
-
-	if c.Owner.Empty() {
-		return errors.New("claim owner cannot be empty")
-	}
-
-	if err := c.Reward.Validate(); err != nil {
-		return fmt.Errorf("invalid reward amount %v: %w", c.Reward, err)
-	}
-
-	if err := c.RewardIndexes.Validate(); err != nil {
-		return fmt.Errorf("invalid reward indexes: %w", err)
-	}
-
-	return nil
-}
-
 // NewUSDXMintingClaim returns a new USDXMintingClaim
 func NewUSDXMintingClaim(owner sdk.AccAddress, reward sdk.Coin, rewardIndexes RewardIndexes) USDXMintingClaim {
 	return USDXMintingClaim{
@@ -154,20 +102,6 @@ type USDXMintingClaims []USDXMintingClaim
 // Validate checks if all the claims are valid and there are no duplicated
 // entries.
 func (cs USDXMintingClaims) Validate() error {
-	for _, c := range cs {
-		if err := c.Validate(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Claims defines a slice of Claims
-type Claims []Claim
-
-// Validate checks if all the claims are valid.
-func (cs Claims) Validate() error {
 	for _, c := range cs {
 		if err := c.Validate(); err != nil {
 			return err
@@ -699,52 +633,4 @@ func (mris MultiRewardIndexes) copy() MultiRewardIndexes {
 	newIndexes := make(MultiRewardIndexes, len(mris))
 	copy(newIndexes, mris)
 	return newIndexes
-}
-
-// NewTypedRewardIndexes returns a new TypedRewardIndexes
-func NewTypedRewardIndexes(
-	claimType ClaimType,
-	collateralType string,
-	rewardIndexes RewardIndexes,
-) TypedRewardIndexes {
-	return TypedRewardIndexes{
-		ClaimType:      claimType,
-		CollateralType: collateralType,
-		RewardIndexes:  rewardIndexes,
-	}
-}
-
-// Validate performs a basic check of a TypedRewardIndexes fields
-func (tril TypedRewardIndexes) Validate() error {
-	if err := tril.ClaimType.Validate(); err != nil {
-		return err
-	}
-
-	if tril.CollateralType == "" {
-		return errors.New("collateral type cannot be empty")
-	}
-
-	return tril.RewardIndexes.Validate()
-}
-
-// TypedRewardIndexesList is a list of TypedRewardIndexes
-type TypedRewardIndexesList []TypedRewardIndexes
-
-// Validate validates a slice of TypedRewardIndexesList
-func (tril TypedRewardIndexesList) Validate() error {
-	seen := make(map[string]bool)
-
-	for _, tri := range tril {
-		if err := tri.Validate(); err != nil {
-			return err
-		}
-
-		// Composite key of claim type and collateral type
-		key := fmt.Sprintf("%s/%s", tri.ClaimType, tri.CollateralType)
-		if seen[key] {
-			return fmt.Errorf("duplicate TypedRewardIndexes found: %s", key)
-		}
-		seen[key] = true
-	}
-	return nil
 }

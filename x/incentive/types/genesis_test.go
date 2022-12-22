@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -56,7 +57,6 @@ func TestGenesisState_Validate(t *testing.T) {
 						},
 					},
 					time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
-					DefaultTypedMultiRewardPeriods,
 				),
 				USDXRewardState: GenesisRewardState{
 					AccumulationTimes: AccumulationTimes{{
@@ -68,17 +68,16 @@ func TestGenesisState_Validate(t *testing.T) {
 						RewardIndexes:  normalRewardIndexes,
 					}},
 				},
-				Claims: Claims{
+				USDXMintingClaims: USDXMintingClaims{
 					{
-						Type:   CLAIM_TYPE_USDX_MINTING,
-						Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
-						Reward: cs(c("ukava", 100000000)),
-						RewardIndexes: []MultiRewardIndex{
+						BaseClaim: BaseClaim{
+							Owner:  sdk.AccAddress(crypto.AddressHash([]byte("KavaTestUser1"))),
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
+						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
-								RewardIndexes: RewardIndexes{
-									NewRewardIndex(USDXMintingRewardDenom, sdk.ZeroDec()),
-								},
+								RewardFactor:   sdk.ZeroDec(),
 							},
 						},
 					},
@@ -102,7 +101,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						RewardIndexes:  normalRewardIndexes,
 					}},
 				},
-				Claims: DefaultClaims,
+				USDXMintingClaims: DefaultUSDXClaims,
 			},
 			errArgs: errArgs{
 				expectPass: false,
@@ -114,17 +113,16 @@ func TestGenesisState_Validate(t *testing.T) {
 			genesis: GenesisState{
 				Params:          DefaultParams(),
 				USDXRewardState: DefaultGenesisRewardState,
-				Claims: Claims{
+				USDXMintingClaims: USDXMintingClaims{
 					{
-						Type:   CLAIM_TYPE_USDX_MINTING,
-						Owner:  nil, // invalid address
-						Reward: cs(c("ukava", 100000000)),
-						RewardIndexes: []MultiRewardIndex{
+						BaseClaim: BaseClaim{
+							Owner:  nil, // invalid address
+							Reward: sdk.NewCoin("ukava", sdk.NewInt(100000000)),
+						},
+						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
-								RewardIndexes: RewardIndexes{
-									NewRewardIndex(USDXMintingRewardDenom, sdk.ZeroDec()),
-								},
+								RewardFactor:   sdk.ZeroDec(),
 							},
 						},
 					},
@@ -133,20 +131,6 @@ func TestGenesisState_Validate(t *testing.T) {
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "claim owner cannot be empty",
-			},
-		},
-		{
-			name: "invalid accrual time",
-			genesis: GenesisState{
-				Params: DefaultParams(),
-				Claims: DefaultClaims,
-				AccrualTimes: AccrualTimes{
-					NewAccrualTime(CLAIM_TYPE_USDX_MINTING, "", time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC)),
-				},
-			},
-			errArgs: errArgs{
-				expectPass: false,
-				contains:   "collateral type cannot be empty",
 			},
 		},
 	}
@@ -158,7 +142,7 @@ func TestGenesisState_Validate(t *testing.T) {
 				require.NoError(t, err, tc.name)
 			} else {
 				require.Error(t, err, tc.name)
-				require.Contains(t, err.Error(), tc.errArgs.contains)
+				require.True(t, strings.Contains(err.Error(), tc.errArgs.contains))
 			}
 		})
 	}
@@ -187,78 +171,6 @@ func TestGenesisAccumulationTimes_Validate(t *testing.T) {
 			name: "empty collateral type",
 			gats: AccumulationTimes{
 				{PreviousAccumulationTime: normalAccumulationtime},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := tc.gats.Validate()
-			if tc.wantErr {
-				require.NotNil(t, err)
-			} else {
-				require.Nil(t, err)
-			}
-		})
-	}
-}
-
-func TestAccrualTimes_Validate(t *testing.T) {
-	testCases := []struct {
-		name    string
-		gats    AccrualTimes
-		wantErr bool
-	}{
-		{
-			name: "normal",
-			gats: AccrualTimes{
-				{
-					ClaimType:                CLAIM_TYPE_USDX_MINTING,
-					CollateralType:           "btcb",
-					PreviousAccumulationTime: normalAccumulationtime,
-				},
-				{
-					ClaimType:                CLAIM_TYPE_USDX_MINTING,
-					CollateralType:           "bnb",
-					PreviousAccumulationTime: normalAccumulationtime,
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name:    "empty",
-			gats:    nil,
-			wantErr: false,
-		},
-		{
-			name: "empty collateral type",
-			gats: AccrualTimes{
-				{
-					ClaimType:                CLAIM_TYPE_USDX_MINTING,
-					PreviousAccumulationTime: normalAccumulationtime,
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid claim type",
-			gats: AccrualTimes{
-				{
-					ClaimType:                10000000,
-					CollateralType:           "btcb",
-					PreviousAccumulationTime: normalAccumulationtime,
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "unspecified claim type",
-			gats: AccrualTimes{
-				{
-					ClaimType:                CLAIM_TYPE_UNSPECIFIED,
-					CollateralType:           "btcb",
-					PreviousAccumulationTime: normalAccumulationtime,
-				},
 			},
 			wantErr: true,
 		},

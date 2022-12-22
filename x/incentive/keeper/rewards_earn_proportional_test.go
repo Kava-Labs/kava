@@ -1,11 +1,11 @@
-package accumulators_test
+package keeper_test
 
 import (
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/x/incentive/keeper/accumulators"
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 	"github.com/stretchr/testify/require"
 )
@@ -74,7 +74,7 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rewardsPerSecond := accumulators.GetProportionalRewardsPerSecond(
+			rewardsPerSecond := keeper.GetProportionalRewardsPerSecond(
 				tt.giveRewardPeriod,
 				tt.giveTotalBkavaSupply,
 				tt.giveSingleBkavaSupply,
