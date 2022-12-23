@@ -62,6 +62,20 @@ func (k IncentiveStore) IterateClaimsByClaimType(
 	}
 }
 
+// GetClaimsOfClaimType returns all Claim objects in the store of the given claimType
+func (k IncentiveStore) GetClaimsOfClaimType(
+	ctx sdk.Context,
+	claimType types.ClaimType,
+) types.Claims {
+	var cs types.Claims
+	k.IterateClaimsByClaimType(ctx, claimType, func(c types.Claim) (stop bool) {
+		cs = append(cs, c)
+		return false
+	})
+
+	return cs
+}
+
 // GetClaims returns all Claim objects in the store of a given claimType
 func (k IncentiveStore) GetClaims(
 	ctx sdk.Context,

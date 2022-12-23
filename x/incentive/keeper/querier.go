@@ -60,37 +60,140 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuer
 	return bz, nil
 }
 
-func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+func parseQueryRewardsParams(
+	req abci.RequestQuery,
+	legacyQuerierCdc *codec.LegacyAmino,
+) (types.QueryRewardsParams, error) {
 	var params types.QueryRewardsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return types.QueryRewardsParams{}, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	owner := len(params.Owner) > 0
+	return params, nil
+}
 
-	var hardClaims types.HardLiquidityProviderClaims
-	switch {
-	case owner:
-		hardClaim, foundHardClaim := k.GetHardLiquidityProviderClaim(ctx, params.Owner)
+func queryGetRewards(
+	ctx sdk.Context,
+	req abci.RequestQuery,
+	claimType types.ClaimType,
+	k Keeper,
+	legacyQuerierCdc *codec.LegacyAmino,
+) (types.Claims, error) {
+	params, err := parseQueryRewardsParams(req, legacyQuerierCdc)
+	if err != nil {
+		return nil, err
+	}
+
+	var claims types.Claims
+	if params.HasOwner() {
+		hardClaim, foundHardClaim := k.Store.GetClaim(ctx, claimType, params.Owner)
 		if foundHardClaim {
-			hardClaims = append(hardClaims, hardClaim)
+			claims = append(claims, hardClaim)
 		}
-	default:
-		hardClaims = k.GetAllHardLiquidityProviderClaims(ctx)
+	} else {
+		claims = k.Store.GetClaimsOfClaimType(ctx, claimType)
 	}
 
-	var paginatedHardClaims types.HardLiquidityProviderClaims
-	startH, endH := client.Paginate(len(hardClaims), params.Page, params.Limit, 100)
+	var paginatedClaims types.Claims
+	startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
 	if startH < 0 || endH < 0 {
-		paginatedHardClaims = types.HardLiquidityProviderClaims{}
+		paginatedClaims = types.Claims{}
 	} else {
-		paginatedHardClaims = hardClaims[startH:endH]
+		paginatedClaims = claims[startH:endH]
 	}
 
 	if !params.Unsynchronized {
-		for i, claim := range paginatedHardClaims {
-			paginatedHardClaims[i] = k.SimulateHardSynchronization(ctx, claim)
+		for i, claim := range paginatedClaims {
+			syncedClaim, found := k.GetSynchronizedClaim(ctx, claim.Type, claim.Owner)
+			if !found {
+				panic(fmt.Sprintf("previously found claim for type %s and owner %s not found after sync", claim.Type, claim.Owner))
+			}
+
+			paginatedClaims[i] = syncedClaim
 		}
+	}
+
+	return paginatedClaims, nil
+}
+
+func queryGetHardRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	params, err := parseQueryRewardsParams(req, legacyQuerierCdc)
+	if err != nil {
+		return nil, err
+	}
+
+	var claims types.HardLiquidityProviderClaims
+	if params.HasOwner() {
+		combinedClaim := types.NewHardLiquidityProviderClaim(
+			params.Owner,
+			sdk.NewCoins(),
+			types.MultiRewardIndexes{},
+			types.MultiRewardIndexes{},
+		)
+
+		hardSupplyClaim, foundHardSupplyClaim := k.Store.GetClaim(ctx, types.CLAIM_TYPE_HARD_SUPPLY, params.Owner)
+		if foundHardSupplyClaim {
+			combinedClaim.SupplyRewardIndexes = hardSupplyClaim.RewardIndexes
+			combinedClaim.Reward = combinedClaim.Reward.Add(hardSupplyClaim.Reward...)
+		}
+
+		hardBorrowClaim, foundHardBorrowClaim := k.Store.GetClaim(ctx, types.CLAIM_TYPE_HARD_BORROW, params.Owner)
+		if foundHardBorrowClaim {
+			combinedClaim.BorrowRewardIndexes = hardBorrowClaim.RewardIndexes
+			combinedClaim.Reward = combinedClaim.Reward.Add(hardBorrowClaim.Reward...)
+		}
+
+		if foundHardSupplyClaim || foundHardBorrowClaim {
+			claims = append(claims, combinedClaim)
+		}
+	} else {
+		k.Store.IterateClaimsByClaimType(ctx, types.CLAIM_TYPE_HARD_SUPPLY, func(claim types.Claim) bool {
+			if !params.Unsynchronized {
+				syncedClaim, found := k.GetSynchronizedClaim(ctx, claim.Type, claim.Owner)
+				if !found {
+					panic(fmt.Sprintf(
+						"previously found claim for type %s and owner %s not found after sync",
+						claim.Type, claim.Owner,
+					))
+				}
+
+				claim = syncedClaim
+			}
+
+			legacyHardClaim := types.NewHardLiquidityProviderClaim(
+				claim.Owner,
+				claim.Reward,
+				claim.RewardIndexes,
+				// Borrow empty
+				types.MultiRewardIndexes{},
+			)
+
+			// Get corresponding borrow claim for this owner
+			var borrowClaim types.Claim
+			var foundBorrowClaim bool
+			if params.Unsynchronized {
+				borrowClaim, foundBorrowClaim = k.Store.GetClaim(ctx, types.CLAIM_TYPE_HARD_BORROW, claim.Owner)
+			} else {
+				borrowClaim, foundBorrowClaim = k.GetSynchronizedClaim(ctx, borrowClaim.Type, borrowClaim.Owner)
+			}
+
+			if foundBorrowClaim {
+				legacyHardClaim.BorrowRewardIndexes = borrowClaim.RewardIndexes
+				legacyHardClaim.Reward = legacyHardClaim.Reward.Add(borrowClaim.Reward...)
+			}
+
+			claims = append(claims, legacyHardClaim)
+			return false
+		})
+	}
+
+	var paginatedHardClaims types.HardLiquidityProviderClaims
+
+	startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
+	if startH < 0 || endH < 0 {
+		paginatedHardClaims = types.HardLiquidityProviderClaims{}
+	} else {
+		paginatedHardClaims = claims[startH:endH]
 	}
 
 	// Marshal Hard claims

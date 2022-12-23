@@ -30,6 +30,10 @@ type QueryRewardsParams struct {
 	Unsynchronized bool           `json:"unsynchronized" yaml:"unsynchronized"`
 }
 
+func (p QueryRewardsParams) HasOwner() bool {
+	return !p.Owner.Empty()
+}
+
 // NewQueryRewardsParams returns QueryRewardsParams
 func NewQueryRewardsParams(page, limit int, owner sdk.AccAddress, unsynchronized bool) QueryRewardsParams {
 	return QueryRewardsParams{
