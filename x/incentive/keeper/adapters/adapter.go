@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/kava-labs/kava/x/incentive/keeper/adapters/cdp"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/earn"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/swap"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -26,11 +27,13 @@ type SourceShare struct {
 func NewSourceAdapters(
 	swapKeeper types.SwapKeeper,
 	earnKeeper types.EarnKeeper,
+	cdpKeeper types.CdpKeeper,
 ) SourceAdapters {
 	return SourceAdapters{
 		adapters: map[types.ClaimType]types.SourceAdapter{
-			types.CLAIM_TYPE_SWAP: swap.NewSourceAdapter(swapKeeper),
-			types.CLAIM_TYPE_EARN: earn.NewSourceAdapter(earnKeeper),
+			types.CLAIM_TYPE_SWAP:         swap.NewSourceAdapter(swapKeeper),
+			types.CLAIM_TYPE_EARN:         earn.NewSourceAdapter(earnKeeper),
+			types.CLAIM_TYPE_USDX_MINTING: cdp.NewSourceAdapter(cdpKeeper),
 		},
 	}
 }
