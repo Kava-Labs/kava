@@ -29,7 +29,7 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		WithSimpleAccount(validatorAddr2, cs(c("ukava", 1e12)))
 
 	incentBuilder := suite.incentiveBuilder().
-		WithSimpleEarnRewardPeriod("bkava", cs())
+		WithSimpleRewardPeriod(types.CLAIM_TYPE_EARN, "bkava", cs())
 
 	savingsBuilder := testutil.NewSavingsGenesisBuilder().
 		WithSupportedDenoms("bkava")
@@ -58,7 +58,9 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	ik := suite.App.GetIncentiveKeeper()
 
 	iParams := ik.GetParams(suite.Ctx)
-	period, found := iParams.EarnRewardPeriods.GetMultiRewardPeriod("bkava")
+	period, found := iParams.RewardPeriods.
+		GetRewardPeriodsOfClaimType(types.CLAIM_TYPE_EARN).
+		GetMultiRewardPeriod("bkava")
 	suite.Require().True(found)
 	suite.Require().Equal("bkava", period.CollateralType)
 
@@ -215,6 +217,6 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	suite.Equal(delegationRewards.AmountOf("ukava").TruncateInt(), stakingRewards1.Add(stakingRewards2))
 
 	// Check that claimed coins have been removed from a claim's reward
-	suite.EarnRewardEquals(userAddr1, cs())
-	suite.EarnRewardEquals(userAddr2, cs())
+	suite.RewardEquals(types.CLAIM_TYPE_EARN, userAddr1, cs())
+	suite.RewardEquals(types.CLAIM_TYPE_EARN, userAddr2, cs())
 }
