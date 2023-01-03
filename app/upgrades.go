@@ -17,7 +17,7 @@ import (
 
 const (
 	MainnetUpgradeName = "v0.20.0"
-	TestnetUpgradeName = "TESTNET-v0.20.0"
+	TestnetUpgradeName = "v0.20.0-testnet"
 )
 
 var (
