@@ -21,8 +21,8 @@ const (
 )
 
 var (
-	MainnetCommunityPoolInflation = sdk.OneDec()             // 100%
-	MainnetStakingRewardsApy      = sdk.NewDecWithPrec(5, 2) // 5%
+	MainnetCommunityPoolInflation = sdk.NewDecWithPrec(75, 2) // 75%
+	MainnetStakingRewardsApy      = sdk.NewDecWithPrec(15, 2) // 15%
 
 	TestnetCommunityPoolInflation = sdk.OneDec()             // 100%
 	TestnetStakingRewardsApy      = sdk.NewDecWithPrec(5, 2) // 5%
