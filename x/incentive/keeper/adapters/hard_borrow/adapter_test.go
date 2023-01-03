@@ -9,6 +9,7 @@ import (
 	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/hard"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_borrow"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -133,7 +134,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100_000)),
 		),
 	)
 	suite.NoError(err)
@@ -142,17 +143,18 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100_000)),
 		),
 	)
 	suite.NoError(err)
 
+	// ------------------------------------------
 	// Actual borrows now
 	err = hardKeeper.Borrow(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(40_000)),
 		),
 	)
 	suite.NoError(err)
@@ -161,12 +163,35 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(25_000)),
 		),
 	)
 	suite.NoError(err)
 
-	adapter := hard_borrow.NewSourceAdapter(suite.app.GetHardKeeper())
+	// ------------------------------------------
+	// Accrue interest for hard borrows
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(24 * time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+
+	// ------------------------------------------
+	// Modify borrow to sync with new interest - Index field
+	// Second borrow has no modifications
+	err = hardKeeper.Borrow(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(1_000)),
+		),
+	)
+	suite.NoError(err)
+
+	interestFactor, found := hardKeeper.GetBorrowInterestFactor(suite.ctx, suite.denomA)
+	suite.Require().True(found)
+	suite.Require().True(interestFactor.GT(sdk.OneDec()), "interest factor should be greater than 1")
+
+	adapter := hard_borrow.NewSourceAdapter(hardKeeper)
 
 	tests := []struct {
 		name          string
@@ -181,7 +206,9 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 				suite.denomA,
 			},
 			map[string]sdk.Dec{
-				suite.denomA: sdk.NewDecWithPrec(100, 0),
+				// Normalized borrow amount - after interest
+				// 41_000 - interest
+				suite.denomA: sdk.MustNewDecFromStr("40999.189325524906210261"),
 			},
 		},
 		{
@@ -192,7 +219,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 				"unknown",
 			},
 			map[string]sdk.Dec{
-				suite.denomA: sdk.NewDecWithPrec(250, 0),
+				suite.denomA: sdk.NewDecWithPrec(25_000, 0),
 				"unknown":    sdk.ZeroDec(),
 			},
 		},
@@ -242,7 +269,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(40_000)),
 		),
 	)
 	suite.NoError(err)
@@ -251,7 +278,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(25_000)),
 		),
 	)
 	suite.NoError(err)
@@ -266,7 +293,95 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		{
 			"total shares",
 			suite.denomA,
-			sdk.NewDecWithPrec(350, 0),
+			sdk.NewDecWithPrec(40_000+25_000, 0),
+		},
+		{
+			"empty or invalid denom empty",
+			"denom2",
+			sdk.ZeroDec(),
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			shares := adapter.TotalSharesBySource(suite.ctx, tt.giveSourceID)
+
+			suite.Equal(tt.wantShares, shares)
+		})
+	}
+}
+
+func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource_Interest() {
+	hardKeeper := suite.app.GetHardKeeper()
+
+	err := hardKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+		),
+	)
+	suite.NoError(err)
+
+	err = hardKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[1],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100000)),
+		),
+	)
+	suite.NoError(err)
+
+	err = hardKeeper.Borrow(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(40_000)),
+		),
+	)
+	suite.NoError(err)
+
+	err = hardKeeper.Borrow(
+		suite.ctx,
+		suite.addrs[1],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(25_000)),
+		),
+	)
+	suite.NoError(err)
+
+	// ------------------------------------------
+	// Accrue interest for hard borrows
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(24 * time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+
+	// ------------------------------------------
+	// Modify borrow to sync with new interest - Index field
+	// Second borrow has no modifications
+	err = hardKeeper.Borrow(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(1_000)),
+		),
+	)
+	suite.NoError(err)
+
+	adapter := hard_borrow.NewSourceAdapter(suite.app.GetHardKeeper())
+
+	tests := []struct {
+		name         string
+		giveSourceID string
+		wantShares   sdk.Dec
+	}{
+		{
+			"total shares",
+			suite.denomA,
+			// 40_000 + 25_000 + 1_000 + interest
+			// 66_000 + interest
+			sdk.NewDecWithPrec(66002, 0),
 		},
 		{
 			"empty or invalid denom empty",
