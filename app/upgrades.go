@@ -15,34 +15,27 @@ import (
 	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
 )
 
-const UpgradeName = "v0.20.0"
+const (
+	MainnetUpgradeName = "v0.20.0"
+	TestnetUpgradeName = "TESTNET-v0.20.0"
+)
 
 var (
-	CommunityPoolInflation = sdk.NewDecWithPrec(70, 2)
-	StakingRewardsApy      = sdk.NewDecWithPrec(10, 2)
+	MainnetCommunityPoolInflation = sdk.OneDec()             // 100%
+	MainnetStakingRewardsApy      = sdk.NewDecWithPrec(5, 2) // 5%
+
+	TestnetCommunityPoolInflation = sdk.OneDec()             // 100%
+	TestnetStakingRewardsApy      = sdk.NewDecWithPrec(5, 2) // 5%
 )
 
 func (app App) RegisterUpgradeHandlers() {
-	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
-		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			app.Logger().Info("transferring original community pool funds to new community pool")
-			MoveCommunityPoolFunds(ctx, app.distrKeeper, app.bankKeeper)
-
-			// community_tax -> 0%
-			app.Logger().Info("disabling x/distribution community tax")
-			DisableCommunityTax(ctx, app.distrKeeper)
-
-			vm, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
-			if err != nil {
-				return vm, err
-			}
-
-			// initialize kavamint state after running migrations so that store exists & persists
-			app.Logger().Info("initializing x/kavamint state")
-			InitializeKavamintState(ctx, app.kavamintKeeper)
-
-			return vm, nil
-		},
+	// register upgrade handler for mainnet
+	app.upgradeKeeper.SetUpgradeHandler(MainnetUpgradeName,
+		CommunityPoolAndInflationUpgradeHandler(app, MainnetCommunityPoolInflation, MainnetStakingRewardsApy),
+	)
+	// register upgrade handler for testnet
+	app.upgradeKeeper.SetUpgradeHandler(TestnetUpgradeName,
+		CommunityPoolAndInflationUpgradeHandler(app, TestnetCommunityPoolInflation, TestnetStakingRewardsApy),
 	)
 
 	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -50,7 +43,8 @@ func (app App) RegisterUpgradeHandlers() {
 		panic(err)
 	}
 
-	if upgradeInfo.Name == UpgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	doUpgrade := upgradeInfo.Name == MainnetUpgradeName || upgradeInfo.Name == TestnetUpgradeName
+	if doUpgrade && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				kavaminttypes.StoreKey,
@@ -62,6 +56,32 @@ func (app App) RegisterUpgradeHandlers() {
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+// CommunityPoolAndInflationUpgradeHandler returns an upgrade handler for migrating the community
+// pool to the new x/community module account and replaces x/mint with x/kavamint
+// x/kavamint is initialized with the parameters `communityPoolInflation` and `stakingRewardsApy`
+func CommunityPoolAndInflationUpgradeHandler(app App, communityPoolInflation, stakingRewardsApy sdk.Dec) upgradetypes.UpgradeHandler {
+	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		// community pool goes from fee pool sub-account to x/community module account
+		app.Logger().Info("transferring original community pool funds to new community pool")
+		MoveCommunityPoolFunds(ctx, app.distrKeeper, app.bankKeeper)
+
+		// community_tax -> 0%
+		app.Logger().Info("disabling x/distribution community tax")
+		DisableCommunityTax(ctx, app.distrKeeper)
+
+		vm, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		if err != nil {
+			return vm, err
+		}
+
+		// initialize kavamint state after running migrations so that store exists & persists
+		app.Logger().Info("initializing x/kavamint state")
+		InitializeKavamintState(ctx, app.kavamintKeeper, communityPoolInflation, stakingRewardsApy)
+
+		return vm, nil
 	}
 }
 
@@ -94,15 +114,24 @@ func MoveCommunityPoolFunds(
 	distKeeper.SetFeePool(ctx, feePool)
 }
 
+// DisableCommunityTax sets x/distribution's community_tax parameter to zero.
+// The vanilla community tax is no longer used because community pool inflation is set separately
+// from staking rewards. No portion of the defined staking rewards is taken as a community tax.
 func DisableCommunityTax(ctx sdk.Context, distrKeeper distrkeeper.Keeper) {
 	params := distrKeeper.GetParams(ctx)
 	params.CommunityTax = sdk.ZeroDec()
 	distrKeeper.SetParams(ctx, params)
 }
 
-func InitializeKavamintState(ctx sdk.Context, kavamintKeeper kavamintkeeper.Keeper) {
+// InitializeKavamintState sets up the parameters and state of x/kavamint.
+// The inflationary parameters are set from the args for communityPoolInflation & stakingRewardsApy
+func InitializeKavamintState(
+	ctx sdk.Context,
+	kavamintKeeper kavamintkeeper.Keeper,
+	communityPoolInflation, stakingRewardsApy sdk.Dec,
+) {
 	// init inflationary params for x/kavamint
-	params := kavaminttypes.NewParams(CommunityPoolInflation, StakingRewardsApy)
+	params := kavaminttypes.NewParams(communityPoolInflation, stakingRewardsApy)
 	kavamintKeeper.SetParams(ctx, params)
 	// set previous block time to current block's time
 	kavamintKeeper.SetPreviousBlockTime(ctx, ctx.BlockTime())
