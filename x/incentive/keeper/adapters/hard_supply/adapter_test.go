@@ -9,13 +9,14 @@ import (
 	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/hard"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper/adapters/hard_supply"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/stretchr/testify/suite"
 )
 
-type HardBorrowAdapterTestSuite struct {
+type HardSupplyAdapterTestSuite struct {
 	suite.Suite
 
 	app app.TestApp
@@ -28,10 +29,10 @@ type HardBorrowAdapterTestSuite struct {
 }
 
 func TestHardAdapterTestSuite(t *testing.T) {
-	suite.Run(t, new(HardBorrowAdapterTestSuite))
+	suite.Run(t, new(HardSupplyAdapterTestSuite))
 }
 
-func (suite *HardBorrowAdapterTestSuite) SetupTest() {
+func (suite *HardSupplyAdapterTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
 
@@ -125,7 +126,7 @@ func (suite *HardBorrowAdapterTestSuite) SetupTest() {
 	)
 }
 
-func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
+func (suite *HardSupplyAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 	hardKeeper := suite.app.GetHardKeeper()
 
 	// Need some deposits in order to borrow
@@ -133,7 +134,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100_000)),
 		),
 	)
 	suite.NoError(err)
@@ -142,7 +143,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(250_000)),
 		),
 	)
 	suite.NoError(err)
@@ -152,7 +153,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(10)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(40_000)),
 		),
 	)
 	suite.NoError(err)
@@ -161,7 +162,21 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(25)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(25_000)),
+		),
+	)
+	suite.NoError(err)
+
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(24 * time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+
+	err = hardKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(10_000)),
 		),
 	)
 	suite.NoError(err)
@@ -181,7 +196,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 				suite.denomA,
 			},
 			map[string]sdk.Dec{
-				suite.denomA: sdk.NewDecWithPrec(100, 0),
+				suite.denomA: sdk.NewDecWithPrec(100_000+10_000, 0),
 			},
 		},
 		{
@@ -192,7 +207,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 				"unknown",
 			},
 			map[string]sdk.Dec{
-				suite.denomA: sdk.NewDecWithPrec(250, 0),
+				suite.denomA: sdk.NewDecWithPrec(250_000, 0),
 				"unknown":    sdk.ZeroDec(),
 			},
 		},
@@ -217,7 +232,7 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 	}
 }
 
-func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
+func (suite *HardSupplyAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 	hardKeeper := suite.app.GetHardKeeper()
 
 	err := hardKeeper.Deposit(
