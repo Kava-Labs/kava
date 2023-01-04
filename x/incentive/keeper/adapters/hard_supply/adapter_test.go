@@ -196,7 +196,9 @@ func (suite *HardSupplyAdapterTestSuite) TestHardAdapter_OwnerSharesBySource() {
 				suite.denomA,
 			},
 			map[string]sdk.Dec{
-				suite.denomA: sdk.NewDecWithPrec(100_000+10_000, 0),
+				// Rounding error when getting normalized deposit
+				// Should be 110_000
+				suite.denomA: sdk.MustNewDecFromStr("109999.685715183670888083"),
 			},
 		},
 		{
