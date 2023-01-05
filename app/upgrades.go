@@ -17,7 +17,7 @@ import (
 
 const (
 	MainnetUpgradeName = "v0.20.0"
-	TestnetUpgradeName = "v0.20.0-alpha.0"
+	TestnetUpgradeName = "v0.20.0-alpha.1"
 )
 
 var (
@@ -35,7 +35,7 @@ func (app App) RegisterUpgradeHandlers() {
 	)
 	// register upgrade handler for testnet
 	app.upgradeKeeper.SetUpgradeHandler(TestnetUpgradeName,
-		CommunityPoolAndInflationUpgradeHandler(app, TestnetCommunityPoolInflation, TestnetStakingRewardsApy),
+		TestnetUpgradeHandler(app),
 	)
 
 	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -43,10 +43,11 @@ func (app App) RegisterUpgradeHandlers() {
 		panic(err)
 	}
 
-	doUpgrade := upgradeInfo.Name == MainnetUpgradeName || upgradeInfo.Name == TestnetUpgradeName
-	if doUpgrade && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+	// Mainnet upgrade
+	if upgradeInfo.Name == MainnetUpgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
+				communitytypes.ModuleName,
 				kavaminttypes.StoreKey,
 			},
 			Deleted: []string{
@@ -56,6 +57,26 @@ func (app App) RegisterUpgradeHandlers() {
 
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+
+	// Testnet upgrade
+	// the initial upgrade had a misconfigured store upgrade. the alpha.1 upgrade corrects that.
+	if upgradeInfo.Name == TestnetUpgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		storeUpgrades := storetypes.StoreUpgrades{
+			Added: []string{communitytypes.ModuleName},
+		}
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+// TestnetUpgradeHandler is the upgrade handler for testnet.
+// The first attempt at a testnet upgrade (v0.20.0-alpha.0) misconfigured the store upgrades
+// This handler is essentially a no-op because the main migration had already been run.
+// Only the store upgrades need to be made for alpha.1
+func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
+	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 	}
 }
 
