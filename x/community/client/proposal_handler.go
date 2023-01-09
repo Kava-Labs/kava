@@ -11,15 +11,21 @@ import (
 	"github.com/kava-labs/kava/x/community/types"
 )
 
-// community-pool deposit/withdraw lend proposal handlers
+// community-pool proposal handlers
 var (
+	// Deprecated: Use CommunityPoolProposal instead
 	LendDepositProposalHandler = govclient.NewProposalHandler(
 		cli.NewCmdSubmitCommunityPoolLendDepositProposal,
 		notImplementedRestHandler(types.ProposalTypeCommunityPoolLendDeposit),
 	)
+	// Deprecated: Use CommunityPoolProposal instead
 	LendWithdrawProposalHandler = govclient.NewProposalHandler(
 		cli.NewCmdSubmitCommunityPoolLendWithdrawProposal,
 		notImplementedRestHandler(types.ProposalTypeCommunityPoolLendDeposit),
+	)
+	ProposalHandler = govclient.NewProposalHandler(
+		cli.GetCmdSubmitCommunityPoolProposal,
+		notImplementedRestHandler(types.ProposalTypeCommunityPool),
 	)
 )
 

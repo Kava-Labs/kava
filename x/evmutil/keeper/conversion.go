@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/kava-labs/kava/x/evmutil/contract"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
@@ -138,10 +139,10 @@ func (k Keeper) UnlockERC20Tokens(
 	}
 	res, err := k.CallEVM(
 		ctx,
-		types.CustomERC20Contract.ABI, // abi
-		types.ModuleEVMAddress,        // from addr
-		pair.GetAddress(),             // contract addr
-		"transfer",                    // method
+		contract.CustomERC20Contract.ABI, // abi
+		types.ModuleEVMAddress,           // from addr
+		pair.GetAddress(),                // contract addr
+		"transfer",                       // method
 		// Transfer ERC20 args
 		receiver.Address,
 		amount,
@@ -188,10 +189,10 @@ func (k Keeper) LockERC20Tokens(
 
 	res, err := k.CallEVM(
 		ctx,
-		types.CustomERC20Contract.ABI, // abi
-		initiator.Address,             // from addr
-		contractAddr,                  // contract addr
-		"transfer",                    // method
+		contract.CustomERC20Contract.ABI, // abi
+		initiator.Address,                // from addr
+		contractAddr,                     // contract addr
+		"transfer",                       // method
 		// Transfer ERC20 args
 		types.ModuleEVMAddress,
 		amount,

@@ -36,6 +36,7 @@ import (
 	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/evmutil/contract"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/types"
 	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
@@ -218,7 +219,7 @@ func (suite *Suite) DeployERC20() types.InternalEVMAddress {
 		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(0))),
 	)
 
-	contractAddr, err := suite.Keeper.DeployTestERC20Contract(suite.Ctx, "USDC", "USDC")
+	contractAddr, err := DeployTestERC20Contract(suite.Ctx, suite.Keeper, "USDC", "USDC")
 	suite.Require().NoError(err)
 	suite.Require().Greater(len(contractAddr.Address), 0)
 	return contractAddr
@@ -232,7 +233,7 @@ func (suite *Suite) GetERC20BalanceOf(
 	// Query ERC20.balanceOf()
 	addr := common.BytesToAddress(suite.Key1.PubKey().Address())
 	res, err := suite.QueryContract(
-		types.CustomERC20Contract.ABI,
+		contract.CustomERC20Contract.ABI,
 		addr,
 		suite.Key1,
 		contractAddr,

@@ -20,6 +20,7 @@ func GetQueryCmd() *cobra.Command {
 
 	commands := []*cobra.Command{
 		GetCmdQueryBalance(),
+		GetCmdQueryParams(),
 	}
 
 	for _, cmd := range commands {
@@ -53,3 +54,27 @@ func GetCmdQueryBalance() *cobra.Command {
 		},
 	}
 }
+
+// GetCmdQueryParams implements a command to return the current community pool params.
+func GetCmdQueryParams() *cobra.Command {
+	return &cobra.Command{
+		Use:  "params",
+		Long: "Query the current community module parameters.",
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+}
+

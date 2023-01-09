@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/kava-labs/kava/x/evmutil/contract"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -70,7 +71,7 @@ func (suite *ERC20TestSuite) TestERC20Mint() {
 	// Query ERC20.balanceOf()
 	addr := common.BytesToAddress(suite.Key1.PubKey().Address())
 	res, err := suite.QueryContract(
-		types.CustomERC20Contract.ABI,
+		contract.CustomERC20Contract.ABI,
 		addr,
 		suite.Key1,
 		contractAddr,

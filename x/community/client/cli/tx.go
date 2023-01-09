@@ -21,6 +21,25 @@ const (
 	flagDeposit = "deposit"
 )
 
+const COMMUNITY_POOL_PROPOSAL_EXAMPLE = `
+{
+  "title": "A Title",
+  "description": "Community pool proposal description.",
+	// array of proto-JSON-encoded sdk.Msgs
+  "messages": [
+		{
+			"@type": "/kava.evmutil.v1beta1.MsgEVMCall",
+			"to": "0x25e9171C98Fc1924Fa9415CF50750274F0664764",
+			"fn_abi": "{\"inputs\": [],\"name\": \"deposit\",\"type\": \"function\"}",
+			"data": "0xd0e30db0",
+			"amount": "120000000000000",
+			"authority": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5",
+		}
+	],
+	"deposit": "10ukava"
+}
+`
+
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
 	communityTxCmd := &cobra.Command{
@@ -207,4 +226,44 @@ func parseInitialDeposit(cmd *cobra.Command) (sdk.Coins, error) {
 		return nil, fmt.Errorf("no initial deposit set, use --deposit flag")
 	}
 	return deposit, nil
+}
+
+// GetCmdSubmitCommunityPoolProposal implements the command to submit a community-pool proposal
+func GetCmdSubmitCommunityPoolProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "community-pool [proposal-file]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Submit a community pool proposal",
+		Long: strings.TrimSpace(fmt.Sprintf(`Submit a community pool proposal along with an initial deposit.
+The proposal details must be supplied via a JSON file.
+
+Example:
+$ %s tx gov submit-proposal community-pool <path/to/proposal.json> --from=<key_or_address>
+
+Where proposal.json contains:
+%s
+`, version.AppName, COMMUNITY_POOL_PROPOSAL_EXAMPLE)),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			proposal, deposit, err := utils.ParseCommunityPoolProposalJSON(clientCtx.Codec, args[0])
+			if err != nil {
+				return err
+			}
+
+			from := clientCtx.GetFromAddress()
+			msg, err := govtypes.NewMsgSubmitProposal(proposal, deposit, from)
+			if err != nil {
+				return err
+			}
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	return cmd
 }

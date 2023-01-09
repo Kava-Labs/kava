@@ -17,6 +17,8 @@ func NewCommunityPoolProposalHandler(k keeper.Keeper) govtypes.Handler {
 			return keeper.HandleCommunityPoolLendDepositProposal(ctx, k, c)
 		case *types.CommunityPoolLendWithdrawProposal:
 			return keeper.HandleCommunityPoolLendWithdrawProposal(ctx, k, c)
+		case *types.CommunityPoolProposal:
+			return keeper.HandleCommunityPoolProposal(ctx, k, c)
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized community proposal content type: %T", c)
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/kava-labs/kava/app"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
+	"github.com/kava-labs/kava/x/evmutil/contract"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -100,7 +101,7 @@ func (suite *MsgServerSuite) TestConvertCoinToERC20() {
 				suite.Require().NoError(err)
 
 				bal := suite.GetERC20BalanceOf(
-					types.CustomERC20Contract.ABI,
+					contract.CustomERC20Contract.ABI,
 					pair.GetAddress(),
 					testutil.MustNewInternalEVMAddressFromString(tc.msg.Receiver),
 				)
@@ -234,7 +235,7 @@ func (suite *MsgServerSuite) TestConvertERC20ToCoin() {
 
 				// validate user balance after conversion
 				bal := suite.GetERC20BalanceOf(
-					types.CustomERC20Contract.ABI,
+					contract.CustomERC20Contract.ABI,
 					pair.GetAddress(),
 					testutil.MustNewInternalEVMAddressFromString(tc.msg.Initiator),
 				)
@@ -563,7 +564,7 @@ func (suite *MsgServerSuite) TestEVMCall() {
 
 			// validate authority erc20 balance after msg
 			bal := suite.GetERC20BalanceOf(
-				types.CustomERC20Contract.ABI,
+				contract.CustomERC20Contract.ABI,
 				contractAddr,
 				authorityEvmAddr,
 			)

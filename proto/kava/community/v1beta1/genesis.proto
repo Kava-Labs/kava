@@ -1,0 +1,22 @@
+syntax = "proto3";
+package kava.community.v1beta1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/community/types";
+option (gogoproto.equal_all) = true;
+option (gogoproto.verbose_equal_all) = true;
+
+// GenesisState defines the community module's genesis state.
+message GenesisState {
+  option (gogoproto.goproto_getters) = false;
+
+  // params defines all the parameters of the module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// Params defines the community module params
+message Params {
+  // enabled_proposal_msg_urls defines the list of sdk.Msg type urls allowed to be included in a CommunityPoolProposal.
+  repeated string enabled_proposal_msg_urls = 1;
+}

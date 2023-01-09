@@ -49,6 +49,10 @@ func NewKeeper(
 	}
 }
 
+func (k Keeper) GetAccountKeeper() types.AccountKeeper {
+	return k.accountKeeper
+}
+
 // GetAuthority returns the x/evmutil module's authority.
 func (k Keeper) GetAuthority() string {
 	return k.authority

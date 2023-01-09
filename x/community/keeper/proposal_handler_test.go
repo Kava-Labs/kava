@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -283,8 +282,7 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 			beforeBalance := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
 
 			// run the proposals
-			for i, proposal := range tc.proposals {
-				fmt.Println("submitting proposal ", i, " ", suite.Ctx.ChainID())
+			for _, proposal := range tc.proposals {
 				err := keeper.HandleCommunityPoolLendWithdrawProposal(suite.Ctx, suite.Keeper, proposal)
 				if tc.expectedErr == "" {
 					suite.NoError(err)

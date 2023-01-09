@@ -24,3 +24,10 @@ func (s queryServer) Balance(c context.Context, _ *types.QueryBalanceRequest) (*
 		Coins: s.keeper.GetModuleAccountBalance(ctx),
 	}, nil
 }
+
+func (s queryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	return &types.QueryParamsResponse{
+		Params: s.keeper.GetParams(ctx),
+	}, nil
+}

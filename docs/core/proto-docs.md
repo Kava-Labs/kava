@@ -178,13 +178,21 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/community/v1beta1/genesis.proto](#kava/community/v1beta1/genesis.proto)
+    - [GenesisState](#kava.community.v1beta1.GenesisState)
+    - [Params](#kava.community.v1beta1.Params)
+  
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
     - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
+    - [CommunityPoolProposal](#kava.community.v1beta1.CommunityPoolProposal)
+    - [CommunityPoolProposalJSON](#kava.community.v1beta1.CommunityPoolProposalJSON)
   
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
+    - [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse)
   
     - [Query](#kava.community.v1beta1.Query)
   
@@ -2844,6 +2852,52 @@ Msg defines the committee Msg service
 
 
 
+<a name="kava/community/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/genesis.proto
+
+
+
+<a name="kava.community.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the community module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the parameters of the module. |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.Params"></a>
+
+### Params
+Params defines the community module params
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `enabled_proposal_msg_urls` | [string](#string) | repeated | enabled_proposal_msg_urls defines the list of sdk.Msg type urls allowed to be included in a CommunityPoolProposal. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/community/v1beta1/proposal.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -2879,6 +2933,41 @@ CommunityPoolLendWithdrawProposal withdraws a lend position back to the communit
 | `title` | [string](#string) |  |  |
 | `description` | [string](#string) |  |  |
 | `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.CommunityPoolProposal"></a>
+
+### CommunityPoolProposal
+CommunityPoolProposal defined a community pool proposal that accepts sdk.Messages
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.CommunityPoolProposalJSON"></a>
+
+### CommunityPoolProposalJSON
+CommunityPoolProposalJSON defined a CommunityPoolProposal with deposit.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
+| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 
@@ -2925,6 +3014,31 @@ QueryBalanceResponse defines the response type for querying x/community balance.
 
 
 
+
+<a name="kava.community.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest defines the request type for querying x/community parameters.
+
+
+
+
+
+
+<a name="kava.community.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/community parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.community.v1beta1.Params) |  |  |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2940,6 +3054,7 @@ Query defines the gRPC querier service for x/community.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
+| `Params` | [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse) | Params queries all parameters of x/community module. | GET|/kava/community/v1beta1/params|
 
  <!-- end services -->
 

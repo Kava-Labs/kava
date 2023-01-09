@@ -8,6 +8,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/testutil"
+	"github.com/kava-labs/kava/x/community/types"
 )
 
 type genesisTestSuite struct {
@@ -26,9 +27,10 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 	suite.SetupTest()
 
 	accountKeeper := suite.App.GetAccountKeeper()
+	gs := types.DefaultGenesisState()
 
 	suite.NotPanics(func() {
-		community.InitGenesis(suite.Ctx, suite.Keeper, accountKeeper)
+		community.InitGenesis(suite.Ctx, suite.Keeper, accountKeeper, gs)
 	})
 
 	// check for module account this way b/c GetModuleAccount creates if not existing.

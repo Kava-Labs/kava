@@ -934,7 +934,11 @@
       "votes": []
     },
     "community": {
-      "params": {}
+      "params": {
+        "enabled_proposal_msg_urls": [
+          "/kava.evmutil.v1beta1.MsgEVMCall"
+        ]
+      }
     },
     "crisis": {
       "constant_fee": {

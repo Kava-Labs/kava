@@ -80,9 +80,10 @@ func (k Keeper) CallEVMWithData(
 	}
 
 	transactionArgs := evmtypes.TransactionArgs{
-		From: &from,
-		To:   to,
-		Data: (*hexutil.Bytes)(&data),
+		From:  &from,
+		To:    to,
+		Data:  (*hexutil.Bytes)(&data),
+		Value: (*hexutil.Big)(amount),
 	}
 
 	args, err := json.Marshal(transactionArgs)

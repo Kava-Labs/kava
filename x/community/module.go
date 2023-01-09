@@ -41,8 +41,9 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // DefaultGenesis default genesis state
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return []byte("{}")
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	gs := types.DefaultGenesisState()
+	return cdc.MustMarshalJSON(gs)
 }
 
 // ValidateGenesis module validate genesis
@@ -127,8 +128,10 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // InitGenesis module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
-	InitGenesis(ctx, am.keeper, am.accountKeeper)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+	var genState types.GenesisState
+	cdc.MustUnmarshalJSON(gs, &genState)
+	InitGenesis(ctx, am.keeper, am.accountKeeper, &genState)
 	return []abci.ValidatorUpdate{}
 }
 

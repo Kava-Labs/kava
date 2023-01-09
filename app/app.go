@@ -179,6 +179,7 @@ var (
 			earnclient.WithdrawProposalHandler,
 			communityclient.LendDepositProposalHandler,
 			communityclient.LendWithdrawProposalHandler,
+			communityclient.ProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -408,6 +409,7 @@ func NewApp(
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 	kavamintSubspace := app.paramsKeeper.Subspace(kavaminttypes.ModuleName)
+	communitySubspace := app.paramsKeeper.Subspace(communitytypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -613,9 +615,11 @@ func NewApp(
 
 	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
 	app.communityKeeper = communitykeeper.NewKeeper(
+		communitySubspace,
 		app.accountKeeper,
 		app.bankKeeper,
 		hardKeeper,
+		app.BaseApp.MsgServiceRouter(),
 	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
