@@ -14,7 +14,7 @@ const year = 365 * 24 * time.Hour
 
 // EarliestValidAccumulationTime is how far behind the genesis time an accumulation time can be for it to be valid.
 // It's a safety check to ensure rewards aren't accidentally accumulated for many years on the first block (eg since Jan 1970).
-var EarliestValidAccumulationTime time.Duration = year
+var EarliestValidAccumulationTime time.Duration = 3 * year
 
 // InitGenesis initializes the store state from a genesis state.
 func InitGenesis(
