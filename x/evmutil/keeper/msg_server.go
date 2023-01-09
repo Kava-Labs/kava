@@ -107,7 +107,7 @@ func (s msgServer) ConvertERC20ToCoin(
 	return &types.MsgConvertERC20ToCoinResponse{}, nil
 }
 
-// MsgEVMCall executes the msg data again the go-ethereum EVM.
+// MsgEVMCall executes the msg data against the go-ethereum EVM.
 func (k msgServer) EVMCall(goCtx context.Context, msg *types.MsgEVMCall) (*types.MsgEVMCallResponse, error) {
 	expMsgAuthority := k.keeper.GetAuthority()
 	if expMsgAuthority != msg.Authority {
@@ -149,6 +149,7 @@ func (k msgServer) EVMCall(goCtx context.Context, msg *types.MsgEVMCall) (*types
 		amt,
 	)
 	if err != nil {
+		ctx.Logger().Debug("EVMCall failed with params: (%s, %s, %s, %d) - %w", authorityAddr, toAddr, msgData, amt, err)
 		return nil, fmt.Errorf("evm call failed: %w", err)
 	}
 
