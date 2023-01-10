@@ -45,7 +45,6 @@ message QueryParamsRequest {}
 // QueryParamsResponse defines the response type for querying x/community parameters.
 message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
-
 }
 
 // QueryLegacyCommunityPoolRequest defines the request type for querying the legacy community pool balance.
