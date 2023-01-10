@@ -212,11 +212,12 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 
 	contractAddr := "0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3"
 	authority := "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w"
-	validParams := make([]interface{}, 2)
 	validAddr := common.HexToAddress("0x71586E5B3468B5720BAa9162A02366Fae6933BfE")
 	validAmt := int64(10)
-	validParams[0] = validAddr
-	validParams[1] = sdk.NewInt(validAmt).BigInt()
+	validParams := []string{
+		"0x71586E5B3468B5720BAa9162A02366Fae6933BfE",
+		"10",
+	}
 	validFnAbi := `{
 		"inputs": [
 			{ "type": "address", "name": "to" },
@@ -230,7 +231,7 @@ func TestMsgEVMCall_ValidateAndDecode(t *testing.T) {
 	tests := []struct {
 		name    string
 		msg     types.MsgEVMCall
-		params  []interface{}
+		params  []string
 		errArgs errArgs
 	}{
 		{

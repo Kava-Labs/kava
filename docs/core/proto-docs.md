@@ -186,7 +186,6 @@
     - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
     - [CommunityPoolProposal](#kava.community.v1beta1.CommunityPoolProposal)
-    - [CommunityPoolProposalJSON](#kava.community.v1beta1.CommunityPoolProposalJSON)
   
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
@@ -2950,24 +2949,6 @@ CommunityPoolProposal defined a community pool proposal that accepts sdk.Message
 | `title` | [string](#string) |  |  |
 | `description` | [string](#string) |  |  |
 | `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
-
-
-
-
-
-
-<a name="kava.community.v1beta1.CommunityPoolProposalJSON"></a>
-
-### CommunityPoolProposalJSON
-CommunityPoolProposalJSON defined a CommunityPoolProposal with deposit.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `title` | [string](#string) |  |  |
-| `description` | [string](#string) |  |  |
-| `messages` | [google.protobuf.Any](#google.protobuf.Any) | repeated |  |
-| `deposit` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
 
 
 

@@ -204,7 +204,7 @@ func (msg MsgEVMCall) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{authority}
 }
 
-func (action MsgEVMCall) Decode() ([]interface{}, error) {
+func (action MsgEVMCall) Decode() ([]string, error) {
 	if len(action.FnAbi) == 0 {
 		return nil, errors.New("cannot decode MsgEVMCall: empty fnAbi")
 	}
@@ -243,5 +243,10 @@ func (action MsgEVMCall) Decode() ([]interface{}, error) {
 		return nil, fmt.Errorf("invalid call data: call data does not match unpacked data")
 	}
 
-	return val, nil
+	strVals := make([]string, len(val))
+	for i, v := range val {
+		strVals[i] = fmt.Sprintf("%s", v)
+	}
+
+	return strVals, nil
 }

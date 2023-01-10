@@ -13,7 +13,7 @@ var (
 	KeyStakingRewardsApy      = []byte("StakingRewardsApy")
 
 	// default inflation values are zero
-	DefaultCommunityPoolInflation = sdk.ZeroDec()
+	DefaultCommunityPoolInflation = sdk.MustNewDecFromStr("0.4")
 	DefaultStakingRewardsApy      = sdk.ZeroDec()
 
 	// MaxMintingRate returns the per second rate equivalent to 10,000% per year
