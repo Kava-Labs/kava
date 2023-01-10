@@ -299,7 +299,7 @@ func (suite *proposalHandlerTestSuite) TestHandleCommunityPoolProposal_EVMCall()
 			sdk.NewInt(1000),
 			errArgs{
 				expectPass: false,
-				contains:   "invalid authority; expected",
+				contains:   "failed on execution: invalid signer",
 			},
 		},
 		{
@@ -335,7 +335,7 @@ func (suite *proposalHandlerTestSuite) TestHandleCommunityPoolProposal_EVMCall()
 			sdk.NewInt(1000),
 			errArgs{
 				expectPass: false,
-				contains:   "invalid authority address: decoding bech32 failed",
+				contains:   "failed on execution: invalid signer",
 			},
 		},
 		{
