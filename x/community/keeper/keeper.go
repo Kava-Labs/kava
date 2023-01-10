@@ -14,21 +14,27 @@ import (
 
 // Keeper of the community store
 type Keeper struct {
-	bankKeeper    types.BankKeeper
-	hardKeeper    types.HardKeeper
-	moduleAddress sdk.AccAddress
-	paramSubspace paramtypes.Subspace
+	bankKeeper                 types.BankKeeper
+	distrKeeper                types.DistributionKeeper
+	hardKeeper                 types.HardKeeper
+	moduleAddress              sdk.AccAddress
+	paramSubspace              paramtypes.Subspace
+	legacyCommunityPoolAddress sdk.AccAddress
 
 	// Msg server router
 	router *baseapp.MsgServiceRouter
 }
 
 // NewKeeper creates a new community Keeper instance
-func NewKeeper(params paramtypes.Subspace, ak types.AccountKeeper, bk types.BankKeeper, hk types.HardKeeper, router *baseapp.MsgServiceRouter) Keeper {
+func NewKeeper(params paramtypes.Subspace, ak types.AccountKeeper, bk types.BankKeeper, dk types.DistributionKeeper, hk types.HardKeeper, router *baseapp.MsgServiceRouter) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
 	if addr == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleAccountName))
+	}
+	legacyAddr := ak.GetModuleAddress(types.LegacyCommunityPoolModuleName)
+	if addr == nil {
+		panic("legacy community pool address not found")
 	}
 
 	if !params.HasKeyTable() {
@@ -36,11 +42,13 @@ func NewKeeper(params paramtypes.Subspace, ak types.AccountKeeper, bk types.Bank
 	}
 
 	return Keeper{
-		bankKeeper:    bk,
-		hardKeeper:    hk,
-		moduleAddress: addr,
-		router:        router,
-		paramSubspace: params,
+		bankKeeper:                 bk,
+		distrKeeper:                dk,
+		hardKeeper:                 hk,
+		moduleAddress:              addr,
+		router:                     router,
+		paramSubspace:              params,
+		legacyCommunityPoolAddress: legacyAddr,
 	}
 }
 

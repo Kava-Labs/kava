@@ -31,7 +31,7 @@ func (suite *KavamintTestSuite) SetupTest() {
 	suite.Keeper = suite.App.GetKavamintKeeper()
 	suite.StakingKeeper = suite.App.GetStakingKeeper()
 
-	suite.BondDenom = suite.Keeper.BondDenom(suite.Ctx)
+	suite.BondDenom = suite.StakingKeeper.BondDenom(suite.Ctx)
 }
 
 // SetBondedTokenRatio mints the total supply to an account and creates a validator with a self

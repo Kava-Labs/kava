@@ -1,0 +1,45 @@
+name: Metric Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      aws-region:
+        required: true
+        type: string
+      metric-name:
+        required: true
+        type: string
+      namespace:
+        required: true
+        type: string
+    secrets:
+      CI_AWS_KEY_ID:
+        required: true
+      CI_AWS_KEY_SECRET:
+        required: true
+
+jobs:
+  metric-pipeline-result:
+    runs-on: ubuntu-latest
+    if: always() # always run to capture workflow success or failure
+    steps:
+      # Make sure the secrets are stored in you repo settings
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.CI_AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.CI_AWS_KEY_SECRET }}
+          aws-region: ${{ inputs.aws-region }}
+      - name: Calculate Pipleline Success
+        # run this action to get the workflow conclusion
+        # You can get the conclusion via env (env.WORKFLOW_CONCLUSION)
+        # values: neutral, success, skipped, cancelled, timed_out,
+        # action_required, failure
+        uses: technote-space/workflow-conclusion-action@v3
+      - name: Metric Pipleline Success
+        # replace TAG by the latest tag in the repository
+        uses: ros-tooling/action-cloudwatch-metrics@0.0.5
+        with:
+          metric-value: ${{ env.WORKFLOW_CONCLUSION == 'success' }}
+          metric-name: ${{ inputs.metric-name }}
+          namespace: ${{ inputs.namespace }}

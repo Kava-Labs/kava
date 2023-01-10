@@ -23,19 +23,35 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: "1.18"
           check-latest: true
           cache: true
       - name: set build tag
         run: echo "BUILD_TAG=$(date +%s)-$(git rev-parse HEAD | cut -c 1-8)" >> $GITHUB_ENV
       - name: build rocksdb dependency
-        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
         env:
           ROCKSDB_VERSION: v7.7.3
       - name: Build and upload release artifacts
-        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/publish-internal-release-artifacts.sh
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/publish-internal-release-artifacts.sh
         env:
           BUILD_TAG: ${{ env.BUILD_TAG }}
           AWS_REGION: us-east-1
           AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
+  docker:
+    # only run if all checks pass
+    needs: [lint-checks, default-checks]
+    uses: ./.github/workflows/ci-docker.yml
+    with:
+      dockerhub-username: kavaops
+    secrets: inherit
+  post-pipeline-metrics:
+    uses: ./.github/workflows/metric-pipeline.yml
+    if: always() # always run so we metric failures and successes
+    with:
+      aws-region: us-east-1
+      metric-name: kava.releases.merge
+      namespace: Kava/ContinuousIntegration
+    secrets: inherit
+    needs: [publish-internal]

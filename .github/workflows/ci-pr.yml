@@ -9,3 +9,12 @@ on:
 jobs:
   default:
     uses: ./.github/workflows/ci-default.yml
+  post-pipeline-metrics:
+    uses: ./.github/workflows/metric-pipeline.yml
+    if: always() # always run so we metric failures and successes
+    with:
+      aws-region: us-east-1
+      metric-name: kava.releases.pr
+      namespace: Kava/ContinuousIntegration
+    secrets: inherit
+    needs: [default]

@@ -66,8 +66,8 @@ func (mq MintQueryServer) Inflation(
 	ctx := sdk.UnwrapSDKContext(c)
 
 	stakingApy := mq.keeper.GetParams(ctx).StakingRewardsApy
-	totalBonded := mq.keeper.TotalBondedTokens(ctx)
-	totalSupply := mq.keeper.TotalSupply(ctx)
+	totalBonded := mq.keeper.totalBondedTokens(ctx)
+	totalSupply := mq.keeper.totalSupply(ctx)
 
 	// inflation = staking_apy * total_bonded / total_supply
 	inflation := stakingApy.MulInt(totalBonded).QuoInt(totalSupply)

@@ -47,3 +47,12 @@ jobs:
       erc20-deployer-network-name: internal_testnet
     secrets: inherit
     needs: [start-chain-api]
+  post-pipeline-metrics:
+    uses: ./.github/workflows/metric-pipeline.yml
+    if: always() # always run so we metric failures and successes
+    with:
+      aws-region: us-east-1
+      metric-name: kava.deploys.testnet.internal
+      namespace: Kava/ContinuousDeployment
+    secrets: inherit
+    needs: [seed-chain-state]
