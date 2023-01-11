@@ -27,9 +27,6 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	for _, rp := range params.SwapRewardPeriods {
 		k.AccumulateSwapRewards(ctx, rp)
 	}
-	for _, rp := range params.SavingsRewardPeriods {
-		k.AccumulateSavingsRewards(ctx, rp)
-	}
 	for _, rp := range params.EarnRewardPeriods {
 		if err := k.AccumulateEarnRewards(ctx, rp); err != nil {
 			panic(fmt.Sprintf("failed to accumulate earn rewards: %s", err))
