@@ -22,7 +22,7 @@ type Keeper struct {
 	accountKeeper types.AccountKeeper
 
 	// the addresses capable of executing a MsgEVMCall message. Typically, this
-	// should be a module account that has governance capabilities (ie x/community).
+	// should be module accounts that have governance capabilities (ie x/community).
 	authorities []string
 }
 
