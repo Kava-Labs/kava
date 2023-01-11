@@ -33,6 +33,8 @@ import (
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
 	routertypes "github.com/kava-labs/kava/x/router/types"
+	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
+	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
@@ -153,6 +155,8 @@ func (suite *IntegrationTester) DeliverIncentiveMsg(msg sdk.Msg) error {
 		_, err = msgServer.ClaimDelegatorReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	case *types.MsgClaimEarnReward:
 		_, err = msgServer.ClaimEarnReward(sdk.WrapSDKContext(suite.Ctx), msg)
+	case *types.MsgClaimSavingsReward:
+		_, err = msgServer.ClaimSavingsReward(sdk.WrapSDKContext(suite.Ctx), msg)
 	default:
 		panic("unhandled incentive msg")
 	}
@@ -329,6 +333,14 @@ func (suite *IntegrationTester) DeliverEarnMsgDeposit(
 	return err
 }
 
+func (suite *IntegrationTester) DeliverSavingsMsgDeposit(owner sdk.AccAddress, deposit sdk.Coins) error {
+	msg := savingstypes.NewMsgDeposit(owner, deposit)
+	msgServer := savingskeeper.NewMsgServerImpl(suite.App.GetSavingsKeeper())
+
+	_, err := msgServer.Deposit(sdk.WrapSDKContext(suite.Ctx), &msg)
+	return err
+}
+
 func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, committeeID uint64, changes []proposaltypes.ParamChange) {
 	propose, err := committeetypes.NewMsgSubmitProposal(
 		proposaltypes.NewParameterChangeProposal(
@@ -440,7 +452,7 @@ func (suite *IntegrationTester) EarnRewardEquals(owner sdk.AccAddress, expected 
 func (suite *IntegrationTester) RewardEquals(claimType types.ClaimType, owner sdk.AccAddress, expected sdk.Coins) {
 	claim, found := suite.App.GetIncentiveKeeper().Store.GetClaim(suite.Ctx, claimType, owner)
 	suite.Require().Truef(found, "expected claim to be found for %s", owner)
-	suite.Truef(expected.IsEqual(claim.Reward), "expected earn reward to be %s, but got %s", expected, claim.Reward)
+	suite.Truef(expected.IsEqual(claim.Reward), "expected reward to be %s, but got %s", expected, claim.Reward)
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.

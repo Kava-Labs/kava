@@ -136,10 +136,6 @@ func (suite *unitTester) storeSwapClaim(claim types.SwapClaim) {
 	suite.keeper.SetSwapClaim(suite.ctx, claim)
 }
 
-func (suite *unitTester) storeSavingsClaim(claim types.SavingsClaim) {
-	suite.keeper.SetSavingsClaim(suite.ctx, claim)
-}
-
 func (suite *unitTester) storeEarnClaim(claim types.EarnClaim) {
 	suite.keeper.SetEarnClaim(suite.ctx, claim)
 }

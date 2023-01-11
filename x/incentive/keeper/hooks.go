@@ -171,14 +171,49 @@ func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, deposit
 
 // ------------------- Savings Module Hooks -------------------
 
-// AfterSavingsDepositCreated function that runs after a deposit is created
-func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, deposit savingstypes.Deposit) {
-	// h.k.InitializeSavingsReward(ctx, deposit)
+// AfterSavingsDepositCreated function that runs after a deposit is created.
+// There is only 1 savings Deposit object per account, so all of the Deposit
+// coins passed in are new and should be initialized.
+func (h Hooks) AfterSavingsDepositCreated(ctx sdk.Context, addr sdk.AccAddress, depositCoins sdk.Coins) {
+	for _, coin := range depositCoins {
+		h.k.SynchronizeClaim(
+			ctx,
+			types.CLAIM_TYPE_SAVINGS,
+			coin.Denom,
+			addr,
+			coin.Amount.ToDec(),
+		)
+	}
 }
 
-// BeforeSavingsDepositModified function that runs before a deposit is modified
-func (h Hooks) BeforeSavingsDepositModified(ctx sdk.Context, deposit savingstypes.Deposit, incomingDenoms []string) {
-	// h.k.SynchronizeSavingsReward(ctx, deposit, incomingDenoms)
+// BeforeSavingsDepositModified function that runs before a deposit is modified.
+// This may include a mix of new and old coins, so we need to sync the old coins
+// and initialize the new coins.
+func (h Hooks) BeforeSavingsDepositModified(
+	ctx sdk.Context,
+	addr sdk.AccAddress,
+	depositCoins sdk.Coins,
+	newDenoms []string,
+) {
+	for _, coin := range depositCoins {
+		h.k.SynchronizeClaim(
+			ctx,
+			types.CLAIM_TYPE_SAVINGS,
+			coin.Denom,
+			addr,
+			coin.Amount.ToDec(),
+		)
+	}
+
+	// New coins are not included in deposit, initialized separately
+	for _, denom := range newDenoms {
+		h.k.InitializeClaim(
+			ctx,
+			types.CLAIM_TYPE_SAVINGS,
+			denom,
+			addr,
+		)
+	}
 }
 
 // ------------------- Earn Module Hooks -------------------

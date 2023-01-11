@@ -34,7 +34,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case types.QueryGetSwapRewards:
 			return queryGetSwapRewards(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetSavingsRewards:
-			return queryGetSavingsRewards(ctx, req, k, legacyQuerierCdc)
+			// TODO: Removed to be replaced with updated queries for new store claims
+			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "query for %s is not supported", types.QueryGetSavingsRewards)
 		case types.QueryGetRewardFactors:
 			return queryGetRewardFactors(ctx, req, k, legacyQuerierCdc)
 		case types.QueryGetEarnRewards:
@@ -213,51 +214,6 @@ func queryGetSwapRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 	if !params.Unsynchronized {
 		for i, claim := range paginatedClaims {
 			syncedClaim, found := k.GetSynchronizedSwapClaim(ctx, claim.Owner)
-			if !found {
-				panic("previously found claim should still be found")
-			}
-			paginatedClaims[i] = syncedClaim
-		}
-	}
-
-	// Marshal claims
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, paginatedClaims)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return bz, nil
-}
-
-func queryGetSavingsRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	var params types.QueryRewardsParams
-	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-	owner := len(params.Owner) > 0
-
-	var claims types.SavingsClaims
-	switch {
-	case owner:
-		claim, found := k.GetSavingsClaim(ctx, params.Owner)
-		if found {
-			claims = append(claims, claim)
-		}
-	default:
-		claims = k.GetAllSavingsClaims(ctx)
-	}
-
-	var paginatedClaims types.SavingsClaims
-	startH, endH := client.Paginate(len(claims), params.Page, params.Limit, 100)
-	if startH < 0 || endH < 0 {
-		paginatedClaims = types.SavingsClaims{}
-	} else {
-		paginatedClaims = claims[startH:endH]
-	}
-
-	if !params.Unsynchronized {
-		for i, claim := range paginatedClaims {
-			syncedClaim, found := k.GetSynchronizedSavingsClaim(ctx, claim.Owner)
 			if !found {
 				panic("previously found claim should still be found")
 			}

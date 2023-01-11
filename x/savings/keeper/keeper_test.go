@@ -108,6 +108,19 @@ func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }
 
+func (suite *KeeperTestSuite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
+	_, addrs := app.GeneratePrivKeyAddressPairs(1)
+	ak := suite.app.GetAccountKeeper()
+
+	acc := ak.NewAccountWithAddress(suite.ctx, addrs[0])
+	ak.SetAccount(suite.ctx, acc)
+
+	err := suite.app.FundAccount(suite.ctx, acc.GetAddress(), initialBalance)
+	suite.Require().NoError(err)
+
+	return acc
+}
+
 // CreateAccount creates a new account from the provided balance and address
 func (suite *KeeperTestSuite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins) authtypes.AccountI {
 	ak := suite.app.GetAccountKeeper()
