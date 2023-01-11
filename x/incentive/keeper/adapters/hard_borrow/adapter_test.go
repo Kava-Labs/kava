@@ -379,9 +379,9 @@ func (suite *HardBorrowAdapterTestSuite) TestHardAdapter_TotalSharesBySource_Int
 		{
 			"total shares",
 			suite.denomA,
-			// 40_000 + 25_000 + 1_000 + interest
-			// 66_000 + interest
-			sdk.NewDecWithPrec(66002, 0),
+			// 40_000 + 25_000 + 1_000
+			// ~ 66_000 with some minor precision error after normalizing
+			sdk.MustNewDecFromStr("65999.085238489179768533"),
 		},
 		{
 			"empty or invalid denom empty",
