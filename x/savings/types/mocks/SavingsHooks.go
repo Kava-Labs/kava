@@ -3,7 +3,6 @@
 package mocks
 
 import (
-	savingstypes "github.com/kava-labs/kava/x/savings/types"
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/cosmos/cosmos-sdk/types"
@@ -14,14 +13,14 @@ type SavingsHooks struct {
 	mock.Mock
 }
 
-// AfterSavingsDepositCreated provides a mock function with given fields: ctx, deposit
-func (_m *SavingsHooks) AfterSavingsDepositCreated(ctx types.Context, deposit savingstypes.Deposit) {
-	_m.Called(ctx, deposit)
+// AfterSavingsDepositCreated provides a mock function with given fields: ctx, addr, depositCoins
+func (_m *SavingsHooks) AfterSavingsDepositCreated(ctx types.Context, addr types.AccAddress, depositCoins types.Coins) {
+	_m.Called(ctx, addr, depositCoins)
 }
 
-// BeforeSavingsDepositModified provides a mock function with given fields: ctx, deposit, newDenoms
-func (_m *SavingsHooks) BeforeSavingsDepositModified(ctx types.Context, deposit savingstypes.Deposit, newDenoms []string) {
-	_m.Called(ctx, deposit, newDenoms)
+// BeforeSavingsDepositModified provides a mock function with given fields: ctx, addr, depositCoins, newDenoms
+func (_m *SavingsHooks) BeforeSavingsDepositModified(ctx types.Context, addr types.AccAddress, depositCoins types.Coins, newDenoms []string) {
+	_m.Called(ctx, addr, depositCoins, newDenoms)
 }
 
 type mockConstructorTestingTNewSavingsHooks interface {

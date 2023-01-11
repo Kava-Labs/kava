@@ -27,7 +27,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	}
 
 	// No new denoms when withdrawing
-	k.BeforeSavingsDepositModified(ctx, deposit, nil)
+	k.BeforeSavingsDepositModified(ctx, deposit.Depositor, deposit.Amount, nil)
 
 	deposit.Amount = deposit.Amount.Sub(amount)
 	if deposit.Amount.Empty() {

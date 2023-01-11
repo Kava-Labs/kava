@@ -23,7 +23,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	if foundDeposit {
 		// Call hook with the deposit before it is modified
 		newDenoms := setDifference(getDenoms(coins), getDenoms(deposit.Amount))
-		k.BeforeSavingsDepositModified(ctx, deposit, newDenoms)
+		k.BeforeSavingsDepositModified(ctx, deposit.Depositor, deposit.Amount, newDenoms)
 
 		// Update existing deposit with new coins
 		deposit.Amount = deposit.Amount.Add(coins...)
@@ -35,7 +35,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 	k.SetDeposit(ctx, deposit)
 
 	if !foundDeposit {
-		k.AfterSavingsDepositCreated(ctx, deposit)
+		k.AfterSavingsDepositCreated(ctx, deposit.Depositor, deposit.Amount)
 	}
 
 	ctx.EventManager().EmitEvent(
