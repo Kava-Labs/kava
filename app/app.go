@@ -500,7 +500,9 @@ func NewApp(
 		evmutilSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
-		authtypes.NewModuleAddress(communitytypes.ModuleAccountName).String(),
+		[]string{
+			authtypes.NewModuleAddress(communitytypes.ModuleAccountName).String(),
+		},
 	)
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
