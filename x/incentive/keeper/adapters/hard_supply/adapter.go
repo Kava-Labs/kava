@@ -26,7 +26,16 @@ func (f SourceAdapter) TotalSharesBySource(ctx sdk.Context, sourceID string) sdk
 		return sdk.ZeroDec()
 	}
 
-	return coins.AmountOf(sourceID).ToDec()
+	totalSupplied := coins.AmountOf(sourceID).ToDec()
+
+	interestFactor, found := f.keeper.GetSupplyInterestFactor(ctx, sourceID)
+	if !found {
+		// assume nothing has been borrowed so the factor starts at it's default value
+		interestFactor = sdk.OneDec()
+	}
+
+	// return supplied/factor to get the "pre interest" value of the current total supplied
+	return totalSupplied.Quo(interestFactor)
 }
 
 func (f SourceAdapter) OwnerSharesBySource(

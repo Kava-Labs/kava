@@ -241,7 +241,7 @@ func (suite *HardSupplyAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(100)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(100_000)),
 		),
 	)
 	suite.NoError(err)
@@ -250,17 +250,17 @@ func (suite *HardSupplyAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(250)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(250_000)),
 		),
 	)
 	suite.NoError(err)
 
-	// Borrows should not affect total shares
+	// Borrows should not affect owner shares
 	err = hardKeeper.Borrow(
 		suite.ctx,
 		suite.addrs[0],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(10)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(40_000)),
 		),
 	)
 	suite.NoError(err)
@@ -269,7 +269,21 @@ func (suite *HardSupplyAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		suite.ctx,
 		suite.addrs[1],
 		sdk.NewCoins(
-			sdk.NewCoin(suite.denomA, sdk.NewInt(25)),
+			sdk.NewCoin(suite.denomA, sdk.NewInt(25_000)),
+		),
+	)
+	suite.NoError(err)
+
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(24 * time.Hour))
+	hard.BeginBlocker(suite.ctx, hardKeeper)
+
+	err = hardKeeper.Deposit(
+		suite.ctx,
+		suite.addrs[0],
+		sdk.NewCoins(
+			sdk.NewCoin(suite.denomA, sdk.NewInt(10_000)),
 		),
 	)
 	suite.NoError(err)
@@ -284,7 +298,8 @@ func (suite *HardSupplyAdapterTestSuite) TestHardAdapter_TotalSharesBySource() {
 		{
 			"total shares",
 			suite.denomA,
-			sdk.NewDecWithPrec(350, 0),
+			// Approx 360_000 after normalization
+			sdk.MustNewDecFromStr("359999.971428653060939826"),
 		},
 		{
 			"empty or invalid denom empty",
