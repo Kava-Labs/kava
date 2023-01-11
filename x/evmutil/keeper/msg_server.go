@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"golang.org/x/exp/slices"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -109,9 +111,14 @@ func (s msgServer) ConvertERC20ToCoin(
 
 // MsgEVMCall executes the msg data against the go-ethereum EVM.
 func (k msgServer) EVMCall(goCtx context.Context, msg *types.MsgEVMCall) (*types.MsgEVMCallResponse, error) {
-	expMsgAuthority := k.keeper.GetAuthority()
-	if expMsgAuthority != msg.Authority {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidSigner, "invalid authority; expected %s, got %s", expMsgAuthority, msg.Authority)
+	allowedAuthorities := k.keeper.GetAuthorities()
+	if !slices.Contains(allowedAuthorities, msg.Authority) {
+		return nil, sdkerrors.Wrapf(
+			types.ErrInvalidSigner,
+			"invalid authority; expected %s; got %s",
+			strings.Join(allowedAuthorities, ", "),
+			msg.Authority,
+		)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
@@ -131,7 +138,7 @@ func (k msgServer) EVMCall(goCtx context.Context, msg *types.MsgEVMCall) (*types
 	if err != nil {
 		return nil, fmt.Errorf("unable to decode msg data: %w", err)
 	}
-	authorityAddr, err := sdk.AccAddressFromBech32(expMsgAuthority)
+	authorityAddr, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		return nil, fmt.Errorf("invalid authority address: %w", err)
 	}

@@ -403,7 +403,7 @@ func (suite *MsgServerSuite) TestEVMCall() {
 			sdk.NewInt(1000),
 			errArgs{
 				expectPass: false,
-				contains:   "invalid authority;",
+				contains:   fmt.Sprintf("invalid authority; expected %s; got %s", authorityAddr, userAddr.String()),
 			},
 		},
 		{
