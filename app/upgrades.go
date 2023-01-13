@@ -1,8 +1,6 @@
 package app
 
 import (
-	"time"
-
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -132,7 +130,7 @@ func DisableCommunityTax(ctx sdk.Context, distrKeeper distrkeeper.Keeper) {
 
 // LowerKavadistInflation adjusts the kavadist module inflation
 func LowerKavadistInflation(ctx sdk.Context, kavadistKeeper kavadistkeeper.Keeper) {
-	now := time.Now()
+	now := ctx.BlockTime()
 	params := kavadistKeeper.GetParams(ctx)
 	// lower current core infra inflation: 25% -> 13.4%
 	for i, p := range params.InfrastructureParams.InfrastructurePeriods {
