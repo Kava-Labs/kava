@@ -11,6 +11,7 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	communitytypes "github.com/kava-labs/kava/x/community/types"
+	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavamintkeeper "github.com/kava-labs/kava/x/kavamint/keeper"
 	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
 )
@@ -72,6 +73,10 @@ func CommunityPoolAndInflationUpgradeHandler(app App, communityPoolInflation, st
 		app.Logger().Info("disabling x/distribution community tax")
 		DisableCommunityTax(ctx, app.distrKeeper)
 
+		// lower kavadist inflation
+		app.Logger().Info("adjusting x/kavadist inflation")
+		LowerKavadistInflation(ctx, app.kavadistKeeper)
+
 		vm, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		if err != nil {
 			return vm, err
@@ -121,6 +126,25 @@ func DisableCommunityTax(ctx sdk.Context, distrKeeper distrkeeper.Keeper) {
 	params := distrKeeper.GetParams(ctx)
 	params.CommunityTax = sdk.ZeroDec()
 	distrKeeper.SetParams(ctx, params)
+}
+
+// LowerKavadistInflation adjusts the kavadist module inflation
+func LowerKavadistInflation(ctx sdk.Context, kavadistKeeper kavadistkeeper.Keeper) {
+	now := ctx.BlockTime()
+	params := kavadistKeeper.GetParams(ctx)
+	// lower current core infra inflation: 25% -> 13.4%
+	for i, p := range params.InfrastructureParams.InfrastructurePeriods {
+		if p.Start.Before(now) && now.Before(p.End) {
+			params.InfrastructureParams.InfrastructurePeriods[i].Inflation = sdk.MustNewDecFromStr("1.000000003987544570")
+		}
+	}
+	// lower current incentive pool inflation: 3.75% -> 2%
+	for i, p := range params.Periods {
+		if p.Start.Before(now) && now.Before(p.End) {
+			params.Periods[i].Inflation = sdk.MustNewDecFromStr("1.000000000627937192")
+		}
+	}
+	kavadistKeeper.SetParams(ctx, params)
 }
 
 // InitializeKavamintState sets up the parameters and state of x/kavamint.
