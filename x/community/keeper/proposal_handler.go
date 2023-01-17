@@ -23,7 +23,6 @@ func HandleCommunityPoolLendWithdrawProposal(ctx sdk.Context, k Keeper, p *types
 // HandleCommunityPoolProposal is a handler for executing a passed community pool proposal
 func HandleCommunityPoolProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolProposal) error {
 	logger := k.Logger(ctx)
-	logger.Info("CommunityPoolProposal msg processing")
 
 	// attempt to execute all messages within the passed proposal
 	// Messages may mutate state thus we use a cached context. If one of
@@ -49,7 +48,6 @@ func HandleCommunityPoolProposal(ctx sdk.Context, k Keeper, p *types.CommunityPo
 
 		handler := k.Router().Handler(msg)
 		_, err := handler(cacheCtx, msg)
-		logger.Info("CommunityPoolProposal msg process one msg")
 
 		// fail proposal if any message failed to execute
 		if err != nil {
@@ -59,8 +57,6 @@ func HandleCommunityPoolProposal(ctx sdk.Context, k Keeper, p *types.CommunityPo
 
 	// write state to the underlying multi-store
 	writeCache()
-
-	logger.Info("CommunityPoolProposal msg processing success")
 
 	return nil
 }
