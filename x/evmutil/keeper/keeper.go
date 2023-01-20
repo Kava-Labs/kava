@@ -21,9 +21,9 @@ type Keeper struct {
 	evmKeeper     types.EvmKeeper
 	accountKeeper types.AccountKeeper
 
-	// the address capable of executing a MsgEVMCall message. Typically, this
-	// should be the x/community module account.
-	authority string
+	// the addresses capable of executing a MsgEVMCall message. Typically, this
+	// should be module accounts that have governance capabilities (ie x/community).
+	authorities []string
 }
 
 // NewKeeper creates an evmutil keeper.
@@ -33,7 +33,7 @@ func NewKeeper(
 	params paramtypes.Subspace,
 	bk types.BankKeeper,
 	ak types.AccountKeeper,
-	authority string,
+	authorities []string,
 ) Keeper {
 	if !params.HasKeyTable() {
 		params = params.WithKeyTable(types.ParamKeyTable())
@@ -45,7 +45,7 @@ func NewKeeper(
 		paramSubspace: params,
 		bankKeeper:    bk,
 		accountKeeper: ak,
-		authority:     authority,
+		authorities:   authorities,
 	}
 }
 
@@ -53,9 +53,9 @@ func (k Keeper) GetAccountKeeper() types.AccountKeeper {
 	return k.accountKeeper
 }
 
-// GetAuthority returns the x/evmutil module's authority.
-func (k Keeper) GetAuthority() string {
-	return k.authority
+// GetAuthorities returns the x/evmutil module's authorities.
+func (k Keeper) GetAuthorities() []string {
+	return k.authorities
 }
 
 func (k *Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) {
