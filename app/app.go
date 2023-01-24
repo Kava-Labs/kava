@@ -49,6 +49,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -128,9 +131,6 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-	"github.com/kava-labs/kava/x/kavamint"
-	kavamintkeeper "github.com/kava-labs/kava/x/kavamint/keeper"
-	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
 	"github.com/kava-labs/kava/x/liquid"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
@@ -208,7 +208,7 @@ var (
 		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
 		router.AppModuleBasic{},
-		kavamint.AppModuleBasic{},
+		mint.AppModuleBasic{},
 		community.AppModuleBasic{},
 	)
 
@@ -236,7 +236,7 @@ var (
 		liquidtypes.ModuleAccountName:   {authtypes.Minter, authtypes.Burner},
 		earntypes.ModuleAccountName:     nil,
 		kavadisttypes.FundModuleAccount: nil,
-		kavaminttypes.ModuleAccountName: {authtypes.Minter},
+		minttypes.ModuleName:            {authtypes.Minter},
 		communitytypes.ModuleName:       nil,
 	}
 )
@@ -308,7 +308,7 @@ type App struct {
 	liquidKeeper     liquidkeeper.Keeper
 	earnKeeper       earnkeeper.Keeper
 	routerKeeper     routerkeeper.Keeper
-	kavamintKeeper   kavamintkeeper.Keeper
+	mintKeeper       mintkeeper.Keeper
 	communityKeeper  communitykeeper.Keeper
 
 	// make scoped keepers public for test purposes
@@ -363,7 +363,7 @@ func NewApp(
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
-		savingstypes.StoreKey, earntypes.StoreKey, kavaminttypes.StoreKey,
+		savingstypes.StoreKey, earntypes.StoreKey, minttypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -408,7 +408,7 @@ func NewApp(
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
-	kavamintSubspace := app.paramsKeeper.Subspace(kavaminttypes.ModuleName)
+	mintSubspace := app.paramsKeeper.Subspace(minttypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
@@ -628,15 +628,14 @@ func NewApp(
 		app.loadBlockedMaccAddrs(),
 	)
 
-	app.kavamintKeeper = kavamintkeeper.NewKeeper(
+	app.mintKeeper = mintkeeper.NewKeeper(
 		appCodec,
-		keys[kavaminttypes.StoreKey],
-		kavamintSubspace,
+		keys[minttypes.StoreKey],
+		mintSubspace,
 		app.stakingKeeper,
 		app.accountKeeper,
 		app.bankKeeper,
-		authtypes.FeeCollectorName, // same fee collector as vanilla sdk
-		communitytypes.ModuleAccountName,
+		authtypes.FeeCollectorName,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
@@ -652,7 +651,7 @@ func NewApp(
 		&savingsKeeper,
 		&app.liquidKeeper,
 		&earnKeeper,
-		app.kavamintKeeper,
+		app.mintKeeper,
 		app.distrKeeper,
 		app.pricefeedKeeper,
 	)
@@ -758,7 +757,7 @@ func NewApp(
 		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
-		kavamint.NewAppModule(appCodec, app.kavamintKeeper, app.accountKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
 		community.NewAppModule(app.communityKeeper, app.accountKeeper),
 	)
 
@@ -771,8 +770,7 @@ func NewApp(
 		// Committee begin blocker changes module params by enacting proposals.
 		// Run before to ensure params are updated together before state changes.
 		committeetypes.ModuleName,
-		// Kavamint must be registered before distribution module in order to generate block staking rewards.
-		kavaminttypes.ModuleName,
+		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		// During begin block slashing happens after distr.BeginBlocker so that
 		// there is nothing left over in the validator fee pool, so as to keep the
@@ -851,7 +849,7 @@ func NewApp(
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 		routertypes.ModuleName,
-		kavaminttypes.ModuleName,
+		minttypes.ModuleName,
 		communitytypes.ModuleName,
 	)
 
@@ -864,7 +862,7 @@ func NewApp(
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName, // iterates over validators, run after staking
 		govtypes.ModuleName,
-		kavaminttypes.ModuleName,
+		minttypes.ModuleName,
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,

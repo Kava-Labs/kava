@@ -38,7 +38,6 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/types"
-	kavaminttypes "github.com/kava-labs/kava/x/kavamint/types"
 )
 
 type Suite struct {
@@ -348,14 +347,7 @@ func (suite *Suite) SendTx(
 }
 
 func (suite *Suite) MintFeeCollector(coins sdk.Coins) {
-	err := suite.App.GetBankKeeper().MintCoins(suite.Ctx, kavaminttypes.ModuleAccountName, coins)
-	suite.Require().NoError(err)
-	err = suite.App.GetBankKeeper().SendCoinsFromModuleToModule(
-		suite.Ctx,
-		kavaminttypes.ModuleAccountName,
-		authtypes.FeeCollectorName,
-		coins,
-	)
+	err := suite.App.FundModuleAccount(suite.Ctx, authtypes.FeeCollectorName, coins)
 	suite.Require().NoError(err)
 }
 
