@@ -217,23 +217,6 @@
       }
     },
     {
-      "url": "./out/swagger/kava/kavamint/v1beta1/query.swagger.json",
-      "tags": {
-        "rename": {
-          "Query": "Kavamint"
-        }
-      },
-      "operationIds": {
-        "rename": [
-          {
-            "type": "regex",
-            "from": "(.*)",
-            "to": "Kavamint$1"
-          }
-        ]
-      }
-    },
-    {
       "url": "./client/docs/cosmos-swagger.yml",
       "dereference": {
         "circular": "ignore"

@@ -43,7 +43,6 @@ import (
 	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
-	kavamintkeeper "github.com/kava-labs/kava/x/kavamint/keeper"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	routerkeeper "github.com/kava-labs/kava/x/router/keeper"
@@ -118,9 +117,6 @@ func (tApp TestApp) GetFeeMarketKeeper() feemarketkeeper.Keeper { return tApp.fe
 func (tApp TestApp) GetLiquidKeeper() liquidkeeper.Keeper       { return tApp.liquidKeeper }
 func (tApp TestApp) GetEarnKeeper() earnkeeper.Keeper           { return tApp.earnKeeper }
 func (tApp TestApp) GetRouterKeeper() routerkeeper.Keeper       { return tApp.routerKeeper }
-
-// TODO remove me.
-func (tApp TestApp) GetKavamintKeeper() kavamintkeeper.Keeper   { return kavamintkeeper.Keeper{} }
 func (tApp TestApp) GetCommunityKeeper() communitykeeper.Keeper { return tApp.communityKeeper }
 
 // LegacyAmino returns the app's amino codec.
