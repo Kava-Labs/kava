@@ -2465,14 +2465,21 @@
       },
       "previous_block_time": "1970-01-01T00:00:01Z"
     },
-    "kavamint": {
-      "params": {
-        "community_pool_inflation": "0.200000000000000000",
-        "staking_rewards_apy": "0.150000000000000000"
-      },
-      "previous_block_time": "2022-05-25T17:00:00Z"
-    },
     "liquid": {},
+    "mint": {
+      "minter": {
+        "inflation": "0.130000000000000000",
+        "annual_provisions": "0.000000000000000000"
+      },
+      "params": {
+        "mint_denom": "ukava",
+        "inflation_rate_change": "0.130000000000000000",
+        "inflation_max": "0.750000000000000000",
+        "inflation_min": "0.750000000000000000",
+        "goal_bonded": "0.670000000000000000",
+        "blocks_per_year": "6311520"
+      }
+    },
     "params": null,
     "pricefeed": {
       "params": {
