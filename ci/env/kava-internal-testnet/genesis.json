@@ -933,9 +933,6 @@
       "proposals": [],
       "votes": []
     },
-    "community": {
-      "params": {}
-    },
     "crisis": {
       "constant_fee": {
         "denom": "ukava",
