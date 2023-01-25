@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	communitytypes "github.com/kava-labs/kava/x/community/types"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/testutil"
 	"github.com/kava-labs/kava/x/earn/types"
@@ -25,12 +24,15 @@ func TestProposalTestSuite(t *testing.T) {
 }
 
 func (suite *proposalTestSuite) TestCommunityDepositProposal() {
+	distKeeper := suite.App.GetDistrKeeper()
 	ctx := suite.Ctx
-	macc := suite.App.GetAccountKeeper().GetModuleAccount(ctx, communitytypes.ModuleAccountName)
+	macc := distKeeper.GetDistributionAccount(ctx)
 	fundAmount := sdk.NewCoins(sdk.NewInt64Coin("ukava", 100000000))
 	depositAmount := sdk.NewCoin("ukava", sdk.NewInt(10000000))
 	suite.Require().NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
-
+	feePool := distKeeper.GetFeePool(ctx)
+	feePool.CommunityPool = sdk.NewDecCoinsFromCoins(fundAmount...)
+	distKeeper.SetFeePool(ctx, feePool)
 	suite.CreateVault("ukava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 	prop := types.NewCommunityPoolDepositProposal("test title",
 		"desc", depositAmount)
@@ -39,18 +41,23 @@ func (suite *proposalTestSuite) TestCommunityDepositProposal() {
 
 	balance := suite.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	suite.Require().Equal(fundAmount.Sub(sdk.NewCoins(depositAmount)), balance)
-
-	communityPoolBalance := suite.App.GetCommunityKeeper().GetModuleAccountBalance(ctx)
+	feePool = distKeeper.GetFeePool(ctx)
+	communityPoolBalance, change := feePool.CommunityPool.TruncateDecimal()
 	suite.Require().Equal(fundAmount.Sub(sdk.NewCoins(depositAmount)), communityPoolBalance)
+	suite.Require().True(change.Empty())
 }
 
 func (suite *proposalTestSuite) TestCommunityWithdrawProposal() {
+	distKeeper := suite.App.GetDistrKeeper()
 	ctx := suite.Ctx
-	macc := suite.App.GetAccountKeeper().GetModuleAccount(ctx, communitytypes.ModuleAccountName)
+	macc := distKeeper.GetDistributionAccount(ctx)
 	fundAmount := sdk.NewCoins(sdk.NewInt64Coin("ukava", 100000000))
 	depositAmount := sdk.NewCoin("ukava", sdk.NewInt(10000000))
 	suite.Require().NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
-
+	feePool := distKeeper.GetFeePool(ctx)
+	feePool.CommunityPool = sdk.NewDecCoinsFromCoins(fundAmount...)
+	distKeeper.SetFeePool(ctx, feePool)
+	// TODO update to STRATEGY_TYPE_SAVINGS once implemented
 	suite.CreateVault("ukava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 	deposit := types.NewCommunityPoolDepositProposal("test title",
 		"desc", depositAmount)
@@ -66,7 +73,8 @@ func (suite *proposalTestSuite) TestCommunityWithdrawProposal() {
 	suite.Require().NoError(err)
 	balance = suite.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	suite.Require().Equal(fundAmount, balance)
-
-	communityPoolBalance := suite.App.GetCommunityKeeper().GetModuleAccountBalance(ctx)
+	feePool = distKeeper.GetFeePool(ctx)
+	communityPoolBalance, change := feePool.CommunityPool.TruncateDecimal()
 	suite.Require().Equal(fundAmount, communityPoolBalance)
+	suite.Require().True(change.Empty())
 }

@@ -17,6 +17,7 @@ import (
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -204,7 +205,7 @@ func (suite *Suite) GetEvents() sdk.Events {
 // AddCoinsToModule adds coins to the earn module account
 func (suite *Suite) AddCoinsToModule(amount sdk.Coins) {
 	// Does not use suite.BankKeeper.MintCoins as module account would not have permission to mint
-	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, amount)
+	err := simapp.FundModuleAccount(suite.BankKeeper, suite.Ctx, types.ModuleName, amount)
 	suite.Require().NoError(err)
 }
 
@@ -226,7 +227,7 @@ func (suite *Suite) CreateAccount(initialBalance sdk.Coins, index int) authtypes
 	acc := ak.NewAccountWithAddress(suite.Ctx, addrs[index])
 	ak.SetAccount(suite.Ctx, acc)
 
-	err := suite.App.FundAccount(suite.Ctx, acc.GetAddress(), initialBalance)
+	err := simapp.FundAccount(suite.BankKeeper, suite.Ctx, acc.GetAddress(), initialBalance)
 	suite.Require().NoError(err)
 
 	return acc
@@ -239,7 +240,7 @@ func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) a
 	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
 	ak.SetAccount(suite.Ctx, acc)
 
-	err := suite.App.FundAccount(suite.Ctx, acc.GetAddress(), balance)
+	err := simapp.FundAccount(suite.BankKeeper, suite.Ctx, acc.GetAddress(), balance)
 	suite.Require().NoError(err)
 
 	return acc
