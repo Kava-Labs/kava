@@ -61,3 +61,6 @@ proto-gen-all: proto-gen proto-gen-doc proto-gen-swagger
 
 .PHONY: proto-all
 proto-all: proto-update-deps proto-lint proto-format check-proto-breaking proto-gen-all
+
+.PHONY: proto-all-allow-breaking
+proto-all-allow-breaking: proto-update-deps proto-lint proto-format proto-gen-all
