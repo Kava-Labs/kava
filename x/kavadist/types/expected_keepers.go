@@ -23,6 +23,7 @@ type BankKeeper interface {
 // DistKeeper defines the expected distribution keeper interface
 type DistKeeper interface {
 	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
+	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }
 
 // HardKeeper defines the contract needed to be fulfilled for Kava Lend dependencies.

@@ -21,7 +21,23 @@ func HandleCommunityPoolLendDepositProposal(ctx sdk.Context, k Keeper, p *types.
 
 // HandleCommunityPoolLendWithdrawProposal handles a gov proposal for withdrawing community pool positions in x/hard
 func HandleCommunityPoolLendWithdrawProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolLendWithdrawProposal) error {
-	panic("TODO: implement me")
+	moduleAddress := k.maccAddress(ctx)
+	// hard allows attempting to withdraw more funds than there is a deposit for.
+	// this means the amount that gets withdrawn will not necessarily match the amount set in the proposal.
+	// to calculate how much is withdrawn, compare this module's balance before & after withdraw.
+	balanceBefore := k.bankKeeper.GetAllBalances(ctx, moduleAddress)
+
+	// withdraw funds from x/hard to kavadist module account
+	err := k.hardKeeper.Withdraw(ctx, moduleAddress, p.Amount)
+	if err != nil {
+		return err
+	}
+
+	balanceAfter := k.bankKeeper.GetAllBalances(ctx, moduleAddress)
+	totalWithdrawn := balanceAfter.Sub(balanceBefore)
+
+	// send all withdrawn coins back to community pool
+	return k.distKeeper.FundCommunityPool(ctx, totalWithdrawn, moduleAddress)
 }
 
 // HandleCommunityPoolMultiSpendProposal is a handler for executing a passed community multi-spend proposal
