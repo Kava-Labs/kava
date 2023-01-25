@@ -608,6 +608,7 @@ func NewApp(
 		app.bankKeeper,
 		app.accountKeeper,
 		app.distrKeeper,
+		&hardKeeper,
 		app.loadBlockedMaccAddrs(),
 	)
 

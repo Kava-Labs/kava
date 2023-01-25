@@ -19,6 +19,7 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	distKeeper    types.DistKeeper
 	accountKeeper types.AccountKeeper
+	hardKeeper    types.HardKeeper
 
 	blacklistedAddrs map[string]bool
 }
@@ -26,7 +27,7 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramstore paramtypes.Subspace, bk types.BankKeeper, ak types.AccountKeeper,
-	dk types.DistKeeper, blacklistedAddrs map[string]bool,
+	dk types.DistKeeper, hk types.HardKeeper, blacklistedAddrs map[string]bool,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -39,6 +40,7 @@ func NewKeeper(
 		bankKeeper:       bk,
 		distKeeper:       dk,
 		accountKeeper:    ak,
+		hardKeeper:       hk,
 		blacklistedAddrs: blacklistedAddrs,
 	}
 }
