@@ -7,7 +7,7 @@ import (
 )
 
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	err := k.MintPeriodInflation(ctx)
+	err := k.DistributeFunds(ctx)
 	if err != nil {
 		panic(err)
 	}
