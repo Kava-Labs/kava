@@ -5,9 +5,9 @@ import (
 	authTypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-// CommunityKeeper defines the expected community keeper interface
-type CommunityKeeper interface {
-	DistributeFromCommunityPool(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error
+// DistKeeper defines the expected distribution keeper interface
+type DistKeeper interface {
+	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
 }
 
 // AccountKeeper defines the expected account keeper interface

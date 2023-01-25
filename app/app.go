@@ -624,7 +624,7 @@ func NewApp(
 		kavadistSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
-		app.communityKeeper,
+		app.distrKeeper,
 		app.loadBlockedMaccAddrs(),
 	)
 
