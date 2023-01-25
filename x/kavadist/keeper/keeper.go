@@ -19,6 +19,9 @@ type Keeper struct {
 	bankKeeper      types.BankKeeper
 	accountKeeper   types.AccountKeeper
 	communityKeeper types.CommunityKeeper
+	stakingKeeper   types.StakingKeeper
+
+	stakingRewardsFeeCollectorName string
 
 	blacklistedAddrs map[string]bool
 }
@@ -26,19 +29,23 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramstore paramtypes.Subspace, bk types.BankKeeper, ak types.AccountKeeper,
-	ck types.CommunityKeeper, blacklistedAddrs map[string]bool,
+	ck types.CommunityKeeper, sk types.StakingKeeper, stakingRewardsFeeCollectorName string, blacklistedAddrs map[string]bool,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
 	}
 
 	return Keeper{
-		key:              key,
-		cdc:              cdc,
-		paramSubspace:    paramstore,
-		bankKeeper:       bk,
-		accountKeeper:    ak,
-		communityKeeper:  ck,
+		key:             key,
+		cdc:             cdc,
+		paramSubspace:   paramstore,
+		bankKeeper:      bk,
+		accountKeeper:   ak,
+		communityKeeper: ck,
+		stakingKeeper:   sk,
+
+		stakingRewardsFeeCollectorName: stakingRewardsFeeCollectorName,
+
 		blacklistedAddrs: blacklistedAddrs,
 	}
 }
@@ -64,4 +71,21 @@ func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 		panic(err)
 	}
 	store.Set(types.PreviousBlockTimeKey, b)
+}
+
+// getModuleAccountBalance returns the current balance of the module account
+func (k Keeper) getModuleAccountBalance(ctx sdk.Context) sdk.Coins {
+	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	return k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
+}
+
+// bondDenom implements an alias call to the underlying staking keeper's BondDenom.
+func (k Keeper) bondDenom(ctx sdk.Context) string {
+	return k.stakingKeeper.BondDenom(ctx)
+}
+
+// totalBondedTokens implements an alias call to the underlying staking keeper's
+// TotalBondedTokens to be used in BeginBlocker.
+func (k Keeper) totalBondedTokens(ctx sdk.Context) sdk.Int {
+	return k.stakingKeeper.TotalBondedTokens(ctx)
 }

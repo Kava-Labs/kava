@@ -8,6 +8,7 @@ import (
 // CommunityKeeper defines the expected community keeper interface
 type CommunityKeeper interface {
 	DistributeFromCommunityPool(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error
+	FundCommunityPool(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coins) error
 }
 
 // AccountKeeper defines the expected account keeper interface
@@ -20,7 +21,12 @@ type AccountKeeper interface {
 // BankKeeper defines the expected bank keeper interface
 type BankKeeper interface {
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-	MintCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
-	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
+}
+
+// StakingKeeper defines the expected staking keeper
+type StakingKeeper interface {
+	BondDenom(sdk.Context) string
+	TotalBondedTokens(sdk.Context) sdk.Int
 }

@@ -625,6 +625,8 @@ func NewApp(
 		app.bankKeeper,
 		app.accountKeeper,
 		app.communityKeeper,
+		app.stakingKeeper,
+		authtypes.FeeCollectorName,
 		app.loadBlockedMaccAddrs(),
 	)
 
@@ -635,7 +637,7 @@ func NewApp(
 		app.stakingKeeper,
 		app.accountKeeper,
 		app.bankKeeper,
-		authtypes.FeeCollectorName,
+		kavadisttypes.ModuleName,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
