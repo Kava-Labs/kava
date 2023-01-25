@@ -11,12 +11,16 @@ import (
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal", nil)
+	cdc.RegisterConcrete(&CommunityPoolLendDepositProposal{}, "kava/CommunityPoolLendDepositProposal", nil)
+	cdc.RegisterConcrete(&CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*govtypes.Content)(nil),
 		&CommunityPoolMultiSpendProposal{},
+		&CommunityPoolLendDepositProposal{},
+		&CommunityPoolLendWithdrawProposal{},
 	)
 }
 
