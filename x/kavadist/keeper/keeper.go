@@ -67,3 +67,8 @@ func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
 	}
 	store.Set(types.PreviousBlockTimeKey, b)
 }
+
+// maccAddress returns the module account address of x/kavadist
+func (k Keeper) maccAddress(ctx sdk.Context) sdk.AccAddress {
+	return k.accountKeeper.GetModuleAccount(ctx, types.ModuleName).GetAddress()
+}

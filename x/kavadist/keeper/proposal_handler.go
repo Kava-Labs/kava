@@ -9,7 +9,14 @@ import (
 
 // HandleCommunityPoolLendDepositProposal handles a gov proposal for depositing community pool funds into x/hard
 func HandleCommunityPoolLendDepositProposal(ctx sdk.Context, k Keeper, p *types.CommunityPoolLendDepositProposal) error {
-	panic("TODO: implement me")
+	moduleAddress := k.maccAddress(ctx)
+	// move funds from community pool to kavadist so hard position is help by kavadist
+	err := k.distKeeper.DistributeFromFeePool(ctx, p.Amount, moduleAddress)
+	if err != nil {
+		return err
+	}
+	// deposit funds into hard
+	return k.hardKeeper.Deposit(ctx, moduleAddress, p.Amount)
 }
 
 // HandleCommunityPoolLendWithdrawProposal handles a gov proposal for withdrawing community pool positions in x/hard
