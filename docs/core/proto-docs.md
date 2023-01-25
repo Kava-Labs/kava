@@ -387,6 +387,8 @@
     - [GenesisState](#kava.kavadist.v1beta1.GenesisState)
   
 - [kava/kavadist/v1beta1/proposal.proto](#kava/kavadist/v1beta1/proposal.proto)
+    - [CommunityPoolLendDepositProposal](#kava.kavadist.v1beta1.CommunityPoolLendDepositProposal)
+    - [CommunityPoolLendWithdrawProposal](#kava.kavadist.v1beta1.CommunityPoolLendWithdrawProposal)
     - [CommunityPoolMultiSpendProposal](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposal)
     - [CommunityPoolMultiSpendProposalJSON](#kava.kavadist.v1beta1.CommunityPoolMultiSpendProposalJSON)
     - [MultiSpendRecipient](#kava.kavadist.v1beta1.MultiSpendRecipient)
@@ -5497,6 +5499,40 @@ GenesisState defines the kavadist module's genesis state.
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/kavadist/v1beta1/proposal.proto
+
+
+
+<a name="kava.kavadist.v1beta1.CommunityPoolLendDepositProposal"></a>
+
+### CommunityPoolLendDepositProposal
+CommunityPoolLendDepositProposal deposits from the community pool into lend
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
+
+
+
+<a name="kava.kavadist.v1beta1.CommunityPoolLendWithdrawProposal"></a>
+
+### CommunityPoolLendWithdrawProposal
+CommunityPoolLendWithdrawProposal withdraws a lend position back to the community pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) | repeated |  |
+
+
+
 
 
 
