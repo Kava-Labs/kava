@@ -32,6 +32,8 @@ func otherdenom(amt int64) sdk.Coins {
 	return sdk.NewCoins(sdk.NewInt64Coin("other-denom", amt))
 }
 
+var initialKavadistBalance = sdk.NewCoins().Add(ukava(1e5)...).Add(usdx(1e5)...).Add(otherdenom(1e5)...)
+
 type lendProposalTestSuite struct {
 	suite.Suite
 
@@ -83,6 +85,11 @@ func (suite *lendProposalTestSuite) SetupTest() {
 	suite.FundCommunityPool(usdx(1e10))
 	// other-denom
 	suite.FundCommunityPool(otherdenom(1e10))
+
+	// setup kavadist to have non-zero balance
+	suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, initialKavadistBalance)
+	// ensure it is funded
+	suite.CheckKavadistBalance(initialKavadistBalance)
 }
 
 func (suite *lendProposalTestSuite) NextBlock() {
@@ -113,6 +120,11 @@ func (suite *lendProposalTestSuite) CheckCommunityPoolBalance(expected sdk.Coins
 	actual := suite.GetCommunityPoolBalance()
 	// check that balance is expected
 	suite.True(expected.IsEqual(actual), fmt.Sprintf("unexpected balance in community pool\nexpected: %s\nactual: %s", expected, actual))
+}
+
+func (suite *lendProposalTestSuite) CheckKavadistBalance(expected sdk.Coins) {
+	actual := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, suite.MaccAddress)
+	suite.True(expected.IsEqual(actual), fmt.Sprintf("unexpected kavadist balance\nexpected: %s\nactual: %s", expected, actual))
 }
 
 func (suite *lendProposalTestSuite) TestCommunityLendDepositProposal() {
@@ -194,6 +206,13 @@ func (suite *lendProposalTestSuite) TestCommunityLendDepositProposal() {
 			suite.Len(deposits, len(tc.expectedDeposits), "expected a deposit to lend")
 			for _, amt := range tc.expectedDeposits {
 				suite.Equal(amt, deposits[0].Amount, "expected amount to match")
+			}
+
+			// ensure kavadist balance remains unchanged
+			// we only perform this check when there is no expected error because these unit test don't
+			// perform the rollback that would occur in a real life failure.
+			if tc.expectedErr == "" {
+				suite.CheckKavadistBalance(initialKavadistBalance)
 			}
 		})
 	}
@@ -323,6 +342,9 @@ func (suite *lendProposalTestSuite) TestCommunityLendWithdrawProposal() {
 
 			// expect funds to be distributed back to community pool
 			suite.CheckCommunityPoolBalance(beforeBalance.Add(tc.expectedWithdrawal...))
+
+			// ensure kavadist balance remains unchanged
+			suite.CheckKavadistBalance(initialKavadistBalance)
 		})
 	}
 }
