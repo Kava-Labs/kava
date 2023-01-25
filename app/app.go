@@ -608,7 +608,7 @@ func NewApp(
 		&app.liquidKeeper,
 		&hardKeeper,
 		&savingsKeeper,
-		communitytypes.ModuleAccountName,
+		&app.distrKeeper,
 	)
 
 	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
