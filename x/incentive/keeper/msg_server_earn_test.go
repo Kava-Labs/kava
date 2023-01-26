@@ -8,11 +8,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/testutil"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/kava-labs/kava/x/kavamint"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 )
 
@@ -53,7 +53,7 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// bk := suite.App.GetBankKeeper()
 	sk := suite.App.GetStakingKeeper()
 	lq := suite.App.GetLiquidKeeper()
-	mk := suite.App.GetKavamintKeeper()
+	mk := suite.App.GetMintKeeper()
 	dk := suite.App.GetDistrKeeper()
 	ik := suite.App.GetIncentiveKeeper()
 
@@ -62,9 +62,9 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	suite.Require().True(found)
 	suite.Require().Equal("bkava", period.CollateralType)
 
-	// Ensure nonzero staking APY
+	// Use ukava for mint denom
 	mParams := mk.GetParams(suite.Ctx)
-	mParams.StakingRewardsApy = sdk.NewDecWithPrec(20, 2)
+	mParams.MintDenom = "ukava"
 	mk.SetParams(suite.Ctx, mParams)
 
 	bkavaDenom1 := lq.GetLiquidStakingTokenDenom(valAddr1)
@@ -138,7 +138,10 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		WithBlockTime(suite.Ctx.BlockTime().Add(7 * time.Second))
 
 	// Mint tokens
-	kavamint.BeginBlocker(suite.Ctx, suite.App.GetKavamintKeeper())
+	mint.BeginBlocker(
+		suite.Ctx,
+		suite.App.GetMintKeeper(),
+	)
 	// Distribute to validators, block needs votes
 	distribution.BeginBlocker(
 		suite.Ctx,
@@ -163,10 +166,10 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// Zero rewards since this block is the same as the block it was last claimed
 
 	// This needs to run **after** staking rewards are minted/distributed in
-	// x/kavamint + x/distribution but **before** the x/incentive BeginBlocker.
+	// x/mint + x/distribution but **before** the x/incentive BeginBlocker.
 
 	// Order of operations:
-	// 1. x/kavamint + x/distribution BeginBlocker
+	// 1. x/mint + x/distribution BeginBlocker
 	// 2. CalculateDelegationRewards
 	// 3. x/incentive BeginBlocker to claim staking rewards
 	delegationRewards := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
