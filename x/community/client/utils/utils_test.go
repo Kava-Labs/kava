@@ -61,3 +61,26 @@ func TestParseWithdrawProposal(t *testing.T) {
 	require.Equal(t, "Withdraw some KAVA from community pool to Lend!", proposal.Description)
 	require.Equal(t, expectedAmount, proposal.Amount)
 }
+
+func TestParseFileNoExists(t *testing.T) {
+	cdc := codec.NewAminoCodec(codec.NewLegacyAmino())
+	_, err := utils.ParseCommunityPoolLendDepositProposal(cdc, "not-a-file.json")
+	require.ErrorContains(t, err, "no such file or directory")
+	_, err = utils.ParseCommunityPoolLendWithdrawProposal(cdc, "not-a-file.json")
+	require.ErrorContains(t, err, "no such file or directory")
+}
+
+func TestParseFileMalformed(t *testing.T) {
+	cdc := codec.NewAminoCodec(codec.NewLegacyAmino())
+	malformed := testutil.WriteToNewTempFile(t, `
+{
+	"title": "I'm malformed b/c there's no closing quote,
+	"description": "A description",
+	"amount": [{"denom": "ukava", "amount": "100000000000"}]
+}
+`)
+	_, err := utils.ParseCommunityPoolLendDepositProposal(cdc, malformed.Name())
+	require.ErrorContains(t, err, "invalid character")
+	_, err = utils.ParseCommunityPoolLendWithdrawProposal(cdc, malformed.Name())
+	require.ErrorContains(t, err, "invalid character")
+}
