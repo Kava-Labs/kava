@@ -185,8 +185,6 @@
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
-    - [QueryLegacyCommunityPoolRequest](#kava.community.v1beta1.QueryLegacyCommunityPoolRequest)
-    - [QueryLegacyCommunityPoolResponse](#kava.community.v1beta1.QueryLegacyCommunityPoolResponse)
   
     - [Query](#kava.community.v1beta1.Query)
   
@@ -2905,32 +2903,6 @@ QueryBalanceResponse defines the response type for querying x/community balance.
 
 
 
-
-<a name="kava.community.v1beta1.QueryLegacyCommunityPoolRequest"></a>
-
-### QueryLegacyCommunityPoolRequest
-QueryLegacyCommunityPoolRequest defines the request type for querying the legacy community pool balance.
-
-
-
-
-
-
-<a name="kava.community.v1beta1.QueryLegacyCommunityPoolResponse"></a>
-
-### QueryLegacyCommunityPoolResponse
-QueryLegacyCommunityPoolResponse defines the response type for querying legacy community pool.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `address` | [string](#string) |  |  |
-| `balance` | [cosmos.base.v1beta1.DecCoin](#cosmos.base.v1beta1.DecCoin) | repeated |  |
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2946,7 +2918,6 @@ Query defines the gRPC querier service for x/community.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
-| `LegacyCommunityPool` | [QueryLegacyCommunityPoolRequest](#kava.community.v1beta1.QueryLegacyCommunityPoolRequest) | [QueryLegacyCommunityPoolResponse](#kava.community.v1beta1.QueryLegacyCommunityPoolResponse) | LegacyCommunityPool queries the balance of all coins of the legacy community pool. The legacy community pool is a subaccount of the fee pool and has been replaced by x/community. | GET|/kava/community/v1beta1/legacy_community_pool|
 
  <!-- end services -->
 
