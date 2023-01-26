@@ -27,5 +27,6 @@ type HardKeeper interface {
 
 // DistributionKeeper defines the contract needed to be fulfilled for distribution dependencies.
 type DistributionKeeper interface {
-	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
+	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
+	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 }
