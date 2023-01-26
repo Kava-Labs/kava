@@ -78,16 +78,11 @@ func (suite *proposalTestSuite) SetupTest() {
 
 	// give the community pool some funds
 	// ukava
-	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleAccountName, ukava(1e10))
-	suite.NoError(err)
-
+	suite.FundCommunityPool(ukava(1e10))
 	// usdx
-	err = suite.App.FundModuleAccount(suite.Ctx, types.ModuleAccountName, usdx(1e10))
-	suite.NoError(err)
-
+	suite.FundCommunityPool(usdx(1e10))
 	// other-denom
-	err = suite.App.FundModuleAccount(suite.Ctx, types.ModuleAccountName, otherdenom(1e10))
-	suite.NoError(err)
+	suite.FundCommunityPool(otherdenom(1e10))
 }
 
 func (suite *proposalTestSuite) NextBlock() {
@@ -97,6 +92,27 @@ func (suite *proposalTestSuite) NextBlock() {
 	suite.App.EndBlocker(suite.Ctx, abcitypes.RequestEndBlock{})
 	suite.Ctx = suite.Ctx.WithBlockTime(newTime).WithBlockHeight(newHeight).WithChainID(chainID)
 	suite.App.BeginBlocker(suite.Ctx, abcitypes.RequestBeginBlock{})
+}
+
+func (suite *proposalTestSuite) FundCommunityPool(coins sdk.Coins) {
+	// mint to ephemeral account
+	ephemeralAcc := app.RandomAddress()
+	suite.NoError(suite.App.FundAccount(suite.Ctx, ephemeralAcc, coins))
+	// fund community pool with newly minted coins
+	suite.NoError(suite.App.GetDistrKeeper().FundCommunityPool(suite.Ctx, coins, ephemeralAcc))
+}
+
+func (suite *proposalTestSuite) GetCommunityPoolBalance() sdk.Coins {
+	balance, change := suite.App.GetDistrKeeper().GetFeePoolCommunityCoins(suite.Ctx).TruncateDecimal()
+	// expect no decimal dust
+	suite.True(sdk.NewDecCoins().IsEqual(change), "expected no decimal dust in community pool")
+	return balance
+}
+
+func (suite *proposalTestSuite) CheckCommunityPoolBalance(expected sdk.Coins) {
+	actual := suite.GetCommunityPoolBalance()
+	// check that balance is expected
+	suite.True(expected.IsEqual(actual), fmt.Sprintf("unexpected balance in community pool\nexpected: %s\nactual: %s", expected, actual))
 }
 
 func (suite *proposalTestSuite) TestCommunityLendDepositProposal() {
@@ -148,7 +164,7 @@ func (suite *proposalTestSuite) TestCommunityLendDepositProposal() {
 					Amount:      ukava(1e11),
 				},
 			},
-			expectedErr:      "insufficient funds",
+			expectedErr:      "community pool does not have sufficient coins to distribute",
 			expectedDeposits: []sdk.Coins{},
 		},
 		{
@@ -280,7 +296,7 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 				suite.NoError(err, "unexpected error while seeding lend deposit")
 			}
 
-			beforeBalance := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
+			beforeBalance := suite.GetCommunityPoolBalance()
 
 			// run the proposals
 			for i, proposal := range tc.proposals {
@@ -306,7 +322,7 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 			}
 
 			// expect funds to be distributed back to community pool
-			suite.App.CheckBalance(suite.T(), suite.Ctx, suite.MaccAddress, beforeBalance.Add(tc.expectedWithdrawal...))
+			suite.CheckCommunityPoolBalance(beforeBalance.Add(tc.expectedWithdrawal...))
 		})
 	}
 }
