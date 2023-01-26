@@ -13,7 +13,7 @@ func HandleCommunityPoolMultiSpendProposal(ctx sdk.Context, k Keeper, p *types.C
 		if k.blacklistedAddrs[receiverInfo.Address] {
 			return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is blacklisted from receiving external funds", receiverInfo.Address)
 		}
-		err := k.communityKeeper.DistributeFromCommunityPool(ctx, receiverInfo.GetAddress(), receiverInfo.Amount)
+		err := k.distKeeper.DistributeFromFeePool(ctx, receiverInfo.Amount, receiverInfo.GetAddress())
 		if err != nil {
 			return err
 		}

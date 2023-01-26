@@ -13,12 +13,12 @@ import (
 
 // Keeper keeper for the cdp module
 type Keeper struct {
-	key             sdk.StoreKey
-	cdc             codec.BinaryCodec
-	paramSubspace   paramtypes.Subspace
-	bankKeeper      types.BankKeeper
-	accountKeeper   types.AccountKeeper
-	communityKeeper types.CommunityKeeper
+	key           sdk.StoreKey
+	cdc           codec.BinaryCodec
+	paramSubspace paramtypes.Subspace
+	bankKeeper    types.BankKeeper
+	distKeeper    types.DistKeeper
+	accountKeeper types.AccountKeeper
 
 	blacklistedAddrs map[string]bool
 }
@@ -26,7 +26,7 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.BinaryCodec, key sdk.StoreKey, paramstore paramtypes.Subspace, bk types.BankKeeper, ak types.AccountKeeper,
-	ck types.CommunityKeeper, blacklistedAddrs map[string]bool,
+	dk types.DistKeeper, blacklistedAddrs map[string]bool,
 ) Keeper {
 	if !paramstore.HasKeyTable() {
 		paramstore = paramstore.WithKeyTable(types.ParamKeyTable())
@@ -37,8 +37,8 @@ func NewKeeper(
 		cdc:              cdc,
 		paramSubspace:    paramstore,
 		bankKeeper:       bk,
+		distKeeper:       dk,
 		accountKeeper:    ak,
-		communityKeeper:  ck,
 		blacklistedAddrs: blacklistedAddrs,
 	}
 }

@@ -93,7 +93,6 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
-	kavadistrquery "github.com/kava-labs/kava/app/query/distribution"
 	"github.com/kava-labs/kava/x/auction"
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
@@ -608,7 +607,7 @@ func NewApp(
 		&app.liquidKeeper,
 		&hardKeeper,
 		&savingsKeeper,
-		communitytypes.ModuleAccountName,
+		&app.distrKeeper,
 	)
 
 	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
@@ -624,7 +623,7 @@ func NewApp(
 		kavadistSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
-		app.communityKeeper,
+		app.distrKeeper,
 		app.loadBlockedMaccAddrs(),
 	)
 
@@ -972,25 +971,7 @@ func NewApp(
 }
 
 func (app *App) RegisterServices(cfg module.Configurator) {
-	// Register services from all unmodified modules
-	for _, module := range app.mm.Modules {
-		// skip registration of distribution services
-		if module.Name() == distrtypes.ModuleName {
-			continue
-		}
-		module.RegisterServices(cfg)
-	}
-
-	// register ditribution services except query server
-	distrtypes.RegisterMsgServer(cfg.MsgServer(), distrkeeper.NewMsgServerImpl(app.distrKeeper))
-	cfg.RegisterMigration(
-		distrtypes.ModuleName,
-		1,
-		distrkeeper.NewMigrator(app.distrKeeper).Migrate1to2,
-	)
-
-	// register fake distribution query server
-	distrtypes.RegisterQueryServer(cfg.QueryServer(), kavadistrquery.NewQueryServer(app.distrKeeper, app.communityKeeper))
+	app.mm.RegisterServices(cfg)
 }
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
