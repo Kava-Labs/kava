@@ -56,6 +56,7 @@ func (app App) RegisterUpgradeHandlers() {
 func MainnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		// no-op
+		app.Logger().Info("running mainnet upgrade handler")
 		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 	}
 }
@@ -66,9 +67,12 @@ func MainnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 // See original handler here: https://github.com/Kava-Labs/kava/blob/v0.20.0-alpha.0/app/upgrades.go#L65
 func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		app.Logger().Info("running testnet upgrade handler")
 		// move community pool funds back to community pool from community module.
+		app.Logger().Info("migrating community pool funds")
 		MigrateCommunityPoolFunds(ctx, app.accountKeeper, app.communityKeeper, app.distrKeeper)
 		// reenable community tax
+		app.Logger().Info("re-enabling community tax")
 		ReenableCommunityTax(ctx, app.distrKeeper)
 		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 	}
