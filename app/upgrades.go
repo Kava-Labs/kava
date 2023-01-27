@@ -8,7 +8,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
@@ -68,13 +70,26 @@ func MainnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 		app.Logger().Info("running testnet upgrade handler")
+
 		// move community pool funds back to community pool from community module.
 		app.Logger().Info("migrating community pool funds")
 		MigrateCommunityPoolFunds(ctx, app.accountKeeper, app.communityKeeper, app.distrKeeper)
+
 		// reenable community tax
 		app.Logger().Info("re-enabling community tax")
 		ReenableCommunityTax(ctx, app.distrKeeper)
-		return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+
+		// run migrations
+		vm, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		if err != nil {
+			panic(err)
+		}
+
+		// initialize x/mint params. must be done after migrations so module exists.
+		app.Logger().Info("initializing x/mint state")
+		InitializeMintParams(ctx, app.mintKeeper, app.stakingKeeper)
+
+		return vm, nil
 	}
 }
 
@@ -104,4 +119,19 @@ func ReenableCommunityTax(ctx sdk.Context, distrKeeper distrkeeper.Keeper) {
 	params := distrKeeper.GetParams(ctx)
 	params.CommunityTax = sdk.MustNewDecFromStr("0.925000000000000000") // community tax currently present on mainnet
 	distrKeeper.SetParams(ctx, params)
+}
+
+// InitializeMintParams sets up the parameters and state of x/mint.
+func InitializeMintParams(
+	ctx sdk.Context,
+	mintKeeper mintkeeper.Keeper,
+	stakingKeeper stakingkeeper.Keeper,
+) {
+	// init params for x/mint with values from mainnet
+	params := mintKeeper.GetParams(ctx)
+	params.MintDenom = stakingKeeper.BondDenom(ctx)
+	params.InflationMax = sdk.MustNewDecFromStr("0.750000000000000000")
+	params.InflationMin = sdk.MustNewDecFromStr("0.750000000000000000")
+
+	mintKeeper.SetParams(ctx, params)
 }
