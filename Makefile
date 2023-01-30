@@ -9,7 +9,7 @@ GIT_COMMIT_SHORT := $(shell git rev-parse --short HEAD)
 
 BRANCH_PREFIX := $(shell echo $(GIT_BRANCH) | sed 's/\/.*//g')# eg release, master, feat
 
-ifeq ($(BRANCH_PREFIX),release)
+ifeq ($(BRANCH_PREFIX),$(filter release HEAD,$(BRANCH_PREFIX)))
 # we are on a release branch, set version to the last or current tag
 VERSION := $(shell git describe --tags)# use current tag or most recent tag + number of commits + g + abbrivated commit
 VERSION_NUMBER := $(shell echo $(VERSION) | sed 's/^v//')# drop the "v" prefix for versions
@@ -21,6 +21,10 @@ endif
 
 TENDERMINT_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
 COSMOS_SDK_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
+
+.PHONY: print-git-info
+print-git-info:
+	@echo "branch $(GIT_BRANCH)\nbranch_prefix $(BRANCH_PREFIX)\ncommit $(GIT_COMMIT)\ncommit_short $(GIT_COMMIT_SHORT)"
 
 .PHONY: print-version
 print-version:
