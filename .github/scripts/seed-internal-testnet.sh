@@ -61,4 +61,4 @@ do
 done
 
 # create a text proposal
-kava tx gov submit-proposal --deposit 1000000000ukava --type "Text" --title "Example Proposal" --description "This is an example proposal" --gas auto --gas-adjustment 1.2 --from dev-wallet --gas-prices 0.01ukava
+kava tx gov submit-proposal --deposit 1000000000ukava --type "Text" --title "Example Proposal" --description "This is an example proposal" --gas auto --gas-adjustment 1.2 --from dev-wallet --gas-prices 0.01ukava -y

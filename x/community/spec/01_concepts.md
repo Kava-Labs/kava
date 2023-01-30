@@ -6,14 +6,8 @@ order: 1
 
 ## Community Pool
 
-The community pool is the module account of the x/community module. It replaces the functionality of the community pool fee collector account of the auth module in the vanilla SDK.
+The x/community module facilitates interactions with the community pool. In a future release, the community pool may be fully replaced by the x/community module account, but for now it is a place to keep things like proposals for interacting with the vanilla cosmos-sdk community pool (a portion of the auth fee pool held by the x/distribution module account).
 
 ### Funding
 
-The community pool can be funded every block from the community pool inflation of the x/kavamint module.
-
-Additionally, the pool can be funded by any account sending a community/FundCommunityPool message.
-
-### Spending
-
-The community pool funds are spent via government proposals. The x/kavadist module includes a CommunityPoolMultiSpendProposal that, upon approval, distributes funds to a list of accounts.
+The x/community module account can be funded by any account sending a community/FundCommunityPool message. These funds are not currently used for anything. The module account is also the transitory passthrough account for community pool funds that are deposited/withdrawn to lend via the CommunityPoolLendDepositProposal & CommunityPoolLendWithdrawProposal.
