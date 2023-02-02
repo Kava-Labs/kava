@@ -9,9 +9,16 @@ GIT_COMMIT_SHORT := $(shell git rev-parse --short HEAD)
 
 BRANCH_PREFIX := $(shell echo $(GIT_BRANCH) | sed 's/\/.*//g')# eg release, master, feat
 
-ifeq ($(BRANCH_PREFIX),release)
+EXACT_TAG := $(shell git describe --tags --exact-match 2> /dev/null)
+RECENT_TAG := $(shell git describe --tags)
+
+ifeq ($(BRANCH_PREFIX), release)
 # we are on a release branch, set version to the last or current tag
-VERSION := $(shell git describe --tags)# use current tag or most recent tag + number of commits + g + abbrivated commit
+VERSION := $(RECENT_TAG)# use current tag or most recent tag + number of commits + g + abbrivated commit
+VERSION_NUMBER := $(shell echo $(VERSION) | sed 's/^v//')# drop the "v" prefix for versions
+else ifeq ($(EXACT_TAG), $(RECENT_TAG))
+# we have a tag checked out directly
+VERSION := $(RECENT_TAG)# use exact tag
 VERSION_NUMBER := $(shell echo $(VERSION) | sed 's/^v//')# drop the "v" prefix for versions
 else
 # we are not on a release branch, and do not have clean tag history (etc v0.19.0-xx-gxx will not make sense to use)
@@ -21,6 +28,10 @@ endif
 
 TENDERMINT_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
 COSMOS_SDK_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
+
+.PHONY: print-git-info
+print-git-info:
+	@echo "branch $(GIT_BRANCH)\nbranch_prefix $(BRANCH_PREFIX)\ncommit $(GIT_COMMIT)\ncommit_short $(GIT_COMMIT_SHORT)"
 
 .PHONY: print-version
 print-version:
