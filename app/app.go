@@ -901,7 +901,7 @@ func NewApp(
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
 	// It needs to be called after `app.mm` and `app.configurator` are set.
-	app.RegisterUpgradeHandlers()
+	app.RegisterUpgradeHandlers(db)
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	//

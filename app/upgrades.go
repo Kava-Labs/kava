@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -12,6 +13,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	dbm "github.com/tendermint/tm-db"
 
 	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
@@ -22,7 +24,7 @@ const (
 	TestnetUpgradeName = "v0.21.0-alpha.0"
 )
 
-func (app App) RegisterUpgradeHandlers() {
+func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 	// register upgrade handler for mainnet
 	app.upgradeKeeper.SetUpgradeHandler(MainnetUpgradeName, MainnetUpgradeHandler(app))
 	// register upgrade handler for testnet
@@ -49,7 +51,34 @@ func (app App) RegisterUpgradeHandlers() {
 			},
 		}
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+		app.SetStoreLoader(TestnetStoreLoader(db, upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+// TestnetStoreLoader removes the previous iavl tree for the mint module, ensuring even store heights without
+// modifications to iavl to support non-consecutive versions and deletion of all nodes for a new tree at the upgrade height
+func TestnetStoreLoader(db dbm.DB, upgradeHeight int64, storeUpgrades *storetypes.StoreUpgrades) baseapp.StoreLoader {
+	return func(ms sdk.CommitMultiStore) error {
+		prefix := "s/k:" + minttypes.StoreKey + "/"
+		prefixdb := dbm.NewPrefixDB(db, []byte(prefix))
+
+		itr, err := prefixdb.Iterator(nil, nil)
+		if err != nil {
+			return err
+		}
+
+		var keys [][]byte
+		for itr.Valid() {
+			keys = append(keys, itr.Key())
+			itr.Next()
+		}
+		itr.Close()
+
+		for _, k := range keys {
+			prefixdb.Delete(k)
+		}
+
+		return upgradetypes.UpgradeStoreLoader(upgradeHeight, storeUpgrades)(ms)
 	}
 }
 
