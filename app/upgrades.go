@@ -118,6 +118,9 @@ func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 		app.Logger().Info("re-enabling community tax")
 		ReenableCommunityTax(ctx, app.distrKeeper)
 
+		// remove mint from the version map to ensure InitGenesis for x/mint is run
+		delete(fromVM, "mint")
+
 		// run migrations
 		vm, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		if err != nil {
