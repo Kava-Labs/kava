@@ -60,6 +60,8 @@ func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 func TestnetStoreLoader(db dbm.DB, upgradeHeight int64, storeUpgrades *storetypes.StoreUpgrades) baseapp.StoreLoader {
 	return func(ms sdk.CommitMultiStore) error {
 		prefix := "s/k:" + minttypes.StoreKey + "/"
+
+		// The mint module iavl versioned tree is stored at "s/k:mint/"
 		prefixdb := dbm.NewPrefixDB(db, []byte(prefix))
 
 		itr, err := prefixdb.Iterator(nil, nil)
@@ -67,6 +69,7 @@ func TestnetStoreLoader(db dbm.DB, upgradeHeight int64, storeUpgrades *storetype
 			return err
 		}
 
+		// Collect keys since deletion during iteration may cause issues
 		var keys [][]byte
 		for itr.Valid() {
 			keys = append(keys, itr.Key())
@@ -74,10 +77,12 @@ func TestnetStoreLoader(db dbm.DB, upgradeHeight int64, storeUpgrades *storetype
 		}
 		itr.Close()
 
+		// Delete all keys and thus all history of the mint store iavl tree
 		for _, k := range keys {
 			prefixdb.Delete(k)
 		}
 
+		// run the standard upgrade handler, now starting at a clean state for the mint store key
 		return upgradetypes.UpgradeStoreLoader(upgradeHeight, storeUpgrades)(ms)
 	}
 }
