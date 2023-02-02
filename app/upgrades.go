@@ -42,6 +42,7 @@ func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 	// TESTNET STORE CHANGES
 	// we must undo the store changes performed in the v0.20.0-alpha.0 upgrade handler.
 	if upgradeInfo.Name == TestnetUpgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		app.Logger().Info("running store upgrades and removing historic x/mint store state")
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				minttypes.StoreKey,
@@ -121,7 +122,7 @@ func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 
 		// initialize x/mint params. must be done after migrations so module exists.
 		app.Logger().Info("initializing x/mint state")
-		InitializeMintParams(ctx, app.mintKeeper, app.stakingKeeper)
+		InitializeMintState(ctx, app.mintKeeper, app.stakingKeeper)
 
 		return vm, nil
 	}
@@ -155,17 +156,27 @@ func ReenableCommunityTax(ctx sdk.Context, distrKeeper distrkeeper.Keeper) {
 	distrKeeper.SetParams(ctx, params)
 }
 
-// InitializeMintParams sets up the parameters and state of x/mint.
-func InitializeMintParams(
+// InitializeMintState sets up the parameters and state of x/mint.
+func InitializeMintState(
 	ctx sdk.Context,
 	mintKeeper mintkeeper.Keeper,
 	stakingKeeper stakingkeeper.Keeper,
 ) {
 	// init params for x/mint with values from mainnet
-	params := mintKeeper.GetParams(ctx)
+	inflationRate := sdk.MustNewDecFromStr("0.750000000000000000")
+	params := minttypes.DefaultParams()
 	params.MintDenom = stakingKeeper.BondDenom(ctx)
-	params.InflationMax = sdk.MustNewDecFromStr("0.750000000000000000")
-	params.InflationMin = sdk.MustNewDecFromStr("0.750000000000000000")
+	params.InflationMax = inflationRate
+	params.InflationMin = inflationRate
 
 	mintKeeper.SetParams(ctx, params)
+
+	// init minter state for current block
+	// start with minter with correct inflation & no annual provisions
+	minter := minttypes.InitialMinter(inflationRate)
+	// set annual provisions for current block (same calculation as in abci of x/mint)
+	totalStakingSupply := stakingKeeper.StakingTokenSupply(ctx)
+	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalStakingSupply)
+
+	mintKeeper.SetMinter(ctx, minter)
 }
