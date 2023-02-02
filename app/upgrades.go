@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -12,6 +13,7 @@ import (
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	dbm "github.com/tendermint/tm-db"
 
 	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
@@ -22,7 +24,7 @@ const (
 	TestnetUpgradeName = "v0.21.0-alpha.0"
 )
 
-func (app App) RegisterUpgradeHandlers() {
+func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 	// register upgrade handler for mainnet
 	app.upgradeKeeper.SetUpgradeHandler(MainnetUpgradeName, MainnetUpgradeHandler(app))
 	// register upgrade handler for testnet
@@ -48,8 +50,45 @@ func (app App) RegisterUpgradeHandlers() {
 				"kavamint",
 			},
 		}
+		// override the store loader to handle cleaning up bad testnet x/mint state
+		app.SetStoreLoader(TestnetStoreLoader(app, db, upgradeInfo.Height, &storeUpgrades))
+	}
+}
+
+// TestnetStoreLoader removes the previous iavl tree for the mint module, ensuring even store heights without
+// modifications to iavl to support non-consecutive versions and deletion of all nodes for a new tree at the upgrade height
+func TestnetStoreLoader(app App, db dbm.DB, upgradeHeight int64, storeUpgrades *storetypes.StoreUpgrades) baseapp.StoreLoader {
+	return func(ms sdk.CommitMultiStore) error {
+		// if this is the upgrade height, delete all remnant x/mint store versions to ensure we start from clean slate
+		if upgradeHeight == ms.LastCommitID().Version+1 {
+			app.Logger().Info("removing x/mint historic versions from store")
+			prefix := "s/k:" + minttypes.StoreKey + "/"
+
+			// The mint module iavl versioned tree is stored at "s/k:mint/"
+			prefixdb := dbm.NewPrefixDB(db, []byte(prefix))
+
+			itr, err := prefixdb.Iterator(nil, nil)
+			if err != nil {
+				return err
+			}
+
+			// Collect keys since deletion during iteration may cause issues
+			var keys [][]byte
+			for itr.Valid() {
+				keys = append(keys, itr.Key())
+				itr.Next()
+			}
+			itr.Close()
+
+			// Delete all keys and thus all history of the mint store iavl tree
+			for _, k := range keys {
+				prefixdb.Delete(k)
+			}
+		}
+
+		// run the standard upgrade handler, now starting at a clean state for the mint store key
 		// configure store loader that checks if version == upgradeHeight and applies store upgrades
-		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, &storeUpgrades))
+		return upgradetypes.UpgradeStoreLoader(upgradeHeight, storeUpgrades)(ms)
 	}
 }
 
@@ -79,6 +118,9 @@ func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 		app.Logger().Info("re-enabling community tax")
 		ReenableCommunityTax(ctx, app.distrKeeper)
 
+		// remove mint from the version map to ensure InitGenesis for x/mint is run
+		delete(fromVM, "mint")
+
 		// run migrations
 		vm, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		if err != nil {
@@ -87,7 +129,7 @@ func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 
 		// initialize x/mint params. must be done after migrations so module exists.
 		app.Logger().Info("initializing x/mint state")
-		InitializeMintParams(ctx, app.mintKeeper, app.stakingKeeper)
+		InitializeMintState(ctx, app.mintKeeper, app.stakingKeeper)
 
 		return vm, nil
 	}
@@ -121,17 +163,18 @@ func ReenableCommunityTax(ctx sdk.Context, distrKeeper distrkeeper.Keeper) {
 	distrKeeper.SetParams(ctx, params)
 }
 
-// InitializeMintParams sets up the parameters and state of x/mint.
-func InitializeMintParams(
+// InitializeMintState sets up the parameters and state of x/mint.
+func InitializeMintState(
 	ctx sdk.Context,
 	mintKeeper mintkeeper.Keeper,
 	stakingKeeper stakingkeeper.Keeper,
 ) {
 	// init params for x/mint with values from mainnet
-	params := mintKeeper.GetParams(ctx)
+	inflationRate := sdk.MustNewDecFromStr("0.750000000000000000")
+	params := minttypes.DefaultParams()
 	params.MintDenom = stakingKeeper.BondDenom(ctx)
-	params.InflationMax = sdk.MustNewDecFromStr("0.750000000000000000")
-	params.InflationMin = sdk.MustNewDecFromStr("0.750000000000000000")
+	params.InflationMax = inflationRate
+	params.InflationMin = inflationRate
 
 	mintKeeper.SetParams(ctx, params)
 }
