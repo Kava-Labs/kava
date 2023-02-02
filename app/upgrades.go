@@ -51,7 +51,7 @@ func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 				"kavamint",
 			},
 		}
-		// configure store loader that checks if version == upgradeHeight and applies store upgrades
+		// override the store loader to handle cleaning up bad testnet x/mint state
 		app.SetStoreLoader(TestnetStoreLoader(db, upgradeInfo.Height, &storeUpgrades))
 	}
 }
@@ -60,30 +60,34 @@ func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 // modifications to iavl to support non-consecutive versions and deletion of all nodes for a new tree at the upgrade height
 func TestnetStoreLoader(db dbm.DB, upgradeHeight int64, storeUpgrades *storetypes.StoreUpgrades) baseapp.StoreLoader {
 	return func(ms sdk.CommitMultiStore) error {
-		prefix := "s/k:" + minttypes.StoreKey + "/"
+		// if this is the upgrade height, delete all remnant x/mint store versions to ensure we start from clean slate
+		if upgradeHeight == ms.LastCommitID().Version+1 {
+			prefix := "s/k:" + minttypes.StoreKey + "/"
 
-		// The mint module iavl versioned tree is stored at "s/k:mint/"
-		prefixdb := dbm.NewPrefixDB(db, []byte(prefix))
+			// The mint module iavl versioned tree is stored at "s/k:mint/"
+			prefixdb := dbm.NewPrefixDB(db, []byte(prefix))
 
-		itr, err := prefixdb.Iterator(nil, nil)
-		if err != nil {
-			return err
-		}
+			itr, err := prefixdb.Iterator(nil, nil)
+			if err != nil {
+				return err
+			}
 
-		// Collect keys since deletion during iteration may cause issues
-		var keys [][]byte
-		for itr.Valid() {
-			keys = append(keys, itr.Key())
-			itr.Next()
-		}
-		itr.Close()
+			// Collect keys since deletion during iteration may cause issues
+			var keys [][]byte
+			for itr.Valid() {
+				keys = append(keys, itr.Key())
+				itr.Next()
+			}
+			itr.Close()
 
-		// Delete all keys and thus all history of the mint store iavl tree
-		for _, k := range keys {
-			prefixdb.Delete(k)
+			// Delete all keys and thus all history of the mint store iavl tree
+			for _, k := range keys {
+				prefixdb.Delete(k)
+			}
 		}
 
 		// run the standard upgrade handler, now starting at a clean state for the mint store key
+		// configure store loader that checks if version == upgradeHeight and applies store upgrades
 		return upgradetypes.UpgradeStoreLoader(upgradeHeight, storeUpgrades)(ms)
 	}
 }
@@ -170,13 +174,4 @@ func InitializeMintState(
 	params.InflationMin = inflationRate
 
 	mintKeeper.SetParams(ctx, params)
-
-	// init minter state for current block
-	// start with minter with correct inflation & no annual provisions
-	minter := minttypes.InitialMinter(inflationRate)
-	// set annual provisions for current block (same calculation as in abci of x/mint)
-	totalStakingSupply := stakingKeeper.StakingTokenSupply(ctx)
-	minter.AnnualProvisions = minter.NextAnnualProvisions(params, totalStakingSupply)
-
-	mintKeeper.SetMinter(ctx, minter)
 }
