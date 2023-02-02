@@ -42,7 +42,6 @@ func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 	// TESTNET STORE CHANGES
 	// we must undo the store changes performed in the v0.20.0-alpha.0 upgrade handler.
 	if upgradeInfo.Name == TestnetUpgradeName && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
-		app.Logger().Info("running store upgrades and removing historic x/mint store state")
 		storeUpgrades := storetypes.StoreUpgrades{
 			Added: []string{
 				minttypes.StoreKey,
@@ -52,16 +51,17 @@ func (app App) RegisterUpgradeHandlers(db dbm.DB) {
 			},
 		}
 		// override the store loader to handle cleaning up bad testnet x/mint state
-		app.SetStoreLoader(TestnetStoreLoader(db, upgradeInfo.Height, &storeUpgrades))
+		app.SetStoreLoader(TestnetStoreLoader(app, db, upgradeInfo.Height, &storeUpgrades))
 	}
 }
 
 // TestnetStoreLoader removes the previous iavl tree for the mint module, ensuring even store heights without
 // modifications to iavl to support non-consecutive versions and deletion of all nodes for a new tree at the upgrade height
-func TestnetStoreLoader(db dbm.DB, upgradeHeight int64, storeUpgrades *storetypes.StoreUpgrades) baseapp.StoreLoader {
+func TestnetStoreLoader(app App, db dbm.DB, upgradeHeight int64, storeUpgrades *storetypes.StoreUpgrades) baseapp.StoreLoader {
 	return func(ms sdk.CommitMultiStore) error {
 		// if this is the upgrade height, delete all remnant x/mint store versions to ensure we start from clean slate
 		if upgradeHeight == ms.LastCommitID().Version+1 {
+			app.Logger().Info("removing x/mint historic versions from store")
 			prefix := "s/k:" + minttypes.StoreKey + "/"
 
 			// The mint module iavl versioned tree is stored at "s/k:mint/"
