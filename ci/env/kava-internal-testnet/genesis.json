@@ -1699,484 +1699,226 @@
     },
     "incentive": {
       "params": {
-        "usdx_minting_reward_periods": [
-          {
-            "active": true,
-            "rewards_per_second": {
-              "amount": "122354",
-              "denom": "ukava"
-            },
-            "collateral_type": "bnb-a",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-10-16T14:00:00Z"
-          },
-          {
-            "active": true,
-            "rewards_per_second": {
-              "amount": "122354",
-              "denom": "ukava"
-            },
-            "collateral_type": "luna-a",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-10-16T14:00:00Z"
-          },
-          {
-            "active": true,
-            "rewards_per_second": {
-              "amount": "122354",
-              "denom": "ukava"
-            },
-            "collateral_type": "btcb-a",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-10-16T14:00:00Z"
-          },
-          {
-            "active": true,
-            "rewards_per_second": {
-              "amount": "30588",
-              "denom": "ukava"
-            },
-            "collateral_type": "busd-a",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-10-16T14:00:00Z"
-          },
-          {
-            "active": true,
-            "rewards_per_second": {
-              "amount": "31746",
-              "denom": "ukava"
-            },
-            "collateral_type": "xrpb-a",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-10-16T14:00:00Z"
-          },
-          {
-            "active": true,
-            "rewards_per_second": {
-              "amount": "31746",
-              "denom": "ukava"
-            },
-            "collateral_type": "ukava-a",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-10-16T14:00:00Z"
-          },
-          {
-            "active": true,
-            "rewards_per_second": {
-              "amount": "23809",
-              "denom": "ukava"
-            },
-            "collateral_type": "hard-a",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-10-16T14:00:00Z"
-          }
-        ],
+        "usdx_minting_reward_periods": [],
         "hard_supply_reward_periods": [
           {
             "active": true,
-            "collateral_type": "bnb",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "collateral_type": "usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-10-16T14:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "123455",
-                "denom": "hard"
+                "denom": "ukava",
+                "amount": "478377"
               }
             ]
           },
           {
             "active": true,
             "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-10-16T14:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "123455",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/4129EB76C01ED14052054BB975DE0C6C5010E12FFD9253C20C58BCD828BEE9A5",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "123455",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/C72DE26FFF16DE62BE2784E12229BDF5F4465CE8B10530426D6DB53255FF01B2",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "123455",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "123455",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "btcb",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12355",
-                "denom": "hard"
-              },
-              {
-                "amount": "12355",
-                "denom": "ukava"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "xrpb",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12355",
-                "denom": "hard"
-              },
-              {
-                "amount": "12355",
-                "denom": "ukava"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12355",
-                "denom": "hard"
-              },
-              {
-                "amount": "12355",
-                "denom": "ukava"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "busd",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12355",
-                "denom": "hard"
-              },
-              {
-                "amount": "12355",
-                "denom": "ukava"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ukava",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "123455",
-                "denom": "hard"
+                "denom": "ukava",
+                "amount": "9567"
               }
             ]
           },
           {
             "active": true,
             "collateral_type": "hard",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "123455",
-                "denom": "hard"
+                "denom": "ukava",
+                "amount": "4692"
               }
             ]
-          }
-        ],
-        "hard_borrow_reward_periods": [
+          },
           {
             "active": true,
             "collateral_type": "bnb",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "12345",
-                "denom": "hard"
+                "denom": "ukava",
+                "amount": "3049"
               }
             ]
           },
           {
             "active": true,
             "collateral_type": "busd",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "12345",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12345",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/4129EB76C01ED14052054BB975DE0C6C5010E12FFD9253C20C58BCD828BEE9A5",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12345",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/C72DE26FFF16DE62BE2784E12229BDF5F4465CE8B10530426D6DB53255FF01B2",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12345",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12345",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ukava",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12345",
-                "denom": "hard"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "xrpb",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "12345",
-                "denom": "hard"
+                "denom": "ukava",
+                "amount": "938"
               }
             ]
           },
           {
             "active": true,
             "collateral_type": "btcb",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "12345",
-                "denom": "hard"
-              }
-            ]
-          }
-        ],
-        "delegator_reward_periods": [
-          {
-            "active": true,
-            "collateral_type": "ukava",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "316880",
-                "denom": "hard"
-              },
-              {
-                "amount": "316880",
-                "denom": "swp"
-              }
-            ]
-          }
-        ],
-        "savings_reward_periods": [
-          {
-            "active": true,
-            "collateral_type": "ukava",
-            "start": "2022-04-21T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "31688",
-                "denom": "ukava"
+                "denom": "ukava",
+                "amount": "4692"
               }
             ]
           },
           {
             "active": true,
-            "collateral_type": "usdx",
-            "start": "2022-04-21T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "collateral_type": "xrpb",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "31688",
-                "denom": "ukava"
+                "denom": "ukava",
+                "amount": "2580"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "ukava",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "938"
               }
             ]
           }
         ],
+        "hard_borrow_reward_periods": [],
+        "delegator_reward_periods": [],
+        "savings_reward_periods": [],
         "swap_reward_periods": [
           {
             "active": true,
-            "collateral_type": "ukava:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "collateral_type": "bnb:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "316880",
-                "denom": "swp"
-              },
-              {
-                "amount": "31688",
-                "denom": "ukava"
+                "denom": "ukava",
+                "amount": "2017"
               }
             ]
           },
           {
             "active": true,
-            "collateral_type": "swp:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "collateral_type": "btcb:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "616880",
-                "denom": "swp"
-              },
-              {
-                "amount": "31688",
-                "denom": "ukava"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "hard:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "116880",
-                "denom": "swp"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "116880",
-                "denom": "swp"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/4129EB76C01ED14052054BB975DE0C6C5010E12FFD9253C20C58BCD828BEE9A5:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "116880",
-                "denom": "swp"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/C72DE26FFF16DE62BE2784E12229BDF5F4465CE8B10530426D6DB53255FF01B2:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "116880",
-                "denom": "swp"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "116880",
-                "denom": "swp"
+                "denom": "ukava",
+                "amount": "2459"
               }
             ]
           },
           {
             "active": true,
             "collateral_type": "busd:usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "156880",
-                "denom": "swp"
+                "denom": "ukava",
+                "amount": "9217"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "hard:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "1586"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6DE59817B:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "422"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "1291"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "242"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "swp:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "649"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "ukava:usdx",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "3765"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "usdx:xrpb",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2025-08-29T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "1187"
               }
             ]
           }
@@ -2184,49 +1926,49 @@
         "earn_reward_periods": [
           {
             "active": true,
-            "collateral_type": "ukava",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "31688",
-                "denom": "ukava"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "usdx",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
-            "rewards_per_second": [
-              {
-                "amount": "31688",
-                "denom": "ukava"
-              }
-            ]
-          },
-          {
-            "active": true,
             "collateral_type": "bkava",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-10-26T15:00:00Z",
+            "end": "2024-10-26T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "31688",
-                "denom": "ukava"
+                "denom": "ukava",
+                "amount": "31891"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "bnb",
+            "start": "2022-12-29T23:00:00Z",
+            "end": "2024-12-29T23:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "5505"
               }
             ]
           },
           {
             "active": true,
             "collateral_type": "erc20/multichain/usdc",
-            "start": "2021-12-08T14:00:00Z",
-            "end": "2024-01-01T00:00:00Z",
+            "start": "2022-10-26T15:00:00Z",
+            "end": "2024-10-26T15:00:00Z",
             "rewards_per_second": [
               {
-                "amount": "31688",
-                "denom": "ukava"
+                "denom": "ukava",
+                "amount": "5505"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "erc20/multichain/usdt",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "5505"
               }
             ]
           }
@@ -2236,17 +1978,17 @@
             "denom": "hard",
             "multipliers": [
               {
-                "name": "MULTIPLIER_NAME_LARGE",
-                "factor": "1.0"
+                "name": "large",
+                "factor": "1.000000000000000000"
               }
             ]
           },
           {
-            "denom": "swp",
+            "denom": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
             "multipliers": [
               {
-                "name": "MULTIPLIER_NAME_LARGE",
-                "factor": "1.0"
+                "name": "large",
+                "factor": "1.000000000000000000"
               }
             ]
           },
@@ -2254,14 +1996,23 @@
             "denom": "ukava",
             "multipliers": [
               {
-                "name": "MULTIPLIER_NAME_LARGE",
+                "name": "large",
                 "months_lockup": "12",
-                "factor": "1.0"
+                "factor": "1.000000000000000000"
               },
               {
-                "name": "MULTIPLIER_NAME_SMALL",
+                "name": "small",
                 "months_lockup": "1",
-                "factor": "0.2"
+                "factor": "0.200000000000000000"
+              }
+            ]
+          },
+          {
+            "denom": "swp",
+            "multipliers": [
+              {
+                "name": "large",
+                "factor": "1.000000000000000000"
               }
             ]
           }
