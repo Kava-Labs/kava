@@ -18,11 +18,15 @@ Kava Labs has submitted a `SoftwareUpgradeProposal` that specifies block height 
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
-**Ensure you are using golang 1.18**
+**Ensure you are using golang 1.18 and not a newer version.** Golang 1.19+ may cause app hash mismatches!
 
 1. Update to v0.21.0
 
 ```sh
+  # check go version - look for 1.18!
+  go version
+  # go version go1.18.10 linux/arm64
+
   # in the `kava` folder
   git fetch
   git checkout v0.21.0
@@ -58,7 +62,7 @@ Prior to applying the Kava 12 upgrade, validators are encouraged to take a full 
 
 It is critically important to back-up the .kava/data/priv_validator_state.json file after stopping your kava process. This file is updated every block as your validator participates in consensus rounds. It is a critical file needed to prevent double-signing, in case the upgrade fails and the previous chain needs to be restarted.
 
-In the event that the upgrade does not succeed, validators and operators must downgrade back to v0.18.x of the Kava software and restore to their latest snapshot before restarting their nodes.
+In the event that the upgrade does not succeed, validators and operators must downgrade back to v0.19.x of the Kava software and restore to their latest snapshot before restarting their nodes.
 
 ### Coordination
 
