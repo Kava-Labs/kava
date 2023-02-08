@@ -26,6 +26,7 @@ func (s queryServer) Balance(c context.Context, _ *types.QueryBalanceRequest) (*
 	}, nil
 }
 
+// Params implements the gRPC service handler for querying x/community params.
 func (s queryServer) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	return &types.QueryParamsResponse{

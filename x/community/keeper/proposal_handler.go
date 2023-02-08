@@ -37,13 +37,13 @@ func HandleCommunityPoolProposal(ctx sdk.Context, k Keeper, p *types.CommunityPo
 	enabledUrls := k.GetParams(ctx).EnabledProposalMsgUrls
 	for idx, msg := range msgs {
 		if !isMsgEnabled(msg, enabledUrls) {
-			return logAndReturnProposalMsgError(logger, idx, msg, "msg not enabled via params")
+			return logAndReturnProposalMsgError(logger, idx, msg, "msg not enabled via params", types.ErrProposalMsgNotEnabledErr)
 		}
 
 		// assert that the community module account is the only signer of the messages
 		signers := msg.GetSigners()
 		if len(signers) != 1 || !signers[0].Equals(k.moduleAddress) {
-			return logAndReturnProposalMsgError(logger, idx, msg, "invalid signer")
+			return logAndReturnProposalMsgError(logger, idx, msg, "invalid signer", types.ErrProposalSigningErr)
 		}
 
 		handler := k.Router().Handler(msg)
@@ -51,7 +51,7 @@ func HandleCommunityPoolProposal(ctx sdk.Context, k Keeper, p *types.CommunityPo
 
 		// fail proposal if any message failed to execute
 		if err != nil {
-			return logAndReturnProposalMsgError(logger, idx, msg, err.Error())
+			return logAndReturnProposalMsgError(logger, idx, msg, err.Error(), types.ErrProposalExecutionErr)
 		}
 	}
 
@@ -70,11 +70,11 @@ func isMsgEnabled(msg sdk.Msg, enabledUrls []string) bool {
 	return false
 }
 
-func logAndReturnProposalMsgError(logger log.Logger, msgIndex int, msg sdk.Msg, errMsg string) error {
+func logAndReturnProposalMsgError(logger log.Logger, msgIndex int, msg sdk.Msg, errMsg string, err *sdkerrors.Error) error {
 	errStr := fmt.Sprintf(
 		"CommunityPoolProposal msg %d (%s) failed on execution: %s",
 		msgIndex, sdk.MsgTypeURL(msg), errMsg,
 	)
 	logger.Info(errStr)
-	return sdkerrors.Wrap(types.ErrProposalExecutionErr, errStr)
+	return sdkerrors.Wrap(err, errStr)
 }

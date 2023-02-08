@@ -396,7 +396,7 @@ func (suite *proposalHandlerTestSuite) TestHandleCommunityPoolProposal_EVMCall()
 			sdk.NewInt(1000),
 			errArgs{
 				expectPass: false,
-				contains:   "CommunityPoolProposal msg 1 (/cosmos.bank.v1beta1.MsgSend) failed on execution: msg not enabled via params: community pool proposal message execution error",
+				contains:   "CommunityPoolProposal msg 1 (/cosmos.bank.v1beta1.MsgSend) failed on execution: msg not enabled via params: community proposal message not whitelisted",
 			},
 		},
 		{
@@ -417,7 +417,7 @@ func (suite *proposalHandlerTestSuite) TestHandleCommunityPoolProposal_EVMCall()
 			sdk.NewInt(1000),
 			errArgs{
 				expectPass: false,
-				contains:   "CommunityPoolProposal msg 0 (/cosmos.bank.v1beta1.MsgSend) failed on execution: msg not enabled via params: community pool proposal message execution error",
+				contains:   "CommunityPoolProposal msg 0 (/cosmos.bank.v1beta1.MsgSend) failed on execution: msg not enabled via params: community proposal message not whitelisted",
 			},
 		},
 	}

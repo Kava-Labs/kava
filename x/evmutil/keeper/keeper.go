@@ -49,6 +49,7 @@ func NewKeeper(
 	}
 }
 
+// GetAccountKeeper returns the x/evmutil module's AccountKeeper.
 func (k Keeper) GetAccountKeeper() types.AccountKeeper {
 	return k.accountKeeper
 }
@@ -58,6 +59,7 @@ func (k Keeper) GetAuthorities() []string {
 	return k.authorities
 }
 
+// SetEvmKeeper sets the x/evmutil module's EvmKeeper.
 func (k *Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) {
 	k.evmKeeper = evmKeeper
 }
