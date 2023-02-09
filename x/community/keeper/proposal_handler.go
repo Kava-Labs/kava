@@ -40,6 +40,10 @@ func HandleCommunityPoolProposal(ctx sdk.Context, k Keeper, p *types.CommunityPo
 			return logAndReturnProposalMsgError(logger, idx, msg, "msg not enabled via params", types.ErrProposalMsgNotEnabledErr)
 		}
 
+		if err := msg.ValidateBasic(); err != nil {
+			return logAndReturnProposalMsgError(logger, idx, msg, "msg basic validation failed", types.ErrProposalExecutionErr)
+		}
+
 		// assert that the community module account is the only signer of the messages
 		signers := msg.GetSigners()
 		if len(signers) != 1 || !signers[0].Equals(k.moduleAddress) {
