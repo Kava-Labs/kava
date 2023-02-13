@@ -38,6 +38,7 @@ jobs:
         with:
           repository: ethereum/go-ethereum
           path: go-ethereum
+          ref: v1.10.26
       - name: install go evm tools
         run: |
           make
