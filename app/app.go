@@ -950,8 +950,8 @@ func NewApp(
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	// export is height 3430142
-	upgradeHeight := int64(3430160)
+	// export is height 3572919
+	upgradeHeight := int64(3572930)
 	if ctx.BlockHeight() == upgradeHeight-1 {
 		upgradePlan := upgradetypes.Plan{
 			Name:   "v0.21.0",
