@@ -39,7 +39,11 @@ func NewSingleKavaNode(config Config) *SingleKavaNodeSuite {
 func (k *SingleKavaNodeSuite) StartChains() {
 	fmt.Println("starting kava node")
 	k.setupDockerPool()
-	k.waitForChainStart()
+	err := k.waitForChainStart()
+	if err != nil {
+		k.Shutdown()
+		panic(err)
+	}
 }
 
 func (k *SingleKavaNodeSuite) Shutdown() {
@@ -93,16 +97,21 @@ func (k *SingleKavaNodeSuite) setupDockerPool() {
 	k.resource = resource
 }
 
-func (k *SingleKavaNodeSuite) waitForChainStart() {
+func (k *SingleKavaNodeSuite) waitForChainStart() error {
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
 	k.pool.MaxWait = 30 * time.Second
-	if err := k.pool.Retry(k.ping); err != nil {
-		panic(fmt.Sprintf("failed to start & connect to chain: %s", err))
+	if err := k.pool.Retry(k.pingKava); err != nil {
+		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
+	// the evm takes a bit longer to start up. wait for it to start as well.
+	if err := k.pool.Retry(k.pingEvm); err != nil {
+		return fmt.Errorf("failed to start & connect to chain: %s", err)
+	}
+	return nil
 }
 
-func (k *SingleKavaNodeSuite) ping() error {
-	fmt.Println("pinging chain...")
+func (k *SingleKavaNodeSuite) pingKava() error {
+	fmt.Println("pinging kava chain...")
 	url := fmt.Sprintf("http://localhost:%s/status", k.config.KavaRpcPort)
 	res, err := http.Get(url)
 	if err != nil {
@@ -113,5 +122,21 @@ func (k *SingleKavaNodeSuite) ping() error {
 		return fmt.Errorf("ping to status failed: %d", res.StatusCode)
 	}
 	fmt.Println("successfully started Kava!")
+	return nil
+}
+
+func (k *SingleKavaNodeSuite) pingEvm() error {
+	fmt.Println("pinging evm...")
+	url := fmt.Sprintf("http://localhost:%s", k.config.EvmRpcPort)
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	// when running, it should respond 405 to a GET request
+	if res.StatusCode != 405 {
+		return fmt.Errorf("ping to evm failed: %d", res.StatusCode)
+	}
+	fmt.Println("successfully pinged EVM!")
 	return nil
 }

@@ -5,13 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/kava-labs/kava/tests/e2e/runner"
 	"github.com/stretchr/testify/suite"
 )
 
 type SingleNodeE2eSuite struct {
 	suite.Suite
-	runner runner.NodeRunner
+
+	evmClient *ethclient.Client
+	runner    runner.NodeRunner
 }
 
 func (suite *SingleNodeE2eSuite) SetupSuite() {
@@ -30,6 +33,13 @@ func (suite *SingleNodeE2eSuite) SetupSuite() {
 	}
 	suite.runner = runner.NewSingleKavaNode(config)
 	suite.runner.StartChains()
+
+	evmRpcUrl := fmt.Sprintf("http://localhost:%s", config.EvmRpcPort)
+	suite.evmClient, err = ethclient.Dial(evmRpcUrl)
+	if err != nil {
+		suite.runner.Shutdown()
+		suite.Fail("failed to connect to evm: %s", err)
+	}
 }
 
 func (suite *SingleNodeE2eSuite) TearDownSuite() {
