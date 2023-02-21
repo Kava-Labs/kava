@@ -6,9 +6,15 @@ import (
 	"testing"
 
 	"github.com/kava-labs/kava/tests/e2e/runner"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestE2eSingleNode(t *testing.T) {
+type SingleNodeE2eSuite struct {
+	suite.Suite
+	runner runner.NodeRunner
+}
+
+func (suite *SingleNodeE2eSuite) SetupSuite() {
 	configDir, err := filepath.Abs("./generated/kava-1/config")
 	if err != nil {
 		panic(fmt.Sprintf("failed to get config dir: %s", err))
@@ -22,11 +28,14 @@ func TestE2eSingleNode(t *testing.T) {
 
 		ImageTag: "local",
 	}
+	suite.runner = runner.NewSingleKavaNode(config)
+	suite.runner.StartChains()
+}
 
-	chainRunner := runner.NewSingleKavaNode(config)
-	chainRunner.StartChains()
+func (suite *SingleNodeE2eSuite) TearDownSuite() {
+	suite.runner.Shutdown()
+}
 
-	t.Log("running the chain!")
-
-	chainRunner.Shutdown()
+func TestSingleNodeE2eSuite(t *testing.T) {
+	suite.Run(t, new(SingleNodeE2eSuite))
 }

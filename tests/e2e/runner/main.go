@@ -2,8 +2,8 @@ package runner
 
 import (
 	"fmt"
-	"io"
 	"net/http"
+	"time"
 
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
@@ -18,6 +18,11 @@ type Config struct {
 	EvmRpcPort   string
 }
 
+type NodeRunner interface {
+	StartChains()
+	Shutdown()
+}
+
 type SingleKavaNodeSuite struct {
 	config Config
 
@@ -25,18 +30,20 @@ type SingleKavaNodeSuite struct {
 	resource *dockertest.Resource
 }
 
-func NewSingleKavaNode(config Config) SingleKavaNodeSuite {
-	return SingleKavaNodeSuite{
+func NewSingleKavaNode(config Config) *SingleKavaNodeSuite {
+	return &SingleKavaNodeSuite{
 		config: config,
 	}
 }
 
 func (k *SingleKavaNodeSuite) StartChains() {
+	fmt.Println("starting kava node")
 	k.setupDockerPool()
 	k.waitForChainStart()
 }
 
 func (k *SingleKavaNodeSuite) Shutdown() {
+	fmt.Println("shutting down kava node")
 	k.pool.Purge(k.resource)
 }
 
@@ -66,8 +73,8 @@ func (k *SingleKavaNodeSuite) setupDockerPool() {
 		},
 		ExposedPorts: []string{
 			"26657", // port inside container for Kava RPC
-			"1317",
-			"8545", // port inside container for EVM JSON-RPC
+			"1317",  // port inside container for Kava REST API
+			"8545",  // port inside container for EVM JSON-RPC
 		},
 		// expose the internal ports on the configured ports
 		PortBindings: map[docker.Port][]docker.PortBinding{
@@ -87,6 +94,8 @@ func (k *SingleKavaNodeSuite) setupDockerPool() {
 }
 
 func (k *SingleKavaNodeSuite) waitForChainStart() {
+	// exponential backoff on trying to ping the node, timeout after 30 seconds
+	k.pool.MaxWait = 30 * time.Second
 	if err := k.pool.Retry(k.ping); err != nil {
 		panic(fmt.Sprintf("failed to start & connect to chain: %s", err))
 	}
@@ -103,8 +112,6 @@ func (k *SingleKavaNodeSuite) ping() error {
 	if res.StatusCode >= 400 {
 		return fmt.Errorf("ping to status failed: %d", res.StatusCode)
 	}
-	b, _ := io.ReadAll(res.Body)
 	fmt.Println("successfully started Kava!")
-	fmt.Println(string(b))
 	return nil
 }
