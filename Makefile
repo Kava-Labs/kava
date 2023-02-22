@@ -238,6 +238,10 @@ format:
 ###                                Localnet                                 ###
 ###############################################################################
 
+# Build docker image and tag as kava/kava:local
+docker-build:
+	$(DOCKER) build -t kava/kava:local .
+
 build-docker-local-kava:
 	@$(MAKE) -C networks/local
 
@@ -285,8 +289,13 @@ test-basic: test
 	@# AppStateDeterminism does not use Seed flag
 	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 
+# run end-to-end tests (local docker container must be built, see docker-build)
+test-e2e:
+	export E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC='season bone lucky dog depth pond royal decide unknown device fruit inch clock trap relief horse morning taxi bird session throw skull avocado private'; \
+	go test -failfast -count=1 -v ./tests/e2e/...
+
 test:
-	@go test $$(go list ./... | grep -v 'contrib')
+	@go test $$(go list ./... | grep -v 'contrib' | grep -v 'tests/e2e')
 
 # Run cli integration tests
 # `-p 4` to use 4 cores, `-tags cli_test` to tell go not to ignore the cli package
