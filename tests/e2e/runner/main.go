@@ -14,8 +14,9 @@ type Config struct {
 	ImageTag  string
 
 	KavaRpcPort  string
+	KavaGrpcPort string
 	KavaRestPort string
-	EvmRpcPort   string
+	KavaEvmPort  string
 }
 
 type NodeRunner interface {
@@ -78,13 +79,15 @@ func (k *SingleKavaNodeSuite) setupDockerPool() {
 		ExposedPorts: []string{
 			"26657", // port inside container for Kava RPC
 			"1317",  // port inside container for Kava REST API
+			"9090",  // port inside container for Kava GRPC
 			"8545",  // port inside container for EVM JSON-RPC
 		},
 		// expose the internal ports on the configured ports
 		PortBindings: map[docker.Port][]docker.PortBinding{
 			"26657": {{HostIP: "", HostPort: k.config.KavaRpcPort}},
 			"1327":  {{HostIP: "", HostPort: k.config.KavaRestPort}},
-			"8545":  {{HostIP: "", HostPort: k.config.EvmRpcPort}},
+			"9090":  {{HostIP: "", HostPort: k.config.KavaGrpcPort}},
+			"8545":  {{HostIP: "", HostPort: k.config.KavaEvmPort}},
 		},
 	}, func(config *docker.HostConfig) {
 		// set AutoRemove to true so that stopped container goes away by itself
@@ -127,7 +130,7 @@ func (k *SingleKavaNodeSuite) pingKava() error {
 
 func (k *SingleKavaNodeSuite) pingEvm() error {
 	fmt.Println("pinging evm...")
-	url := fmt.Sprintf("http://localhost:%s", k.config.EvmRpcPort)
+	url := fmt.Sprintf("http://localhost:%s", k.config.KavaEvmPort)
 	res, err := http.Get(url)
 	if err != nil {
 		return err
