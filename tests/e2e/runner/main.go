@@ -20,17 +20,21 @@ type Config struct {
 	KavaEvmPort  string
 }
 
+// NodeRunner is responsible for starting and managing docker containers to run a node.
 type NodeRunner interface {
 	StartChains()
 	Shutdown()
 }
 
+// SingleKavaNodeRunner manages and runs a single Kava node.
 type SingleKavaNodeRunner struct {
 	config Config
 
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
 }
+
+var _ NodeRunner = &SingleKavaNodeRunner{}
 
 func NewSingleKavaNode(config Config) *SingleKavaNodeRunner {
 	return &SingleKavaNodeRunner{
