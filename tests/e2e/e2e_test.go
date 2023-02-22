@@ -17,7 +17,7 @@ import (
 	"github.com/kava-labs/kava/tests/e2e/runner"
 )
 
-type SingleNodeE2eSuite struct {
+type E2eTestSuite struct {
 	suite.Suite
 
 	runner   runner.NodeRunner
@@ -27,10 +27,10 @@ type SingleNodeE2eSuite struct {
 	Tm        tmservice.ServiceClient
 }
 
-func (suite *SingleNodeE2eSuite) SetupSuite() {
+func (suite *E2eTestSuite) SetupSuite() {
 	configDir, err := filepath.Abs("./generated/kava-1/config")
 	if err != nil {
-		panic(fmt.Sprintf("failed to get config dir: %s", err))
+		suite.Fail("failed to get config dir: %s", err)
 	}
 	config := runner.Config{
 		ConfigDir: configDir,
@@ -62,15 +62,15 @@ func (suite *SingleNodeE2eSuite) SetupSuite() {
 	suite.Tm = tmservice.NewServiceClient(suite.grpcConn)
 }
 
-func (suite *SingleNodeE2eSuite) TearDownSuite() {
+func (suite *E2eTestSuite) TearDownSuite() {
 	suite.runner.Shutdown()
 }
 
-func TestSingleNodeE2eSuite(t *testing.T) {
-	suite.Run(t, new(SingleNodeE2eSuite))
+func TestE2eTestSuite(t *testing.T) {
+	suite.Run(t, new(E2eTestSuite))
 }
 
-func (suite *SingleNodeE2eSuite) TestChainID() {
+func (suite *E2eTestSuite) TestChainID() {
 	// TODO: make chain agnostic, don't hardcode expected chain ids
 
 	evmNetworkId, err := suite.EvmClient.NetworkID(context.Background())

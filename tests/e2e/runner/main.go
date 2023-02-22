@@ -2,6 +2,7 @@ package runner
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -24,21 +25,21 @@ type NodeRunner interface {
 	Shutdown()
 }
 
-type SingleKavaNodeSuite struct {
+type SingleKavaNodeRunner struct {
 	config Config
 
 	pool     *dockertest.Pool
 	resource *dockertest.Resource
 }
 
-func NewSingleKavaNode(config Config) *SingleKavaNodeSuite {
-	return &SingleKavaNodeSuite{
+func NewSingleKavaNode(config Config) *SingleKavaNodeRunner {
+	return &SingleKavaNodeRunner{
 		config: config,
 	}
 }
 
-func (k *SingleKavaNodeSuite) StartChains() {
-	fmt.Println("starting kava node")
+func (k *SingleKavaNodeRunner) StartChains() {
+	log.Println("starting kava node")
 	k.setupDockerPool()
 	err := k.waitForChainStart()
 	if err != nil {
@@ -47,21 +48,21 @@ func (k *SingleKavaNodeSuite) StartChains() {
 	}
 }
 
-func (k *SingleKavaNodeSuite) Shutdown() {
-	fmt.Println("shutting down kava node")
+func (k *SingleKavaNodeRunner) Shutdown() {
+	log.Println("shutting down kava node")
 	k.pool.Purge(k.resource)
 }
 
-func (k *SingleKavaNodeSuite) setupDockerPool() {
+func (k *SingleKavaNodeRunner) setupDockerPool() {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		panic(fmt.Sprintf("Failed to make docker pool: %s", err))
+		log.Fatalf("Failed to make docker pool: %s", err)
 	}
 	k.pool = pool
 
 	err = pool.Client.Ping()
 	if err != nil {
-		panic(fmt.Sprintf("Failed to connect to docker: %s", err))
+		log.Fatalf("Failed to connect to docker: %s", err)
 	}
 
 	resource, err := k.pool.RunWithOptions(&dockertest.RunOptions{
@@ -95,12 +96,13 @@ func (k *SingleKavaNodeSuite) setupDockerPool() {
 		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
 	})
 	if err != nil {
-		panic(fmt.Sprintf("Failed to start kava node: %s", err))
+		log.Fatalf("Failed to start kava node: %s", err)
 	}
 	k.resource = resource
+	log.Println(resource.GetHostPort("26657"))
 }
 
-func (k *SingleKavaNodeSuite) waitForChainStart() error {
+func (k *SingleKavaNodeRunner) waitForChainStart() error {
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
 	k.pool.MaxWait = 30 * time.Second
 	if err := k.pool.Retry(k.pingKava); err != nil {
@@ -113,8 +115,8 @@ func (k *SingleKavaNodeSuite) waitForChainStart() error {
 	return nil
 }
 
-func (k *SingleKavaNodeSuite) pingKava() error {
-	fmt.Println("pinging kava chain...")
+func (k *SingleKavaNodeRunner) pingKava() error {
+	log.Println("pinging kava chain...")
 	url := fmt.Sprintf("http://localhost:%s/status", k.config.KavaRpcPort)
 	res, err := http.Get(url)
 	if err != nil {
@@ -124,12 +126,12 @@ func (k *SingleKavaNodeSuite) pingKava() error {
 	if res.StatusCode >= 400 {
 		return fmt.Errorf("ping to status failed: %d", res.StatusCode)
 	}
-	fmt.Println("successfully started Kava!")
+	log.Println("successfully started Kava!")
 	return nil
 }
 
-func (k *SingleKavaNodeSuite) pingEvm() error {
-	fmt.Println("pinging evm...")
+func (k *SingleKavaNodeRunner) pingEvm() error {
+	log.Println("pinging evm...")
 	url := fmt.Sprintf("http://localhost:%s", k.config.KavaEvmPort)
 	res, err := http.Get(url)
 	if err != nil {
@@ -140,6 +142,6 @@ func (k *SingleKavaNodeSuite) pingEvm() error {
 	if res.StatusCode != 405 {
 		return fmt.Errorf("ping to evm failed: %d", res.StatusCode)
 	}
-	fmt.Println("successfully pinged EVM!")
+	log.Println("successfully pinged EVM!")
 	return nil
 }
