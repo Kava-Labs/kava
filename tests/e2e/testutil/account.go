@@ -11,16 +11,16 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
 
-	"github.com/kava-labs/go-tools/signing"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/tests/util"
 )
 
 type SigningAccount struct {
 	name      string
 	mnemonic  string
-	signer    *signing.Signer
-	requests  chan<- signing.MsgRequest
-	responses <-chan signing.MsgResponse
+	signer    *util.Signer
+	requests  chan<- util.MsgRequest
+	responses <-chan util.MsgResponse
 
 	Address sdk.AccAddress
 
@@ -46,7 +46,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 	suite.NoErrorf(err, "failed to derive private key from mnemonic for %s: %s", name, err)
 	privKey := &secp256k1.PrivKey{Key: privKeyBytes}
 
-	signer := signing.NewSigner(
+	signer := util.NewSigner(
 		chainId,
 		suite.encodingConfig,
 		suite.Auth,
@@ -55,7 +55,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 		100,
 	)
 
-	requests := make(chan signing.MsgRequest)
+	requests := make(chan util.MsgRequest)
 	responses, err := signer.Run(requests)
 	suite.NoErrorf(err, "failed to start signer for account %s: %s", name, err)
 
@@ -77,7 +77,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 }
 
 // SignAndBroadcastKavaTx sends a request to the signer and awaits its response.
-func (a *SigningAccount) SignAndBroadcastKavaTx(req signing.MsgRequest) signing.MsgResponse {
+func (a *SigningAccount) SignAndBroadcastKavaTx(req util.MsgRequest) util.MsgResponse {
 	a.l.Printf("broadcasting tx %+v\n", req.Data)
 	// send the request to signer
 	a.requests <- req
@@ -111,7 +111,7 @@ func (suite *E2eTestSuite) NewFundedAccount(name string, funds sdk.Coins) *Signi
 
 	whale := suite.GetAccount(FundedAccountName)
 	res := whale.SignAndBroadcastKavaTx(
-		signing.MsgRequest{
+		util.MsgRequest{
 			Msgs: []sdk.Msg{
 				banktypes.NewMsgSend(whale.Address, acc.Address, funds),
 			},

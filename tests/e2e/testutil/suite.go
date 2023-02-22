@@ -15,10 +15,10 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 
-	kavagrpc "github.com/kava-labs/go-tools/grpc"
 	"github.com/kava-labs/kava/app"
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/tests/e2e/runner"
+	"github.com/kava-labs/kava/tests/util"
 )
 
 const (
@@ -81,7 +81,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	// create grpc connection
 	grpcUrl := fmt.Sprintf("http://localhost:%s", config.KavaGrpcPort)
-	suite.grpcConn, err = kavagrpc.NewGrpcConnection(grpcUrl)
+	suite.grpcConn, err = util.NewGrpcConnection(grpcUrl)
 	if err != nil {
 		suite.runner.Shutdown()
 		suite.Fail("failed to create grpc connection: %s", err)
