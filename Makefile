@@ -240,7 +240,7 @@ format:
 
 # Build docker image and tag as kava/kava:local
 docker-build:
-	$(DOCKER) build -t kava/kava:local .
+	DOCKER_BUILDKIT=1 $(DOCKER) build -t kava/kava:local .
 
 build-docker-local-kava:
 	@$(MAKE) -C networks/local
