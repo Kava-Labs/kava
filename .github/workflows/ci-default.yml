@@ -11,7 +11,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: "1.18"
           check-latest: true
           cache: true
       - name: build application
@@ -24,8 +24,10 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: "1.18"
           check-latest: true
           cache: true
       - name: run unit tests
         run: make test
+      - name: run e2e tests
+        run: make docker-build test-e2e
