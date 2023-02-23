@@ -95,67 +95,84 @@ When delegated tokens (to bonded validators) are changed:
 */
 
 // BeforeDelegationCreated runs before a delegation is created
-func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (h Hooks) BeforeDelegationCreated(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	// Add a claim if one doesn't exist, otherwise sync the existing.
 	h.k.InitializeDelegatorReward(ctx, delAddr)
+
+	return nil
 }
 
 // BeforeDelegationSharesModified runs before an existing delegation is modified
-func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	// Sync rewards based on total delegated to bonded validators.
 	h.k.SynchronizeDelegatorRewards(ctx, delAddr, nil, false)
+
+	return nil
 }
 
 // BeforeValidatorSlashed is called before a validator is slashed
 // Validator status is not updated when Slash or Jail is called
-func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) {
+func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) error {
 	// Sync all claims for users delegated to this validator.
 	// For each claim, sync based on the total delegated to bonded validators.
 	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
 		h.k.SynchronizeDelegatorRewards(ctx, delegation.GetDelegatorAddr(), nil, false)
 	}
+
+	return nil
 }
 
 // AfterValidatorBeginUnbonding is called after a validator begins unbonding
 // Validator status is set to Unbonding prior to hook running
-func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+func (h Hooks) AfterValidatorBeginUnbonding(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) error {
 	// Sync all claims for users delegated to this validator.
 	// For each claim, sync based on the total delegated to bonded validators, and also delegations to valAddr.
 	// valAddr's status has just been set to Unbonding, but we want to include delegations to it in the sync.
 	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
 		h.k.SynchronizeDelegatorRewards(ctx, delegation.GetDelegatorAddr(), valAddr, true)
 	}
+
+	return nil
 }
 
 // AfterValidatorBonded is called after a validator is bonded
 // Validator status is set to Bonded prior to hook running
-func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+func (h Hooks) AfterValidatorBonded(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) error {
 	// Sync all claims for users delegated to this validator.
 	// For each claim, sync based on the total delegated to bonded validators, except for delegations to valAddr.
 	// valAddr's status has just been set to Bonded, but we don't want to include delegations to it in the sync
 	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
 		h.k.SynchronizeDelegatorRewards(ctx, delegation.GetDelegatorAddr(), valAddr, false)
 	}
+
+	return nil
 }
 
 // NOTE: following hooks are just implemented to ensure StakingHooks interface compliance
 
 // AfterDelegationModified runs after a delegation is modified
-func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (h Hooks) AfterDelegationModified(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	return nil
 }
 
 // BeforeDelegationRemoved runs directly before a delegation is deleted. BeforeDelegationSharesModified is run prior to this.
-func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+func (h Hooks) BeforeDelegationRemoved(ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
+	return nil
 }
 
 // AfterValidatorCreated runs after a validator is created
-func (h Hooks) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) {}
+func (h Hooks) AfterValidatorCreated(ctx sdk.Context, valAddr sdk.ValAddress) error {
+	return nil
+}
 
 // BeforeValidatorModified runs before a validator is modified
-func (h Hooks) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress) {}
+func (h Hooks) BeforeValidatorModified(ctx sdk.Context, valAddr sdk.ValAddress) error {
+	return nil
+}
 
 // AfterValidatorRemoved runs after a validator is removed
-func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) {
+func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) error {
+	return nil
 }
 
 // ------------------- Swap Module Hooks -------------------
