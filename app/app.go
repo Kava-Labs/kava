@@ -11,12 +11,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	nodeservice "github.com/cosmos/cosmos-sdk/client/grpc/node"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -48,8 +48,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
+	govclient "github.com/cosmos/cosmos-sdk/x/gov/client"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -167,11 +170,11 @@ var (
 		capability.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic(
+		gov.NewAppModuleBasic([]govclient.ProposalHandler{
 			paramsclient.ProposalHandler,
 			distrclient.ProposalHandler,
-			upgradeclient.ProposalHandler,
-			upgradeclient.CancelProposalHandler,
+			upgradeclient.LegacyProposalHandler,
+			upgradeclient.LegacyCancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,
@@ -180,7 +183,7 @@ var (
 			earnclient.WithdrawProposalHandler,
 			communityclient.LendDepositProposalHandler,
 			communityclient.LendWithdrawProposalHandler,
-		),
+		}),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
@@ -273,9 +276,9 @@ type App struct {
 	interfaceRegistry types.InterfaceRegistry
 
 	// keys to access the substores
-	keys    map[string]*sdk.KVStoreKey
-	tkeys   map[string]*sdk.TransientStoreKey
-	memKeys map[string]*sdk.MemoryStoreKey
+	keys    map[string]*storetypes.KVStoreKey
+	tkeys   map[string]*storetypes.TransientStoreKey
+	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers from all the modules
 	accountKeeper    authkeeper.AccountKeeper
@@ -391,7 +394,7 @@ func NewApp(
 	stakingSubspace := app.paramsKeeper.Subspace(stakingtypes.ModuleName)
 	distrSubspace := app.paramsKeeper.Subspace(distrtypes.ModuleName)
 	slashingSubspace := app.paramsKeeper.Subspace(slashingtypes.ModuleName)
-	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govtypes.ParamKeyTable())
+	govSubspace := app.paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	crisisSubspace := app.paramsKeeper.Subspace(crisistypes.ModuleName)
 	kavadistSubspace := app.paramsKeeper.Subspace(kavadisttypes.ModuleName)
 	auctionSubspace := app.paramsKeeper.Subspace(auctiontypes.ModuleName)
@@ -412,7 +415,7 @@ func NewApp(
 	mintSubspace := app.paramsKeeper.Subspace(minttypes.ModuleName)
 
 	bApp.SetParamStore(
-		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramskeeper.ConsensusParamsKeyTable()),
+		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
 	)
 	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.ModuleName)
@@ -426,6 +429,7 @@ func NewApp(
 		authSubspace,
 		authtypes.ProtoBaseAccount,
 		mAccPerms,
+		sdk.GetConfig().GetBech32AccountAddrPrefix(),
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
@@ -445,6 +449,7 @@ func NewApp(
 		keys[authzkeeper.StoreKey],
 		appCodec,
 		app.BaseApp.MsgServiceRouter(),
+		app.accountKeeper,
 	)
 	app.distrKeeper = distrkeeper.NewKeeper(
 		appCodec,
@@ -454,7 +459,6 @@ func NewApp(
 		app.bankKeeper,
 		&app.stakingKeeper,
 		authtypes.FeeCollectorName,
-		app.ModuleAccountAddrs(),
 	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
@@ -474,6 +478,8 @@ func NewApp(
 		appCodec,
 		homePath,
 		app.BaseApp,
+		// Authority
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
@@ -663,9 +669,9 @@ func NewApp(
 	)
 
 	// create committee keeper with router
-	committeeGovRouter := govtypes.NewRouter()
+	committeeGovRouter := govv1beta1.NewRouter()
 	committeeGovRouter.
-		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
@@ -683,7 +689,11 @@ func NewApp(
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
 	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
-		stakingtypes.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks(), app.incentiveKeeper.Hooks())))
+		stakingtypes.NewMultiStakingHooks(
+			app.distrKeeper.Hooks(),
+			app.slashingKeeper.Hooks(),
+			app.incentiveKeeper.Hooks(),
+		)))
 
 	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
@@ -693,9 +703,9 @@ func NewApp(
 
 	// create gov keeper with router
 	// NOTE this must be done after any keepers referenced in the gov router (ie committee) are defined
-	govRouter := govtypes.NewRouter()
+	govRouter := govv1beta1.NewRouter()
 	govRouter.
-		AddRoute(govtypes.RouterKey, govtypes.ProposalHandler).
+		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
@@ -758,7 +768,8 @@ func NewApp(
 		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
-		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		// nil InflationCalculationFn, use SDK's default inflation function
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil),
 		community.NewAppModule(app.communityKeeper, app.accountKeeper),
 	)
 
@@ -1030,9 +1041,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	clientCtx := apiSvr.ClientCtx
 
 	// Register legacy REST routes
-	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 	evmrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
-	RegisterLegacyTxRoutes(clientCtx, apiSvr.Router)
 
 	// Register GRPC Gateway routes
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
