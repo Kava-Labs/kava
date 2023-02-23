@@ -312,7 +312,7 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 			}
 
 			// expect funds to be removed from hard deposit
-			expectedRemaining := tc.initialDeposit.Sub(tc.expectedWithdrawal)
+			expectedRemaining := tc.initialDeposit.Sub(tc.expectedWithdrawal...)
 			deposits := suite.hardKeeper.GetDepositsByUser(suite.Ctx, suite.MaccAddress)
 			if expectedRemaining.IsZero() {
 				suite.Len(deposits, 0, "expected all deposits to be withdrawn")

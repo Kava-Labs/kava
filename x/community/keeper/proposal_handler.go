@@ -31,7 +31,7 @@ func HandleCommunityPoolLendWithdrawProposal(ctx sdk.Context, k Keeper, p *types
 	}
 
 	balanceAfter := k.bankKeeper.GetAllBalances(ctx, k.moduleAddress)
-	totalWithdrawn := balanceAfter.Sub(balanceBefore)
+	totalWithdrawn := balanceAfter.Sub(balanceBefore...)
 
 	// send all withdrawn coins back to community pool
 	return k.distrKeeper.FundCommunityPool(ctx, totalWithdrawn, k.moduleAddress)
