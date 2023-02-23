@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -23,10 +22,10 @@ var (
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeCommunityPoolDeposit)
-	govtypes.RegisterProposalTypeCodec(&CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal")
-	govtypes.RegisterProposalType(ProposalTypeCommunityPoolWithdraw)
-	govtypes.RegisterProposalTypeCodec(&CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal")
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolDeposit)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal", nil)
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolWithdraw)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal", nil)
 }
 
 // NewCommunityPoolDepositProposal creates a new community pool deposit proposal.
