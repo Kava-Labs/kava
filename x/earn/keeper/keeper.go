@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/kava-labs/kava/x/earn/types"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -10,7 +10,7 @@ import (
 
 // Keeper keeper for the earn module
 type Keeper struct {
-	key           sdk.StoreKey
+	key           storetypes.StoreKey
 	cdc           codec.Codec
 	paramSubspace paramtypes.Subspace
 	hooks         types.EarnHooks
@@ -29,7 +29,7 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.Codec,
-	key sdk.StoreKey,
+	key storetypes.StoreKey,
 	paramstore paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,

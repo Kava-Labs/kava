@@ -259,7 +259,7 @@ func (suite *auctionTestSuite) TestStartSurplusAuction() {
 			if tc.expectPass {
 				suite.NoError(err, tc.name)
 				// check coins moved
-				suite.Equal(initialLiquidatorCoins.Sub(cs(tc.args.lot)), liquidatorCoins, tc.name)
+				suite.Equal(initialLiquidatorCoins.Sub(tc.args.lot), liquidatorCoins, tc.name)
 				// check auction in store and is correct
 				suite.True(found, tc.name)
 

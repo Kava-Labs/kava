@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -13,7 +14,7 @@ import (
 // Keeper keeper for the incentive module
 type Keeper struct {
 	cdc           codec.Codec
-	key           sdk.StoreKey
+	key           storetypes.StoreKey
 	paramSubspace types.ParamSubspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
@@ -33,7 +34,7 @@ type Keeper struct {
 
 // NewKeeper creates a new keeper
 func NewKeeper(
-	cdc codec.Codec, key sdk.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
+	cdc codec.Codec, key storetypes.StoreKey, paramstore types.ParamSubspace, bk types.BankKeeper,
 	cdpk types.CdpKeeper, hk types.HardKeeper, ak types.AccountKeeper, stk types.StakingKeeper,
 	swpk types.SwapKeeper, svk types.SavingsKeeper, lqk types.LiquidKeeper, ek types.EarnKeeper,
 	mk types.MintKeeper, dk types.DistrKeeper, pfk types.PricefeedKeeper,

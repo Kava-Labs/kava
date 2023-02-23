@@ -5,9 +5,9 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -15,7 +15,7 @@ import (
 
 // Keeper keeper for the swap module
 type Keeper struct {
-	key           sdk.StoreKey
+	key           storetypes.StoreKey
 	cdc           codec.Codec
 	paramSubspace paramtypes.Subspace
 	hooks         types.SwapHooks
@@ -26,7 +26,7 @@ type Keeper struct {
 // NewKeeper creates a new keeper
 func NewKeeper(
 	cdc codec.Codec,
-	key sdk.StoreKey,
+	key storetypes.StoreKey,
 	paramstore paramtypes.Subspace,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,

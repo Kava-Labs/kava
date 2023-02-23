@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -14,7 +15,7 @@ import (
 
 type Keeper struct {
 	cdc      codec.Codec
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 
 	paramKeeper   types.ParamKeeper
 	accountKeeper types.AccountKeeper
@@ -24,7 +25,7 @@ type Keeper struct {
 	router govtypes.Router
 }
 
-func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, router govtypes.Router,
+func NewKeeper(cdc codec.Codec, storeKey storetypes.StoreKey, router govtypes.Router,
 	paramKeeper types.ParamKeeper, ak types.AccountKeeper, sk types.BankKeeper,
 ) Keeper {
 	// Logic in the keeper methods assume the set of gov handlers is fixed.
