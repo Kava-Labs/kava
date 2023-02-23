@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/committee/testutil"
@@ -49,7 +49,7 @@ func (suite *keeperTestSuite) TestGetSetDeleteCommittee() {
 func (suite *keeperTestSuite) TestGetSetDeleteProposal() {
 	// test setup
 	prop, err := types.NewProposal(
-		govtypes.NewTextProposal("A Title", "A description of this proposal."),
+		govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 		12,
 		0,
 		time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC),

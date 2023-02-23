@@ -6,7 +6,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
@@ -368,7 +368,7 @@ func TestProposalGetContent(t *testing.T) {
 	mockTitle := "A Title"
 	mockDescription := "A Description"
 	proposal, err := types.NewProposal(
-		govtypes.NewTextProposal(mockTitle, mockDescription),
+		govv1beta1.NewTextProposal(mockTitle, mockDescription),
 		1, 1, time.Date(2010, time.January, 1, 0, 0, 0, 0, time.UTC),
 	)
 	assert.NoError(t, err)

@@ -4,6 +4,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -34,7 +35,7 @@ func (p ProposalOutcome) String() string {
 }
 
 // ensure proposal types fulfill the PubProposal interface and the gov Content interface.
-var _, _ govtypes.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
+var _, _ govv1beta1.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
 var _, _ PubProposal = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
 
 // ensure CommitteeChangeProposal fulfill the codectypes.UnpackInterfacesMessage interface

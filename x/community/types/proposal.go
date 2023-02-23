@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -18,8 +19,8 @@ const (
 
 // Assert CommunityPoolLendDepositProposal implements govtypes.Content at compile-time
 var (
-	_ govtypes.Content = &CommunityPoolLendDepositProposal{}
-	_ govtypes.Content = &CommunityPoolLendWithdrawProposal{}
+	_ govv1beta1.Content = &CommunityPoolLendDepositProposal{}
+	_ govv1beta1.Content = &CommunityPoolLendWithdrawProposal{}
 )
 
 func init() {

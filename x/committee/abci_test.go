@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -51,12 +51,12 @@ func (suite *ModuleTestSuite) TestBeginBlock_ClosesExpired() {
 	)
 	suite.keeper.SetCommittee(suite.ctx, memberCom)
 
-	pprop1 := govtypes.NewTextProposal("Title 1", "A description of this proposal.")
+	pprop1 := govv1beta1.NewTextProposal("Title 1", "A description of this proposal.")
 	id1, err := suite.keeper.SubmitProposal(suite.ctx, memberCom.Members[0], memberCom.ID, pprop1)
 	suite.NoError(err)
 
 	oneHrLaterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Hour))
-	pprop2 := govtypes.NewTextProposal("Title 2", "A description of this proposal.")
+	pprop2 := govv1beta1.NewTextProposal("Title 2", "A description of this proposal.")
 	id2, err := suite.keeper.SubmitProposal(oneHrLaterCtx, memberCom.Members[0], memberCom.ID, pprop2)
 	suite.NoError(err)
 

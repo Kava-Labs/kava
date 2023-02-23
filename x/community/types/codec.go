@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -24,7 +24,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgFundCommunityPool{},
 	)
-	registry.RegisterImplementations((*govtypes.Content)(nil),
+	registry.RegisterImplementations((*govv1beta1.Content)(nil),
 		&CommunityPoolLendDepositProposal{},
 		&CommunityPoolLendWithdrawProposal{},
 	)

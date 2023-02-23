@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee/keeper"
@@ -49,7 +49,7 @@ func mustNewTestMemberCommittee(addresses []sdk.AccAddress) *types.MemberCommitt
 // mustNewTestProposal returns a new test proposal.
 func mustNewTestProposal() types.Proposal {
 	proposal, err := types.NewProposal(
-		govtypes.NewTextProposal("A Title", "A description of this proposal."),
+		govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 		1, 1, time.Date(2010, time.January, 1, 0, 0, 0, 0, time.UTC),
 	)
 	if err != nil {

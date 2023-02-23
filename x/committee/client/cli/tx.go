@@ -18,7 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -231,7 +231,7 @@ and to delete a committee:
 			if err != nil {
 				return err
 			}
-			var content govtypes.Content
+			var content govv1beta1.Content
 			if err := clientCtx.Codec.UnmarshalInterfaceJSON(bz, &content); err != nil {
 				return err
 			}
@@ -240,7 +240,7 @@ and to delete a committee:
 			}
 
 			// Build message and run basic validation
-			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, proposer)
+			msg, err := govv1beta1.NewMsgSubmitProposal(content, deposit, proposer)
 			if err != nil {
 				return err
 			}

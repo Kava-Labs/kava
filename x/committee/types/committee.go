@@ -8,6 +8,7 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/gogo/protobuf/proto"
 	"sigs.k8s.io/yaml"
 )
@@ -343,7 +344,7 @@ func (c TokenCommittee) Validate() error {
 // PubProposal is the interface that all proposals must fulfill to be submitted to a committee.
 // Proposal types can be created external to this module. For example a ParamChangeProposal, or CommunityPoolSpendProposal.
 // It is pinned to the equivalent type in the gov module to create compatibility between proposal types.
-type PubProposal govtypes.Content
+type PubProposal govv1beta1.Content
 
 var (
 	_ PubProposal                        = Proposal{}

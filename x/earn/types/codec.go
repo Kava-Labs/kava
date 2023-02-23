@@ -7,7 +7,7 @@ import (
 
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the
@@ -26,7 +26,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgDeposit{},
 		&MsgWithdraw{},
 	)
-	registry.RegisterImplementations((*govtypes.Content)(nil),
+	registry.RegisterImplementations((*govv1beta1.Content)(nil),
 		&CommunityPoolDepositProposal{},
 		&CommunityPoolWithdrawProposal{},
 	)
