@@ -206,7 +206,7 @@ func (suite *keeperTestSuite) TestDeposit_PoolExists() {
 		sdk.NewCoin("usdx", sdk.NewInt(4999998)),
 	)
 
-	suite.AccountBalanceEqual(depositor.GetAddress(), balance.Sub(expectedDeposit))
+	suite.AccountBalanceEqual(depositor.GetAddress(), balance.Sub(expectedDeposit...))
 	suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
 	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
 	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)

@@ -1355,7 +1355,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 
 					newBorrowInterestFactor := keeper.CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(snapshot.elapsedTime))
 					expectedBorrowInterest := (newBorrowInterestFactor.Mul(sdk.NewDecFromInt(borrowCoinPriorAmount)).TruncateInt()).Sub(borrowCoinPriorAmount)
-					expectedReserves := reservesPrior.Add(sdk.NewCoin(coinDenom, sdk.NewDecFromInt(expectedBorrowInterest).Mul(tc.args.reserveFactor).TruncateInt())).Sub(reservesPrior)
+					expectedReserves := reservesPrior.Add(sdk.NewCoin(coinDenom, sdk.NewDecFromInt(expectedBorrowInterest).Mul(tc.args.reserveFactor).TruncateInt())).Sub(reservesPrior...)
 					expectedTotalReserves := expectedReserves.Add(reservesPrior...)
 
 					expectedBorrowInterestFactor := borrowInterestFactorPrior.Mul(newBorrowInterestFactor)

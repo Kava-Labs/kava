@@ -40,10 +40,10 @@ func (suite *proposalTestSuite) TestCommunityDepositProposal() {
 	suite.Require().NoError(err)
 
 	balance := suite.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
-	suite.Require().Equal(fundAmount.Sub(sdk.NewCoins(depositAmount)), balance)
+	suite.Require().Equal(fundAmount.Sub(depositAmount), balance)
 	feePool = distKeeper.GetFeePool(ctx)
 	communityPoolBalance, change := feePool.CommunityPool.TruncateDecimal()
-	suite.Require().Equal(fundAmount.Sub(sdk.NewCoins(depositAmount)), communityPoolBalance)
+	suite.Require().Equal(fundAmount.Sub(depositAmount), communityPoolBalance)
 	suite.Require().True(change.Empty())
 }
 
@@ -65,7 +65,7 @@ func (suite *proposalTestSuite) TestCommunityWithdrawProposal() {
 	suite.Require().NoError(err)
 
 	balance := suite.BankKeeper.GetAllBalances(ctx, macc.GetAddress())
-	suite.Require().Equal(fundAmount.Sub(sdk.NewCoins(depositAmount)), balance)
+	suite.Require().Equal(fundAmount.Sub(depositAmount), balance)
 
 	withdraw := types.NewCommunityPoolWithdrawProposal("test title",
 		"desc", depositAmount)

@@ -306,19 +306,19 @@ func (suite *KeeperTestSuite) TestRepay() {
 				suite.Require().NoError(err)
 
 				// Check repayer balance
-				expectedRepayerCoins := previousRepayerCoins.Sub(repaymentCoins)
+				expectedRepayerCoins := previousRepayerCoins.Sub(repaymentCoins...)
 				acc := suite.getAccount(tc.args.repayer)
 				// use IsEqual for sdk.Coins{nil} vs sdk.Coins{}
 				suite.Require().True(expectedRepayerCoins.IsEqual(bankKeeper.GetAllBalances(suite.ctx, acc.GetAddress())))
 
 				// Check module account balance
-				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins).Add(repaymentCoins...)
+				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins...).Add(repaymentCoins...)
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(expectedModuleCoins, bankKeeper.GetAllBalances(suite.ctx, mAcc.GetAddress()))
 
 				// Check user's borrow object
 				borrow, foundBorrow := suite.keeper.GetBorrow(suite.ctx, tc.args.borrower)
-				expectedBorrowCoins := tc.args.borrowCoins.Sub(repaymentCoins)
+				expectedBorrowCoins := tc.args.borrowCoins.Sub(repaymentCoins...)
 
 				if tc.errArgs.expectDelete {
 					suite.Require().False(foundBorrow)
@@ -335,7 +335,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 				suite.Require().Equal(previousRepayerCoins, bankKeeper.GetAllBalances(suite.ctx, acc.GetAddress()))
 
 				// Check module account balance (no repay coins)
-				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins)
+				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins...)
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
 				suite.Require().Equal(expectedModuleCoins, bankKeeper.GetAllBalances(suite.ctx, mAcc.GetAddress()))
 

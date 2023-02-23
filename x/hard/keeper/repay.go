@@ -52,7 +52,7 @@ func (k Keeper) Repay(ctx sdk.Context, sender, owner sdk.AccAddress, coins sdk.C
 	}
 
 	// Update user's borrow in store
-	borrow.Amount = borrow.Amount.Sub(payment)
+	borrow.Amount = borrow.Amount.Sub(payment...)
 
 	if borrow.Amount.Empty() {
 		k.DeleteBorrow(ctx, borrow)

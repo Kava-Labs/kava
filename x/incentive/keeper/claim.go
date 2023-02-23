@@ -92,7 +92,7 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	}
 
 	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins...)
 	k.SetHardLiquidityProviderClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
@@ -146,7 +146,7 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 	}
 
 	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins...)
 	k.SetDelegatorClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
@@ -194,7 +194,7 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	}
 
 	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins...)
 	k.SetSwapClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
@@ -243,7 +243,7 @@ func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddre
 	}
 
 	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins...)
 	k.SetSavingsClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
@@ -291,7 +291,7 @@ func (k Keeper) ClaimEarnReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	}
 
 	// remove claimed coins (NOT reward coins)
-	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins)
+	syncedClaim.Reward = syncedClaim.Reward.Sub(claimingCoins...)
 	k.SetEarnClaim(ctx, syncedClaim)
 
 	ctx.EventManager().EmitEvent(
