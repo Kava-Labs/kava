@@ -4,8 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	"github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
@@ -14,7 +13,7 @@ import (
 	savingskeeper "github.com/kava-labs/kava/x/savings/keeper"
 )
 
-var _ govtypes.TallyHandler = TallyHandler{}
+var _ govv1.TallyHandler = TallyHandler{}
 
 // TallyHandler is the tally handler for kava
 type TallyHandler struct {
@@ -41,30 +40,33 @@ func NewTallyHandler(
 	}
 }
 
-func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes bool, burnDeposits bool, tallyResults types.TallyResult) {
-	results := make(map[types.VoteOption]sdk.Dec)
-	results[types.OptionYes] = sdk.ZeroDec()
-	results[types.OptionAbstain] = sdk.ZeroDec()
-	results[types.OptionNo] = sdk.ZeroDec()
-	results[types.OptionNoWithVeto] = sdk.ZeroDec()
+func (th TallyHandler) Tally(
+	ctx sdk.Context,
+	proposal govv1.Proposal,
+) (passes bool, burnDeposits bool, tallyResults govv1.TallyResult) {
+	results := make(map[govv1.VoteOption]sdk.Dec)
+	results[govv1.OptionYes] = sdk.ZeroDec()
+	results[govv1.OptionAbstain] = sdk.ZeroDec()
+	results[govv1.OptionNo] = sdk.ZeroDec()
+	results[govv1.OptionNoWithVeto] = sdk.ZeroDec()
 
 	totalVotingPower := sdk.ZeroDec()
-	currValidators := make(map[string]types.ValidatorGovInfo)
+	currValidators := make(map[string]govv1.ValidatorGovInfo)
 
 	// fetch all the bonded validators, insert them into currValidators
 	th.stk.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
-		currValidators[validator.GetOperator().String()] = types.NewValidatorGovInfo(
+		currValidators[validator.GetOperator().String()] = govv1.NewValidatorGovInfo(
 			validator.GetOperator(),
 			validator.GetBondedTokens(),
 			validator.GetDelegatorShares(),
 			sdk.ZeroDec(),
-			types.WeightedVoteOptions{},
+			govv1.WeightedVoteOptions{},
 		)
 
 		return false
 	})
 
-	th.gk.IterateVotes(ctx, proposal.ProposalId, func(vote types.Vote) bool {
+	th.gk.IterateVotes(ctx, proposal.Id, func(vote govv1.Vote) bool {
 		// if validator, just record it in the map
 		voter, err := sdk.AccAddressFromBech32(vote.Voter)
 
@@ -92,7 +94,7 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 				votingPower := delegation.GetShares().MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 
 				for _, option := range vote.Options {
-					subPower := votingPower.Mul(option.Weight)
+					subPower := votingPower.Mul(sdk.MustNewDecFromStr(option.Weight))
 					results[option.Option] = results[option.Option].Add(subPower)
 				}
 				totalVotingPower = totalVotingPower.Add(votingPower)
@@ -112,7 +114,7 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 			// reduce delegator shares by the amount of voter bkava for the validator
 			valAddrStr := valAddr.String()
 			if val, ok := currValidators[valAddrStr]; ok {
-				val.DelegatorDeductions = val.DelegatorDeductions.Add(coin.Amount.ToDec())
+				val.DelegatorDeductions = val.DelegatorDeductions.Add(sdk.NewDecFromInt(coin.Amount))
 				currValidators[valAddrStr] = val
 			}
 
@@ -122,10 +124,10 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 				// error is returned only if the bkava denom is incorrect, which should never happen here.
 				panic(err)
 			}
-			votingPower := stakedCoins.Amount.ToDec()
+			votingPower := sdk.NewDecFromInt(stakedCoins.Amount)
 
 			for _, option := range vote.Options {
-				subPower := votingPower.Mul(option.Weight)
+				subPower := votingPower.Mul(sdk.MustNewDecFromStr(option.Weight))
 				results[option.Option] = results[option.Option].Add(subPower)
 			}
 			totalVotingPower = totalVotingPower.Add(votingPower)
@@ -145,14 +147,14 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 		votingPower := sharesAfterDeductions.MulInt(val.BondedTokens).Quo(val.DelegatorShares)
 
 		for _, option := range val.Vote {
-			subPower := votingPower.Mul(option.Weight)
+			subPower := votingPower.Mul(sdk.MustNewDecFromStr(option.Weight))
 			results[option.Option] = results[option.Option].Add(subPower)
 		}
 		totalVotingPower = totalVotingPower.Add(votingPower)
 	}
 
 	tallyParams := th.gk.GetTallyParams(ctx)
-	tallyResults = types.NewTallyResultFromMap(results)
+	tallyResults = govv1.NewTallyResultFromMap(results)
 
 	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
 	// If there is no staked coins, the proposal fails
@@ -161,23 +163,23 @@ func (th TallyHandler) Tally(ctx sdk.Context, proposal types.Proposal) (passes b
 	}
 
 	// If there is not enough quorum of votes, the proposal fails
-	percentVoting := totalVotingPower.Quo(th.stk.TotalBondedTokens(ctx).ToDec())
-	if percentVoting.LT(tallyParams.Quorum) {
+	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(th.stk.TotalBondedTokens(ctx)))
+	if percentVoting.LT(sdk.MustNewDecFromStr(tallyParams.Quorum)) {
 		return false, true, tallyResults
 	}
 
 	// If no one votes (everyone abstains), proposal fails
-	if totalVotingPower.Sub(results[types.OptionAbstain]).Equal(sdk.ZeroDec()) {
+	if totalVotingPower.Sub(results[govv1.OptionAbstain]).Equal(sdk.ZeroDec()) {
 		return false, false, tallyResults
 	}
 
 	// If more than 1/3 of voters veto, proposal fails
-	if results[types.OptionNoWithVeto].Quo(totalVotingPower).GT(tallyParams.VetoThreshold) {
+	if results[govv1.OptionNoWithVeto].Quo(totalVotingPower).GT(sdk.MustNewDecFromStr(tallyParams.VetoThreshold)) {
 		return false, true, tallyResults
 	}
 
 	// If more than 1/2 of non-abstaining voters vote Yes, proposal passes
-	if results[types.OptionYes].Quo(totalVotingPower.Sub(results[types.OptionAbstain])).GT(tallyParams.Threshold) {
+	if results[govv1.OptionYes].Quo(totalVotingPower.Sub(results[govv1.OptionAbstain])).GT(sdk.MustNewDecFromStr(tallyParams.Threshold)) {
 		return true, false, tallyResults
 	}
 
