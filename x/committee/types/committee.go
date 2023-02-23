@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/gogo/protobuf/proto"
 	"sigs.k8s.io/yaml"
@@ -25,10 +24,7 @@ const (
 func init() {
 	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
 	// But since these proposals contain Committees, these types also need registering:
-	govtypes.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
-	govtypes.RegisterProposalTypeCodec(BaseCommittee{}, "kava/BaseCommittee")
-	govtypes.RegisterProposalTypeCodec(MemberCommittee{}, "kava/MemberCommittee")
-	govtypes.RegisterProposalTypeCodec(TokenCommittee{}, "kava/TokenCommittee")
+	govv1beta1.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
 }
 
 // Marshal needed for protobuf compatibility.
