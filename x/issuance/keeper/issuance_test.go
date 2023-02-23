@@ -397,7 +397,7 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 				suite.Require().NoError(err)
 				initialSupply := sdk.NewCoins(tc.args.redeemTokens)
 				moduleAccount := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().Equal(sdk.NewCoins(initialSupply.Sub(sdk.NewCoins(tc.args.redeemTokens))...), sdk.NewCoins(suite.getBalance(moduleAccount.GetAddress(), tc.args.redeemTokens.Denom)))
+				suite.Require().Equal(sdk.NewCoins(initialSupply.Sub(tc.args.redeemTokens)...), sdk.NewCoins(suite.getBalance(moduleAccount.GetAddress(), tc.args.redeemTokens.Denom)))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
