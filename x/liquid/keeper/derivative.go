@@ -77,7 +77,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	}
 
 	modAcc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
-	shares := amount.Amount.ToDec()
+	shares := sdk.NewDecFromInt(amount.Amount)
 	receivedShares, err := k.TransferDelegation(ctx, valAddr, modAcc.GetAddress(), delegatorAddr, shares)
 	if err != nil {
 		return sdk.Dec{}, err
@@ -128,7 +128,7 @@ func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) 
 		}
 
 		// bkava is 1:1 to delegation shares
-		valTokens := validator.TokensFromSharesTruncated(coin.Amount.ToDec())
+		valTokens := validator.TokensFromSharesTruncated(sdk.NewDecFromInt(coin.Amount))
 		total = total.Add(valTokens.TruncateInt())
 	}
 

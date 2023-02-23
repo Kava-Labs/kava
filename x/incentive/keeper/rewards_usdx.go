@@ -51,7 +51,7 @@ func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string)
 		cdpFactor = sdk.OneDec()
 	}
 	// return debt/factor to get the "pre interest" value of the current total debt
-	return totalPrincipal.ToDec().Quo(cdpFactor)
+	return sdk.NewDecFromInt(totalPrincipal).Quo(cdpFactor)
 }
 
 // InitializeUSDXMintingClaim creates or updates a claim such that no new rewards are accrued, but any existing rewards are not lost.
@@ -158,7 +158,7 @@ func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.
 		if !found {
 			continue
 		}
-		newRewardsAmount := rewardsAccumulatedFactor.Mul(cdp.GetTotalPrincipal().Amount.ToDec()).RoundInt()
+		newRewardsAmount := rewardsAccumulatedFactor.Mul(sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount)).RoundInt()
 		if newRewardsAmount.IsZero() {
 			continue
 		}

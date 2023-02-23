@@ -8,7 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -69,7 +69,7 @@ func (suite *tallyHandlerSuite) TestVotePower_AllSourcesCounted() {
 	)
 
 	proposal := suite.createProposal()
-	suite.voteOnProposal(user.GetAddress(), proposal.ProposalId, govtypes.OptionYes)
+	suite.voteOnProposal(user.GetAddress(), proposal.ProposalId, govv1beta1.OptionYes)
 
 	_, _, results := suite.tallier.Tally(suite.ctx, proposal)
 	suite.Equal(sdk.NewInt(500e6+250e6+250e6), results.Yes)

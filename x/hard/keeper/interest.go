@@ -136,13 +136,13 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	totalBorrowInterestAccumulated := sdk.NewCoins(sdk.NewCoin(denom, interestBorrowAccumulated))
-	reservesNew := interestBorrowAccumulated.ToDec().Mul(mm.ReserveFactor).TruncateInt()
+	reservesNew := sdk.NewDecFromInt(interestBorrowAccumulated).Mul(mm.ReserveFactor).TruncateInt()
 	borrowInterestFactorNew := borrowInterestFactorPrior.Mul(borrowInterestFactor)
 	k.SetBorrowInterestFactor(ctx, denom, borrowInterestFactorNew)
 
 	// Calculate supply interest factor and update
 	supplyInterestNew := interestBorrowAccumulated.Sub(reservesNew)
-	supplyInterestFactor := CalculateSupplyInterestFactor(supplyInterestNew.ToDec(), cashPrior.ToDec(), borrowedPrior.Amount.ToDec(), reservesPrior.AmountOf(denom).ToDec())
+	supplyInterestFactor := CalculateSupplyInterestFactor(sdk.NewDecFromInt(supplyInterestNew), sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowedPrior.Amount), sdk.NewDecFromInt(reservesPrior.AmountOf(denom)))
 	supplyInterestFactorNew := supplyInterestFactorPrior.Mul(supplyInterestFactor)
 	k.SetSupplyInterestFactor(ctx, denom, supplyInterestFactorNew)
 

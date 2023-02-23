@@ -27,7 +27,7 @@ func (k Keeper) AccumulateSavingsRewards(ctx sdk.Context, rewardPeriod types.Mul
 	maccCoins := k.bankKeeper.GetAllBalances(ctx, savingsMacc.GetAddress())
 	denomBalance := maccCoins.AmountOf(rewardPeriod.CollateralType)
 
-	acc.Accumulate(rewardPeriod, denomBalance.ToDec(), ctx.BlockTime())
+	acc.Accumulate(rewardPeriod, sdk.NewDecFromInt(denomBalance), ctx.BlockTime())
 
 	k.SetSavingsRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 
@@ -78,7 +78,7 @@ func (k Keeper) SynchronizeSavingsReward(ctx sdk.Context, deposit savingstypes.D
 	// Existing denoms have their reward indexes + reward amount synced
 	existingDenoms := setDifference(getDenoms(deposit.Amount), incomingDenoms)
 	for _, denom := range existingDenoms {
-		claim = k.synchronizeSingleSavingsReward(ctx, claim, denom, deposit.Amount.AmountOf(denom).ToDec())
+		claim = k.synchronizeSingleSavingsReward(ctx, claim, denom, sdk.NewDecFromInt(deposit.Amount.AmountOf(denom)))
 	}
 
 	k.SetSavingsClaim(ctx, claim)
@@ -133,7 +133,7 @@ func (k Keeper) GetSynchronizedSavingsClaim(ctx sdk.Context, owner sdk.AccAddres
 	}
 
 	for _, coin := range deposit.Amount {
-		claim = k.synchronizeSingleSavingsReward(ctx, claim, coin.Denom, coin.Amount.ToDec())
+		claim = k.synchronizeSingleSavingsReward(ctx, claim, coin.Denom, sdk.NewDecFromInt(coin.Amount))
 	}
 
 	return claim, true

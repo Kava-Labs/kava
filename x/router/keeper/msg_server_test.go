@@ -71,7 +71,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDeposit_Events() {
 			sdk.NewAttribute(sdk.AttributeKeySender, user.String()),
 		),
 	)
-	expectedShares := msg.Amount.Amount.ToDec() // no slashes so shares equal staked tokens
+	expectedShares := sdk.NewDecFromInt(msg.Amount.Amount) // no slashes so shares equal staked tokens
 	suite.EventsContains(suite.Ctx.EventManager().Events(),
 		sdk.NewEvent(
 			stakingtypes.EventTypeDelegate,

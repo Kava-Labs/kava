@@ -40,7 +40,7 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
 	totalBonded := k.stakingKeeper.TotalBondedTokens(ctx)
 
-	return totalBonded.ToDec()
+	return sdk.NewDecFromInt(totalBonded)
 }
 
 // InitializeDelegatorReward initializes the reward index of a delegator claim

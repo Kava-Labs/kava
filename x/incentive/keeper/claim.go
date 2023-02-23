@@ -31,7 +31,7 @@ func (k Keeper) ClaimUSDXMintingReward(ctx sdk.Context, owner, receiver sdk.AccA
 		return err
 	}
 
-	rewardAmount := claim.Reward.Amount.ToDec().Mul(multiplier.Factor).RoundInt()
+	rewardAmount := sdk.NewDecFromInt(claim.Reward.Amount).Mul(multiplier.Factor).RoundInt()
 	if rewardAmount.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -80,7 +80,7 @@ func (k Keeper) ClaimHardReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	amt := syncedClaim.Reward.AmountOf(denom)
 
 	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
-	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.NewDecFromInt(amt).Mul(multiplier.Factor).RoundInt()))
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -133,7 +133,7 @@ func (k Keeper) ClaimDelegatorReward(ctx sdk.Context, owner, receiver sdk.AccAdd
 	amt := syncedClaim.Reward.AmountOf(denom)
 
 	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
-	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.NewDecFromInt(amt).Mul(multiplier.Factor).RoundInt()))
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -182,7 +182,7 @@ func (k Keeper) ClaimSwapReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	amt := syncedClaim.Reward.AmountOf(denom)
 
 	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
-	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.NewDecFromInt(amt).Mul(multiplier.Factor).RoundInt()))
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -231,7 +231,7 @@ func (k Keeper) ClaimSavingsReward(ctx sdk.Context, owner, receiver sdk.AccAddre
 	amt := syncedClaim.Reward.AmountOf(denom)
 
 	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
-	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.NewDecFromInt(amt).Mul(multiplier.Factor).RoundInt()))
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}
@@ -279,7 +279,7 @@ func (k Keeper) ClaimEarnReward(ctx sdk.Context, owner, receiver sdk.AccAddress,
 	amt := syncedClaim.Reward.AmountOf(denom)
 
 	claimingCoins := sdk.NewCoins(sdk.NewCoin(denom, amt))
-	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, amt.ToDec().Mul(multiplier.Factor).RoundInt()))
+	rewardCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.NewDecFromInt(amt).Mul(multiplier.Factor).RoundInt()))
 	if rewardCoins.IsZero() {
 		return types.ErrZeroClaim
 	}

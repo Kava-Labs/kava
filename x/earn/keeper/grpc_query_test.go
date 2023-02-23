@@ -142,7 +142,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       depositAmount.Amount.ToDec().String(),
+				TotalShares:       sdk.NewDecFromInt(depositAmount.Amount).String(),
 				TotalValue:        depositAmount.Amount,
 			},
 			{
@@ -150,7 +150,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_SAVINGS},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       deposit2Amount.Amount.ToDec().String(),
+				TotalShares:       sdk.NewDecFromInt(deposit2Amount.Amount).String(),
 				TotalValue:        deposit2Amount.Amount,
 			},
 		},
@@ -204,7 +204,7 @@ func (suite *grpcQueryTestSuite) TestVaults_MixedSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_SAVINGS},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       depositAmount.Amount.ToDec().String(),
+				TotalShares:       sdk.NewDecFromInt(depositAmount.Amount).String(),
 				TotalValue:        depositAmount.Amount,
 			},
 		},
@@ -300,7 +300,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 					Depositor: acc1.String(),
 					// Only includes specified deposit shares
 					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit1Amount.Denom, sdk.NewDecFromInt(deposit1Amount.Amount)),
 					),
 					// Only the specified vault denom value
 					Value: sdk.NewCoins(deposit1Amount),
@@ -325,7 +325,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 					Depositor: acc2.String(),
 					// Only includes specified deposit shares
 					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit3Amount.Denom, sdk.NewDecFromInt(deposit3Amount.Amount)),
 					),
 					// Only the specified vault denom value
 					Value: sdk.NewCoins(deposit3Amount),
@@ -349,7 +349,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 				Depositor: acc2.String(),
 				// Only includes specified deposit shares
 				Shares: types.NewVaultShares(
-					types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+					types.NewVaultShare(deposit3Amount.Denom, sdk.NewDecFromInt(deposit3Amount.Amount)),
 				),
 				// Only the specified vault denom value
 				Value: sdk.NewCoins(
@@ -382,8 +382,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 				{
 					Depositor: acc1.String(),
 					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit1Amount.Denom, deposit1Amount.Amount.ToDec()),
-						types.NewVaultShare(deposit2Amount.Denom, deposit2Amount.Amount.ToDec()),
+						types.NewVaultShare(deposit1Amount.Denom, sdk.NewDecFromInt(deposit1Amount.Amount)),
+						types.NewVaultShare(deposit2Amount.Denom, sdk.NewDecFromInt(deposit2Amount.Amount)),
 					),
 					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
@@ -405,8 +405,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 				Depositor: acc2.String(),
 				Shares: types.VaultShares{
 					// Does not include non-bkava vaults
-					types.NewVaultShare(deposit4Amount.Denom, deposit4Amount.Amount.ToDec()),
-					types.NewVaultShare(deposit3Amount.Denom, deposit3Amount.Amount.ToDec()),
+					types.NewVaultShare(deposit4Amount.Denom, sdk.NewDecFromInt(deposit4Amount.Amount)),
+					types.NewVaultShare(deposit3Amount.Denom, sdk.NewDecFromInt(deposit3Amount.Amount)),
 				},
 				Value: sdk.Coins{
 					// Does not include non-bkava vaults
@@ -419,7 +419,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		for i := range res.Deposits[0].Shares {
 			suite.Equal(
 				res.Deposits[0].Shares[i].Amount,
-				res.Deposits[0].Value[i].Amount.ToDec(),
+				sdk.NewDecFromInt(res.Deposits[0].Value[i].Amount),
 				"order of deposit value should match shares",
 			)
 		}

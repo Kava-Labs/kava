@@ -38,7 +38,7 @@ func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
 		normalized = normalized.Add(
 			sdk.NewDecCoinFromDec(
 				coin.Denom,
-				coin.Amount.ToDec().Quo(factor),
+				sdk.NewDecFromInt(coin.Amount).Quo(factor),
 			),
 		)
 	}

@@ -168,15 +168,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
 	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
 
-	stakingRewardIndexes0 := validatorRewards[suite.valAddrs[0].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(derivative0.Amount.ToDec())
+	stakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(derivative0.Amount))
 
-	stakingRewardIndexes1 := validatorRewards[suite.valAddrs[1].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(derivative1.Amount.ToDec())
+	stakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(derivative1.Amount))
 
 	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
 		{
@@ -295,15 +293,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
 
 	// Divided by deposit amounts, not bank supply amounts
-	stakingRewardIndexes0 := validatorRewards[suite.valAddrs[0].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(depositAmount0.Amount.ToDec())
+	stakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(depositAmount0.Amount))
 
-	stakingRewardIndexes1 := validatorRewards[suite.valAddrs[1].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(depositAmount1.Amount.ToDec())
+	stakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(depositAmount1.Amount))
 
 	// Slightly increased rewards due to less bkava deposited
 	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
@@ -536,15 +532,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 
 	validatorRewards0, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
 
-	firstStakingRewardIndexes0 := validatorRewards0[suite.valAddrs[0].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(derivative0.Amount.ToDec())
+	firstStakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards0[suite.valAddrs[0].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(derivative0.Amount))
 
-	firstStakingRewardIndexes1 := validatorRewards0[suite.valAddrs[1].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(derivative1.Amount.ToDec())
+	firstStakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards0[suite.valAddrs[1].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(derivative1.Amount))
 
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
@@ -590,15 +584,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 
 	validatorRewards1, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
 
-	secondStakingRewardIndexes0 := validatorRewards1[suite.valAddrs[0].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(derivative0.Amount.ToDec())
+	secondStakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards1[suite.valAddrs[0].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(derivative0.Amount))
 
-	secondStakingRewardIndexes1 := validatorRewards1[suite.valAddrs[1].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(derivative1.Amount.ToDec())
+	secondStakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards1[suite.valAddrs[1].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(derivative1.Amount))
 
 	// Second accumulation has both staking rewards and incentive rewards
 	// ukava incentive rewards: 3600 * 1000 / (2 * 1000000) == 1.8

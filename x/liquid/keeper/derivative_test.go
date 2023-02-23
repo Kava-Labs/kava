@@ -95,9 +95,9 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 			suite.AccountBalanceEqual(user, sdk.NewCoins(tc.balance.Sub(tc.burnAmount)))
 			suite.AccountBalanceEqual(moduleAccAddress, modBalance) // ensure derivatives are burned, and not in module account
 
-			sharesTransferred := tc.burnAmount.Amount.ToDec()
+			sharesTransferred := sdk.NewDecFromInt(tc.burnAmount.Amount)
 			suite.DelegationSharesEqual(valAddr, user, sharesTransferred)
-			suite.DelegationSharesEqual(valAddr, moduleAccAddress, tc.moduleDelegation.ToDec().Sub(sharesTransferred))
+			suite.DelegationSharesEqual(valAddr, moduleAccAddress, sdk.NewDecFromInt(tc.moduleDelegation).Sub(sharesTransferred))
 
 			suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 				types.EventTypeBurnDerivative,
@@ -303,7 +303,7 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 			suite.DelegationSharesEqual(valAddr, delegator, tc.expectedSharesRemaining)
 			suite.DelegationSharesEqual(valAddr, moduleAccAddress, tc.expectedSharesAdded)
 
-			sharesTransferred := initialBalance.ToDec().Sub(tc.expectedSharesRemaining)
+			sharesTransferred := sdk.NewDecFromInt(initialBalance).Sub(tc.expectedSharesRemaining)
 			suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 				types.EventTypeMintDerivative,
 				sdk.NewAttribute(types.AttributeKeyDelegator, delegator.String()),

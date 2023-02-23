@@ -1361,7 +1361,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 					expectedBorrowInterestFactor := borrowInterestFactorPrior.Mul(newBorrowInterestFactor)
 					expectedSupplyInterest := expectedBorrowInterest.Sub(expectedReserves.AmountOf(coinDenom))
 
-					newSupplyInterestFactor := keeper.CalculateSupplyInterestFactor(expectedSupplyInterest.ToDec(), sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(coinDenom)))
+					newSupplyInterestFactor := keeper.CalculateSupplyInterestFactor(sdk.NewDecFromInt(expectedSupplyInterest), sdk.NewDecFromInt(cashPrior), sdk.NewDecFromInt(borrowCoinPriorAmount), sdk.NewDecFromInt(reservesPrior.AmountOf(coinDenom)))
 					expectedSupplyInterestFactor := supplyInterestFactorPrior.Mul(newSupplyInterestFactor)
 					// -------------------------------------------------------------------------------------
 
@@ -1404,7 +1404,7 @@ func (suite *KeeperTestSuite) TestSupplyInterest() {
 						// Calculate percentage of supply interest profits owed to user
 						userSupplyBefore, _ := suite.keeper.GetDeposit(snapshotCtx, tc.args.user)
 						userSupplyCoinAmount := userSupplyBefore.Amount.AmountOf(coinDenom)
-						userPercentOfTotalSupplied := userSupplyCoinAmount.ToDec().Quo(supplyCoinPriorAmount.ToDec())
+						userPercentOfTotalSupplied := sdk.NewDecFromInt(userSupplyCoinAmount).Quo(sdk.NewDecFromInt(supplyCoinPriorAmount))
 						userExpectedSupplyInterestCoin := sdk.NewCoin(coinDenom, userPercentOfTotalSupplied.MulInt(expectedSupplyInterest).TruncateInt())
 
 						// Supplying syncs user's owed supply and borrow interest

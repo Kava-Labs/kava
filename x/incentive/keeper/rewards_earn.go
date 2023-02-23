@@ -50,9 +50,9 @@ func GetProportionalRewardsPerSecond(
 	}
 
 	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
-		scaledAmount := rewardCoin.Amount.ToDec().
-			Mul(singleBkavaSupply.ToDec()).
-			Quo(totalBkavaSupply.ToDec())
+		scaledAmount := sdk.NewDecFromInt(rewardCoin.Amount).
+			Mul(sdk.NewDecFromInt(singleBkavaSupply)).
+			Quo(sdk.NewDecFromInt(totalBkavaSupply))
 
 		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
 	}

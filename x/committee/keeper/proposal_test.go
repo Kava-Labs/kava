@@ -575,7 +575,7 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 		// Check that all non-Yes votes are counted according to their weight
 		suite.Equal(tc.expectedTotalVoteCount, currVotes)
 		// Check that possible votes equals the number of members on the committee
-		suite.Equal(totalSupply.AmountOf(tokenCom.GetTallyDenom()).ToDec(), possibleVotes)
+		suite.Equal(sdk.NewDecFromInt(totalSupply.AmountOf(tokenCom.GetTallyDenom())), possibleVotes)
 	}
 }
 

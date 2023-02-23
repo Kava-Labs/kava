@@ -432,8 +432,8 @@ func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, err
 	// Staking APR = (Inflation Rate * (1 - Community Tax)) / (Bonded Tokens / Circulating Supply)
 	stakingAPR := inflationRate.
 		Mul(sdk.OneDec().Sub(communityTax)).
-		Quo(bondedTokens.ToDec().
-			Quo(circulatingSupply.Amount.ToDec()))
+		Quo(sdk.NewDecFromInt(bondedTokens).
+			Quo(sdk.NewDecFromInt(circulatingSupply.Amount)))
 
 	// Get incentive APR
 	bkavaRewardPeriod, found := params.EarnRewardPeriods.GetMultiRewardPeriod(liquidtypes.DefaultDerivativeDenom)
@@ -500,7 +500,7 @@ func GetAPYFromMultiRewardPeriod(
 	}
 
 	// Total USD value of the collateral type total supply
-	totalSupplyUSDValue := totalSupply.ToDec().Mul(collateralUSDValue.Price)
+	totalSupplyUSDValue := sdk.NewDecFromInt(totalSupply).Mul(collateralUSDValue.Price)
 
 	totalUSDRewardsPerSecond := sdk.ZeroDec()
 
@@ -514,7 +514,7 @@ func GetAPYFromMultiRewardPeriod(
 			return sdk.ZeroDec(), fmt.Errorf("failed to get price for RewardsPerSecond asset %s: %w", reward.Denom, err)
 		}
 
-		rewardPerSecond := reward.Amount.ToDec().Mul(rewardDenomUSDValue.Price)
+		rewardPerSecond := sdk.NewDecFromInt(reward.Amount).Mul(rewardDenomUSDValue.Price)
 		totalUSDRewardsPerSecond = totalUSDRewardsPerSecond.Add(rewardPerSecond)
 	}
 

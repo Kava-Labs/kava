@@ -60,7 +60,7 @@ func (k Keeper) getHardBorrowTotalSourceShares(ctx sdk.Context, denom string) sd
 	}
 
 	// return borrowed/factor to get the "pre interest" value of the current total borrowed
-	return totalBorrowed.ToDec().Quo(interestFactor)
+	return sdk.NewDecFromInt(totalBorrowed).Quo(interestFactor)
 }
 
 // InitializeHardBorrowReward initializes the borrow-side of a hard liquidity provider claim

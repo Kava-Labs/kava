@@ -53,7 +53,7 @@ func (k Keeper) getHardSupplyTotalSourceShares(ctx sdk.Context, denom string) sd
 	}
 
 	// return supplied/factor to get the "pre interest" value of the current total supplied
-	return totalSupplied.ToDec().Quo(interestFactor)
+	return sdk.NewDecFromInt(totalSupplied).Quo(interestFactor)
 }
 
 // InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
@@ -219,7 +219,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 			if !found {
 				continue
 			}
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(deposit.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(sdk.NewDecFromInt(deposit.Amount.AmountOf(ri.CollateralType))).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}
@@ -269,7 +269,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 			if !found {
 				continue
 			}
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(borrow.Amount.AmountOf(ri.CollateralType).ToDec()).RoundInt()
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(sdk.NewDecFromInt(borrow.Amount.AmountOf(ri.CollateralType))).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}

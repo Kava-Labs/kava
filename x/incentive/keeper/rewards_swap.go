@@ -41,7 +41,7 @@ func (k Keeper) getSwapTotalSourceShares(ctx sdk.Context, poolID string) sdk.Dec
 	if !found {
 		totalShares = sdk.ZeroInt()
 	}
-	return totalShares.ToDec()
+	return sdk.NewDecFromInt(totalShares)
 }
 
 // InitializeSwapReward creates a new claim with zero rewards and indexes matching the global indexes.
@@ -94,7 +94,7 @@ func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, p
 		userRewardIndexes = types.RewardIndexes{}
 	}
 
-	newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, shares.ToDec())
+	newRewards, err := k.CalculateRewards(userRewardIndexes, globalRewardIndexes, sdk.NewDecFromInt(shares))
 	if err != nil {
 		// Global reward factors should never decrease, as it would lead to a negative update to claim.Rewards.
 		// This panics if a global reward factor decreases or disappears between the old and new indexes.

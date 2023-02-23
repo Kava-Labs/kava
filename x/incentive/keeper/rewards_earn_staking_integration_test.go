@@ -166,15 +166,13 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 	// Total staking rewards / total source shares (**deposited in earn** not total minted)
 	// types.RewardIndexes.Quo() uses Dec.Quo() which uses bankers rounding.
 	// So we need to use Dec.Quo() to also round vs Dec.QuoInt() which truncates
-	expectedIndexes1 := validatorRewards[suite.valAddrs[0].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(userDepositAmount0.ToDec())
+	expectedIndexes1 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(userDepositAmount0))
 
-	expectedIndexes2 := validatorRewards[suite.valAddrs[1].String()].
-		AmountOf("ukava").
-		ToDec().
-		Quo(userDepositAmount1.ToDec())
+	expectedIndexes2 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
+		AmountOf("ukava")).
+		Quo(sdk.NewDecFromInt(userDepositAmount1))
 
 	// Only contains staking rewards
 	suite.StoredEarnIndexesEqual(vaultDenom1, types.RewardIndexes{
