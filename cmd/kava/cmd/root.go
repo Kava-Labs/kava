@@ -7,12 +7,14 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/spf13/cobra"
+	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	ethermintclient "github.com/tharsis/ethermint/client"
 	"github.com/tharsis/ethermint/crypto/hd"
@@ -69,7 +71,12 @@ func NewRootCmd() *cobra.Command {
 
 			customAppTemplate, customAppConfig := servercfg.AppConfig("ukava")
 
-			return server.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig)
+			return server.InterceptConfigsPreRunHandler(
+				cmd,
+				customAppTemplate,
+				customAppConfig,
+				tmcfg.DefaultConfig(),
+			)
 		},
 	}
 
@@ -81,6 +88,7 @@ func NewRootCmd() *cobra.Command {
 // addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
+		rpc.StatusCommand(),
 		ethermintclient.ValidateChainID(
 			genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
 		),
@@ -105,7 +113,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
-		StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
 		kavaclient.KeyCommands(app.DefaultNodeHome),
