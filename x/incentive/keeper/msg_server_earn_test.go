@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/testutil"
@@ -141,6 +142,7 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	mint.BeginBlocker(
 		suite.Ctx,
 		suite.App.GetMintKeeper(),
+		minttypes.DefaultInflationCalculationFn,
 	)
 	// Distribute to validators, block needs votes
 	distribution.BeginBlocker(
