@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -32,7 +33,7 @@ func NewTestContext(requiredStoreKeys ...storetypes.StoreKey) sdk.Context {
 	cms := store.NewCommitMultiStore(memDB)
 
 	for _, key := range requiredStoreKeys {
-		cms.MountStoreWithDB(key, sdk.StoreTypeIAVL, nil)
+		cms.MountStoreWithDB(key, storetypes.StoreTypeIAVL, nil)
 	}
 
 	if err := cms.LoadLatestVersion(); err != nil {

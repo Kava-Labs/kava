@@ -422,8 +422,8 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Contex
 		return err
 	}
 
-	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
-	_, err = handleStakingMsg(ctx, msg)
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.stakingKeeper)
+	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(suite.ctx), msg)
 	return err
 }
 
@@ -434,8 +434,8 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgDelegate(ctx sdk.Context, dele
 		amount,
 	)
 
-	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
-	_, err := handleStakingMsg(ctx, msg)
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.stakingKeeper)
+	_, err := msgServer.Delegate(sdk.WrapSDKContext(suite.ctx), msg)
 	return err
 }
 
@@ -446,8 +446,9 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, de
 		destinationValidator,
 		amount,
 	)
-	handleStakingMsg := staking.NewHandler(suite.stakingKeeper)
-	_, err := handleStakingMsg(ctx, msg)
+
+	msgServer := stakingkeeper.NewMsgServerImpl(suite.stakingKeeper)
+	_, err := msgServer.BeginRedelegate(sdk.WrapSDKContext(suite.ctx), msg)
 	return err
 }
 
