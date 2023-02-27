@@ -16,11 +16,11 @@ import (
 )
 
 type SigningAccount struct {
-	name      string
-	mnemonic  string
-	signer    *util.Signer
-	requests  chan<- util.MsgRequest
-	responses <-chan util.MsgResponse
+	name       string
+	mnemonic   string
+	kavaSigner *util.KavaSigner
+	requests   chan<- util.KavaMsgRequest
+	responses  <-chan util.KavaMsgResponse
 
 	Address sdk.AccAddress
 
@@ -46,7 +46,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 	suite.NoErrorf(err, "failed to derive private key from mnemonic for %s: %s", name, err)
 	privKey := &secp256k1.PrivKey{Key: privKeyBytes}
 
-	signer := util.NewSigner(
+	signer := util.NewKavaSigner(
 		chainId,
 		suite.encodingConfig,
 		suite.Auth,
@@ -55,7 +55,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 		100,
 	)
 
-	requests := make(chan util.MsgRequest)
+	requests := make(chan util.KavaMsgRequest)
 	responses, err := signer.Run(requests)
 	suite.NoErrorf(err, "failed to start signer for account %s: %s", name, err)
 
@@ -63,12 +63,12 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 
 	// TODO: authenticated eth client.
 	suite.accounts[name] = &SigningAccount{
-		name:      name,
-		mnemonic:  mnemonic,
-		signer:    signer,
-		requests:  requests,
-		responses: responses,
-		l:         logger,
+		name:       name,
+		mnemonic:   mnemonic,
+		kavaSigner: signer,
+		requests:   requests,
+		responses:  responses,
+		l:          logger,
 
 		Address: signer.Address(),
 	}
@@ -77,7 +77,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 }
 
 // SignAndBroadcastKavaTx sends a request to the signer and awaits its response.
-func (a *SigningAccount) SignAndBroadcastKavaTx(req util.MsgRequest) util.MsgResponse {
+func (a *SigningAccount) SignAndBroadcastKavaTx(req util.KavaMsgRequest) util.KavaMsgResponse {
 	a.l.Printf("broadcasting tx %+v\n", req.Data)
 	// send the request to signer
 	a.requests <- req
@@ -111,7 +111,7 @@ func (suite *E2eTestSuite) NewFundedAccount(name string, funds sdk.Coins) *Signi
 
 	whale := suite.GetAccount(FundedAccountName)
 	res := whale.SignAndBroadcastKavaTx(
-		util.MsgRequest{
+		util.KavaMsgRequest{
 			Msgs: []sdk.Msg{
 				banktypes.NewMsgSend(whale.Address, acc.Address, funds),
 			},
