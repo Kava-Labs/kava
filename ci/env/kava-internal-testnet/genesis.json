@@ -267,6 +267,14 @@
               "amount": "1000000000000000"
             },
             {
+              "denom": "erc20/multichain/wbtc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/multichain/weth",
+              "amount": "1000000000000000000"
+            },
+            {
               "denom": "hard",
               "amount": "1000000000"
             },
@@ -281,14 +289,6 @@
             {
               "denom": "usdx",
               "amount": "103000000000"
-            },
-            {
-              "denom": "erc20/multichain/wbtc",
-              "amount": "1000000000"
-            },
-            {
-              "denom": "erc20/multichain/weth",
-              "amount": "1000000000000000000"
             }
           ]
         },
