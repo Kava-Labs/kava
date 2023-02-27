@@ -285,6 +285,10 @@
             {
               "denom": "erc20/multichain/wbtc",
               "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/multichain/weth",
+              "amount": "1000000000000000000"
             }
           ]
         },
@@ -1309,6 +1313,10 @@
           {
             "kava_erc20_address": "0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0b",
             "denom": "erc20/multichain/wbtc"
+          },
+          {
+            "kava_erc20_address": "0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D",
+            "denom": "erc20/multichain/weth"
           }
         ]
       }
@@ -1502,6 +1510,24 @@
             },
             "spot_market_id": "btc:usd:30",
             "conversion_factor": "100000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
+          },
+          {
+            "denom": "erc20/multichain/weth",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "1000000000.000000000000000000",
+              "loan_to_value": "0.500000000000000000"
+            },
+            "spot_market_id": "eth:usd:30",
+            "conversion_factor": "1000000000000000000",
             "interest_rate_model": {
               "base_rate_apy": "0.000000000000000000",
               "base_multiplier": "0.050000000000000000",
@@ -2273,6 +2299,24 @@
             "active": true
           },
           {
+            "market_id": "eth:usd",
+            "base_asset": "eth",
+            "quote_asset": "eth",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "eth:usd:30",
+            "base_asset": "eth",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
             "market_id": "xrp:usd:30",
             "base_asset": "xrp",
             "quote_asset": "usd",
@@ -2523,6 +2567,18 @@
           "market_id": "btc:usd:30",
           "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
           "price": "28500.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "eth:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "16250.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "eth:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "16250.962650000000001782"
         },
         {
           "expiry": "2050-01-01T00:00:00Z",
