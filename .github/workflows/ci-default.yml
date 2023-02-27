@@ -31,3 +31,18 @@ jobs:
         run: make test
       - name: run e2e tests
         run: make docker-build test-e2e
+  validate-testnet-genesis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.18"
+          check-latest: true
+          cache: true
+      - name: build kava cli
+        run: make install
+      - name: validate testnet genesis
+        run: kava validate-genesis ci/env/kava-internal-testnet/genesis.json
