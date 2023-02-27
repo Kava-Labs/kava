@@ -1527,7 +1527,7 @@
               "loan_to_value": "0.500000000000000000"
             },
             "spot_market_id": "eth:usd:30",
-            "conversion_factor": "100000000",
+            "conversion_factor": "1000000000000000000",
             "interest_rate_model": {
               "base_rate_apy": "0.000000000000000000",
               "base_multiplier": "0.050000000000000000",
