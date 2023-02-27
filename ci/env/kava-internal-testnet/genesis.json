@@ -1307,7 +1307,7 @@
             "denom": "erc20/multichain/usdc"
           },
           {
-            "kava_erc20_address": "0x864121A3b64A05d872883a1D0DA04eEe107A64F3",
+            "kava_erc20_address": "0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0b",
             "denom": "erc20/multichain/wbtc"
           }
         ]
