@@ -8,13 +8,13 @@ import (
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
 	emtypes "github.com/tharsis/ethermint/types"
 
 	"github.com/kava-labs/kava/app"
@@ -57,7 +57,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 	// Kava signing account for SDK side
 	privKeyBytes, err := hd.Secp256k1.Derive()(mnemonic, "", hdPath.String())
 	suite.NoErrorf(err, "failed to derive private key from mnemonic for %s: %s", name, err)
-	privKey := &secp256k1.PrivKey{Key: privKeyBytes}
+	privKey := &ethsecp256k1.PrivKey{Key: privKeyBytes}
 
 	kavaSigner := util.NewKavaSigner(
 		chainId,
@@ -178,19 +178,21 @@ func (suite *E2eTestSuite) NewFundedAccount(name string, funds sdk.Coins) *Signi
 	)
 
 	whale := suite.GetAccount(FundedAccountName)
-	fmt.Println("attempting to fund created account: ", name)
+	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
 	res := whale.SignAndBroadcastKavaTx(
 		util.KavaMsgRequest{
 			Msgs: []sdk.Msg{
 				banktypes.NewMsgSend(whale.SdkAddress, acc.SdkAddress, funds),
 			},
-			GasLimit:  1e5,
+			GasLimit:  2e5,
 			FeeAmount: sdk.NewCoins(sdk.NewCoin(StakingDenom, sdk.NewInt(75000))),
 			Data:      fmt.Sprintf("initial funding of account %s", name),
 		},
 	)
 
 	suite.NoErrorf(res.Err, "failed to fund new account %s: %s", name, res.Err)
+
+	whale.l.Printf("successfully funded [%s]\n", name)
 
 	return acc
 }
