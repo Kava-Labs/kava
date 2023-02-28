@@ -44,6 +44,7 @@ type E2eTestSuite struct {
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
+	fmt.Println("setting up test suite.")
 	app.SetSDKConfig()
 	suite.encodingConfig = app.MakeEncodingConfig()
 
@@ -105,9 +106,10 @@ func (suite *E2eTestSuite) SetupSuite() {
 }
 
 func (suite *E2eTestSuite) TearDownSuite() {
+	fmt.Println("tearing down test suite.")
 	// close all account request channels
 	for _, a := range suite.accounts {
-		close(a.requests)
+		close(a.sdkReqChan)
 	}
 	// gracefully shutdown docker container(s)
 	suite.runner.Shutdown()

@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/tests/e2e/testutil"
 )
 
@@ -44,7 +44,7 @@ func (suite *IntegrationTestSuite) TestFundedAccount() {
 	funds := ukava(1e7)
 	acc := suite.NewFundedAccount("example-acc", sdk.NewCoins(funds))
 	res, err := suite.Bank.Balance(context.Background(), banktypes.NewQueryBalanceRequest(
-		acc.Address, "ukava",
+		acc.SdkAddress, "ukava",
 	))
 	suite.NoError(err)
 	suite.Equal(funds, *res.Balance)

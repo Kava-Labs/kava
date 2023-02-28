@@ -11,7 +11,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/rs/zerolog/log"
 )
 
 type EvmTxRequest struct {
@@ -69,8 +68,6 @@ func NewEvmSigner(
 
 func (s *EvmSigner) Run(requests <-chan EvmTxRequest) <-chan EvmTxResponse {
 	responses := make(chan EvmTxResponse)
-
-	log.Debug().Str("SignerAddress", s.signerAddress.String()).Msg("starting evm signer")
 
 	// receive tx requests, sign & broadcast them.
 	// Responses are sent once the tx is added to the pending tx pool.
