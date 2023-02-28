@@ -67,7 +67,10 @@ func (suite *IntegrationTestSuite) TestFundedAccount() {
 	suite.NoError(err)
 	suite.Equal(funds, *res.Balance)
 
-	// TODO: check balance via EVM query
+	// check balance via EVM query
+	akavaBal, err := suite.EvmClient.BalanceAt(context.Background(), acc.EvmAddress, nil)
+	suite.NoError(err)
+	suite.Equal(funds.Amount.MulRaw(1e12).BigInt(), akavaBal)
 }
 
 // example test that signs & broadcasts an EVM tx
