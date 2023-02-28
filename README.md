@@ -30,7 +30,7 @@ The current recommended version of the software for mainnet is [v0.19.0](https:/
 For detailed instructions see [the Kava docs](https://docs.kava.io/docs/participate/validator-node).
 
 ```bash
-git checkout v0.19.0
+git checkout v0.21.0
 make install
 ```
 
