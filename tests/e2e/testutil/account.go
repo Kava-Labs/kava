@@ -169,7 +169,6 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 		default:
 			response.Receipt, response.Err = a.evmSigner.EvmClient.TransactionReceipt(context.Background(), res.TxHash)
 			if errors.Is(response.Err, ethereum.NotFound) {
-				fmt.Println("failed to find tx receipt")
 				// tx still not committed to a block. retry!
 				time.Sleep(100 * time.Millisecond)
 				continue
