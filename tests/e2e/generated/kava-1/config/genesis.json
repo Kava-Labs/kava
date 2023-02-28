@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2023-02-15T18:28:01.981711Z",
+  "genesis_time": "2023-02-28T20:05:58.764023Z",
   "chain_id": "kavalocalnet_8888-1",
   "initial_height": "1",
   "consensus_params": {
@@ -190,6 +190,16 @@
         {
           "@type": "/ethermint.types.v1.EthAccount",
           "base_account": {
+            "address": "kava1q0dkky0505r555etn6u2nz4h4kjcg5y8dg863a",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
             "address": "kava1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkp40r02",
             "pub_key": null,
             "account_number": "0",
@@ -268,6 +278,47 @@
         "default_send_enabled": true
       },
       "balances": [
+        {
+          "address": "kava1q0dkky0505r555etn6u2nz4h4kjcg5y8dg863a",
+          "coins": [
+            {
+              "denom": "bkava-kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42",
+              "amount": "10000000000000000"
+            },
+            {
+              "denom": "bnb",
+              "amount": "10000000000000000"
+            },
+            {
+              "denom": "btcb",
+              "amount": "10000000000000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "10000000000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "1000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "10000000000000000"
+            },
+            {
+              "denom": "xrpb",
+              "amount": "10000000000000000"
+            }
+          ]
+        },
         {
           "address": "kava1z3ytjpr6ancl8gw80z6f47z9smug7986x29vtj",
           "coins": [
