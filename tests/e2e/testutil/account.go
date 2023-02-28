@@ -3,14 +3,17 @@ package testutil
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -20,6 +23,8 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/util"
 )
+
+var BroadcastTimeoutErr = errors.New("timed out waiting for tx to be committed to block")
 
 type SigningAccount struct {
 	name     string
@@ -116,6 +121,7 @@ func (a *SigningAccount) SignAndBroadcastKavaTx(req util.KavaMsgRequest) util.Ka
 	// send the request to signer
 	a.sdkReqChan <- req
 
+	// TODO: timeout awaiting the response.
 	// block and await response
 	// response is not returned until the msg is committed to a block
 	res := <-a.sdkResChan
@@ -138,8 +144,6 @@ type EvmTxResponse struct {
 
 // SignAndBroadcastEvmTx sends a request to the signer and awaits its response.
 func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxResponse {
-	var err error
-	var receipt *ethtypes.Receipt
 	a.l.Printf("broadcasting evm tx %+v\n", req.Data)
 	// send the request to signer
 	a.evmReqChan <- req
@@ -156,10 +160,23 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 		return response
 	}
 
-	response.Receipt, response.Err = a.evmSigner.EvmClient.TransactionReceipt(context.Background(), res.TxHash)
-	a.l.Println(receipt, "\n", "err: ", err)
-
-	// TODO: retry with timeout if failed. (wait for block commit)
+	// if we don't have a tx receipt within a given timeout, fail the request
+	timeout := time.After(10 * time.Second)
+	for {
+		select {
+		case <-timeout:
+			response.Err = BroadcastTimeoutErr
+		default:
+			response.Receipt, response.Err = a.evmSigner.EvmClient.TransactionReceipt(context.Background(), res.TxHash)
+			if errors.Is(response.Err, ethereum.NotFound) {
+				fmt.Println("failed to find tx receipt")
+				// tx still not committed to a block. retry!
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
+		}
+		break
+	}
 
 	return response
 }

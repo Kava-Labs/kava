@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"math/big"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -9,8 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	emtypes "github.com/tharsis/ethermint/types"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/e2e/testutil"
 	"github.com/kava-labs/kava/tests/util"
 )
@@ -59,4 +62,25 @@ func (suite *IntegrationTestSuite) TestFundedAccount() {
 	suite.Equal(funds, *res.Balance)
 
 	// TODO: check balance via EVM query
+}
+
+func (suite *IntegrationTestSuite) TestEvmTx() {
+	initialFunds := ukava(1e7) // 10 KAVA
+	acc := suite.NewFundedAccount("evm-test-transfer", sdk.NewCoins(initialFunds))
+
+	randomAddr := app.RandomAddress()
+	to := util.SdkToEvmAddress(randomAddr)
+
+	nonce, err := suite.EvmClient.PendingNonceAt(context.Background(), acc.EvmAddress)
+	suite.NoError(err)
+	suite.Equal(uint64(0), nonce) // sanity check. the account should have no prior txs
+
+	kavaToTransfer := big.NewInt(1e18) // 1 KAVA; akava has 18 decimals.
+	req := util.EvmTxRequest{
+		Tx:   ethtypes.NewTransaction(nonce, to, kavaToTransfer, 1e5, big.NewInt(1e10), nil),
+		Data: "any ol' data to track this through the system",
+	}
+	res := acc.SignAndBroadcastEvmTx(req)
+	suite.NoError(res.Err)
+	suite.Equal(ethtypes.ReceiptStatusSuccessful, res.Receipt.Status)
 }
