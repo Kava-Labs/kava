@@ -16,11 +16,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
+	ethermintflags "github.com/evmos/ethermint/server/flags"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/tendermint/tendermint/libs/log"
 	db "github.com/tendermint/tm-db"
-	ethermintflags "github.com/tharsis/ethermint/server/flags"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"

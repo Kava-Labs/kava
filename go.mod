@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.34.26
 	github.com/tendermint/tm-db v0.6.7
-	github.com/tharsis/ethermint v0.14.0
+	github.com/evmos/ethermint v0.14.0
 	google.golang.org/genproto v0.0.0-20230202175211-008b39050e57
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.28.2-0.20230208135220-49eaa78c6c9c
@@ -216,5 +216,5 @@ replace (
 	// Use rocksdb 7.1.2
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.1
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
-	github.com/tharsis/ethermint => github.com/kava-labs/ethermint v0.14.0-kava-v20.1
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.0-kava-v0.22
 )
