@@ -369,7 +369,7 @@ func NewApp(
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, minttypes.StoreKey,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	app := &App{
@@ -499,7 +499,12 @@ func NewApp(
 
 	// Create Ethermint keepers
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
-		appCodec, keys[feemarkettypes.StoreKey], feemarketSubspace,
+		appCodec,
+		// Authority
+		authtypes.NewModuleAddress(govtypes.ModuleName),
+		keys[feemarkettypes.StoreKey],
+		tkeys[feemarkettypes.TransientKey],
+		feemarketSubspace,
 	)
 
 	app.evmutilKeeper = evmutilkeeper.NewKeeper(
@@ -754,8 +759,8 @@ func NewApp(
 		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
-		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
-		feemarket.NewAppModule(app.feeMarketKeeper),
+		evm.NewAppModule(app.evmKeeper, app.accountKeeper, evmSubspace),
+		feemarket.NewAppModule(app.feeMarketKeeper, feemarketSubspace),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		transferModule,
