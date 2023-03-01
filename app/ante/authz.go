@@ -49,7 +49,11 @@ func (ald AuthzLimiterDecorator) checkForDisabledMsg(msgs []sdk.Msg, searchOnlyI
 			if !ok {
 				panic("unexpected msg type")
 			}
-			authorization := m.GetAuthorization()
+			authorization, err := m.GetAuthorization()
+			if err != nil {
+				return err
+			}
+
 			if ald.isDisabled(authorization.MsgTypeURL()) {
 				return fmt.Errorf("found disabled msg type in MsgGrant: %s", authorization.MsgTypeURL())
 			}

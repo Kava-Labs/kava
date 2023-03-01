@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -64,8 +65,8 @@ type EIP712TestSuite struct {
 	usdcEVMAddr   evmutiltypes.InternalEVMAddress
 }
 
-func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdk.Int {
-	incr := sdk.RelativePow(sdk.NewUint(10), sdk.NewUint(18), sdk.OneUint())
+func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdkmath.Int {
+	incr := sdkmath.RelativePow(sdkmath.NewUint(10), sdkmath.NewUint(18), sdkmath.OneUint())
 	return sdk.NewInt(amount).Mul(sdk.NewIntFromUint64(incr.Uint64()))
 }
 
@@ -85,7 +86,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	fee := legacytx.NewStdFee(gas, gasAmount)
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
-	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "")
+	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "", nil)
 	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, data, &eip712.FeeDelegationOptions{
 		FeePayer: from,
 	}, suite.tApp.GetEvmKeeper().GetParams(suite.ctx))
@@ -155,7 +156,15 @@ func (suite *EIP712TestSuite) SetupTest() {
 
 	// Genesis states
 	evmGs := evmtypes.NewGenesisState(
-		evmtypes.NewParams("akava", true, true, evmtypes.DefaultChainConfig()),
+		evmtypes.NewParams(
+			"akava",                       // evmDenom
+			false,                         // allowedUnprotectedTxs
+			true,                          // enableCreate
+			true,                          // enableCall
+			evmtypes.DefaultChainConfig(), // ChainConfig
+			nil,                           // extraEIPs
+			nil,                           // eip712AllowedMsgs
+		),
 		nil,
 	)
 
