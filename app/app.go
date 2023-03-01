@@ -963,15 +963,17 @@ func NewApp(
 	}
 
 	anteOptions := ante.HandlerOptions{
-		AccountKeeper:   app.accountKeeper,
-		BankKeeper:      app.bankKeeper,
-		EvmKeeper:       app.evmKeeper,
-		IBCKeeper:       app.ibcKeeper,
-		FeeMarketKeeper: app.feeMarketKeeper,
-		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:  evmante.DefaultSigVerificationGasConsumer,
-		MaxTxGasWanted:  options.EVMMaxGasWanted,
-		AddressFetchers: fetchers,
+		AccountKeeper:          app.accountKeeper,
+		BankKeeper:             app.bankKeeper,
+		EvmKeeper:              app.evmKeeper,
+		IBCKeeper:              app.ibcKeeper,
+		FeeMarketKeeper:        app.feeMarketKeeper,
+		SignModeHandler:        encodingConfig.TxConfig.SignModeHandler(),
+		SigGasConsumer:         evmante.DefaultSigVerificationGasConsumer,
+		MaxTxGasWanted:         options.EVMMaxGasWanted,
+		AddressFetchers:        fetchers,
+		ExtensionOptionChecker: nil,
+		TxFeeChecker:           nil,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)
