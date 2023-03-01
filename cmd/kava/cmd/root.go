@@ -12,6 +12,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	ethermintclient "github.com/evmos/ethermint/client"
 	"github.com/evmos/ethermint/crypto/hd"
@@ -85,6 +86,10 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
+func addModuleInitFlags(startCmd *cobra.Command) {
+	crisis.AddModuleInitFlags(startCmd)
+}
+
 // addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
@@ -109,7 +114,15 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 	}
 
 	// ethermintserver adds additional flags to start the JSON-RPC server for evm support
-	ethermintserver.AddCommands(rootCmd, defaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
+	ethermintserver.AddCommands(
+		rootCmd,
+		ethermintserver.NewDefaultStartOptions(
+			ac.newApp,
+			app.DefaultNodeHome,
+		),
+		ac.appExport,
+		addModuleInitFlags,
+	)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
