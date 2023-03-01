@@ -56,6 +56,30 @@ func (k EvmBankKeeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom st
 	return sdk.NewCoin(EvmDenom, total)
 }
 
+// SendCoins transfers akava coins from a AccAddress to an AccAddress.
+func (k EvmBankKeeper) SendCoins(ctx sdk.Context, senderAddr sdk.AccAddress, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	ukava, akava, err := SplitAkavaCoins(amt)
+	if err != nil {
+		return err
+	}
+
+	if ukava.Amount.IsPositive() {
+		if err := k.bk.SendCoins(ctx, senderAddr, recipientAddr, sdk.NewCoins(ukava)); err != nil {
+			return err
+		}
+	}
+
+	if err := k.ConvertOneUkavaToAkavaIfNeeded(ctx, senderAddr, akava); err != nil {
+		return err
+	}
+
+	if err := k.akavaKeeper.SendBalance(ctx, senderAddr, recipientAddr, akava); err != nil {
+		return err
+	}
+
+	return k.ConvertAkavaToUkava(ctx, recipientAddr)
+}
+
 // SendCoinsFromModuleToAccount transfers akava coins from a ModuleAccount to an AccAddress.
 // It will panic if the module account does not exist. An error is returned if the recipient
 // address is black-listed or if sending the tokens fails.
