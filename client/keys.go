@@ -88,7 +88,14 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 
 	dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun)
 	if dryRun {
-		kr, err = keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientCtx.KeyringDir, buf, hd.EthSecp256k1Option())
+		kr, err = keyring.New(
+			sdk.KeyringServiceName(),
+			keyring.BackendMemory,
+			clientCtx.KeyringDir,
+			buf,
+			clientCtx.Codec,
+			hd.EthSecp256k1Option(),
+		)
 		clientCtx = clientCtx.WithKeyring(kr)
 	}
 	eth, _ := cmd.Flags().GetBool(ethFlag)
