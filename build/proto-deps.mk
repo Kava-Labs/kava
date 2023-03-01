@@ -17,7 +17,7 @@ GOGO_PATH := $(shell go list -m -f '{{.Dir}}' github.com/gogo/protobuf)
 TENDERMINT_PATH := $(shell go list -m -f '{{.Dir}}' github.com/tendermint/tendermint)
 COSMOS_PROTO_PATH := $(shell go list -m -f '{{.Dir}}' github.com/cosmos/cosmos-proto)
 COSMOS_SDK_PATH := $(shell go list -m -f '{{.Dir}}' github.com/cosmos/cosmos-sdk)
-IBC_GO_PATH := $(shell go list -m -f '{{.Dir}}' github.com/cosmos/ibc-go/v3)
+IBC_GO_PATH := $(shell go list -m -f '{{.Dir}}' github.com/cosmos/ibc-go/v6)
 ETHERMINT_PATH := $(shell go list -m -f '{{.Dir}}' github.com/evmos/ethermint)
 
 #
