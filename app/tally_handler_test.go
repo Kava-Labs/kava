@@ -73,10 +73,10 @@ func (suite *tallyHandlerSuite) TestVotePower_AllSourcesCounted() {
 	suite.voteOnProposal(user.GetAddress(), proposal.Id, govv1beta1.OptionYes)
 
 	_, _, results := suite.tallier.Tally(suite.ctx, proposal)
-	suite.Equal(sdk.NewInt(500e6+250e6+250e6), results.YesCount)
-	suite.Equal(sdk.ZeroInt(), results.NoCount)
-	suite.Equal(sdk.ZeroInt(), results.NoWithVetoCount)
-	suite.Equal(sdk.ZeroInt(), results.AbstainCount)
+	suite.Equal(sdk.NewInt(500e6+250e6+250e6).String(), results.YesCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
 }
 
 func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
@@ -104,21 +104,21 @@ func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
 	_, _, results := suite.tallier.Tally(readOnlyCtx, proposal)
 	userPower := sdk.NewInt(500e6 + 250e6 + 250e6)
 	suite.Equal(
-		selfDelegated.Add(userPower),
+		selfDelegated.Add(userPower).String(),
 		results.YesCount,
 	)
-	suite.Equal(sdk.ZeroInt(), results.NoCount)
-	suite.Equal(sdk.ZeroInt(), results.NoWithVetoCount)
-	suite.Equal(sdk.ZeroInt(), results.AbstainCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
 
 	// User votes, taking power away from validator.
 	suite.voteOnProposal(user.GetAddress(), proposal.Id, govv1beta1.OptionNo)
 
 	_, _, results = suite.tallier.Tally(suite.ctx, proposal)
-	suite.Equal(selfDelegated, results.YesCount)
-	suite.Equal(userPower, results.NoCount)
-	suite.Equal(sdk.ZeroInt(), results.NoWithVetoCount)
-	suite.Equal(sdk.ZeroInt(), results.AbstainCount)
+	suite.Equal(selfDelegated.String(), results.YesCount)
+	suite.Equal(userPower.String(), results.NoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
 }
 
 func (suite *tallyHandlerSuite) TestTallyOutcomes() {

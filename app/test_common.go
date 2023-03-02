@@ -227,6 +227,10 @@ func genesisStateWithValSet(
 		append(currentStakingGenesis.Delegations, delegations...),
 	)
 
+	// Add the new balances to the existing ones
+	currentBankGenesis := banktypes.GetGenesisStateFromAppState(app.appCodec, genesisState)
+	balances = append(currentBankGenesis.Balances, balances...)
+
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
 		// add genesis acc tokens to total supply
@@ -244,13 +248,11 @@ func genesisStateWithValSet(
 		Coins:   sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, bondAmt)},
 	})
 
-	// update total supply
-	currentBankGenesis := banktypes.GetGenesisStateFromAppState(app.appCodec, genesisState)
 	bankGenesis := banktypes.NewGenesisState(
 		currentBankGenesis.Params,
-		append(currentBankGenesis.Balances, balances...),
-		currentBankGenesis.Supply.Add(totalSupply...),
-		[]banktypes.Metadata{},
+		balances,
+		totalSupply,
+		currentBankGenesis.DenomMetadata,
 	)
 
 	// set genesis state
