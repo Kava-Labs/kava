@@ -221,6 +221,8 @@ func genesisStateWithValSet(
 	}
 	// set validators and delegations
 	currentStakingGenesis := stakingtypes.GetGenesisStateFromAppState(app.appCodec, genesisState)
+	currentStakingGenesis.Params.BondDenom = "ukava"
+
 	stakingGenesis := stakingtypes.NewGenesisState(
 		currentStakingGenesis.Params,
 		append(currentStakingGenesis.Validators, validators...),
@@ -239,13 +241,13 @@ func genesisStateWithValSet(
 
 	for range delegations {
 		// add delegated tokens to total supply
-		totalSupply = totalSupply.Add(sdk.NewCoin(sdk.DefaultBondDenom, bondAmt))
+		totalSupply = totalSupply.Add(sdk.NewCoin("ukava", bondAmt))
 	}
 
 	// add bonded amount to bonded pool module account
 	balances = append(balances, banktypes.Balance{
 		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, bondAmt)},
+		Coins:   sdk.Coins{sdk.NewCoin("ukava", bondAmt)},
 	})
 
 	bankGenesis := banktypes.NewGenesisState(
