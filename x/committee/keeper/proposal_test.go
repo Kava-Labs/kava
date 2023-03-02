@@ -562,7 +562,6 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 				)},
 				tc.votes,
 			),
-			bankGenState(tApp.AppCodec(), totalSupply),
 			app.NewFundedGenStateWithCoins(tApp.AppCodec(), genCoins, genAddrs),
 		)
 
@@ -766,7 +765,6 @@ func (suite *keeperTestSuite) TestGetTokenCommitteeProposalResult() {
 					)},
 					tc.votes,
 				),
-				bankGenState(tApp.AppCodec(), totalSupply),
 				app.NewFundedGenStateWithCoins(tApp.AppCodec(), genCoins, genAddrs),
 			)
 
