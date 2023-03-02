@@ -291,7 +291,7 @@ test-basic: test
 
 # run end-to-end tests (local docker container must be built, see docker-build)
 test-e2e:
-	export E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC='season bone lucky dog depth pond royal decide unknown device fruit inch clock trap relief horse morning taxi bird session throw skull avocado private'; \
+	export E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC='tent fitness boat among census primary pipe nose dream glance cave turtle electric fabric jacket shaft easy myself genuine this sibling pulse word unfold'; \
 	go test -failfast -count=1 -v ./tests/e2e/...
 
 test:

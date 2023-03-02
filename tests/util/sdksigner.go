@@ -18,18 +18,18 @@ import (
 	tmmempool "github.com/tendermint/tendermint/mempool"
 )
 
-type MsgRequest struct {
+type KavaMsgRequest struct {
 	Msgs      []sdk.Msg
 	GasLimit  uint64
 	FeeAmount sdk.Coins
 	Memo      string
-	// Arbitrary data to be referenced in the corresponding MsgResponse, unused
-	// in signing. This is mostly useful to match MsgResponses with MsgRequests.
+	// Arbitrary data to be referenced in the corresponding KavaMsgResponse, unused
+	// in signing. This is mostly useful to match KavaMsgResponses with KavaMsgRequests.
 	Data interface{}
 }
 
-type MsgResponse struct {
-	Request MsgRequest
+type KavaMsgResponse struct {
+	Request KavaMsgRequest
 	Tx      authsigning.Tx
 	TxBytes []byte
 	Result  sdk.TxResponse
@@ -46,8 +46,8 @@ const (
 	txResetSequence
 )
 
-// Signer broadcasts msgs to a single kava node
-type Signer struct {
+// KavaSigner broadcasts msgs to a single kava node
+type KavaSigner struct {
 	chainID         string
 	encodingConfig  params.EncodingConfig
 	authClient      authtypes.QueryClient
@@ -56,15 +56,15 @@ type Signer struct {
 	inflightTxLimit uint64
 }
 
-func NewSigner(
+func NewKavaSigner(
 	chainID string,
 	encodingConfig params.EncodingConfig,
 	authClient authtypes.QueryClient,
 	txClient txtypes.ServiceClient,
 	privKey cryptotypes.PrivKey,
-	inflightTxLimit uint64) *Signer {
+	inflightTxLimit uint64) *KavaSigner {
 
-	return &Signer{
+	return &KavaSigner{
 		chainID:         chainID,
 		encodingConfig:  encodingConfig,
 		authClient:      authClient,
@@ -74,7 +74,7 @@ func NewSigner(
 	}
 }
 
-func (s *Signer) pollAccountState() <-chan authtypes.AccountI {
+func (s *KavaSigner) pollAccountState() <-chan authtypes.AccountI {
 	accountState := make(chan authtypes.AccountI)
 
 	go func() {
@@ -100,7 +100,7 @@ func (s *Signer) pollAccountState() <-chan authtypes.AccountI {
 	return accountState
 }
 
-func (s *Signer) Run(requests <-chan MsgRequest) (<-chan MsgResponse, error) {
+func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse, error) {
 	// poll account state in it's own goroutine
 	// and send status updates to the signing goroutine
 	//
@@ -108,15 +108,15 @@ func (s *Signer) Run(requests <-chan MsgRequest) (<-chan MsgResponse, error) {
 	// websocket events with a fallback to polling
 	accountState := s.pollAccountState()
 
-	responses := make(chan MsgResponse)
+	responses := make(chan KavaMsgResponse)
 	go func() {
 		// wait until account is loaded to start signing
 		account := <-accountState
 		// store current request waiting to be broadcasted
-		var currentRequest *MsgRequest
+		var currentRequest *KavaMsgRequest
 		// keep track of all successfully broadcasted txs
 		// index is sequence % inflightTxLimit
-		inflight := make([]*MsgResponse, s.inflightTxLimit)
+		inflight := make([]*KavaMsgResponse, s.inflightTxLimit)
 		// used for confirming sent txs only
 		prevDeliverTxSeq := account.GetSequence()
 		// tx sequence of already signed messages
@@ -243,7 +243,7 @@ func (s *Signer) Run(requests <-chan MsgRequest) (<-chan MsgResponse, error) {
 
 					tx, txBytes, err := Sign(s.encodingConfig.TxConfig, s.privKey, txBuilder, signerData)
 
-					response = &MsgResponse{
+					response = &KavaMsgResponse{
 						Request: *currentRequest,
 						Tx:      tx,
 						TxBytes: txBytes,
@@ -367,7 +367,7 @@ func (s *Signer) Run(requests <-chan MsgRequest) (<-chan MsgResponse, error) {
 }
 
 // Address returns the address of the Signer
-func (s *Signer) Address() sdk.AccAddress {
+func (s *KavaSigner) Address() sdk.AccAddress {
 	return GetAccAddress(s.privKey)
 }
 

@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -25,6 +27,10 @@ const (
 	ChainId           = "kavalocalnet_8888-1"
 	FundedAccountName = "whale"
 	StakingDenom      = "ukava"
+	// use coin type 60 so we are compatible with accounts from `kava add keys --eth <name>`
+	// these accounts use the ethsecp256k1 signing algorithm that allows the signing client
+	// to manage both sdk & evm txs.
+	Bip44CoinType = 60
 )
 
 type E2eTestSuite struct {
@@ -44,6 +50,7 @@ type E2eTestSuite struct {
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
+	fmt.Println("setting up test suite.")
 	app.SetSDKConfig()
 	suite.encodingConfig = app.MakeEncodingConfig()
 
@@ -96,19 +103,35 @@ func (suite *E2eTestSuite) SetupSuite() {
 	// initialize accounts map
 	suite.accounts = make(map[string]*SigningAccount)
 	// setup the signing account for the initially funded account (used to fund all other accounts)
-	suite.AddNewSigningAccount(
+	whale := suite.AddNewSigningAccount(
 		FundedAccountName,
-		hd.CreateHDPath(app.Bip44CoinType, 0, 0),
+		hd.CreateHDPath(Bip44CoinType, 0, 0),
 		ChainId,
 		fundedAccountMnemonic,
 	)
+
+	// check that funded account is actually funded.
+	fmt.Printf("account used for funding (%s) address: %s\n", FundedAccountName, whale.SdkAddress)
+	whaleFunds := suite.QuerySdkForBalances(whale.SdkAddress)
+	if whaleFunds.IsZero() {
+		suite.FailNow("no available funds.", "funded account mnemonic is for account with no funds")
+	}
 }
 
 func (suite *E2eTestSuite) TearDownSuite() {
+	fmt.Println("tearing down test suite.")
 	// close all account request channels
 	for _, a := range suite.accounts {
-		close(a.requests)
+		close(a.sdkReqChan)
 	}
 	// gracefully shutdown docker container(s)
 	suite.runner.Shutdown()
+}
+
+func (suite *E2eTestSuite) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
+	res, err := suite.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
+		Address: addr.String(),
+	})
+	suite.NoError(err)
+	return res.Balances
 }
