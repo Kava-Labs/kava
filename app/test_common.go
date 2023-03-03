@@ -160,7 +160,7 @@ func GenesisStateWithSingleValidator(
 	balances := []banktypes.Balance{
 		{
 			Address: acc.GetAddress().String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
+			Coins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100000000000000))),
 		},
 	}
 
