@@ -289,6 +289,16 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
+			// Disable minting, so that the community pool balance doesn't change
+			// during the test - this is because staking denom is "ukava" and no
+			// longer "stake" which has an initial and changing balance instead
+			// of just 0
+			mk := suite.App.GetMintKeeper()
+			mintParams := mk.GetParams(suite.Ctx)
+			mintParams.InflationMax = sdk.ZeroDec()
+			mintParams.InflationMin = sdk.ZeroDec()
+			mk.SetParams(suite.Ctx, mintParams)
+
 			// setup initial deposit
 			if !tc.initialDeposit.IsZero() {
 				deposit := types.NewCommunityPoolLendDepositProposal("initial deposit", "has coins", tc.initialDeposit)
