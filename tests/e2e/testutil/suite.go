@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
@@ -50,6 +49,7 @@ type E2eTestSuite struct {
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
+	var err error
 	fmt.Println("setting up test suite.")
 	app.SetSDKConfig()
 	suite.encodingConfig = app.MakeEncodingConfig()
@@ -61,19 +61,13 @@ func (suite *E2eTestSuite) SetupSuite() {
 		suite.Fail("no E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC provided")
 	}
 
-	configDir, err := filepath.Abs("./generated/kava-1/config")
-	if err != nil {
-		suite.Fail("failed to get config dir: %s", err)
-	}
 	config := runner.Config{
-		ConfigDir: configDir,
+		ImageTag: "local",
 
 		KavaRpcPort:  "26657",
 		KavaRestPort: "1317",
 		KavaGrpcPort: "9090",
 		KavaEvmPort:  "8545",
-
-		ImageTag: "local",
 	}
 	suite.runner = runner.NewSingleKavaNode(config)
 	suite.runner.StartChains()

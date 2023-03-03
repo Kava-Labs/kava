@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"time"
 
-	"github.com/ory/dockertest/v3"
-	"github.com/ory/dockertest/v3/docker"
+	"github.com/cenkalti/backoff/v4"
 )
 
 type Config struct {
-	ConfigDir string
-	ImageTag  string
+	ImageTag string
 
 	KavaRpcPort  string
 	KavaGrpcPort string
@@ -29,9 +29,6 @@ type NodeRunner interface {
 // SingleKavaNodeRunner manages and runs a single Kava node.
 type SingleKavaNodeRunner struct {
 	config Config
-
-	pool     *dockertest.Pool
-	resource *dockertest.Resource
 }
 
 var _ NodeRunner = &SingleKavaNodeRunner{}
@@ -43,77 +40,49 @@ func NewSingleKavaNode(config Config) *SingleKavaNodeRunner {
 }
 
 func (k *SingleKavaNodeRunner) StartChains() {
+	installKvtoolCmd := exec.Command("./scripts/install-kvtool.sh")
+	installKvtoolCmd.Stdout = os.Stdout
+	installKvtoolCmd.Stderr = os.Stderr
+	if err := installKvtoolCmd.Run(); err != nil {
+		panic(fmt.Sprintf("failed to install kvtool: %s", err.Error()))
+	}
 	log.Println("starting kava node")
-	k.setupDockerPool()
+	startKavaCmd := exec.Command("kvtool", "testnet", "bootstrap")
+	startKavaCmd.Stdout = os.Stdout
+	startKavaCmd.Stderr = os.Stderr
+	if err := startKavaCmd.Run(); err != nil {
+		panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
+	}
+
 	err := k.waitForChainStart()
 	if err != nil {
 		k.Shutdown()
 		panic(err)
 	}
+	log.Println("kava is started!")
 }
 
 func (k *SingleKavaNodeRunner) Shutdown() {
 	log.Println("shutting down kava node")
-	k.pool.Purge(k.resource)
-}
-
-func (k *SingleKavaNodeRunner) setupDockerPool() {
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		log.Fatalf("Failed to make docker pool: %s", err)
+	shutdownKavaCmd := exec.Command("kvtool", "testnet", "down")
+	shutdownKavaCmd.Stdout = os.Stdout
+	shutdownKavaCmd.Stderr = os.Stderr
+	if err := shutdownKavaCmd.Run(); err != nil {
+		panic(fmt.Sprintf("failed to shutdown kvtool: %s", err.Error()))
 	}
-	k.pool = pool
-
-	err = pool.Client.Ping()
-	if err != nil {
-		log.Fatalf("Failed to connect to docker: %s", err)
-	}
-
-	resource, err := k.pool.RunWithOptions(&dockertest.RunOptions{
-		Name:       "kavanode",
-		Repository: "kava/kava",
-		Tag:        k.config.ImageTag,
-		Cmd: []string{
-			"sh",
-			"-c",
-			"/root/.kava/config/init-data-directory.sh && kava start --rpc.laddr=tcp://0.0.0.0:26657",
-		},
-		Mounts: []string{
-			fmt.Sprintf("%s:/root/.kava/config", k.config.ConfigDir),
-		},
-		ExposedPorts: []string{
-			"26657", // port inside container for Kava RPC
-			"1317",  // port inside container for Kava REST API
-			"9090",  // port inside container for Kava GRPC
-			"8545",  // port inside container for EVM JSON-RPC
-		},
-		// expose the internal ports on the configured ports
-		PortBindings: map[docker.Port][]docker.PortBinding{
-			"26657": {{HostIP: "", HostPort: k.config.KavaRpcPort}},
-			"1327":  {{HostIP: "", HostPort: k.config.KavaRestPort}},
-			"9090":  {{HostIP: "", HostPort: k.config.KavaGrpcPort}},
-			"8545":  {{HostIP: "", HostPort: k.config.KavaEvmPort}},
-		},
-	}, func(config *docker.HostConfig) {
-		// set AutoRemove to true so that stopped container goes away by itself
-		config.AutoRemove = true
-		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
-	})
-	if err != nil {
-		log.Fatalf("Failed to start kava node: %s", err)
-	}
-	k.resource = resource
-	log.Println(resource.GetHostPort("26657"))
 }
 
 func (k *SingleKavaNodeRunner) waitForChainStart() error {
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
-	k.pool.MaxWait = 30 * time.Second
-	if err := k.pool.Retry(k.pingKava); err != nil {
+	b := backoff.NewExponentialBackOff()
+	b.MaxInterval = 5 * time.Second
+	b.MaxElapsedTime = 30 * time.Second
+	if err := backoff.Retry(k.pingKava, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
+	b.Reset()
 	// the evm takes a bit longer to start up. wait for it to start as well.
-	if err := k.pool.Retry(k.pingEvm); err != nil {
+	if err := backoff.Retry(k.pingEvm, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
 	return nil
