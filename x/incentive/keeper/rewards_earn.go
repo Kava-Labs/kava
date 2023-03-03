@@ -144,6 +144,9 @@ func (k Keeper) accumulateBkavaEarnRewards(
 		periodRewardsPerSecond,
 	)
 
+	fmt.Printf("stakingRewards: %s\n", stakingRewards)
+	fmt.Printf("perSecondRewards: %s\n", perSecondRewards)
+
 	// **Total rewards** for vault per second, NOT per share
 	rewards := stakingRewards.Add(perSecondRewards...)
 
@@ -179,7 +182,18 @@ func (k Keeper) collectDerivativeStakingRewards(ctx sdk.Context, collateralType 
 		// otherwise there's no validator or delegation yet
 		rewards = nil
 	}
-	return sdk.NewDecCoinsFromCoins(rewards...)
+
+	// Bug with NewDecCoinsFromCoins when calling passing 0 amount Coin, see
+	// https://github.com/cosmos/cosmos-sdk/pull/12903
+	// Fix is in Cosmos-SDK v0.47.0
+	var decCoins sdk.DecCoins
+	for _, coin := range rewards {
+		if coin.IsValid() {
+			decCoins = append(decCoins, sdk.NewDecCoinFromCoin(coin))
+		}
+	}
+
+	return decCoins
 }
 
 func (k Keeper) collectPerSecondRewards(
