@@ -24,7 +24,7 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 )
 
-var BroadcastTimeoutErr = errors.New("timed out waiting for tx to be committed to block")
+var ErrBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
 
 type SigningAccount struct {
 	name     string
@@ -165,7 +165,7 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	for {
 		select {
 		case <-timeout:
-			response.Err = BroadcastTimeoutErr
+			response.Err = ErrBroadcastTimeout
 		default:
 			response.Receipt, response.Err = a.evmSigner.EvmClient.TransactionReceipt(context.Background(), res.TxHash)
 			if errors.Is(response.Err, ethereum.NotFound) {
