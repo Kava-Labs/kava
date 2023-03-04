@@ -1,15 +1,10 @@
 package testutil
 
 import (
-	"context"
 	"fmt"
 	"os"
 
 	"github.com/stretchr/testify/suite"
-
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/e2e/runner"
@@ -28,8 +23,7 @@ const (
 type E2eTestSuite struct {
 	suite.Suite
 
-	runner   runner.NodeRunner
-	accounts map[string]*SigningAccount
+	runner runner.NodeRunner
 
 	Kava *Chain
 	Ibc  *Chain
@@ -58,7 +52,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	chains := suite.runner.StartChains()
 	kavachain := chains.MustGetChain("kava")
-	suite.Kava, err = NewChain(kavachain)
+	suite.Kava, err = NewChain(suite.T(), kavachain, fundedAccountMnemonic)
 	if err != nil {
 		suite.runner.Shutdown()
 		suite.T().Fatalf("failed to create kava chain querier: %s", err)
@@ -66,45 +60,21 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	if includeIbc {
 		ibcchain := chains.MustGetChain("ibc")
-		suite.Ibc, err = NewChain(ibcchain)
+		suite.Ibc, err = NewChain(suite.T(), ibcchain, fundedAccountMnemonic)
 		if err != nil {
 			suite.runner.Shutdown()
 			suite.T().Fatalf("failed to create ibc chain querier: %s", err)
 		}
-	}
-
-	// initialize accounts map
-	suite.accounts = make(map[string]*SigningAccount)
-	// setup the signing account for the initially funded account (used to fund all other accounts)
-	whale := suite.AddNewSigningAccount(
-		FundedAccountName,
-		hd.CreateHDPath(Bip44CoinType, 0, 0),
-		ChainId,
-		fundedAccountMnemonic,
-	)
-
-	// check that funded account is actually funded.
-	fmt.Printf("account used for funding (%s) address: %s\n", FundedAccountName, whale.SdkAddress)
-	whaleFunds := suite.QuerySdkForBalances(whale.SdkAddress)
-	if whaleFunds.IsZero() {
-		suite.FailNow("no available funds.", "funded account mnemonic is for account with no funds")
 	}
 }
 
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
 	// close all account request channels
-	for _, a := range suite.accounts {
-		close(a.sdkReqChan)
+	suite.Kava.Shutdown()
+	if suite.Ibc != nil {
+		suite.Ibc.Shutdown()
 	}
 	// gracefully shutdown docker container(s)
 	suite.runner.Shutdown()
-}
-
-func (suite *E2eTestSuite) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
-	res, err := suite.Kava.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
-		Address: addr.String(),
-	})
-	suite.NoError(err)
-	return res.Balances
 }

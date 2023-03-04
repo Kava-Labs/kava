@@ -54,7 +54,7 @@ func (suite *IntegrationTestSuite) TestChainID() {
 // example test that funds a new account & queries its balance
 func (suite *IntegrationTestSuite) TestFundedAccount() {
 	funds := ukava(1e7)
-	acc := suite.NewFundedAccount("example-acc", sdk.NewCoins(funds))
+	acc := suite.Kava.NewFundedAccount("example-acc", sdk.NewCoins(funds))
 
 	// check that the sdk & evm signers are for the same account
 	suite.Equal(acc.SdkAddress.String(), util.EvmToSdkAddress(acc.EvmAddress).String())
@@ -77,7 +77,7 @@ func (suite *IntegrationTestSuite) TestFundedAccount() {
 func (suite *IntegrationTestSuite) TestTransferOverEVM() {
 	// fund an account that can perform the transfer
 	initialFunds := ukava(1e7) // 10 KAVA
-	acc := suite.NewFundedAccount("evm-test-transfer", sdk.NewCoins(initialFunds))
+	acc := suite.Kava.NewFundedAccount("evm-test-transfer", sdk.NewCoins(initialFunds))
 
 	// get a rando account to send kava to
 	randomAddr := app.RandomAddress()
@@ -104,6 +104,6 @@ func (suite *IntegrationTestSuite) TestTransferOverEVM() {
 		QuoRaw(1e12) // convert akava to ukava
 
 	// expect (9 - gas used) KAVA remaining in account.
-	balance := suite.QuerySdkForBalances(acc.SdkAddress)
+	balance := suite.Kava.QuerySdkForBalances(acc.SdkAddress)
 	suite.Equal(sdk.NewInt(9e6).Sub(ukavaUsedForGas), balance.AmountOf("ukava"))
 }
