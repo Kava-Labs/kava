@@ -19,7 +19,6 @@ import (
 	"github.com/kava-labs/kava/app"
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/tests/e2e/runner"
-	"github.com/kava-labs/kava/tests/util"
 )
 
 const (
@@ -45,6 +44,8 @@ type E2eTestSuite struct {
 	Tm        tmservice.ServiceClient
 	Tx        txtypes.ServiceClient
 
+	Chains runner.Chains
+
 	accounts map[string]*SigningAccount
 }
 
@@ -62,27 +63,23 @@ func (suite *E2eTestSuite) SetupSuite() {
 	}
 
 	config := runner.Config{
-		ImageTag: "local",
-
-		KavaRpcPort:  "26657",
-		KavaRestPort: "1317",
-		KavaGrpcPort: "9090",
-		KavaEvmPort:  "8545",
+		IncludeIBC: true, // TODO: env var that toggles IBC tests.
+		ImageTag:   "local",
 	}
-	suite.runner = runner.NewSingleKavaNode(config)
-	suite.runner.StartChains()
+	suite.runner = runner.NewKavaNode(config)
+	suite.Chains = suite.runner.StartChains()
+
+	kavachain := suite.Chains.MustGetChain("kava")
 
 	// setup an unauthenticated evm client
-	evmRpcUrl := fmt.Sprintf("http://localhost:%s", config.KavaEvmPort)
-	suite.EvmClient, err = ethclient.Dial(evmRpcUrl)
+	suite.EvmClient, err = kavachain.EvmClient()
 	if err != nil {
 		suite.runner.Shutdown()
 		suite.Fail("failed to connect to evm: %s", err)
 	}
 
 	// create grpc connection
-	grpcUrl := fmt.Sprintf("http://localhost:%s", config.KavaGrpcPort)
-	suite.grpcConn, err = util.NewGrpcConnection(grpcUrl)
+	suite.grpcConn, err = kavachain.GrpcConn()
 	if err != nil {
 		suite.runner.Shutdown()
 		suite.Fail("failed to create grpc connection: %s", err)

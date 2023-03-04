@@ -12,47 +12,51 @@ import (
 )
 
 type Config struct {
-	ImageTag string
-
-	KavaRpcPort  string
-	KavaGrpcPort string
-	KavaRestPort string
-	KavaEvmPort  string
+	ImageTag   string
+	IncludeIBC bool
 }
 
 // NodeRunner is responsible for starting and managing docker containers to run a node.
 type NodeRunner interface {
-	StartChains()
+	StartChains() Chains
 	Shutdown()
 }
 
-// SingleKavaNodeRunner manages and runs a single Kava node.
-type SingleKavaNodeRunner struct {
-	config Config
+// KavaNodeRunner manages and runs a single Kava node.
+type KavaNodeRunner struct {
+	config    Config
+	kavaChain *Chain
 }
 
-var _ NodeRunner = &SingleKavaNodeRunner{}
+var _ NodeRunner = &KavaNodeRunner{}
 
-func NewSingleKavaNode(config Config) *SingleKavaNodeRunner {
-	return &SingleKavaNodeRunner{
+func NewKavaNode(config Config) *KavaNodeRunner {
+	return &KavaNodeRunner{
 		config: config,
 	}
 }
 
-func (k *SingleKavaNodeRunner) StartChains() {
+func (k *KavaNodeRunner) StartChains() Chains {
 	installKvtoolCmd := exec.Command("./scripts/install-kvtool.sh")
 	installKvtoolCmd.Stdout = os.Stdout
 	installKvtoolCmd.Stderr = os.Stderr
 	if err := installKvtoolCmd.Run(); err != nil {
 		panic(fmt.Sprintf("failed to install kvtool: %s", err.Error()))
 	}
+
 	log.Println("starting kava node")
-	startKavaCmd := exec.Command("kvtool", "testnet", "bootstrap")
+	kvtoolArgs := []string{"testnet", "bootstrap"}
+	if k.config.IncludeIBC {
+		kvtoolArgs = append(kvtoolArgs, "--ibc")
+	}
+	startKavaCmd := exec.Command("kvtool", kvtoolArgs...)
 	startKavaCmd.Stdout = os.Stdout
 	startKavaCmd.Stderr = os.Stderr
 	if err := startKavaCmd.Run(); err != nil {
 		panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
 	}
+
+	k.kavaChain = &kavaChain
 
 	err := k.waitForChainStart()
 	if err != nil {
@@ -60,9 +64,16 @@ func (k *SingleKavaNodeRunner) StartChains() {
 		panic(err)
 	}
 	log.Println("kava is started!")
+
+	chains := NewChains()
+	chains.Register("kava", k.kavaChain)
+	if k.config.IncludeIBC {
+		chains.Register("ibc", &ibcChain)
+	}
+	return chains
 }
 
-func (k *SingleKavaNodeRunner) Shutdown() {
+func (k *KavaNodeRunner) Shutdown() {
 	log.Println("shutting down kava node")
 	shutdownKavaCmd := exec.Command("kvtool", "testnet", "down")
 	shutdownKavaCmd.Stdout = os.Stdout
@@ -72,7 +83,7 @@ func (k *SingleKavaNodeRunner) Shutdown() {
 	}
 }
 
-func (k *SingleKavaNodeRunner) waitForChainStart() error {
+func (k *KavaNodeRunner) waitForChainStart() error {
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
 	b := backoff.NewExponentialBackOff()
 	b.MaxInterval = 5 * time.Second
@@ -88,9 +99,9 @@ func (k *SingleKavaNodeRunner) waitForChainStart() error {
 	return nil
 }
 
-func (k *SingleKavaNodeRunner) pingKava() error {
+func (k *KavaNodeRunner) pingKava() error {
 	log.Println("pinging kava chain...")
-	url := fmt.Sprintf("http://localhost:%s/status", k.config.KavaRpcPort)
+	url := fmt.Sprintf("http://localhost:%s/status", k.kavaChain.RpcPort)
 	res, err := http.Get(url)
 	if err != nil {
 		return err
@@ -103,9 +114,9 @@ func (k *SingleKavaNodeRunner) pingKava() error {
 	return nil
 }
 
-func (k *SingleKavaNodeRunner) pingEvm() error {
+func (k *KavaNodeRunner) pingEvm() error {
 	log.Println("pinging evm...")
-	url := fmt.Sprintf("http://localhost:%s", k.config.KavaEvmPort)
+	url := fmt.Sprintf("http://localhost:%s", k.kavaChain.EvmPort)
 	res, err := http.Get(url)
 	if err != nil {
 		return err
