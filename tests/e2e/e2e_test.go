@@ -41,12 +41,12 @@ func (suite *IntegrationTestSuite) TestChainID() {
 	suite.NoError(err)
 
 	// EVM query
-	evmNetworkId, err := suite.EvmClient.NetworkID(context.Background())
+	evmNetworkId, err := suite.Kava.EvmClient.NetworkID(context.Background())
 	suite.NoError(err)
 	suite.Equal(expectedEvmNetworkId, evmNetworkId)
 
 	// SDK query
-	nodeInfo, err := suite.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
+	nodeInfo, err := suite.Kava.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
 	suite.NoError(err)
 	suite.Equal(testutil.ChainId, nodeInfo.DefaultNodeInfo.Network)
 }
@@ -61,14 +61,14 @@ func (suite *IntegrationTestSuite) TestFundedAccount() {
 	suite.Equal(acc.EvmAddress.Hex(), util.SdkToEvmAddress(acc.SdkAddress).Hex())
 
 	// check balance via SDK query
-	res, err := suite.Bank.Balance(context.Background(), banktypes.NewQueryBalanceRequest(
+	res, err := suite.Kava.Bank.Balance(context.Background(), banktypes.NewQueryBalanceRequest(
 		acc.SdkAddress, "ukava",
 	))
 	suite.NoError(err)
 	suite.Equal(funds, *res.Balance)
 
 	// check balance via EVM query
-	akavaBal, err := suite.EvmClient.BalanceAt(context.Background(), acc.EvmAddress, nil)
+	akavaBal, err := suite.Kava.EvmClient.BalanceAt(context.Background(), acc.EvmAddress, nil)
 	suite.NoError(err)
 	suite.Equal(funds.Amount.MulRaw(1e12).BigInt(), akavaBal)
 }
@@ -84,7 +84,7 @@ func (suite *IntegrationTestSuite) TestTransferOverEVM() {
 	to := util.SdkToEvmAddress(randomAddr)
 
 	// example fetching of nonce (account sequence)
-	nonce, err := suite.EvmClient.PendingNonceAt(context.Background(), acc.EvmAddress)
+	nonce, err := suite.Kava.EvmClient.PendingNonceAt(context.Background(), acc.EvmAddress)
 	suite.NoError(err)
 	suite.Equal(uint64(0), nonce) // sanity check. the account should have no prior txs
 

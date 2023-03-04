@@ -25,7 +25,7 @@ type NodeRunner interface {
 // KavaNodeRunner manages and runs a single Kava node.
 type KavaNodeRunner struct {
 	config    Config
-	kavaChain *Chain
+	kavaChain *ChainPorts
 }
 
 var _ NodeRunner = &KavaNodeRunner{}

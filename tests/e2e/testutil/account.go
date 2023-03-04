@@ -66,9 +66,9 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 
 	kavaSigner := util.NewKavaSigner(
 		chainId,
-		suite.encodingConfig,
-		suite.Auth,
-		suite.Tx,
+		suite.Kava.encodingConfig,
+		suite.Kava.Auth,
+		suite.Kava.Tx,
 		privKey,
 		100,
 	)
@@ -84,7 +84,7 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 	suite.NoError(err, "failed to generate ECDSA private key from bytes")
 
 	evmSigner, err := util.NewEvmSigner(
-		suite.EvmClient,
+		suite.Kava.EvmClient,
 		ecdsaPrivKey,
 		evmChainId,
 	)

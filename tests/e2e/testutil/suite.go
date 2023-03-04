@@ -6,18 +6,12 @@ import (
 	"os"
 
 	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/kava-labs/kava/app"
-	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/tests/e2e/runner"
 )
 
@@ -34,26 +28,16 @@ const (
 type E2eTestSuite struct {
 	suite.Suite
 
-	runner         runner.NodeRunner
-	grpcConn       *grpc.ClientConn
-	encodingConfig kavaparams.EncodingConfig
-
-	EvmClient *ethclient.Client
-	Auth      authtypes.QueryClient
-	Bank      banktypes.QueryClient
-	Tm        tmservice.ServiceClient
-	Tx        txtypes.ServiceClient
-
-	Chains runner.Chains
-
+	runner   runner.NodeRunner
 	accounts map[string]*SigningAccount
+
+	Kava *Chain
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
 	var err error
 	fmt.Println("setting up test suite.")
 	app.SetSDKConfig()
-	suite.encodingConfig = app.MakeEncodingConfig()
 
 	// this mnemonic is expected to be a funded account that can seed the funds for all
 	// new accounts created during tests. it will be available under Accounts["whale"]
@@ -67,29 +51,14 @@ func (suite *E2eTestSuite) SetupSuite() {
 		ImageTag:   "local",
 	}
 	suite.runner = runner.NewKavaNode(config)
-	suite.Chains = suite.runner.StartChains()
 
-	kavachain := suite.Chains.MustGetChain("kava")
-
-	// setup an unauthenticated evm client
-	suite.EvmClient, err = kavachain.EvmClient()
+	chains := suite.runner.StartChains()
+	kavachain := chains.MustGetChain("kava")
+	suite.Kava, err = NewChain(kavachain)
 	if err != nil {
 		suite.runner.Shutdown()
-		suite.Fail("failed to connect to evm: %s", err)
+		suite.Fail("failed to create kava chain queriers")
 	}
-
-	// create grpc connection
-	suite.grpcConn, err = kavachain.GrpcConn()
-	if err != nil {
-		suite.runner.Shutdown()
-		suite.Fail("failed to create grpc connection: %s", err)
-	}
-
-	// setup unauthenticated query clients for kava / cosmos
-	suite.Auth = authtypes.NewQueryClient(suite.grpcConn)
-	suite.Bank = banktypes.NewQueryClient(suite.grpcConn)
-	suite.Tm = tmservice.NewServiceClient(suite.grpcConn)
-	suite.Tx = txtypes.NewServiceClient(suite.grpcConn)
 
 	// initialize accounts map
 	suite.accounts = make(map[string]*SigningAccount)
@@ -120,7 +89,7 @@ func (suite *E2eTestSuite) TearDownSuite() {
 }
 
 func (suite *E2eTestSuite) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
-	res, err := suite.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
+	res, err := suite.Kava.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
 		Address: addr.String(),
 	})
 	suite.NoError(err)
