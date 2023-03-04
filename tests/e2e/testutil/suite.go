@@ -32,9 +32,13 @@ type E2eTestSuite struct {
 	accounts map[string]*SigningAccount
 
 	Kava *Chain
+	Ibc  *Chain
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
+	// TODO: env var that toggles IBC tests.
+	includeIbc := true
+
 	var err error
 	fmt.Println("setting up test suite.")
 	app.SetSDKConfig()
@@ -47,7 +51,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 	}
 
 	config := runner.Config{
-		IncludeIBC: true, // TODO: env var that toggles IBC tests.
+		IncludeIBC: includeIbc,
 		ImageTag:   "local",
 	}
 	suite.runner = runner.NewKavaNode(config)
@@ -57,7 +61,16 @@ func (suite *E2eTestSuite) SetupSuite() {
 	suite.Kava, err = NewChain(kavachain)
 	if err != nil {
 		suite.runner.Shutdown()
-		suite.Fail("failed to create kava chain queriers")
+		suite.T().Fatalf("failed to create kava chain querier: %s", err)
+	}
+
+	if includeIbc {
+		ibcchain := chains.MustGetChain("ibc")
+		suite.Ibc, err = NewChain(ibcchain)
+		if err != nil {
+			suite.runner.Shutdown()
+			suite.T().Fatalf("failed to create ibc chain querier: %s", err)
+		}
 	}
 
 	// initialize accounts map
