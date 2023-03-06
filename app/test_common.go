@@ -78,7 +78,7 @@ var (
 type TestApp struct {
 	App
 
-	genesisAddrs []sdk.AccAddress
+	GenesisAddrs []sdk.AccAddress
 }
 
 // NewTestApp creates a new TestApp
@@ -159,7 +159,7 @@ func GenesisStateWithSingleValidator(
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
-	app.genesisAddrs = append(app.genesisAddrs, acc.GetAddress())
+	app.GenesisAddrs = append(app.GenesisAddrs, acc.GetAddress())
 
 	balances := []banktypes.Balance{
 		{
@@ -396,8 +396,8 @@ func (tApp TestApp) ResetBankState(t *testing.T, ctx sdk.Context) {
 	notBondedAcc := ak.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName)
 
 	// Burn genesis account balance - use staking module to burn
-	genAccBal := bk.GetAllBalances(ctx, tApp.genesisAddrs[0])
-	err := bk.SendCoinsFromAccountToModule(ctx, tApp.genesisAddrs[0], stakingtypes.NotBondedPoolName, genAccBal)
+	genAccBal := bk.GetAllBalances(ctx, tApp.GenesisAddrs[0])
+	err := bk.SendCoinsFromAccountToModule(ctx, tApp.GenesisAddrs[0], stakingtypes.NotBondedPoolName, genAccBal)
 	require.NoError(t, err)
 
 	// Burn coins from the module account
