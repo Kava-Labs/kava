@@ -118,7 +118,7 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 
 // SignAndBroadcastKavaTx sends a request to the signer and awaits its response.
 func (a *SigningAccount) SignAndBroadcastKavaTx(req util.KavaMsgRequest) util.KavaMsgResponse {
-	a.l.Printf("broadcasting sdk tx %+v\n", req.Data)
+	a.l.Printf("broadcasting sdk tx. has data = %+v\n", req.Data)
 	// send the request to signer
 	a.sdkReqChan <- req
 
@@ -195,6 +195,11 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 		mnemonic,
 	)
 
+	// don't attempt to fund when no funds are desired
+	if funds.IsZero() {
+		return acc
+	}
+
 	whale := chain.GetAccount(FundedAccountName)
 	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
 	res := whale.SignAndBroadcastKavaTx(
@@ -203,7 +208,7 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 				banktypes.NewMsgSend(whale.SdkAddress, acc.SdkAddress, funds),
 			},
 			GasLimit:  2e5,
-			FeeAmount: sdk.NewCoins(sdk.NewCoin(StakingDenom, sdk.NewInt(75000))),
+			FeeAmount: sdk.NewCoins(sdk.NewCoin(chain.details.StakingDenom, sdk.NewInt(75000))),
 			Data:      fmt.Sprintf("initial funding of account %s", name),
 		},
 	)

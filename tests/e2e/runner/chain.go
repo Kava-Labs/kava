@@ -14,33 +14,35 @@ var (
 	ErrChainAlreadyExists = errors.New("chain already exists")
 )
 
-// ChainPorts wraps information about the ports exposed to the host that endpoints could be access on.
-type ChainPorts struct {
+// ChainDetails wraps information about the ports exposed to the host that endpoints could be access on.
+type ChainDetails struct {
 	RpcPort  string
 	GrpcPort string
 	RestPort string
 	EvmPort  string
+
+	StakingDenom string
 }
 
-func (c ChainPorts) EvmClient() (*ethclient.Client, error) {
+func (c ChainDetails) EvmClient() (*ethclient.Client, error) {
 	evmRpcUrl := fmt.Sprintf("http://localhost:%s", c.EvmPort)
 	return ethclient.Dial(evmRpcUrl)
 }
 
-func (c ChainPorts) GrpcConn() (*grpc.ClientConn, error) {
+func (c ChainDetails) GrpcConn() (*grpc.ClientConn, error) {
 	grpcUrl := fmt.Sprintf("http://localhost:%s", c.GrpcPort)
 	return util.NewGrpcConnection(grpcUrl)
 }
 
 type Chains struct {
-	byName map[string]*ChainPorts
+	byName map[string]*ChainDetails
 }
 
 func NewChains() Chains {
-	return Chains{byName: make(map[string]*ChainPorts, 0)}
+	return Chains{byName: make(map[string]*ChainDetails, 0)}
 }
 
-func (c Chains) MustGetChain(name string) *ChainPorts {
+func (c Chains) MustGetChain(name string) *ChainDetails {
 	chain, found := c.byName[name]
 	if !found {
 		panic(fmt.Sprintf("no chain with name %s found", name))
@@ -48,7 +50,7 @@ func (c Chains) MustGetChain(name string) *ChainPorts {
 	return chain
 }
 
-func (c *Chains) Register(name string, chain *ChainPorts) error {
+func (c *Chains) Register(name string, chain *ChainDetails) error {
 	if _, found := c.byName[name]; found {
 		return ErrChainAlreadyExists
 	}
@@ -60,16 +62,20 @@ func (c *Chains) Register(name string, chain *ChainPorts) error {
 // some day they may be configurable, at which point `runner` can determine the ports
 // and generate these details dynamically
 var (
-	kavaChain = ChainPorts{
+	kavaChain = ChainDetails{
 		RpcPort:  "26657",
 		RestPort: "1317",
 		GrpcPort: "9090",
 		EvmPort:  "8545",
+
+		StakingDenom: "ukava",
 	}
-	ibcChain = ChainPorts{
+	ibcChain = ChainDetails{
 		RpcPort:  "26658",
 		RestPort: "1318",
 		GrpcPort: "9092",
 		EvmPort:  "8547",
+
+		StakingDenom: "uatom",
 	}
 )

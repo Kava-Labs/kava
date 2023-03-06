@@ -26,6 +26,8 @@ type Chain struct {
 	accounts       map[string]*SigningAccount
 	t              *testing.T
 
+	details *runner.ChainDetails
+
 	EvmClient *ethclient.Client
 	Auth      authtypes.QueryClient
 	Bank      banktypes.QueryClient
@@ -36,17 +38,18 @@ type Chain struct {
 // NewChain creates the query clients & signing account management for a chain run on a set of ports.
 // A signing client for the fundedAccountMnemonic is initialized. This account is referred to in the
 // code as "whale" and it is used to supply funds to all new accounts.
-func NewChain(t *testing.T, ports *runner.ChainPorts, fundedAccountMnemonic string) (*Chain, error) {
+func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic string) (*Chain, error) {
 	chain := &Chain{t: t}
 	chain.encodingConfig = app.MakeEncodingConfig()
+	chain.details = details
 
-	grpcUrl := fmt.Sprintf("http://localhost:%s", ports.GrpcPort)
+	grpcUrl := fmt.Sprintf("http://localhost:%s", details.GrpcPort)
 	grpcConn, err := util.NewGrpcConnection(grpcUrl)
 	if err != nil {
 		return chain, err
 	}
 
-	evmRpcUrl := fmt.Sprintf("http://localhost:%s", ports.EvmPort)
+	evmRpcUrl := fmt.Sprintf("http://localhost:%s", details.EvmPort)
 	chain.EvmClient, err = ethclient.Dial(evmRpcUrl)
 	if err != nil {
 		return chain, err

@@ -17,6 +17,9 @@ const (
 	// these accounts use the ethsecp256k1 signing algorithm that allows the signing client
 	// to manage both sdk & evm txs.
 	Bip44CoinType = 60
+
+	IbcPort    = "transfer"
+	IbcChannel = "channel-0"
 )
 
 type E2eTestSuite struct {
