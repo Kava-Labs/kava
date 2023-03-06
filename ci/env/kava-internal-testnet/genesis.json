@@ -267,11 +267,11 @@
               "amount": "1000000000000000"
             },
             {
-              "denom": "erc20/axelar/wbtc",
+              "denom": "erc20/axelar/btc",
               "amount": "1000000000"
             },
             {
-              "denom": "erc20/axelar/weth",
+              "denom": "erc20/axelar/eth",
               "amount": "1000000000000000000"
             },
             {
@@ -1312,11 +1312,11 @@
           },
           {
             "kava_erc20_address": "0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0b",
-            "denom": "erc20/axelar/wbtc"
+            "denom": "erc20/axelar/btc"
           },
           {
             "kava_erc20_address": "0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D",
-            "denom": "erc20/axelar/weth"
+            "denom": "erc20/axelar/eth"
           }
         ]
       }
@@ -1502,7 +1502,7 @@
             "keeper_reward_percentage": "0.020000000000000000"
           },
           {
-            "denom": "erc20/axelar/wbtc",
+            "denom": "erc20/axelar/btc",
             "borrow_limit": {
               "has_max_limit": true,
               "maximum_limit": "1000000000.000000000000000000",
@@ -1520,7 +1520,7 @@
             "keeper_reward_percentage": "0.020000000000000000"
           },
           {
-            "denom": "erc20/axelar/weth",
+            "denom": "erc20/axelar/eth",
             "borrow_limit": {
               "has_max_limit": true,
               "maximum_limit": "1000000000.000000000000000000",
