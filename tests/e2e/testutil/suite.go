@@ -2,7 +2,6 @@ package testutil
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/stretchr/testify/suite"
 
@@ -23,6 +22,7 @@ const (
 type E2eTestSuite struct {
 	suite.Suite
 
+	config SuiteConfig
 	runner runner.NodeRunner
 
 	Kava *Chain
@@ -30,37 +30,30 @@ type E2eTestSuite struct {
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
-	// TODO: env var that toggles IBC tests.
-	includeIbc := true
-
 	var err error
 	fmt.Println("setting up test suite.")
 	app.SetSDKConfig()
 
-	// this mnemonic is expected to be a funded account that can seed the funds for all
-	// new accounts created during tests. it will be available under Accounts["whale"]
-	fundedAccountMnemonic := os.Getenv("E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC")
-	if fundedAccountMnemonic == "" {
-		suite.Fail("no E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC provided")
-	}
+	suiteConfig := ParseSuiteConfig()
+	suite.config = suiteConfig
 
-	config := runner.Config{
-		IncludeIBC: includeIbc,
+	runnerConfig := runner.Config{
+		IncludeIBC: suiteConfig.IncludeIbcTests,
 		ImageTag:   "local",
 	}
-	suite.runner = runner.NewKavaNode(config)
+	suite.runner = runner.NewKavaNode(runnerConfig)
 
 	chains := suite.runner.StartChains()
 	kavachain := chains.MustGetChain("kava")
-	suite.Kava, err = NewChain(suite.T(), kavachain, fundedAccountMnemonic)
+	suite.Kava, err = NewChain(suite.T(), kavachain, suiteConfig.FundedAccountMnemonic)
 	if err != nil {
 		suite.runner.Shutdown()
 		suite.T().Fatalf("failed to create kava chain querier: %s", err)
 	}
 
-	if includeIbc {
+	if suiteConfig.IncludeIbcTests {
 		ibcchain := chains.MustGetChain("ibc")
-		suite.Ibc, err = NewChain(suite.T(), ibcchain, fundedAccountMnemonic)
+		suite.Ibc, err = NewChain(suite.T(), ibcchain, suiteConfig.FundedAccountMnemonic)
 		if err != nil {
 			suite.runner.Shutdown()
 			suite.T().Fatalf("failed to create ibc chain querier: %s", err)
@@ -77,4 +70,10 @@ func (suite *E2eTestSuite) TearDownSuite() {
 	}
 	// gracefully shutdown docker container(s)
 	suite.runner.Shutdown()
+}
+
+func (suite *E2eTestSuite) SkipIfIbcDisabled() {
+	if !suite.config.IncludeIbcTests {
+		suite.T().SkipNow()
+	}
 }
