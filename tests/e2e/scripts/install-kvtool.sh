@@ -6,5 +6,5 @@ if hash kvtool 2>/dev/null; then
 fi
 
 echo "[install-kvtool.sh] installing kvtool."
-cd ../kvtool || exit 1
+cd kvtool || exit 1
 make install
