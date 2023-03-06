@@ -142,6 +142,9 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
+			// Delete genesis validator to not influence rewards
+			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
+
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
 
 			// Set up chain context at future time
@@ -363,6 +366,9 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 			suite.Require().NoError(err)
 			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
+
+			// Delete genesis validator to not influence rewards
+			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
 
@@ -749,6 +755,9 @@ func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
 	suite.Require().NoError(err)
 	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 5_000_000))
 	suite.Require().NoError(err)
+
+	// Delete genesis validator to not influence rewards
+	suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
 	// Delegatefrom the test user. This will initialize their incentive claim.
 	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], c(bondDenom, 1_000_000))

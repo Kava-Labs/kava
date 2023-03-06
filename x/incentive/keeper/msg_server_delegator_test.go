@@ -26,6 +26,10 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaimMultiDenom() {
 	suite.NoError(
 		suite.DeliverMsgCreateValidator(sdk.ValAddress(userAddr), c("ukava", 1e9)),
 	)
+
+	// Delete genesis validator to not influence rewards
+	suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
+
 	// new block required to bond validator
 	suite.NextBlockAfter(7 * time.Second)
 	// Now the delegation is bonded, accumulate some delegator rewards
@@ -73,6 +77,10 @@ func (suite *HandlerTestSuite) TestPayoutDelegatorClaimSingleDenom() {
 	suite.NoError(
 		suite.DeliverMsgCreateValidator(sdk.ValAddress(userAddr), c("ukava", 1e9)),
 	)
+
+	// Delete genesis validator to not influence rewards
+	suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
+
 	// new block required to bond validator
 	suite.NextBlockAfter(7 * time.Second)
 	// Now the delegation is bonded, accumulate some delegator rewards

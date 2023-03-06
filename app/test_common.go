@@ -203,13 +203,15 @@ func genesisStateWithValSet(
 		}
 
 		validator := stakingtypes.Validator{
-			OperatorAddress:   sdk.ValAddress(val.Address).String(),
-			ConsensusPubkey:   pkAny,
-			Jailed:            false,
-			Status:            stakingtypes.Bonded,
-			Tokens:            bondAmt,
-			DelegatorShares:   sdk.OneDec(),
-			Description:       stakingtypes.Description{},
+			OperatorAddress: sdk.ValAddress(val.Address).String(),
+			ConsensusPubkey: pkAny,
+			Jailed:          false,
+			Status:          stakingtypes.Bonded,
+			Tokens:          bondAmt,
+			DelegatorShares: sdk.OneDec(),
+			Description: stakingtypes.Description{
+				Moniker: "genesis validator",
+			},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
 			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
@@ -354,6 +356,33 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	})
 
 	return tApp
+}
+
+// DeleteGenesisValidator deletes the genesis validator from the staking module.
+// This is useful for testing with validators, but only want to consider the
+// validators added in the test. InitGenesis requires at least 1 validator, so
+// it must be deleted additional validators are created.
+func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
+	sk := tApp.GetStakingKeeper()
+	vals := sk.GetAllValidators(ctx)
+
+	var genVal stakingtypes.Validator
+	found := false
+	for _, val := range vals {
+		if val.GetMoniker() == "genesis validator" {
+			genVal = val
+			found = true
+			break
+		}
+	}
+
+	require.True(t, found, "genesis validator not found")
+
+	delegations := sk.GetValidatorDelegations(ctx, genVal.GetOperator())
+	for _, delegation := range delegations {
+		_, err := sk.Undelegate(ctx, delegation.GetDelegatorAddr(), genVal.GetOperator(), delegation.Shares)
+		require.NoError(t, err)
+	}
 }
 
 // CheckBalance requires the account address has the expected amount of coins.
