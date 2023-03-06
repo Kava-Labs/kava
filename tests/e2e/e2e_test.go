@@ -3,13 +3,17 @@ package e2e_test
 import (
 	"context"
 	"math/big"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	ibctypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	emtypes "github.com/tharsis/ethermint/types"
 
@@ -106,4 +110,64 @@ func (suite *IntegrationTestSuite) TestTransferOverEVM() {
 	// expect (9 - gas used) KAVA remaining in account.
 	balance := suite.Kava.QuerySdkForBalances(acc.SdkAddress)
 	suite.Equal(sdk.NewInt(9e6).Sub(ukavaUsedForGas), balance.AmountOf("ukava"))
+}
+
+// TestIbcTransfer transfers KAVA from the primary kava chain (suite.Kava) to the ibc chain (suite.Ibc).
+// Note that because the IBC chain also runs kava's binary, this tests both the sending & receiving.
+func (suite *IntegrationTestSuite) TestIbcTransfer() {
+	suite.SkipIfIbcDisabled()
+
+	// ARRANGE
+	// setup kava account
+	funds := ukava(1e7) // 10 KAVA
+	kavaAcc := suite.Kava.NewFundedAccount("ibc-transfer-kava-side", sdk.NewCoins(funds))
+	// setup ibc account
+	ibcAcc := suite.Ibc.NewFundedAccount("ibc-transfer-ibc-side", sdk.NewCoins())
+
+	gasLimit := int64(2e5)
+	fee := ukava(7500)
+
+	fundsToSend := ukava(5e6) // 5 KAVA
+	transferMsg := ibctypes.NewMsgTransfer(
+		testutil.IbcPort,
+		testutil.IbcChannel,
+		fundsToSend,
+		kavaAcc.SdkAddress.String(),
+		ibcAcc.SdkAddress.String(),
+		ibcclienttypes.NewHeight(0, 0), // timeout height disabled when 0
+		uint64(time.Now().Add(30*time.Second).UnixNano()),
+	)
+	// initial - sent - fee
+	expectedSrcBalance := funds.Sub(fundsToSend).Sub(fee)
+
+	// ACT
+	// IBC transfer from kava -> ibc
+	transferTo := util.KavaMsgRequest{
+		Msgs:      []sdk.Msg{transferMsg},
+		GasLimit:  uint64(gasLimit),
+		FeeAmount: sdk.NewCoins(fee),
+		Memo:      "sent from Kava!",
+	}
+	res := kavaAcc.SignAndBroadcastKavaTx(transferTo)
+
+	// ASSERT
+	suite.NoError(res.Err)
+
+	// the balance should be deducted from kava account
+	suite.Eventually(func() bool {
+		balance := suite.Kava.QuerySdkForBalances(kavaAcc.SdkAddress)
+		return balance.AmountOf("ukava").Equal(expectedSrcBalance.Amount)
+	}, 10*time.Second, 1*time.Second)
+
+	// expect the balance to be transferred to the ibc chain!
+	balance := suite.Ibc.QuerySdkForBalances(ibcAcc.SdkAddress)
+	found := false
+	for _, c := range balance {
+		// find the ibc denom coin
+		if strings.HasPrefix(c.Denom, "ibc/") {
+			suite.Equal(fundsToSend.Amount, c.Amount)
+			found = true
+		}
+	}
+	suite.True(found, "no ibc/* denom found in receiving chain account balance")
 }
