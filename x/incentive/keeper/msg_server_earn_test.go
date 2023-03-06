@@ -214,10 +214,24 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		AmountOf("ukava").
 		Mul(sdk.NewDec(99)).
 		Quo(sdk.NewDec(100)).
-		TruncateInt()
-	suite.BalanceEquals(userAddr2, preClaimBal2.Add(sdk.NewCoin("ukava", stakingRewards2)))
+		RoundInt()
 
-	suite.Equal(delegationRewards.AmountOf("ukava").TruncateInt(), stakingRewards1.Add(stakingRewards2))
+	suite.BalanceInEpsilon(
+		userAddr2,
+		preClaimBal2.Add(sdk.NewCoin("ukava", stakingRewards2)),
+		// Highest precision to allow 1ukava margin of error
+		// 820778117815 vs 820778117814
+		1e-11,
+	)
+
+	suite.InEpsilonf(
+		delegationRewards.AmountOf("ukava").RoundInt().Int64(),
+		stakingRewards1.Add(stakingRewards2).Int64(),
+		1e-11,
+		"expected rewards should add up to staking rewards within a margin of error (%v vs %v)",
+		delegationRewards.AmountOf("ukava").RoundInt().Int64(),
+		stakingRewards1.Add(stakingRewards2).Int64(),
+	)
 
 	// Check that claimed coins have been removed from a claim's reward
 	suite.EarnRewardEquals(userAddr1, cs())

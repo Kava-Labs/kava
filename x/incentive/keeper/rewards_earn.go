@@ -144,9 +144,6 @@ func (k Keeper) accumulateBkavaEarnRewards(
 		periodRewardsPerSecond,
 	)
 
-	fmt.Printf("stakingRewards: %s\n", stakingRewards)
-	fmt.Printf("perSecondRewards: %s\n", perSecondRewards)
-
 	// **Total rewards** for vault per second, NOT per share
 	rewards := stakingRewards.Add(perSecondRewards...)
 
