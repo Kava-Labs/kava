@@ -45,7 +45,7 @@ type SigningAccount struct {
 	l *log.Logger
 }
 
-// GetAccount returns the account with the given name or fails
+// GetAccount returns the account with the given name or fails.
 func (chain *Chain) GetAccount(name string) *SigningAccount {
 	acc, found := chain.accounts[name]
 	if !found {
@@ -54,7 +54,7 @@ func (chain *Chain) GetAccount(name string) *SigningAccount {
 	return acc
 }
 
-// AddNewSigningAccount sets up a new account with a signer.
+// AddNewSigningAccount sets up a new account with a signer for SDK and EVM transactions.
 func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, chainId, mnemonic string) *SigningAccount {
 	if _, found := chain.accounts[name]; found {
 		chain.t.Fatalf("account with name %s already exists", name)
@@ -181,6 +181,7 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	return response
 }
 
+// NewFundedAccount creates a SigningAccount for a random account & funds the account from the whale.
 func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccount {
 	entropy, err := bip39.NewEntropy(128)
 	require.NoErrorf(chain.t, err, "failed to generate entropy for account %s: %s", name, err)

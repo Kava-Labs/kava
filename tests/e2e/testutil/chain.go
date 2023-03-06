@@ -33,6 +33,9 @@ type Chain struct {
 	Tx        txtypes.ServiceClient
 }
 
+// NewChain creates the query clients & signing account management for a chain run on a set of ports.
+// A signing client for the fundedAccountMnemonic is initialized. This account is referred to in the
+// code as "whale" and it is used to supply funds to all new accounts.
 func NewChain(t *testing.T, ports *runner.ChainPorts, fundedAccountMnemonic string) (*Chain, error) {
 	chain := &Chain{t: t}
 	chain.encodingConfig = app.MakeEncodingConfig()
@@ -74,6 +77,7 @@ func NewChain(t *testing.T, ports *runner.ChainPorts, fundedAccountMnemonic stri
 	return chain, nil
 }
 
+// Shutdown performs closes all the account request channels for this chain.
 func (chain *Chain) Shutdown() {
 	// close all account request channels
 	for _, a := range chain.accounts {
@@ -81,6 +85,7 @@ func (chain *Chain) Shutdown() {
 	}
 }
 
+// QuerySdkForBalances gets the balance of a particular address on this Chain.
 func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 	res, err := chain.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
 		Address: addr.String(),
