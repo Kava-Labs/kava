@@ -191,6 +191,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		proposal := suite.createProposal()
 
 		// no stake
+		suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
