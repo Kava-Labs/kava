@@ -18,6 +18,8 @@ type SuiteConfig struct {
 	FundedAccountMnemonic string
 	// Whether or not to start an IBC chain. Use `suite.SkipIfIbcDisabled()` in IBC tests in IBC tests.
 	IncludeIbcTests bool
+	// When true, the chains will remain running after tests complete (pass or fail)
+	SkipShutdown bool
 }
 
 func ParseSuiteConfig() SuiteConfig {
@@ -27,9 +29,15 @@ func ParseSuiteConfig() SuiteConfig {
 	if fundedAccountMnemonic == "" {
 		panic("no E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC provided")
 	}
+	var skipShutdown bool
+	skipShutdownEnv := os.Getenv("E2E_SKIP_SHUTDOWN")
+	if skipShutdownEnv != "" {
+		skipShutdown = mustParseBool("E2E_SKIP_SHUTDOWN")
+	}
 	return SuiteConfig{
 		FundedAccountMnemonic: fundedAccountMnemonic,
 		IncludeIbcTests:       mustParseBool("E2E_INCLUDE_IBC_TESTS"),
+		SkipShutdown:          skipShutdown,
 	}
 }
 

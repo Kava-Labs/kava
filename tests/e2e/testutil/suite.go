@@ -72,7 +72,9 @@ func (suite *E2eTestSuite) TearDownSuite() {
 		suite.Ibc.Shutdown()
 	}
 	// gracefully shutdown docker container(s)
-	suite.runner.Shutdown()
+	if !suite.config.SkipShutdown {
+		suite.runner.Shutdown()
+	}
 }
 
 func (suite *E2eTestSuite) SkipIfIbcDisabled() {
