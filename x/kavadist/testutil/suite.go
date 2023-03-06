@@ -55,8 +55,7 @@ func (suite *Suite) SetupTest() {
 	params := types.NewParams(true, testPeriods, types.DefaultInfraParams)
 	moduleGs := types.ModuleCdc.MustMarshalJSON(types.NewGenesisState(params, types.DefaultPreviousBlockTime))
 	gs := app.GenesisState{types.ModuleName: moduleGs}
-	tApp.InitializeFromGenesisStates(authGS, gs)
-	suite.App = tApp
+	suite.App = tApp.InitializeFromGenesisStates(authGS, gs)
 	suite.Ctx = ctx
 	suite.Addrs = addrs
 	suite.Keeper = tApp.GetKavadistKeeper()

@@ -77,6 +77,8 @@ var (
 //	Creating the genesis states can be combersome, but helper methods can make it easier such as NewAuthGenStateFromAccounts below.
 type TestApp struct {
 	App
+
+	genesisAddrs []sdk.AccAddress
 }
 
 // NewTestApp creates a new TestApp
@@ -141,7 +143,7 @@ func (app *App) AppCodec() codec.Codec {
 // SetupWithGenesisValSet initializes GenesisState with a single validator and genesis accounts
 // that also act as delegators.
 func GenesisStateWithSingleValidator(
-	app TestApp,
+	app *TestApp,
 	genesisState GenesisState,
 ) GenesisState {
 	privVal := mock.NewPV()
@@ -157,6 +159,8 @@ func GenesisStateWithSingleValidator(
 	// generate genesis account
 	senderPrivKey := secp256k1.GenPrivKey()
 	acc := authtypes.NewBaseAccount(senderPrivKey.PubKey().Address().Bytes(), senderPrivKey.PubKey(), 0, 0)
+	app.genesisAddrs = append(app.genesisAddrs, acc.GetAddress())
+
 	balances := []banktypes.Balance{
 		{
 			Address: acc.GetAddress().String(),
@@ -170,7 +174,7 @@ func GenesisStateWithSingleValidator(
 // genesisStateWithValSet applies the provided validator set and genesis accounts
 // to the provided genesis state, appending to any existing state without replacement.
 func genesisStateWithValSet(
-	app TestApp,
+	app *TestApp,
 	genesisState GenesisState,
 	valSet *tmtypes.ValidatorSet,
 	genAccs []authtypes.GenesisAccount,
@@ -323,7 +327,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 
 	// Add default genesis states for at least 1 validator
 	genesisState = GenesisStateWithSingleValidator(
-		tApp,
+		&tApp,
 		genesisState,
 	)
 
@@ -383,6 +387,26 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 		_, err := sk.Undelegate(ctx, delegation.GetDelegatorAddr(), genVal.GetOperator(), delegation.Shares)
 		require.NoError(t, err)
 	}
+}
+
+func (tApp TestApp) ResetBankState(t *testing.T, ctx sdk.Context) {
+	ak := tApp.GetAccountKeeper()
+	bk := tApp.GetBankKeeper()
+
+	notBondedAcc := ak.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName)
+
+	// Burn genesis account balance - use staking module to burn
+	genAccBal := bk.GetAllBalances(ctx, tApp.genesisAddrs[0])
+	err := bk.SendCoinsFromAccountToModule(ctx, tApp.genesisAddrs[0], stakingtypes.NotBondedPoolName, genAccBal)
+	require.NoError(t, err)
+
+	// Burn coins from the module account
+	err = bk.BurnCoins(
+		ctx,
+		stakingtypes.NotBondedPoolName,
+		bk.GetAllBalances(ctx, notBondedAcc.GetAddress()),
+	)
+	require.NoError(t, err)
 }
 
 // CheckBalance requires the account address has the expected amount of coins.
