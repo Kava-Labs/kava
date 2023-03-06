@@ -244,6 +244,9 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 			suite.Require().NoError(err)
 			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
 
+			// Delete genesis validator to not influence rewards
+			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
+
 			// Delegator delegates
 			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
