@@ -160,14 +160,16 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 	}, 10*time.Second, 1*time.Second)
 
 	// expect the balance to be transferred to the ibc chain!
-	balance := suite.Ibc.QuerySdkForBalances(ibcAcc.SdkAddress)
-	found := false
-	for _, c := range balance {
-		// find the ibc denom coin
-		if strings.HasPrefix(c.Denom, "ibc/") {
-			suite.Equal(fundsToSend.Amount, c.Amount)
-			found = true
+	suite.Eventually(func() bool {
+		balance := suite.Ibc.QuerySdkForBalances(ibcAcc.SdkAddress)
+		found := false
+		for _, c := range balance {
+			// find the ibc denom coin
+			if strings.HasPrefix(c.Denom, "ibc/") {
+				suite.Equal(fundsToSend.Amount, c.Amount)
+				found = true
+			}
 		}
-	}
-	suite.True(found, "no ibc/* denom found in receiving chain account balance")
+		return found
+	}, 10*time.Second, 1*time.Second)
 }
