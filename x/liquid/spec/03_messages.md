@@ -7,7 +7,7 @@ order: 3
 `bkava` is minted using `MsgMintDerivative`.
 
 
-```
+```go
 // MsgMintDerivative defines the Msg/MintDerivative request type.
 type MsgMintDerivative struct {
 	// sender is the owner of the delegation to be converted
@@ -27,12 +27,12 @@ type MsgMintDerivative struct {
 
 ### Example:
 
-```
+```jsonc
 {
   // user who owns the delegation
-  "sender": "kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t"
+  "sender": "kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t",
   // validator the user has delegated to
-  "validator": "kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42"
+  "validator": "kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42",
   // amount of staked ukava to be converted into bkava
   "amount": {
     "amount": "1000000000",
@@ -43,7 +43,7 @@ type MsgMintDerivative struct {
 
 `bkava` can be burned using `MsgBurnDerivative`.
 
-```
+```go
 // MsgBurnDerivative defines the Msg/BurnDerivative request type.
 type MsgBurnDerivative struct {
 	// sender is the owner of the derivatives to be converted
@@ -62,19 +62,18 @@ type MsgBurnDerivative struct {
 * a delegation equal to number of bkava is transferred to user
 
 
-### Example 
+### Example
 
-```
+```jsonc
 {
   // user who owns the bkava
-  "sender": "kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t"
+  "sender": "kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t",
   // the amount of bkava the user wants to convert back into normal staked kava
   "amount": {
     "amount": "1234000000",
     "denom": "bkava-kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42"
-  }
+  },
   // the validator behind the bkava, this address must match the one embedded in the bkava denom above
   "validator": "kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42"
 }
 ```
-
