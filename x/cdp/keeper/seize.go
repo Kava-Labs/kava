@@ -124,7 +124,7 @@ func (k Keeper) ValidateLiquidation(ctx sdk.Context, collateral sdk.Coin, collat
 		return err
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, collateralType)
-	if collateralizationRatio.GT(liquidationRatio) {
+	if collateralizationRatio.GTE(liquidationRatio) {
 		return sdkerrors.Wrapf(types.ErrNotLiquidatable, "collateral %s, collateral ratio %s, liquidation ratio %s", collateral.Denom, collateralizationRatio, liquidationRatio)
 	}
 	return nil
