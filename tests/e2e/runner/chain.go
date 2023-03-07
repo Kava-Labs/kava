@@ -21,6 +21,7 @@ type ChainDetails struct {
 	RestPort string
 	EvmPort  string
 
+	ChainId      string
 	StakingDenom string
 }
 
@@ -68,6 +69,7 @@ var (
 		GrpcPort: "9090",
 		EvmPort:  "8545",
 
+		ChainId:      "kavalocalnet_8888-1",
 		StakingDenom: "ukava",
 	}
 	ibcChain = ChainDetails{
@@ -76,6 +78,7 @@ var (
 		GrpcPort: "9092",
 		EvmPort:  "8547",
 
+		ChainId:      "kavalocalnet_8889-2",
 		StakingDenom: "uatom",
 	}
 )
