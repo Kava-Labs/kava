@@ -17,6 +17,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/stretchr/testify/require"
 	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
 	emtypes "github.com/tharsis/ethermint/types"
 
@@ -24,7 +25,7 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 )
 
-var BroadcastTimeoutErr = errors.New("timed out waiting for tx to be committed to block")
+var ErrBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
 
 type SigningAccount struct {
 	name     string
@@ -44,58 +45,58 @@ type SigningAccount struct {
 	l *log.Logger
 }
 
-// GetAccount returns the account with the given name or fails
-func (suite *E2eTestSuite) GetAccount(name string) *SigningAccount {
-	acc, found := suite.accounts[name]
+// GetAccount returns the account with the given name or fails.
+func (chain *Chain) GetAccount(name string) *SigningAccount {
+	acc, found := chain.accounts[name]
 	if !found {
-		suite.Failf("account does not exist", "failed to find account with name %s", name)
+		chain.t.Fatalf("failed to find account with name %s", name)
 	}
 	return acc
 }
 
-// AddNewSigningAccount sets up a new account with a signer.
-func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, chainId, mnemonic string) *SigningAccount {
-	if _, found := suite.accounts[name]; found {
-		suite.Failf("can't create signing account", "account with name %s already exists", name)
+// AddNewSigningAccount sets up a new account with a signer for SDK and EVM transactions.
+func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, chainId, mnemonic string) *SigningAccount {
+	if _, found := chain.accounts[name]; found {
+		chain.t.Fatalf("account with name %s already exists", name)
 	}
 
 	// Kava signing account for SDK side
 	privKeyBytes, err := hd.Secp256k1.Derive()(mnemonic, "", hdPath.String())
-	suite.NoErrorf(err, "failed to derive private key from mnemonic for %s: %s", name, err)
+	require.NoErrorf(chain.t, err, "failed to derive private key from mnemonic for %s: %s", name, err)
 	privKey := &ethsecp256k1.PrivKey{Key: privKeyBytes}
 
 	kavaSigner := util.NewKavaSigner(
 		chainId,
-		suite.encodingConfig,
-		suite.Auth,
-		suite.Tx,
+		chain.encodingConfig,
+		chain.Auth,
+		chain.Tx,
 		privKey,
 		100,
 	)
 
 	sdkReqChan := make(chan util.KavaMsgRequest)
 	sdkResChan, err := kavaSigner.Run(sdkReqChan)
-	suite.NoErrorf(err, "failed to start signer for account %s: %s", name, err)
+	require.NoErrorf(chain.t, err, "failed to start signer for account %s: %s", name, err)
 
 	// Kava signing account for EVM side
 	evmChainId, err := emtypes.ParseChainID(chainId)
-	suite.NoErrorf(err, "unable to parse ethermint-compatible chain id from %s", chainId)
+	require.NoErrorf(chain.t, err, "unable to parse ethermint-compatible chain id from %s", chainId)
 	ecdsaPrivKey, err := crypto.HexToECDSA(hex.EncodeToString(privKeyBytes))
-	suite.NoError(err, "failed to generate ECDSA private key from bytes")
+	require.NoError(chain.t, err, "failed to generate ECDSA private key from bytes")
 
 	evmSigner, err := util.NewEvmSigner(
-		suite.EvmClient,
+		chain.EvmClient,
 		ecdsaPrivKey,
 		evmChainId,
 	)
-	suite.NoErrorf(err, "failed to create evm signer")
+	require.NoErrorf(chain.t, err, "failed to create evm signer")
 
 	evmReqChan := make(chan util.EvmTxRequest)
 	evmResChan := evmSigner.Run(evmReqChan)
 
 	logger := log.New(os.Stdout, fmt.Sprintf("[%s] ", name), log.LstdFlags)
 
-	suite.accounts[name] = &SigningAccount{
+	chain.accounts[name] = &SigningAccount{
 		name:     name,
 		mnemonic: mnemonic,
 		l:        logger,
@@ -112,12 +113,12 @@ func (suite *E2eTestSuite) AddNewSigningAccount(name string, hdPath *hd.BIP44Par
 		SdkAddress: kavaSigner.Address(),
 	}
 
-	return suite.accounts[name]
+	return chain.accounts[name]
 }
 
 // SignAndBroadcastKavaTx sends a request to the signer and awaits its response.
 func (a *SigningAccount) SignAndBroadcastKavaTx(req util.KavaMsgRequest) util.KavaMsgResponse {
-	a.l.Printf("broadcasting sdk tx %+v\n", req.Data)
+	a.l.Printf("broadcasting sdk tx. has data = %+v\n", req.Data)
 	// send the request to signer
 	a.sdkReqChan <- req
 
@@ -165,7 +166,7 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	for {
 		select {
 		case <-timeout:
-			response.Err = BroadcastTimeoutErr
+			response.Err = ErrBroadcastTimeout
 		default:
 			response.Receipt, response.Err = a.evmSigner.EvmClient.TransactionReceipt(context.Background(), res.TxHash)
 			if errors.Is(response.Err, ethereum.NotFound) {
@@ -180,20 +181,26 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	return response
 }
 
-func (suite *E2eTestSuite) NewFundedAccount(name string, funds sdk.Coins) *SigningAccount {
+// NewFundedAccount creates a SigningAccount for a random account & funds the account from the whale.
+func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccount {
 	entropy, err := bip39.NewEntropy(128)
-	suite.NoErrorf(err, "failed to generate entropy for account %s: %s", name, err)
+	require.NoErrorf(chain.t, err, "failed to generate entropy for account %s: %s", name, err)
 	mnemonic, err := bip39.NewMnemonic(entropy)
-	suite.NoErrorf(err, "failed to create new mnemonic for account %s: %s", name, err)
+	require.NoErrorf(chain.t, err, "failed to create new mnemonic for account %s: %s", name, err)
 
-	acc := suite.AddNewSigningAccount(
+	acc := chain.AddNewSigningAccount(
 		name,
 		hd.CreateHDPath(app.Bip44CoinType, 0, 0),
 		ChainId,
 		mnemonic,
 	)
 
-	whale := suite.GetAccount(FundedAccountName)
+	// don't attempt to fund when no funds are desired
+	if funds.IsZero() {
+		return acc
+	}
+
+	whale := chain.GetAccount(FundedAccountName)
 	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
 	res := whale.SignAndBroadcastKavaTx(
 		util.KavaMsgRequest{
@@ -201,12 +208,12 @@ func (suite *E2eTestSuite) NewFundedAccount(name string, funds sdk.Coins) *Signi
 				banktypes.NewMsgSend(whale.SdkAddress, acc.SdkAddress, funds),
 			},
 			GasLimit:  2e5,
-			FeeAmount: sdk.NewCoins(sdk.NewCoin(StakingDenom, sdk.NewInt(75000))),
+			FeeAmount: sdk.NewCoins(sdk.NewCoin(chain.details.StakingDenom, sdk.NewInt(75000))),
 			Data:      fmt.Sprintf("initial funding of account %s", name),
 		},
 	)
 
-	suite.NoErrorf(res.Err, "failed to fund new account %s: %s", name, res.Err)
+	require.NoErrorf(chain.t, res.Err, "failed to fund new account %s: %s", name, res.Err)
 
 	whale.l.Printf("successfully funded [%s]\n", name)
 

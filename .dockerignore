@@ -3,3 +3,6 @@ out/
 .git/
 docs/
 tests/
+
+go.work
+go.work.sum

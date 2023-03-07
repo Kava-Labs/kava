@@ -4,124 +4,104 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
 	"time"
 
-	"github.com/ory/dockertest/v3"
-	"github.com/ory/dockertest/v3/docker"
+	"github.com/cenkalti/backoff/v4"
 )
 
 type Config struct {
-	ConfigDir string
-	ImageTag  string
-
-	KavaRpcPort  string
-	KavaGrpcPort string
-	KavaRestPort string
-	KavaEvmPort  string
+	ImageTag   string
+	IncludeIBC bool
 }
 
 // NodeRunner is responsible for starting and managing docker containers to run a node.
 type NodeRunner interface {
-	StartChains()
+	StartChains() Chains
 	Shutdown()
 }
 
-// SingleKavaNodeRunner manages and runs a single Kava node.
-type SingleKavaNodeRunner struct {
-	config Config
-
-	pool     *dockertest.Pool
-	resource *dockertest.Resource
+// KavaNodeRunner manages and runs a single Kava node.
+type KavaNodeRunner struct {
+	config    Config
+	kavaChain *ChainDetails
 }
 
-var _ NodeRunner = &SingleKavaNodeRunner{}
+var _ NodeRunner = &KavaNodeRunner{}
 
-func NewSingleKavaNode(config Config) *SingleKavaNodeRunner {
-	return &SingleKavaNodeRunner{
+func NewKavaNode(config Config) *KavaNodeRunner {
+	return &KavaNodeRunner{
 		config: config,
 	}
 }
 
-func (k *SingleKavaNodeRunner) StartChains() {
+func (k *KavaNodeRunner) StartChains() Chains {
+	installKvtoolCmd := exec.Command("./scripts/install-kvtool.sh")
+	installKvtoolCmd.Stdout = os.Stdout
+	installKvtoolCmd.Stderr = os.Stderr
+	if err := installKvtoolCmd.Run(); err != nil {
+		panic(fmt.Sprintf("failed to install kvtool: %s", err.Error()))
+	}
+
 	log.Println("starting kava node")
-	k.setupDockerPool()
+	kvtoolArgs := []string{"testnet", "bootstrap"}
+	if k.config.IncludeIBC {
+		kvtoolArgs = append(kvtoolArgs, "--ibc")
+	}
+	startKavaCmd := exec.Command("kvtool", kvtoolArgs...)
+	startKavaCmd.Stdout = os.Stdout
+	startKavaCmd.Stderr = os.Stderr
+	if err := startKavaCmd.Run(); err != nil {
+		panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
+	}
+
+	k.kavaChain = &kavaChain
+
 	err := k.waitForChainStart()
 	if err != nil {
 		k.Shutdown()
 		panic(err)
 	}
+	log.Println("kava is started!")
+
+	chains := NewChains()
+	chains.Register("kava", k.kavaChain)
+	if k.config.IncludeIBC {
+		chains.Register("ibc", &ibcChain)
+	}
+	return chains
 }
 
-func (k *SingleKavaNodeRunner) Shutdown() {
+func (k *KavaNodeRunner) Shutdown() {
 	log.Println("shutting down kava node")
-	k.pool.Purge(k.resource)
+	shutdownKavaCmd := exec.Command("kvtool", "testnet", "down")
+	shutdownKavaCmd.Stdout = os.Stdout
+	shutdownKavaCmd.Stderr = os.Stderr
+	if err := shutdownKavaCmd.Run(); err != nil {
+		panic(fmt.Sprintf("failed to shutdown kvtool: %s", err.Error()))
+	}
 }
 
-func (k *SingleKavaNodeRunner) setupDockerPool() {
-	pool, err := dockertest.NewPool("")
-	if err != nil {
-		log.Fatalf("Failed to make docker pool: %s", err)
-	}
-	k.pool = pool
-
-	err = pool.Client.Ping()
-	if err != nil {
-		log.Fatalf("Failed to connect to docker: %s", err)
-	}
-
-	resource, err := k.pool.RunWithOptions(&dockertest.RunOptions{
-		Name:       "kavanode",
-		Repository: "kava/kava",
-		Tag:        k.config.ImageTag,
-		Cmd: []string{
-			"sh",
-			"-c",
-			"/root/.kava/config/init-data-directory.sh && kava start --rpc.laddr=tcp://0.0.0.0:26657",
-		},
-		Mounts: []string{
-			fmt.Sprintf("%s:/root/.kava/config", k.config.ConfigDir),
-		},
-		ExposedPorts: []string{
-			"26657", // port inside container for Kava RPC
-			"1317",  // port inside container for Kava REST API
-			"9090",  // port inside container for Kava GRPC
-			"8545",  // port inside container for EVM JSON-RPC
-		},
-		// expose the internal ports on the configured ports
-		PortBindings: map[docker.Port][]docker.PortBinding{
-			"26657": {{HostIP: "", HostPort: k.config.KavaRpcPort}},
-			"1327":  {{HostIP: "", HostPort: k.config.KavaRestPort}},
-			"9090":  {{HostIP: "", HostPort: k.config.KavaGrpcPort}},
-			"8545":  {{HostIP: "", HostPort: k.config.KavaEvmPort}},
-		},
-	}, func(config *docker.HostConfig) {
-		// set AutoRemove to true so that stopped container goes away by itself
-		config.AutoRemove = true
-		config.RestartPolicy = docker.RestartPolicy{Name: "no"}
-	})
-	if err != nil {
-		log.Fatalf("Failed to start kava node: %s", err)
-	}
-	k.resource = resource
-	log.Println(resource.GetHostPort("26657"))
-}
-
-func (k *SingleKavaNodeRunner) waitForChainStart() error {
+func (k *KavaNodeRunner) waitForChainStart() error {
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
-	k.pool.MaxWait = 30 * time.Second
-	if err := k.pool.Retry(k.pingKava); err != nil {
+	b := backoff.NewExponentialBackOff()
+	b.MaxInterval = 5 * time.Second
+	b.MaxElapsedTime = 30 * time.Second
+	if err := backoff.Retry(k.pingKava, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
+	b.Reset()
 	// the evm takes a bit longer to start up. wait for it to start as well.
-	if err := k.pool.Retry(k.pingEvm); err != nil {
+	if err := backoff.Retry(k.pingEvm, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
 	return nil
 }
 
-func (k *SingleKavaNodeRunner) pingKava() error {
+func (k *KavaNodeRunner) pingKava() error {
 	log.Println("pinging kava chain...")
-	url := fmt.Sprintf("http://localhost:%s/status", k.config.KavaRpcPort)
+	url := fmt.Sprintf("http://localhost:%s/status", k.kavaChain.RpcPort)
 	res, err := http.Get(url)
 	if err != nil {
 		return err
@@ -134,9 +114,9 @@ func (k *SingleKavaNodeRunner) pingKava() error {
 	return nil
 }
 
-func (k *SingleKavaNodeRunner) pingEvm() error {
+func (k *KavaNodeRunner) pingEvm() error {
 	log.Println("pinging evm...")
-	url := fmt.Sprintf("http://localhost:%s", k.config.KavaEvmPort)
+	url := fmt.Sprintf("http://localhost:%s", k.kavaChain.EvmPort)
 	res, err := http.Get(url)
 	if err != nil {
 		return err

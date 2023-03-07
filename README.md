@@ -24,7 +24,7 @@ Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using
 
 ## Mainnet
 
-The current recommended version of the software for mainnet is [v0.19.0](https://github.com/Kava-Labs/kava/releases/tag/v0.19.0). The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
+The current recommended version of the software for mainnet is [v0.21.0](https://github.com/Kava-Labs/kava/releases/tag/v0.21.0). The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
 
 ### Installation and Setup
 For detailed instructions see [the Kava docs](https://docs.kava.io/docs/participate/validator-node).
@@ -33,6 +33,16 @@ For detailed instructions see [the Kava docs](https://docs.kava.io/docs/particip
 git checkout v0.21.0
 make install
 ```
+
+End-to-end tests of Kava use a tool for generating networks with different configurations: [kvtool](https://github.com/Kava-Labs/kvtool).
+This is included as a git submodule at [`tests/e2e/kvtool`](tests/e2e/kvtool/).
+When first cloning the repository, if you intend to run the e2e integration tests, you must also
+clone the submodules:
+```bash
+git clone --recurse-submodules https://github.com/Kava-Labs/kava.git
+```
+
+Or, if you have already cloned the repo: `git submodule update --init`
 
 ## Testnet
 
