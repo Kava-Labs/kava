@@ -366,7 +366,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 			},
 		},
 		{
-			"invalid - not below collateralization ratio",
+			"invalid - collateralization ratio equal to liquidation ratio",
 			args{
 				ctype:               "xrp-a",
 				blockTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
