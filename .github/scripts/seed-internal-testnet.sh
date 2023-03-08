@@ -46,6 +46,16 @@ DAI_CONTRACT_DEPLOY=$(npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" dep
 DAI_CONTRACT_ADDRESS=${DAI_CONTRACT_DEPLOY: -42}
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$DAI_CONTRACT_ADDRESS" 0x6767114FFAA17C6439D7AEA480738B982CE63A02 1000000000000
 
+# deploy and fund wBTC ERC20 contract
+wBTC_CONTRACT_DEPLOY=$(npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" deploy-erc20 "Wrapped BTC" BTC 8)
+wBTC_CONTRACT_ADDRESS=${wBTC_CONTRACT_DEPLOY: -42}
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wBTC_CONTRACT_ADDRESS" 0x6767114FFAA17C6439D7AEA480738B982CE63A02 1000000000000
+
+# deploy and fund wETH ERC20 contract
+wETH_CONTRACT_DEPLOY=$(npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" deploy-erc20 "Wrapped wETH" ETH 18)
+wETH_CONTRACT_ADDRESS=${wBTC_CONTRACT_DEPLOY: -42}
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" 0x6767114FFAA17C6439D7AEA480738B982CE63A02 1000000000000000000000
+
 # give dev-wallet enough delegation power to pass proposals by itself
 # enumerate all genesis validators
 GENTX_VALIDATORS=("kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp" "kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s")
