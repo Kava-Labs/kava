@@ -102,6 +102,8 @@ State Changes:
 
 Liquidate enables Keepers to liquidate a Borrower's CDP. If the CDP is below its Loan-to-Value obligations, the CDP's deposits are seized: a small percentage of the seized funds are sent to the Keeper with the rest auctioned off to recover the CDP's outstanding borrowed amount. Any deposited funds leftover that weren't needed to cover the Borrower's debts are returned to the Borrower.
 
+Note: In kava v0.21.x and below, CDP's that have a collateral ratio exactly equal to the liquidation ratio can be liquidated through this method.
+
 ```go
 // MsgLiquidate attempts to liquidate a borrower's cdp
 type MsgLiquidate struct {
