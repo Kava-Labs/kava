@@ -1307,15 +1307,15 @@
       "params": {
         "enabled_conversion_pairs": [
           {
-            "kava_erc20_address": "0x864121A3b64A05d872883a1D0DA04eEe107A64F3",
+            "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
             "denom": "erc20/multichain/usdc"
           },
           {
-            "kava_erc20_address": "0x818ec0A7Fe18Ff94269904fCED6AE3DaE6d6dC0b",
+            "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
             "denom": "erc20/axelar/btc"
           },
           {
-            "kava_erc20_address": "0xE3F5a90F9cb311505cd691a46596599aA1A0AD7D",
+            "kava_erc20_address": "0x5d6D67a665C9F169B0f9436E05B11108C1606043",
             "denom": "erc20/axelar/eth"
           }
         ]
