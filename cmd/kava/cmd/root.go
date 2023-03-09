@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/pruning"
 	"github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -108,6 +109,7 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
+		pruning.PruningCmd(ac.newApp),
 		kavaclient.KeyCommands(app.DefaultNodeHome),
 	)
 }
