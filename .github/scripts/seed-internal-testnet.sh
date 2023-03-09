@@ -53,8 +53,13 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wBTC_CONTRAC
 
 # deploy and fund wETH ERC20 contract
 wETH_CONTRACT_DEPLOY=$(npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" deploy-erc20 "Wrapped wETH" ETH 18)
-wETH_CONTRACT_ADDRESS=${wBTC_CONTRACT_DEPLOY: -42}
+wETH_CONTRACT_ADDRESS=${wETH_CONTRACT_DEPLOY: -42}
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" 0x6767114FFAA17C6439D7AEA480738B982CE63A02 1000000000000000000000
+
+# seed some evm wallets
+DEV_WALLET_ADDRESS="0x7E08fa61f22f1A40B4617b887eD24b85CDaf33c2"
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wBTC_CONTRACT_ADDRESS" "$DEV_WALLET_ADDRESS" 1000000000000
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" "$DEV_WALLET_ADDRESS" 1000000000000000000000
 
 # give dev-wallet enough delegation power to pass proposals by itself
 # enumerate all genesis validators
