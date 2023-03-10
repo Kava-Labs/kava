@@ -1,0 +1,125 @@
+syntax = "proto3";
+package kava.incentive.v1beta1;
+
+import "cosmos/auth/v1beta1/auth.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "kava/incentive/v1beta1/params.proto";
+import "kava/incentive/v1beta1/claims.proto";
+import "kava/incentive/v1beta1/apy.proto";
+
+option go_package = "github.com/kava-labs/kava/x/incentive/types";
+
+// Query defines the gRPC querier service for incentive module.
+service Query {
+  // Params queries module params.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/kava/incentive/v1beta1/params";
+  }
+
+  // Rewards queries reward information for a given user.
+  rpc Rewards(QueryRewardsRequest) returns (QueryRewardsResponse) {
+    option (google.api.http).get = "/kava/incentive/v1beta1/rewards";
+  }
+
+  // Rewards queries the reward factors.
+  rpc RewardFactors(QueryRewardFactorsRequest)
+      returns (QueryRewardFactorsResponse) {
+    option (google.api.http).get = "/kava/incentive/v1beta1/reward_factors";
+  }
+
+  // Apy queries incentive reward apy for a reward.
+  rpc Apy(QueryApysRequest) returns (QueryApysResponse) {
+    option (google.api.http).get = "/kava/incentive/v1beta1/apys";
+  }
+}
+
+// QueryParamsRequest is the request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is the response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  Params params = 1 [ (gogoproto.nullable) = false ];
+}
+
+message QueryRewardsRequest {
+  // owner is the address of the user to query rewards for.
+  string owner = 1;
+  // reward_type is the type of reward to query rewards for, e.g. hard, earn,
+  // swap.
+  string reward_type = 2;
+  // unsynchronized is a flag to query rewards that are not simulated for reward
+  // synchronized for the current block.
+  bool unsynchronized = 3;
+}
+
+message QueryRewardsResponse {
+  repeated USDXMintingClaim usdx_minting_claims = 1 [
+    (gogoproto.customname) = "USDXMintingClaims",
+    (gogoproto.castrepeated) = "USDXMintingClaims",
+    (gogoproto.nullable) = false
+  ];
+
+  repeated HardLiquidityProviderClaim hard_liquidity_provider_claims = 2 [
+    (gogoproto.castrepeated) = "HardLiquidityProviderClaims",
+    (gogoproto.nullable) = false
+  ];
+
+  repeated DelegatorClaim delegator_claims = 3 [
+    (gogoproto.castrepeated) = "DelegatorClaims",
+    (gogoproto.nullable) = false
+  ];
+
+  repeated SwapClaim swap_claims = 4
+      [ (gogoproto.castrepeated) = "SwapClaims", (gogoproto.nullable) = false ];
+
+  repeated SavingsClaim savings_claims = 5 [
+    (gogoproto.castrepeated) = "SavingsClaims",
+    (gogoproto.nullable) = false
+  ];
+
+  repeated EarnClaim earn_claims = 6
+      [ (gogoproto.castrepeated) = "EarnClaims", (gogoproto.nullable) = false ];
+}
+
+message QueryRewardFactorsRequest {}
+
+message QueryRewardFactorsResponse {
+  repeated RewardIndex USDXMintingRewardFactors = 1 [
+    (gogoproto.castrepeated) = "RewardIndexes",
+    (gogoproto.nullable) = false
+  ];
+  repeated MultiRewardIndex HardSupplyRewardFactors = 2 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
+  repeated MultiRewardIndex HardBorrowRewardFactors = 3 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
+  repeated MultiRewardIndex DelegatorRewardFactors = 4 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
+  repeated MultiRewardIndex SwapRewardFactors = 5 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
+  repeated MultiRewardIndex SavingsRewardFactors = 6 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
+  repeated MultiRewardIndex EarnRewardFactors = 7 [
+    (gogoproto.castrepeated) = "MultiRewardIndexes",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message QueryApysRequest {}
+
+message QueryApysResponse {
+  repeated Apy earn = 1 [ (gogoproto.nullable) = false ];
+}
