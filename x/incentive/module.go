@@ -1,6 +1,7 @@
 package incentive
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/gorilla/mux"
@@ -68,10 +69,9 @@ func (a AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Ro
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the incentive module.
 func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	// TODO:
-	// if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
-	// 	panic(err)
-	// }
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // LegacyQuerierHandler returns sdk.Querier.

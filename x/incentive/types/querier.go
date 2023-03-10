@@ -66,30 +66,13 @@ func NewQueryGetRewardFactorsResponse(usdxMintingFactors RewardIndexes, supplyFa
 	}
 }
 
-// APY contains the APY for a given collateral type
-type APY struct {
-	CollateralType string  `json:"collateral_type" yaml:"collateral_type"`
-	APY            sdk.Dec `json:"apy" yaml:"apy"`
-}
-
-// NewAPY returns a new instance of APY
-func NewAPY(collateralType string, apy sdk.Dec) APY {
-	return APY{
-		CollateralType: collateralType,
-		APY:            apy,
-	}
-}
-
-// APYs is a slice of APY
-type APYs []APY
-
 // QueryGetAPYsResponse holds the response to a APY query
 type QueryGetAPYsResponse struct {
-	Earn []APY `json:"earn" yaml:"earn"`
+	Earn []Apy `json:"earn" yaml:"earn"`
 }
 
 // NewQueryGetAPYsResponse returns a new instance of QueryGetAPYsResponse
-func NewQueryGetAPYsResponse(earn []APY) QueryGetAPYsResponse {
+func NewQueryGetAPYsResponse(earn []Apy) QueryGetAPYsResponse {
 	return QueryGetAPYsResponse{
 		Earn: earn,
 	}
