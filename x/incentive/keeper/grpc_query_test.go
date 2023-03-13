@@ -288,7 +288,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryRewardFactors() {
 	res, err := suite.queryClient.RewardFactors(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardFactorsRequest{})
 	suite.Require().NoError(err)
 
-	suite.NotEmpty(res.USDXMintingRewardFactors)
+	suite.NotEmpty(res.UsdxMintingRewardFactors)
 	suite.NotEmpty(res.HardSupplyRewardFactors)
 	suite.NotEmpty(res.HardBorrowRewardFactors)
 	suite.NotEmpty(res.DelegatorRewardFactors)

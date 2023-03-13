@@ -106,7 +106,7 @@ func local_request_Query_RewardFactors_0(ctx context.Context, marshaler runtime.
 }
 
 func request_Query_Apy_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryApysRequest
+	var protoReq QueryApyRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := client.Apy(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -115,7 +115,7 @@ func request_Query_Apy_0(ctx context.Context, marshaler runtime.Marshaler, clien
 }
 
 func local_request_Query_Apy_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryApysRequest
+	var protoReq QueryApyRequest
 	var metadata runtime.ServerMetadata
 
 	msg, err := server.Apy(ctx, &protoReq)
@@ -352,7 +352,7 @@ var (
 
 	pattern_Query_RewardFactors_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "incentive", "v1beta1", "reward_factors"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Apy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "incentive", "v1beta1", "apys"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Apy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"kava", "incentive", "v1beta1", "apy"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
