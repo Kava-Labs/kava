@@ -13,19 +13,15 @@ import (
 )
 
 type queryServer struct {
-	keeper        Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	keeper Keeper
 }
 
 var _ types.QueryServer = queryServer{}
 
 // NewQueryServerImpl creates a new server for handling gRPC queries.
-func NewQueryServerImpl(keeper Keeper, ak types.AccountKeeper, bk types.BankKeeper) types.QueryServer {
+func NewQueryServerImpl(keeper Keeper) types.QueryServer {
 	return &queryServer{
-		keeper:        keeper,
-		accountKeeper: ak,
-		bankKeeper:    bk,
+		keeper: keeper,
 	}
 }
 
@@ -77,7 +73,7 @@ func (s queryServer) Rewards(
 		}
 	}
 
-	return nil, nil
+	return &res, nil
 }
 
 func (s queryServer) RewardFactors(
