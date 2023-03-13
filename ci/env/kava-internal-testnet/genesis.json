@@ -1845,6 +1845,18 @@
                 "amount": "938"
               }
             ]
+          },
+          {
+            "active": true,
+            "collateral_type": "erc20/axelar/usdc",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "989"
+              }
+            ]
           }
         ],
         "hard_borrow_reward_periods": [],
