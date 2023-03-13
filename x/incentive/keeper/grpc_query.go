@@ -129,7 +129,7 @@ func (s queryServer) RewardFactors(
 	})
 
 	return &types.QueryRewardFactorsResponse{
-		USDXMintingRewardFactors: usdxFactors,
+		UsdxMintingRewardFactors: usdxFactors,
 		HardSupplyRewardFactors:  supplyFactors,
 		HardBorrowRewardFactors:  borrowFactors,
 		DelegatorRewardFactors:   delegatorFactors,
@@ -141,8 +141,8 @@ func (s queryServer) RewardFactors(
 
 func (s queryServer) Apy(
 	ctx context.Context,
-	req *types.QueryApysRequest,
-) (*types.QueryApysResponse, error) {
+	req *types.QueryApyRequest,
+) (*types.QueryApyResponse, error) {
 	if req == nil {
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
@@ -180,7 +180,7 @@ func (s queryServer) Apy(
 		apys = append(apys, types.NewAPY(param.CollateralType, apy))
 	}
 
-	return &types.QueryApysResponse{
+	return &types.QueryApyResponse{
 		Earn: apys,
 	}, nil
 }
