@@ -241,6 +241,62 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryRewards() {
 	suite.NotEmpty(res.EarnClaims)
 }
 
+func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_Owner() {
+	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{
+		Owner: suite.addrs[0].String(),
+	})
+	suite.Require().NoError(err)
+
+	suite.Len(res.USDXMintingClaims, 1)
+	suite.Len(res.HardLiquidityProviderClaims, 1)
+	suite.Empty(res.DelegatorClaims)
+	suite.Empty(res.SwapClaims)
+	suite.Empty(res.SavingsClaims)
+	suite.Empty(res.EarnClaims)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_RewardType() {
+	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{
+		RewardType: "hard",
+	})
+	suite.Require().NoError(err)
+
+	suite.Empty(res.USDXMintingClaims)
+	suite.Len(res.HardLiquidityProviderClaims, 2)
+	suite.Empty(res.DelegatorClaims)
+	suite.Empty(res.SwapClaims)
+	suite.Empty(res.SavingsClaims)
+	suite.Empty(res.EarnClaims)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_RewardType_and_Owner() {
+	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{
+		Owner:      suite.addrs[0].String(),
+		RewardType: "hard",
+	})
+	suite.Require().NoError(err)
+
+	suite.Empty(res.USDXMintingClaims)
+	suite.Len(res.HardLiquidityProviderClaims, 1)
+	suite.Empty(res.DelegatorClaims)
+	suite.Empty(res.SwapClaims)
+	suite.Empty(res.SavingsClaims)
+	suite.Empty(res.EarnClaims)
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryRewardFactors() {
+	res, err := suite.queryClient.RewardFactors(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardFactorsRequest{})
+	suite.Require().NoError(err)
+
+	suite.NotEmpty(res.USDXMintingRewardFactors)
+	suite.NotEmpty(res.HardSupplyRewardFactors)
+	suite.NotEmpty(res.HardBorrowRewardFactors)
+	suite.NotEmpty(res.DelegatorRewardFactors)
+	suite.NotEmpty(res.SwapRewardFactors)
+	suite.NotEmpty(res.SavingsRewardFactors)
+	suite.NotEmpty(res.EarnRewardFactors)
+}
+
 func TestGrpcQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(grpcQueryTestSuite))
 }
