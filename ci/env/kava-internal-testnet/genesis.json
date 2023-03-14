@@ -190,6 +190,13 @@
             "sequence": "1"
           },
           "code_hash": "0x45d85d503e0143ffd2bb95d7bcb4dadfc1c05ff005fc7c26e63eb47f496fdafc"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava10cy05c0j9udypdrp0wy8a5jtshx67v7zk5sdzp",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
         }
       ]
     },
@@ -332,6 +339,35 @@
             {
               "denom": "ukava",
               "amount": "5000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava10cy05c0j9udypdrp0wy8a5jtshx67v7zk5sdzp",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
             },
             {
               "denom": "usdx",
