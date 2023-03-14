@@ -1000,14 +1000,6 @@
             ]
           },
           {
-            "denom": "erc20/multichain/usdc",
-            "strategies": [
-              "STRATEGY_TYPE_SAVINGS"
-            ],
-            "is_private_vault": false,
-            "allowed_depositors": []
-          },
-          {
             "denom": "bkava",
             "strategies": [
               "STRATEGY_TYPE_SAVINGS"
@@ -1348,7 +1340,7 @@
         "enabled_conversion_pairs": [
           {
             "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
-            "denom": "erc20/multichain/usdc"
+            "denom": "erc20/axelar/usdc"
           },
           {
             "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
@@ -2047,18 +2039,6 @@
           },
           {
             "active": true,
-            "collateral_type": "erc20/multichain/usdc",
-            "start": "2022-10-26T15:00:00Z",
-            "end": "2024-10-26T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "5505"
-              }
-            ]
-          },
-          {
-            "active": true,
             "collateral_type": "erc20/multichain/usdt",
             "start": "2022-11-11T15:00:00Z",
             "end": "2024-11-11T15:00:00Z",
@@ -2209,18 +2189,6 @@
           {
             "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
             "denom": "usdx",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "erc20/multichain/usdc",
             "blocked_addresses": [],
             "paused": false,
             "blockable": false,
@@ -2811,8 +2779,7 @@
           "swp",
           "bkava",
           "bkava-kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp",
-          "bkava-kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s",
-          "erc20/multichain/usdc"
+          "bkava-kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s"
         ]
       }
     },
