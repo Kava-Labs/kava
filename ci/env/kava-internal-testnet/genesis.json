@@ -197,7 +197,7 @@
           "pub_key": null,
           "account_number": "0",
           "sequence": "0"
-        },
+        }
       ]
     },
     "authz": {
@@ -374,7 +374,7 @@
               "amount": "103000000000"
             }
           ]
-        },
+        }
       ],
       "supply": [],
       "denom_metadata": []
