@@ -66,6 +66,7 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXLUSD_CONTR
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wBTC_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 10000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$USD_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 100000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXLUSD_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 100000000000
 
 # give dev-wallet enough delegation power to pass proposals by itself
 # enumerate all genesis validators
