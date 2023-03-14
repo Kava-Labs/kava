@@ -27,7 +27,8 @@ type grpcQueryTestSuite struct {
 	queryClient types.QueryClient
 	addrs       []sdk.AccAddress
 
-	genesisTime time.Time
+	genesisTime  time.Time
+	genesisState types.GenesisState
 }
 
 func (suite *grpcQueryTestSuite) SetupTest() {
@@ -66,7 +67,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 		hardtypes.DefaultTotalReserves,
 	)
 
-	incentiveGS := types.NewGenesisState(
+	suite.genesisState = types.NewGenesisState(
 		types.NewParams(
 			types.RewardPeriods{types.NewRewardPeriod(true, "bnb-a", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), c("ukava", 122354))},
 			types.MultiRewardPeriods{types.NewMultiRewardPeriod(true, "bnb", suite.genesisTime.Add(-1*oneYear), suite.genesisTime.Add(oneYear), cs(c("hard", 122354)))},
@@ -206,14 +207,17 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 			types.NewEarnClaim(
 				suite.addrs[3],
 				nil,
-				types.MultiRewardIndexes{{CollateralType: "usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "earn", RewardFactor: d("0.0")}}}},
+				types.MultiRewardIndexes{{CollateralType: "usdx", RewardIndexes: types.RewardIndexes{{CollateralType: "usdx", RewardFactor: d("0.0")}}}},
 			),
 		},
 	)
 
+	err := suite.genesisState.Validate()
+	suite.Require().NoError(err)
+
 	suite.tApp = suite.tApp.InitializeFromGenesisStatesWithTime(
 		suite.genesisTime,
-		app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&incentiveGS)},
+		app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(&suite.genesisState)},
 		app.GenesisState{hardtypes.ModuleName: cdc.MustMarshalJSON(&hardGS)},
 		NewCDPGenStateMulti(cdc),
 		NewPricefeedGenStateMultiFromTime(cdc, suite.genesisTime),
@@ -230,15 +234,17 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryRewards() {
-	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{})
+	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{
+		Unsynchronized: true,
+	})
 	suite.Require().NoError(err)
 
-	suite.NotEmpty(res.USDXMintingClaims)
-	suite.NotEmpty(res.HardLiquidityProviderClaims)
-	suite.NotEmpty(res.DelegatorClaims)
-	suite.NotEmpty(res.SwapClaims)
-	suite.NotEmpty(res.SavingsClaims)
-	suite.NotEmpty(res.EarnClaims)
+	suite.Equal(suite.genesisState.USDXMintingClaims, res.USDXMintingClaims)
+	suite.Equal(suite.genesisState.HardLiquidityProviderClaims, res.HardLiquidityProviderClaims)
+	suite.Equal(suite.genesisState.DelegatorClaims, res.DelegatorClaims)
+	suite.Equal(suite.genesisState.SwapClaims, res.SwapClaims)
+	suite.Equal(suite.genesisState.SavingsClaims, res.SavingsClaims)
+	suite.Equal(suite.genesisState.EarnClaims, res.EarnClaims)
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_Owner() {
@@ -249,6 +255,11 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_Owner() {
 
 	suite.Len(res.USDXMintingClaims, 1)
 	suite.Len(res.HardLiquidityProviderClaims, 1)
+
+	suite.Equal(suite.genesisState.USDXMintingClaims[0], res.USDXMintingClaims[0])
+	suite.Equal(suite.genesisState.HardLiquidityProviderClaims[0], res.HardLiquidityProviderClaims[0])
+
+	// No other claims - owner has none
 	suite.Empty(res.DelegatorClaims)
 	suite.Empty(res.SwapClaims)
 	suite.Empty(res.SavingsClaims)
@@ -257,12 +268,15 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_Owner() {
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_RewardType() {
 	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{
-		RewardType: "hard",
+		RewardType:     "hard",
+		Unsynchronized: true,
 	})
 	suite.Require().NoError(err)
 
+	suite.Equal(suite.genesisState.HardLiquidityProviderClaims, res.HardLiquidityProviderClaims)
+
+	// No other reward types when specifying rewardType
 	suite.Empty(res.USDXMintingClaims)
-	suite.Len(res.HardLiquidityProviderClaims, 2)
 	suite.Empty(res.DelegatorClaims)
 	suite.Empty(res.SwapClaims)
 	suite.Empty(res.SavingsClaims)
@@ -276,8 +290,10 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_RewardType_and_Owner() {
 	})
 	suite.Require().NoError(err)
 
-	suite.Empty(res.USDXMintingClaims)
 	suite.Len(res.HardLiquidityProviderClaims, 1)
+	suite.Equal(suite.genesisState.HardLiquidityProviderClaims[0], res.HardLiquidityProviderClaims[0])
+
+	suite.Empty(res.USDXMintingClaims)
 	suite.Empty(res.DelegatorClaims)
 	suite.Empty(res.SwapClaims)
 	suite.Empty(res.SavingsClaims)

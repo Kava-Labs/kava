@@ -201,18 +201,6 @@ func (s queryServer) queryRewards(
 		return status.Errorf(codes.InvalidArgument, "invalid reward type: %s", rewardType)
 	}
 
-	if isAllRewards || rewardType == "hard" {
-		if hasOwner {
-			hardClaim, foundHardClaim := s.keeper.GetHardLiquidityProviderClaim(ctx, owner)
-			if foundHardClaim {
-				res.HardLiquidityProviderClaims = append(res.HardLiquidityProviderClaims, hardClaim)
-			}
-		} else {
-			hardClaims := s.keeper.GetAllHardLiquidityProviderClaims(ctx)
-			res.HardLiquidityProviderClaims = append(res.HardLiquidityProviderClaims, hardClaims...)
-		}
-	}
-
 	if isAllRewards || rewardType == "usdx_minting" {
 		if hasOwner {
 			usdxMintingClaim, foundUsdxMintingClaim := s.keeper.GetUSDXMintingClaim(ctx, owner)
@@ -222,6 +210,18 @@ func (s queryServer) queryRewards(
 		} else {
 			usdxMintingClaims := s.keeper.GetAllUSDXMintingClaims(ctx)
 			res.USDXMintingClaims = append(res.USDXMintingClaims, usdxMintingClaims...)
+		}
+	}
+
+	if isAllRewards || rewardType == "hard" {
+		if hasOwner {
+			hardClaim, foundHardClaim := s.keeper.GetHardLiquidityProviderClaim(ctx, owner)
+			if foundHardClaim {
+				res.HardLiquidityProviderClaims = append(res.HardLiquidityProviderClaims, hardClaim)
+			}
+		} else {
+			hardClaims := s.keeper.GetAllHardLiquidityProviderClaims(ctx)
+			res.HardLiquidityProviderClaims = append(res.HardLiquidityProviderClaims, hardClaims...)
 		}
 	}
 
@@ -249,6 +249,18 @@ func (s queryServer) queryRewards(
 		}
 	}
 
+	if isAllRewards || rewardType == "savings" {
+		if hasOwner {
+			savingsClaim, foundSavingsClaim := s.keeper.GetSavingsClaim(ctx, owner)
+			if foundSavingsClaim {
+				res.SavingsClaims = append(res.SavingsClaims, savingsClaim)
+			}
+		} else {
+			savingsClaims := s.keeper.GetAllSavingsClaims(ctx)
+			res.SavingsClaims = append(res.SavingsClaims, savingsClaims...)
+		}
+	}
+
 	if isAllRewards || rewardType == "earn" {
 		if hasOwner {
 			earnClaim, foundEarnClaim := s.keeper.GetEarnClaim(ctx, owner)
@@ -270,12 +282,12 @@ func (s queryServer) synchronizeRewards(
 	res *types.QueryRewardsResponse,
 ) error {
 	// Synchronize all non-empty rewards
-	for i, claim := range res.HardLiquidityProviderClaims {
-		res.HardLiquidityProviderClaims[i] = s.keeper.SimulateHardSynchronization(ctx, claim)
-	}
-
 	for i, claim := range res.USDXMintingClaims {
 		res.USDXMintingClaims[i] = s.keeper.SimulateUSDXMintingSynchronization(ctx, claim)
+	}
+
+	for i, claim := range res.HardLiquidityProviderClaims {
+		res.HardLiquidityProviderClaims[i] = s.keeper.SimulateHardSynchronization(ctx, claim)
 	}
 
 	for i, claim := range res.DelegatorClaims {
@@ -288,6 +300,14 @@ func (s queryServer) synchronizeRewards(
 			return status.Errorf(codes.Internal, "previously found swap claim for owner %s should still be found", claim.Owner)
 		}
 		res.SwapClaims[i] = syncedClaim
+	}
+
+	for i, claim := range res.SavingsClaims {
+		syncedClaim, found := s.keeper.GetSynchronizedSavingsClaim(ctx, claim.Owner)
+		if !found {
+			return status.Errorf(codes.Internal, "previously found savings claim for owner %s should still be found", claim.Owner)
+		}
+		res.SavingsClaims[i] = syncedClaim
 	}
 
 	for i, claim := range res.EarnClaims {
