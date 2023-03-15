@@ -1351,6 +1351,10 @@
             "denom": "erc20/multichain/usdc"
           },
           {
+            "kava_erc20_address": "0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d",
+            "denom": "erc20/axelar/usdc"
+          },
+          {
             "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
             "denom": "erc20/axelar/btc"
           },
