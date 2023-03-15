@@ -172,6 +172,13 @@
           "sequence": "0"
         },
         {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1krh7k30pc9rteejpl2zycj0vau58y8c69xkzws",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
           "@type": "/ethermint.types.v1.EthAccount",
           "base_account": {
             "address": "kava1w66m9hdzwgd6uc8g93zqkcumgwzrpcw9e32lf8",
@@ -264,6 +271,47 @@
         },
         {
           "address": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/btc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/axelar/eth",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/usdc",
+              "amount": "10000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1krh7k30pc9rteejpl2zycj0vau58y8c69xkzws",
           "coins": [
             {
               "denom": "btcb",
