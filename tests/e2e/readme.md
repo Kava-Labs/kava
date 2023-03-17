@@ -1,15 +1,16 @@
 # end-2-end tests for kava
 
 These tests use [`kvtool`](https://github.com/kava-labs/kvtool) to spin up a kava node configuration
-and then runs tests against the running network.
+and then runs tests against the running network. It is a git sub-repository in this directory. If not
+present, you must initialize the subrepo: `git submodule update --init`.
 
 Steps to run
 1. Build a Kava docker image tagged `kava/kava:local`: `make build-docker`
-2. Run the test suite: `make test-e2e`
+2. Ensure latest `kvtool` is installed: `make update-kvtool`
+3. Run the test suite: `make test-e2e`
 
 **Note:** The suite will use your locally installed `kvtool` if present. If not present, it will be
-installed. If `kvtool` is updated, you must reinstall it, or delete it from your PATH so the suite
-can install it anew.
+installed. If the `kvtool` repo is updated, you must manually update your existing local binary: `make update-kvtool`
 
 ## Configuration
 
@@ -32,7 +33,7 @@ Details about the chains can be found [here](runner/chain.go#L62-84).
 ## `SigningAccount`s
 
 Each `Chain` wraps a map of signing clients for that network. The `SigningAccount` contains clients
-for both the Kava EVM and SDK co-chains.
+for both the Kava EVM and Cosmos-Sdk co-chains.
 
 The methods `SignAndBroadcastKavaTx` and `SignAndBroadcastEvmTx` are used to submit transactions to
 the sdk and evm chains, respectively.
