@@ -10,9 +10,7 @@ import (
 )
 
 const (
-	ChainId           = "kavalocalnet_8888-1"
 	FundedAccountName = "whale"
-	StakingDenom      = "ukava"
 	// use coin type 60 so we are compatible with accounts from `kava add keys --eth <name>`
 	// these accounts use the ethsecp256k1 signing algorithm that allows the signing client
 	// to manage both sdk & evm txs.

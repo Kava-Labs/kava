@@ -322,4 +322,8 @@ start-remote-sims:
 		-—job-definition kava-sim-master \
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
 
+update-kvtool:
+	git submodule update
+	cd tests/e2e/kvtool && make install
+
 .PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic start-remote-sims

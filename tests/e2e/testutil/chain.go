@@ -26,7 +26,8 @@ type Chain struct {
 	accounts       map[string]*SigningAccount
 	t              *testing.T
 
-	details *runner.ChainDetails
+	StakingDenom string
+	ChainId      string
 
 	EvmClient *ethclient.Client
 	Auth      authtypes.QueryClient
@@ -39,9 +40,12 @@ type Chain struct {
 // A signing client for the fundedAccountMnemonic is initialized. This account is referred to in the
 // code as "whale" and it is used to supply funds to all new accounts.
 func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic string) (*Chain, error) {
-	chain := &Chain{t: t}
+	chain := &Chain{
+		t:            t,
+		StakingDenom: details.StakingDenom,
+		ChainId:      details.ChainId,
+	}
 	chain.encodingConfig = app.MakeEncodingConfig()
-	chain.details = details
 
 	grpcUrl := fmt.Sprintf("http://localhost:%s", details.GrpcPort)
 	grpcConn, err := util.NewGrpcConnection(grpcUrl)
@@ -66,7 +70,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	whale := chain.AddNewSigningAccount(
 		FundedAccountName,
 		hd.CreateHDPath(Bip44CoinType, 0, 0),
-		ChainId,
+		chain.ChainId,
 		fundedAccountMnemonic,
 	)
 

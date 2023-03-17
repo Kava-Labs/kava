@@ -40,8 +40,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 
 // example test that queries kava via SDK and EVM
 func (suite *IntegrationTestSuite) TestChainID() {
-	// TODO: make chain agnostic, don't hardcode expected chain ids (in testutil)
-	expectedEvmNetworkId, err := emtypes.ParseChainID(testutil.ChainId)
+	expectedEvmNetworkId, err := emtypes.ParseChainID(suite.Kava.ChainId)
 	suite.NoError(err)
 
 	// EVM query
@@ -52,7 +51,7 @@ func (suite *IntegrationTestSuite) TestChainID() {
 	// SDK query
 	nodeInfo, err := suite.Kava.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
 	suite.NoError(err)
-	suite.Equal(testutil.ChainId, nodeInfo.DefaultNodeInfo.Network)
+	suite.Equal(suite.Kava.ChainId, nodeInfo.DefaultNodeInfo.Network)
 }
 
 // example test that funds a new account & queries its balance
