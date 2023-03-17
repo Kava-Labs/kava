@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -60,8 +61,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
 
 	// Msgs
-	cdc.RegisterConcrete(&MsgSubmitProposal{}, "kava/MsgSubmitProposal", nil)
-	cdc.RegisterConcrete(&MsgVote{}, "kava/MsgVote", nil)
+	legacy.RegisterAminoMsg(cdc, &MsgSubmitProposal{}, "kava/MsgSubmitProposal")
+	legacy.RegisterAminoMsg(cdc, &MsgVote{}, "kava/MsgVote")
 }
 
 // RegisterProposalTypeCodec allows external modules to register their own pubproposal types on the
