@@ -58,6 +58,9 @@ func (k EvmBankKeeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom st
 
 // SendCoins transfers akava coins from a AccAddress to an AccAddress.
 func (k EvmBankKeeper) SendCoins(ctx sdk.Context, senderAddr sdk.AccAddress, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	// SendCoins method is not used by the evm module, but is required by the
+	// evmtypes.BankKeeper interface. This must be updated if the evm module
+	// is updated to use SendCoins.
 	panic("not implemented")
 }
 
