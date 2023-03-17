@@ -141,6 +141,35 @@ func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
+// InitializeDefaultGenesis runs InitGenesis for all specified modules using a given context. It does not initialize a chain from Genesis (as happens during InitChain).
+// It is intended as a shorthand to initialize modules without calling keeper methods.
+func (tApp TestApp) InitializeDefaultGenesis(ctx sdk.Context, overrideGenesisStates ...GenesisState) {
+
+	genesisState := NewDefaultGenesisState()
+	modifiedStates := make(map[string]bool)
+
+	for _, state := range overrideGenesisStates {
+		for k, v := range state {
+			genesisState[k] = v
+
+			// Ensure that the same module genesis state is not set more than once.
+			// Multiple GenesisStates can have the same module genesis state, but
+			// the same module genesis state will be overwritten.
+			if previouslyModified := modifiedStates[k]; previouslyModified {
+				panic(fmt.Sprintf("genesis state for module %s was set more than once, this overrides previous state", k))
+			}
+
+			modifiedStates[k] = true
+		}
+	}
+
+	// This doesn't call ModuleManager.InitGenesis, or app.InitChainer to avoid the requirement to return validator updates.
+	for _, module := range tApp.mm.OrderInitGenesis {
+		_ = tApp.mm.Modules[module].InitGenesis(ctx, tApp.appCodec, genesisState[module])
+		// discards val updates
+	}
+}
+
 // SetupWithGenesisValSet initializes GenesisState with a single validator and genesis accounts
 // that also act as delegators.
 func GenesisStateWithSingleValidator(
