@@ -289,15 +289,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainID(genTime time.T
 	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, chainID, defaultInitialHeight, genesisStates...)
 }
 
-func addBankBalanceForAddress(balances []banktypes.Balance, targetAddr string, coins sdk.Coins) {
-	for _, balance := range balances {
-		if balance.Address == targetAddr {
-			balance.Coins = balance.Coins.Add(coins...)
-			return
-		}
-	}
-}
-
 // InitializeFromGenesisStatesWithTimeAndChainIDAndHeight calls InitChain on the app using the provided genesis states and other parameters.
 // If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
