@@ -18,10 +18,10 @@ func init() {
 	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
 	// But since these proposals contain Permissions, these types also need registering:
 	govv1beta1.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
-	govv1beta1.ModuleCdc.Amino.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
-	govv1beta1.ModuleCdc.Amino.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
-	govv1beta1.ModuleCdc.Amino.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
-	govv1beta1.ModuleCdc.Amino.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
+	govv1beta1.ModuleCdc.RegisterConcrete(GodPermission{}, "kava/GodPermission", nil)
+	govv1beta1.ModuleCdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
+	govv1beta1.ModuleCdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
+	govv1beta1.ModuleCdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
 }
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
