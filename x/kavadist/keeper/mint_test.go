@@ -152,7 +152,7 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 
 		// Delete initial genesis tokens to start with a clean slate
 		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
-		suite.App.ResetBankState(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
 
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
 		err := suite.Keeper.MintPeriodInflation(ctx)
@@ -229,7 +229,7 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 
 		// Delete initial genesis tokens to start with a clean slate
 		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
-		suite.App.ResetBankState(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
 
 		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
@@ -300,7 +300,7 @@ func (suite *keeperTestSuite) TestInfraPayoutPartner() {
 
 		// Delete initial genesis tokens to start with a clean slate
 		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
-		suite.App.ResetBankState(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
 
 		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
@@ -388,7 +388,7 @@ func (suite *keeperTestSuite) TestInfraPayoutE2E() {
 
 		// Delete initial genesis tokens to start with a clean slate
 		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
-		suite.App.ResetBankState(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
 
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
 		err := suite.Keeper.MintPeriodInflation(ctx)

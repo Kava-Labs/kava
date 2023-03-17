@@ -380,7 +380,7 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	}
 }
 
-func (tApp TestApp) ResetBankState(t *testing.T, ctx sdk.Context) {
+func (tApp TestApp) DeleteGenesisValidatorCoins(t *testing.T, ctx sdk.Context) {
 	ak := tApp.GetAccountKeeper()
 	bk := tApp.GetBankKeeper()
 
