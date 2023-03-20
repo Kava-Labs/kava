@@ -267,6 +267,16 @@ func TestAllowedPool_Validation(t *testing.T) {
 			allowedPool: types.NewAllowedPool("ukava", "UKAVA"),
 			expectedErr: "invalid token order: 'UKAVA' must come before 'ukava'",
 		},
+		{
+			name:        "invalid token a with colon",
+			allowedPool: types.NewAllowedPool("test:denom", "ukava"),
+			expectedErr: "tokenA cannot have colons in the denom: test:denom",
+		},
+		{
+			name:        "invalid token b with colon",
+			allowedPool: types.NewAllowedPool("ukava", "u:kava"),
+			expectedErr: "tokenB cannot have colons in the denom: u:kava",
+		},
 	}
 
 	for _, tc := range testCases {
