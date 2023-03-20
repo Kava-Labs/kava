@@ -1597,7 +1597,7 @@
             "denom": "erc20/axelar/usdc",
             "borrow_limit": {
               "has_max_limit": true,
-              "maximum_limit": "1000000000.000000000000000000",
+              "maximum_limit": "0.000000000000000000",
               "loan_to_value": "0.500000000000000000"
             },
             "spot_market_id": "usdc:usd:30",
