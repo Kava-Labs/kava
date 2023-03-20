@@ -21,12 +21,6 @@ const (
 	BondDenom           = "ukava"
 )
 
-func init() {
-	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
-	// But since these proposals contain Committees, these types also need registering:
-	govv1beta1.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
-}
-
 // Marshal needed for protobuf compatibility.
 func (t TallyOption) Marshal() ([]byte, error) {
 	return []byte{byte(t)}, nil
