@@ -201,7 +201,7 @@ replace (
 	// Required replace for dragonberry security patch
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.10-0.20230222014104-e0614448cb7a
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.10-0.20230307204309-67a28243018d
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
 	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20230320211348-67f84ede81af
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
