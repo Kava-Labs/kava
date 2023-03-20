@@ -191,7 +191,7 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 	acc := chain.AddNewSigningAccount(
 		name,
 		hd.CreateHDPath(app.Bip44CoinType, 0, 0),
-		ChainId,
+		chain.ChainId,
 		mnemonic,
 	)
 
@@ -208,7 +208,7 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 				banktypes.NewMsgSend(whale.SdkAddress, acc.SdkAddress, funds),
 			},
 			GasLimit:  2e5,
-			FeeAmount: sdk.NewCoins(sdk.NewCoin(chain.details.StakingDenom, sdk.NewInt(75000))),
+			FeeAmount: sdk.NewCoins(sdk.NewCoin(chain.StakingDenom, sdk.NewInt(75000))),
 			Data:      fmt.Sprintf("initial funding of account %s", name),
 		},
 	)
