@@ -31,6 +31,10 @@ func init() {
 	cryptocodec.RegisterCrypto(amino)
 	// amino is not sealed so that other modules can register their own pubproposal and/or permission types.
 
+	// CommitteeChange/Delete proposals along with Permission types are
+	// registered on gov's ModuleCdc
+	RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+
 	// Register external module pubproposal types. Ideally these would be registered within the modules' types pkg init function.
 	// However registration happens here as a work-around.
 	RegisterProposalTypeCodec(distrtypes.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal")
