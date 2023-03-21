@@ -208,7 +208,7 @@ func (s queryServer) queryRewards(
 	isAllRewards := rewardType == ""
 
 	if !rewardTypeIsValid(rewardType) {
-		return status.Errorf(codes.InvalidArgument, "invalid reward type: %s", rewardType)
+		return status.Errorf(codes.InvalidArgument, "invalid reward type for owner %s: %s", owner, rewardType)
 	}
 
 	if isAllRewards || rewardType == RewardTypeUSDXMinting {
