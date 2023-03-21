@@ -85,3 +85,9 @@ func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 		suite.T().SkipNow()
 	}
 }
+
+func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
+	if !suite.config.IncludeAutomatedUpgrade {
+		suite.T().SkipNow()
+	}
+}
