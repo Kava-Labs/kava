@@ -268,7 +268,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_Owner() {
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_RewardType() {
 	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{
-		RewardType:     "hard",
+		RewardType:     keeper.RewardTypeHard,
 		Unsynchronized: true,
 	})
 	suite.Require().NoError(err)
@@ -286,7 +286,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_RewardType() {
 func (suite *grpcQueryTestSuite) TestGrpcQueryRewards_RewardType_and_Owner() {
 	res, err := suite.queryClient.Rewards(sdk.WrapSDKContext(suite.ctx), &types.QueryRewardsRequest{
 		Owner:      suite.addrs[0].String(),
-		RewardType: "hard",
+		RewardType: keeper.RewardTypeHard,
 	})
 	suite.Require().NoError(err)
 
