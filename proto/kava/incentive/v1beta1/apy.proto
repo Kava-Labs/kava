@@ -1,0 +1,18 @@
+syntax = "proto3";
+package kava.incentive.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/kava-labs/kava/x/incentive/types";
+
+// Apy contains the calculated APY for a given collateral type at a specific
+// instant in time.
+message Apy {
+  string collateral_type = 1;
+  string apy = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
