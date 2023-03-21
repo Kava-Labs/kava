@@ -54,6 +54,10 @@ Kava protocol and client documentation can be found in the [Kava docs](https://d
 
 If you have technical questions or concerns, ask a developer or community member in the [Kava discord](https://discord.com/invite/kQzh3Uv).
 
+## Security
+
+If you find a security issue, please report it to security [at] kava.io. Depending on the verification and severity, a bug bounty may be available.
+
 ## License
 
 Copyright © Kava Labs, Inc. All rights reserved.
