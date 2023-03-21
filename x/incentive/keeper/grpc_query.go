@@ -332,7 +332,8 @@ func (s queryServer) synchronizeRewards(
 }
 
 func rewardTypeIsValid(rewardType string) bool {
-	return rewardType == RewardTypeHard ||
+	return rewardType == "" ||
+		rewardType == RewardTypeHard ||
 		rewardType == RewardTypeUSDXMinting ||
 		rewardType == RewardTypeDelegator ||
 		rewardType == RewardTypeSwap ||
