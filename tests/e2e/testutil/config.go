@@ -16,6 +16,9 @@ func init() {
 type SuiteConfig struct {
 	// A funded account used to fnd all other accounts.
 	FundedAccountMnemonic string
+	// The kava.configTemplate flag to be passed to kvtool, usually "master".
+	// This allows one to change the base genesis used to start the chain.
+	KavaConfigTemplate string
 	// Whether or not to start an IBC chain. Use `suite.SkipIfIbcDisabled()` in IBC tests in IBC tests.
 	IncludeIbcTests bool
 
@@ -37,6 +40,7 @@ func ParseSuiteConfig() SuiteConfig {
 		// this mnemonic is expected to be a funded account that can seed the funds for all
 		// new accounts created during tests. it will be available under Accounts["whale"]
 		FundedAccountMnemonic:   nonemptyStringEnv("E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC"),
+		KavaConfigTemplate:      nonemptyStringEnv("E2E_KVTOOL_KAVA_CONFIG_TEMPLATE"),
 		IncludeIbcTests:         mustParseBool("E2E_INCLUDE_IBC_TESTS"),
 		IncludeAutomatedUpgrade: mustParseBool("E2E_INCLUDE_AUTOMATED_UPGRADE"),
 	}

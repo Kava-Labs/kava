@@ -39,6 +39,8 @@ func (suite *E2eTestSuite) SetupSuite() {
 	suite.config = suiteConfig
 
 	runnerConfig := runner.Config{
+		KavaConfigTemplate: suiteConfig.KavaConfigTemplate,
+
 		IncludeIBC: suiteConfig.IncludeIbcTests,
 		ImageTag:   "local",
 

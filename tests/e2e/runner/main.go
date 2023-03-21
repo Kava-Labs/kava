@@ -12,6 +12,8 @@ import (
 )
 
 type Config struct {
+	KavaConfigTemplate string
+
 	ImageTag   string
 	IncludeIBC bool
 
@@ -50,7 +52,7 @@ func (k *KavaNodeRunner) StartChains() Chains {
 	}
 
 	log.Println("starting kava node")
-	kvtoolArgs := []string{"testnet", "bootstrap"}
+	kvtoolArgs := []string{"testnet", "bootstrap", "--kava.configTemplate", k.config.KavaConfigTemplate}
 	if k.config.IncludeIBC {
 		kvtoolArgs = append(kvtoolArgs, "--ibc")
 	}
