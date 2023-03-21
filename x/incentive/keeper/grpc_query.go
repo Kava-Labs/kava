@@ -12,6 +12,15 @@ import (
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 )
 
+const (
+	RewardTypeHard        = "hard"
+	RewardTypeUSDXMinting = "usdx_minting"
+	RewardTypeDelegator   = "delegator"
+	RewardTypeSwap        = "swap"
+	RewardTypeSavings     = "savings"
+	RewardTypeEarn        = "earn"
+)
+
 type queryServer struct {
 	keeper Keeper
 }
@@ -52,9 +61,10 @@ func (s queryServer) Rewards(
 
 	res := types.QueryRewardsResponse{}
 
-	var owner sdk.AccAddress
 	hasOwner := req.Owner != ""
-	if req.Owner != "" {
+
+	var owner sdk.AccAddress
+	if hasOwner {
 		addr, err := sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
 			return nil, status.Errorf(codes.InvalidArgument, "invalid address: %s", err)
@@ -201,7 +211,7 @@ func (s queryServer) queryRewards(
 		return status.Errorf(codes.InvalidArgument, "invalid reward type: %s", rewardType)
 	}
 
-	if isAllRewards || rewardType == "usdx_minting" {
+	if isAllRewards || rewardType == RewardTypeUSDXMinting {
 		if hasOwner {
 			usdxMintingClaim, foundUsdxMintingClaim := s.keeper.GetUSDXMintingClaim(ctx, owner)
 			if foundUsdxMintingClaim {
@@ -213,7 +223,7 @@ func (s queryServer) queryRewards(
 		}
 	}
 
-	if isAllRewards || rewardType == "hard" {
+	if isAllRewards || rewardType == RewardTypeHard {
 		if hasOwner {
 			hardClaim, foundHardClaim := s.keeper.GetHardLiquidityProviderClaim(ctx, owner)
 			if foundHardClaim {
@@ -225,7 +235,7 @@ func (s queryServer) queryRewards(
 		}
 	}
 
-	if isAllRewards || rewardType == "delegator" {
+	if isAllRewards || rewardType == RewardTypeDelegator {
 		if hasOwner {
 			delegatorClaim, foundDelegatorClaim := s.keeper.GetDelegatorClaim(ctx, owner)
 			if foundDelegatorClaim {
@@ -237,7 +247,7 @@ func (s queryServer) queryRewards(
 		}
 	}
 
-	if isAllRewards || rewardType == "swap" {
+	if isAllRewards || rewardType == RewardTypeSwap {
 		if hasOwner {
 			swapClaim, foundSwapClaim := s.keeper.GetSwapClaim(ctx, owner)
 			if foundSwapClaim {
@@ -249,7 +259,7 @@ func (s queryServer) queryRewards(
 		}
 	}
 
-	if isAllRewards || rewardType == "savings" {
+	if isAllRewards || rewardType == RewardTypeSavings {
 		if hasOwner {
 			savingsClaim, foundSavingsClaim := s.keeper.GetSavingsClaim(ctx, owner)
 			if foundSavingsClaim {
@@ -261,7 +271,7 @@ func (s queryServer) queryRewards(
 		}
 	}
 
-	if isAllRewards || rewardType == "earn" {
+	if isAllRewards || rewardType == RewardTypeEarn {
 		if hasOwner {
 			earnClaim, foundEarnClaim := s.keeper.GetEarnClaim(ctx, owner)
 			if foundEarnClaim {
@@ -322,10 +332,10 @@ func (s queryServer) synchronizeRewards(
 }
 
 func rewardTypeIsValid(rewardType string) bool {
-	return rewardType == "" ||
-		rewardType == "hard" ||
-		rewardType == "usdx_minting" ||
-		rewardType == "delegator" ||
-		rewardType == "swap" ||
-		rewardType == "earn"
+	return rewardType == RewardTypeHard ||
+		rewardType == RewardTypeUSDXMinting ||
+		rewardType == RewardTypeDelegator ||
+		rewardType == RewardTypeSwap ||
+		rewardType == RewardTypeSavings ||
+		rewardType == RewardTypeEarn
 }
