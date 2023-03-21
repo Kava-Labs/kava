@@ -41,6 +41,11 @@ func (suite *E2eTestSuite) SetupSuite() {
 	runnerConfig := runner.Config{
 		IncludeIBC: suiteConfig.IncludeIbcTests,
 		ImageTag:   "local",
+
+		EnableAutomatedUpgrade:  suiteConfig.IncludeAutomatedUpgrade,
+		KavaUpgradeName:         suiteConfig.KavaUpgradeName,
+		KavaUpgradeHeight:       suiteConfig.KavaUpgradeHeight,
+		KavaUpgradeBaseImageTag: suiteConfig.KavaUpgradeBaseImageTag,
 	}
 	suite.runner = runner.NewKavaNode(runnerConfig)
 

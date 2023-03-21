@@ -54,6 +54,13 @@ func (k *KavaNodeRunner) StartChains() Chains {
 	if k.config.IncludeIBC {
 		kvtoolArgs = append(kvtoolArgs, "--ibc")
 	}
+	if k.config.EnableAutomatedUpgrade {
+		kvtoolArgs = append(kvtoolArgs,
+			"--upgrade-name", k.config.KavaUpgradeName,
+			"--upgrade-height", fmt.Sprint(k.config.KavaUpgradeHeight),
+			"--upgrade-base-image-tag", k.config.KavaUpgradeBaseImageTag,
+		)
+	}
 	startKavaCmd := exec.Command("kvtool", kvtoolArgs...)
 	startKavaCmd.Stdout = os.Stdout
 	startKavaCmd.Stderr = os.Stderr
