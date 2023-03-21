@@ -14,6 +14,11 @@ import (
 type Config struct {
 	ImageTag   string
 	IncludeIBC bool
+
+	EnableAutomatedUpgrade  bool
+	KavaUpgradeName         string
+	KavaUpgradeHeight       int64
+	KavaUpgradeBaseImageTag string
 }
 
 // NodeRunner is responsible for starting and managing docker containers to run a node.
