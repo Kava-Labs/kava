@@ -5,9 +5,9 @@ and then runs tests against the running network. It is a git sub-repository in t
 present, you must initialize the subrepo: `git submodule update --init`.
 
 Steps to run
-1. Build a Kava docker image tagged `kava/kava:local`: `make build-docker`
-2. Ensure latest `kvtool` is installed: `make update-kvtool`
-3. Run the test suite: `make test-e2e`
+1. Ensure latest `kvtool` is installed: `make update-kvtool`
+2. Run the test suite: `make test-e2e`
+   This will build a docker image tagged `kava/kava:local` that will be run by kvtool.
 
 **Note:** The suite will use your locally installed `kvtool` if present. If not present, it will be
 installed. If the `kvtool` repo is updated, you must manually update your existing local binary: `make update-kvtool`
