@@ -64,8 +64,11 @@ func (k *KavaNodeRunner) StartChains() Chains {
 		)
 	}
 	startKavaCmd := exec.Command("kvtool", kvtoolArgs...)
+	startKavaCmd.Env = os.Environ()
+	startKavaCmd.Env = append(startKavaCmd.Env, fmt.Sprintf("KAVA_TAG=%s", k.config.ImageTag))
 	startKavaCmd.Stdout = os.Stdout
 	startKavaCmd.Stderr = os.Stderr
+	log.Println(startKavaCmd.String())
 	if err := startKavaCmd.Run(); err != nil {
 		panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
 	}
