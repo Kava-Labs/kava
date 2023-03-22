@@ -28,6 +28,8 @@ type E2eTestSuite struct {
 
 	Kava *Chain
 	Ibc  *Chain
+
+	UpgradeHeight int64
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
@@ -37,6 +39,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	suiteConfig := ParseSuiteConfig()
 	suite.config = suiteConfig
+	suite.UpgradeHeight = suiteConfig.KavaUpgradeHeight
 
 	runnerConfig := runner.Config{
 		KavaConfigTemplate: suiteConfig.KavaConfigTemplate,
