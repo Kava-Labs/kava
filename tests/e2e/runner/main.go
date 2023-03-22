@@ -21,6 +21,8 @@ type Config struct {
 	KavaUpgradeName         string
 	KavaUpgradeHeight       int64
 	KavaUpgradeBaseImageTag string
+
+	SkipShutdown bool
 }
 
 // NodeRunner is responsible for starting and managing docker containers to run a node.
@@ -91,6 +93,10 @@ func (k *KavaNodeRunner) StartChains() Chains {
 }
 
 func (k *KavaNodeRunner) Shutdown() {
+	if k.config.SkipShutdown {
+		log.Printf("would shut down but SkipShutdown is true")
+		return
+	}
 	log.Println("shutting down kava node")
 	shutdownKavaCmd := exec.Command("kvtool", "testnet", "down")
 	shutdownKavaCmd.Stdout = os.Stdout

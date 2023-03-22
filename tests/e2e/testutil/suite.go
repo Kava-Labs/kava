@@ -48,6 +48,8 @@ func (suite *E2eTestSuite) SetupSuite() {
 		KavaUpgradeName:         suiteConfig.KavaUpgradeName,
 		KavaUpgradeHeight:       suiteConfig.KavaUpgradeHeight,
 		KavaUpgradeBaseImageTag: suiteConfig.KavaUpgradeBaseImageTag,
+
+		SkipShutdown: suiteConfig.SkipShutdown,
 	}
 	suite.runner = runner.NewKavaNode(runnerConfig)
 
@@ -77,9 +79,7 @@ func (suite *E2eTestSuite) TearDownSuite() {
 		suite.Ibc.Shutdown()
 	}
 	// gracefully shutdown docker container(s)
-	if !suite.config.SkipShutdown {
-		suite.runner.Shutdown()
-	}
+	suite.runner.Shutdown()
 }
 
 func (suite *E2eTestSuite) SkipIfIbcDisabled() {
