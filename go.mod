@@ -1,6 +1,6 @@
 module github.com/kava-labs/kava
 
-go 1.18
+go 1.19
 
 require (
 	cosmossdk.io/math v1.0.0-beta.6.0.20230216172121-959ce49135e4
