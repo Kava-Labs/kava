@@ -18,6 +18,8 @@ import (
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/tests/e2e/runner"
 	"github.com/kava-labs/kava/tests/util"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
 )
 
 // Chain wraps query clients & accounts for a network
@@ -30,8 +32,11 @@ type Chain struct {
 	ChainId      string
 
 	EvmClient *ethclient.Client
+
 	Auth      authtypes.QueryClient
 	Bank      banktypes.QueryClient
+	Community communitytypes.QueryClient
+	Earn      earntypes.QueryClient
 	Tm        tmservice.ServiceClient
 	Tx        txtypes.ServiceClient
 }
@@ -61,6 +66,8 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 
 	chain.Auth = authtypes.NewQueryClient(grpcConn)
 	chain.Bank = banktypes.NewQueryClient(grpcConn)
+	chain.Community = communitytypes.NewQueryClient(grpcConn)
+	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
 
