@@ -10656,6 +10656,952 @@ paths:
           type: boolean
       tags:
         - Hard
+  /kava/incentive/v1beta1/apy:
+    get:
+      summary: Apy queries incentive reward apy for a reward.
+      operationId: IncentiveApy
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              earn:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    apy:
+                      type: string
+                  description: >-
+                    Apy contains the calculated APY for a given collateral type
+                    at a specific
+
+                    instant in time.
+            description: >-
+              QueryApysResponse is the response type for the Query/Apys RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Incentive
+  /kava/incentive/v1beta1/params:
+    get:
+      summary: Params queries module params.
+      operationId: IncentiveParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  usdx_minting_reward_periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        active:
+                          type: boolean
+                        collateral_type:
+                          type: string
+                        start:
+                          type: string
+                          format: date-time
+                        end:
+                          type: string
+                          format: date-time
+                        rewards_per_second:
+                          type: object
+                          properties:
+                            denom:
+                              type: string
+                            amount:
+                              type: string
+                          description: >-
+                            Coin defines a token with a denomination and an
+                            amount.
+
+
+                            NOTE: The amount field is an Int which implements
+                            the custom method
+
+                            signatures required by gogoproto.
+                      title: RewardPeriod stores the state of an ongoing reward
+                  hard_supply_reward_periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        active:
+                          type: boolean
+                        collateral_type:
+                          type: string
+                        start:
+                          type: string
+                          format: date-time
+                        end:
+                          type: string
+                          format: date-time
+                        rewards_per_second:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: MultiRewardPeriod supports multiple reward types
+                  hard_borrow_reward_periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        active:
+                          type: boolean
+                        collateral_type:
+                          type: string
+                        start:
+                          type: string
+                          format: date-time
+                        end:
+                          type: string
+                          format: date-time
+                        rewards_per_second:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: MultiRewardPeriod supports multiple reward types
+                  delegator_reward_periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        active:
+                          type: boolean
+                        collateral_type:
+                          type: string
+                        start:
+                          type: string
+                          format: date-time
+                        end:
+                          type: string
+                          format: date-time
+                        rewards_per_second:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: MultiRewardPeriod supports multiple reward types
+                  swap_reward_periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        active:
+                          type: boolean
+                        collateral_type:
+                          type: string
+                        start:
+                          type: string
+                          format: date-time
+                        end:
+                          type: string
+                          format: date-time
+                        rewards_per_second:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: MultiRewardPeriod supports multiple reward types
+                  claim_multipliers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        multipliers:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              months_lockup:
+                                type: string
+                                format: int64
+                              factor:
+                                type: string
+                                format: byte
+                            title: >-
+                              Multiplier amount the claim rewards get increased
+                              by, along with how long the claim rewards are
+                              locked
+                      title: >-
+                        MultipliersPerDenom is a map of denoms to a set of
+                        multipliers
+                  claim_end:
+                    type: string
+                    format: date-time
+                  savings_reward_periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        active:
+                          type: boolean
+                        collateral_type:
+                          type: string
+                        start:
+                          type: string
+                          format: date-time
+                        end:
+                          type: string
+                          format: date-time
+                        rewards_per_second:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: MultiRewardPeriod supports multiple reward types
+                  earn_reward_periods:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        active:
+                          type: boolean
+                        collateral_type:
+                          type: string
+                        start:
+                          type: string
+                          format: date-time
+                        end:
+                          type: string
+                          format: date-time
+                        rewards_per_second:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: MultiRewardPeriod supports multiple reward types
+                title: Params
+            description: >-
+              QueryParamsResponse is the response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Incentive
+  /kava/incentive/v1beta1/reward_factors:
+    get:
+      summary: Rewards queries the reward factors.
+      operationId: IncentiveRewardFactors
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              usdx_minting_reward_factors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    reward_factor:
+                      type: string
+                      format: byte
+                  title: RewardIndex stores reward accumulation information
+              hard_supply_reward_factors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_factor:
+                            type: string
+                            format: byte
+                        title: RewardIndex stores reward accumulation information
+                  title: >-
+                    MultiRewardIndex stores reward accumulation information on
+                    multiple reward types
+              hard_borrow_reward_factors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_factor:
+                            type: string
+                            format: byte
+                        title: RewardIndex stores reward accumulation information
+                  title: >-
+                    MultiRewardIndex stores reward accumulation information on
+                    multiple reward types
+              delegator_reward_factors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_factor:
+                            type: string
+                            format: byte
+                        title: RewardIndex stores reward accumulation information
+                  title: >-
+                    MultiRewardIndex stores reward accumulation information on
+                    multiple reward types
+              swap_reward_factors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_factor:
+                            type: string
+                            format: byte
+                        title: RewardIndex stores reward accumulation information
+                  title: >-
+                    MultiRewardIndex stores reward accumulation information on
+                    multiple reward types
+              savings_reward_factors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_factor:
+                            type: string
+                            format: byte
+                        title: RewardIndex stores reward accumulation information
+                  title: >-
+                    MultiRewardIndex stores reward accumulation information on
+                    multiple reward types
+              earn_reward_factors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    collateral_type:
+                      type: string
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_factor:
+                            type: string
+                            format: byte
+                        title: RewardIndex stores reward accumulation information
+                  title: >-
+                    MultiRewardIndex stores reward accumulation information on
+                    multiple reward types
+            description: >-
+              QueryRewardFactorsResponse is the response type for the
+              Query/RewardFactors RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Incentive
+  /kava/incentive/v1beta1/rewards:
+    get:
+      summary: Rewards queries reward information for a given user.
+      operationId: IncentiveRewards
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              usdx_minting_claims:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    base_claim:
+                      type: object
+                      properties:
+                        owner:
+                          type: string
+                          format: byte
+                        reward:
+                          type: object
+                          properties:
+                            denom:
+                              type: string
+                            amount:
+                              type: string
+                          description: >-
+                            Coin defines a token with a denomination and an
+                            amount.
+
+
+                            NOTE: The amount field is an Int which implements
+                            the custom method
+
+                            signatures required by gogoproto.
+                      title: BaseClaim is a claim with a single reward coin types
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_factor:
+                            type: string
+                            format: byte
+                        title: RewardIndex stores reward accumulation information
+                  title: USDXMintingClaim is for USDX minting rewards
+              hard_liquidity_provider_claims:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    base_claim:
+                      type: object
+                      properties:
+                        owner:
+                          type: string
+                          format: byte
+                        reward:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: >-
+                        BaseMultiClaim is a claim with multiple reward coin
+                        types
+                    supply_reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_indexes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                collateral_type:
+                                  type: string
+                                reward_factor:
+                                  type: string
+                                  format: byte
+                              title: >-
+                                RewardIndex stores reward accumulation
+                                information
+                        title: >-
+                          MultiRewardIndex stores reward accumulation
+                          information on multiple reward types
+                    borrow_reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_indexes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                collateral_type:
+                                  type: string
+                                reward_factor:
+                                  type: string
+                                  format: byte
+                              title: >-
+                                RewardIndex stores reward accumulation
+                                information
+                        title: >-
+                          MultiRewardIndex stores reward accumulation
+                          information on multiple reward types
+                  title: >-
+                    HardLiquidityProviderClaim stores the hard liquidity
+                    provider rewards that can be claimed by owner
+              delegator_claims:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    base_claim:
+                      type: object
+                      properties:
+                        owner:
+                          type: string
+                          format: byte
+                        reward:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: >-
+                        BaseMultiClaim is a claim with multiple reward coin
+                        types
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_indexes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                collateral_type:
+                                  type: string
+                                reward_factor:
+                                  type: string
+                                  format: byte
+                              title: >-
+                                RewardIndex stores reward accumulation
+                                information
+                        title: >-
+                          MultiRewardIndex stores reward accumulation
+                          information on multiple reward types
+                  title: >-
+                    DelegatorClaim stores delegation rewards that can be claimed
+                    by owner
+              swap_claims:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    base_claim:
+                      type: object
+                      properties:
+                        owner:
+                          type: string
+                          format: byte
+                        reward:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: >-
+                        BaseMultiClaim is a claim with multiple reward coin
+                        types
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_indexes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                collateral_type:
+                                  type: string
+                                reward_factor:
+                                  type: string
+                                  format: byte
+                              title: >-
+                                RewardIndex stores reward accumulation
+                                information
+                        title: >-
+                          MultiRewardIndex stores reward accumulation
+                          information on multiple reward types
+                  title: >-
+                    SwapClaim stores the swap rewards that can be claimed by
+                    owner
+              savings_claims:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    base_claim:
+                      type: object
+                      properties:
+                        owner:
+                          type: string
+                          format: byte
+                        reward:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: >-
+                        BaseMultiClaim is a claim with multiple reward coin
+                        types
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_indexes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                collateral_type:
+                                  type: string
+                                reward_factor:
+                                  type: string
+                                  format: byte
+                              title: >-
+                                RewardIndex stores reward accumulation
+                                information
+                        title: >-
+                          MultiRewardIndex stores reward accumulation
+                          information on multiple reward types
+                  title: >-
+                    SavingsClaim stores the savings rewards that can be claimed
+                    by owner
+              earn_claims:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    base_claim:
+                      type: object
+                      properties:
+                        owner:
+                          type: string
+                          format: byte
+                        reward:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              denom:
+                                type: string
+                              amount:
+                                type: string
+                            description: >-
+                              Coin defines a token with a denomination and an
+                              amount.
+
+
+                              NOTE: The amount field is an Int which implements
+                              the custom method
+
+                              signatures required by gogoproto.
+                      title: >-
+                        BaseMultiClaim is a claim with multiple reward coin
+                        types
+                    reward_indexes:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          collateral_type:
+                            type: string
+                          reward_indexes:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                collateral_type:
+                                  type: string
+                                reward_factor:
+                                  type: string
+                                  format: byte
+                              title: >-
+                                RewardIndex stores reward accumulation
+                                information
+                        title: >-
+                          MultiRewardIndex stores reward accumulation
+                          information on multiple reward types
+                  title: >-
+                    EarnClaim stores the earn rewards that can be claimed by
+                    owner
+            description: >-
+              QueryRewardsResponse is the response type for the Query/Rewards
+              RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: owner
+          description: owner is the address of the user to query rewards for.
+          in: query
+          required: false
+          type: string
+        - name: reward_type
+          description: >-
+            reward_type is the type of reward to query rewards for, e.g. hard,
+            earn,
+
+            swap.
+          in: query
+          required: false
+          type: string
+        - name: unsynchronized
+          description: >-
+            unsynchronized is a flag to query rewards that are not simulated for
+            reward
+
+            synchronized for the current block.
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Incentive
   /kava/issuance/v1beta1/params:
     get:
       summary: Params queries all parameters of the issuance module.
@@ -56606,6 +57552,1489 @@ definitions:
         type: string
         title: sdk.Dec as string
     description: SupplyInterestFactorResponse defines an individual borrow interest factor.
+  kava.incentive.v1beta1.Apy:
+    type: object
+    properties:
+      collateral_type:
+        type: string
+      apy:
+        type: string
+    description: |-
+      Apy contains the calculated APY for a given collateral type at a specific
+      instant in time.
+  kava.incentive.v1beta1.BaseClaim:
+    type: object
+    properties:
+      owner:
+        type: string
+        format: byte
+      reward:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+    title: BaseClaim is a claim with a single reward coin types
+  kava.incentive.v1beta1.BaseMultiClaim:
+    type: object
+    properties:
+      owner:
+        type: string
+        format: byte
+      reward:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+    title: BaseMultiClaim is a claim with multiple reward coin types
+  kava.incentive.v1beta1.DelegatorClaim:
+    type: object
+    properties:
+      base_claim:
+        type: object
+        properties:
+          owner:
+            type: string
+            format: byte
+          reward:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+        title: BaseMultiClaim is a claim with multiple reward coin types
+      reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+    title: DelegatorClaim stores delegation rewards that can be claimed by owner
+  kava.incentive.v1beta1.EarnClaim:
+    type: object
+    properties:
+      base_claim:
+        type: object
+        properties:
+          owner:
+            type: string
+            format: byte
+          reward:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+        title: BaseMultiClaim is a claim with multiple reward coin types
+      reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+    title: EarnClaim stores the earn rewards that can be claimed by owner
+  kava.incentive.v1beta1.HardLiquidityProviderClaim:
+    type: object
+    properties:
+      base_claim:
+        type: object
+        properties:
+          owner:
+            type: string
+            format: byte
+          reward:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+        title: BaseMultiClaim is a claim with multiple reward coin types
+      supply_reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+      borrow_reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+    title: >-
+      HardLiquidityProviderClaim stores the hard liquidity provider rewards that
+      can be claimed by owner
+  kava.incentive.v1beta1.MultiRewardIndex:
+    type: object
+    properties:
+      collateral_type:
+        type: string
+      reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_factor:
+              type: string
+              format: byte
+          title: RewardIndex stores reward accumulation information
+    title: >-
+      MultiRewardIndex stores reward accumulation information on multiple reward
+      types
+  kava.incentive.v1beta1.MultiRewardPeriod:
+    type: object
+    properties:
+      active:
+        type: boolean
+      collateral_type:
+        type: string
+      start:
+        type: string
+        format: date-time
+      end:
+        type: string
+        format: date-time
+      rewards_per_second:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+    title: MultiRewardPeriod supports multiple reward types
+  kava.incentive.v1beta1.Multiplier:
+    type: object
+    properties:
+      name:
+        type: string
+      months_lockup:
+        type: string
+        format: int64
+      factor:
+        type: string
+        format: byte
+    title: >-
+      Multiplier amount the claim rewards get increased by, along with how long
+      the claim rewards are locked
+  kava.incentive.v1beta1.MultipliersPerDenom:
+    type: object
+    properties:
+      denom:
+        type: string
+      multipliers:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            months_lockup:
+              type: string
+              format: int64
+            factor:
+              type: string
+              format: byte
+          title: >-
+            Multiplier amount the claim rewards get increased by, along with how
+            long the claim rewards are locked
+    title: MultipliersPerDenom is a map of denoms to a set of multipliers
+  kava.incentive.v1beta1.Params:
+    type: object
+    properties:
+      usdx_minting_reward_periods:
+        type: array
+        items:
+          type: object
+          properties:
+            active:
+              type: boolean
+            collateral_type:
+              type: string
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            rewards_per_second:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+          title: RewardPeriod stores the state of an ongoing reward
+      hard_supply_reward_periods:
+        type: array
+        items:
+          type: object
+          properties:
+            active:
+              type: boolean
+            collateral_type:
+              type: string
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            rewards_per_second:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+          title: MultiRewardPeriod supports multiple reward types
+      hard_borrow_reward_periods:
+        type: array
+        items:
+          type: object
+          properties:
+            active:
+              type: boolean
+            collateral_type:
+              type: string
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            rewards_per_second:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+          title: MultiRewardPeriod supports multiple reward types
+      delegator_reward_periods:
+        type: array
+        items:
+          type: object
+          properties:
+            active:
+              type: boolean
+            collateral_type:
+              type: string
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            rewards_per_second:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+          title: MultiRewardPeriod supports multiple reward types
+      swap_reward_periods:
+        type: array
+        items:
+          type: object
+          properties:
+            active:
+              type: boolean
+            collateral_type:
+              type: string
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            rewards_per_second:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+          title: MultiRewardPeriod supports multiple reward types
+      claim_multipliers:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            multipliers:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  months_lockup:
+                    type: string
+                    format: int64
+                  factor:
+                    type: string
+                    format: byte
+                title: >-
+                  Multiplier amount the claim rewards get increased by, along
+                  with how long the claim rewards are locked
+          title: MultipliersPerDenom is a map of denoms to a set of multipliers
+      claim_end:
+        type: string
+        format: date-time
+      savings_reward_periods:
+        type: array
+        items:
+          type: object
+          properties:
+            active:
+              type: boolean
+            collateral_type:
+              type: string
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            rewards_per_second:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+          title: MultiRewardPeriod supports multiple reward types
+      earn_reward_periods:
+        type: array
+        items:
+          type: object
+          properties:
+            active:
+              type: boolean
+            collateral_type:
+              type: string
+            start:
+              type: string
+              format: date-time
+            end:
+              type: string
+              format: date-time
+            rewards_per_second:
+              type: array
+              items:
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+                description: >-
+                  Coin defines a token with a denomination and an amount.
+
+
+                  NOTE: The amount field is an Int which implements the custom
+                  method
+
+                  signatures required by gogoproto.
+          title: MultiRewardPeriod supports multiple reward types
+    title: Params
+  kava.incentive.v1beta1.QueryApyResponse:
+    type: object
+    properties:
+      earn:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            apy:
+              type: string
+          description: >-
+            Apy contains the calculated APY for a given collateral type at a
+            specific
+
+            instant in time.
+    description: QueryApysResponse is the response type for the Query/Apys RPC method.
+  kava.incentive.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          usdx_minting_reward_periods:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                collateral_type:
+                  type: string
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                rewards_per_second:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+              title: RewardPeriod stores the state of an ongoing reward
+          hard_supply_reward_periods:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                collateral_type:
+                  type: string
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                rewards_per_second:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: MultiRewardPeriod supports multiple reward types
+          hard_borrow_reward_periods:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                collateral_type:
+                  type: string
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                rewards_per_second:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: MultiRewardPeriod supports multiple reward types
+          delegator_reward_periods:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                collateral_type:
+                  type: string
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                rewards_per_second:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: MultiRewardPeriod supports multiple reward types
+          swap_reward_periods:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                collateral_type:
+                  type: string
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                rewards_per_second:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: MultiRewardPeriod supports multiple reward types
+          claim_multipliers:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                multipliers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      months_lockup:
+                        type: string
+                        format: int64
+                      factor:
+                        type: string
+                        format: byte
+                    title: >-
+                      Multiplier amount the claim rewards get increased by,
+                      along with how long the claim rewards are locked
+              title: MultipliersPerDenom is a map of denoms to a set of multipliers
+          claim_end:
+            type: string
+            format: date-time
+          savings_reward_periods:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                collateral_type:
+                  type: string
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                rewards_per_second:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: MultiRewardPeriod supports multiple reward types
+          earn_reward_periods:
+            type: array
+            items:
+              type: object
+              properties:
+                active:
+                  type: boolean
+                collateral_type:
+                  type: string
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+                rewards_per_second:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: MultiRewardPeriod supports multiple reward types
+        title: Params
+    description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  kava.incentive.v1beta1.QueryRewardFactorsResponse:
+    type: object
+    properties:
+      usdx_minting_reward_factors:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_factor:
+              type: string
+              format: byte
+          title: RewardIndex stores reward accumulation information
+      hard_supply_reward_factors:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+      hard_borrow_reward_factors:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+      delegator_reward_factors:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+      swap_reward_factors:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+      savings_reward_factors:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+      earn_reward_factors:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+    description: >-
+      QueryRewardFactorsResponse is the response type for the
+      Query/RewardFactors RPC method.
+  kava.incentive.v1beta1.QueryRewardsResponse:
+    type: object
+    properties:
+      usdx_minting_claims:
+        type: array
+        items:
+          type: object
+          properties:
+            base_claim:
+              type: object
+              properties:
+                owner:
+                  type: string
+                  format: byte
+                reward:
+                  type: object
+                  properties:
+                    denom:
+                      type: string
+                    amount:
+                      type: string
+                  description: >-
+                    Coin defines a token with a denomination and an amount.
+
+
+                    NOTE: The amount field is an Int which implements the custom
+                    method
+
+                    signatures required by gogoproto.
+              title: BaseClaim is a claim with a single reward coin types
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: USDXMintingClaim is for USDX minting rewards
+      hard_liquidity_provider_claims:
+        type: array
+        items:
+          type: object
+          properties:
+            base_claim:
+              type: object
+              properties:
+                owner:
+                  type: string
+                  format: byte
+                reward:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: BaseMultiClaim is a claim with multiple reward coin types
+            supply_reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_indexes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        collateral_type:
+                          type: string
+                        reward_factor:
+                          type: string
+                          format: byte
+                      title: RewardIndex stores reward accumulation information
+                title: >-
+                  MultiRewardIndex stores reward accumulation information on
+                  multiple reward types
+            borrow_reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_indexes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        collateral_type:
+                          type: string
+                        reward_factor:
+                          type: string
+                          format: byte
+                      title: RewardIndex stores reward accumulation information
+                title: >-
+                  MultiRewardIndex stores reward accumulation information on
+                  multiple reward types
+          title: >-
+            HardLiquidityProviderClaim stores the hard liquidity provider
+            rewards that can be claimed by owner
+      delegator_claims:
+        type: array
+        items:
+          type: object
+          properties:
+            base_claim:
+              type: object
+              properties:
+                owner:
+                  type: string
+                  format: byte
+                reward:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: BaseMultiClaim is a claim with multiple reward coin types
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_indexes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        collateral_type:
+                          type: string
+                        reward_factor:
+                          type: string
+                          format: byte
+                      title: RewardIndex stores reward accumulation information
+                title: >-
+                  MultiRewardIndex stores reward accumulation information on
+                  multiple reward types
+          title: >-
+            DelegatorClaim stores delegation rewards that can be claimed by
+            owner
+      swap_claims:
+        type: array
+        items:
+          type: object
+          properties:
+            base_claim:
+              type: object
+              properties:
+                owner:
+                  type: string
+                  format: byte
+                reward:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: BaseMultiClaim is a claim with multiple reward coin types
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_indexes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        collateral_type:
+                          type: string
+                        reward_factor:
+                          type: string
+                          format: byte
+                      title: RewardIndex stores reward accumulation information
+                title: >-
+                  MultiRewardIndex stores reward accumulation information on
+                  multiple reward types
+          title: SwapClaim stores the swap rewards that can be claimed by owner
+      savings_claims:
+        type: array
+        items:
+          type: object
+          properties:
+            base_claim:
+              type: object
+              properties:
+                owner:
+                  type: string
+                  format: byte
+                reward:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: BaseMultiClaim is a claim with multiple reward coin types
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_indexes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        collateral_type:
+                          type: string
+                        reward_factor:
+                          type: string
+                          format: byte
+                      title: RewardIndex stores reward accumulation information
+                title: >-
+                  MultiRewardIndex stores reward accumulation information on
+                  multiple reward types
+          title: SavingsClaim stores the savings rewards that can be claimed by owner
+      earn_claims:
+        type: array
+        items:
+          type: object
+          properties:
+            base_claim:
+              type: object
+              properties:
+                owner:
+                  type: string
+                  format: byte
+                reward:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      denom:
+                        type: string
+                      amount:
+                        type: string
+                    description: >-
+                      Coin defines a token with a denomination and an amount.
+
+
+                      NOTE: The amount field is an Int which implements the
+                      custom method
+
+                      signatures required by gogoproto.
+              title: BaseMultiClaim is a claim with multiple reward coin types
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_indexes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        collateral_type:
+                          type: string
+                        reward_factor:
+                          type: string
+                          format: byte
+                      title: RewardIndex stores reward accumulation information
+                title: >-
+                  MultiRewardIndex stores reward accumulation information on
+                  multiple reward types
+          title: EarnClaim stores the earn rewards that can be claimed by owner
+    description: >-
+      QueryRewardsResponse is the response type for the Query/Rewards RPC
+      method.
+  kava.incentive.v1beta1.RewardIndex:
+    type: object
+    properties:
+      collateral_type:
+        type: string
+      reward_factor:
+        type: string
+        format: byte
+    title: RewardIndex stores reward accumulation information
+  kava.incentive.v1beta1.RewardPeriod:
+    type: object
+    properties:
+      active:
+        type: boolean
+      collateral_type:
+        type: string
+      start:
+        type: string
+        format: date-time
+      end:
+        type: string
+        format: date-time
+      rewards_per_second:
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+        description: |-
+          Coin defines a token with a denomination and an amount.
+
+          NOTE: The amount field is an Int which implements the custom method
+          signatures required by gogoproto.
+    title: RewardPeriod stores the state of an ongoing reward
+  kava.incentive.v1beta1.SavingsClaim:
+    type: object
+    properties:
+      base_claim:
+        type: object
+        properties:
+          owner:
+            type: string
+            format: byte
+          reward:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+        title: BaseMultiClaim is a claim with multiple reward coin types
+      reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+    title: SavingsClaim stores the savings rewards that can be claimed by owner
+  kava.incentive.v1beta1.SwapClaim:
+    type: object
+    properties:
+      base_claim:
+        type: object
+        properties:
+          owner:
+            type: string
+            format: byte
+          reward:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+        title: BaseMultiClaim is a claim with multiple reward coin types
+      reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_indexes:
+              type: array
+              items:
+                type: object
+                properties:
+                  collateral_type:
+                    type: string
+                  reward_factor:
+                    type: string
+                    format: byte
+                title: RewardIndex stores reward accumulation information
+          title: >-
+            MultiRewardIndex stores reward accumulation information on multiple
+            reward types
+    title: SwapClaim stores the swap rewards that can be claimed by owner
+  kava.incentive.v1beta1.USDXMintingClaim:
+    type: object
+    properties:
+      base_claim:
+        type: object
+        properties:
+          owner:
+            type: string
+            format: byte
+          reward:
+            type: object
+            properties:
+              denom:
+                type: string
+              amount:
+                type: string
+            description: >-
+              Coin defines a token with a denomination and an amount.
+
+
+              NOTE: The amount field is an Int which implements the custom
+              method
+
+              signatures required by gogoproto.
+        title: BaseClaim is a claim with a single reward coin types
+      reward_indexes:
+        type: array
+        items:
+          type: object
+          properties:
+            collateral_type:
+              type: string
+            reward_factor:
+              type: string
+              format: byte
+          title: RewardIndex stores reward accumulation information
+    title: USDXMintingClaim is for USDX minting rewards
   kava.issuance.v1beta1.Asset:
     type: object
     properties:
