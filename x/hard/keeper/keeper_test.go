@@ -71,10 +71,48 @@ func (suite *KeeperTestSuite) TestIterateDeposits() {
 	}
 	var deposits []types.Deposit
 	suite.keeper.IterateDeposits(suite.ctx, func(d types.Deposit) bool {
-		deposits = append(deposits, d)
+
+func (suite *KeeperTestSuite) TestGetSetDeleteBorrow() {
+	addr := suite.addrs[0]
+
+	borrow := types.NewBorrow(
+		addr,
+		sdk.NewCoins(sdk.NewInt64Coin("bnb", 1e9)),
+		types.BorrowInterestFactors{types.NewBorrowInterestFactor("bnb", sdk.MustNewDecFromStr("1.12"))},
+	)
+
+	_, f := suite.keeper.GetBorrow(suite.ctx, addr)
+	suite.Require().False(f)
+
+	suite.keeper.SetBorrow(suite.ctx, borrow)
+
+	storedBorrow, f := suite.keeper.GetBorrow(suite.ctx, addr)
+	suite.Require().True(f)
+	suite.Require().Equal(borrow, storedBorrow)
+
+	suite.Require().NotPanics(func() { suite.keeper.DeleteBorrow(suite.ctx, borrow) })
+
+	_, f = suite.keeper.GetBorrow(suite.ctx, addr)
+	suite.Require().False(f)
+}
+
+func (suite *KeeperTestSuite) TestIterateBorrows() {
+	var borrows types.Borrows
+	for i := 0; i < 5; i++ {
+		borrow := types.NewBorrow(
+			sdk.AccAddress("test"+fmt.Sprint(i)),
+			sdk.NewCoins(sdk.NewInt64Coin("bnb", 1e9)),
+			types.BorrowInterestFactors{types.NewBorrowInterestFactor("bnb", sdk.MustNewDecFromStr("1.12"))},
+		)
+		borrows = append(borrows, borrow)
+		suite.keeper.SetBorrow(suite.ctx, borrow)
+	}
+	var storedBorrows types.Borrows
+	suite.keeper.IterateBorrows(suite.ctx, func(b types.Borrow) bool {
+		storedBorrows = append(storedBorrows, b)
 		return false
 	})
-	suite.Require().Equal(5, len(deposits))
+	suite.Require().Equal(borrows, storedBorrows)
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteInterestRateModel() {
