@@ -456,6 +456,20 @@ func (tApp TestApp) CreateNewUnbondedValidator(ctx sdk.Context, valAddress sdk.V
 	return err
 }
 
+func (tApp TestApp) SetInflation(ctx sdk.Context, value sdk.Dec) {
+	mk := tApp.GetMintKeeper()
+
+	mintParams := mk.GetParams(ctx)
+	mintParams.InflationMax = sdk.ZeroDec()
+	mintParams.InflationMin = sdk.ZeroDec()
+
+	if err := mintParams.Validate(); err != nil {
+		panic(err)
+	}
+
+	mk.SetParams(ctx, mintParams)
+}
+
 // GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
 func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
