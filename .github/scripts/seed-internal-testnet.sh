@@ -14,6 +14,7 @@ kava config broadcast-mode block
 # setup dev wallet
 echo "${DEV_WALLET_MNEMONIC}" | kava keys add --recover dev-wallet
 DEV_TEST_WALLET_ADDRESS="0x7E08fa61f22f1A40B4617b887eD24b85CDaf33c2"
+WEBAPP_E2E_WHALE_ADDRESS="0x0252284098b19036F81bd22851f8699042fafac2"
 
 # setup kava ethereum compatible account for deploying
 # erc20 contracts to the kava chain
@@ -67,6 +68,12 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wBTC_CONTRAC
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$USD_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 100000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXLUSD_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 100000000000
+
+# seed webapp E2E whale account 
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wBTC_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 100000000000000
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$USD_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 1000000000000
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000000000000
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXLUSD_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000
 
 # give dev-wallet enough delegation power to pass proposals by itself
 # enumerate all genesis validators
