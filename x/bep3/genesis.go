@@ -56,7 +56,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, accountKeeper types.Acco
 		// Atomic swap assets must be both supported and active
 		err := keeper.ValidateLiveAsset(ctx, swap.Amount[0])
 		if err != nil {
-			panic(err)
+			panic(fmt.Sprintf("swap has invalid asset: %s", err))
 		}
 
 		keeper.SetAtomicSwap(ctx, swap)
@@ -110,7 +110,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, accountKeeper types.Acco
 		}
 		limit, err := keeper.GetSupplyLimit(ctx, supply.GetDenom())
 		if err != nil {
-			panic(err)
+			panic(fmt.Sprintf("asset's supply limit not found: %s", err))
 		}
 		if supply.CurrentSupply.Amount.GT(limit.Limit) {
 			panic(fmt.Sprintf("asset's current supply %s is over the supply limit %s", supply.CurrentSupply, limit.Limit))
