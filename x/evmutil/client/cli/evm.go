@@ -33,7 +33,11 @@ func CanSignEthTx(ctx client.Context) error {
 	}
 
 	if pubKey.Type() != string(hd.EthSecp256k1Type) {
-		return fmt.Errorf("from address does not support %v", hd.EthSecp256k1Type)
+		return fmt.Errorf(
+			"invalid from address pubkey type, expected %s but got %s",
+			hd.EthSecp256k1Type,
+			pubKey.Type(),
+		)
 	}
 
 	return nil
