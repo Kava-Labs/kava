@@ -322,6 +322,9 @@
   
     - [Msg](#kava.hard.v1beta1.Msg)
   
+- [kava/incentive/v1beta1/apy.proto](#kava/incentive/v1beta1/apy.proto)
+    - [Apy](#kava.incentive.v1beta1.Apy)
+  
 - [kava/incentive/v1beta1/claims.proto](#kava/incentive/v1beta1/claims.proto)
     - [BaseClaim](#kava.incentive.v1beta1.BaseClaim)
     - [BaseMultiClaim](#kava.incentive.v1beta1.BaseMultiClaim)
@@ -347,6 +350,18 @@
     - [AccumulationTime](#kava.incentive.v1beta1.AccumulationTime)
     - [GenesisRewardState](#kava.incentive.v1beta1.GenesisRewardState)
     - [GenesisState](#kava.incentive.v1beta1.GenesisState)
+  
+- [kava/incentive/v1beta1/query.proto](#kava/incentive/v1beta1/query.proto)
+    - [QueryApyRequest](#kava.incentive.v1beta1.QueryApyRequest)
+    - [QueryApyResponse](#kava.incentive.v1beta1.QueryApyResponse)
+    - [QueryParamsRequest](#kava.incentive.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.incentive.v1beta1.QueryParamsResponse)
+    - [QueryRewardFactorsRequest](#kava.incentive.v1beta1.QueryRewardFactorsRequest)
+    - [QueryRewardFactorsResponse](#kava.incentive.v1beta1.QueryRewardFactorsResponse)
+    - [QueryRewardsRequest](#kava.incentive.v1beta1.QueryRewardsRequest)
+    - [QueryRewardsResponse](#kava.incentive.v1beta1.QueryRewardsResponse)
+  
+    - [Query](#kava.incentive.v1beta1.Query)
   
 - [kava/incentive/v1beta1/tx.proto](#kava/incentive/v1beta1/tx.proto)
     - [MsgClaimDelegatorReward](#kava.incentive.v1beta1.MsgClaimDelegatorReward)
@@ -4617,6 +4632,39 @@ Msg defines the hard Msg service.
 
 
 
+<a name="kava/incentive/v1beta1/apy.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/apy.proto
+
+
+
+<a name="kava.incentive.v1beta1.Apy"></a>
+
+### Apy
+Apy contains the calculated APY for a given collateral type at a specific
+instant in time.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `collateral_type` | [string](#string) |  |  |
+| `apy` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/incentive/v1beta1/claims.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -5005,6 +5053,153 @@ GenesisState is the state that must be provided at genesis.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/incentive/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/incentive/v1beta1/query.proto
+
+
+
+<a name="kava.incentive.v1beta1.QueryApyRequest"></a>
+
+### QueryApyRequest
+QueryApysRequest is the request type for the Query/Apys RPC method.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.QueryApyResponse"></a>
+
+### QueryApyResponse
+QueryApysResponse is the response type for the Query/Apys RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `earn` | [Apy](#kava.incentive.v1beta1.Apy) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParamsRequest is the request type for the Query/Params RPC method.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse is the response type for the Query/Params RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.incentive.v1beta1.Params) |  |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.QueryRewardFactorsRequest"></a>
+
+### QueryRewardFactorsRequest
+QueryRewardFactorsRequest is the request type for the Query/RewardFactors RPC method.
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.QueryRewardFactorsResponse"></a>
+
+### QueryRewardFactorsResponse
+QueryRewardFactorsResponse is the response type for the Query/RewardFactors RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `usdx_minting_reward_factors` | [RewardIndex](#kava.incentive.v1beta1.RewardIndex) | repeated |  |
+| `hard_supply_reward_factors` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+| `hard_borrow_reward_factors` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+| `delegator_reward_factors` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+| `swap_reward_factors` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+| `savings_reward_factors` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+| `earn_reward_factors` | [MultiRewardIndex](#kava.incentive.v1beta1.MultiRewardIndex) | repeated |  |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.QueryRewardsRequest"></a>
+
+### QueryRewardsRequest
+QueryRewardsRequest is the request type for the Query/Rewards RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `owner` | [string](#string) |  | owner is the address of the user to query rewards for. |
+| `reward_type` | [string](#string) |  | reward_type is the type of reward to query rewards for, e.g. hard, earn, swap. |
+| `unsynchronized` | [bool](#bool) |  | unsynchronized is a flag to query rewards that are not simulated for reward synchronized for the current block. |
+
+
+
+
+
+
+<a name="kava.incentive.v1beta1.QueryRewardsResponse"></a>
+
+### QueryRewardsResponse
+QueryRewardsResponse is the response type for the Query/Rewards RPC method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `usdx_minting_claims` | [USDXMintingClaim](#kava.incentive.v1beta1.USDXMintingClaim) | repeated |  |
+| `hard_liquidity_provider_claims` | [HardLiquidityProviderClaim](#kava.incentive.v1beta1.HardLiquidityProviderClaim) | repeated |  |
+| `delegator_claims` | [DelegatorClaim](#kava.incentive.v1beta1.DelegatorClaim) | repeated |  |
+| `swap_claims` | [SwapClaim](#kava.incentive.v1beta1.SwapClaim) | repeated |  |
+| `savings_claims` | [SavingsClaim](#kava.incentive.v1beta1.SavingsClaim) | repeated |  |
+| `earn_claims` | [EarnClaim](#kava.incentive.v1beta1.EarnClaim) | repeated |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.incentive.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for incentive module.
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.incentive.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.incentive.v1beta1.QueryParamsResponse) | Params queries module params. | GET|/kava/incentive/v1beta1/params|
+| `Rewards` | [QueryRewardsRequest](#kava.incentive.v1beta1.QueryRewardsRequest) | [QueryRewardsResponse](#kava.incentive.v1beta1.QueryRewardsResponse) | Rewards queries reward information for a given user. | GET|/kava/incentive/v1beta1/rewards|
+| `RewardFactors` | [QueryRewardFactorsRequest](#kava.incentive.v1beta1.QueryRewardFactorsRequest) | [QueryRewardFactorsResponse](#kava.incentive.v1beta1.QueryRewardFactorsResponse) | Rewards queries the reward factors. | GET|/kava/incentive/v1beta1/reward_factors|
+| `Apy` | [QueryApyRequest](#kava.incentive.v1beta1.QueryApyRequest) | [QueryApyResponse](#kava.incentive.v1beta1.QueryApyResponse) | Apy queries incentive reward apy for a reward. | GET|/kava/incentive/v1beta1/apy|
 
  <!-- end services -->
 

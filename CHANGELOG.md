@@ -34,10 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
-
-### State Machine Breaking
-[\#1158](https://github.com/Kava-Labs/kava/pull/1158) Split existing auction `bid_duration` parameter into `forward_bid_duration` and `reverse_bid_duration`
+**As of v0.16.2+, changes are documented in [Kava's Github Releases](https://github.com/Kava-Labs/kava/releases/).**
 
 ## [v0.16.1](https://github.com/Kava-Labs/kava/releases/tag/v0.16.1)
 

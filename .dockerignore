@@ -2,3 +2,7 @@ out/
 **/node_modules/
 .git/
 docs/
+tests/
+
+go.work
+go.work.sum

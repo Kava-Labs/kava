@@ -172,6 +172,13 @@
           "sequence": "0"
         },
         {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1krh7k30pc9rteejpl2zycj0vau58y8c69xkzws",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
           "@type": "/ethermint.types.v1.EthAccount",
           "base_account": {
             "address": "kava1w66m9hdzwgd6uc8g93zqkcumgwzrpcw9e32lf8",
@@ -190,6 +197,20 @@
             "sequence": "1"
           },
           "code_hash": "0x45d85d503e0143ffd2bb95d7bcb4dadfc1c05ff005fc7c26e63eb47f496fdafc"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava10cy05c0j9udypdrp0wy8a5jtshx67v7zk5sdzp",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1qffzssyckxgrd7qm6g59r7rfjpp047kzaefatc",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
         }
       ]
     },
@@ -267,6 +288,59 @@
               "amount": "1000000000000000"
             },
             {
+              "denom": "erc20/axelar/btc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/axelar/eth",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/usdc",
+              "amount": "10000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1krh7k30pc9rteejpl2zycj0vau58y8c69xkzws",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/btc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/axelar/eth",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/usdc",
+              "amount": "10000000000"
+            },
+            {
               "denom": "hard",
               "amount": "1000000000"
             },
@@ -326,34 +400,67 @@
               "amount": "103000000000"
             }
           ]
+        },
+        {
+          "address": "kava10cy05c0j9udypdrp0wy8a5jtshx67v7zk5sdzp",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1qffzssyckxgrd7qm6g59r7rfjpp047kzaefatc",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "100000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
         }
       ],
-      "supply": [
-        {
-          "denom": "btcb",
-          "amount": "400000000"
-        },
-        {
-          "denom": "busd",
-          "amount": "1000000000000000"
-        },
-        {
-          "denom": "hard",
-          "amount": "100002000000000"
-        },
-        {
-          "denom": "swp",
-          "amount": "100010000000000"
-        },
-        {
-          "denom": "ukava",
-          "amount": "10002000210007000000000"
-        },
-        {
-          "denom": "usdx",
-          "amount": "206000000000"
-        }
-      ],
+      "supply": [],
       "denom_metadata": []
     },
     "bep3": {
@@ -1242,7 +1349,7 @@
               },
               {
                 "name": "amount",
-                "type": "Coin"
+                "type": "Coin[]"
               }
             ]
           },
@@ -1326,8 +1433,20 @@
       "params": {
         "enabled_conversion_pairs": [
           {
-            "kava_erc20_address": "0x864121A3b64A05d872883a1D0DA04eEe107A64F3",
+            "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
             "denom": "erc20/multichain/usdc"
+          },
+          {
+            "kava_erc20_address": "0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d",
+            "denom": "erc20/axelar/usdc"
+          },
+          {
+            "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
+            "denom": "erc20/axelar/btc"
+          },
+          {
+            "kava_erc20_address": "0x5d6D67a665C9F169B0f9436E05B11108C1606043",
+            "denom": "erc20/axelar/eth"
           }
         ]
       }
@@ -1505,6 +1624,24 @@
             },
             "spot_market_id": "btc:usd:30",
             "conversion_factor": "100000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
+          },
+          {
+            "denom": "erc20/axelar/usdc",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "1000000000.000000000000000000",
+              "loan_to_value": "0.500000000000000000"
+            },
+            "spot_market_id": "usdc:usd:30",
+            "conversion_factor": "1000000",
             "interest_rate_model": {
               "base_rate_apy": "0.000000000000000000",
               "base_multiplier": "0.050000000000000000",
@@ -1798,6 +1935,18 @@
               {
                 "denom": "ukava",
                 "amount": "938"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "erc20/axelar/usdc",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "989"
               }
             ]
           }
@@ -2276,6 +2425,24 @@
             "active": true
           },
           {
+            "market_id": "eth:usd",
+            "base_asset": "eth",
+            "quote_asset": "eth",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "eth:usd:30",
+            "base_asset": "eth",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
             "market_id": "xrp:usd:30",
             "base_asset": "xrp",
             "quote_asset": "usd",
@@ -2526,6 +2693,18 @@
           "market_id": "btc:usd:30",
           "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
           "price": "28500.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "eth:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "16250.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "eth:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "16250.962650000000001782"
         },
         {
           "expiry": "2050-01-01T00:00:00Z",

@@ -1,0 +1,3 @@
+[submodule "tests/e2e/kvtool"]
+	path = tests/e2e/kvtool
+	url = https://github.com/kava-labs/kvtool

@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -364,16 +365,38 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 				"collateral ratio not below liquidation ratio",
 			},
 		},
+		{
+			"invalid - collateralization ratio equal to liquidation ratio",
+			args{
+				ctype:               "xrp-a",
+				blockTime:           time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+				initialPrice:        d("1.00"), // we are allowed to create a cdp with an exact ratio
+				finalPrice:          d("1.00"),
+				finalTwapPrice:      d("1.00"), // and it should not be able to be liquidated
+				collateral:          c("xrp", 100000000),
+				principal:           c("usdx", 50000000),
+				expectedKeeperCoins: cs(),
+				expectedAuctions:    []auctiontypes.Auction{},
+			},
+			errArgs{
+				false,
+				"collateral ratio not below liquidation ratio",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
+
+			spotMarket := fmt.Sprintf("%s:usd", tc.args.collateral.Denom)
+			liquidationMarket := fmt.Sprintf("%s:30", spotMarket)
+
 			// setup pricefeed
 			pk := suite.app.GetPriceFeedKeeper()
-			_, err := pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			_, err := pk.SetPrice(suite.ctx, sdk.AccAddress{}, spotMarket, tc.args.initialPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
-			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
+			err = pk.SetCurrentPrices(suite.ctx, spotMarket)
 			suite.Require().NoError(err)
 
 			// setup cdp state
@@ -384,15 +407,15 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 
 			// update pricefeed
 			// spot market
-			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd", tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, spotMarket, tc.args.finalPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
 			// liquidate market
-			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, "btc:usd:30", tc.args.finalTwapPrice, suite.ctx.BlockTime().Add(time.Hour*24))
+			_, err = pk.SetPrice(suite.ctx, sdk.AccAddress{}, liquidationMarket, tc.args.finalTwapPrice, suite.ctx.BlockTime().Add(time.Hour*24))
 			suite.Require().NoError(err)
 
-			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
+			err = pk.SetCurrentPrices(suite.ctx, spotMarket)
 			suite.Require().NoError(err)
-			err = pk.SetCurrentPrices(suite.ctx, "btc:usd:30")
+			err = pk.SetCurrentPrices(suite.ctx, liquidationMarket)
 			suite.Require().NoError(err)
 
 			_, found := suite.keeper.GetCdpByOwnerAndCollateralType(suite.ctx, suite.addrs[0], tc.args.ctype)

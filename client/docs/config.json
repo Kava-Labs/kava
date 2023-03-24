@@ -115,6 +115,23 @@
       }
     },
     {
+      "url": "./out/swagger/kava/incentive/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Incentive"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Incentive$1"
+          }
+        ]
+      }
+    },
+    {
       "url": "./out/swagger/kava/issuance/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
