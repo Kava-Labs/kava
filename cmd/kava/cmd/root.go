@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -88,7 +87,7 @@ func NewRootCmd() *cobra.Command {
 // addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	rootCmd.AddCommand(
-		rpc.StatusCommand(),
+		StatusCommand(),
 		ethermintclient.ValidateChainID(
 			genutilcli.InitCmd(app.ModuleBasics, defaultNodeHome),
 		),
