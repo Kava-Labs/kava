@@ -1725,7 +1725,6 @@
           }
         ]
       }
-      }
     },
     "evmutil": {
       "accounts": [],
@@ -3361,3 +3360,4 @@
     "validatorvesting": null,
     "vesting": {}
   }
+}
