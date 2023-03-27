@@ -1241,65 +1241,8 @@
                 "name": "amount",
                 "type": "string"
               }
-            ]
-          },
-          {
-            "msg_type_url": "/kava.cdp.v1beta1.MsgCreateCDP",
-            "msg_value_type_name": "MsgValueCDPCreate",
-            "value_types": [
-              {
-                "name": "sender",
-                "type": "string"
-              },
-              {
-                "name": "collateral",
-                "type": "Coin"
-              },
-              {
-                "name": "principal",
-                "type": "Coin"
-              },
-              {
-                "name": "collateral_type",
-                "type": "string"
-              }
-            ]
-          },
-          {
-            "msg_type_url": "/kava.cdp.v1beta1.MsgDeposit",
-            "msg_value_type_name": "MsgValueCDPDeposit",
-            "value_types": [
-              {
-                "name": "depositor",
-                "type": "string"
-              },
-              {
-                "name": "owner",
-                "type": "string"
-              },
-              {
-                "name": "collateral",
-                "type": "Coin"
-              },
-              {
-                "name": "collateral_type",
-                "type": "string"
-              }
-            ]
-          },
-          {
-            "msg_type_url": "/kava.hard.v1beta1.MsgDeposit",
-            "msg_value_type_name": "MsgValueHardDeposit",
-            "value_types": [
-              {
-                "name": "depositor",
-                "type": "string"
-              },
-              {
-                "name": "amount",
-                "type": "Coin[]"
-              }
-            ]
+            ],
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertCoinToERC20",
@@ -1317,39 +1260,8 @@
                 "name": "amount",
                 "type": "Coin"
               }
-            ]
-          },
-          {
-            "msg_type_url": "/kava.cdp.v1beta1.MsgRepayDebt",
-            "msg_value_type_name": "MsgValueCDPRepayDebt",
-            "value_types": [
-              {
-                "name": "sender",
-                "type": "string"
-              },
-              {
-                "name": "collateral_type",
-                "type": "string"
-              },
-              {
-                "name": "payment",
-                "type": "Coin"
-              }
-            ]
-          },
-          {
-            "msg_type_url": "/kava.hard.v1beta1.MsgWithdraw",
-            "msg_value_type_name": "MsgValueHardWithdraw",
-            "value_types": [
-              {
-                "name": "depositor",
-                "type": "string"
-              },
-              {
-                "name": "amount",
-                "type": "Coin[]"
-              }
-            ]
+            ],
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.earn.v1beta1.MsgDeposit",
@@ -1367,7 +1279,8 @@
                 "name": "strategy",
                 "type": "int32"
               }
-            ]
+            ],
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.earn.v1beta1.MsgWithdraw",
@@ -1385,7 +1298,343 @@
                 "name": "strategy",
                 "type": "int32"
               }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.staking.v1beta1.MsgDelegate",
+            "msg_value_type_name": "MsgValueStakingDelegate",
+            "value_types": [
+              {
+                "name": "delegator_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.staking.v1beta1.MsgUndelegate",
+            "msg_value_type_name": "MsgValueStakingUndelegate",
+            "value_types": [
+              {
+                "name": "delegator_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.staking.v1beta1.MsgBeginRedelegate",
+            "msg_value_type_name": "MsgValueStakingBeginRedelegate",
+            "value_types": [
+              {
+                "name": "delegator_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_src_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_dst_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimUSDXMintingReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimUSDXMintingReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "multiplier_name",
+                "type": "string"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimHardReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimHardReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
             ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimDelegatorReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimDelegatorReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimSwapReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimSwapReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimSavingsReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimSavingsReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimEarnReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimEarnReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgMintDeposit",
+            "msg_value_type_name": "MsgValueRouterMintDeposit",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgDelegateMintDeposit",
+            "msg_value_type_name": "MsgValueRouterDelegateMintDeposit",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgWithdrawBurn",
+            "msg_value_type_name": "MsgValueRouterWithdrawBurn",
+            "value_types": [
+              {
+                "name": "from",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgWithdrawBurnUndelegate",
+            "msg_value_type_name": "MsgValueRouterWithdrawBurnUndelegate",
+            "value_types": [
+              {
+                "name": "from",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.gov.v1beta1.MsgVote",
+            "msg_value_type_name": "MsgValueGovVote",
+            "value_types": [
+              {
+                "name": "proposal_id",
+                "type": "uint64"
+              },
+              {
+                "name": "voter",
+                "type": "string"
+              },
+              {
+                "name": "option",
+                "type": "int32"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.bank.v1beta1.MsgSend",
+            "msg_value_type_name": "MsgValueBankSend",
+            "value_types": [
+              {
+                "name": "from_address",
+                "type": "string"
+              },
+              {
+                "name": "to_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin[]"
+              }
+            ],
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.liquid.v1beta1.MsgMintDerivative",
@@ -1403,7 +1652,8 @@
                 "name": "amount",
                 "type": "Coin"
               }
-            ]
+            ],
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.liquid.v1beta1.MsgBurnDerivative",
@@ -1421,1643 +1671,1674 @@
                 "name": "amount",
                 "type": "Coin"
               }
-            ]
-          }
-        ]
-      }
-    },
-    "evmutil": {
-      "accounts": [],
-      "params": {
-        "enabled_conversion_pairs": [
-          {
-            "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
-            "denom": "erc20/multichain/usdc"
-          },
-          {
-            "kava_erc20_address": "0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d",
-            "denom": "erc20/axelar/usdc"
-          },
-          {
-            "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
-            "denom": "erc20/axelar/btc"
-          },
-          {
-            "kava_erc20_address": "0x5d6D67a665C9F169B0f9436E05B11108C1606043",
-            "denom": "erc20/axelar/eth"
-          }
-        ]
-      }
-    },
-    "feemarket": {
-      "params": {
-        "no_base_fee": true,
-        "base_fee_change_denominator": 8,
-        "elasticity_multiplier": 2,
-        "enable_height": "0",
-        "base_fee": "1000000000"
-      },
-      "block_gas": "0"
-    },
-    "genutil": {
-      "gen_txs": [
-        {
-          "body": {
-            "messages": [
-              {
-                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
-                "description": {
-                  "moniker": "kava-testnet-11-validator-0",
-                  "identity": "",
-                  "website": "",
-                  "security_contact": "",
-                  "details": ""
-                },
-                "commission": {
-                  "rate": "0.100000000000000000",
-                  "max_rate": "0.200000000000000000",
-                  "max_change_rate": "0.010000000000000000"
-                },
-                "min_self_delegation": "1",
-                "delegator_address": "kava1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxw9ehkk",
-                "validator_address": "kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp",
-                "pubkey": {
-                  "@type": "/cosmos.crypto.ed25519.PubKey",
-                  "key": "e//2Cz3zvPXpYe2XJi1b8W7QdTc7Dmc0gCc0P8n78Ns="
-                },
-                "value": {
-                  "denom": "ukava",
-                  "amount": "500000000"
-                }
-              }
             ],
-            "memo": "5d70bdd3d34d362f9336de830a190260728d24b9@10.6.5.194:26656",
-            "timeout_height": "0",
-            "extension_options": [],
-            "non_critical_extension_options": []
+            "nested_types": []
           },
-          "auth_info": {
-            "signer_infos": [
+          {
+            "msg_type_url": "/kava.hard.v1beta1.MsgWithdraw",
+            "msg_value_type_name": "MsgValueHardWithdraw",
+            "value_types": [
               {
-                "public_key": {
-                  "@type": "/cosmos.crypto.secp256k1.PubKey",
-                  "key": "A1IlO4CrOkrGOZrNuIa8stpPI8jJ9pSOEjaw+i+vNFO/"
-                },
-                "mode_info": {
-                  "single": {
-                    "mode": "SIGN_MODE_DIRECT"
-                  }
-                },
-                "sequence": "0"
-              }
-            ],
-            "fee": {
-              "amount": [],
-              "gas_limit": "200000",
-              "payer": "",
-              "granter": ""
-            }
-          },
-          "signatures": [
-            "uKIm+0WmrUv17T5k3POBye9ijJxW5uo9ZGL+gCR1TcI7QcVIf2tzBYeJTTXgcGkuI+YTKfwPxV0Vf3tZ88e1/g=="
-          ]
-        },
-        {
-          "body": {
-            "messages": [
-              {
-                "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
-                "description": {
-                  "moniker": "kava-testnet-11-validator-1",
-                  "identity": "",
-                  "website": "",
-                  "security_contact": "",
-                  "details": ""
-                },
-                "commission": {
-                  "rate": "0.100000000000000000",
-                  "max_rate": "0.200000000000000000",
-                  "max_change_rate": "0.010000000000000000"
-                },
-                "min_self_delegation": "1",
-                "delegator_address": "kava1w66m9hdzwgd6uc8g93zqkcumgwzrpcw9e32lf8",
-                "validator_address": "kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s",
-                "pubkey": {
-                  "@type": "/cosmos.crypto.ed25519.PubKey",
-                  "key": "DcSKRFZOtEnpW9M0sD8VVYh+aQF1P7ri3KSgjGAYHqc="
-                },
-                "value": {
-                  "denom": "ukava",
-                  "amount": "500000000"
-                }
-              }
-            ],
-            "memo": "f37b1480ddf8bc6eae5beb7598a428b3044098a2@10.6.5.170:26656",
-            "timeout_height": "0",
-            "extension_options": [],
-            "non_critical_extension_options": []
-          },
-          "auth_info": {
-            "signer_infos": [
-              {
-                "public_key": {
-                  "@type": "/cosmos.crypto.secp256k1.PubKey",
-                  "key": "AhoAeI9mF6vGRt+FLRAz7JtSNBxesljLVul58zUwa/7h"
-                },
-                "mode_info": {
-                  "single": {
-                    "mode": "SIGN_MODE_DIRECT"
-                  }
-                },
-                "sequence": "0"
-              }
-            ],
-            "fee": {
-              "amount": [],
-              "gas_limit": "200000",
-              "payer": "",
-              "granter": ""
-            }
-          },
-          "signatures": [
-            "lFyP/b/mRAPIV7tDlH8109OBeD+hZWSjUDuqquQ+JRgPXqgTLDVDjhwsIHfeYLyawYUZavWYOBTBEoWP2pfDhA=="
-          ]
-        }
-      ]
-    },
-    "gov": {
-      "starting_proposal_id": "1",
-      "deposits": [],
-      "votes": [],
-      "proposals": [],
-      "deposit_params": {
-        "min_deposit": [
-          {
-            "denom": "ukava",
-            "amount": "10000000"
-          }
-        ],
-        "max_deposit_period": "172800s"
-      },
-      "voting_params": {
-        "voting_period": "600s"
-      },
-      "tally_params": {
-        "quorum": "0.334000000000000000",
-        "threshold": "0.500000000000000000",
-        "veto_threshold": "0.334000000000000000"
-      }
-    },
-    "hard": {
-      "params": {
-        "money_markets": [
-          {
-            "denom": "btcb",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "1000000000.000000000000000000",
-              "loan_to_value": "0.500000000000000000"
-            },
-            "spot_market_id": "btc:usd:30",
-            "conversion_factor": "100000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "erc20/axelar/usdc",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "0.000000000000000000",
-              "loan_to_value": "0.000000000000000000"
-            },
-            "spot_market_id": "usdc:usd:30",
-            "conversion_factor": "1000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "erc20/axelar/btc",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "0.000000000000000000",
-              "loan_to_value": "0.000000000000000000"
-            },
-            "spot_market_id": "btc:usd:30",
-            "conversion_factor": "1000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "bnb",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "250000000000.000000000000000000",
-              "loan_to_value": "0.500000000000000000"
-            },
-            "spot_market_id": "bnb:usd:30",
-            "conversion_factor": "100000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "xrpb",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "10000000000000.000000000000000000",
-              "loan_to_value": "0.500000000000000000"
-            },
-            "spot_market_id": "xrp:usd:30",
-            "conversion_factor": "100000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "busd",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "50000000000000.000000000000000000",
-              "loan_to_value": "0.500000000000000000"
-            },
-            "spot_market_id": "busd:usd:30",
-            "conversion_factor": "100000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "usdx",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "0.000000000000000000",
-              "loan_to_value": "0.250000000000000000"
-            },
-            "spot_market_id": "usdx:usd:720",
-            "conversion_factor": "1000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "ukava",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "500000000000.000000000000000000",
-              "loan_to_value": "0.500000000000000000"
-            },
-            "spot_market_id": "kava:usd:30",
-            "conversion_factor": "1000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "hard",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "0.000000000000000000",
-              "loan_to_value": "0.000000000000000000"
-            },
-            "spot_market_id": "hard:usd:30",
-            "conversion_factor": "1000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "200000000000.000000000000000000",
-              "loan_to_value": "0.500000000000000000"
-            },
-            "spot_market_id": "atom:usd:30",
-            "conversion_factor": "1000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          },
-          {
-            "denom": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
-            "borrow_limit": {
-              "has_max_limit": true,
-              "maximum_limit": "0.000000000000000000",
-              "loan_to_value": "0.000000000000000000"
-            },
-            "spot_market_id": "akt:usd:30",
-            "conversion_factor": "1000000",
-            "interest_rate_model": {
-              "base_rate_apy": "0.000000000000000000",
-              "base_multiplier": "0.050000000000000000",
-              "kink": "0.800000000000000000",
-              "jump_multiplier": "5.000000000000000000"
-            },
-            "reserve_factor": "0.025000000000000000",
-            "keeper_reward_percentage": "0.020000000000000000"
-          }
-        ],
-        "minimum_borrow_usd_value": "10.000000000000000000"
-      },
-      "previous_accumulation_times": [],
-      "deposits": [],
-      "borrows": [],
-      "total_supplied": [],
-      "total_borrowed": [],
-      "total_reserves": []
-    },
-    "ibc": {
-      "client_genesis": {
-        "clients": [],
-        "clients_consensus": [],
-        "clients_metadata": [],
-        "params": {
-          "allowed_clients": [
-            "06-solomachine",
-            "07-tendermint"
-          ]
-        },
-        "create_localhost": false,
-        "next_client_sequence": "0"
-      },
-      "connection_genesis": {
-        "connections": [],
-        "client_connection_paths": [],
-        "next_connection_sequence": "0",
-        "params": {
-          "max_expected_time_per_block": "30000000000"
-        }
-      },
-      "channel_genesis": {
-        "channels": [],
-        "acknowledgements": [],
-        "commitments": [],
-        "receipts": [],
-        "send_sequences": [],
-        "recv_sequences": [],
-        "ack_sequences": [],
-        "next_channel_sequence": "0"
-      }
-    },
-    "incentive": {
-      "params": {
-        "usdx_minting_reward_periods": [],
-        "hard_supply_reward_periods": [
-          {
-            "active": true,
-            "collateral_type": "usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-10-16T14:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "478377"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-10-16T14:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "9567"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "hard",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "4692"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "bnb",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "3049"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "busd",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "938"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "btcb",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "4692"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "xrpb",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "2580"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ukava",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "938"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/axelar/usdc",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "989"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/axelar/btc",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "787"
-              }
-            ]
-          }
-        ],
-        "hard_borrow_reward_periods": [],
-        "delegator_reward_periods": [],
-        "savings_reward_periods": [],
-        "swap_reward_periods": [
-          {
-            "active": true,
-            "collateral_type": "bnb:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "2017"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "btcb:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "2459"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "busd:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "9217"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "hard:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "1586"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6DE59817B:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "422"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "1291"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "242"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "swp:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "649"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "ukava:usdx",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "3765"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "usdx:xrpb",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2025-08-29T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "1187"
-              }
-            ]
-          }
-        ],
-        "earn_reward_periods": [
-          {
-            "active": true,
-            "collateral_type": "bkava",
-            "start": "2022-10-26T15:00:00Z",
-            "end": "2024-10-26T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "31891"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "bnb",
-            "start": "2022-12-29T23:00:00Z",
-            "end": "2024-12-29T23:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "5505"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/multichain/usdc",
-            "start": "2022-10-26T15:00:00Z",
-            "end": "2024-10-26T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "5505"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/multichain/usdt",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "5505"
-              }
-            ]
-          }
-        ],
-        "claim_multipliers": [
-          {
-            "denom": "hard",
-            "multipliers": [
-              {
-                "name": "large",
-                "factor": "1.000000000000000000"
-              }
-            ]
-          },
-          {
-            "denom": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
-            "multipliers": [
-              {
-                "name": "large",
-                "factor": "1.000000000000000000"
-              }
-            ]
-          },
-          {
-            "denom": "ukava",
-            "multipliers": [
-              {
-                "name": "large",
-                "months_lockup": "12",
-                "factor": "1.000000000000000000"
+                "name": "depositor",
+                "type": "string"
               },
               {
-                "name": "small",
-                "months_lockup": "1",
-                "factor": "0.200000000000000000"
+                "name": "amount",
+                "type": "Coin[]"
               }
-            ]
+            ],
+            "nested_types": []
           },
           {
-            "denom": "swp",
-            "multipliers": [
+            "msg_type_url": "/kava.hard.v1beta1.MsgDeposit",
+            "msg_value_type_name": "MsgValueHardDeposit",
+            "value_types": [
               {
-                "name": "large",
-                "factor": "1.000000000000000000"
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin[]"
               }
-            ]
+            ],
+            "nested_types": []
           }
-        ],
-        "claim_end": "2025-01-01T00:00:00Z"
-      },
-      "delegator_reward_state": {
-        "accumulation_times": [],
-        "multi_reward_indexes": []
-      },
-      "hard_borrow_reward_state": {
-        "accumulation_times": [],
-        "multi_reward_indexes": []
-      },
-      "hard_supply_reward_state": {
-        "accumulation_times": [],
-        "multi_reward_indexes": []
-      },
-      "swap_reward_state": {
-        "accumulation_times": [],
-        "multi_reward_indexes": []
-      },
-      "usdx_reward_state": {
-        "accumulation_times": [],
-        "multi_reward_indexes": []
-      },
-      "earn_reward_state": {
-        "accumulation_times": [],
-        "multi_reward_indexes": []
-      },
-      "delegator_claims": [],
-      "hard_liquidity_provider_claims": [],
-      "usdx_minting_claims": [],
-      "swap_claims": [
+        ]
+      }
+    }
+  },
+  "evmutil": {
+    "accounts": [],
+    "params": {
+      "enabled_conversion_pairs": [
         {
-          "base_claim": {
-            "owner": "kava1ektgdyy0z23qqnd67ns3qvfzgfgjd5xe82lf5c",
-            "reward": []
-          },
-          "reward_indexes": [
+          "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
+          "denom": "erc20/multichain/usdc"
+        },
+        {
+          "kava_erc20_address": "0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d",
+          "denom": "erc20/axelar/usdc"
+        },
+        {
+          "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
+          "denom": "erc20/axelar/btc"
+        },
+        {
+          "kava_erc20_address": "0x5d6D67a665C9F169B0f9436E05B11108C1606043",
+          "denom": "erc20/axelar/eth"
+        }
+      ]
+    }
+  },
+  "feemarket": {
+    "params": {
+      "no_base_fee": true,
+      "base_fee_change_denominator": 8,
+      "elasticity_multiplier": 2,
+      "enable_height": "0",
+      "base_fee": "1000000000"
+    },
+    "block_gas": "0"
+  },
+  "genutil": {
+    "gen_txs": [
+      {
+        "body": {
+          "messages": [
             {
-              "collateral_type": "ukava:usdx",
-              "reward_indexes": []
+              "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+              "description": {
+                "moniker": "kava-testnet-11-validator-0",
+                "identity": "",
+                "website": "",
+                "security_contact": "",
+                "details": ""
+              },
+              "commission": {
+                "rate": "0.100000000000000000",
+                "max_rate": "0.200000000000000000",
+                "max_change_rate": "0.010000000000000000"
+              },
+              "min_self_delegation": "1",
+              "delegator_address": "kava1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxw9ehkk",
+              "validator_address": "kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp",
+              "pubkey": {
+                "@type": "/cosmos.crypto.ed25519.PubKey",
+                "key": "e//2Cz3zvPXpYe2XJi1b8W7QdTc7Dmc0gCc0P8n78Ns="
+              },
+              "value": {
+                "denom": "ukava",
+                "amount": "500000000"
+              }
+            }
+          ],
+          "memo": "5d70bdd3d34d362f9336de830a190260728d24b9@10.6.5.194:26656",
+          "timeout_height": "0",
+          "extension_options": [],
+          "non_critical_extension_options": []
+        },
+        "auth_info": {
+          "signer_infos": [
+            {
+              "public_key": {
+                "@type": "/cosmos.crypto.secp256k1.PubKey",
+                "key": "A1IlO4CrOkrGOZrNuIa8stpPI8jJ9pSOEjaw+i+vNFO/"
+              },
+              "mode_info": {
+                "single": {
+                  "mode": "SIGN_MODE_DIRECT"
+                }
+              },
+              "sequence": "0"
+            }
+          ],
+          "fee": {
+            "amount": [],
+            "gas_limit": "200000",
+            "payer": "",
+            "granter": ""
+          }
+        },
+        "signatures": [
+          "uKIm+0WmrUv17T5k3POBye9ijJxW5uo9ZGL+gCR1TcI7QcVIf2tzBYeJTTXgcGkuI+YTKfwPxV0Vf3tZ88e1/g=="
+        ]
+      },
+      {
+        "body": {
+          "messages": [
+            {
+              "@type": "/cosmos.staking.v1beta1.MsgCreateValidator",
+              "description": {
+                "moniker": "kava-testnet-11-validator-1",
+                "identity": "",
+                "website": "",
+                "security_contact": "",
+                "details": ""
+              },
+              "commission": {
+                "rate": "0.100000000000000000",
+                "max_rate": "0.200000000000000000",
+                "max_change_rate": "0.010000000000000000"
+              },
+              "min_self_delegation": "1",
+              "delegator_address": "kava1w66m9hdzwgd6uc8g93zqkcumgwzrpcw9e32lf8",
+              "validator_address": "kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s",
+              "pubkey": {
+                "@type": "/cosmos.crypto.ed25519.PubKey",
+                "key": "DcSKRFZOtEnpW9M0sD8VVYh+aQF1P7ri3KSgjGAYHqc="
+              },
+              "value": {
+                "denom": "ukava",
+                "amount": "500000000"
+              }
+            }
+          ],
+          "memo": "f37b1480ddf8bc6eae5beb7598a428b3044098a2@10.6.5.170:26656",
+          "timeout_height": "0",
+          "extension_options": [],
+          "non_critical_extension_options": []
+        },
+        "auth_info": {
+          "signer_infos": [
+            {
+              "public_key": {
+                "@type": "/cosmos.crypto.secp256k1.PubKey",
+                "key": "AhoAeI9mF6vGRt+FLRAz7JtSNBxesljLVul58zUwa/7h"
+              },
+              "mode_info": {
+                "single": {
+                  "mode": "SIGN_MODE_DIRECT"
+                }
+              },
+              "sequence": "0"
+            }
+          ],
+          "fee": {
+            "amount": [],
+            "gas_limit": "200000",
+            "payer": "",
+            "granter": ""
+          }
+        },
+        "signatures": [
+          "lFyP/b/mRAPIV7tDlH8109OBeD+hZWSjUDuqquQ+JRgPXqgTLDVDjhwsIHfeYLyawYUZavWYOBTBEoWP2pfDhA=="
+        ]
+      }
+    ]
+  },
+  "gov": {
+    "starting_proposal_id": "1",
+    "deposits": [],
+    "votes": [],
+    "proposals": [],
+    "deposit_params": {
+      "min_deposit": [
+        {
+          "denom": "ukava",
+          "amount": "10000000"
+        }
+      ],
+      "max_deposit_period": "172800s"
+    },
+    "voting_params": {
+      "voting_period": "600s"
+    },
+    "tally_params": {
+      "quorum": "0.334000000000000000",
+      "threshold": "0.500000000000000000",
+      "veto_threshold": "0.334000000000000000"
+    }
+  },
+  "hard": {
+    "params": {
+      "money_markets": [
+        {
+          "denom": "btcb",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "1000000000.000000000000000000",
+            "loan_to_value": "0.500000000000000000"
+          },
+          "spot_market_id": "btc:usd:30",
+          "conversion_factor": "100000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "erc20/axelar/usdc",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "0.000000000000000000",
+            "loan_to_value": "0.000000000000000000"
+          },
+          "spot_market_id": "usdc:usd:30",
+          "conversion_factor": "1000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "erc20/axelar/btc",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "0.000000000000000000",
+            "loan_to_value": "0.000000000000000000"
+          },
+          "spot_market_id": "btc:usd:30",
+          "conversion_factor": "1000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "bnb",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "250000000000.000000000000000000",
+            "loan_to_value": "0.500000000000000000"
+          },
+          "spot_market_id": "bnb:usd:30",
+          "conversion_factor": "100000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "xrpb",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "10000000000000.000000000000000000",
+            "loan_to_value": "0.500000000000000000"
+          },
+          "spot_market_id": "xrp:usd:30",
+          "conversion_factor": "100000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "busd",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "50000000000000.000000000000000000",
+            "loan_to_value": "0.500000000000000000"
+          },
+          "spot_market_id": "busd:usd:30",
+          "conversion_factor": "100000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "usdx",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "0.000000000000000000",
+            "loan_to_value": "0.250000000000000000"
+          },
+          "spot_market_id": "usdx:usd:720",
+          "conversion_factor": "1000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "ukava",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "500000000000.000000000000000000",
+            "loan_to_value": "0.500000000000000000"
+          },
+          "spot_market_id": "kava:usd:30",
+          "conversion_factor": "1000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "hard",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "0.000000000000000000",
+            "loan_to_value": "0.000000000000000000"
+          },
+          "spot_market_id": "hard:usd:30",
+          "conversion_factor": "1000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "200000000000.000000000000000000",
+            "loan_to_value": "0.500000000000000000"
+          },
+          "spot_market_id": "atom:usd:30",
+          "conversion_factor": "1000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        },
+        {
+          "denom": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
+          "borrow_limit": {
+            "has_max_limit": true,
+            "maximum_limit": "0.000000000000000000",
+            "loan_to_value": "0.000000000000000000"
+          },
+          "spot_market_id": "akt:usd:30",
+          "conversion_factor": "1000000",
+          "interest_rate_model": {
+            "base_rate_apy": "0.000000000000000000",
+            "base_multiplier": "0.050000000000000000",
+            "kink": "0.800000000000000000",
+            "jump_multiplier": "5.000000000000000000"
+          },
+          "reserve_factor": "0.025000000000000000",
+          "keeper_reward_percentage": "0.020000000000000000"
+        }
+      ],
+      "minimum_borrow_usd_value": "10.000000000000000000"
+    },
+    "previous_accumulation_times": [],
+    "deposits": [],
+    "borrows": [],
+    "total_supplied": [],
+    "total_borrowed": [],
+    "total_reserves": []
+  },
+  "ibc": {
+    "client_genesis": {
+      "clients": [],
+      "clients_consensus": [],
+      "clients_metadata": [],
+      "params": {
+        "allowed_clients": [
+          "06-solomachine",
+          "07-tendermint"
+        ]
+      },
+      "create_localhost": false,
+      "next_client_sequence": "0"
+    },
+    "connection_genesis": {
+      "connections": [],
+      "client_connection_paths": [],
+      "next_connection_sequence": "0",
+      "params": {
+        "max_expected_time_per_block": "30000000000"
+      }
+    },
+    "channel_genesis": {
+      "channels": [],
+      "acknowledgements": [],
+      "commitments": [],
+      "receipts": [],
+      "send_sequences": [],
+      "recv_sequences": [],
+      "ack_sequences": [],
+      "next_channel_sequence": "0"
+    }
+  },
+  "incentive": {
+    "params": {
+      "usdx_minting_reward_periods": [],
+      "hard_supply_reward_periods": [
+        {
+          "active": true,
+          "collateral_type": "usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-10-16T14:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "478377"
             }
           ]
         },
         {
-          "base_claim": {
-            "owner": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
-            "reward": []
-          },
-          "reward_indexes": [
+          "active": true,
+          "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-10-16T14:00:00Z",
+          "rewards_per_second": [
             {
-              "collateral_type": "hard:usdx",
-              "reward_indexes": []
-            },
+              "denom": "ukava",
+              "amount": "9567"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "hard",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
             {
-              "collateral_type": "swp:usdx",
-              "reward_indexes": []
-            },
+              "denom": "ukava",
+              "amount": "4692"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "bnb",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
             {
-              "collateral_type": "ukava:usdx",
-              "reward_indexes": []
+              "denom": "ukava",
+              "amount": "3049"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "busd",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "938"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "btcb",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "4692"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "xrpb",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "2580"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "ukava",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "938"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "erc20/axelar/usdc",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "989"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "erc20/axelar/btc",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "787"
             }
           ]
         }
       ],
-      "earn_claims": []
-    },
-    "issuance": {
-      "params": {
-        "assets": [
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "ukava",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "erc20/multichain/usdt",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "usdx",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "erc20/multichain/usdc",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "hard",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "swp",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "busd",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "btcb",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "bnb",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          },
-          {
-            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
-            "denom": "xrpb",
-            "blocked_addresses": [],
-            "paused": false,
-            "blockable": false,
-            "rate_limit": {
-              "active": false,
-              "limit": "0",
-              "time_period": "0"
-            }
-          }
-        ]
-      },
-      "supplies": []
-    },
-    "kavadist": {
-      "params": {
-        "active": false,
-        "periods": []
-      },
-      "previous_block_time": "1970-01-01T00:00:01Z"
-    },
-    "liquid": {},
-    "mint": {
-      "minter": {
-        "inflation": "0.130000000000000000",
-        "annual_provisions": "0.000000000000000000"
-      },
-      "params": {
-        "mint_denom": "ukava",
-        "inflation_rate_change": "0.130000000000000000",
-        "inflation_max": "0.750000000000000000",
-        "inflation_min": "0.750000000000000000",
-        "goal_bonded": "0.670000000000000000",
-        "blocks_per_year": "6311520"
-      }
-    },
-    "params": null,
-    "pricefeed": {
-      "params": {
-        "markets": [
-          {
-            "market_id": "bnb:usd",
-            "base_asset": "bnb",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "bnb:usd:30",
-            "base_asset": "bnb",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "btc:usd",
-            "base_asset": "btc",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "btc:usd:30",
-            "base_asset": "btc",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "eth:usd",
-            "base_asset": "eth",
-            "quote_asset": "eth",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "eth:usd:30",
-            "base_asset": "eth",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "xrp:usd:30",
-            "base_asset": "xrp",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "xrp:usd",
-            "base_asset": "xrp",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "busd:usd",
-            "base_asset": "busd",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "busd:usd:30",
-            "base_asset": "busd",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "usdc:usd",
-            "base_asset": "usdc",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "usdc:usd:30",
-            "base_asset": "usdc",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "usdt:usd",
-            "base_asset": "usdt",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "usdt:usd:30",
-            "base_asset": "usdt",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "kava:usd",
-            "base_asset": "kava",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "kava:usd:30",
-            "base_asset": "kava",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "hard:usd",
-            "base_asset": "hard",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "hard:usd:30",
-            "base_asset": "hard",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "atom:usd",
-            "base_asset": "atom",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "atom:usd:30",
-            "base_asset": "atom",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "osmo:usd",
-            "base_asset": "osmo",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "osmo:usd:30",
-            "base_asset": "osmo",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "akt:usd",
-            "base_asset": "akt",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "akt:usd:30",
-            "base_asset": "akt",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "luna:usd",
-            "base_asset": "luna",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "luna:usd:30",
-            "base_asset": "luna",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "usdx:usd",
-            "base_asset": "usdx",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "usdx:usd:30",
-            "base_asset": "usdx",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "usdx:usd:720",
-            "base_asset": "usdx",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "swp:usd",
-            "base_asset": "swp",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          },
-          {
-            "market_id": "swp:usd:30",
-            "base_asset": "swp",
-            "quote_asset": "usd",
-            "oracles": [
-              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
-            ],
-            "active": true
-          }
-        ]
-      },
-      "posted_prices": [
+      "hard_borrow_reward_periods": [],
+      "delegator_reward_periods": [],
+      "savings_reward_periods": [],
+      "swap_reward_periods": [
         {
-          "expiry": "2050-01-01T00:00:00Z",
+          "active": true,
+          "collateral_type": "bnb:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "2017"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "btcb:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "2459"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "busd:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "9217"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "hard:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "1586"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6DE59817B:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "422"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "1291"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "242"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "swp:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "649"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "ukava:usdx",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "3765"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "usdx:xrpb",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2025-08-29T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "1187"
+            }
+          ]
+        }
+      ],
+      "earn_reward_periods": [
+        {
+          "active": true,
+          "collateral_type": "bkava",
+          "start": "2022-10-26T15:00:00Z",
+          "end": "2024-10-26T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "31891"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "bnb",
+          "start": "2022-12-29T23:00:00Z",
+          "end": "2024-12-29T23:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "5505"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "erc20/multichain/usdc",
+          "start": "2022-10-26T15:00:00Z",
+          "end": "2024-10-26T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "5505"
+            }
+          ]
+        },
+        {
+          "active": true,
+          "collateral_type": "erc20/multichain/usdt",
+          "start": "2022-11-11T15:00:00Z",
+          "end": "2024-11-11T15:00:00Z",
+          "rewards_per_second": [
+            {
+              "denom": "ukava",
+              "amount": "5505"
+            }
+          ]
+        }
+      ],
+      "claim_multipliers": [
+        {
+          "denom": "hard",
+          "multipliers": [
+            {
+              "name": "large",
+              "factor": "1.000000000000000000"
+            }
+          ]
+        },
+        {
+          "denom": "ibc/799FDD409719A1122586A629AE8FCA17380351A51C1F47A80A1B8E7F2A491098",
+          "multipliers": [
+            {
+              "name": "large",
+              "factor": "1.000000000000000000"
+            }
+          ]
+        },
+        {
+          "denom": "ukava",
+          "multipliers": [
+            {
+              "name": "large",
+              "months_lockup": "12",
+              "factor": "1.000000000000000000"
+            },
+            {
+              "name": "small",
+              "months_lockup": "1",
+              "factor": "0.200000000000000000"
+            }
+          ]
+        },
+        {
+          "denom": "swp",
+          "multipliers": [
+            {
+              "name": "large",
+              "factor": "1.000000000000000000"
+            }
+          ]
+        }
+      ],
+      "claim_end": "2025-01-01T00:00:00Z"
+    },
+    "delegator_reward_state": {
+      "accumulation_times": [],
+      "multi_reward_indexes": []
+    },
+    "hard_borrow_reward_state": {
+      "accumulation_times": [],
+      "multi_reward_indexes": []
+    },
+    "hard_supply_reward_state": {
+      "accumulation_times": [],
+      "multi_reward_indexes": []
+    },
+    "swap_reward_state": {
+      "accumulation_times": [],
+      "multi_reward_indexes": []
+    },
+    "usdx_reward_state": {
+      "accumulation_times": [],
+      "multi_reward_indexes": []
+    },
+    "earn_reward_state": {
+      "accumulation_times": [],
+      "multi_reward_indexes": []
+    },
+    "delegator_claims": [],
+    "hard_liquidity_provider_claims": [],
+    "usdx_minting_claims": [],
+    "swap_claims": [
+      {
+        "base_claim": {
+          "owner": "kava1ektgdyy0z23qqnd67ns3qvfzgfgjd5xe82lf5c",
+          "reward": []
+        },
+        "reward_indexes": [
+          {
+            "collateral_type": "ukava:usdx",
+            "reward_indexes": []
+          }
+        ]
+      },
+      {
+        "base_claim": {
+          "owner": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+          "reward": []
+        },
+        "reward_indexes": [
+          {
+            "collateral_type": "hard:usdx",
+            "reward_indexes": []
+          },
+          {
+            "collateral_type": "swp:usdx",
+            "reward_indexes": []
+          },
+          {
+            "collateral_type": "ukava:usdx",
+            "reward_indexes": []
+          }
+        ]
+      }
+    ],
+    "earn_claims": []
+  },
+  "issuance": {
+    "params": {
+      "assets": [
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "ukava",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "erc20/multichain/usdt",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "usdx",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "erc20/multichain/usdc",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "hard",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "swp",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "busd",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "btcb",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "bnb",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        },
+        {
+          "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "denom": "xrpb",
+          "blocked_addresses": [],
+          "paused": false,
+          "blockable": false,
+          "rate_limit": {
+            "active": false,
+            "limit": "0",
+            "time_period": "0"
+          }
+        }
+      ]
+    },
+    "supplies": []
+  },
+  "kavadist": {
+    "params": {
+      "active": false,
+      "periods": []
+    },
+    "previous_block_time": "1970-01-01T00:00:01Z"
+  },
+  "liquid": {},
+  "mint": {
+    "minter": {
+      "inflation": "0.130000000000000000",
+      "annual_provisions": "0.000000000000000000"
+    },
+    "params": {
+      "mint_denom": "ukava",
+      "inflation_rate_change": "0.130000000000000000",
+      "inflation_max": "0.750000000000000000",
+      "inflation_min": "0.750000000000000000",
+      "goal_bonded": "0.670000000000000000",
+      "blocks_per_year": "6311520"
+    }
+  },
+  "params": null,
+  "pricefeed": {
+    "params": {
+      "markets": [
+        {
           "market_id": "bnb:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "215.962650000000001782"
+          "base_asset": "bnb",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "bnb:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "217.962650000000001782"
+          "base_asset": "bnb",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "btc:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "29500.962650000000001782"
+          "base_asset": "btc",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "btc:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "28500.962650000000001782"
+          "base_asset": "btc",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "eth:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "16250.962650000000001782"
+          "base_asset": "eth",
+          "quote_asset": "eth",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "eth:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "16250.962650000000001782"
+          "base_asset": "eth",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "akt:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "akt:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "osmo:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "4.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "osmo:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "4.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "luna:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "92.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "luna:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "92.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "atom:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "24.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "atom:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "24.962650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "xrp:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "0.552650000000001782"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "xrp:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "0.552650000000001782"
+          "base_asset": "xrp",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "xrp:usd",
+          "base_asset": "xrp",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
           "market_id": "busd:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
+          "base_asset": "busd",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "busd:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
+          "base_asset": "busd",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "usdx:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "usdx:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "usdx:usd:720",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "kava:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "3.000000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "kava:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "3.000000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "hard:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "0.500000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "hard:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "0.500000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "swp:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "2.150000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "swp:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "2.150000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "usdt:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "usdc:usd",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
+          "base_asset": "usdc",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         },
         {
-          "expiry": "2050-01-01T00:00:00Z",
-          "market_id": "usdt:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
-        },
-        {
-          "expiry": "2050-01-01T00:00:00Z",
           "market_id": "usdc:usd:30",
-          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
-          "price": "1.000000000000000000"
+          "base_asset": "usdc",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "usdt:usd",
+          "base_asset": "usdt",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "usdt:usd:30",
+          "base_asset": "usdt",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "kava:usd",
+          "base_asset": "kava",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "kava:usd:30",
+          "base_asset": "kava",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "hard:usd",
+          "base_asset": "hard",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "hard:usd:30",
+          "base_asset": "hard",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "atom:usd",
+          "base_asset": "atom",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "atom:usd:30",
+          "base_asset": "atom",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "osmo:usd",
+          "base_asset": "osmo",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "osmo:usd:30",
+          "base_asset": "osmo",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "akt:usd",
+          "base_asset": "akt",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "akt:usd:30",
+          "base_asset": "akt",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "luna:usd",
+          "base_asset": "luna",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "luna:usd:30",
+          "base_asset": "luna",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "usdx:usd",
+          "base_asset": "usdx",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "usdx:usd:30",
+          "base_asset": "usdx",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "usdx:usd:720",
+          "base_asset": "usdx",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "swp:usd",
+          "base_asset": "swp",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
+        },
+        {
+          "market_id": "swp:usd:30",
+          "base_asset": "swp",
+          "quote_asset": "usd",
+          "oracles": [
+            "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+          ],
+          "active": true
         }
       ]
     },
-    "savings": {
-      "params": {
-        "supported_denoms": [
-          "usdx",
-          "ukava",
-          "hard",
-          "swp",
-          "bkava",
-          "bkava-kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp",
-          "bkava-kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s",
-          "erc20/multichain/usdc"
-        ]
+    "posted_prices": [
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "bnb:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "215.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "bnb:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "217.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "btc:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "29500.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "btc:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "28500.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "eth:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "16250.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "eth:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "16250.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "akt:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "akt:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "osmo:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "4.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "osmo:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "4.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "luna:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "92.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "luna:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "92.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "atom:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "24.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "atom:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "24.962650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "xrp:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "0.552650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "xrp:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "0.552650000000001782"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "busd:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "busd:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "usdx:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "usdx:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "usdx:usd:720",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "kava:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "3.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "kava:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "3.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "hard:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "0.500000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "hard:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "0.500000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "swp:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "2.150000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "swp:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "2.150000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "usdt:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "usdc:usd",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "usdt:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
+      },
+      {
+        "expiry": "2050-01-01T00:00:00Z",
+        "market_id": "usdc:usd:30",
+        "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+        "price": "1.000000000000000000"
       }
+    ]
+  },
+  "savings": {
+    "params": {
+      "supported_denoms": [
+        "usdx",
+        "ukava",
+        "hard",
+        "swp",
+        "bkava",
+        "bkava-kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp",
+        "bkava-kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s",
+        "erc20/multichain/usdc"
+      ]
+    }
+  },
+  "slashing": {
+    "params": {
+      "signed_blocks_window": "100",
+      "min_signed_per_window": "0.500000000000000000",
+      "downtime_jail_duration": "600s",
+      "slash_fraction_double_sign": "0.050000000000000000",
+      "slash_fraction_downtime": "0.010000000000000000"
     },
-    "slashing": {
-      "params": {
-        "signed_blocks_window": "100",
-        "min_signed_per_window": "0.500000000000000000",
-        "downtime_jail_duration": "600s",
-        "slash_fraction_double_sign": "0.050000000000000000",
-        "slash_fraction_downtime": "0.010000000000000000"
-      },
-      "signing_infos": [],
-      "missed_blocks": []
+    "signing_infos": [],
+    "missed_blocks": []
+  },
+  "staking": {
+    "params": {
+      "unbonding_time": "1814400s",
+      "max_validators": 100,
+      "max_entries": 7,
+      "historical_entries": 10000,
+      "bond_denom": "ukava"
     },
-    "staking": {
-      "params": {
-        "unbonding_time": "1814400s",
-        "max_validators": 100,
-        "max_entries": 7,
-        "historical_entries": 10000,
-        "bond_denom": "ukava"
-      },
-      "last_total_power": "0",
-      "last_validator_powers": [],
-      "validators": [],
-      "delegations": [],
-      "unbonding_delegations": [],
-      "redelegations": [],
-      "exported": false
-    },
-    "swap": {
-      "params": {
-        "allowed_pools": [
-          {
-            "token_a": "ukava",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "hard",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "ibc/4129EB76C01ED14052054BB975DE0C6C5010E12FFD9253C20C58BCD828BEE9A5",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "ibc/C72DE26FFF16DE62BE2784E12229BDF5F4465CE8B10530426D6DB53255FF01B2",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "swp",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "bnb",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "btcb",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "busd",
-            "token_b": "usdx"
-          },
-          {
-            "token_a": "usdx",
-            "token_b": "xrpb"
-          }
-        ],
-        "swap_fee": "0.001500000000000000"
-      },
-      "pool_records": [
+    "last_total_power": "0",
+    "last_validator_powers": [],
+    "validators": [],
+    "delegations": [],
+    "unbonding_delegations": [],
+    "redelegations": [],
+    "exported": false
+  },
+  "swap": {
+    "params": {
+      "allowed_pools": [
         {
-          "pool_id": "btcb:usdx",
-          "reserves_a": {
-            "amount": "200000000",
-            "denom": "btcb"
-          },
-          "reserves_b": {
-            "amount": "100000000000",
-            "denom": "usdx"
-          },
-          "total_shares": "4472135954"
+          "token_a": "ukava",
+          "token_b": "usdx"
         },
         {
-          "pool_id": "hard:usdx",
-          "reserves_a": {
-            "amount": "1000000000",
-            "denom": "hard"
-          },
-          "reserves_b": {
-            "amount": "1000000000",
-            "denom": "usdx"
-          },
-          "total_shares": "1000000000"
+          "token_a": "hard",
+          "token_b": "usdx"
         },
         {
-          "pool_id": "swp:usdx",
-          "reserves_a": {
-            "amount": "5000000000",
-            "denom": "swp"
-          },
-          "reserves_b": {
-            "amount": "1000000000",
-            "denom": "usdx"
-          },
-          "total_shares": "2236067977"
+          "token_a": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+          "token_b": "usdx"
         },
         {
-          "pool_id": "ukava:usdx",
-          "reserves_a": {
-            "amount": "5000000000",
-            "denom": "ukava"
-          },
-          "reserves_b": {
-            "amount": "1000000000",
-            "denom": "usdx"
-          },
-          "total_shares": "2236067977"
+          "token_a": "ibc/4129EB76C01ED14052054BB975DE0C6C5010E12FFD9253C20C58BCD828BEE9A5",
+          "token_b": "usdx"
+        },
+        {
+          "token_a": "ibc/C72DE26FFF16DE62BE2784E12229BDF5F4465CE8B10530426D6DB53255FF01B2",
+          "token_b": "usdx"
+        },
+        {
+          "token_a": "ibc/ED07A3391A112B175915CD8FAF43A2DA8E4790EDE12566649D0C2F97716B8518",
+          "token_b": "usdx"
+        },
+        {
+          "token_a": "swp",
+          "token_b": "usdx"
+        },
+        {
+          "token_a": "bnb",
+          "token_b": "usdx"
+        },
+        {
+          "token_a": "btcb",
+          "token_b": "usdx"
+        },
+        {
+          "token_a": "busd",
+          "token_b": "usdx"
+        },
+        {
+          "token_a": "usdx",
+          "token_b": "xrpb"
         }
       ],
-      "share_records": [
-        {
-          "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
-          "pool_id": "btcb:usdx",
-          "shares_owned": "4472135954"
-        },
-        {
-          "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
-          "pool_id": "hard:usdx",
-          "shares_owned": "1000000000"
-        },
-        {
-          "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
-          "pool_id": "swp:usdx",
-          "shares_owned": "2236067977"
-        },
-        {
-          "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
-          "pool_id": "ukava:usdx",
-          "shares_owned": "2236067977"
-        }
-      ]
+      "swap_fee": "0.001500000000000000"
     },
-    "transfer": {
-      "port_id": "transfer",
-      "denom_traces": [],
-      "params": {
-        "send_enabled": true,
-        "receive_enabled": true
+    "pool_records": [
+      {
+        "pool_id": "btcb:usdx",
+        "reserves_a": {
+          "amount": "200000000",
+          "denom": "btcb"
+        },
+        "reserves_b": {
+          "amount": "100000000000",
+          "denom": "usdx"
+        },
+        "total_shares": "4472135954"
+      },
+      {
+        "pool_id": "hard:usdx",
+        "reserves_a": {
+          "amount": "1000000000",
+          "denom": "hard"
+        },
+        "reserves_b": {
+          "amount": "1000000000",
+          "denom": "usdx"
+        },
+        "total_shares": "1000000000"
+      },
+      {
+        "pool_id": "swp:usdx",
+        "reserves_a": {
+          "amount": "5000000000",
+          "denom": "swp"
+        },
+        "reserves_b": {
+          "amount": "1000000000",
+          "denom": "usdx"
+        },
+        "total_shares": "2236067977"
+      },
+      {
+        "pool_id": "ukava:usdx",
+        "reserves_a": {
+          "amount": "5000000000",
+          "denom": "ukava"
+        },
+        "reserves_b": {
+          "amount": "1000000000",
+          "denom": "usdx"
+        },
+        "total_shares": "2236067977"
       }
-    },
-    "upgrade": {},
-    "validatorvesting": null,
-    "vesting": {}
-  }
+    ],
+    "share_records": [
+      {
+        "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+        "pool_id": "btcb:usdx",
+        "shares_owned": "4472135954"
+      },
+      {
+        "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+        "pool_id": "hard:usdx",
+        "shares_owned": "1000000000"
+      },
+      {
+        "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+        "pool_id": "swp:usdx",
+        "shares_owned": "2236067977"
+      },
+      {
+        "depositor": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+        "pool_id": "ukava:usdx",
+        "shares_owned": "2236067977"
+      }
+    ]
+  },
+  "transfer": {
+    "port_id": "transfer",
+    "denom_traces": [],
+    "params": {
+      "send_enabled": true,
+      "receive_enabled": true
+    }
+  },
+  "upgrade": {},
+  "validatorvesting": null,
+  "vesting": {}
 }
