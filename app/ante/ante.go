@@ -145,6 +145,8 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 		),
 		authante.NewValidateBasicDecorator(),
 		authante.NewTxTimeoutHeightDecorator(),
+		// If ethermint x/feemarket is enabled, align Cosmos min fee with the EVM
+		// evmante.NewMinGasPriceDecorator(options.FeeMarketKeeper, options.EvmKeeper),
 		authante.NewValidateMemoDecorator(options.AccountKeeper),
 		authante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
 		authante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
