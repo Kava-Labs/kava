@@ -1201,8 +1201,7 @@
         "evm_denom": "akava",
         "enable_create": true,
         "enable_call": true,
-        "extra_eips": [
-        ],
+        "extra_eips": [],
         "chain_config": {
           "homestead_block": "0",
           "dao_fork_block": "0",
@@ -1568,8 +1567,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.router.v1beta1.MsgWithdrawBurn",
@@ -1588,8 +1586,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.router.v1beta1.MsgWithdrawBurnUndelegate",
