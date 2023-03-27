@@ -8588,7 +8588,7 @@ paths:
           type: boolean
       tags:
         - Hard
-  /kava/hard/v1beta1/interest-factors/{denom}:
+  /kava/hard/v1beta1/interest-factors:
     get:
       summary: InterestFactors queries hard module interest factors.
       operationId: HardInterestFactors
@@ -8810,12 +8810,12 @@ paths:
                         }
       parameters:
         - name: denom
-          in: path
-          required: true
+          in: query
+          required: false
           type: string
       tags:
         - Hard
-  /kava/hard/v1beta1/interest-rate/{denom}:
+  /kava/hard/v1beta1/interest-rate:
     get:
       summary: InterestRate queries the hard module interest rates.
       operationId: HardInterestRate
@@ -9037,8 +9037,8 @@ paths:
                         }
       parameters:
         - name: denom
-          in: path
-          required: true
+          in: query
+          required: false
           type: string
       tags:
         - Hard
@@ -9294,7 +9294,7 @@ paths:
                         }
       tags:
         - Hard
-  /kava/hard/v1beta1/reserves/{denom}:
+  /kava/hard/v1beta1/reserves:
     get:
       summary: Reserves queries total hard reserve coins.
       operationId: HardReserves
@@ -9517,12 +9517,12 @@ paths:
                         }
       parameters:
         - name: denom
-          in: path
-          required: true
+          in: query
+          required: false
           type: string
       tags:
         - Hard
-  /kava/hard/v1beta1/total-borrowed/{denom}:
+  /kava/hard/v1beta1/total-borrowed:
     get:
       summary: TotalBorrowed queries total coins borrowed from hard liquidity pools.
       operationId: HardTotalBorrowed
@@ -9745,12 +9745,12 @@ paths:
                         }
       parameters:
         - name: denom
-          in: path
-          required: true
+          in: query
+          required: false
           type: string
       tags:
         - Hard
-  /kava/hard/v1beta1/total-deposited/{denom}:
+  /kava/hard/v1beta1/total-deposited:
     get:
       summary: TotalDeposited queries total coins deposited to hard liquidity pools.
       operationId: HardTotalDeposited
@@ -9973,8 +9973,8 @@ paths:
                         }
       parameters:
         - name: denom
-          in: path
-          required: true
+          in: query
+          required: false
           type: string
       tags:
         - Hard
