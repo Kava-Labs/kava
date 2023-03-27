@@ -35,7 +35,7 @@ service Query {
 
   // TotalDeposited queries total coins deposited to hard liquidity pools.
   rpc TotalDeposited(QueryTotalDepositedRequest) returns (QueryTotalDepositedResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/total-deposited/{denom}";
+    option (google.api.http).get = "/kava/hard/v1beta1/total-deposited";
   }
 
   // Borrows queries hard borrows.
@@ -50,22 +50,22 @@ service Query {
 
   // TotalBorrowed queries total coins borrowed from hard liquidity pools.
   rpc TotalBorrowed(QueryTotalBorrowedRequest) returns (QueryTotalBorrowedResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/total-borrowed/{denom}";
+    option (google.api.http).get = "/kava/hard/v1beta1/total-borrowed";
   }
 
   // InterestRate queries the hard module interest rates.
   rpc InterestRate(QueryInterestRateRequest) returns (QueryInterestRateResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/interest-rate/{denom}";
+    option (google.api.http).get = "/kava/hard/v1beta1/interest-rate";
   }
 
   // Reserves queries total hard reserve coins.
   rpc Reserves(QueryReservesRequest) returns (QueryReservesResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/reserves/{denom}";
+    option (google.api.http).get = "/kava/hard/v1beta1/reserves";
   }
 
   // InterestFactors queries hard module interest factors.
   rpc InterestFactors(QueryInterestFactorsRequest) returns (QueryInterestFactorsResponse) {
-    option (google.api.http).get = "/kava/hard/v1beta1/interest-factors/{denom}";
+    option (google.api.http).get = "/kava/hard/v1beta1/interest-factors";
   }
 }
 
