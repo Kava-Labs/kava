@@ -5,9 +5,9 @@ and then runs tests against the running network. It is a git sub-repository in t
 present, you must initialize the subrepo: `git submodule update --init`.
 
 Steps to run
-1. Build a Kava docker image tagged `kava/kava:local`: `make build-docker`
-2. Ensure latest `kvtool` is installed: `make update-kvtool`
-3. Run the test suite: `make test-e2e`
+1. Ensure latest `kvtool` is installed: `make update-kvtool`
+2. Run the test suite: `make test-e2e`
+   This will build a docker image tagged `kava/kava:local` that will be run by kvtool.
 
 **Note:** The suite will use your locally installed `kvtool` if present. If not present, it will be
 installed. If the `kvtool` repo is updated, you must manually update your existing local binary: `make update-kvtool`
@@ -61,3 +61,24 @@ The IBC network runs kava with a different chain id and staking denom (see [runn
 The IBC chain queriers & accounts are accessible via `suite.Ibc`.
 
 IBC tests can be disabled by setting `E2E_INCLUDE_IBC_TESTS` to `false`.
+
+## Chain Upgrades
+
+When a named upgrade handler is included in the current working repo of Kava, the e2e test suite can
+be configured to run all the tests on the upgraded chain. This includes the ability to add additional
+tests to verify and do acceptance on the post-upgrade chain.
+
+This configuration is controlled by the following env variables:
+* `E2E_INCLUDE_AUTOMATED_UPGRADE` - toggles on the upgrade functionality. Must be set to `true`.
+* `E2E_KAVA_UPGRADE_NAME` - the named upgrade, likely defined in [`app/upgrades.go`](../../app/upgrades.go)
+* `E2E_KAVA_UPGRADE_HEIGHT` - the height at which to run the upgrade
+* `E2E_KAVA_UPGRADE_BASE_IMAGE_TAG` - the [kava docker image tag](https://hub.docker.com/r/kava/kava/tags) to base the upgrade on
+
+When all these are set, the chain is started with the binary contained in the docker image tagged
+`E2E_KAVA_UPGRADE_BASE_IMAGE_TAG`. Then an upgrade proposal is submitted with the desired name and
+height. The chain runs until that height and then is shutdown due to needing the upgrade. The chain
+is restarted with the local repo's Kava code and the upgrade is run. Once completed, the whole test
+suite is run.
+
+For a full example of how this looks, see [this commit](https://github.com/Kava-Labs/kava/commit/5da48c892f0a5837141fc7de88632c7c68fff4ae)
+on the [example/e2e-test-upgrade-handler](https://github.com/Kava-Labs/kava/tree/example/e2e-test-upgrade-handler) branch.

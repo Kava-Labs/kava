@@ -290,7 +290,7 @@ test-basic: test
 	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 
 # run end-to-end tests (local docker container must be built, see docker-build)
-test-e2e:
+test-e2e: docker-build
 	export E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC='tent fitness boat among census primary pipe nose dream glance cave turtle electric fabric jacket shaft easy myself genuine this sibling pulse word unfold'; \
 	go test -failfast -count=1 -v ./tests/e2e/...
 

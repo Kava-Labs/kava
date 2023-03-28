@@ -28,6 +28,8 @@ type E2eTestSuite struct {
 
 	Kava *Chain
 	Ibc  *Chain
+
+	UpgradeHeight int64
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
@@ -37,10 +39,20 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	suiteConfig := ParseSuiteConfig()
 	suite.config = suiteConfig
+	suite.UpgradeHeight = suiteConfig.KavaUpgradeHeight
 
 	runnerConfig := runner.Config{
+		KavaConfigTemplate: suiteConfig.KavaConfigTemplate,
+
 		IncludeIBC: suiteConfig.IncludeIbcTests,
 		ImageTag:   "local",
+
+		EnableAutomatedUpgrade:  suiteConfig.IncludeAutomatedUpgrade,
+		KavaUpgradeName:         suiteConfig.KavaUpgradeName,
+		KavaUpgradeHeight:       suiteConfig.KavaUpgradeHeight,
+		KavaUpgradeBaseImageTag: suiteConfig.KavaUpgradeBaseImageTag,
+
+		SkipShutdown: suiteConfig.SkipShutdown,
 	}
 	suite.runner = runner.NewKavaNode(runnerConfig)
 
@@ -70,13 +82,17 @@ func (suite *E2eTestSuite) TearDownSuite() {
 		suite.Ibc.Shutdown()
 	}
 	// gracefully shutdown docker container(s)
-	if !suite.config.SkipShutdown {
-		suite.runner.Shutdown()
-	}
+	suite.runner.Shutdown()
 }
 
 func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 	if !suite.config.IncludeIbcTests {
+		suite.T().SkipNow()
+	}
+}
+
+func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
+	if !suite.config.IncludeAutomatedUpgrade {
 		suite.T().SkipNow()
 	}
 }

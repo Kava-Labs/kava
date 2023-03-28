@@ -12,8 +12,17 @@ import (
 )
 
 type Config struct {
+	KavaConfigTemplate string
+
 	ImageTag   string
 	IncludeIBC bool
+
+	EnableAutomatedUpgrade  bool
+	KavaUpgradeName         string
+	KavaUpgradeHeight       int64
+	KavaUpgradeBaseImageTag string
+
+	SkipShutdown bool
 }
 
 // NodeRunner is responsible for starting and managing docker containers to run a node.
@@ -45,13 +54,23 @@ func (k *KavaNodeRunner) StartChains() Chains {
 	}
 
 	log.Println("starting kava node")
-	kvtoolArgs := []string{"testnet", "bootstrap"}
+	kvtoolArgs := []string{"testnet", "bootstrap", "--kava.configTemplate", k.config.KavaConfigTemplate}
 	if k.config.IncludeIBC {
 		kvtoolArgs = append(kvtoolArgs, "--ibc")
 	}
+	if k.config.EnableAutomatedUpgrade {
+		kvtoolArgs = append(kvtoolArgs,
+			"--upgrade-name", k.config.KavaUpgradeName,
+			"--upgrade-height", fmt.Sprint(k.config.KavaUpgradeHeight),
+			"--upgrade-base-image-tag", k.config.KavaUpgradeBaseImageTag,
+		)
+	}
 	startKavaCmd := exec.Command("kvtool", kvtoolArgs...)
+	startKavaCmd.Env = os.Environ()
+	startKavaCmd.Env = append(startKavaCmd.Env, fmt.Sprintf("KAVA_TAG=%s", k.config.ImageTag))
 	startKavaCmd.Stdout = os.Stdout
 	startKavaCmd.Stderr = os.Stderr
+	log.Println(startKavaCmd.String())
 	if err := startKavaCmd.Run(); err != nil {
 		panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
 	}
@@ -74,6 +93,10 @@ func (k *KavaNodeRunner) StartChains() Chains {
 }
 
 func (k *KavaNodeRunner) Shutdown() {
+	if k.config.SkipShutdown {
+		log.Printf("would shut down but SkipShutdown is true")
+		return
+	}
 	log.Println("shutting down kava node")
 	shutdownKavaCmd := exec.Command("kvtool", "testnet", "down")
 	shutdownKavaCmd.Stdout = os.Stdout
