@@ -80,4 +80,5 @@ height. The chain runs until that height and then is shutdown due to needing the
 is restarted with the local repo's Kava code and the upgrade is run. Once completed, the whole test
 suite is run.
 
-For a full example of how this looks, see this commit on a branch containing a fake upgrade.
+For a full example of how this looks, see [this commit](https://github.com/Kava-Labs/kava/commit/5da48c892f0a5837141fc7de88632c7c68fff4ae)
+on the [example/e2e-test-upgrade-handler](https://github.com/Kava-Labs/kava/tree/example/e2e-test-upgrade-handler) branch.
