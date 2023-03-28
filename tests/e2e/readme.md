@@ -61,3 +61,23 @@ The IBC network runs kava with a different chain id and staking denom (see [runn
 The IBC chain queriers & accounts are accessible via `suite.Ibc`.
 
 IBC tests can be disabled by setting `E2E_INCLUDE_IBC_TESTS` to `false`.
+
+## Chain Upgrades
+
+When a named upgrade handler is included in the current working repo of Kava, the e2e test suite can
+be configured to run all the tests on the upgraded chain. This includes the ability to add additional
+tests to verify and do acceptance on the post-upgrade chain.
+
+This configuration is controlled by the following env variables:
+* `E2E_INCLUDE_AUTOMATED_UPGRADE` - toggles on the upgrade functionality. Must be set to `true`.
+* `E2E_KAVA_UPGRADE_NAME` - the named upgrade, likely defined in [`app/upgrades.go`](../../app/upgrades.go)
+* `E2E_KAVA_UPGRADE_HEIGHT` - the height at which to run the upgrade
+* `E2E_KAVA_UPGRADE_BASE_IMAGE_TAG` - the [kava docker image tag](https://hub.docker.com/r/kava/kava/tags) to base the upgrade on
+
+When all these are set, the chain is started with the binary contained in the docker image tagged
+`E2E_KAVA_UPGRADE_BASE_IMAGE_TAG`. Then an upgrade proposal is submitted with the desired name and
+height. The chain runs until that height and then is shutdown due to needing the upgrade. The chain
+is restarted with the local repo's Kava code and the upgrade is run. Once completed, the whole test
+suite is run.
+
+For a full example of how this looks, see this commit on a branch containing a fake upgrade.
