@@ -23,15 +23,15 @@ type EvmTxResponse struct {
 	Err     error
 }
 
-type EvmFailedToSignError struct{ Err error }
+type ErrEvmFailedToSign struct{ Err error }
 
-func (e EvmFailedToSignError) Error() string {
+func (e ErrEvmFailedToSign) Error() string {
 	return fmt.Sprintf("failed to sign tx: %s", e.Err)
 }
 
-type EvmFailedToBroadcastError struct{ Err error }
+type ErrEvmFailedToBroadcast struct{ Err error }
 
-func (e EvmFailedToBroadcastError) Error() string {
+func (e ErrEvmFailedToBroadcast) Error() string {
 	return fmt.Sprintf("failed to broadcast tx: %s", e.Err)
 }
 
@@ -79,11 +79,11 @@ func (s *EvmSigner) Run(requests <-chan EvmTxRequest) <-chan EvmTxResponse {
 
 			signedTx, err := s.auth.Signer(s.signerAddress, req.Tx)
 			if err != nil {
-				err = EvmFailedToSignError{Err: err}
+				err = ErrEvmFailedToSign{Err: err}
 			} else {
 				err = s.EvmClient.SendTransaction(context.Background(), signedTx)
 				if err != nil {
-					err = EvmFailedToBroadcastError{Err: err}
+					err = ErrEvmFailedToBroadcast{Err: err}
 				}
 			}
 
