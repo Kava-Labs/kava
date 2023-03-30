@@ -2,7 +2,6 @@ package e2e_test
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -11,6 +10,10 @@ import (
 	"github.com/pelletier/go-toml/v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/tests/util"
 )
 
 func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
@@ -19,18 +22,36 @@ func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
 	suite.NoError(err)
 
 	// evm uses akava, get akava min fee
-	evmMinGas := minGasPrices.AmountOf("akava").BigInt()
-	// convert akava to kava (primary denom of EVM)
-	evmMinGas = evmMinGas.Quo(evmMinGas, big.NewInt(1e18))
-
-	fmt.Println("coins: ", minGasPrices)
-	fmt.Println("amount akava: ", evmMinGas)
+	evmMinGas := minGasPrices.AmountOf("akava").TruncateInt().BigInt()
 
 	// returns eth_gasPrice, units in kava
 	gasPrice, err := suite.Kava.EvmClient.SuggestGasPrice(context.Background())
 	suite.NoError(err)
 
 	suite.Equal(evmMinGas, gasPrice)
+}
+
+func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
+	// setup sender & receiver
+	sender := suite.Kava.NewFundedAccount("evm-min-fee-test-sender", sdk.NewCoins(ukava(2e6)))
+	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
+
+	// get min gas price for evm (from app.toml)
+	minFees, err := getMinFeeFromAppToml(suite.KavaHomePath())
+	suite.NoError(err)
+	minGasPrice := minFees.AmountOf("akava").TruncateInt()
+
+	// attempt tx with less than min gas price (min fee - 1)
+	tooLowGasPrice := minGasPrice.Sub(sdk.OneInt()).BigInt()
+	req := util.EvmTxRequest{
+		Tx:   ethtypes.NewTransaction(0, randoReceiver, big.NewInt(1e6), 1e5, tooLowGasPrice, nil),
+		Data: "this tx should fail because it's gas price is too low",
+	}
+	res := sender.SignAndBroadcastEvmTx(req)
+
+	// expect the tx to fail!
+	suite.ErrorAs(res.Err, &util.ErrEvmFailedToBroadcast{})
+	suite.ErrorContains(res.Err, "insufficient fees")
 }
 
 func getMinFeeFromAppToml(kavaHome string) (sdk.DecCoins, error) {
