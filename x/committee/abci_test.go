@@ -34,11 +34,13 @@ func (suite *ModuleTestSuite) SetupTest() {
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
 	suite.ctx = suite.app.NewContext(true, tmproto.Header{})
+
+	committee.InitGenesis(suite.ctx, suite.keeper, types.DefaultGenesisState())
+
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(5)
 }
 
 func (suite *ModuleTestSuite) TestBeginBlock_ClosesExpired() {
-	suite.app.InitializeFromGenesisStates()
 
 	memberCom := types.MustNewMemberCommittee(
 		12,
@@ -74,7 +76,6 @@ func (suite *ModuleTestSuite) TestBeginBlock_ClosesExpired() {
 }
 
 // func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassed() {
-// 	suite.app.InitializeFromGenesisStates()
 
 // 	// setup committee
 // 	normalCom := types.MustNewMemberCommittee(12, "committee description", suite.addresses[:2],
@@ -127,7 +128,6 @@ func (suite *ModuleTestSuite) TestBeginBlock_ClosesExpired() {
 // }
 
 // func (suite *ModuleTestSuite) TestBeginBlock_DoesntEnactFailed() {
-// 	suite.app.InitializeFromGenesisStates()
 
 // 	// setup committee
 // 	memberCom := types.MustNewMemberCommittee(12, "committee description", suite.addresses[:1],
@@ -172,7 +172,6 @@ func (suite *ModuleTestSuite) TestBeginBlock_ClosesExpired() {
 // }
 
 // func (suite *ModuleTestSuite) TestBeginBlock_EnactsPassedUpgrade() {
-// 	suite.app.InitializeFromGenesisStates()
 
 // 	// setup committee
 // 	memberCom := types.MustNewMemberCommittee(

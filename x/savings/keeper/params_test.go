@@ -4,16 +4,20 @@ import (
 	"github.com/kava-labs/kava/x/savings/types"
 )
 
-func (suite *KeeperTestSuite) TestGetSetParams() {
-	params := suite.keeper.GetParams(suite.ctx)
-	suite.Require().Equal(
-		types.Params{SupportedDenoms: []string(nil)},
-		params,
-	)
+func (suite *KeeperTestSuite) TestGetSetParams_Empty() {
+	suite.Run("empty", func() {
 
-	newParams := types.NewParams([]string{"btc", "test"})
-	suite.keeper.SetParams(suite.ctx, newParams)
+		newParams := types.NewParams(nil)
+		suite.keeper.SetParams(suite.ctx, newParams)
 
-	fetchedParams := suite.keeper.GetParams(suite.ctx)
-	suite.Require().Equal(newParams, fetchedParams)
+		fetchedParams := suite.keeper.GetParams(suite.ctx)
+		suite.Require().Equal(newParams, fetchedParams)
+	})
+	suite.Run("non empty", func() {
+		newParams := types.NewParams([]string{"btc", "test"})
+		suite.keeper.SetParams(suite.ctx, newParams)
+
+		fetchedParams := suite.keeper.GetParams(suite.ctx)
+		suite.Require().Equal(newParams, fetchedParams)
+	})
 }

@@ -17,7 +17,6 @@ import (
 func TestGrpcAuctionsFilter(t *testing.T) {
 	// setup
 	tApp := app.NewTestApp()
-	tApp.InitializeFromGenesisStates()
 	auctionsKeeper := tApp.GetAuctionKeeper()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)

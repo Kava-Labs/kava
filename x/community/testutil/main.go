@@ -28,8 +28,6 @@ func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
-	tApp.InitializeFromGenesisStates()
-
 	suite.App = tApp
 	suite.Ctx = ctx
 	suite.Keeper = tApp.GetCommunityKeeper()

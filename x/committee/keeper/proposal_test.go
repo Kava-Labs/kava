@@ -14,6 +14,7 @@ import (
 	// bep3types "github.com/kava-labs/kava/x/bep3/types"
 	// cdptypes "github.com/kava-labs/kava/x/cdp/types"
 
+	"github.com/kava-labs/kava/x/committee"
 	"github.com/kava-labs/kava/x/committee/testutil"
 	"github.com/kava-labs/kava/x/committee/types"
 	// "github.com/kava-labs/kava/x/pricefeed"
@@ -341,7 +342,7 @@ func (suite *keeperTestSuite) TestAddVote() {
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
 			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
-			tApp.InitializeFromGenesisStates()
+			committee.InitGenesis(ctx, keeper, types.DefaultGenesisState())
 
 			// setup the committee and proposal
 			keeper.SetCommittee(ctx, tc.committee)

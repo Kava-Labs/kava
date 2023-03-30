@@ -48,7 +48,6 @@ func BenchmarkAccountIteration(b *testing.B) {
 			ak := tApp.GetAccountKeeper()
 			bk := tApp.GetBankKeeper()
 
-			tApp.InitializeFromGenesisStates()
 			for i := 0; i < bm.numberAccounts; i++ {
 				arr := []byte{byte((i & 0xFF0000) >> 16), byte((i & 0xFF00) >> 8), byte(i & 0xFF)}
 				addr := sdk.AccAddress(arr)

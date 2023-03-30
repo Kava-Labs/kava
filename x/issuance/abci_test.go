@@ -35,7 +35,7 @@ func (suite *ABCITestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	blockTime := tmtime.Now()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: blockTime})
-	tApp.InitializeFromGenesisStates()
+
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	keeper := tApp.GetIssuanceKeeper()
 	modAccount, err := sdk.AccAddressFromBech32("kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w")

@@ -166,7 +166,6 @@ package keeper_test
 // 		suite.Run(tc.name, func() {
 // 			tApp := app.NewTestApp()
 // 			ctx := tApp.NewContext(true, abci.Header{})
-// 			tApp.InitializeFromGenesisStates()
 // 			com := types.NewMemberCommittee(
 // 				12,
 // 				"a description of this committee",

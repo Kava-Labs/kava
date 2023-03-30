@@ -69,7 +69,6 @@ func TestIncrementNextAuctionID(t *testing.T) {
 func TestIterateAuctions(t *testing.T) {
 	// setup
 	tApp := app.NewTestApp()
-	tApp.InitializeFromGenesisStates()
 	keeper := tApp.GetAuctionKeeper()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
 

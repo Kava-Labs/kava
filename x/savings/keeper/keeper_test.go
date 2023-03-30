@@ -37,7 +37,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	tApp.InitializeFromGenesisStates()
+
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	keeper := tApp.GetSavingsKeeper()
 	suite.app = tApp
