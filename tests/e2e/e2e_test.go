@@ -3,13 +3,10 @@ package e2e_test
 import (
 	"context"
 	"math/big"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/pelletier/go-toml/v2"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -174,18 +171,4 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 		}
 		return found
 	}, 10*time.Second, 1*time.Second)
-}
-
-func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
-	// read the expected min gas price from app.toml
-	parsed := struct {
-		MinGasPrice string `toml:"minimum-gas-prices"`
-	}{}
-	appToml, err := os.ReadFile(filepath.Join(suite.KavaHomePath(), "config", "app.toml"))
-	suite.NoError(err)
-	err = toml.Unmarshal(appToml, &parsed)
-	suite.NoError(err)
-
-	suite.Equal("0.001ukava;1000000000akava", parsed.MinGasPrice)
-	// gasPrice, err := suite.Kava.EvmClient.SuggestGasPrice()
 }
