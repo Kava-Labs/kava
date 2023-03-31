@@ -48,3 +48,5 @@ jobs:
         run: make install
       - name: validate testnet genesis
         run: kava validate-genesis ci/env/kava-internal-testnet/genesis.json
+      - name: validate protonet genesis
+        run: kava validate-genesis ci/env/kava-protonet/genesis.json

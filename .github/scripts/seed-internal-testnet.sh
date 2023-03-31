@@ -69,22 +69,20 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$USD_CONTRACT
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXLUSD_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 100000000000
 
-# seed webapp E2E whale account 
+# seed webapp E2E whale account
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wBTC_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 100000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$USD_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 1000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$wETH_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXLUSD_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000
 
 # give dev-wallet enough delegation power to pass proposals by itself
-# enumerate all genesis validators
-GENTX_VALIDATORS=("kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp" "kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s")
 
 # issue 300KAVA to delegate to each validator
 kava tx issuance issue 600000000ukava kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq \
   --from dev-wallet --gas-prices 0.5ukava -y
 
 # delegate 300KAVA to each validator
-for validator in "${GENTX_VALIDATORS[@]}"
+for validator in "${GENESIS_VALIDATOR_ADDRESSES[@]}"
 do
   kava tx staking delegate "${validator}" 300000000ukava --from dev-wallet --gas-prices 0.5ukava -y
 done
