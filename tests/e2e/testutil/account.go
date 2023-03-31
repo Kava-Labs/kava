@@ -1,9 +1,7 @@
 package testutil
 
 import (
-	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,7 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
-	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -23,14 +21,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/util"
-)
-
-var (
-	ErrBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
-	// ErrEvmTxFailed is returned when a tx is committed to a block, but the receipt status is 0.
-	// this means the tx failed. we don't have debug_traceTransaction RPC command so the best way
-	// to determine the problem is to attempt to make the tx manually.
-	ErrEvmTxFailed = errors.New("transaction was committed but failed. likely an execution revert by contract code")
 )
 
 type SigningAccount struct {
@@ -44,6 +34,8 @@ type SigningAccount struct {
 	kavaSigner *util.KavaSigner
 	sdkReqChan chan<- util.KavaMsgRequest
 	sdkResChan <-chan util.KavaMsgResponse
+
+	EvmAuth *bind.TransactOpts
 
 	EvmAddress common.Address
 	SdkAddress sdk.AccAddress
@@ -115,6 +107,8 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 		sdkReqChan: sdkReqChan,
 		sdkResChan: sdkResChan,
 
+		EvmAuth: evmSigner.Auth,
+
 		EvmAddress: evmSigner.Address(),
 		SdkAddress: kavaSigner.Address(),
 	}
@@ -168,26 +162,7 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	}
 
 	// if we don't have a tx receipt within a given timeout, fail the request
-	timeout := time.After(10 * time.Second)
-	for {
-		select {
-		case <-timeout:
-			response.Err = ErrBroadcastTimeout
-		default:
-			response.Receipt, response.Err = a.evmSigner.EvmClient.TransactionReceipt(context.Background(), res.TxHash)
-			if errors.Is(response.Err, ethereum.NotFound) {
-				// tx still not committed to a block. retry!
-				time.Sleep(100 * time.Millisecond)
-				continue
-			}
-			a.l.Printf("tx (%+v) successfully broadcast & committed: txhash = %s\n", req.Data, res.TxHash)
-			// a response status of 0 means the tx was successfully committed but failed to execute
-			if response.Receipt.Status == 0 {
-				response.Err = ErrEvmTxFailed
-			}
-		}
-		break
-	}
+	response.Receipt, response.Err = util.WaitForEvmTxReceipt(a.evmSigner.EvmClient, res.TxHash, 10*time.Second)
 
 	return response
 }
