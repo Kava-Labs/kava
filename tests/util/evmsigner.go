@@ -38,8 +38,8 @@ func (e ErrEvmFailedToBroadcast) Error() string {
 // EvmSigner manages signing and broadcasting requests to transfer Erc20 tokens
 // Will work for calling all contracts that have func signature `transfer(address,uint256)`
 type EvmSigner struct {
-	auth          *bind.TransactOpts
 	signerAddress common.Address
+	Auth          *bind.TransactOpts
 	EvmClient     *ethclient.Client
 }
 
@@ -60,7 +60,7 @@ func NewEvmSigner(
 	}
 
 	return &EvmSigner{
-		auth:          auth,
+		Auth:          auth,
 		signerAddress: crypto.PubkeyToAddress(*publicKeyECDSA),
 		EvmClient:     evmClient,
 	}, nil
@@ -77,7 +77,7 @@ func (s *EvmSigner) Run(requests <-chan EvmTxRequest) <-chan EvmTxResponse {
 			// wait for incoming request
 			req := <-requests
 
-			signedTx, err := s.auth.Signer(s.signerAddress, req.Tx)
+			signedTx, err := s.Auth.Signer(s.signerAddress, req.Tx)
 			if err != nil {
 				err = ErrEvmFailedToSign{Err: err}
 			} else {
