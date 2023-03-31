@@ -61,11 +61,10 @@ The pass backend requires GnuPG: https://gnupg.org/
 		keys.ImportKeyCommand(),
 		keys.ListKeysCmd(),
 		keys.ShowKeysCmd(),
-		flags.LineBreak,
 		keys.DeleteKeyCommand(),
+		keys.RenameKeyCommand(),
 		keys.ParseKeyStringCommand(),
 		keys.MigrateCommand(),
-		flags.LineBreak,
 		ethclient.UnsafeExportEthKeyCommand(),
 		ethclient.UnsafeImportKeyCommand(),
 	)
