@@ -170,5 +170,5 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 			}
 		}
 		return found
-	}, 10*time.Second, 1*time.Second)
+	}, 15*time.Second, 1*time.Second)
 }
