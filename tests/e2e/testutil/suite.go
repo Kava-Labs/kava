@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/stretchr/testify/suite"
 
@@ -95,4 +96,10 @@ func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
 	if !suite.config.IncludeAutomatedUpgrade {
 		suite.T().SkipNow()
 	}
+}
+
+// KavaHomePath returns the OS-specific filepath for the kava home directory
+// Assumes network is running with kvtool installed from the sub-repository in tests/e2e/kvtool
+func (suite *E2eTestSuite) KavaHomePath() string {
+	return filepath.Join("kvtool", "full_configs", "generated", "kava", "initstate", ".kava")
 }
