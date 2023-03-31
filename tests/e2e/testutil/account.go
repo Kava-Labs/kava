@@ -25,7 +25,13 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 )
 
-var ErrBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
+var (
+	ErrBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
+	// ErrEvmTxFailed is returned when a tx is committed to a block, but the receipt status is 0.
+	// this means the tx failed. we don't have debug_traceTransaction RPC command so the best way
+	// to determine the problem is to attempt to make the tx manually.
+	ErrEvmTxFailed = errors.New("transaction was committed but failed. likely an execution revert by contract code")
+)
 
 type SigningAccount struct {
 	name     string
@@ -173,6 +179,11 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 				// tx still not committed to a block. retry!
 				time.Sleep(100 * time.Millisecond)
 				continue
+			}
+			a.l.Printf("tx (%+v) successfully broadcast & committed: txhash = %s\n", req.Data, res.TxHash)
+			// a response status of 0 means the tx was successfully committed but failed to execute
+			if response.Receipt.Status == 0 {
+				response.Err = ErrEvmTxFailed
 			}
 		}
 		break
