@@ -1,4 +1,4 @@
-name: Continuous Deployment (Internal Testnet)
+name: Continuous Deployment (Protonet)
 # run after every successful CI job of new commits to the master branch
 on:
   workflow_run:
@@ -19,7 +19,7 @@ jobs:
     uses: ./.github/workflows/cd-reset-internal-testnet.yml
     with:
       aws-region: us-east-1
-      chain-id: kava_2221-17000
+      chain-id: proto_2221-17000
       ssm-document-name: kava-testnet-internal-node-update
       playbook-name: reset-internal-testnet-playbook.yml
       playbook-infrastructure-branch: master
@@ -30,7 +30,7 @@ jobs:
     uses: ./.github/workflows/cd-start-chain.yml
     with:
       aws-region: us-east-1
-      chain-id: kava_2221-17000
+      chain-id: proto_2221-17000
       ssm-document-name: kava-testnet-internal-node-update
       playbook-name: start-chain-api-playbook.yml
       playbook-infrastructure-branch: master
@@ -41,11 +41,11 @@ jobs:
   seed-chain-state:
     uses: ./.github/workflows/cd-seed-chain.yml
     with:
-      chain-api-url: https://rpc.app.internal.testnet.us-east.production.kava.io:443
-      chain-id: kava_2221-17000
+      chain-api-url: https://rpc.app.protonet.us-east.production.kava.io:443
+      chain-id: proto_2221-17000
       seed-script-filename: seed-internal-testnet.sh
-      erc20-deployer-network-name: internal_testnet
-      genesis_validator_addresses: "kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s"
+      erc20-deployer-network-name: protonet
+      genesis_validator_addresses: "kavavaloper14w4avgdvqrlpww6l5dhgj4egfn6ln7gmtp7r2m"
     secrets: inherit
     needs: [start-chain-api]
   post-pipeline-metrics:
@@ -53,7 +53,7 @@ jobs:
     if: always() # always run so we metric failures and successes
     with:
       aws-region: us-east-1
-      metric-name: kava.deploys.testnet.internal
+      metric-name: kava.deploys.testnet.proto
       namespace: Kava/ContinuousDeployment
     secrets: inherit
     needs: [seed-chain-state]

@@ -15,6 +15,9 @@ on:
       erc20-deployer-network-name:
         required: true
         type: string
+      genesis_validator_addresses:
+        required: true
+        type: string
     secrets:
       DEV_WALLET_MNEMONIC:
         required: true
@@ -71,3 +74,4 @@ jobs:
           DEV_WALLET_MNEMONIC: ${{ secrets.DEV_WALLET_MNEMONIC }}
           SEED_SCRIPT_FILENAME: ${{ inputs.seed-script-filename }}
           ERC20_DEPLOYER_NETWORK_NAME: ${{ inputs.erc20-deployer-network-name }}
+          GENESIS_VALIDATOR_ADDRESSES: ${{ inputs.genesis_validator_addresses }}
