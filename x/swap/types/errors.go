@@ -1,20 +1,18 @@
 package types
 
-import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-)
+import errorsmod "cosmossdk.io/errors"
 
 // swap module errors
 var (
-	ErrNotAllowed            = sdkerrors.Register(ModuleName, 2, "not allowed")
-	ErrInvalidDeadline       = sdkerrors.Register(ModuleName, 3, "invalid deadline")
-	ErrDeadlineExceeded      = sdkerrors.Register(ModuleName, 4, "deadline exceeded")
-	ErrSlippageExceeded      = sdkerrors.Register(ModuleName, 5, "slippage exceeded")
-	ErrInvalidPool           = sdkerrors.Register(ModuleName, 6, "invalid pool")
-	ErrInvalidSlippage       = sdkerrors.Register(ModuleName, 7, "invalid slippage")
-	ErrInsufficientLiquidity = sdkerrors.Register(ModuleName, 8, "insufficient liquidity")
-	ErrInvalidShares         = sdkerrors.Register(ModuleName, 9, "invalid shares")
-	ErrDepositNotFound       = sdkerrors.Register(ModuleName, 10, "deposit not found")
-	ErrInvalidCoin           = sdkerrors.Register(ModuleName, 11, "invalid coin")
-	ErrNotImplemented        = sdkerrors.Register(ModuleName, 12, "not implemented")
+	ErrNotAllowed            = errorsmod.Register(ModuleName, 2, "not allowed")
+	ErrInvalidDeadline       = errorsmod.Register(ModuleName, 3, "invalid deadline")
+	ErrDeadlineExceeded      = errorsmod.Register(ModuleName, 4, "deadline exceeded")
+	ErrSlippageExceeded      = errorsmod.Register(ModuleName, 5, "slippage exceeded")
+	ErrInvalidPool           = errorsmod.Register(ModuleName, 6, "invalid pool")
+	ErrInvalidSlippage       = errorsmod.Register(ModuleName, 7, "invalid slippage")
+	ErrInsufficientLiquidity = errorsmod.Register(ModuleName, 8, "insufficient liquidity")
+	ErrInvalidShares         = errorsmod.Register(ModuleName, 9, "invalid shares")
+	ErrDepositNotFound       = errorsmod.Register(ModuleName, 10, "deposit not found")
+	ErrInvalidCoin           = errorsmod.Register(ModuleName, 11, "invalid coin")
+	ErrNotImplemented        = errorsmod.Register(ModuleName, 12, "not implemented")
 )

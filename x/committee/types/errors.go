@@ -1,19 +1,17 @@
 package types
 
-import (
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-)
+import errorsmod "cosmossdk.io/errors"
 
 var (
-	ErrUnknownCommittee        = sdkerrors.Register(ModuleName, 2, "committee not found")
-	ErrInvalidCommittee        = sdkerrors.Register(ModuleName, 3, "invalid committee")
-	ErrUnknownProposal         = sdkerrors.Register(ModuleName, 4, "proposal not found")
-	ErrProposalExpired         = sdkerrors.Register(ModuleName, 5, "proposal expired")
-	ErrInvalidPubProposal      = sdkerrors.Register(ModuleName, 6, "invalid pubproposal")
-	ErrUnknownVote             = sdkerrors.Register(ModuleName, 7, "vote not found")
-	ErrInvalidGenesis          = sdkerrors.Register(ModuleName, 8, "invalid genesis")
-	ErrNoProposalHandlerExists = sdkerrors.Register(ModuleName, 9, "pubproposal has no corresponding handler")
-	ErrUnknownSubspace         = sdkerrors.Register(ModuleName, 10, "subspace not found")
-	ErrInvalidVoteType         = sdkerrors.Register(ModuleName, 11, "invalid vote type")
-	ErrNotFoundProposalTally   = sdkerrors.Register(ModuleName, 12, "proposal tally not found")
+	ErrUnknownCommittee        = errorsmod.Register(ModuleName, 2, "committee not found")
+	ErrInvalidCommittee        = errorsmod.Register(ModuleName, 3, "invalid committee")
+	ErrUnknownProposal         = errorsmod.Register(ModuleName, 4, "proposal not found")
+	ErrProposalExpired         = errorsmod.Register(ModuleName, 5, "proposal expired")
+	ErrInvalidPubProposal      = errorsmod.Register(ModuleName, 6, "invalid pubproposal")
+	ErrUnknownVote             = errorsmod.Register(ModuleName, 7, "vote not found")
+	ErrInvalidGenesis          = errorsmod.Register(ModuleName, 8, "invalid genesis")
+	ErrNoProposalHandlerExists = errorsmod.Register(ModuleName, 9, "pubproposal has no corresponding handler")
+	ErrUnknownSubspace         = errorsmod.Register(ModuleName, 10, "subspace not found")
+	ErrInvalidVoteType         = errorsmod.Register(ModuleName, 11, "invalid vote type")
+	ErrNotFoundProposalTally   = errorsmod.Register(ModuleName, 12, "proposal tally not found")
 )
