@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewVaultShare returns a new VaultShare
@@ -26,7 +26,7 @@ func NewVaultShare(denom string, amount sdk.Dec) VaultShare {
 // Validate returns an error if a VaultShare is invalid.
 func (share VaultShare) Validate() error {
 	if err := sdk.ValidateDenom(share.Denom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
+		return errorsmod.Wrap(ErrInvalidVaultDenom, err.Error())
 	}
 
 	if share.Amount.IsNil() {

@@ -6,6 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+errorsmod "cosmossdk.io/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
@@ -75,7 +76,7 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 	}
 	bondDenom := m.keeper.stakingKeeper.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, sdkerrors.Wrapf(
+		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
 		)
 	}

@@ -3,6 +3,7 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,7 +27,7 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper, legacyQuerierCdc)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
+			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
@@ -36,18 +37,18 @@ func queryAssetSupply(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 	var requestParams types.QueryAssetSupply
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	assetSupply, found := keeper.GetAssetSupply(ctx, requestParams.Denom)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrAssetSupplyNotFound, string(requestParams.Denom))
+		return nil, errorsmod.Wrap(types.ErrAssetSupplyNotFound, string(requestParams.Denom))
 	}
 
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, assetSupply)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -61,7 +62,7 @@ func queryAssetSupplies(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, l
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, assets)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -72,13 +73,13 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, lega
 	var requestParams types.QueryAtomicSwapByID
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	// Lookup atomic swap
 	atomicSwap, found := keeper.GetAtomicSwap(ctx, requestParams.SwapID)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%d", requestParams.SwapID)
+		return nil, errorsmod.Wrapf(types.ErrAtomicSwapNotFound, "%d", requestParams.SwapID)
 	}
 
 	augmentedAtomicSwap := types.NewLegacyAugmentedAtomicSwap(atomicSwap)
@@ -86,7 +87,7 @@ func queryAtomicSwap(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, lega
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedAtomicSwap)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -96,7 +97,7 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 	var params types.QueryAtomicSwaps
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	unfilteredSwaps := keeper.GetAllAtomicSwaps(ctx)
@@ -113,7 +114,7 @@ func queryAtomicSwaps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedSwaps)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -127,7 +128,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }

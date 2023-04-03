@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	"github.com/kava-labs/kava/x/auction/types"
@@ -47,7 +47,7 @@ func QueryAuctionByID(cliCtx client.Context, cdc *codec.Codec, queryRoute string
 	cliCtx.LegacyAmino.MustUnmarshalJSON(res, &nextAuctionID)
 
 	if auctionID >= nextAuctionID {
-		return nil, 0, sdkerrors.Wrapf(types.ErrAuctionNotFound, "%d", auctionID)
+		return nil, 0, errorsmod.Wrapf(types.ErrAuctionNotFound, "%d", auctionID)
 	}
 
 	events := []string{
@@ -79,7 +79,7 @@ func QueryAuctionByID(cliCtx client.Context, cdc *codec.Codec, queryRoute string
 	}
 
 	if !found {
-		return nil, 0, sdkerrors.Wrapf(types.ErrAuctionNotFound, "%d", auctionID)
+		return nil, 0, errorsmod.Wrapf(types.ErrAuctionNotFound, "%d", auctionID)
 	}
 
 	queryCLIContext := cliCtx.WithHeight(maxHeight)

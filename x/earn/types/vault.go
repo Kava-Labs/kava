@@ -3,8 +3,8 @@ package types
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewVaultRecord returns a new VaultRecord with 0 supply.
@@ -103,7 +103,7 @@ func NewAllowedVault(
 // Validate returns an error if the AllowedVault is invalid
 func (a *AllowedVault) Validate() error {
 	if err := sdk.ValidateDenom(a.Denom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidVaultDenom, err.Error())
+		return errorsmod.Wrap(ErrInvalidVaultDenom, err.Error())
 	}
 
 	// Private -> 1+ allowed depositors

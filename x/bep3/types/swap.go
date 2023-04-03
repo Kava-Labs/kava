@@ -8,6 +8,7 @@ import (
 
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -61,17 +62,17 @@ func (a AtomicSwap) Validate() error {
 		return errors.New("timestamp cannot be 0")
 	}
 	if a.Sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender cannot be empty")
 	}
 	if a.Recipient.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "recipient cannot be empty")
 	}
 	// NOTE: These adresses may not have a bech32 prefix.
 	if strings.TrimSpace(a.SenderOtherChain) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender other chain cannot be blank")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender other chain cannot be blank")
 	}
 	if strings.TrimSpace(a.RecipientOtherChain) == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient other chain cannot be blank")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "recipient other chain cannot be blank")
 	}
 	if a.Status == SWAP_STATUS_COMPLETED && a.ClosedBlock == 0 {
 		return errors.New("closed block cannot be 0")

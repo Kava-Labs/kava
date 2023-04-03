@@ -7,10 +7,10 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
@@ -83,7 +83,7 @@ func (k Keeper) SetPrice(
 func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 	_, ok := k.GetMarket(ctx, marketID)
 	if !ok {
-		return sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
+		return errorsmod.Wrap(types.ErrInvalidMarket, marketID)
 	}
 	// store current price
 	validPrevPrice := true

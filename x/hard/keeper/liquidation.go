@@ -3,8 +3,8 @@ package keeper
 import (
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -50,7 +50,7 @@ func (k Keeper) AttemptKeeperLiquidation(ctx sdk.Context, keeper sdk.AccAddress,
 		return err
 	}
 	if isWithinRange {
-		return sdkerrors.Wrapf(types.ErrBorrowNotLiquidatable, "position is within valid LTV range")
+		return errorsmod.Wrapf(types.ErrBorrowNotLiquidatable, "position is within valid LTV range")
 	}
 
 	// Sending coins to auction module with keeper address getting % of the profits
@@ -388,7 +388,7 @@ func (k Keeper) LoadLiquidationData(ctx sdk.Context, deposit types.Deposit, borr
 	for _, denom := range denoms {
 		mm, found := k.GetMoneyMarket(ctx, denom)
 		if !found {
-			return liqMap, sdkerrors.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
+			return liqMap, errorsmod.Wrapf(types.ErrMarketNotFound, "no market found for denom %s", denom)
 		}
 
 		priceData, err := k.pricefeedKeeper.GetCurrentPrice(ctx, mm.SpotMarketID)

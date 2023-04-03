@@ -1,6 +1,7 @@
 package ante
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -28,10 +29,10 @@ func (amd AuthenticatedMempoolDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, 
 	if ctx.IsCheckTx() && !simulate {
 		sigTx, ok := tx.(authsigning.SigVerifiableTx)
 		if !ok {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "tx must be sig verifiable tx")
+			return ctx, errorsmod.Wrap(sdkerrors.ErrTxDecode, "tx must be sig verifiable tx")
 		}
 		if !commonAddressesExist(sigTx.GetSigners(), amd.fetchAuthorizedAddresses(ctx)) {
-			return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "tx contains no signers authorized for this mempool")
+			return ctx, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "tx contains no signers authorized for this mempool")
 		}
 	}
 	return next(ctx, tx, simulate)

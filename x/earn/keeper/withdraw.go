@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -52,7 +52,7 @@ func (k *Keeper) Withdraw(
 	accCurrentShares := vaultShareRecord.Shares.AmountOf(wantAmount.Denom)
 	// Check if account is not withdrawing more shares than they have
 	if accCurrentShares.LT(withdrawShares.Amount) {
-		return sdk.Coin{}, sdkerrors.Wrapf(
+		return sdk.Coin{}, errorsmod.Wrapf(
 			types.ErrInsufficientValue,
 			"account has less %s vault shares than withdraw shares, %s < %s",
 			wantAmount.Denom,
@@ -74,7 +74,7 @@ func (k *Keeper) Withdraw(
 
 	// Check if withdrawAmount > account value
 	if withdrawAmount.Amount.GT(accountValue.Amount) {
-		return sdk.Coin{}, sdkerrors.Wrapf(
+		return sdk.Coin{}, errorsmod.Wrapf(
 			types.ErrInsufficientValue,
 			"account has less %s vault value than withdraw amount, %s < %s",
 			withdrawAmount.Denom,

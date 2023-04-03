@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -39,14 +40,14 @@ func (msg MsgCreateCDP) Type() string { return "create_cdp" }
 func (msg MsgCreateCDP) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if msg.Collateral.IsZero() || !msg.Collateral.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
 	if msg.Principal.IsZero() || !msg.Principal.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
 	}
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return fmt.Errorf("collateral type cannot be empty")
@@ -89,15 +90,15 @@ func (msg MsgDeposit) Type() string { return "deposit_cdp" }
 func (msg MsgDeposit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address %s", err)
 	}
 
 	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return fmt.Errorf("collateral type cannot be empty")
@@ -140,15 +141,15 @@ func (msg MsgWithdraw) Type() string { return "withdraw_cdp" }
 func (msg MsgWithdraw) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid owner address %s", err)
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address %s", err)
 	}
 
 	if !msg.Collateral.IsValid() || msg.Collateral.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", msg.Collateral)
 	}
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return fmt.Errorf("collateral type cannot be empty")
@@ -190,14 +191,14 @@ func (msg MsgDrawDebt) Type() string { return "draw_cdp" }
 func (msg MsgDrawDebt) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
 	}
 
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return errors.New("cdp collateral type cannot be blank")
 	}
 	if msg.Principal.IsZero() || !msg.Principal.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "principal amount %s", msg.Principal)
 	}
 	return nil
 }
@@ -236,14 +237,14 @@ func (msg MsgRepayDebt) Type() string { return "repay_cdp" }
 func (msg MsgRepayDebt) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sender address %s", err)
 	}
 
 	if strings.TrimSpace(msg.CollateralType) == "" {
 		return errors.New("cdp collateral type cannot be blank")
 	}
 	if msg.Payment.IsZero() || !msg.Payment.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "payment amount %s", msg.Payment)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "payment amount %s", msg.Payment)
 	}
 	return nil
 }
@@ -282,15 +283,15 @@ func (msg MsgLiquidate) Type() string { return "liquidate" }
 func (msg MsgLiquidate) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Keeper)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid keeper address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid keeper address %s", err)
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Borrower)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid borrower address %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid borrower address %s", err)
 	}
 
 	if strings.TrimSpace(msg.CollateralType) == "" {
-		return sdkerrors.Wrap(ErrInvalidCollateral, "collateral type cannot be empty")
+		return errorsmod.Wrap(ErrInvalidCollateral, "collateral type cannot be empty")
 	}
 	return nil
 }

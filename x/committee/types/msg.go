@@ -3,9 +3,9 @@ package types
 import (
 	fmt "fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -59,7 +59,7 @@ func (msg MsgSubmitProposal) Type() string { return TypeMsgSubmitProposal }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSubmitProposal) ValidateBasic() error {
 	if msg.GetPubProposal() == nil {
-		return sdkerrors.Wrap(ErrInvalidPubProposal, "pub proposal cannot be nil")
+		return errorsmod.Wrap(ErrInvalidPubProposal, "pub proposal cannot be nil")
 	}
 	if _, err := sdk.AccAddressFromBech32(msg.Proposer); err != nil {
 		return err

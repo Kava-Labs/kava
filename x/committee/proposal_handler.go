@@ -1,6 +1,7 @@
 package committee
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -17,14 +18,14 @@ func NewProposalHandler(k keeper.Keeper) govv1beta1.Handler {
 			return handleCommitteeDeleteProposal(ctx, k, c)
 
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s proposal content type: %T", types.ModuleName, c)
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s proposal content type: %T", types.ModuleName, c)
 		}
 	}
 }
 
 func handleCommitteeChangeProposal(ctx sdk.Context, k keeper.Keeper, committeeProposal *types.CommitteeChangeProposal) error {
 	if err := committeeProposal.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(types.ErrInvalidPubProposal, err.Error())
+		return errorsmod.Wrap(types.ErrInvalidPubProposal, err.Error())
 	}
 
 	// Remove all committee's ongoing proposals
@@ -40,7 +41,7 @@ func handleCommitteeChangeProposal(ctx sdk.Context, k keeper.Keeper, committeePr
 
 func handleCommitteeDeleteProposal(ctx sdk.Context, k keeper.Keeper, committeeProposal *types.CommitteeDeleteProposal) error {
 	if err := committeeProposal.ValidateBasic(); err != nil {
-		return sdkerrors.Wrap(types.ErrInvalidPubProposal, err.Error())
+		return errorsmod.Wrap(types.ErrInvalidPubProposal, err.Error())
 	}
 
 	// Remove all committee's ongoing proposals

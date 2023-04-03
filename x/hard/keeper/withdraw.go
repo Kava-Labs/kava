@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -12,7 +12,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 	// Call incentive hooks
 	existingDeposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
+		return errorsmod.Wrapf(types.ErrDepositNotFound, "no deposit found for %s", depositor)
 	}
 	k.BeforeDepositModified(ctx, existingDeposit)
 
@@ -44,7 +44,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		return err
 	}
 	if !valid {
-		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
+		return errorsmod.Wrapf(types.ErrInvalidWithdrawAmount, "proposed withdraw outside loan-to-value range")
 	}
 
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, depositor, amount)
@@ -57,7 +57,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		if !sdk.NewCoins(coin).DenomsSubsetOf(proposedDeposit.Amount) {
 			depositIndex, removed := deposit.Index.RemoveInterestFactor(coin.Denom)
 			if !removed {
-				return sdkerrors.Wrapf(types.ErrInvalidIndexFactorDenom, "%s", coin.Denom)
+				return errorsmod.Wrapf(types.ErrInvalidIndexFactorDenom, "%s", coin.Denom)
 			}
 			deposit.Index = depositIndex
 		}

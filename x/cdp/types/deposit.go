@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -21,7 +22,7 @@ func (d Deposit) Validate() error {
 		return errors.New("depositor cannot be empty")
 	}
 	if !d.Amount.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit %s", d.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "deposit %s", d.Amount)
 	}
 	return nil
 }

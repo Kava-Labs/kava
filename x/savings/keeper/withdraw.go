@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/savings/types"
 )
@@ -13,7 +13,7 @@ import (
 func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error {
 	deposit, found := k.GetDeposit(ctx, depositor)
 	if !found {
-		return sdkerrors.Wrap(types.ErrNoDepositFound, fmt.Sprintf(" for address: %s", depositor.String()))
+		return errorsmod.Wrap(types.ErrNoDepositFound, fmt.Sprintf(" for address: %s", depositor.String()))
 	}
 
 	amount, err := k.CalculateWithdrawAmount(deposit.Amount, coins)

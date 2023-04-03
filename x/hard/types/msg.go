@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -32,11 +33,11 @@ func (msg MsgDeposit) Type() string { return "hard_deposit" }
 func (msg MsgDeposit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", msg.Amount)
 	}
 	return nil
 }
@@ -74,10 +75,10 @@ func (msg MsgWithdraw) Type() string { return "hard_withdraw" }
 func (msg MsgWithdraw) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", msg.Amount)
 	}
 	return nil
 }
@@ -115,10 +116,10 @@ func (msg MsgBorrow) Type() string { return "hard_borrow" }
 func (msg MsgBorrow) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Borrower)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "borrow amount %s", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "borrow amount %s", msg.Amount)
 	}
 	return nil
 }
@@ -157,14 +158,14 @@ func (msg MsgRepay) Type() string { return "hard_repay" }
 func (msg MsgRepay) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Owner)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "repay amount %s", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "repay amount %s", msg.Amount)
 	}
 	return nil
 }
@@ -202,11 +203,11 @@ func (msg MsgLiquidate) Type() string { return "liquidate" }
 func (msg MsgLiquidate) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Keeper)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Borrower)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	return nil
 }

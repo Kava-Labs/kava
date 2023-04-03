@@ -3,8 +3,8 @@ package keeper
 import (
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -134,7 +134,7 @@ func (k Keeper) UnlockERC20Tokens(
 	contractAddr := pair.GetAddress()
 	startBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 	res, err := k.CallEVM(
 		ctx,
@@ -153,11 +153,11 @@ func (k Keeper) UnlockERC20Tokens(
 	// validate end bal
 	endBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 	expectedEndBal := big.NewInt(0).Add(startBal, amount)
 	if expectedEndBal.Cmp(endBal) != 0 {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrBalanceInvariance,
 			"invalid token balance - expected: %v, actual: %v",
 			expectedEndBal, endBal,
@@ -183,7 +183,7 @@ func (k Keeper) LockERC20Tokens(
 	contractAddr := pair.GetAddress()
 	initiatorStartBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, initiator)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 
 	res, err := k.CallEVM(
@@ -203,11 +203,11 @@ func (k Keeper) LockERC20Tokens(
 	// validate end bal
 	initiatorEndBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, initiator)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 	expectedEndBal := big.NewInt(0).Sub(initiatorStartBal, amount)
 	if expectedEndBal.Cmp(initiatorEndBal) != 0 {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrBalanceInvariance,
 			"invalid token balance - expected: %v, actual: %v",
 			expectedEndBal, initiatorEndBal,

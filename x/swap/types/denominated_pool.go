@@ -3,8 +3,8 @@ package types
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // DenominatedPool implements a denominated constant-product liquidity pool
@@ -19,7 +19,7 @@ type DenominatedPool struct {
 // NewDenominatedPool creates a new denominated pool from reserve coins
 func NewDenominatedPool(reserves sdk.Coins) (*DenominatedPool, error) {
 	if len(reserves) != 2 {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must have two denominations")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "reserves must have two denominations")
 	}
 
 	// Coins should always sorted, so this is deterministic, though it does not need to be.
@@ -42,7 +42,7 @@ func NewDenominatedPool(reserves sdk.Coins) (*DenominatedPool, error) {
 // NewDenominatedPoolWithExistingShares creates a new denominated pool from reserve coins
 func NewDenominatedPoolWithExistingShares(reserves sdk.Coins, totalShares sdk.Int) (*DenominatedPool, error) {
 	if len(reserves) != 2 {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must have two denominations")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "reserves must have two denominations")
 	}
 
 	// Coins should always sorted, so this is deterministic, though it does not need to be.

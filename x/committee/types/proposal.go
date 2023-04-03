@@ -1,8 +1,8 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -100,10 +100,10 @@ func (ccp CommitteeChangeProposal) ValidateBasic() error {
 	}
 	committee, err := UnpackCommittee(ccp.NewCommittee)
 	if err != nil {
-		return sdkerrors.Wrap(ErrInvalidCommittee, err.Error())
+		return errorsmod.Wrap(ErrInvalidCommittee, err.Error())
 	}
 	if err := committee.Validate(); err != nil {
-		return sdkerrors.Wrap(ErrInvalidCommittee, err.Error())
+		return errorsmod.Wrap(ErrInvalidCommittee, err.Error())
 	}
 	return nil
 }

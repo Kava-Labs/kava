@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/x/liquid/types"
@@ -23,11 +23,11 @@ func (k Keeper) TransferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, from
 	}
 
 	if shares.IsNil() || shares.LT(sdk.ZeroDec()) {
-		return sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "nil or negative shares")
+		return sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "nil or negative shares")
 	}
 	if shares.Equal(sdk.ZeroDec()) {
 		// Block 0 transfers to reduce edge cases.
-		return sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "zero shares")
+		return sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "zero shares")
 	}
 
 	fromDelegation, found := k.stakingKeeper.GetDelegation(ctx, fromDelegator, valAddr)

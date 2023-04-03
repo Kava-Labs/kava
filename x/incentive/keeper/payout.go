@@ -3,8 +3,8 @@ package keeper
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
@@ -26,13 +26,13 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 	macc := k.accountKeeper.GetModuleAccount(ctx, senderModule)
 	maccCoins := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
 	if !maccCoins.IsAllGTE(amt) {
-		return sdkerrors.Wrapf(types.ErrInsufficientModAccountBalance, "%s", senderModule)
+		return errorsmod.Wrapf(types.ErrInsufficientModAccountBalance, "%s", senderModule)
 	}
 
 	// 0. Get the account from the account keeper and do a type switch, error if it's a validator vesting account or module account (can make this work for validator vesting later if necessary)
 	acc := k.accountKeeper.GetAccount(ctx, recipientAddr)
 	if acc == nil {
-		return sdkerrors.Wrapf(types.ErrAccountNotFound, recipientAddr.String())
+		return errorsmod.Wrapf(types.ErrAccountNotFound, recipientAddr.String())
 	}
 	if length == 0 {
 		return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt)
@@ -40,13 +40,13 @@ func (k Keeper) SendTimeLockedCoinsToAccount(ctx sdk.Context, senderModule strin
 
 	switch acc.(type) {
 	case *vestingtypes.ContinuousVestingAccount, authtypes.ModuleAccountI:
-		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
+		return errorsmod.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	case *vestingtypes.PeriodicVestingAccount:
 		return k.SendTimeLockedCoinsToPeriodicVestingAccount(ctx, senderModule, recipientAddr, amt, length)
 	case *authtypes.BaseAccount:
 		return k.SendTimeLockedCoinsToBaseAccount(ctx, senderModule, recipientAddr, amt, length)
 	default:
-		return sdkerrors.Wrapf(types.ErrInvalidAccountType, "%T", acc)
+		return errorsmod.Wrapf(types.ErrInvalidAccountType, "%T", acc)
 	}
 }
 

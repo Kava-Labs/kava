@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -185,7 +185,7 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, sou
 	// check for missing CollateralType's
 	for _, oldIndex := range oldIndexes {
 		if newIndex, found := newIndexes.Get(oldIndex.CollateralType); !found {
-			return nil, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
+			return nil, errorsmod.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 		}
 	}
 	var reward sdk.Coins
@@ -217,7 +217,7 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, sou
 func (k Keeper) CalculateSingleReward(oldIndex, newIndex, sourceShares sdk.Dec) (sdk.Int, error) {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
-		return sdk.Int{}, sdkerrors.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
+		return sdk.Int{}, errorsmod.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 	}
 	reward := increase.Mul(sourceShares).RoundInt()
 	return reward, nil

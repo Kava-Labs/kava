@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -24,7 +24,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 	}
 	_, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if found {
-		return sdkerrors.Wrapf(types.ErrCdpAlreadyExists, "owner %s, denom %s", owner, collateral.Denom)
+		return errorsmod.Wrapf(types.ErrCdpAlreadyExists, "owner %s, denom %s", owner, collateral.Denom)
 	}
 	err = k.ValidatePrincipalAdd(ctx, principal)
 	if err != nil {
@@ -149,7 +149,7 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 func (k Keeper) removeOldCollateralRatioIndex(ctx sdk.Context, ctype string, id uint64) error {
 	storedCDP, found := k.GetCDP(ctx, ctype, id)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCdpNotFound, "%d", storedCDP.ID)
+		return errorsmod.Wrapf(types.ErrCdpNotFound, "%d", storedCDP.ID)
 	}
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, storedCDP.Collateral, storedCDP.Type, storedCDP.GetTotalPrincipal())
 	k.RemoveCdpCollateralRatioIndex(ctx, storedCDP.Type, storedCDP.ID, oldCollateralToDebtRatio)
@@ -238,7 +238,7 @@ func (k Keeper) SetCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	_, found := k.GetCollateral(ctx, cdp.Type)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return errorsmod.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	bz := k.cdc.MustMarshal(&cdp)
 	store.Set(types.CdpKey(cdp.Type, cdp.ID), bz)
@@ -250,7 +250,7 @@ func (k Keeper) DeleteCDP(ctx sdk.Context, cdp types.CDP) error {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	_, found := k.GetCollateral(ctx, cdp.Type)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
+		return errorsmod.Wrapf(types.ErrDenomPrefixNotFound, "%s", cdp.Collateral.Denom)
 	}
 	store.Delete(types.CdpKey(cdp.Type, cdp.ID))
 	return nil
@@ -397,18 +397,18 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coin, collateralType string) error {
 	cp, found := k.GetCollateral(ctx, collateralType)
 	if !found {
-		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateral.Denom)
+		return errorsmod.Wrap(types.ErrCollateralNotSupported, collateral.Denom)
 	}
 	if cp.Denom != collateral.Denom {
-		return sdkerrors.Wrapf(types.ErrInvalidCollateral, "collateral type: %s expected denom: %s got: %s", collateralType, cp.Denom, collateral.Denom)
+		return errorsmod.Wrapf(types.ErrInvalidCollateral, "collateral type: %s expected denom: %s got: %s", collateralType, cp.Denom, collateral.Denom)
 	}
 	ok := k.GetMarketStatus(ctx, cp.SpotMarketID)
 	if !ok {
-		return sdkerrors.Wrap(types.ErrPricefeedDown, collateral.Denom)
+		return errorsmod.Wrap(types.ErrPricefeedDown, collateral.Denom)
 	}
 	ok = k.GetMarketStatus(ctx, cp.LiquidationMarketID)
 	if !ok {
-		return sdkerrors.Wrap(types.ErrPricefeedDown, collateral.Denom)
+		return errorsmod.Wrap(types.ErrPricefeedDown, collateral.Denom)
 	}
 	return nil
 }
@@ -417,10 +417,10 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coin, collate
 func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coin) error {
 	dp, found := k.GetDebtParam(ctx, principal.Denom)
 	if !found {
-		return sdkerrors.Wrap(types.ErrDebtNotSupported, principal.Denom)
+		return errorsmod.Wrap(types.ErrDebtNotSupported, principal.Denom)
 	}
 	if principal.Amount.LT(dp.DebtFloor) {
-		return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", principal, dp.DebtFloor)
+		return errorsmod.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", principal, dp.DebtFloor)
 	}
 	return nil
 }
@@ -428,11 +428,11 @@ func (k Keeper) ValidatePrincipalAdd(ctx sdk.Context, principal sdk.Coin) error 
 // ValidatePrincipalDraw validates that an asset is valid for use as debt when drawing debt off an existing cdp
 func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coin, expectedDenom string) error {
 	if principal.Denom != expectedDenom {
-		return sdkerrors.Wrapf(types.ErrInvalidDebtRequest, "proposed %s, expected %s", principal.Denom, expectedDenom)
+		return errorsmod.Wrapf(types.ErrInvalidDebtRequest, "proposed %s, expected %s", principal.Denom, expectedDenom)
 	}
 	_, found := k.GetDebtParam(ctx, principal.Denom)
 	if !found {
-		return sdkerrors.Wrap(types.ErrDebtNotSupported, principal.Denom)
+		return errorsmod.Wrap(types.ErrDebtNotSupported, principal.Denom)
 	}
 	return nil
 }
@@ -441,16 +441,16 @@ func (k Keeper) ValidatePrincipalDraw(ctx sdk.Context, principal sdk.Coin, expec
 func (k Keeper) ValidateDebtLimit(ctx sdk.Context, collateralType string, principal sdk.Coin) error {
 	cp, found := k.GetCollateral(ctx, collateralType)
 	if !found {
-		return sdkerrors.Wrap(types.ErrCollateralNotSupported, collateralType)
+		return errorsmod.Wrap(types.ErrCollateralNotSupported, collateralType)
 	}
 	totalPrincipal := k.GetTotalPrincipal(ctx, collateralType, principal.Denom).Add(principal.Amount)
 	collateralLimit := cp.DebtLimit.Amount
 	if totalPrincipal.GT(collateralLimit) {
-		return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > collateral debt limit %s", sdk.NewCoins(sdk.NewCoin(principal.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(principal.Denom, collateralLimit)))
+		return errorsmod.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > collateral debt limit %s", sdk.NewCoins(sdk.NewCoin(principal.Denom, totalPrincipal)), sdk.NewCoins(sdk.NewCoin(principal.Denom, collateralLimit)))
 	}
 	globalLimit := k.GetParams(ctx).GlobalDebtLimit.Amount
 	if totalPrincipal.GT(globalLimit) {
-		return sdkerrors.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > global debt limit  %s", sdk.NewCoin(principal.Denom, totalPrincipal), sdk.NewCoin(principal.Denom, globalLimit))
+		return errorsmod.Wrapf(types.ErrExceedsDebtLimit, "debt increase %s > global debt limit  %s", sdk.NewCoin(principal.Denom, totalPrincipal), sdk.NewCoin(principal.Denom, globalLimit))
 	}
 	return nil
 }
@@ -463,7 +463,7 @@ func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.C
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, collateralType)
 	if collateralizationRatio.LT(liquidationRatio) {
-		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ratio %s", collateral.Denom, collateralizationRatio, liquidationRatio)
+		return errorsmod.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ratio %s", collateral.Denom, collateralizationRatio, liquidationRatio)
 	}
 	return nil
 }
@@ -472,11 +472,11 @@ func (k Keeper) ValidateCollateralizationRatio(ctx sdk.Context, collateral sdk.C
 func (k Keeper) ValidateBalance(ctx sdk.Context, amount sdk.Coin, sender sdk.AccAddress) error {
 	acc := k.accountKeeper.GetAccount(ctx, sender)
 	if acc == nil {
-		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", sender)
+		return errorsmod.Wrapf(types.ErrAccountNotFound, "address: %s", sender)
 	}
 	spendableBalance := k.bankKeeper.SpendableCoins(ctx, acc.GetAddress()).AmountOf(amount.Denom)
 	if spendableBalance.LT(amount.Amount) {
-		return sdkerrors.Wrapf(types.ErrInsufficientBalance, "%s < %s", sdk.NewCoin(amount.Denom, spendableBalance), amount)
+		return errorsmod.Wrapf(types.ErrInsufficientBalance, "%s < %s", sdk.NewCoin(amount.Denom, spendableBalance), amount)
 	}
 
 	return nil

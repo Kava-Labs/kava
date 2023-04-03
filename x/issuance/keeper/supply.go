@@ -3,8 +3,8 @@ package keeper
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/issuance/types"
 )
@@ -21,7 +21,7 @@ func (k Keeper) CreateNewAssetSupply(ctx sdk.Context, denom string) types.AssetS
 func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) error {
 	supply, found := k.GetAssetSupply(ctx, coin.Denom)
 	if !found {
-		return sdkerrors.Wrap(types.ErrAssetNotFound, coin.Denom)
+		return errorsmod.Wrap(types.ErrAssetNotFound, coin.Denom)
 	}
 
 	limit, err := k.GetRateLimit(ctx, coin.Denom)
@@ -33,7 +33,7 @@ func (k Keeper) IncrementCurrentAssetSupply(ctx sdk.Context, coin sdk.Coin) erro
 		supplyLimit := sdk.NewCoin(coin.Denom, limit.Limit)
 		// Resulting current supply must be under asset's limit
 		if supplyLimit.IsLT(supply.CurrentSupply.Add(coin)) {
-			return sdkerrors.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supplyLimit)
+			return errorsmod.Wrapf(types.ErrExceedsSupplyLimit, "increase %s, asset supply %s, limit %s", coin, supply.CurrentSupply, supplyLimit)
 		}
 		supply.CurrentSupply = supply.CurrentSupply.Add(coin)
 		k.SetAssetSupply(ctx, supply, coin.Denom)

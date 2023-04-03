@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+errorsmod "cosmossdk.io/errors"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -215,7 +216,7 @@ func (k EvmBankKeeper) ConvertAkavaToUkava(ctx sdk.Context, addr sdk.AccAddress)
 func (k EvmBankKeeper) GetModuleAddress(moduleName string) sdk.AccAddress {
 	addr := k.ak.GetModuleAddress(moduleName)
 	if addr == nil {
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleName))
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleName))
 	}
 	return addr
 }
@@ -256,13 +257,13 @@ func ValidateEvmCoins(coins sdk.Coins) error {
 
 	// validate that coins are non-negative, sorted, and no dup denoms
 	if err := coins.Validate(); err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, coins.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, coins.String())
 	}
 
 	// validate that coin denom is akava
 	if len(coins) != 1 || coins[0].Denom != EvmDenom {
 		errMsg := fmt.Sprintf("invalid evm coin denom, only %s is supported", EvmDenom)
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, errMsg)
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, errMsg)
 	}
 
 	return nil

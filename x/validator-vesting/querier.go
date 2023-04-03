@@ -3,6 +3,7 @@ package validator_vesting
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -33,7 +34,7 @@ func NewQuerier(bk types.BankKeeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Qu
 		case types.QueryTotalSupplyUSDX:
 			return getCirculatingSupplyUSDX(ctx, req, bk, legacyQuerierCdc) // Intentional - USDX total supply is the circulating supply
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
+			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint: %s", types.ModuleName, path[0])
 		}
 	}
 }
@@ -43,7 +44,7 @@ func queryGetTotalSupply(ctx sdk.Context, req abci.RequestQuery, bk types.BankKe
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
 	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -53,7 +54,7 @@ func queryGetCirculatingSupply(ctx sdk.Context, req abci.RequestQuery, bk types.
 	supplyInt := getCirculatingSupply(ctx.BlockTime(), totalSupply)
 	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -239,7 +240,7 @@ func getCirculatingSupplyHARD(ctx sdk.Context, req abci.RequestQuery, legacyQuer
 
 	bz, err := legacyQuerierCdc.MarshalJSON(circSupply)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -249,7 +250,7 @@ func getCirculatingSupplyUSDX(ctx sdk.Context, req abci.RequestQuery, bk types.B
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
 	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -340,7 +341,7 @@ func getCirculatingSupplySWP(ctx sdk.Context, req abci.RequestQuery, legacyQueri
 
 	bz, err := legacyQuerierCdc.MarshalJSON(circSupply)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -350,7 +351,7 @@ func getTotalSupplyHARD(ctx sdk.Context, req abci.RequestQuery, bk types.BankKee
 	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt64()
 	bz, err := legacyQuerierCdc.MarshalJSON(supplyInt)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }

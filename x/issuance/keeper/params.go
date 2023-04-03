@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/issuance/types"
 )
@@ -45,7 +45,7 @@ func (k Keeper) SetAsset(ctx sdk.Context, asset types.Asset) {
 func (k Keeper) GetRateLimit(ctx sdk.Context, denom string) (types.RateLimit, error) {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
-		sdkerrors.Wrap(types.ErrAssetNotFound, denom)
+		errorsmod.Wrap(types.ErrAssetNotFound, denom)
 	}
 	return asset.RateLimit, nil
 }

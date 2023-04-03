@@ -5,6 +5,7 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,7 +27,7 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 		case types.QueryNextAuctionID:
 			return queryNextAuctionID(ctx, req, keeper, legacyQuerierCdc)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
+			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
@@ -39,7 +40,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -49,17 +50,17 @@ func queryAuction(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	var params types.QueryAuctionParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	auction, ok := k.GetAuction(ctx, params.AuctionID)
 	if !ok {
-		return nil, sdkerrors.Wrap(types.ErrAuctionNotFound, fmt.Sprintf("%d", params.AuctionID))
+		return nil, errorsmod.Wrap(types.ErrAuctionNotFound, fmt.Sprintf("%d", params.AuctionID))
 	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, auction)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -68,7 +69,7 @@ func queryAuctions(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQueri
 	var params types.QueryAllAuctionParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	unfilteredAuctions := k.GetAllAuctions(ctx)
@@ -79,7 +80,7 @@ func queryAuctions(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQueri
 
 	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, auctions)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return res, nil
 }
@@ -89,7 +90,7 @@ func queryNextAuctionID(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, l
 
 	bz, err := legacyQuerierCdc.MarshalJSON(nextAuctionID)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	return bz, nil
 }

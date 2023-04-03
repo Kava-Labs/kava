@@ -7,6 +7,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+errorsmod "cosmossdk.io/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -150,7 +151,7 @@ func (k Keeper) SendBalance(ctx sdk.Context, senderAddr sdk.AccAddress, recipien
 
 	senderBal := k.GetBalance(ctx, senderAddr)
 	if senderBal.LT(amt) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
+		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
 	}
 	if err := k.SetBalance(ctx, senderAddr, senderBal.Sub(amt)); err != nil {
 		return err
@@ -177,7 +178,7 @@ func (k Keeper) RemoveBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int)
 	bal := k.GetBalance(ctx, addr)
 	finalBal := bal.Sub(amt)
 	if finalBal.IsNegative() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
+		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
 	}
 	return k.SetBalance(ctx, addr, finalBal)
 }

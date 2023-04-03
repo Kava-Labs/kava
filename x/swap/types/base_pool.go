@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var zero = sdk.ZeroInt()
@@ -40,7 +40,7 @@ type BasePool struct {
 // NewBasePool returns a pointer to a base pool with reserves and total shares initialized
 func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
 	if reservesA.LTE(zero) || reservesB.LTE(zero) {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "reserves must be greater than zero")
 	}
 
 	totalShares := calculateInitialShares(reservesA, reservesB)
@@ -55,11 +55,11 @@ func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
 // NewBasePoolWithExistingShares returns a pointer to a base pool with existing shares
 func NewBasePoolWithExistingShares(reservesA, reservesB, totalShares sdk.Int) (*BasePool, error) {
 	if reservesA.LTE(zero) || reservesB.LTE(zero) {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "reserves must be greater than zero")
 	}
 
 	if totalShares.LTE(zero) {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "total shares must be greater than zero")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "total shares must be greater than zero")
 	}
 
 	return &BasePool{

@@ -18,8 +18,8 @@ import (
 	"encoding/json"
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -42,15 +42,15 @@ func (k Keeper) CallEVM(
 ) (*evmtypes.MsgEthereumTxResponse, error) {
 	data, err := abi.Pack(method, args...)
 	if err != nil {
-		return nil, sdkerrors.Wrap(
+		return nil, errorsmod.Wrap(
 			types.ErrABIPack,
-			sdkerrors.Wrap(err, "failed to create transaction data").Error(),
+			errorsmod.Wrap(err, "failed to create transaction data").Error(),
 		)
 	}
 
 	resp, err := k.CallEVMWithData(ctx, from, &contract, data)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
+		return nil, errorsmod.Wrapf(err, "contract call failed: method '%s', contract '%s'", method, contract)
 	}
 	return resp, nil
 }
@@ -103,7 +103,7 @@ func (k Keeper) CallEVMWithData(
 		GasCap: config.DefaultGasCap,
 	})
 	if err != nil {
-		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, err.Error())
+		return nil, errorsmod.Wrap(evmtypes.ErrVMExecution, err.Error())
 	}
 
 	msg := ethtypes.NewMessage(
@@ -126,7 +126,7 @@ func (k Keeper) CallEVMWithData(
 	}
 
 	if res.Failed() {
-		return nil, sdkerrors.Wrap(evmtypes.ErrVMExecution, res.VmError)
+		return nil, errorsmod.Wrap(evmtypes.ErrVMExecution, res.VmError)
 	}
 
 	ctx.GasMeter().ConsumeGas(res.GasUsed, "evm gas consumed")
@@ -146,7 +146,7 @@ func (k Keeper) monitorApprovalEvent(res *evmtypes.MsgEthereumTxResponse) error 
 
 	for _, log := range res.Logs {
 		if log.Topics[0] == logApprovalSigHash.Hex() {
-			return sdkerrors.Wrapf(
+			return errorsmod.Wrapf(
 				types.ErrUnexpectedContractEvent, "unexpected contract Approval event",
 			)
 		}

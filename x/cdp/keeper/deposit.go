@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -19,7 +19,7 @@ func (k Keeper) DepositCollateral(ctx sdk.Context, owner, depositor sdk.AccAddre
 	}
 	cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateralType)
+		return errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateralType)
 	}
 	err = k.ValidateBalance(ctx, collateral, depositor)
 	if err != nil {
@@ -63,14 +63,14 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	}
 	cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateral.Denom)
+		return errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateral.Denom)
 	}
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositNotFound, "depositor %s, collateral %s %s", depositor, collateral.Denom, collateralType)
+		return errorsmod.Wrapf(types.ErrDepositNotFound, "depositor %s, collateral %s %s", depositor, collateral.Denom, collateralType)
 	}
 	if collateral.Amount.GT(deposit.Amount.Amount) {
-		return sdkerrors.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
+		return errorsmod.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
 	k.hooks.BeforeCDPModified(ctx, cdp)
 	cdp = k.SynchronizeInterest(ctx, cdp)
@@ -81,7 +81,7 @@ func (k Keeper) WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddr
 	}
 	liquidationRatio := k.getLiquidationRatio(ctx, cdp.Type)
 	if collateralizationRatio.LT(liquidationRatio) {
-		return sdkerrors.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ration %s", collateral.Denom, collateralizationRatio, liquidationRatio)
+		return errorsmod.Wrapf(types.ErrInvalidCollateralRatio, "collateral %s, collateral ratio %s, liquidation ration %s", collateral.Denom, collateralizationRatio, liquidationRatio)
 	}
 
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, depositor, sdk.NewCoins(collateral))

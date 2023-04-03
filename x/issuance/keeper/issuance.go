@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
@@ -14,24 +14,24 @@ import (
 func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, tokens.Denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
+		return errorsmod.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
 	}
 	if strings.Compare(owner.String(), asset.Owner) != 0 {
-		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+		return errorsmod.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	if asset.Paused {
-		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
+		return errorsmod.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
 	}
 	if asset.Blockable {
 		blocked, _ := k.checkBlockedAddress(asset, receiver.String())
 		if blocked {
-			return sdkerrors.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
+			return errorsmod.Wrapf(types.ErrAccountBlocked, "address: %s", receiver)
 		}
 	}
 	acc := k.accountKeeper.GetAccount(ctx, receiver)
 	_, ok := acc.(authtypes.ModuleAccountI)
 	if ok {
-		return sdkerrors.Wrapf(types.ErrIssueToModuleAccount, "address: %s", receiver)
+		return errorsmod.Wrapf(types.ErrIssueToModuleAccount, "address: %s", receiver)
 	}
 
 	// for rate-limited assets, check that the issuance isn't over the limit
@@ -65,13 +65,13 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, tokens.Denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
+		return errorsmod.Wrapf(types.ErrAssetNotFound, "denom: %s", tokens.Denom)
 	}
 	if strings.Compare(owner.String(), asset.Owner) != 0 {
-		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+		return errorsmod.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	if asset.Paused {
-		return sdkerrors.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
+		return errorsmod.Wrapf(types.ErrAssetPaused, "denom: %s", tokens.Denom)
 	}
 	coins := sdk.NewCoins(tokens)
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleAccountName, coins)
@@ -95,21 +95,21 @@ func (k Keeper) RedeemTokens(ctx sdk.Context, tokens sdk.Coin, owner sdk.AccAddr
 func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddress sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+		return errorsmod.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
 	}
 	if !asset.Blockable {
-		return sdkerrors.Wrap(types.ErrAssetUnblockable, denom)
+		return errorsmod.Wrap(types.ErrAssetUnblockable, denom)
 	}
 	if strings.Compare(owner.String(), asset.Owner) != 0 {
-		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+		return errorsmod.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	blocked, _ := k.checkBlockedAddress(asset, blockedAddress.String())
 	if blocked {
-		return sdkerrors.Wrapf(types.ErrAccountAlreadyBlocked, "address: %s", blockedAddress)
+		return errorsmod.Wrapf(types.ErrAccountAlreadyBlocked, "address: %s", blockedAddress)
 	}
 	account := k.accountKeeper.GetAccount(ctx, blockedAddress)
 	if account == nil {
-		return sdkerrors.Wrapf(types.ErrAccountNotFound, "address: %s", blockedAddress)
+		return errorsmod.Wrapf(types.ErrAccountNotFound, "address: %s", blockedAddress)
 	}
 	asset.BlockedAddresses = append(asset.BlockedAddresses, blockedAddress.String())
 	k.SetAsset(ctx, asset)
@@ -127,17 +127,17 @@ func (k Keeper) BlockAddress(ctx sdk.Context, denom string, owner, blockedAddres
 func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.AccAddress) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+		return errorsmod.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
 	}
 	if !asset.Blockable {
-		return sdkerrors.Wrap(types.ErrAssetUnblockable, denom)
+		return errorsmod.Wrap(types.ErrAssetUnblockable, denom)
 	}
 	if strings.Compare(owner.String(), asset.Owner) != 0 {
-		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+		return errorsmod.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	blocked, i := k.checkBlockedAddress(asset, addr.String())
 	if !blocked {
-		return sdkerrors.Wrapf(types.ErrAccountAlreadyUnblocked, "address: %s", addr)
+		return errorsmod.Wrapf(types.ErrAccountAlreadyUnblocked, "address: %s", addr)
 	}
 
 	blockedAddrs := k.removeBlockedAddress(asset.BlockedAddresses, i)
@@ -157,10 +157,10 @@ func (k Keeper) UnblockAddress(ctx sdk.Context, denom string, owner, addr sdk.Ac
 func (k Keeper) SetPauseStatus(ctx sdk.Context, owner sdk.AccAddress, denom string, status bool) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+		return errorsmod.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
 	}
 	if strings.Compare(owner.String(), asset.Owner) != 0 {
-		return sdkerrors.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
+		return errorsmod.Wrapf(types.ErrNotAuthorized, "owner: %s, address: %s", asset.Owner, owner)
 	}
 	if asset.Paused == status {
 		return nil
@@ -195,7 +195,7 @@ func (k Keeper) SeizeCoinsForBlockableAssets(ctx sdk.Context) error {
 func (k Keeper) SeizeCoinsFromBlockedAddresses(ctx sdk.Context, denom string) error {
 	asset, found := k.GetAsset(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
+		return errorsmod.Wrapf(types.ErrAssetNotFound, "denom: %s", denom)
 	}
 	for _, address := range asset.BlockedAddresses {
 		addrBech32, err := sdk.AccAddressFromBech32(address)

@@ -3,6 +3,7 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -27,7 +28,7 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 		case types.QueryGetParams:
 			return queryGetParams(ctx, req, keeper, legacyQuerierCdc)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
+			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
@@ -36,11 +37,11 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQue
 	var requestParams types.QueryWithMarketIDParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
+		return nil, errorsmod.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 	currentPrice, sdkErr := keeper.GetCurrentPrice(ctx, requestParams.MarketID)
 	if sdkErr != nil {
@@ -48,7 +49,7 @@ func queryPrice(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQue
 	}
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, currentPrice)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -67,7 +68,7 @@ func queryPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQu
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, validCurrentPrices)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -76,18 +77,18 @@ func queryRawPrices(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 	var requestParams types.QueryWithMarketIDParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, found := keeper.GetMarket(ctx, requestParams.MarketID)
 	if !found {
-		return nil, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
+		return nil, errorsmod.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 
 	rawPrices := keeper.GetRawPrices(ctx, requestParams.MarketID)
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, rawPrices)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -97,17 +98,17 @@ func queryOracles(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQ
 	var requestParams types.QueryWithMarketIDParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	oracles, err := keeper.GetOracles(ctx, requestParams.MarketID)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
+		return nil, errorsmod.Wrap(types.ErrAssetNotFound, requestParams.MarketID)
 	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, oracles)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -118,7 +119,7 @@ func queryMarkets(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQ
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, markets)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -131,7 +132,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }

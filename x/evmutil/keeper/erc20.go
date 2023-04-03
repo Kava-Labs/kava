@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -37,7 +37,7 @@ func (k Keeper) DeployTestMintableERC20Contract(
 		decimals,
 	)
 	if err != nil {
-		return types.InternalEVMAddress{}, sdkerrors.Wrapf(err, "token %v is invalid", name)
+		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "token %v is invalid", name)
 	}
 
 	data := make([]byte, len(types.ERC20MintableBurnableContract.Bin)+len(ctorArgs))

@@ -4,6 +4,7 @@ import (
 	fmt "fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -70,7 +71,7 @@ func (p *CommunityPoolLendDepositProposal) ValidateBasic() error {
 	}
 	// ensure the proposal has valid amount
 	if !p.Amount.IsValid() || p.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", p.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "deposit amount %s", p.Amount)
 	}
 	return p.Amount.Validate()
 }
@@ -116,7 +117,7 @@ func (p *CommunityPoolLendWithdrawProposal) ValidateBasic() error {
 	}
 	// ensure the proposal has valid amount
 	if !p.Amount.IsValid() || p.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "withdraw amount %s", p.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "withdraw amount %s", p.Amount)
 	}
 	return p.Amount.Validate()
 }

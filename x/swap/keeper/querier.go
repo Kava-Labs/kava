@@ -3,6 +3,7 @@ package keeper
 import (
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,7 +27,7 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case types.QueryGetPools:
 			return queryGetPools(ctx, req, k, legacyQuerierCdc)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
+			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
@@ -39,7 +40,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -48,7 +49,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 	var params types.QueryDepositsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	var records types.ShareRecords
@@ -74,7 +75,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 	var bz []byte
 	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, queryResults)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -83,12 +84,12 @@ func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	var params types.QueryPoolParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	hasPoolParam := len(params.Pool) > 0
 	if !hasPoolParam {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "must specify pool param")
+		return nil, errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "must specify pool param")
 	}
 
 	pool, err := k.loadDenominatedPool(ctx, params.Pool)
@@ -101,7 +102,7 @@ func queryGetPool(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 	var bz []byte
 	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, poolStats)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -123,7 +124,7 @@ func queryGetPools(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQueri
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, queryResults)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil

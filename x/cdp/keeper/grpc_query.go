@@ -4,8 +4,8 @@ import (
 	"context"
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc/codes"
@@ -197,12 +197,12 @@ func (s QueryServer) Cdp(c context.Context, req *types.QueryCdpRequest) (*types.
 
 	_, valid := s.keeper.GetCollateral(ctx, req.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, req.CollateralType)
+		return nil, errorsmod.Wrap(types.ErrInvalidCollateral, req.CollateralType)
 	}
 
 	cdp, found := s.keeper.GetCdpByOwnerAndCollateralType(ctx, owner, req.CollateralType)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", req.Owner, req.CollateralType)
+		return nil, errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", req.Owner, req.CollateralType)
 	}
 
 	cdpResponse := s.keeper.LoadCDPResponse(ctx, cdp)
@@ -223,12 +223,12 @@ func (s QueryServer) Deposits(c context.Context, req *types.QueryDepositsRequest
 
 	_, valid := s.keeper.GetCollateral(ctx, req.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, req.CollateralType)
+		return nil, errorsmod.Wrap(types.ErrInvalidCollateral, req.CollateralType)
 	}
 
 	cdp, found := s.keeper.GetCdpByOwnerAndCollateralType(ctx, owner, req.CollateralType)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", req.Owner, req.CollateralType)
+		return nil, errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", req.Owner, req.CollateralType)
 	}
 
 	deposits := s.keeper.GetDeposits(ctx, cdp.ID)

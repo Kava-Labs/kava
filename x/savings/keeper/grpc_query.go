@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -53,7 +54,7 @@ func (s queryServer) Deposits(ctx context.Context, req *types.QueryDepositsReque
 	if hasOwner {
 		owner, err = sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 		}
 	}
 

@@ -3,9 +3,9 @@ package keeper
 import (
 	"math"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -112,7 +112,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	// Fetch money market from the store
 	mm, found := k.GetMoneyMarket(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrMoneyMarketNotFound, "%s", denom)
+		return errorsmod.Wrapf(types.ErrMoneyMarketNotFound, "%s", denom)
 	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)

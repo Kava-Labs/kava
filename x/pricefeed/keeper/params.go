@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
@@ -31,7 +31,7 @@ func (k Keeper) GetOracles(ctx sdk.Context, marketID string) ([]sdk.AccAddress, 
 			return m.Oracles, nil
 		}
 	}
-	return nil, sdkerrors.Wrap(types.ErrInvalidMarket, marketID)
+	return nil, errorsmod.Wrap(types.ErrInvalidMarket, marketID)
 }
 
 // GetOracle returns the oracle from the store or an error if not found
@@ -46,7 +46,7 @@ func (k Keeper) GetOracle(ctx sdk.Context, marketID string, address sdk.AccAddre
 			return addr, nil
 		}
 	}
-	return nil, sdkerrors.Wrap(types.ErrInvalidOracle, address.String())
+	return nil, errorsmod.Wrap(types.ErrInvalidOracle, address.String())
 }
 
 // GetMarket returns the market if it is in the pricefeed system

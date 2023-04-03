@@ -5,8 +5,8 @@ import (
 
 	"github.com/kava-labs/kava/x/swap/types"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // SwapExactForTokens swaps an exact coin a input for a coin b output
@@ -18,7 +18,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 
 	swapOutput, feePaid := pool.SwapWithExactInput(exactCoinA, k.GetSwapFee(ctx))
 	if swapOutput.IsZero() {
-		return sdkerrors.Wrapf(types.ErrInsufficientLiquidity, "swap output rounds to zero, increase input amount")
+		return errorsmod.Wrapf(types.ErrInsufficientLiquidity, "swap output rounds to zero, increase input amount")
 	}
 
 	priceChange := sdk.NewDecFromInt(swapOutput.Amount).Quo(sdk.NewDecFromInt(coinB.Amount))
@@ -41,7 +41,7 @@ func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, c
 	}
 
 	if exactCoinB.Amount.GTE(pool.Reserves().AmountOf(exactCoinB.Denom)) {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrInsufficientLiquidity,
 			"output %s >= pool reserves %s", exactCoinB.Amount.String(), pool.Reserves().AmountOf(exactCoinB.Denom).String(),
 		)
@@ -66,7 +66,7 @@ func (k Keeper) loadPool(ctx sdk.Context, denomA string, denomB string) (string,
 
 	poolRecord, found := k.GetPool(ctx, poolID)
 	if !found {
-		return poolID, nil, sdkerrors.Wrapf(types.ErrInvalidPool, "pool %s not found", poolID)
+		return poolID, nil, errorsmod.Wrapf(types.ErrInvalidPool, "pool %s not found", poolID)
 	}
 
 	pool, err := types.NewDenominatedPoolWithExistingShares(poolRecord.Reserves(), poolRecord.TotalShares)
@@ -80,7 +80,7 @@ func (k Keeper) loadPool(ctx sdk.Context, denomA string, denomB string) (string,
 func (k Keeper) assertSlippageWithinLimit(priceChange sdk.Dec, slippageLimit sdk.Dec) error {
 	slippage := sdk.OneDec().Sub(priceChange)
 	if slippage.GT(slippageLimit) {
-		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
+		return errorsmod.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
 	}
 
 	return nil

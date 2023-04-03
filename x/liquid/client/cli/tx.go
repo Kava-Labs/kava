@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -56,7 +57,7 @@ func getCmdMintDerivative() *cobra.Command {
 
 			valAddr, err := sdk.ValAddressFromBech32(args[0])
 			if err != nil {
-				return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+				return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 			}
 
 			coin, err := sdk.ParseCoinNormalized(args[1])
@@ -95,7 +96,7 @@ func getCmdBurnDerivative() *cobra.Command {
 
 			valAddr, err := types.ParseLiquidStakingTokenDenom(amount.Denom)
 			if err != nil {
-				return sdkerrors.Wrap(types.ErrInvalidDenom, err.Error())
+				return errorsmod.Wrap(types.ErrInvalidDenom, err.Error())
 			}
 
 			msg := types.NewMsgBurnDerivative(clientCtx.GetFromAddress(), valAddr, amount)

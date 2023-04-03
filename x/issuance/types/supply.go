@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -19,7 +20,7 @@ func NewAssetSupply(currentSupply sdk.Coin, timeElapsed time.Duration) AssetSupp
 // Validate performs a basic validation of an asset supply fields.
 func (a AssetSupply) Validate() error {
 	if !a.CurrentSupply.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "outgoing supply %s", a.CurrentSupply)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "outgoing supply %s", a.CurrentSupply)
 	}
 	return nil
 }

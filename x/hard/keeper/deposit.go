@@ -3,6 +3,7 @@ package keeper
 import (
 	"errors"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -44,7 +45,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 			for _, coin := range coins {
 				_, isNegative := accCoins.SafeSub(coin)
 				if isNegative {
-					return sdkerrors.Wrapf(types.ErrBorrowExceedsAvailableBalance,
+					return errorsmod.Wrapf(types.ErrBorrowExceedsAvailableBalance,
 						"insufficient funds: the requested deposit amount of %s exceeds the total available account funds of %s%s",
 						coin, accCoins.AmountOf(coin.Denom), coin.Denom,
 					)
@@ -107,7 +108,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 	for _, depCoin := range coins {
 		_, foundMm := k.GetMoneyMarket(ctx, depCoin.Denom)
 		if !foundMm {
-			return sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "money market denom %s not found", depCoin.Denom)
+			return errorsmod.Wrapf(types.ErrInvalidDepositDenom, "money market denom %s not found", depCoin.Denom)
 		}
 	}
 
@@ -136,7 +137,7 @@ func (k Keeper) IncrementSuppliedCoins(ctx sdk.Context, newCoins sdk.Coins) {
 func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	suppliedCoins, found := k.GetSuppliedCoins(ctx)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrSuppliedCoinsNotFound, "cannot withdraw if no coins are deposited")
+		return errorsmod.Wrapf(types.ErrSuppliedCoinsNotFound, "cannot withdraw if no coins are deposited")
 	}
 
 	updatedSuppliedCoins, isNegative := suppliedCoins.SafeSub(coins...)
