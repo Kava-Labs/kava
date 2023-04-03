@@ -65,7 +65,7 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 
 	kavaSigner := util.NewKavaSigner(
 		chainId,
-		chain.encodingConfig,
+		chain.EncodingConfig,
 		chain.Auth,
 		chain.Tx,
 		privKey,

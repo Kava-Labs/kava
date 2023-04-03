@@ -25,15 +25,16 @@ import (
 
 // Chain wraps query clients & accounts for a network
 type Chain struct {
-	encodingConfig kavaparams.EncodingConfig
-	accounts       map[string]*SigningAccount
-	t              *testing.T
+	accounts map[string]*SigningAccount
+	t        *testing.T
 
 	StakingDenom string
 	ChainId      string
 
 	EvmClient     *ethclient.Client
 	ContractAddrs map[string]common.Address
+
+	EncodingConfig kavaparams.EncodingConfig
 
 	Auth      authtypes.QueryClient
 	Bank      banktypes.QueryClient
@@ -53,7 +54,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		ChainId:       details.ChainId,
 		ContractAddrs: make(map[string]common.Address),
 	}
-	chain.encodingConfig = app.MakeEncodingConfig()
+	chain.EncodingConfig = app.MakeEncodingConfig()
 
 	grpcUrl := fmt.Sprintf("http://localhost:%s", details.GrpcPort)
 	grpcConn, err := util.NewGrpcConnection(grpcUrl)
