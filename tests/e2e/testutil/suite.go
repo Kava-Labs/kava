@@ -2,8 +2,10 @@ package testutil
 
 import (
 	"fmt"
+	"math/big"
 	"path/filepath"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
@@ -30,7 +32,8 @@ type E2eTestSuite struct {
 	Kava *Chain
 	Ibc  *Chain
 
-	UpgradeHeight int64
+	UpgradeHeight        int64
+	DeployedErc20Address common.Address
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
@@ -41,6 +44,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 	suiteConfig := ParseSuiteConfig()
 	suite.config = suiteConfig
 	suite.UpgradeHeight = suiteConfig.KavaUpgradeHeight
+	suite.DeployedErc20Address = common.HexToAddress(suiteConfig.KavaErc20Address)
 
 	runnerConfig := runner.Config{
 		KavaConfigTemplate: suiteConfig.KavaConfigTemplate,
@@ -104,4 +108,9 @@ func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
 // Assumes network is running with kvtool installed from the sub-repository in tests/e2e/kvtool
 func (suite *E2eTestSuite) KavaHomePath() string {
 	return filepath.Join("kvtool", "full_configs", "generated", "kava", "initstate", ".kava")
+}
+
+// BigIntsEqual is a helper method for comparing the equality of two big ints
+func (suite *E2eTestSuite) BigIntsEqual(expected *big.Int, actual *big.Int, msg string) {
+	suite.Truef(expected.Cmp(actual) == 0, "%s (expected: %s, actual: %s)", msg, expected.String(), actual.String())
 }
