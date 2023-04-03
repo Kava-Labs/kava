@@ -21,7 +21,7 @@ jobs:
       aws-region: us-east-1
       chain-id: proto_2221-17000
       ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: reset-internal-testnet-playbook.yml
+      playbook-name: reset-protonet-playbook.yml
       playbook-infrastructure-branch: master
     secrets: inherit
 
