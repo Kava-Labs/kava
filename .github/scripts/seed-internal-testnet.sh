@@ -77,12 +77,16 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXLUSD_CONTR
 
 # give dev-wallet enough delegation power to pass proposals by itself
 
-# issue 300KAVA to delegate to each validator
-kava tx issuance issue 600000000ukava kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq \
+# issue kava to dev wallet for delegating to each validator
+kava tx issuance issue 6000000000ukava kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq \
   --from dev-wallet --gas-prices 0.5ukava -y
 
+# parse space seperated list of validators
+# into bash array
+read -r -a GENESIS_VALIDATOR_ADDRESS_ARRAY <<< "$GENESIS_VALIDATOR_ADDRESSES"
+
 # delegate 300KAVA to each validator
-for validator in "${GENESIS_VALIDATOR_ADDRESSES[@]}"
+for validator in "${GENESIS_VALIDATOR_ADDRESS_ARRAY[@]}"
 do
   kava tx staking delegate "${validator}" 300000000ukava --from dev-wallet --gas-prices 0.5ukava -y
 done
