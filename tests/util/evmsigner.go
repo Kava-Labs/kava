@@ -3,14 +3,25 @@ package util
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
 	"math/big"
+	"time"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+)
+
+var (
+	ErrEvmBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
+	// ErrEvmTxFailed is returned when a tx is committed to a block, but the receipt status is 0.
+	// this means the tx failed. we don't have debug_traceTransaction RPC command so the best way
+	// to determine the problem is to attempt to make the tx manually.
+	ErrEvmTxFailed = errors.New("transaction was committed but failed. likely an execution revert by contract code")
 )
 
 type EvmTxRequest struct {
@@ -38,8 +49,8 @@ func (e ErrEvmFailedToBroadcast) Error() string {
 // EvmSigner manages signing and broadcasting requests to transfer Erc20 tokens
 // Will work for calling all contracts that have func signature `transfer(address,uint256)`
 type EvmSigner struct {
-	auth          *bind.TransactOpts
 	signerAddress common.Address
+	Auth          *bind.TransactOpts
 	EvmClient     *ethclient.Client
 }
 
@@ -60,7 +71,7 @@ func NewEvmSigner(
 	}
 
 	return &EvmSigner{
-		auth:          auth,
+		Auth:          auth,
 		signerAddress: crypto.PubkeyToAddress(*publicKeyECDSA),
 		EvmClient:     evmClient,
 	}, nil
@@ -77,7 +88,7 @@ func (s *EvmSigner) Run(requests <-chan EvmTxRequest) <-chan EvmTxResponse {
 			// wait for incoming request
 			req := <-requests
 
-			signedTx, err := s.auth.Signer(s.signerAddress, req.Tx)
+			signedTx, err := s.Auth.Signer(s.signerAddress, req.Tx)
 			if err != nil {
 				err = ErrEvmFailedToSign{Err: err}
 			} else {
@@ -100,4 +111,31 @@ func (s *EvmSigner) Run(requests <-chan EvmTxRequest) <-chan EvmTxResponse {
 
 func (s *EvmSigner) Address() common.Address {
 	return s.signerAddress
+}
+
+// WaitForEvmTxReceipt polls for a tx receipt and errors on timeout.
+// If the receipt comes back, but with status 0 (failed), an error is returned.
+func WaitForEvmTxReceipt(client *ethclient.Client, txHash common.Hash, timeout time.Duration) (*ethtypes.Receipt, error) {
+	var receipt *ethtypes.Receipt
+	var err error
+	outOfTime := time.After(timeout)
+	for {
+		select {
+		case <-outOfTime:
+			err = ErrEvmBroadcastTimeout
+		default:
+			receipt, err = client.TransactionReceipt(context.Background(), txHash)
+			if errors.Is(err, ethereum.NotFound) {
+				// tx still not committed to a block. retry!
+				time.Sleep(100 * time.Millisecond)
+				continue
+			}
+			// a response status of 0 means the tx was successfully committed but failed to execute
+			if receipt.Status == 0 {
+				err = ErrEvmTxFailed
+			}
+		}
+		break
+	}
+	return receipt, err
 }

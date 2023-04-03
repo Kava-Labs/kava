@@ -11,6 +11,7 @@ import (
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
 
@@ -31,7 +32,8 @@ type Chain struct {
 	StakingDenom string
 	ChainId      string
 
-	EvmClient *ethclient.Client
+	EvmClient     *ethclient.Client
+	ContractAddrs map[string]common.Address
 
 	Auth      authtypes.QueryClient
 	Bank      banktypes.QueryClient
@@ -46,9 +48,10 @@ type Chain struct {
 // code as "whale" and it is used to supply funds to all new accounts.
 func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic string) (*Chain, error) {
 	chain := &Chain{
-		t:            t,
-		StakingDenom: details.StakingDenom,
-		ChainId:      details.ChainId,
+		t:             t,
+		StakingDenom:  details.StakingDenom,
+		ChainId:       details.ChainId,
+		ContractAddrs: make(map[string]common.Address),
 	}
 	chain.encodingConfig = app.MakeEncodingConfig()
 

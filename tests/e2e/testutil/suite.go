@@ -73,6 +73,8 @@ func (suite *E2eTestSuite) SetupSuite() {
 			suite.T().Fatalf("failed to create ibc chain querier: %s", err)
 		}
 	}
+
+	suite.InitKavaEvmData()
 }
 
 func (suite *E2eTestSuite) TearDownSuite() {
