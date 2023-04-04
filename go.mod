@@ -5,6 +5,7 @@ go 1.19
 require (
 	cosmossdk.io/math v1.0.0-beta.6.0.20230216172121-959ce49135e4
 	github.com/cenkalti/backoff/v4 v4.1.3
+	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.1
 	github.com/cosmos/cosmos-sdk v0.46.11
 	github.com/cosmos/go-bip39 v1.0.0
@@ -14,12 +15,12 @@ require (
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/pelletier/go-toml/v2 v2.0.5
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/subosito/gotenv v1.4.1
 	github.com/tendermint/tendermint v0.34.27
-	github.com/tendermint/tm-db v0.6.7
 	google.golang.org/genproto v0.0.0-20230202175211-008b39050e57
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.28.2-0.20230208135220-49eaa78c6c9c
@@ -54,7 +55,6 @@ require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.9 // indirect
-	github.com/cometbft/cometbft-db v0.7.0 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/gogoproto v1.4.6 // indirect
@@ -143,7 +143,6 @@ require (
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -168,8 +167,8 @@ require (
 	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
-	github.com/tecbot/gorocksdb v0.0.0-20191217155057-f0fad39f321c // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
+	github.com/tendermint/tm-db v0.6.7 // indirect
 	github.com/tidwall/btree v1.5.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
 	github.com/tklauser/numcpus v0.4.0 // indirect
@@ -178,7 +177,7 @@ require (
 	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/zondax/hid v0.9.1 // indirect
 	github.com/zondax/ledger-go v0.14.1 // indirect
-	go.etcd.io/bbolt v1.3.6 // indirect
+	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb // indirect
@@ -202,6 +201,8 @@ require (
 replace (
 	// Use the cosmos keyring code
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.1.7-0.20210622111912-ef00f8ac3d76
+	// Use rocksdb 7.1.2
+	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1
 	// Required replace for dragonberry security patch
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
@@ -216,6 +217,6 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// Use cometbft fork of tendermint
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.27
-	// Use rocksdb 7.1.2
+	// Indirect dependencies still use tendermint/tm-db
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.1
 )
