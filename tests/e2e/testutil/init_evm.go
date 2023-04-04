@@ -13,6 +13,6 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 		whale.evmSigner.EvmClient,
 		"what's up!",
 	)
-	suite.NoError(err)
+	suite.NoError(err, "failed to deploy a contract to the EVM")
 	suite.Kava.ContractAddrs["greeter"] = greeterAddr
 }
