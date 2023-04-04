@@ -21,7 +21,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 		return sdkerrors.Wrapf(types.ErrInsufficientLiquidity, "swap output rounds to zero, increase input amount")
 	}
 
-	priceChange := swapOutput.Amount.ToDec().Quo(coinB.Amount.ToDec())
+	priceChange := sdk.NewDecFromInt(swapOutput.Amount).Quo(sdk.NewDecFromInt(coinB.Amount))
 	if err := k.assertSlippageWithinLimit(priceChange, slippageLimit); err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, c
 
 	swapInput, feePaid := pool.SwapWithExactOutput(exactCoinB, k.GetSwapFee(ctx))
 
-	priceChange := coinA.Amount.ToDec().Quo(swapInput.Sub(feePaid).Amount.ToDec())
+	priceChange := sdk.NewDecFromInt(coinA.Amount).Quo(sdk.NewDecFromInt(swapInput.Sub(feePaid).Amount))
 	if err := k.assertSlippageWithinLimit(priceChange, slippageLimit); err != nil {
 		return err
 	}

@@ -8,21 +8,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	proto "github.com/gogo/protobuf/proto"
 )
-
-func init() {
-	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
-	// But since these proposals contain Permissions, these types also need registering:
-	govtypes.ModuleCdc.RegisterInterface((*Permission)(nil), nil)
-	govtypes.RegisterProposalTypeCodec(GodPermission{}, "kava/GodPermission")
-	govtypes.RegisterProposalTypeCodec(TextPermission{}, "kava/TextPermission")
-	govtypes.RegisterProposalTypeCodec(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission")
-	govtypes.RegisterProposalTypeCodec(ParamsChangePermission{}, "kava/ParamsChangePermission")
-}
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
 type Permission interface {
@@ -70,7 +60,7 @@ func (GodPermission) Allows(sdk.Context, ParamKeeper, PubProposal) bool { return
 
 // Allows implement permission interface for TextPermission.
 func (TextPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
-	_, ok := p.(*govtypes.TextProposal)
+	_, ok := p.(*govv1beta1.TextProposal)
 	return ok
 }
 

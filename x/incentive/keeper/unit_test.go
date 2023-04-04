@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -27,12 +28,12 @@ import (
 )
 
 // NewTestContext sets up a basic context with an in-memory db
-func NewTestContext(requiredStoreKeys ...sdk.StoreKey) sdk.Context {
+func NewTestContext(requiredStoreKeys ...storetypes.StoreKey) sdk.Context {
 	memDB := db.NewMemDB()
 	cms := store.NewCommitMultiStore(memDB)
 
 	for _, key := range requiredStoreKeys {
-		cms.MountStoreWithDB(key, sdk.StoreTypeIAVL, nil)
+		cms.MountStoreWithDB(key, storetypes.StoreTypeIAVL, nil)
 	}
 
 	if err := cms.LoadLatestVersion(); err != nil {
@@ -50,7 +51,7 @@ type unitTester struct {
 	ctx    sdk.Context
 
 	cdc               codec.Codec
-	incentiveStoreKey sdk.StoreKey
+	incentiveStoreKey storetypes.StoreKey
 }
 
 func (suite *unitTester) SetupSuite() {
@@ -141,7 +142,7 @@ func (suite *unitTester) storeEarnClaim(claim types.EarnClaim) {
 
 type TestKeeperBuilder struct {
 	cdc           codec.Codec
-	key           sdk.StoreKey
+	key           storetypes.StoreKey
 	paramSubspace types.ParamSubspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper

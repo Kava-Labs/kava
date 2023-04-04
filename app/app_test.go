@@ -32,7 +32,9 @@ func TestExport(t *testing.T) {
 	db := db.NewMemDB()
 	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions)
 
-	stateBytes, err := json.Marshal(NewDefaultGenesisState())
+	genesisState := GenesisStateWithSingleValidator(&TestApp{App: *app}, NewDefaultGenesisState())
+
+	stateBytes, err := json.Marshal(genesisState)
 	require.NoError(t, err)
 
 	initRequest := abci.RequestInitChain{
@@ -58,7 +60,7 @@ func TestExport(t *testing.T) {
 
 	assert.Equal(t, initRequest.InitialHeight+1, exportedApp.Height) // app.Commit() increments height
 	assert.Equal(t, initRequest.ConsensusParams, exportedApp.ConsensusParams)
-	assert.Equal(t, []tmtypes.GenesisValidator(nil), exportedApp.Validators) // no validators set in default genesis
+	assert.Len(t, exportedApp.Validators, 1) // no validators set in default genesis
 }
 
 // unmarshalJSONKeys extracts keys from the top level of a json blob.

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -15,7 +16,7 @@ import (
 // This keeper stores additional data related to evm accounts.
 type Keeper struct {
 	cdc           codec.Codec
-	storeKey      sdk.StoreKey
+	storeKey      storetypes.StoreKey
 	paramSubspace paramtypes.Subspace
 	bankKeeper    types.BankKeeper
 	evmKeeper     types.EvmKeeper
@@ -25,7 +26,7 @@ type Keeper struct {
 // NewKeeper creates an evmutil keeper.
 func NewKeeper(
 	cdc codec.Codec,
-	storeKey sdk.StoreKey,
+	storeKey storetypes.StoreKey,
 	params paramtypes.Subspace,
 	bk types.BankKeeper,
 	ak types.AccountKeeper,

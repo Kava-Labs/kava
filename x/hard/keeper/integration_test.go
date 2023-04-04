@@ -59,7 +59,7 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
 					},
 					SpotMarketID:     "busd:usd",
-					ConversionFactor: sdk.Int(sdk.MustNewDecFromStr("100000000")),
+					ConversionFactor: sdk.NewInt(100000000),
 					InterestRateModel: types.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0"),
 						BaseMultiplier: sdk.MustNewDecFromStr("0.5"),

@@ -3,7 +3,7 @@ package types
 import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -34,7 +34,7 @@ func (p ProposalOutcome) String() string {
 }
 
 // ensure proposal types fulfill the PubProposal interface and the gov Content interface.
-var _, _ govtypes.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
+var _, _ govv1beta1.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
 var _, _ PubProposal = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
 
 // ensure CommitteeChangeProposal fulfill the codectypes.UnpackInterfacesMessage interface
@@ -42,11 +42,8 @@ var _ codectypes.UnpackInterfacesMessage = &CommitteeChangeProposal{}
 
 func init() {
 	// Gov proposals need to be registered on gov's ModuleCdc so MsgSubmitProposal can be encoded.
-	govtypes.RegisterProposalType(ProposalTypeCommitteeChange)
-	govtypes.RegisterProposalTypeCodec(CommitteeChangeProposal{}, "kava/CommitteeChangeProposal")
-
-	govtypes.RegisterProposalType(ProposalTypeCommitteeDelete)
-	govtypes.RegisterProposalTypeCodec(CommitteeDeleteProposal{}, "kava/CommitteeDeleteProposal")
+	govv1beta1.RegisterProposalType(ProposalTypeCommitteeChange)
+	govv1beta1.RegisterProposalType(ProposalTypeCommitteeDelete)
 }
 
 func NewCommitteeChangeProposal(title string, description string, newCommittee Committee) (CommitteeChangeProposal, error) {
@@ -98,7 +95,7 @@ func (ccp CommitteeChangeProposal) UnpackInterfaces(unpacker codectypes.AnyUnpac
 
 // ValidateBasic runs basic stateless validity checks
 func (ccp CommitteeChangeProposal) ValidateBasic() error {
-	if err := govtypes.ValidateAbstract(&ccp); err != nil {
+	if err := govv1beta1.ValidateAbstract(&ccp); err != nil {
 		return err
 	}
 	committee, err := UnpackCommittee(ccp.NewCommittee)
@@ -133,5 +130,5 @@ func (cdp CommitteeDeleteProposal) ProposalType() string { return ProposalTypeCo
 
 // ValidateBasic runs basic stateless validity checks
 func (cdp CommitteeDeleteProposal) ValidateBasic() error {
-	return govtypes.ValidateAbstract(&cdp)
+	return govv1beta1.ValidateAbstract(&cdp)
 }

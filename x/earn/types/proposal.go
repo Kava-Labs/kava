@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -17,15 +17,15 @@ const (
 
 // Assert CommunityPoolDepositProposal implements govtypes.Content at compile-time
 var (
-	_ govtypes.Content = &CommunityPoolDepositProposal{}
-	_ govtypes.Content = &CommunityPoolWithdrawProposal{}
+	_ govv1beta1.Content = &CommunityPoolDepositProposal{}
+	_ govv1beta1.Content = &CommunityPoolWithdrawProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeCommunityPoolDeposit)
-	govtypes.RegisterProposalTypeCodec(&CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal")
-	govtypes.RegisterProposalType(ProposalTypeCommunityPoolWithdraw)
-	govtypes.RegisterProposalTypeCodec(&CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal")
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolDeposit)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolDepositProposal{}, "kava/CommunityPoolDepositProposal", nil)
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolWithdraw)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolWithdrawProposal{}, "kava/CommunityPoolWithdrawProposal", nil)
 }
 
 // NewCommunityPoolDepositProposal creates a new community pool deposit proposal.
@@ -65,7 +65,7 @@ func (cdp *CommunityPoolDepositProposal) String() string {
 
 // ValidateBasic stateless validation of a community pool multi-spend proposal.
 func (cdp *CommunityPoolDepositProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(cdp)
+	err := govv1beta1.ValidateAbstract(cdp)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,7 @@ func (cdp *CommunityPoolWithdrawProposal) String() string {
 
 // ValidateBasic stateless validation of a community pool multi-spend proposal.
 func (cdp *CommunityPoolWithdrawProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(cdp)
+	err := govv1beta1.ValidateAbstract(cdp)
 	if err != nil {
 		return err
 	}

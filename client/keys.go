@@ -11,9 +11,9 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	ethclient "github.com/tharsis/ethermint/client"
-	clientkeys "github.com/tharsis/ethermint/client/keys"
-	"github.com/tharsis/ethermint/crypto/hd"
+	ethclient "github.com/evmos/ethermint/client"
+	clientkeys "github.com/evmos/ethermint/client/keys"
+	"github.com/evmos/ethermint/crypto/hd"
 )
 
 var ethFlag = "eth"
@@ -88,7 +88,14 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 
 	dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun)
 	if dryRun {
-		kr, err = keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientCtx.KeyringDir, buf, hd.EthSecp256k1Option())
+		kr, err = keyring.New(
+			sdk.KeyringServiceName(),
+			keyring.BackendMemory,
+			clientCtx.KeyringDir,
+			buf,
+			clientCtx.Codec,
+			hd.EthSecp256k1Option(),
+		)
 		clientCtx = clientCtx.WithKeyring(kr)
 	}
 	eth, _ := cmd.Flags().GetBool(ethFlag)

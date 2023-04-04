@@ -101,7 +101,7 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 	}
 
 	// All deposit amounts not given to keeper as rewards are eligible to be auctioned off
-	aucDeposits := deposit.Amount.Sub(keeperRewardCoins)
+	aucDeposits := deposit.Amount.Sub(keeperRewardCoins...)
 
 	// Build valuation map to hold deposit coin USD valuations
 	depositCoinValues := types.NewValuationMap()
@@ -214,11 +214,11 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				borrowCoinValues.SetZero(bKey)
 				depositCoinValues.Decrement(dKey, maxLotSize)
 				// Update deposits, borrows
-				borrows = borrows.Sub(sdk.NewCoins(bid))
+				borrows = borrows.Sub(bid)
 				if insufficientLotFunds {
-					deposits = deposits.Sub(sdk.NewCoins(sdk.NewCoin(dKey, deposits.AmountOf(dKey))))
+					deposits = deposits.Sub(sdk.NewCoin(dKey, deposits.AmountOf(dKey)))
 				} else {
-					deposits = deposits.Sub(sdk.NewCoins(lot))
+					deposits = deposits.Sub(lot)
 				}
 				// Update max lot size
 				maxLotSize = sdk.ZeroDec()
@@ -265,11 +265,11 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 				borrowCoinValues.Decrement(bKey, maxBid)
 				depositCoinValues.SetZero(dKey)
 
-				borrows = borrows.Sub(sdk.NewCoins(bid))
+				borrows = borrows.Sub(bid)
 				if insufficientLotFunds {
-					deposits = deposits.Sub(sdk.NewCoins(sdk.NewCoin(dKey, deposits.AmountOf(dKey))))
+					deposits = deposits.Sub(sdk.NewCoin(dKey, deposits.AmountOf(dKey)))
 				} else {
-					deposits = deposits.Sub(sdk.NewCoins(lot))
+					deposits = deposits.Sub(lot)
 				}
 
 				// Update max lot size

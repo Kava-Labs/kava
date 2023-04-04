@@ -13,11 +13,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/tharsis/ethermint/crypto/hd"
-	"github.com/tharsis/ethermint/server/config"
-	etherminttypes "github.com/tharsis/ethermint/types"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
-	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
+	"github.com/evmos/ethermint/crypto/hd"
+	"github.com/evmos/ethermint/server/config"
+	etherminttypes "github.com/evmos/ethermint/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 )
 
 // CanSignEthTx returns an error if the signing key algorithm is not eth_secp256k1.
@@ -27,8 +27,17 @@ func CanSignEthTx(ctx client.Context) error {
 		return err
 	}
 
-	if keyInfo.GetAlgo() != hd.EthSecp256k1Type {
-		return fmt.Errorf("from address does not support %v", hd.EthSecp256k1Type)
+	pubKey, err := keyInfo.GetPubKey()
+	if err != nil {
+		return err
+	}
+
+	if pubKey.Type() != string(hd.EthSecp256k1Type) {
+		return fmt.Errorf(
+			"invalid from address pubkey type, expected %s but got %s",
+			hd.EthSecp256k1Type,
+			pubKey.Type(),
+		)
 	}
 
 	return nil

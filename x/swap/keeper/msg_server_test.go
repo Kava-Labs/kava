@@ -142,7 +142,7 @@ func (suite *msgServerTestSuite) TestDeposit_ExistingPool() {
 	)
 
 	// Use sdk.NewCoins to remove zero coins, otherwise it will compare sdk.Coins(nil) with sdk.Coins{}
-	suite.AccountBalanceEqual(depositor.GetAddress(), sdk.NewCoins(balance.Sub(expectedDeposit)...))
+	suite.AccountBalanceEqual(depositor.GetAddress(), sdk.NewCoins(balance.Sub(expectedDeposit...)...))
 	suite.ModuleAccountBalanceEqual(reserves.Add(expectedDeposit...))
 	suite.PoolLiquidityEqual(reserves.Add(expectedDeposit...))
 	suite.PoolShareValueEqual(depositor, pool, expectedShareValue)
@@ -282,9 +282,9 @@ func (suite *msgServerTestSuite) TestWithdraw_PartialShares() {
 	expectedCoinsReceived := sdk.NewCoins(minTokenA, minTokenB)
 
 	suite.AccountBalanceEqual(depositor.GetAddress(), expectedCoinsReceived)
-	suite.ModuleAccountBalanceEqual(reserves.Sub(expectedCoinsReceived))
-	suite.PoolLiquidityEqual(reserves.Sub(expectedCoinsReceived))
-	suite.PoolShareValueEqual(depositor, types.NewAllowedPool("ukava", "usdx"), reserves.Sub(expectedCoinsReceived))
+	suite.ModuleAccountBalanceEqual(reserves.Sub(expectedCoinsReceived...))
+	suite.PoolLiquidityEqual(reserves.Sub(expectedCoinsReceived...))
+	suite.PoolShareValueEqual(depositor, types.NewAllowedPool("ukava", "usdx"), reserves.Sub(expectedCoinsReceived...))
 
 	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -388,9 +388,9 @@ func (suite *msgServerTestSuite) TestSwapExactForTokens() {
 
 	expectedSwapOutput := sdk.NewCoin("usdx", sdk.NewInt(4980034))
 
-	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(sdk.NewCoins(swapInput)).Add(expectedSwapOutput))
-	suite.ModuleAccountBalanceEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
-	suite.PoolLiquidityEqual(reserves.Add(swapInput).Sub(sdk.NewCoins(expectedSwapOutput)))
+	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(swapInput).Add(expectedSwapOutput))
+	suite.ModuleAccountBalanceEqual(reserves.Add(swapInput).Sub(expectedSwapOutput))
+	suite.PoolLiquidityEqual(reserves.Add(swapInput).Sub(expectedSwapOutput))
 
 	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,
@@ -501,9 +501,9 @@ func (suite *msgServerTestSuite) TestSwapForExactTokens() {
 
 	expectedSwapInput := sdk.NewCoin("ukava", sdk.NewInt(1004015))
 
-	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(sdk.NewCoins(expectedSwapInput)).Add(swapOutput))
-	suite.ModuleAccountBalanceEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
-	suite.PoolLiquidityEqual(reserves.Add(expectedSwapInput).Sub(sdk.NewCoins(swapOutput)))
+	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(expectedSwapInput).Add(swapOutput))
+	suite.ModuleAccountBalanceEqual(reserves.Add(expectedSwapInput).Sub(swapOutput))
+	suite.PoolLiquidityEqual(reserves.Add(expectedSwapInput).Sub(swapOutput))
 
 	suite.EventsContains(suite.GetEvents(), sdk.NewEvent(
 		sdk.EventTypeMessage,

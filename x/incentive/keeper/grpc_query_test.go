@@ -222,6 +222,15 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 		NewCDPGenStateMulti(cdc),
 		NewPricefeedGenStateMultiFromTime(cdc, suite.genesisTime),
 	)
+
+	suite.tApp.DeleteGenesisValidator(suite.T(), suite.ctx)
+	claims := suite.keeper.GetAllDelegatorClaims(suite.ctx)
+	for _, claim := range claims {
+		// Delete the InitGenesis validator's claim
+		if !claim.Owner.Equals(suite.addrs[2]) {
+			suite.keeper.DeleteDelegatorClaim(suite.ctx, claim.Owner)
+		}
+	}
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {

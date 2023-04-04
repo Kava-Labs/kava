@@ -12,10 +12,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	ibctypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
-	ibcclienttypes "github.com/cosmos/ibc-go/v3/modules/core/02-client/types"
+	ibctypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	emtypes "github.com/tharsis/ethermint/types"
+	emtypes "github.com/evmos/ethermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/e2e/testutil"
@@ -135,6 +135,7 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 		ibcAcc.SdkAddress.String(),
 		ibcclienttypes.NewHeight(0, 0), // timeout height disabled when 0
 		uint64(time.Now().Add(30*time.Second).UnixNano()),
+		"",
 	)
 	// initial - sent - fee
 	expectedSrcBalance := funds.Sub(fundsToSend).Sub(fee)

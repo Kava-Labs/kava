@@ -47,7 +47,7 @@ func (suite *strategySavingsTestSuite) TestDeposit_SingleAcc() {
 	suite.SavingsDepositAmountEqual(sdk.NewCoins(depositAmount))
 	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
 	suite.VaultTotalSharesEqual(types.NewVaultShares(
-		types.NewVaultShare(depositAmount.Denom, depositAmount.Amount.ToDec()),
+		types.NewVaultShare(depositAmount.Denom, sdk.NewDecFromInt(depositAmount.Amount)),
 	))
 
 	// Query vault total
@@ -76,7 +76,7 @@ func (suite *strategySavingsTestSuite) TestDeposit_SingleAcc_MultipleDeposits() 
 	suite.SavingsDepositAmountEqual(sdk.NewCoins(expectedVaultBalance))
 	suite.VaultTotalValuesEqual(sdk.NewCoins(expectedVaultBalance))
 	suite.VaultTotalSharesEqual(types.NewVaultShares(
-		types.NewVaultShare(expectedVaultBalance.Denom, expectedVaultBalance.Amount.ToDec()),
+		types.NewVaultShare(expectedVaultBalance.Denom, sdk.NewDecFromInt(expectedVaultBalance.Amount)),
 	))
 
 	// Query vault total
@@ -111,7 +111,7 @@ func (suite *strategySavingsTestSuite) TestDeposit_MultipleAcc_MultipleDeposits(
 	suite.SavingsDepositAmountEqual(sdk.NewCoins(expectedTotalValue))
 	suite.VaultTotalValuesEqual(sdk.NewCoins(expectedTotalValue))
 	suite.VaultTotalSharesEqual(types.NewVaultShares(
-		types.NewVaultShare(expectedTotalValue.Denom, expectedTotalValue.Amount.ToDec()),
+		types.NewVaultShare(expectedTotalValue.Denom, sdk.NewDecFromInt(expectedTotalValue.Amount)),
 	))
 
 	// Query vault total

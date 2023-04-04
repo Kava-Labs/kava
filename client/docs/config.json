@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Kava - Legacy REST and gRPC Gateway docs",
+    "title": "Kava - gRPC Gateway docs",
     "description": "A REST interface for state queries",
     "version": "1.0.0"
   },
@@ -266,12 +266,6 @@
             "to": "Ibc$1"
           }
         ]
-      }
-    },
-    {
-      "url": "./client/docs/legacy-swagger.yml",
-      "dereference": {
-        "circular": "ignore"
       }
     }
   ]

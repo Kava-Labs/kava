@@ -289,6 +289,12 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
+			// Disable minting, so that the community pool balance doesn't change
+			// during the test - this is because staking denom is "ukava" and no
+			// longer "stake" which has an initial and changing balance instead
+			// of just 0
+			suite.App.SetInflation(suite.Ctx, sdk.ZeroDec())
+
 			// setup initial deposit
 			if !tc.initialDeposit.IsZero() {
 				deposit := types.NewCommunityPoolLendDepositProposal("initial deposit", "has coins", tc.initialDeposit)
@@ -312,7 +318,7 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 			}
 
 			// expect funds to be removed from hard deposit
-			expectedRemaining := tc.initialDeposit.Sub(tc.expectedWithdrawal)
+			expectedRemaining := tc.initialDeposit.Sub(tc.expectedWithdrawal...)
 			deposits := suite.hardKeeper.GetDepositsByUser(suite.Ctx, suite.MaccAddress)
 			if expectedRemaining.IsZero() {
 				suite.Len(deposits, 0, "expected all deposits to be withdrawn")

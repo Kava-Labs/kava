@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -102,6 +103,16 @@ func (p AllowedPool) Validate() error {
 	err = sdk.ValidateDenom(p.TokenB)
 	if err != nil {
 		return err
+	}
+
+	// Ensure there is no colon in the token denoms as they are used as separators
+	// and is now valid in Cosmos denoms.
+	if strings.Contains(p.TokenA, ":") {
+		return fmt.Errorf("tokenA cannot have colons in the denom: %s", p.TokenA)
+	}
+
+	if strings.Contains(p.TokenB, ":") {
+		return fmt.Errorf("tokenB cannot have colons in the denom: %s", p.TokenB)
 	}
 
 	if p.TokenA == p.TokenB {

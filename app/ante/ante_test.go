@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -13,11 +14,11 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmdb "github.com/tendermint/tm-db"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/app"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
@@ -104,7 +105,8 @@ func TestAppAnteHandler_AuthorizedMempool(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			stdTx, err := helpers.GenTx(
+			stdTx, err := helpers.GenSignedMockTx(
+				rand.New(rand.NewSource(time.Now().UnixNano())),
 				encodingConfig.TxConfig,
 				[]sdk.Msg{
 					banktypes.NewMsgSend(
@@ -192,11 +194,13 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 	testPrivKeys, testAddresses := app.GeneratePrivKeyAddressPairs(10)
 
 	newMsgGrant := func(msgTypeUrl string) *authz.MsgGrant {
+		t := time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC)
+
 		msg, err := authz.NewMsgGrant(
 			testAddresses[0],
 			testAddresses[1],
 			authz.NewGenericAuthorization(msgTypeUrl),
-			time.Date(9000, 1, 1, 0, 0, 0, 0, time.UTC),
+			&t,
 		)
 		if err != nil {
 			panic(err)
@@ -233,7 +237,8 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 				chainID,
 			)
 
-			stdTx, err := helpers.GenTx(
+			stdTx, err := helpers.GenSignedMockTx(
+				rand.New(rand.NewSource(time.Now().UnixNano())),
 				encodingConfig.TxConfig,
 				[]sdk.Msg{tc.msg},
 				sdk.NewCoins(), // no fee

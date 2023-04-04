@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/distribution"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive"
 	"github.com/kava-labs/kava/x/incentive/testutil"
@@ -141,6 +142,7 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	mint.BeginBlocker(
 		suite.Ctx,
 		suite.App.GetMintKeeper(),
+		minttypes.DefaultInflationCalculationFn,
 	)
 	// Distribute to validators, block needs votes
 	distribution.BeginBlocker(
@@ -212,10 +214,24 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 		AmountOf("ukava").
 		Mul(sdk.NewDec(99)).
 		Quo(sdk.NewDec(100)).
-		TruncateInt()
-	suite.BalanceEquals(userAddr2, preClaimBal2.Add(sdk.NewCoin("ukava", stakingRewards2)))
+		RoundInt()
 
-	suite.Equal(delegationRewards.AmountOf("ukava").TruncateInt(), stakingRewards1.Add(stakingRewards2))
+	suite.BalanceInEpsilon(
+		userAddr2,
+		preClaimBal2.Add(sdk.NewCoin("ukava", stakingRewards2)),
+		// Highest precision to allow 1ukava margin of error
+		// 820778117815 vs 820778117814
+		1e-11,
+	)
+
+	suite.InEpsilonf(
+		delegationRewards.AmountOf("ukava").RoundInt().Int64(),
+		stakingRewards1.Add(stakingRewards2).Int64(),
+		1e-11,
+		"expected rewards should add up to staking rewards within a margin of error (%v vs %v)",
+		delegationRewards.AmountOf("ukava").RoundInt().Int64(),
+		stakingRewards1.Add(stakingRewards2).Int64(),
+	)
 
 	// Check that claimed coins have been removed from a claim's reward
 	suite.EarnRewardEquals(userAddr1, cs())

@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
@@ -21,7 +22,8 @@ func TestVestingMempoolDecorator_MsgCreateVestingAccount_Unauthorized(t *testing
 
 	decorator := ante.NewVestingAccountDecorator()
 
-	tx, err := helpers.GenTx(
+	tx, err := helpers.GenSignedMockTx(
+		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txConfig,
 		[]sdk.Msg{
 			vesting.NewMsgCreateVestingAccount(

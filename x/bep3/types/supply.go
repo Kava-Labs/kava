@@ -31,7 +31,7 @@ func (a AssetSupply) Validate() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "current supply %s", a.CurrentSupply)
 	}
 	if !a.TimeLimitedCurrentSupply.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "time-limited current supply %s", a.CurrentSupply)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "time-limited current supply %s", a.TimeLimitedCurrentSupply)
 	}
 	denom := a.CurrentSupply.Denom
 	if (a.IncomingSupply.Denom != denom) ||

@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
@@ -10,15 +11,15 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/ante"
 )
 
 func newMsgGrant(granter sdk.AccAddress, grantee sdk.AccAddress, a authz.Authorization, expiration time.Time) *authz.MsgGrant {
-	msg, err := authz.NewMsgGrant(granter, grantee, a, expiration)
+	msg, err := authz.NewMsgGrant(granter, grantee, a, &expiration)
 	if err != nil {
 		panic(err)
 	}
@@ -211,7 +212,8 @@ func TestAuthzLimiterDecorator(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			tx, err := helpers.GenTx(
+			tx, err := helpers.GenSignedMockTx(
+				rand.New(rand.NewSource(time.Now().UnixNano())),
 				txConfig,
 				tc.msgs,
 				sdk.NewCoins(),

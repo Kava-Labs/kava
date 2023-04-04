@@ -12,7 +12,7 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 	totalShares, found := k.GetVaultTotalShares(ctx, assets.Denom)
 	if !found {
 		// No shares issued yet, so shares are issued 1:1
-		return types.NewVaultShare(assets.Denom, assets.Amount.ToDec()), nil
+		return types.NewVaultShare(assets.Denom, sdk.NewDecFromInt(assets.Amount)), nil
 	}
 
 	totalValue, err := k.GetVaultTotalValue(ctx, assets.Denom)
@@ -40,7 +40,7 @@ func (k *Keeper) ConvertToShares(ctx sdk.Context, assets sdk.Coin) (types.VaultS
 	// 100 * 100 / 105   == 10000 / 105                == 95.238095238095238095
 	// 100 * (100 / 105) == 100 * 0.952380952380952380 == 95.238095238095238000
 	//                    rounded down and truncated ^    loss of precision ^
-	issuedShares := assets.Amount.ToDec().Mul(totalShares.Amount).QuoTruncate(totalValue.Amount.ToDec())
+	issuedShares := sdk.NewDecFromInt(assets.Amount).Mul(totalShares.Amount).QuoTruncate(sdk.NewDecFromInt(totalValue.Amount))
 
 	if issuedShares.IsZero() {
 		return types.VaultShare{}, fmt.Errorf("share count is zero")
@@ -65,7 +65,7 @@ func (k *Keeper) ConvertToAssets(ctx sdk.Context, share types.VaultShare) (sdk.C
 	// accValue := totalValue * percentOwnership
 	// accValue := totalValue * accShares / totalVaultShares
 	// Division must be last to avoid rounding errors and properly truncate.
-	value := totalValue.Amount.ToDec().Mul(share.Amount).QuoTruncate(totalVaultShares.Amount)
+	value := sdk.NewDecFromInt(totalValue.Amount).Mul(share.Amount).QuoTruncate(totalVaultShares.Amount)
 
 	return sdk.NewCoin(share.Denom, value.TruncateInt()), nil
 }

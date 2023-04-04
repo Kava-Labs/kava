@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -15,7 +16,7 @@ import (
 )
 
 type Keeper struct {
-	storeKey      sdk.StoreKey
+	storeKey      storetypes.StoreKey
 	cdc           codec.Codec
 	paramSubspace paramtypes.Subspace
 	bankKeeper    types.BankKeeper
@@ -23,7 +24,7 @@ type Keeper struct {
 }
 
 // NewKeeper returns a new auction keeper.
-func NewKeeper(cdc codec.Codec, storeKey sdk.StoreKey, paramstore paramtypes.Subspace,
+func NewKeeper(cdc codec.Codec, storeKey storetypes.StoreKey, paramstore paramtypes.Subspace,
 	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper,
 ) Keeper {
 	if !paramstore.HasKeyTable() {

@@ -38,7 +38,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		borrow = types.Borrow{}
 	}
 
-	proposedDeposit := types.NewDeposit(deposit.Depositor, deposit.Amount.Sub(amount), types.SupplyInterestFactors{})
+	proposedDeposit := types.NewDeposit(deposit.Depositor, deposit.Amount.Sub(amount...), types.SupplyInterestFactors{})
 	valid, err := k.IsWithinValidLtvRange(ctx, proposedDeposit, borrow)
 	if err != nil {
 		return err
@@ -63,7 +63,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Co
 		}
 	}
 
-	deposit.Amount = deposit.Amount.Sub(amount)
+	deposit.Amount = deposit.Amount.Sub(amount...)
 	if deposit.Amount.Empty() {
 		k.DeleteDeposit(ctx, deposit)
 	} else {

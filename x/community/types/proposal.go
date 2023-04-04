@@ -6,7 +6,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -18,15 +18,15 @@ const (
 
 // Assert CommunityPoolLendDepositProposal implements govtypes.Content at compile-time
 var (
-	_ govtypes.Content = &CommunityPoolLendDepositProposal{}
-	_ govtypes.Content = &CommunityPoolLendWithdrawProposal{}
+	_ govv1beta1.Content = &CommunityPoolLendDepositProposal{}
+	_ govv1beta1.Content = &CommunityPoolLendWithdrawProposal{}
 )
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeCommunityPoolLendDeposit)
-	govtypes.RegisterProposalTypeCodec(&CommunityPoolLendDepositProposal{}, "kava/CommunityPoolLendDepositProposal")
-	govtypes.RegisterProposalType(ProposalTypeCommunityPoolLendWithdraw)
-	govtypes.RegisterProposalTypeCodec(&CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal")
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolLendDeposit)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendDepositProposal{}, "kava/CommunityPoolLendDepositProposal", nil)
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolLendWithdraw)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal", nil)
 }
 
 // NewCommunityPoolLendDepositProposal creates a new community pool deposit proposal.
@@ -65,7 +65,7 @@ func (p *CommunityPoolLendDepositProposal) String() string {
 
 // ValidateBasic stateless validation of a community pool lend deposit proposal.
 func (p *CommunityPoolLendDepositProposal) ValidateBasic() error {
-	if err := govtypes.ValidateAbstract(p); err != nil {
+	if err := govv1beta1.ValidateAbstract(p); err != nil {
 		return err
 	}
 	// ensure the proposal has valid amount
@@ -111,7 +111,7 @@ func (p *CommunityPoolLendWithdrawProposal) String() string {
 
 // ValidateBasic stateless validation of a community pool withdraw proposal.
 func (p *CommunityPoolLendWithdrawProposal) ValidateBasic() error {
-	if err := govtypes.ValidateAbstract(p); err != nil {
+	if err := govv1beta1.ValidateAbstract(p); err != nil {
 		return err
 	}
 	// ensure the proposal has valid amount

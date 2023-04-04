@@ -48,7 +48,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 			macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 			modAccCoins := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
 			for _, coin := range coins {
-				_, isNegative := modAccCoins.SafeSub(sdk.NewCoins(coin))
+				_, isNegative := modAccCoins.SafeSub(coin)
 				if isNegative {
 					return sdkerrors.Wrapf(types.ErrBorrowExceedsAvailableBalance,
 						"the requested borrow amount of %s exceeds the total amount of %s%s available to borrow",
@@ -122,7 +122,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	if !foundReserveCoins {
 		reserveCoins = sdk.NewCoins()
 	}
-	fundsAvailableToBorrow, isNegative := hardMaccCoins.SafeSub(reserveCoins)
+	fundsAvailableToBorrow, isNegative := hardMaccCoins.SafeSub(reserveCoins...)
 	if isNegative {
 		return sdkerrors.Wrapf(types.ErrReservesExceedCash, "reserves %s > cash %s", reserveCoins, hardMaccCoins)
 	}
@@ -238,7 +238,7 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 		return sdkerrors.Wrapf(types.ErrBorrowedCoinsNotFound, "cannot repay coins if no coins are currently borrowed")
 	}
 
-	updatedBorrowedCoins, isNegative := borrowedCoins.SafeSub(coins)
+	updatedBorrowedCoins, isNegative := borrowedCoins.SafeSub(coins...)
 	if isNegative {
 		coinsToSubtract := sdk.NewCoins()
 		for _, coin := range coins {
@@ -250,7 +250,7 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 				coinsToSubtract = coinsToSubtract.Add(coin)
 			}
 		}
-		updatedBorrowedCoins = borrowedCoins.Sub(coinsToSubtract)
+		updatedBorrowedCoins = borrowedCoins.Sub(coinsToSubtract...)
 	}
 
 	k.SetBorrowedCoins(ctx, updatedBorrowedCoins)

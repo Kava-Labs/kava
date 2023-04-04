@@ -58,7 +58,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		acc1deposit1Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc1deposit1Amount.Amount),
 	).Once()
 	err := suite.Keeper.Deposit(
 		suite.Ctx,
@@ -75,7 +75,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc1deposit1Amount.Denom,
 		acc.GetAddress(),
-		acc1deposit1Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc1deposit1Amount.Amount),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
@@ -115,7 +115,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		acc1deposit2Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc1deposit2Amount.Amount),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
@@ -131,7 +131,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc1deposit2Amount.Denom,
 		acc.GetAddress(),
-		acc1deposit2Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc1deposit2Amount.Amount),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
@@ -174,7 +174,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc2deposit1Amount.Denom,
 		acc2.GetAddress(),
-		acc2deposit1Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc2deposit1Amount.Amount),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
@@ -192,7 +192,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc2deposit1Amount.Denom,
 		acc2.GetAddress(),
-		acc2deposit1Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc2deposit1Amount.Amount),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
@@ -232,7 +232,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		acc2deposit2Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc2deposit2Amount.Amount),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
@@ -248,7 +248,7 @@ func (suite *hookTestSuite) TestHooks_DepositAndWithdraw() {
 		suite.Ctx,
 		acc2deposit2Amount.Denom,
 		acc2.GetAddress(),
-		acc2deposit2Amount.Amount.ToDec(),
+		sdk.NewDecFromInt(acc2deposit2Amount.Amount),
 	).Once()
 	err = suite.Keeper.Deposit(
 		suite.Ctx,
@@ -508,20 +508,20 @@ func (suite *hookTestSuite) TestHooks_HookOrdering() {
 
 	acc := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	earnHooks.On("AfterVaultDepositCreated", suite.Ctx, depositAmount.Denom, acc.GetAddress(), depositAmount.Amount.ToDec()).
+	earnHooks.On("AfterVaultDepositCreated", suite.Ctx, depositAmount.Denom, acc.GetAddress(), sdk.NewDecFromInt(depositAmount.Amount)).
 		Run(func(args mock.Arguments) {
 			shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc.GetAddress())
 			suite.Require().True(found, "expected after hook to be called after shares are updated")
-			suite.Require().Equal(depositAmount.Amount.ToDec(), shares.AmountOf(depositAmount.Denom))
+			suite.Require().Equal(sdk.NewDecFromInt(depositAmount.Amount), shares.AmountOf(depositAmount.Denom))
 		})
 	err := suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 
-	earnHooks.On("BeforeVaultDepositModified", suite.Ctx, depositAmount.Denom, acc.GetAddress(), depositAmount.Amount.ToDec()).
+	earnHooks.On("BeforeVaultDepositModified", suite.Ctx, depositAmount.Denom, acc.GetAddress(), sdk.NewDecFromInt(depositAmount.Amount)).
 		Run(func(args mock.Arguments) {
 			shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc.GetAddress())
 			suite.Require().True(found, "expected after hook to be called after shares are updated")
-			suite.Require().Equal(depositAmount.Amount.ToDec(), shares.AmountOf(depositAmount.Denom))
+			suite.Require().Equal(sdk.NewDecFromInt(depositAmount.Amount), shares.AmountOf(depositAmount.Denom))
 		})
 	err = suite.Keeper.Deposit(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
@@ -532,7 +532,7 @@ func (suite *hookTestSuite) TestHooks_HookOrdering() {
 		Run(func(args mock.Arguments) {
 			shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc.GetAddress())
 			suite.Require().True(found, "expected after hook to be called after shares are updated")
-			suite.Require().Equal(depositAmount.Amount.MulRaw(2).ToDec(), shares.AmountOf(depositAmount.Denom))
+			suite.Require().Equal(sdk.NewDecFromInt(depositAmount.Amount.MulRaw(2)), shares.AmountOf(depositAmount.Denom))
 		})
 	_, err = suite.Keeper.Withdraw(suite.Ctx, acc.GetAddress(), depositAmount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)

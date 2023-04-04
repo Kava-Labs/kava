@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -62,7 +62,7 @@ func (suite *ProposalHandlerTestSuite) SetupTest() {
 		},
 		types.Proposals{
 			types.MustNewProposal(
-				govtypes.NewTextProposal("A Title", "A description of this proposal."), 1, 1, testTime.Add(7*24*time.Hour),
+				govv1beta1.NewTextProposal("A Title", "A description of this proposal."), 1, 1, testTime.Add(7*24*time.Hour),
 			),
 		},
 		[]types.Vote{

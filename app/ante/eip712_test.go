@@ -5,13 +5,14 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -19,18 +20,18 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/evmos/ethermint/ethereum/eip712"
+	"github.com/evmos/ethermint/tests"
+	etherminttypes "github.com/evmos/ethermint/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
-	"github.com/tharsis/ethermint/ethereum/eip712"
-	"github.com/tharsis/ethermint/tests"
-	etherminttypes "github.com/tharsis/ethermint/types"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
-	feemarkettypes "github.com/tharsis/ethermint/x/feemarket/types"
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -64,8 +65,8 @@ type EIP712TestSuite struct {
 	usdcEVMAddr   evmutiltypes.InternalEVMAddress
 }
 
-func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdk.Int {
-	incr := sdk.RelativePow(sdk.NewUint(10), sdk.NewUint(18), sdk.OneUint())
+func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdkmath.Int {
+	incr := sdkmath.RelativePow(sdkmath.NewUint(10), sdkmath.NewUint(18), sdkmath.OneUint())
 	return sdk.NewInt(amount).Mul(sdk.NewIntFromUint64(incr.Uint64()))
 }
 
@@ -85,7 +86,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	fee := legacytx.NewStdFee(gas, gasAmount)
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
-	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "")
+	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "", nil)
 	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, data, &eip712.FeeDelegationOptions{
 		FeePayer: from,
 	}, suite.tApp.GetEvmKeeper().GetParams(suite.ctx))
@@ -155,7 +156,15 @@ func (suite *EIP712TestSuite) SetupTest() {
 
 	// Genesis states
 	evmGs := evmtypes.NewGenesisState(
-		evmtypes.NewParams("akava", true, true, evmtypes.DefaultChainConfig()),
+		evmtypes.NewParams(
+			"akava",                       // evmDenom
+			false,                         // allowedUnprotectedTxs
+			true,                          // enableCreate
+			true,                          // enableCall
+			evmtypes.DefaultChainConfig(), // ChainConfig
+			nil,                           // extraEIPs
+			nil,                           // eip712AllowedMsgs
+		),
 		nil,
 	)
 
@@ -302,7 +311,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 	suite.ctx = ctx
 
 	// We need to set the validator as calling the EVM looks up the validator address
-	// https://github.com/tharsis/ethermint/blob/f21592ebfe74da7590eb42ed926dae970b2a9a3f/x/evm/keeper/state_transition.go#L487
+	// https://github.com/evmos/ethermint/blob/f21592ebfe74da7590eb42ed926dae970b2a9a3f/x/evm/keeper/state_transition.go#L487
 	// evmkeeper.EVMConfig() will return error "failed to load evm config" if not set
 	valAcc := &etherminttypes.EthAccount{
 		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(consAddress.Bytes()), nil, 0, 0),

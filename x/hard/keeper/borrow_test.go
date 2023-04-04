@@ -543,7 +543,7 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	modAccBalance := suite.getAccountCoins(suite.getModuleAccountAtCtx(types.ModuleAccountName, suite.ctx))
 	reserves, found := suite.keeper.GetTotalReserves(suite.ctx)
 	suite.Require().True(found)
-	availableToBorrow := modAccBalance.Sub(reserves)
+	availableToBorrow := modAccBalance.Sub(reserves...)
 
 	// Test borrowing one over the available amount (try to borrow from the reserves)
 	err = suite.keeper.Borrow(

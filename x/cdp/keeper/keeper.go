@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -14,7 +15,7 @@ import (
 
 // Keeper keeper for the cdp module
 type Keeper struct {
-	key             sdk.StoreKey
+	key             storetypes.StoreKey
 	cdc             codec.Codec
 	paramSubspace   paramtypes.Subspace
 	pricefeedKeeper types.PricefeedKeeper
@@ -26,7 +27,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace, pfk types.PricefeedKeeper,
+func NewKeeper(cdc codec.Codec, key storetypes.StoreKey, paramstore paramtypes.Subspace, pfk types.PricefeedKeeper,
 	ak types.AuctionKeeper, bk types.BankKeeper, ack types.AccountKeeper, maccs map[string][]string,
 ) Keeper {
 	if !paramstore.HasKeyTable() {

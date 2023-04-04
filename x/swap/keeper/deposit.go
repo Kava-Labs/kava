@@ -67,8 +67,8 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	}
 
 	maxPercentPriceChange := sdk.MaxDec(
-		desiredAmount.AmountOf(coinA.Denom).ToDec().Quo(depositAmount.AmountOf(coinA.Denom).ToDec()),
-		desiredAmount.AmountOf(coinB.Denom).ToDec().Quo(depositAmount.AmountOf(coinB.Denom).ToDec()),
+		sdk.NewDecFromInt(desiredAmount.AmountOf(coinA.Denom)).Quo(sdk.NewDecFromInt(depositAmount.AmountOf(coinA.Denom))),
+		sdk.NewDecFromInt(desiredAmount.AmountOf(coinB.Denom)).Quo(sdk.NewDecFromInt(depositAmount.AmountOf(coinB.Denom))),
 	)
 	slippage := maxPercentPriceChange.Sub(sdk.OneDec())
 

@@ -201,16 +201,16 @@ func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 		accNumCoins := k.bankKeeper.GetBalance(ctx, acc.GetAddress(), tallyDenom).Amount
 
 		// Add votes to counters
-		totalVotes = totalVotes.Add(accNumCoins.ToDec())
+		totalVotes = totalVotes.Add(sdk.NewDecFromInt(accNumCoins))
 		if vote.VoteType == types.VOTE_TYPE_YES {
-			yesVotes = yesVotes.Add(accNumCoins.ToDec())
+			yesVotes = yesVotes.Add(sdk.NewDecFromInt(accNumCoins))
 		} else if vote.VoteType == types.VOTE_TYPE_NO {
-			noVotes = noVotes.Add(accNumCoins.ToDec())
+			noVotes = noVotes.Add(sdk.NewDecFromInt(accNumCoins))
 		}
 	}
 
 	possibleVotesInt := k.bankKeeper.GetSupply(ctx, tallyDenom).Amount
-	return yesVotes, noVotes, totalVotes, possibleVotesInt.ToDec()
+	return yesVotes, noVotes, totalVotes, sdk.NewDecFromInt(possibleVotesInt)
 }
 
 func (k Keeper) attemptEnactProposal(ctx sdk.Context, proposal types.Proposal) types.ProposalOutcome {

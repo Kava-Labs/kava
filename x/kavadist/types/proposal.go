@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 const (
@@ -14,11 +14,11 @@ const (
 )
 
 // Assert CommunityPoolMultiSpendProposal implements govtypes.Content at compile-time
-var _ govtypes.Content = CommunityPoolMultiSpendProposal{}
+var _ govv1beta1.Content = CommunityPoolMultiSpendProposal{}
 
 func init() {
-	govtypes.RegisterProposalType(ProposalTypeCommunityPoolMultiSpend)
-	govtypes.RegisterProposalTypeCodec(CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal")
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolMultiSpend)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal", nil)
 }
 
 // NewCommunityPoolMultiSpendProposal creates a new community pool multi-spend proposal.
@@ -46,7 +46,7 @@ func (csp CommunityPoolMultiSpendProposal) ProposalType() string {
 
 // ValidateBasic stateless validation of a community pool multi-spend proposal.
 func (csp CommunityPoolMultiSpendProposal) ValidateBasic() error {
-	err := govtypes.ValidateAbstract(csp)
+	err := govv1beta1.ValidateAbstract(csp)
 	if err != nil {
 		return err
 	}

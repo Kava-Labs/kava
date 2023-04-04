@@ -339,7 +339,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegati
 
 	_, err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, valAccAddr, toDelegator, d("0.000000000000000001"))
 	suite.ErrorIs(err, types.ErrSelfDelegationBelowMinimum)
-	suite.DelegationSharesEqual(valAddr, valAccAddr, delegation.Amount.ToDec())
+	suite.DelegationSharesEqual(valAddr, valAccAddr, sdk.NewDecFromInt(delegation.Amount))
 }
 
 func (suite *KeeperTestSuite) TestTransferDelegation_CanTransferVested() {

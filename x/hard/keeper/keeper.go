@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -13,7 +14,7 @@ import (
 
 // Keeper keeper for the hard module
 type Keeper struct {
-	key             sdk.StoreKey
+	key             storetypes.StoreKey
 	cdc             codec.Codec
 	paramSubspace   paramtypes.Subspace
 	accountKeeper   types.AccountKeeper
@@ -24,7 +25,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new keeper
-func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramstore paramtypes.Subspace,
+func NewKeeper(cdc codec.Codec, key storetypes.StoreKey, paramstore paramtypes.Subspace,
 	ak types.AccountKeeper, bk types.BankKeeper,
 	pfk types.PricefeedKeeper, auk types.AuctionKeeper,
 ) Keeper {
@@ -219,7 +220,8 @@ func (k Keeper) DeleteMoneyMarket(ctx sdk.Context, denom string) {
 }
 
 // IterateMoneyMarkets iterates over all money markets objects in the store and performs a callback function
-// 		that returns both the money market and the key (denom) it's stored under
+//
+//	that returns both the money market and the key (denom) it's stored under
 func (k Keeper) IterateMoneyMarkets(ctx sdk.Context, cb func(denom string, moneyMarket types.MoneyMarket) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.MoneyMarketsPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})

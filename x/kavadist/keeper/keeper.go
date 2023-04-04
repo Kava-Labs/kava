@@ -5,6 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -13,7 +14,7 @@ import (
 
 // Keeper keeper for the cdp module
 type Keeper struct {
-	key           sdk.StoreKey
+	key           storetypes.StoreKey
 	cdc           codec.BinaryCodec
 	paramSubspace paramtypes.Subspace
 	bankKeeper    types.BankKeeper
@@ -25,7 +26,7 @@ type Keeper struct {
 
 // NewKeeper creates a new keeper
 func NewKeeper(
-	cdc codec.BinaryCodec, key sdk.StoreKey, paramstore paramtypes.Subspace, bk types.BankKeeper, ak types.AccountKeeper,
+	cdc codec.BinaryCodec, key storetypes.StoreKey, paramstore paramtypes.Subspace, bk types.BankKeeper, ak types.AccountKeeper,
 	dk types.DistKeeper, blacklistedAddrs map[string]bool,
 ) Keeper {
 	if !paramstore.HasKeyTable() {

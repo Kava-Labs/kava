@@ -76,7 +76,7 @@ func (k Keeper) distributeInfrastructureCoins(ctx sdk.Context, partnerRewards ty
 		coinsToDistribute = updatedCoins
 	}
 	for _, cr := range coreRewards {
-		coinsToSend := sdk.NewCoin(types.GovDenom, coinsToDistribute.Amount.ToDec().Mul(cr.Weight).RoundInt())
+		coinsToSend := sdk.NewCoin(types.GovDenom, sdk.NewDecFromInt(coinsToDistribute.Amount).Mul(cr.Weight).RoundInt())
 		// TODO check balance, log if insufficient and return rather than error
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, cr.Address, sdk.NewCoins(coinsToSend))
 		if err != nil {

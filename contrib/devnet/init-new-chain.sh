@@ -87,7 +87,10 @@ jq '.app_state.feemarket.params.no_base_fee = true' $DATA/config/genesis.json|sp
 # Disable london fork
 jq '.app_state.evm.params.chain_config.london_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 jq '.app_state.evm.params.chain_config.arrow_glacier_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
-jq '.app_state.evm.params.chain_config.merge_fork_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.gray_glacier_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.merge_netsplit_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.shanghai_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+jq '.app_state.evm.params.chain_config.cancun_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 
 # Add earn vault
 jq '.app_state.earn.params.allowed_vaults =  [

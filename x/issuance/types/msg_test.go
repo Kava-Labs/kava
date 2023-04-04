@@ -82,7 +82,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 			"invalid tokens",
 			args{
 				sender:   suite.addrs[0],
-				tokens:   sdk.Coin{Denom: "In:val:id", Amount: sdk.NewInt(100)},
+				tokens:   sdk.Coin{Denom: "In~val~id", Amount: sdk.NewInt(100)},
 				receiver: suite.addrs[1],
 			},
 			errArgs{
@@ -145,7 +145,7 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 			"invalid tokens",
 			args{
 				sender: suite.addrs[0],
-				tokens: sdk.Coin{Denom: "In:val:id", Amount: sdk.NewInt(100)},
+				tokens: sdk.Coin{Denom: "In~val~id", Amount: sdk.NewInt(100)},
 			},
 			errArgs{
 				expectPass: false,

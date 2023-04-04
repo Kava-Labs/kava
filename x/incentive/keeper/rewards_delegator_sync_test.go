@@ -247,7 +247,7 @@ func unslashedBondedValidator(address sdk.ValAddress) stakingtypes.Validator {
 		// Set the tokens and shares equal so then
 		// a _delegator's_ token amount is equal to their shares amount
 		Tokens:          i(1e12),
-		DelegatorShares: i(1e12).ToDec(),
+		DelegatorShares: sdk.NewDec(1e12),
 	}
 }
 
@@ -259,7 +259,7 @@ func unslashedNotBondedValidator(address sdk.ValAddress) stakingtypes.Validator 
 		// Set the tokens and shares equal so then
 		// a _delegator's_ token amount is equal to their shares amount
 		Tokens:          i(1e12),
-		DelegatorShares: i(1e12).ToDec(),
+		DelegatorShares: sdk.NewDec(1e12),
 	}
 }
 

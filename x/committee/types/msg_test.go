@@ -8,7 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
 func MustNewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeId uint64) *MsgSubmitProposal {
@@ -28,12 +28,12 @@ func TestMsgSubmitProposal_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name:       "normal",
-			msg:        MustNewMsgSubmitProposal(govtypes.NewTextProposal("A Title", "A proposal description."), addr, 3),
+			msg:        MustNewMsgSubmitProposal(govv1beta1.NewTextProposal("A Title", "A proposal description."), addr, 3),
 			expectPass: true,
 		},
 		{
 			name:       "empty address",
-			msg:        MustNewMsgSubmitProposal(govtypes.NewTextProposal("A Title", "A proposal description."), nil, 3),
+			msg:        MustNewMsgSubmitProposal(govv1beta1.NewTextProposal("A Title", "A proposal description."), nil, 3),
 			expectPass: false,
 		},
 		{

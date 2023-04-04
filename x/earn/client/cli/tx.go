@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -155,7 +155,7 @@ Where proposal.json contains:
 
 			from := clientCtx.GetFromAddress()
 			content := types.NewCommunityPoolDepositProposal(proposal.Title, proposal.Description, proposal.Amount)
-			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			msg, err := govv1beta1.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err != nil {
 				return err
 			}
@@ -213,7 +213,7 @@ Where proposal.json contains:
 
 			from := clientCtx.GetFromAddress()
 			content := types.NewCommunityPoolWithdrawProposal(proposal.Title, proposal.Description, proposal.Amount)
-			msg, err := govtypes.NewMsgSubmitProposal(content, proposal.Deposit, from)
+			msg, err := govv1beta1.NewMsgSubmitProposal(content, proposal.Deposit, from)
 			if err != nil {
 				return err
 			}

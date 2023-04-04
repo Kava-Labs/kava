@@ -54,7 +54,7 @@ func TestMarketValidate(t *testing.T) {
 				MarketID:  "market",
 				BaseAsset: "xrp",
 				// Denoms can be uppercase in v0.44
-				QuoteAsset: "BNB.",
+				QuoteAsset: "BNB~",
 			},
 			false,
 		},

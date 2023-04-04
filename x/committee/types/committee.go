@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proto "github.com/gogo/protobuf/proto"
 	"sigs.k8s.io/yaml"
 )
@@ -20,15 +20,6 @@ const (
 	TokenCommitteeType  = "kava/TokenCommittee"  // Committee is composed of token holders with voting power determined by total token balance
 	BondDenom           = "ukava"
 )
-
-func init() {
-	// CommitteeChange/Delete proposals are registered on gov's ModuleCdc (see proposal.go).
-	// But since these proposals contain Committees, these types also need registering:
-	govtypes.ModuleCdc.RegisterInterface((*Committee)(nil), nil)
-	govtypes.RegisterProposalTypeCodec(BaseCommittee{}, "kava/BaseCommittee")
-	govtypes.RegisterProposalTypeCodec(MemberCommittee{}, "kava/MemberCommittee")
-	govtypes.RegisterProposalTypeCodec(TokenCommittee{}, "kava/TokenCommittee")
-}
 
 // Marshal needed for protobuf compatibility.
 func (t TallyOption) Marshal() ([]byte, error) {
@@ -343,7 +334,7 @@ func (c TokenCommittee) Validate() error {
 // PubProposal is the interface that all proposals must fulfill to be submitted to a committee.
 // Proposal types can be created external to this module. For example a ParamChangeProposal, or CommunityPoolSpendProposal.
 // It is pinned to the equivalent type in the gov module to create compatibility between proposal types.
-type PubProposal govtypes.Content
+type PubProposal govv1beta1.Content
 
 var (
 	_ PubProposal                        = Proposal{}

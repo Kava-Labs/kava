@@ -42,7 +42,7 @@ func ResetPeriodicVestingAccount(vacc *v040vesting.PeriodicVestingAccount, start
 		delegationAdjustment := delegatedVestingCoin.Sub(newDelegatedVestingCoin)
 
 		if !delegationAdjustment.IsZero() {
-			vacc.DelegatedVesting = vacc.DelegatedVesting.Sub(sdk.NewCoins(delegationAdjustment))
+			vacc.DelegatedVesting = vacc.DelegatedVesting.Sub(delegationAdjustment)
 			vacc.DelegatedFree = vacc.DelegatedFree.Add(delegationAdjustment)
 		}
 	}

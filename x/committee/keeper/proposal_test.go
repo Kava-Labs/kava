@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -345,7 +345,7 @@ func (suite *keeperTestSuite) TestAddVote() {
 
 			// setup the committee and proposal
 			keeper.SetCommittee(ctx, tc.committee)
-			_, err := keeper.SubmitProposal(ctx, tc.committee.GetMembers()[0], tc.committee.GetID(), govtypes.NewTextProposal("A Title", "A description of this proposal."))
+			_, err := keeper.SubmitProposal(ctx, tc.committee.GetMembers()[0], tc.committee.GetID(), govv1beta1.NewTextProposal("A Title", "A description of this proposal."))
 			suite.NoError(err)
 
 			ctx = ctx.WithBlockTime(tc.voteTime)
@@ -416,7 +416,7 @@ func (suite *keeperTestSuite) TestTallyMemberCommitteeVotes() {
 				tApp.AppCodec(),
 				[]types.Committee{memberCom},
 				[]types.Proposal{types.MustNewProposal(
-					govtypes.NewTextProposal("A Title", "A description of this proposal."),
+					govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 					defaultProposalID,
 					memberCom.GetID(),
 					firstBlockTime.Add(time.Hour*24*7),
@@ -555,14 +555,13 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 				tApp.AppCodec(),
 				[]types.Committee{tokenCom},
 				[]types.Proposal{types.MustNewProposal(
-					govtypes.NewTextProposal("A Title", "A description of this proposal."),
+					govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 					defaultProposalID,
 					tokenCom.GetID(),
 					firstBlockTime.Add(time.Hour*24*7),
 				)},
 				tc.votes,
 			),
-			bankGenState(tApp.AppCodec(), totalSupply),
 			app.NewFundedGenStateWithCoins(tApp.AppCodec(), genCoins, genAddrs),
 		)
 
@@ -575,7 +574,7 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 		// Check that all non-Yes votes are counted according to their weight
 		suite.Equal(tc.expectedTotalVoteCount, currVotes)
 		// Check that possible votes equals the number of members on the committee
-		suite.Equal(totalSupply.AmountOf(tokenCom.GetTallyDenom()).ToDec(), possibleVotes)
+		suite.Equal(sdk.NewDecFromInt(totalSupply.AmountOf(tokenCom.GetTallyDenom())), possibleVotes)
 	}
 }
 
@@ -632,7 +631,7 @@ func (suite *keeperTestSuite) TestGetMemberCommitteeProposalResult() {
 					tApp.AppCodec(),
 					[]types.Committee{tc.committee},
 					[]types.Proposal{types.MustNewProposal(
-						govtypes.NewTextProposal("A Title", "A description of this proposal."),
+						govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 						defaultID,
 						tc.committee.GetID(),
 						firstBlockTime.Add(time.Hour*24*7),
@@ -759,14 +758,13 @@ func (suite *keeperTestSuite) TestGetTokenCommitteeProposalResult() {
 					tApp.AppCodec(),
 					[]types.Committee{tc.committee},
 					[]types.Proposal{types.MustNewProposal(
-						govtypes.NewTextProposal("A Title", "A description of this proposal."),
+						govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 						defaultID,
 						tc.committee.GetID(),
 						firstBlockTime.Add(time.Hour*24*7),
 					)},
 					tc.votes,
 				),
-				bankGenState(tApp.AppCodec(), totalSupply),
 				app.NewFundedGenStateWithCoins(tApp.AppCodec(), genCoins, genAddrs),
 			)
 
@@ -799,7 +797,7 @@ func (suite *keeperTestSuite) TestCloseProposal() {
 			tApp.AppCodec(),
 			[]types.Committee{memberCom},
 			[]types.Proposal{types.MustNewProposal(
-				govtypes.NewTextProposal("A Title", "A description of this proposal."),
+				govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 				proposalID,
 				memberCom.GetID(),
 				firstBlockTime.Add(time.Hour*24*7),
@@ -856,7 +854,7 @@ func bankGenState(cdc codec.Codec, coins sdk.Coins) app.GenesisState {
 }
 
 type UnregisteredPubProposal struct {
-	govtypes.TextProposal
+	govv1beta1.TextProposal
 }
 
 func (UnregisteredPubProposal) ProposalRoute() string { return "unregistered" }

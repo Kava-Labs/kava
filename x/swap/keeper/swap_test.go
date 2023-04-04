@@ -35,9 +35,9 @@ func (suite *keeperTestSuite) TestSwapExactForTokens() {
 
 	expectedOutput := sdk.NewCoin("usdx", sdk.NewInt(4982529))
 
-	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(sdk.NewCoins(coinA)).Add(expectedOutput))
-	suite.ModuleAccountBalanceEqual(reserves.Add(coinA).Sub(sdk.NewCoins(expectedOutput)))
-	suite.PoolLiquidityEqual(reserves.Add(coinA).Sub(sdk.NewCoins(expectedOutput)))
+	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(coinA).Add(expectedOutput))
+	suite.ModuleAccountBalanceEqual(reserves.Add(coinA).Sub(expectedOutput))
+	suite.PoolLiquidityEqual(reserves.Add(coinA).Sub(expectedOutput))
 
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapTrade,
@@ -342,9 +342,9 @@ func (suite *keeperTestSuite) TestSwapForExactTokens() {
 
 	expectedInput := sdk.NewCoin("ukava", sdk.NewInt(1003511))
 
-	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(sdk.NewCoins(expectedInput)).Add(coinB))
-	suite.ModuleAccountBalanceEqual(reserves.Add(expectedInput).Sub(sdk.NewCoins(coinB)))
-	suite.PoolLiquidityEqual(reserves.Add(expectedInput).Sub(sdk.NewCoins(coinB)))
+	suite.AccountBalanceEqual(requester.GetAddress(), balance.Sub(expectedInput).Add(coinB))
+	suite.ModuleAccountBalanceEqual(reserves.Add(expectedInput).Sub(coinB))
+	suite.PoolLiquidityEqual(reserves.Add(expectedInput).Sub(coinB))
 
 	suite.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(
 		types.EventTypeSwapTrade,

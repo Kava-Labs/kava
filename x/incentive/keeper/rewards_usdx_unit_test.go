@@ -272,7 +272,7 @@ func (builder CDPBuilder) WithSourceShares(shares int64) CDPBuilder {
 	principal := sdk.NewInt(shares).Mul(factor)
 
 	builder.Principal = sdk.NewCoin(cdptypes.DefaultStableDenom, principal)
-	builder.InterestFactor = factor.ToDec()
+	builder.InterestFactor = sdk.NewDecFromInt(factor)
 
 	return builder
 }

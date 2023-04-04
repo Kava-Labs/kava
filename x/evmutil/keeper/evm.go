@@ -25,8 +25,8 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/tharsis/ethermint/server/config"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	"github.com/evmos/ethermint/server/config"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -72,7 +72,7 @@ func (k Keeper) CallEVMWithData(
 	// To param needs to be nil to correctly apply txs to create contracts
 	// Default common.Address value is 0x0000000000000000000000000000000000000000, not nil
 	// which Ethermint handles differently -- erc20_test will fail
-	// https://github.com/tharsis/ethermint/blob/caa1c5a6c6b7ed8ba4aaf6e0b0848f6be5ba6668/x/evm/keeper/state_transition.go#L357
+	// https://github.com/evmos/ethermint/blob/caa1c5a6c6b7ed8ba4aaf6e0b0848f6be5ba6668/x/evm/keeper/state_transition.go#L357
 	var to *common.Address
 	if contract != nil {
 		to = &contract.Address

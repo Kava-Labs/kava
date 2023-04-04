@@ -8,7 +8,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -69,13 +70,13 @@ func (suite *tallyHandlerSuite) TestVotePower_AllSourcesCounted() {
 	)
 
 	proposal := suite.createProposal()
-	suite.voteOnProposal(user.GetAddress(), proposal.ProposalId, govtypes.OptionYes)
+	suite.voteOnProposal(user.GetAddress(), proposal.Id, govv1beta1.OptionYes)
 
 	_, _, results := suite.tallier.Tally(suite.ctx, proposal)
-	suite.Equal(sdk.NewInt(500e6+250e6+250e6), results.Yes)
-	suite.Equal(sdk.ZeroInt(), results.No)
-	suite.Equal(sdk.ZeroInt(), results.NoWithVeto)
-	suite.Equal(sdk.ZeroInt(), results.Abstain)
+	suite.Equal(sdk.NewInt(500e6+250e6+250e6).String(), results.YesCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
 }
 
 func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
@@ -96,28 +97,28 @@ func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
 	proposal := suite.createProposal()
 
 	// Validator votes, inheriting user's stake and bkava.
-	suite.voteOnProposal(validator.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
+	suite.voteOnProposal(validator.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
 
 	// use wrapped context to discard the state changes
 	readOnlyCtx, _ := suite.ctx.CacheContext()
 	_, _, results := suite.tallier.Tally(readOnlyCtx, proposal)
 	userPower := sdk.NewInt(500e6 + 250e6 + 250e6)
 	suite.Equal(
-		selfDelegated.Add(userPower),
-		results.Yes,
+		selfDelegated.Add(userPower).String(),
+		results.YesCount,
 	)
-	suite.Equal(sdk.ZeroInt(), results.No)
-	suite.Equal(sdk.ZeroInt(), results.NoWithVeto)
-	suite.Equal(sdk.ZeroInt(), results.Abstain)
+	suite.Equal(sdk.ZeroInt().String(), results.NoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
 
 	// User votes, taking power away from validator.
-	suite.voteOnProposal(user.GetAddress(), proposal.ProposalId, govtypes.OptionNo)
+	suite.voteOnProposal(user.GetAddress(), proposal.Id, govv1beta1.OptionNo)
 
 	_, _, results = suite.tallier.Tally(suite.ctx, proposal)
-	suite.Equal(selfDelegated, results.Yes)
-	suite.Equal(userPower, results.No)
-	suite.Equal(sdk.ZeroInt(), results.NoWithVeto)
-	suite.Equal(sdk.ZeroInt(), results.Abstain)
+	suite.Equal(selfDelegated.String(), results.YesCount)
+	suite.Equal(userPower.String(), results.NoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
 }
 
 func (suite *tallyHandlerSuite) TestTallyOutcomes() {
@@ -129,7 +130,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		v1 := suite.createNewBondedValidator(sdk.NewInt(399_999_999))
 		suite.createNewBondedValidator(sdk.NewInt(600_000_001))
 
-		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to fail, tally: %v", tally)
@@ -143,8 +144,8 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		v1 := suite.createNewBondedValidator(sdk.NewInt(334_000_001))
 		v2 := suite.createNewBondedValidator(sdk.NewInt(665_999_999))
 
-		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionNoWithVeto)
-		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionNoWithVeto)
+		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to fail, tally: %v", tally)
@@ -159,9 +160,9 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		v2 := suite.createNewBondedValidator(sdk.NewInt(50_000_001))
 		v3 := suite.createNewBondedValidator(sdk.NewInt(49_999_999))
 
-		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionAbstain)
-		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
-		suite.voteOnProposal(v3.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionNo)
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionAbstain)
+		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
+		suite.voteOnProposal(v3.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionNo)
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Truef(passes, "expected proposal to pass, tally: %v", tally)
@@ -176,9 +177,9 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		v2 := suite.createNewBondedValidator(sdk.NewInt(49_999_999))
 		v3 := suite.createNewBondedValidator(sdk.NewInt(50_000_001))
 
-		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionAbstain)
-		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionYes)
-		suite.voteOnProposal(v3.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionNo)
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionAbstain)
+		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
+		suite.voteOnProposal(v3.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionNo)
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
@@ -190,6 +191,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		proposal := suite.createProposal()
 
 		// no stake
+		suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
@@ -202,7 +204,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 		v1 := suite.createNewBondedValidator(sdk.NewInt(1e9))
 
-		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.ProposalId, govtypes.OptionAbstain)
+		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionAbstain)
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
@@ -212,37 +214,45 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 }
 
 func (suite *tallyHandlerSuite) setTallyParams(quorum, threshold, veto sdk.Dec) {
-	suite.app.GetGovKeeper().SetTallyParams(suite.ctx, govtypes.TallyParams{
-		Quorum:        quorum,
-		Threshold:     threshold,
-		VetoThreshold: veto,
+	suite.app.GetGovKeeper().SetTallyParams(suite.ctx, govv1.TallyParams{
+		Quorum:        quorum.String(),
+		Threshold:     threshold.String(),
+		VetoThreshold: veto.String(),
 	})
 }
 
-func (suite *tallyHandlerSuite) voteOnProposal(voter sdk.AccAddress, proposalID uint64, option govtypes.VoteOption) {
+func (suite *tallyHandlerSuite) voteOnProposal(
+	voter sdk.AccAddress,
+	proposalID uint64,
+	option govv1beta1.VoteOption,
+) {
 	gk := suite.app.GetGovKeeper()
 
 	err := gk.AddVote(suite.ctx,
 		proposalID,
 		voter,
-		govtypes.NewNonSplitVoteOption(option),
+		govv1.NewNonSplitVoteOption(govv1.VoteOption(option)),
+		"",
 	)
 	suite.Require().NoError(err)
 }
 
-func (suite *tallyHandlerSuite) createProposal() govtypes.Proposal {
+func (suite *tallyHandlerSuite) createProposal() govv1.Proposal {
 	gk := suite.app.GetGovKeeper()
 	deposit := gk.GetDepositParams(suite.ctx).MinDeposit
 	proposer := suite.createAccount(deposit...)
 
-	msg, err := govtypes.NewMsgSubmitProposal(
-		govtypes.NewTextProposal("a title", "a description"),
+	msg, err := govv1beta1.NewMsgSubmitProposal(
+		govv1beta1.NewTextProposal("a title", "a description"),
 		deposit,
 		proposer.GetAddress(),
 	)
 	suite.Require().NoError(err)
 
-	msgServer := govkeeper.NewMsgServerImpl(gk)
+	msgServerv1 := govkeeper.NewMsgServerImpl(gk)
+
+	govAcct := gk.GetGovernanceAccount(suite.ctx).GetAddress()
+	msgServer := govkeeper.NewLegacyMsgServerImpl(govAcct.String(), msgServerv1)
 	res, err := msgServer.SubmitProposal(sdk.WrapSDKContext(suite.ctx), msg)
 	suite.Require().NoError(err)
 

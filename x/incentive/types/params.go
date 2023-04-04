@@ -207,6 +207,11 @@ func (rp RewardPeriod) Validate() error {
 	if !rp.RewardsPerSecond.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", rp.RewardsPerSecond)
 	}
+
+	if rp.RewardsPerSecond.Amount.IsZero() {
+		return fmt.Errorf("reward amount cannot be zero: %v", rp.RewardsPerSecond)
+	}
+
 	if strings.TrimSpace(rp.CollateralType) == "" {
 		return fmt.Errorf("reward period collateral type cannot be blank: %v", rp)
 	}
@@ -257,6 +262,8 @@ func (mrp MultiRewardPeriod) Validate() error {
 		// This is needed to ensure that the begin blocker accumulation does not panic.
 		return fmt.Errorf("end period time %s cannot be before start time %s", mrp.End, mrp.Start)
 	}
+
+	// This also ensures there are no 0 amount coins.
 	if !mrp.RewardsPerSecond.IsValid() {
 		return fmt.Errorf("invalid reward amount: %s", mrp.RewardsPerSecond)
 	}

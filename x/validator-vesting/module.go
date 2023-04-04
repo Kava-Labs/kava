@@ -3,7 +3,6 @@ package validator_vesting
 import (
 	"encoding/json"
 
-	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -16,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	"github.com/kava-labs/kava/x/validator-vesting/client/cli"
-	"github.com/kava-labs/kava/x/validator-vesting/client/rest"
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
@@ -53,11 +51,6 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage { retu
 // ValidateGenesis module validate genesis
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	return nil
-}
-
-// RegisterRESTRoutes registers validator-vesting module's REST service handlers.
-func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Router) {
-	rest.RegisterRoutes(clientCtx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for validator-vesting module.

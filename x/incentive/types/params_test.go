@@ -26,12 +26,28 @@ var rewardPeriodWithInvalidRewardsPerSecond = types.NewRewardPeriod(
 	sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()},
 )
 
+var rewardPeriodWithZeroRewardsPerSecond = types.NewRewardPeriod(
+	true,
+	"bnb",
+	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+	sdk.Coin{Denom: "ukava", Amount: sdk.ZeroInt()},
+)
+
 var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
 	true,
 	"bnb",
 	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
 	sdk.Coins{sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()}},
+)
+
+var rewardMultiPeriodWithZeroRewardsPerSecond = types.NewMultiRewardPeriod(
+	true,
+	"bnb",
+	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
+	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
+	sdk.Coins{sdk.Coin{Denom: "zero", Amount: sdk.ZeroInt()}},
 )
 
 var validMultiRewardPeriod = types.NewMultiRewardPeriod(
@@ -215,6 +231,44 @@ func (suite *ParamTestSuite) TestParamValidation() {
 			errArgs{
 				expectPass: false,
 				contains:   "expected non-negative lockup",
+			},
+		},
+		{
+			"invalid zero amount multi rewards per second",
+			types.Params{
+				USDXMintingRewardPeriods: types.DefaultRewardPeriods,
+				HardSupplyRewardPeriods: types.MultiRewardPeriods{
+					rewardMultiPeriodWithZeroRewardsPerSecond,
+				},
+				HardBorrowRewardPeriods: types.DefaultMultiRewardPeriods,
+				DelegatorRewardPeriods:  types.DefaultMultiRewardPeriods,
+				SwapRewardPeriods:       types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:    types.DefaultMultiRewardPeriods,
+				ClaimMultipliers:        types.DefaultMultipliers,
+				ClaimEnd:                time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "invalid reward amount: 0zero",
+			},
+		},
+		{
+			"invalid zero amount single rewards per second",
+			types.Params{
+				USDXMintingRewardPeriods: types.RewardPeriods{
+					rewardPeriodWithZeroRewardsPerSecond,
+				},
+				HardSupplyRewardPeriods: types.DefaultMultiRewardPeriods,
+				HardBorrowRewardPeriods: types.DefaultMultiRewardPeriods,
+				DelegatorRewardPeriods:  types.DefaultMultiRewardPeriods,
+				SwapRewardPeriods:       types.DefaultMultiRewardPeriods,
+				SavingsRewardPeriods:    types.DefaultMultiRewardPeriods,
+				ClaimMultipliers:        types.DefaultMultipliers,
+				ClaimEnd:                time.Date(2025, 10, 15, 14, 0, 0, 0, time.UTC),
+			},
+			errArgs{
+				expectPass: false,
+				contains:   "reward amount cannot be zero: 0ukava",
 			},
 		},
 	}

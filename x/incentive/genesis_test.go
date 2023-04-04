@@ -280,10 +280,15 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 
 	// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 	// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
-	tApp.InitializeFromGenesisStates(
+	tApp = tApp.InitializeFromGenesisStates(
 		NewCDPGenStateMulti(tApp.AppCodec()),
 		NewPricefeedGenStateMultiFromTime(tApp.AppCodec(), genesisTime),
 	)
+
+	// Clear genesis validator and genesis delegator incentive state to start empty.
+	ik := tApp.GetIncentiveKeeper()
+	suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
+	ik.DeleteDelegatorClaim(ctx, tApp.GenesisAddrs[0])
 
 	incentive.InitGenesis(
 		ctx,

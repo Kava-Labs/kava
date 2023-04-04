@@ -509,13 +509,18 @@ func TestAuctionBidding(t *testing.T) {
 			}
 
 			// Store some state for use in checks
-			oldAuction, found := keeper.GetAuction(ctx, id)
 			var oldBidder sdk.AccAddress
+			var oldBidderOldCoins sdk.Coins
+
+			oldAuction, found := keeper.GetAuction(ctx, id)
 			if found {
 				oldBidder = oldAuction.GetBidder()
 			}
 
-			oldBidderOldCoins := bank.GetAllBalances(ctx, oldBidder)
+			if !oldBidder.Empty() {
+				oldBidderOldCoins = bank.GetAllBalances(ctx, oldBidder)
+			}
+
 			newBidderOldCoins := bank.GetAllBalances(ctx, tc.bidArgs.bidder)
 
 			// Place bid on auction
@@ -546,9 +551,9 @@ func TestAuctionBidding(t *testing.T) {
 					}
 				}
 				if oldBidder.Equals(tc.bidArgs.bidder) { // same bidder
-					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt.Sub(oldAuction.GetBid()))), bank.GetAllBalances(ctx, tc.bidArgs.bidder))
+					require.Equal(t, newBidderOldCoins.Sub(bidAmt.Sub(oldAuction.GetBid())), bank.GetAllBalances(ctx, tc.bidArgs.bidder))
 				} else { // different bidder
-					require.Equal(t, newBidderOldCoins.Sub(cs(bidAmt)), bank.GetAllBalances(ctx, tc.bidArgs.bidder)) // wrapping in cs() to avoid comparing nil and empty coins
+					require.Equal(t, newBidderOldCoins.Sub(bidAmt), bank.GetAllBalances(ctx, tc.bidArgs.bidder)) // wrapping in cs() to avoid comparing nil and empty coins
 
 					// handle checking debt coins for case debt auction has had no bids placed yet TODO make this less confusing
 					if oldBidder.Equals(authtypes.NewModuleAddress(oldAuction.GetInitiator())) {
@@ -576,7 +581,9 @@ func TestAuctionBidding(t *testing.T) {
 
 				// Check coins have not moved
 				require.Equal(t, newBidderOldCoins, bank.GetAllBalances(ctx, tc.bidArgs.bidder))
-				require.Equal(t, oldBidderOldCoins, bank.GetAllBalances(ctx, oldBidder))
+				if !oldBidder.Empty() {
+					require.Equal(t, oldBidderOldCoins, bank.GetAllBalances(ctx, oldBidder))
+				}
 			}
 		})
 	}

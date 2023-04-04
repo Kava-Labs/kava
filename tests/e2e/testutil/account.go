@@ -15,9 +15,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	emtypes "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tharsis/ethermint/crypto/ethsecp256k1"
-	emtypes "github.com/tharsis/ethermint/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/util"

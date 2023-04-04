@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -54,6 +54,14 @@ func (k EvmBankKeeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom st
 	akava := k.akavaKeeper.GetBalance(ctx, addr)
 	total := ukava.Mul(ConversionMultiplier).Add(akava)
 	return sdk.NewCoin(EvmDenom, total)
+}
+
+// SendCoins transfers akava coins from a AccAddress to an AccAddress.
+func (k EvmBankKeeper) SendCoins(ctx sdk.Context, senderAddr sdk.AccAddress, recipientAddr sdk.AccAddress, amt sdk.Coins) error {
+	// SendCoins method is not used by the evm module, but is required by the
+	// evmtypes.BankKeeper interface. This must be updated if the evm module
+	// is updated to use SendCoins.
+	panic("not implemented")
 }
 
 // SendCoinsFromModuleToAccount transfers akava coins from a ModuleAccount to an AccAddress.

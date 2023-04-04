@@ -91,7 +91,6 @@ func (suite *keeperTestSuite) TestMintNotActive() {
 }
 
 func (suite *keeperTestSuite) TestInfraMinting() {
-
 	type args struct {
 		startTime           time.Time
 		endTime             time.Time
@@ -150,14 +149,29 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 		suite.Require().NotPanics(func() {
 			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
 		})
+
+		// Delete initial genesis tokens to start with a clean slate
+		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
+
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
+
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Sub(tc.args.marginOfError))
-		suite.Require().True(finalSupply.Amount.ToDec().LTE(marginHigh))
-		suite.Require().True(finalSupply.Amount.ToDec().GTE(marginLow))
+		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
+		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		suite.Require().Truef(
+			sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh),
+			"final supply %s is not <= %s high margin",
+			finalSupply.Amount.String(),
+			marginHigh.String(),
+		)
+		suite.Require().Truef(
+			sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow),
+			"final supply %s is not >= %s low margin",
+			finalSupply.Amount.String(),
+		)
 
 	}
 
@@ -212,15 +226,20 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 		suite.Require().NotPanics(func() {
 			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
 		})
+
+		// Delete initial genesis tokens to start with a clean slate
+		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
+
 		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Sub(tc.args.marginOfError))
-		suite.Require().True(finalSupply.Amount.ToDec().LTE(marginHigh))
-		suite.Require().True(finalSupply.Amount.ToDec().GTE(marginLow))
+		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
+		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh))
+		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow))
 
 		finalBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
@@ -278,15 +297,20 @@ func (suite *keeperTestSuite) TestInfraPayoutPartner() {
 		suite.Require().NotPanics(func() {
 			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
 		})
+
+		// Delete initial genesis tokens to start with a clean slate
+		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
+
 		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Sub(tc.args.marginOfError))
-		suite.Require().True(finalSupply.Amount.ToDec().LTE(marginHigh))
-		suite.Require().True(finalSupply.Amount.ToDec().GTE(marginLow))
+		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
+		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh))
+		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow))
 
 		finalBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
@@ -361,14 +385,19 @@ func (suite *keeperTestSuite) TestInfraPayoutE2E() {
 		suite.Require().NotPanics(func() {
 			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
 		})
+
+		// Delete initial genesis tokens to start with a clean slate
+		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
+		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
+
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := tc.args.expectedFinalSupply.Amount.ToDec().Mul(sdk.OneDec().Sub(tc.args.marginOfError))
-		suite.Require().True(finalSupply.Amount.ToDec().LTE(marginHigh))
-		suite.Require().True(finalSupply.Amount.ToDec().GTE(marginLow))
+		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
+		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh))
+		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow))
 
 		for _, bal := range tc.args.expectedBalances {
 			finalBalance := suite.BankKeeper.GetAllBalances(ctx, bal.address)

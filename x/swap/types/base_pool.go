@@ -251,7 +251,7 @@ func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdk.
 	p.assertSwapInputIsValid(in)
 	p.assertFeeIsValid(fee)
 
-	inAfterFee := in.ToDec().Mul(sdk.OneDec().Sub(fee)).TruncateInt()
+	inAfterFee := sdk.NewDecFromInt(in).Mul(sdk.OneDec().Sub(fee)).TruncateInt()
 
 	var result big.Int
 	result.Mul(outReserves.BigInt(), inAfterFee.BigInt())
@@ -310,7 +310,7 @@ func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdk
 		inWithoutFee = inWithoutFee.Add(sdk.OneInt())
 	}
 
-	in := inWithoutFee.ToDec().Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+	in := sdk.NewDecFromInt(inWithoutFee).Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
 	feeValue := in.Sub(inWithoutFee)
 
 	return in, feeValue

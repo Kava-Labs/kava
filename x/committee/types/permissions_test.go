@@ -7,7 +7,7 @@ import (
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -161,7 +161,7 @@ func TestParamsChangePermission_SimpleParamsChange_Allows(t *testing.T) {
 		{
 			name:          "not allowed (mismatched pubproposal type)",
 			permission:    testPermission,
-			pubProposal:   govtypes.NewTextProposal("A Title", "A description of this proposal."),
+			pubProposal:   govv1beta1.NewTextProposal("A Title", "A description of this proposal."),
 			expectAllowed: false,
 		},
 		{

@@ -145,7 +145,7 @@ func (suite *MsgServerSuite) TestConvertERC20ToCoin() {
 	)
 	suite.Require().NoError(err)
 
-	invokerCosmosAddr, err := sdk.AccAddressFromHex(invoker.String()[2:])
+	invokerCosmosAddr, err := sdk.AccAddressFromHexUnsafe(invoker.String()[2:])
 	suite.Require().NoError(err)
 
 	// create user account, otherwise `CallEVMWithData` will fail due to failing to get user account when finding its sequence.
