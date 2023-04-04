@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
@@ -16,6 +17,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	emtests "github.com/evmos/ethermint/tests"
 	emtypes "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/require"
 
@@ -30,6 +32,8 @@ type SigningAccount struct {
 	evmSigner  *util.EvmSigner
 	evmReqChan chan<- util.EvmTxRequest
 	evmResChan <-chan util.EvmTxResponse
+
+	SignRawEvmData func(address sdk.Address, msg []byte) ([]byte, types.PubKey, error)
 
 	kavaSigner *util.KavaSigner
 	sdkReqChan chan<- util.KavaMsgRequest
@@ -89,6 +93,8 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 	)
 	require.NoErrorf(chain.t, err, "failed to create evm signer")
 
+	rawSigner := emtests.NewSigner(privKey)
+
 	evmReqChan := make(chan util.EvmTxRequest)
 	evmResChan := evmSigner.Run(evmReqChan)
 
@@ -102,6 +108,8 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 		evmSigner:  evmSigner,
 		evmReqChan: evmReqChan,
 		evmResChan: evmResChan,
+
+		SignRawEvmData: rawSigner.SignByAddress,
 
 		kavaSigner: kavaSigner,
 		sdkReqChan: sdkReqChan,
