@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -63,7 +64,7 @@ func (k Keeper) InitializeSwapReward(ctx sdk.Context, poolID string, owner sdk.A
 
 // SynchronizeSwapReward updates the claim object by adding any accumulated rewards
 // and updating the reward index value.
-func (k Keeper) SynchronizeSwapReward(ctx sdk.Context, poolID string, owner sdk.AccAddress, shares sdk.Int) {
+func (k Keeper) SynchronizeSwapReward(ctx sdk.Context, poolID string, owner sdk.AccAddress, shares sdkmath.Int) {
 	claim, found := k.GetSwapClaim(ctx, owner)
 	if !found {
 		return
@@ -74,7 +75,7 @@ func (k Keeper) SynchronizeSwapReward(ctx sdk.Context, poolID string, owner sdk.
 }
 
 // synchronizeSwapReward updates the reward and indexes in a swap claim for one pool.
-func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, poolID string, owner sdk.AccAddress, shares sdk.Int) types.SwapClaim {
+func (k *Keeper) synchronizeSwapReward(ctx sdk.Context, claim types.SwapClaim, poolID string, owner sdk.AccAddress, shares sdkmath.Int) types.SwapClaim {
 	globalRewardIndexes, found := k.GetSwapRewardIndexes(ctx, poolID)
 	if !found {
 		// The global factor is only not found if

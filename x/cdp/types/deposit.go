@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -51,7 +52,7 @@ func (d Deposit) Empty() bool {
 }
 
 // SumCollateral returns the total amount of collateral in the input deposits
-func (ds Deposits) SumCollateral() (sum sdk.Int) {
+func (ds Deposits) SumCollateral() (sum sdkmath.Int) {
 	sum = sdk.ZeroInt()
 	for _, d := range ds {
 		if !d.Amount.IsZero() {

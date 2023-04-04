@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -49,11 +50,11 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 			newFakeStakingKeeper().addBondedTokens(bondedTokens),
 		).
 		WithBankKeeper(
-			newFakeBankKeeper().setSupply(sdk.NewCoin(types.BondDenom, sdk.NewInt(totalSupply))),
+			newFakeBankKeeper().setSupply(sdk.NewCoin(types.BondDenom, sdkmath.NewInt(totalSupply))),
 		).
 		WithEarnKeeper(earnKeeper).
 		WithLiquidKeeper(
-			newFakeLiquidKeeper().addDerivative(suite.ctx, "bkava-asdf", sdk.NewInt(liquidStakedTokens)),
+			newFakeLiquidKeeper().addDerivative(suite.ctx, "bkava-asdf", sdkmath.NewInt(liquidStakedTokens)),
 		).
 		WithPricefeedKeeper(
 			newFakePricefeedKeeper().
@@ -85,7 +86,7 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 				Start:          suite.ctx.BlockTime().Add(-time.Hour),
 				End:            suite.ctx.BlockTime().Add(time.Hour),
 				RewardsPerSecond: sdk.NewCoins(
-					sdk.NewCoin("ukava", sdk.NewInt(190258)),
+					sdk.NewCoin("ukava", sdkmath.NewInt(190258)),
 				),
 			},
 			{
@@ -94,7 +95,7 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 				Start:          suite.ctx.BlockTime().Add(-time.Hour),
 				End:            suite.ctx.BlockTime().Add(time.Hour),
 				RewardsPerSecond: sdk.NewCoins(
-					sdk.NewCoin("ukava", sdk.NewInt(5284)),
+					sdk.NewCoin("ukava", sdkmath.NewInt(5284)),
 				),
 			},
 		},

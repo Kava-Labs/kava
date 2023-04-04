@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -164,7 +165,7 @@ func GenesisStateWithSingleValidator(
 	balances := []banktypes.Balance{
 		{
 			Address: acc.GetAddress().String(),
-			Coins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100000000000000))),
+			Coins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100000000000000))),
 		},
 	}
 
@@ -407,7 +408,7 @@ func (tApp TestApp) CheckBalance(t *testing.T, ctx sdk.Context, owner sdk.AccAdd
 }
 
 // GetModuleAccountBalance gets the current balance of the denom for a module account
-func (tApp TestApp) GetModuleAccountBalance(ctx sdk.Context, moduleName string, denom string) sdk.Int {
+func (tApp TestApp) GetModuleAccountBalance(ctx sdk.Context, moduleName string, denom string) sdkmath.Int {
 	moduleAcc := tApp.accountKeeper.GetModuleAccount(ctx, moduleName)
 	balance := tApp.bankKeeper.GetBalance(ctx, moduleAcc.GetAddress(), denom)
 	return balance.Amount
@@ -438,14 +439,14 @@ func (tApp TestApp) FundModuleAccount(ctx sdk.Context, recipientMod string, amou
 
 // CreateNewUnbondedValidator creates a new validator in the staking module.
 // New validators are unbonded until the end blocker is run.
-func (tApp TestApp) CreateNewUnbondedValidator(ctx sdk.Context, valAddress sdk.ValAddress, selfDelegation sdk.Int) error {
+func (tApp TestApp) CreateNewUnbondedValidator(ctx sdk.Context, valAddress sdk.ValAddress, selfDelegation sdkmath.Int) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
 		valAddress,
 		ed25519.GenPrivKey().PubKey(),
 		sdk.NewCoin(tApp.stakingKeeper.BondDenom(ctx), selfDelegation),
 		stakingtypes.Description{},
 		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	)
 	if err != nil {
 		return err

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -14,8 +15,8 @@ func TestGetProportionalRewardPeriod(t *testing.T) {
 	tests := []struct {
 		name                  string
 		giveRewardPeriod      types.MultiRewardPeriod
-		giveTotalBkavaSupply  sdk.Int
-		giveSingleBkavaSupply sdk.Int
+		giveTotalBkavaSupply  sdkmath.Int
+		giveSingleBkavaSupply sdkmath.Int
 		wantRewardsPerSecond  sdk.DecCoins
 	}{
 		{

@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 )
@@ -26,6 +27,6 @@ type BankKeeper interface {
 
 // SwapHooks are event hooks called when a user's deposit to a swap pool changes.
 type SwapHooks interface {
-	AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharedOwned sdk.Int)
-	BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharedOwned sdk.Int)
+	AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharedOwned sdkmath.Int)
+	BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharedOwned sdkmath.Int)
 }

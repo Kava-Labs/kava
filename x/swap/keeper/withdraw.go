@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -21,7 +22,7 @@ import (
 //
 // In addition, if the withdrawn liquidity for each reserve is below the provided minimum, a slippage exceeded
 // error is returned.
-func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, minCoinA, minCoinB sdk.Coin) error {
+func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdkmath.Int, minCoinA, minCoinB sdk.Coin) error {
 	poolID := types.PoolID(minCoinA.Denom, minCoinB.Denom)
 
 	shareRecord, found := k.GetDepositorShares(ctx, owner, poolID)

@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -31,7 +32,7 @@ func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 		},
 		{
 			"negative amount",
-			NewMsgPlaceBid(1, testAccAddress1, sdk.Coin{Denom: "token", Amount: sdk.NewInt(-10)}),
+			NewMsgPlaceBid(1, testAccAddress1, sdk.Coin{Denom: "token", Amount: sdkmath.NewInt(-10)}),
 			false,
 		},
 		{

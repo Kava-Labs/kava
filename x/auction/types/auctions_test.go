@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -30,10 +31,10 @@ func init() {
 
 func d(amount string) sdk.Dec               { return sdk.MustNewDecFromStr(amount) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
-func i(n int64) sdk.Int                     { return sdk.NewInt(n) }
-func is(ns ...int64) (is []sdk.Int) {
+func i(n int64) sdkmath.Int                 { return sdkmath.NewInt(n) }
+func is(ns ...int64) (is []sdkmath.Int) {
 	for _, n := range ns {
-		is = append(is, sdk.NewInt(n))
+		is = append(is, sdkmath.NewInt(n))
 	}
 	return
 }
@@ -48,25 +49,25 @@ func TestNewWeightedAddresses(t *testing.T) {
 	tests := []struct {
 		name      string
 		addresses []sdk.AccAddress
-		weights   []sdk.Int
+		weights   []sdkmath.Int
 		expPass   bool
 	}{
 		{
 			"normal",
 			[]sdk.AccAddress{addr1, addr2},
-			[]sdk.Int{sdk.NewInt(6), sdk.NewInt(8)},
+			[]sdkmath.Int{sdkmath.NewInt(6), sdkmath.NewInt(8)},
 			true,
 		},
 		{
 			"empty address",
 			[]sdk.AccAddress{nil, nil},
-			[]sdk.Int{sdk.NewInt(6), sdk.NewInt(8)},
+			[]sdkmath.Int{sdkmath.NewInt(6), sdkmath.NewInt(8)},
 			false,
 		},
 		{
 			"mismatched",
 			[]sdk.AccAddress{addr1, addr2},
-			[]sdk.Int{sdk.NewInt(6)},
+			[]sdkmath.Int{sdkmath.NewInt(6)},
 			false,
 		},
 		{
@@ -139,7 +140,7 @@ func TestDebtAuctionValidate(t *testing.T) {
 					MaxEndTime:      now,
 					HasReceivedBids: true,
 				},
-				CorrespondingDebt: sdk.Coin{Denom: "", Amount: sdk.NewInt(1)},
+				CorrespondingDebt: sdk.Coin{Denom: "", Amount: sdkmath.NewInt(1)},
 			},
 			false,
 		},
@@ -185,7 +186,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 				MaxBid:            c("kava", 1),
 				LotReturns: WeightedAddresses{
 					Addresses: []sdk.AccAddress{addr1},
-					Weights:   []sdk.Int{sdk.NewInt(1)},
+					Weights:   []sdkmath.Int{sdkmath.NewInt(1)},
 				},
 			},
 			true,
@@ -203,7 +204,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					MaxEndTime:      now,
 					HasReceivedBids: true,
 				},
-				CorrespondingDebt: sdk.Coin{Denom: "DENOM", Amount: sdk.NewInt(1)},
+				CorrespondingDebt: sdk.Coin{Denom: "DENOM", Amount: sdkmath.NewInt(1)},
 			},
 			false,
 		},
@@ -221,7 +222,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 					HasReceivedBids: true,
 				},
 				CorrespondingDebt: c("kava", 1),
-				MaxBid:            sdk.Coin{Denom: "DENOM", Amount: sdk.NewInt(1)},
+				MaxBid:            sdk.Coin{Denom: "DENOM", Amount: sdkmath.NewInt(1)},
 			},
 			false,
 		},
@@ -242,7 +243,7 @@ func TestCollateralAuctionValidate(t *testing.T) {
 				MaxBid:            c("kava", 1),
 				LotReturns: WeightedAddresses{
 					Addresses: []sdk.AccAddress{nil},
-					Weights:   []sdk.Int{sdk.NewInt(1)},
+					Weights:   []sdkmath.Int{sdkmath.NewInt(1)},
 				},
 			},
 			false,
@@ -326,9 +327,9 @@ func TestNewCollateralAuction(t *testing.T) {
 		sdk.AccAddress([]byte(testAccAddress2)),
 	}
 
-	weights := []sdk.Int{
-		sdk.NewInt(6),
-		sdk.NewInt(8),
+	weights := []sdkmath.Int{
+		sdkmath.NewInt(6),
+		sdkmath.NewInt(8),
 	}
 
 	weightedAddresses, _ := NewWeightedAddresses(addresses, weights)

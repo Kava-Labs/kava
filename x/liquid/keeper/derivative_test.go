@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -23,7 +24,7 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 	testCases := []struct {
 		name             string
 		balance          sdk.Coin
-		moduleDelegation sdk.Int
+		moduleDelegation sdkmath.Int
 		burnAmount       sdk.Coin
 		expectedErr      error
 	}{
@@ -116,19 +117,19 @@ func (suite *KeeperTestSuite) TestCalculateShares() {
 	valAddr := sdk.ValAddress(valAccAddr)
 
 	type returns struct {
-		derivatives sdk.Int
+		derivatives sdkmath.Int
 		shares      sdk.Dec
 		err         error
 	}
 	type validator struct {
-		tokens          sdk.Int
+		tokens          sdkmath.Int
 		delegatorShares sdk.Dec
 	}
 	testCases := []struct {
 		name       string
 		validator  *validator
 		delegation sdk.Dec
-		transfer   sdk.Int
+		transfer   sdkmath.Int
 		expected   returns
 	}{
 		{
@@ -249,7 +250,7 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 	testCases := []struct {
 		name                    string
 		amount                  sdk.Coin
-		expectedDerivatives     sdk.Int
+		expectedDerivatives     sdkmath.Int
 		expectedSharesRemaining sdk.Dec
 		expectedSharesAdded     sdk.Dec
 		expectedErr             error
@@ -413,7 +414,7 @@ func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 	testCases := []struct {
 		name           string
 		derivatives    sdk.Coins
-		wantKavaAmount sdk.Int
+		wantKavaAmount sdkmath.Int
 		err            error
 	}{
 		{
@@ -429,7 +430,7 @@ func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr3), vestedBalance),
 			),
 			// vestedBalance * 95%
-			wantKavaAmount: vestedBalance.Mul(sdk.NewInt(95)).Quo(sdk.NewInt(100)),
+			wantKavaAmount: vestedBalance.Mul(sdkmath.NewInt(95)).Quo(sdkmath.NewInt(100)),
 		},
 		{
 			name: "valid - sum",
@@ -438,7 +439,7 @@ func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 				sdk.NewCoin(suite.Keeper.GetLiquidStakingTokenDenom(valAddr1), vestedBalance),
 			),
 			// vestedBalance + (vestedBalance * 95%)
-			wantKavaAmount: vestedBalance.Mul(sdk.NewInt(95)).Quo(sdk.NewInt(100)).Add(vestedBalance),
+			wantKavaAmount: vestedBalance.Mul(sdkmath.NewInt(95)).Quo(sdkmath.NewInt(100)).Add(vestedBalance),
 		},
 		{
 			name: "invalid - undelegated validator address denom",

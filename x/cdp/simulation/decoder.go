@@ -48,7 +48,7 @@ package simulation
 // 		return fmt.Sprintf("%s\n%s", depositA, depositB)
 
 // 	case bytes.Equal(kvA.Key[:1], types.PrincipalKeyPrefix):
-// 		var totalA, totalB sdk.Int
+// 		var totalA, totalB sdkmath.Int
 // 		cdc.MustUnmarshalBinaryLengthPrefixed(kvA.Value, &totalA)
 // 		cdc.MustUnmarshalBinaryLengthPrefixed(kvB.Value, &totalB)
 // 		return fmt.Sprintf("%s\n%s", totalA, totalB)

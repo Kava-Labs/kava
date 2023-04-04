@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -119,7 +120,7 @@ func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, collateralType str
 
 // GetSliceOfCDPsByRatioAndType returns a slice of cdps of size equal to the input cutoffCount
 // sorted by target ratio in ascending order (ie, the lowest collateral:debt ratio cdps are returned first)
-func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdk.Int, targetRatio sdk.Dec, collateralType string) (cdps types.CDPs) {
+func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdkmath.Int, targetRatio sdk.Dec, collateralType string) (cdps types.CDPs) {
 	count := sdk.ZeroInt()
 	k.IterateCdpsByCollateralRatio(ctx, collateralType, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
@@ -194,7 +195,7 @@ func (k Keeper) DecrementTotalPrincipal(ctx sdk.Context, collateralType string, 
 }
 
 // GetTotalPrincipal returns the total amount of principal that has been drawn for a particular collateral
-func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string) (total sdk.Int) {
+func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string) (total sdkmath.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
 	bz := store.Get([]byte(collateralType + principalDenom))
 	if bz == nil {
@@ -208,7 +209,7 @@ func (k Keeper) GetTotalPrincipal(ctx sdk.Context, collateralType, principalDeno
 }
 
 // SetTotalPrincipal sets the total amount of principal that has been drawn for the input collateral
-func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdk.Int) {
+func (k Keeper) SetTotalPrincipal(ctx sdk.Context, collateralType, principalDenom string, total sdkmath.Int) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PrincipalKeyPrefix)
 	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {

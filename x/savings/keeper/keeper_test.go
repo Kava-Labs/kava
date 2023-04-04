@@ -8,6 +8,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -50,7 +51,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
-	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))))
+	dep := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))))
 
 	_, f := suite.keeper.GetDeposit(suite.ctx, sdk.AccAddress("test"))
 	suite.Require().False(f)
@@ -68,7 +69,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteDeposit() {
 
 func (suite *KeeperTestSuite) TestIterateDeposits() {
 	for i := 0; i < 5; i++ {
-		dep := types.NewDeposit(sdk.AccAddress("test"+fmt.Sprint(i)), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))))
+		dep := types.NewDeposit(sdk.AccAddress("test"+fmt.Sprint(i)), sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))))
 		suite.Require().NotPanics(func() { suite.keeper.SetDeposit(suite.ctx, dep) })
 	}
 	var deposits []types.Deposit
@@ -147,7 +148,7 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 		selfDelegation,
 		stakingtypes.Description{},
 		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	)
 	if err != nil {
 		return err
@@ -160,7 +161,7 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 
 // CreateNewUnbondedValidator creates a new validator in the staking module.
 // New validators are unbonded until the end blocker is run.
-func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegation sdk.Int) stakingtypes.Validator {
+func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegation sdkmath.Int) stakingtypes.Validator {
 	// Create a validator
 	err := suite.deliverMsgCreateValidator(suite.ctx, addr, sdk.NewCoin("ukava", selfDelegation))
 	suite.Require().NoError(err)
@@ -173,7 +174,7 @@ func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, se
 }
 
 // CreateDelegation delegates tokens to a validator.
-func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdk.Int) sdk.Dec {
+func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdk.Dec {
 	sk := suite.app.GetStakingKeeper()
 
 	stakingDenom := sk.BondDenom(suite.ctx)

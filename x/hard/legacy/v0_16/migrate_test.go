@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -63,7 +64,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						LoanToValue:  sdk.MustNewDecFromStr("0.2"),
 					},
 					SpotMarketID:     "spot-market-id",
-					ConversionFactor: sdk.NewInt(110),
+					ConversionFactor: sdkmath.NewInt(110),
 					InterestRateModel: v015hard.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0.1"),
 						BaseMultiplier: sdk.MustNewDecFromStr("0.2"),
@@ -86,7 +87,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 		Deposits: v015hard.Deposits{
 			{
 				Depositor: s.addresses[0],
-				Amount:    sdk.NewCoins(sdk.NewCoin("kava", sdk.NewInt(100))),
+				Amount:    sdk.NewCoins(sdk.NewCoin("kava", sdkmath.NewInt(100))),
 				Index: v015hard.SupplyInterestFactors{
 					{
 						Denom: "kava",
@@ -98,7 +99,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 		Borrows: v015hard.Borrows{
 			{
 				Borrower: s.addresses[1],
-				Amount:   sdk.NewCoins(sdk.NewCoin("kava", sdk.NewInt(100))),
+				Amount:   sdk.NewCoins(sdk.NewCoin("kava", sdkmath.NewInt(100))),
 				Index: v015hard.BorrowInterestFactors{
 					{
 						Denom: "kava",
@@ -107,9 +108,9 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 				},
 			},
 		},
-		TotalSupplied: sdk.NewCoins(sdk.NewCoin("kava", sdk.NewInt(100))),
-		TotalBorrowed: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-		TotalReserves: sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(300))),
+		TotalSupplied: sdk.NewCoins(sdk.NewCoin("kava", sdkmath.NewInt(100))),
+		TotalBorrowed: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+		TotalReserves: sdk.NewCoins(sdk.NewCoin("xrp", sdkmath.NewInt(300))),
 	}
 	expected := v016hard.GenesisState{
 		Params: v016hard.Params{
@@ -122,7 +123,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						LoanToValue:  sdk.MustNewDecFromStr("0.2"),
 					},
 					SpotMarketID:     "spot-market-id",
-					ConversionFactor: sdk.NewInt(110),
+					ConversionFactor: sdkmath.NewInt(110),
 					InterestRateModel: v016hard.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0.1"),
 						BaseMultiplier: sdk.MustNewDecFromStr("0.2"),
@@ -140,7 +141,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
 					},
 					SpotMarketID:     "atom:usd:30",
-					ConversionFactor: sdk.NewInt(1000000),
+					ConversionFactor: sdkmath.NewInt(1000000),
 					InterestRateModel: v016hard.InterestRateModel{
 						BaseRateAPY:    sdk.ZeroDec(),
 						BaseMultiplier: sdk.MustNewDecFromStr("0.05"),
@@ -163,7 +164,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 		Deposits: v016hard.Deposits{
 			{
 				Depositor: s.addresses[0],
-				Amount:    sdk.NewCoins(sdk.NewCoin("kava", sdk.NewInt(100))),
+				Amount:    sdk.NewCoins(sdk.NewCoin("kava", sdkmath.NewInt(100))),
 				Index: v016hard.SupplyInterestFactors{
 					{
 						Denom: "kava",
@@ -175,7 +176,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 		Borrows: v016hard.Borrows{
 			{
 				Borrower: s.addresses[1],
-				Amount:   sdk.NewCoins(sdk.NewCoin("kava", sdk.NewInt(100))),
+				Amount:   sdk.NewCoins(sdk.NewCoin("kava", sdkmath.NewInt(100))),
 				Index: v016hard.BorrowInterestFactors{
 					{
 						Denom: "kava",
@@ -184,9 +185,9 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 				},
 			},
 		},
-		TotalSupplied: sdk.NewCoins(sdk.NewCoin("kava", sdk.NewInt(100))),
-		TotalBorrowed: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-		TotalReserves: sdk.NewCoins(sdk.NewCoin("xrp", sdk.NewInt(300))),
+		TotalSupplied: sdk.NewCoins(sdk.NewCoin("kava", sdkmath.NewInt(100))),
+		TotalBorrowed: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+		TotalReserves: sdk.NewCoins(sdk.NewCoin("xrp", sdkmath.NewInt(300))),
 	}
 	genState := Migrate(v15genstate)
 	s.Require().Equal(expected, *genState)

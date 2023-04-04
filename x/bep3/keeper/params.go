@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/bep3/types"
@@ -64,28 +65,28 @@ func (k Keeper) GetDeputyAddress(ctx sdk.Context, denom string) (sdk.AccAddress,
 }
 
 // GetFixedFee returns the fixed fee for incoming swaps
-func (k Keeper) GetFixedFee(ctx sdk.Context, denom string) (sdk.Int, error) {
+func (k Keeper) GetFixedFee(ctx sdk.Context, denom string) (sdkmath.Int, error) {
 	asset, err := k.GetAsset(ctx, denom)
 	if err != nil {
-		return sdk.Int{}, err
+		return sdkmath.Int{}, err
 	}
 	return asset.FixedFee, nil
 }
 
 // GetMinSwapAmount returns the minimum swap amount
-func (k Keeper) GetMinSwapAmount(ctx sdk.Context, denom string) (sdk.Int, error) {
+func (k Keeper) GetMinSwapAmount(ctx sdk.Context, denom string) (sdkmath.Int, error) {
 	asset, err := k.GetAsset(ctx, denom)
 	if err != nil {
-		return sdk.Int{}, err
+		return sdkmath.Int{}, err
 	}
 	return asset.MinSwapAmount, nil
 }
 
 // GetMaxSwapAmount returns the maximum swap amount
-func (k Keeper) GetMaxSwapAmount(ctx sdk.Context, denom string) (sdk.Int, error) {
+func (k Keeper) GetMaxSwapAmount(ctx sdk.Context, denom string) (sdkmath.Int, error) {
 	asset, err := k.GetAsset(ctx, denom)
 	if err != nil {
-		return sdk.Int{}, err
+		return sdkmath.Int{}, err
 	}
 	return asset.MaxSwapAmount, nil
 }

@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/hard/types"
@@ -13,7 +14,7 @@ import (
 type LiqData struct {
 	price            sdk.Dec
 	ltv              sdk.Dec
-	conversionFactor sdk.Int
+	conversionFactor sdkmath.Int
 }
 
 // AttemptKeeperLiquidation enables a keeper to liquidate an individual borrower's position
@@ -155,7 +156,7 @@ func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows,
 
 	// Set up auction constants
 	returnAddrs := []sdk.AccAddress{borrower}
-	weights := []sdk.Int{sdk.NewInt(100)}
+	weights := []sdkmath.Int{sdkmath.NewInt(100)}
 	debt := sdk.NewCoin("debt", sdk.ZeroInt())
 
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)

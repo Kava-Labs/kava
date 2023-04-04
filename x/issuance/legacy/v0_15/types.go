@@ -3,6 +3,7 @@ package v0_15
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -38,7 +39,7 @@ type Asset struct {
 // RateLimit parameters for rate-limiting the supply of an issued asset
 type RateLimit struct {
 	Active     bool          `json:"active" yaml:"active"`
-	Limit      sdk.Int       `json:"limit" yaml:"limit"`
+	Limit      sdkmath.Int   `json:"limit" yaml:"limit"`
 	TimePeriod time.Duration `json:"time_period" yaml:"time_period"`
 }
 

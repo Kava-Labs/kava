@@ -6,6 +6,7 @@ import (
 
 	types "github.com/kava-labs/kava/x/swap/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +42,7 @@ func TestState_PoolID(t *testing.T) {
 
 func TestState_NewPoolRecord(t *testing.T) {
 	reserves := sdk.NewCoins(usdx(50e6), ukava(10e6))
-	totalShares := sdk.NewInt(30e6)
+	totalShares := sdkmath.NewInt(30e6)
 
 	poolRecord := types.NewPoolRecord(reserves, totalShares)
 
@@ -122,7 +123,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 		poolID      string
 		reservesA   sdk.Coin
 		reservesB   sdk.Coin
-		totalShares sdk.Int
+		totalShares sdkmath.Int
 		expectedErr string
 	}{
 		{
@@ -200,7 +201,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 		{
 			name:        "negative reserve a",
 			poolID:      "ukava:usdx",
-			reservesA:   sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
+			reservesA:   sdk.Coin{Denom: "ukava", Amount: sdkmath.NewInt(-1)},
 			reservesB:   validRecord.ReservesB,
 			totalShares: validRecord.TotalShares,
 			expectedErr: "pool 'ukava:usdx' has invalid reserves: -1ukava",
@@ -217,7 +218,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 			name:        "negative reserve b",
 			poolID:      "ukava:usdx",
 			reservesA:   validRecord.ReservesA,
-			reservesB:   sdk.Coin{Denom: "usdx", Amount: sdk.NewInt(-1)},
+			reservesB:   sdk.Coin{Denom: "usdx", Amount: sdkmath.NewInt(-1)},
 			totalShares: validRecord.TotalShares,
 			expectedErr: "pool 'ukava:usdx' has invalid reserves: -1usdx",
 		},
@@ -234,7 +235,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 			poolID:      validRecord.PoolID,
 			reservesA:   validRecord.ReservesA,
 			reservesB:   validRecord.ReservesB,
-			totalShares: sdk.NewInt(-1),
+			totalShares: sdkmath.NewInt(-1),
 			expectedErr: "pool 'ukava:usdx' has invalid total shares: -1",
 		},
 		{
@@ -332,7 +333,7 @@ func TestState_PoolRecords_ValidateUniquePools(t *testing.T) {
 func TestState_NewShareRecord(t *testing.T) {
 	depositor := sdk.AccAddress("some user")
 	poolID := types.PoolID("ukava", "usdx")
-	shares := sdk.NewInt(1e6)
+	shares := sdkmath.NewInt(1e6)
 
 	record := types.NewShareRecord(depositor, poolID, shares)
 
@@ -376,7 +377,7 @@ func TestState_InvalidShareRecordEmptyDepositor(t *testing.T) {
 	record := types.ShareRecord{
 		Depositor:   sdk.AccAddress{},
 		PoolID:      types.PoolID("ukava", "usdx"),
-		SharesOwned: sdk.NewInt(1e6),
+		SharesOwned: sdkmath.NewInt(1e6),
 	}
 	require.Error(t, record.Validate())
 }
@@ -385,7 +386,7 @@ func TestState_InvalidShareRecordNegativeShares(t *testing.T) {
 	record := types.ShareRecord{
 		Depositor:   sdk.AccAddress("some user ----------------"),
 		PoolID:      types.PoolID("ukava", "usdx"),
-		SharesOwned: sdk.NewInt(-1e6),
+		SharesOwned: sdkmath.NewInt(-1e6),
 	}
 	require.Error(t, record.Validate())
 }
@@ -402,7 +403,7 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 		name        string
 		depositor   sdk.AccAddress
 		poolID      string
-		sharesOwned sdk.Int
+		sharesOwned sdkmath.Int
 		expectedErr string
 	}{
 		{
@@ -458,7 +459,7 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 			name:        "negative total shares",
 			depositor:   validRecord.Depositor,
 			poolID:      validRecord.PoolID,
-			sharesOwned: sdk.NewInt(-1),
+			sharesOwned: sdkmath.NewInt(-1),
 			expectedErr: "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'ukava:usdx' has invalid total shares: -1",
 		},
 		{

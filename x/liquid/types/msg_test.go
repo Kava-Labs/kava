@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/kava-labs/kava/x/liquid/types"
 )
@@ -19,7 +20,7 @@ func TestMsgMintDerivative_Signing(t *testing.T) {
 	msg := types.NewMsgMintDerivative(
 		address,
 		validatorAddress,
-		sdk.NewCoin("ukava", sdk.NewInt(1e9)),
+		sdk.NewCoin("ukava", sdkmath.NewInt(1e9)),
 	)
 
 	// checking for the "type" field ensures the msg is registered on the amino codec
@@ -38,7 +39,7 @@ func TestMsgBurnDerivative_Signing(t *testing.T) {
 	msg := types.NewMsgBurnDerivative(
 		address,
 		validatorAddress,
-		sdk.NewCoin("bkava-kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42", sdk.NewInt(1e9)),
+		sdk.NewCoin("bkava-kavavaloper1ypjp0m04pyp73hwgtc0dgkx0e9rrydeckewa42", sdkmath.NewInt(1e9)),
 	)
 
 	// checking for the "type" field ensures the msg is registered on the amino codec

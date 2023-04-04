@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -213,7 +214,7 @@ func (suite *Suite) DeployERC20() types.InternalEVMAddress {
 	suite.App.FundModuleAccount(
 		suite.Ctx,
 		types.ModuleName,
-		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(0))),
+		sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(0))),
 	)
 
 	contractAddr, err := suite.Keeper.DeployTestMintableERC20Contract(suite.Ctx, "USDC", "USDC", uint8(18))
@@ -315,7 +316,7 @@ func (suite *Suite) SendTx(
 	suite.MintFeeCollector(sdk.NewCoins(
 		sdk.NewCoin(
 			"ukava",
-			sdk.NewInt(baseFee.Int64()*int64(gasRes.Gas*2)),
+			sdkmath.NewInt(baseFee.Int64()*int64(gasRes.Gas*2)),
 		)))
 
 	ercTransferTx := evmtypes.NewTx(

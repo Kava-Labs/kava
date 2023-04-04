@@ -25,7 +25,7 @@ func makeTestCodec() (cdc *codec.Codec) {
 func TestDecodeDistributionStore(t *testing.T) {
 	cdc := makeTestCodec()
 
-	deposit := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1))), types.SupplyInterestFactors{})
+	deposit := types.NewDeposit(sdk.AccAddress("test"), sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1))), types.SupplyInterestFactors{})
 
 	kvPairs := kv.Pairs{
 		kv.Pair{Key: []byte(types.DepositsKeyPrefix), Value: cdc.MustMarshalBinaryBare(deposit)},

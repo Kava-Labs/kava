@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -42,7 +43,7 @@ func (suite *GenesisTestSuite) TestInitExportGenesis() {
 		[]string{"btc", "ukava", "bnb"},
 	)
 
-	depositAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e8)))
+	depositAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e8)))
 
 	deposits := types.Deposits{
 		types.NewDeposit(

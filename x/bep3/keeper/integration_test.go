@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -43,16 +44,16 @@ func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 					Denom:  "bnb",
 					CoinID: 714,
 					SupplyLimit: types.SupplyLimit{
-						Limit:          sdk.NewInt(350000000000000),
+						Limit:          sdkmath.NewInt(350000000000000),
 						TimeLimited:    false,
 						TimeBasedLimit: sdk.ZeroInt(),
 						TimePeriod:     time.Hour,
 					},
 					Active:        true,
 					DeputyAddress: deputyAddress,
-					FixedFee:      sdk.NewInt(1000),
+					FixedFee:      sdkmath.NewInt(1000),
 					MinSwapAmount: sdk.OneInt(),
-					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MaxSwapAmount: sdkmath.NewInt(1000000000000),
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
@@ -60,16 +61,16 @@ func NewBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 					Denom:  "inc",
 					CoinID: 9999,
 					SupplyLimit: types.SupplyLimit{
-						Limit:          sdk.NewInt(100000000000000),
+						Limit:          sdkmath.NewInt(100000000000000),
 						TimeLimited:    true,
-						TimeBasedLimit: sdk.NewInt(50000000000),
+						TimeBasedLimit: sdkmath.NewInt(50000000000),
 						TimePeriod:     time.Hour,
 					},
 					Active:        false,
 					DeputyAddress: deputyAddress,
-					FixedFee:      sdk.NewInt(1000),
+					FixedFee:      sdkmath.NewInt(1000),
 					MinSwapAmount: sdk.OneInt(),
-					MaxSwapAmount: sdk.NewInt(100000000000),
+					MaxSwapAmount: sdkmath.NewInt(100000000000),
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},

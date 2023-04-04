@@ -1,9 +1,10 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/ethereum/go-ethereum/common"
 )
@@ -86,7 +87,7 @@ func NewMsgConvertERC20ToCoin(
 	initiator InternalEVMAddress,
 	receiver sdk.AccAddress,
 	contractAddr InternalEVMAddress,
-	amount sdk.Int,
+	amount sdkmath.Int,
 ) MsgConvertERC20ToCoin {
 	return MsgConvertERC20ToCoin{
 		Initiator:        initiator.String(),

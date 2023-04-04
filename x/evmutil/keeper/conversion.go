@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -17,7 +18,7 @@ func (k Keeper) MintConversionPairCoin(
 	amount *big.Int,
 	recipient sdk.AccAddress,
 ) (sdk.Coin, error) {
-	coin := sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount))
+	coin := sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(amount))
 	coins := sdk.NewCoins(coin)
 
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
@@ -92,7 +93,7 @@ func (k Keeper) ConvertERC20ToCoin(
 	initiator types.InternalEVMAddress,
 	receiver sdk.AccAddress,
 	contractAddr types.InternalEVMAddress,
-	amount sdk.Int,
+	amount sdkmath.Int,
 ) error {
 	// Check that the contract is enabled to convert to coin
 	pair, err := k.GetEnabledConversionPairFromERC20Address(ctx, contractAddr)

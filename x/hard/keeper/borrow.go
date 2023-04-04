@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -148,7 +149,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 
 		// Validate the requested borrow value for the asset against the money market's global borrow limit
 		if moneyMarket.BorrowLimit.HasMaxLimit {
-			var assetTotalBorrowedAmount sdk.Int
+			var assetTotalBorrowedAmount sdkmath.Int
 			totalBorrowedCoins, found := k.GetBorrowedCoins(ctx)
 			if !found {
 				assetTotalBorrowedAmount = sdk.ZeroInt()

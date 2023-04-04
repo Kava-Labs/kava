@@ -3,6 +3,7 @@ package keeper
 import (
 	"github.com/kava-labs/kava/x/swap/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -91,8 +92,8 @@ func PoolReservesInvariant(k Keeper) sdk.Invariant {
 }
 
 type poolShares struct {
-	totalShares      sdk.Int
-	totalSharesOwned sdk.Int
+	totalShares      sdkmath.Int
+	totalSharesOwned sdkmath.Int
 }
 
 // PoolSharesInvariant iterates all pools and shares and ensures the total pool shares match the sum of depositor shares

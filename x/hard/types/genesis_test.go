@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/hard/types"
@@ -59,7 +60,7 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			args: args{
 				params: types.NewParams(
 					types.MoneyMarkets{
-						types.NewMoneyMarket("usdx", types.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000"), sdk.MustNewDecFromStr("1")), "usdx:usd", sdk.NewInt(USDX_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+						types.NewMoneyMarket("usdx", types.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000"), sdk.MustNewDecFromStr("1")), "usdx:usd", sdkmath.NewInt(USDX_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 					},
 					sdk.MustNewDecFromStr("10"),
 				),

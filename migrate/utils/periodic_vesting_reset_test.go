@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -40,7 +41,7 @@ func TestResetPeriodVestingAccount_NoVestingPeriods(t *testing.T) {
 }
 
 func TestResetPeriodVestingAccount_SingleVestingPeriod_Vested(t *testing.T) {
-	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)))
+	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
 	periods := vestingtypes.Periods{
@@ -63,7 +64,7 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_Vested(t *testing.T) {
 }
 
 func TestResetPeriodVestingAccount_SingleVestingPeriod_Vesting(t *testing.T) {
-	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)))
+	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
 	periods := vestingtypes.Periods{
@@ -96,7 +97,7 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_Vesting(t *testing.T) {
 }
 
 func TestResetPeriodVestingAccount_SingleVestingPeriod_ExactStartTime(t *testing.T) {
-	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)))
+	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
 	periods := vestingtypes.Periods{
@@ -124,25 +125,25 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_ExactStartTime(t *testing
 }
 
 func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
-	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(4e6)))
+	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(4e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
 	periods := vestingtypes.Periods{
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // -15 days - vested
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // 0 days - exact on the start time
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // +15 days - vesting
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // +30 days - vesting
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 	}
 
@@ -158,36 +159,36 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 	expectedPeriods := []vestingtypes.Period{
 		{
 			Length: 15 * 24 * 60 * 60, // 15 days
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		{
 			Length: 15 * 24 * 60 * 60, // 15 days
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 	}
 
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.OriginalVesting, "expected original vesting to be updated")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(2e6))), vacc.OriginalVesting, "expected original vesting to be updated")
 	assert.Equal(t, newVestingStartTime.Unix(), vacc.StartTime, "expected vesting start time to be updated")
 	assert.Equal(t, expectedEndtime, vacc.EndTime, "expected vesting end time end at last period")
 	assert.Equal(t, expectedPeriods, vacc.VestingPeriods, "expected vesting periods to be updated")
 }
 
 func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testing.T) {
-	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(3e6)))
+	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(3e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
 	periods := vestingtypes.Periods{
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // -15 days - vested
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // 0 days - exact on the start time
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // +15 days - vesting
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 	}
 
@@ -197,35 +198,35 @@ func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testin
 	newVestingStartTime := vestingStartTime.Add(30 * 24 * time.Hour)
 	ResetPeriodicVestingAccount(vacc, newVestingStartTime)
 
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6))), vacc.DelegatedFree, "expected delegated free to be updated")
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedVesting, "expected delegated vesting to be updated")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(2e6))), vacc.DelegatedFree, "expected delegated free to be updated")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))), vacc.DelegatedVesting, "expected delegated vesting to be updated")
 }
 
 func TestResetPeriodVestingAccount_DelegatedVesting_LessThanVested(t *testing.T) {
-	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(3e6)))
+	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(3e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
 	periods := vestingtypes.Periods{
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // -15 days - vested
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // 0 days - exact on the start time
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 		vestingtypes.Period{
 			Length: 15 * 24 * 60 * 60, // +15 days - vesting
-			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))),
+			Amount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))),
 		},
 	}
 
 	vacc := createVestingAccount(balance, vestingStartTime, periods)
-	vacc.TrackDelegation(vestingStartTime, balance, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))))
+	vacc.TrackDelegation(vestingStartTime, balance, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))))
 
 	newVestingStartTime := vestingStartTime.Add(30 * 24 * time.Hour)
 	ResetPeriodicVestingAccount(vacc, newVestingStartTime)
 
 	assert.Equal(t, sdk.Coins(nil), vacc.DelegatedFree, "expected delegrated free to be unmodified")
-	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6))), vacc.DelegatedVesting, "expected delegated vesting to be unmodified")
+	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))), vacc.DelegatedVesting, "expected delegated vesting to be unmodified")
 }

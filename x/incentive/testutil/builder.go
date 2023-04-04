@@ -3,6 +3,7 @@ package testutil
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -270,7 +271,7 @@ func NewStandardMoneyMarket(denom string) hardtypes.MoneyMarket {
 			sdk.MustNewDecFromStr("0.6"),
 		),
 		denom+":usd",
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 		hardtypes.NewInterestRateModel(
 			sdk.MustNewDecFromStr("0.05"),
 			sdk.MustNewDecFromStr("2"),

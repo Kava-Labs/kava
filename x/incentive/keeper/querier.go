@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -485,7 +486,7 @@ func GetAPYFromMultiRewardPeriod(
 	k Keeper,
 	collateralType string,
 	rewardPeriod types.MultiRewardPeriod,
-	totalSupply sdk.Int,
+	totalSupply sdkmath.Int,
 ) (sdk.Dec, error) {
 	if totalSupply.IsZero() {
 		return sdk.ZeroDec(), nil

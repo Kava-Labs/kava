@@ -3,6 +3,7 @@ package testutil
 import (
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -40,8 +41,8 @@ func (suite *Suite) SetupTest(numAddrs int) {
 
 	// Fund liquidator module account
 	coins := sdk.NewCoins(
-		sdk.NewCoin("token1", sdk.NewInt(100)),
-		sdk.NewCoin("token2", sdk.NewInt(100)),
+		sdk.NewCoin("token1", sdkmath.NewInt(100)),
+		sdk.NewCoin("token2", sdkmath.NewInt(100)),
 	)
 
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/earn/testutil"
@@ -55,7 +56,7 @@ func (suite *vaultTestSuite) TestGetVaultTotalValue() {
 
 	totalValue, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
 	suite.Require().NoError(err)
-	suite.Equal(sdk.NewInt(0), totalValue.Amount)
+	suite.Equal(sdkmath.NewInt(0), totalValue.Amount)
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalValue_NotFound() {

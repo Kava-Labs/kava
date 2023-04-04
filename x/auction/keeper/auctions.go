@@ -6,6 +6,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -86,7 +87,7 @@ func (k Keeper) StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, in
 // StartCollateralAuction starts a new collateral (2-phase) auction.
 func (k Keeper) StartCollateralAuction(
 	ctx sdk.Context, seller string, lot, maxBid sdk.Coin,
-	lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdk.Int, debt sdk.Coin,
+	lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdkmath.Int, debt sdk.Coin,
 ) (uint64, error) {
 	weightedAddresses, err := types.NewWeightedAddresses(lotReturnAddrs, lotReturnWeights)
 	if err != nil {
@@ -178,7 +179,7 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, auction *types.SurplusAuction, 
 	}
 	minNewBidAmt := auction.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
-			sdk.NewInt(1),
+			sdkmath.NewInt(1),
 			sdk.NewDecFromInt(auction.Bid.Amount).Mul(k.GetParams(ctx).IncrementSurplus).RoundInt(),
 		),
 	)
@@ -243,7 +244,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction *types.Collat
 	}
 	minNewBidAmt := auction.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
 		sdk.MaxInt(
-			sdk.NewInt(1),
+			sdkmath.NewInt(1),
 			sdk.NewDecFromInt(auction.Bid.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
 		),
 	)
@@ -325,7 +326,7 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction *types.Collat
 	}
 	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
-			sdk.NewInt(1),
+			sdkmath.NewInt(1),
 			sdk.NewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
 		),
 	)
@@ -396,7 +397,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction *types.DebtAuction, bidder
 	}
 	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
 		sdk.MaxInt(
-			sdk.NewInt(1),
+			sdkmath.NewInt(1),
 			sdk.NewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementDebt).RoundInt(),
 		),
 	)
@@ -572,7 +573,7 @@ func earliestTime(t1, t2 time.Time) time.Time {
 }
 
 // splitCoinIntoWeightedBuckets divides up some amount of coins according to some weights.
-func splitCoinIntoWeightedBuckets(coin sdk.Coin, buckets []sdk.Int) ([]sdk.Coin, error) {
+func splitCoinIntoWeightedBuckets(coin sdk.Coin, buckets []sdkmath.Int) ([]sdk.Coin, error) {
 	amounts := splitIntIntoWeightedBuckets(coin.Amount, buckets)
 	result := make([]sdk.Coin, len(amounts))
 	for i, a := range amounts {

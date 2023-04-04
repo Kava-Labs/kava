@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -171,7 +172,7 @@ func (suite *grpcQueryTestSuite) TestQueryTotalSupply() {
 	testCases := []struct {
 		name          string
 		setup         func()
-		expectedTotal sdk.Int
+		expectedTotal sdkmath.Int
 		expectedErr   error
 	}{
 		{

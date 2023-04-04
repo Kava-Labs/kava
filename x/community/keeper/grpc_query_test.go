@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -46,8 +47,8 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryBalance() {
 			name: "handles response with balance",
 			setup: func() {
 				expCoins = sdk.NewCoins(
-					sdk.NewCoin("ukava", sdk.NewInt(100)),
-					sdk.NewCoin("usdx", sdk.NewInt(1000)),
+					sdk.NewCoin("ukava", sdkmath.NewInt(100)),
+					sdk.NewCoin("usdx", sdkmath.NewInt(1000)),
 				)
 				suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, expCoins)
 			},

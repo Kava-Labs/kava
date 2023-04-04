@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -77,33 +78,33 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
 					StabilityFee:                     sdk.MustNewDecFromStr("1.012"),
 					LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
-					AuctionSize:                      sdk.NewInt(70),
+					AuctionSize:                      sdkmath.NewInt(70),
 					SpotMarketID:                     "xrp:usd",
 					LiquidationMarketID:              "xrp:usd",
 					KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
-					CheckCollateralizationIndexCount: sdk.NewInt(10),
-					ConversionFactor:                 sdk.NewInt(6),
+					CheckCollateralizationIndexCount: sdkmath.NewInt(10),
+					ConversionFactor:                 sdkmath.NewInt(6),
 				},
 			},
 			DebtParam: v015cdp.DebtParam{
 				Denom:            "usdx",
 				ReferenceAsset:   "usd",
-				ConversionFactor: sdk.NewInt(6),
-				DebtFloor:        sdk.NewInt(100),
+				ConversionFactor: sdkmath.NewInt(6),
+				DebtFloor:        sdkmath.NewInt(100),
 			},
 			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
-			SurplusAuctionThreshold: sdk.NewInt(6),
-			SurplusAuctionLot:       sdk.NewInt(7),
-			DebtAuctionThreshold:    sdk.NewInt(8),
-			DebtAuctionLot:          sdk.NewInt(9),
+			SurplusAuctionThreshold: sdkmath.NewInt(6),
+			SurplusAuctionLot:       sdkmath.NewInt(7),
+			DebtAuctionThreshold:    sdkmath.NewInt(8),
+			DebtAuctionLot:          sdkmath.NewInt(9),
 		},
 		CDPs: v015cdp.CDPs{
 			{
 				ID:              2,
 				Owner:           s.addresses[0],
 				Type:            "xrp-a",
-				Collateral:      sdk.NewCoin("xrp", sdk.NewInt(2123)),
-				Principal:       sdk.NewCoin("usdx", sdk.NewInt(100)),
+				Collateral:      sdk.NewCoin("xrp", sdkmath.NewInt(2123)),
+				Principal:       sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 				AccumulatedFees: sdk.NewCoin("usdx", sdk.ZeroInt()),
 				FeesUpdated:     time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 				InterestFactor:  sdk.NewDec(1),
@@ -113,12 +114,12 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				CdpID:     1,
 				Depositor: s.addresses[0],
-				Amount:    sdk.NewCoin("usdx", sdk.NewInt(100)),
+				Amount:    sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 			},
 			{
 				CdpID:     2,
 				Depositor: s.addresses[1],
-				Amount:    sdk.NewCoin("ukava", sdk.NewInt(1200)),
+				Amount:    sdk.NewCoin("ukava", sdkmath.NewInt(1200)),
 			},
 		},
 		PreviousAccumulationTimes: v015cdp.GenesisAccumulationTimes{
@@ -131,7 +132,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 		TotalPrincipals: v015cdp.GenesisTotalPrincipals{
 			{
 				CollateralType: "usdx",
-				TotalPrincipal: sdk.NewInt(1200),
+				TotalPrincipal: sdkmath.NewInt(1200),
 			},
 		},
 	}
@@ -148,33 +149,33 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
 					StabilityFee:                     sdk.MustNewDecFromStr("1.012"),
 					LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
-					AuctionSize:                      sdk.NewInt(70),
+					AuctionSize:                      sdkmath.NewInt(70),
 					SpotMarketID:                     "xrp:usd",
 					LiquidationMarketID:              "xrp:usd",
 					KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
-					CheckCollateralizationIndexCount: sdk.NewInt(10),
-					ConversionFactor:                 sdk.NewInt(6),
+					CheckCollateralizationIndexCount: sdkmath.NewInt(10),
+					ConversionFactor:                 sdkmath.NewInt(6),
 				},
 			},
 			DebtParam: v016cdp.DebtParam{
 				Denom:            "usdx",
 				ReferenceAsset:   "usd",
-				ConversionFactor: sdk.NewInt(6),
-				DebtFloor:        sdk.NewInt(100),
+				ConversionFactor: sdkmath.NewInt(6),
+				DebtFloor:        sdkmath.NewInt(100),
 			},
 			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
-			SurplusAuctionThreshold: sdk.NewInt(6),
-			SurplusAuctionLot:       sdk.NewInt(7),
-			DebtAuctionThreshold:    sdk.NewInt(8),
-			DebtAuctionLot:          sdk.NewInt(9),
+			SurplusAuctionThreshold: sdkmath.NewInt(6),
+			SurplusAuctionLot:       sdkmath.NewInt(7),
+			DebtAuctionThreshold:    sdkmath.NewInt(8),
+			DebtAuctionLot:          sdkmath.NewInt(9),
 		},
 		CDPs: v016cdp.CDPs{
 			{
 				ID:              2,
 				Owner:           s.addresses[0],
 				Type:            "xrp-a",
-				Collateral:      sdk.NewCoin("xrp", sdk.NewInt(2123)),
-				Principal:       sdk.NewCoin("usdx", sdk.NewInt(100)),
+				Collateral:      sdk.NewCoin("xrp", sdkmath.NewInt(2123)),
+				Principal:       sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 				AccumulatedFees: sdk.NewCoin("usdx", sdk.ZeroInt()),
 				FeesUpdated:     time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 				InterestFactor:  sdk.NewDec(1),
@@ -184,12 +185,12 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				CdpID:     1,
 				Depositor: s.addresses[0],
-				Amount:    sdk.NewCoin("usdx", sdk.NewInt(100)),
+				Amount:    sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 			},
 			{
 				CdpID:     2,
 				Depositor: s.addresses[1],
-				Amount:    sdk.NewCoin("ukava", sdk.NewInt(1200)),
+				Amount:    sdk.NewCoin("ukava", sdkmath.NewInt(1200)),
 			},
 		},
 		PreviousAccumulationTimes: v016cdp.GenesisAccumulationTimes{
@@ -202,7 +203,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 		TotalPrincipals: v016cdp.GenesisTotalPrincipals{
 			{
 				CollateralType: "usdx",
-				TotalPrincipal: sdk.NewInt(1200),
+				TotalPrincipal: sdkmath.NewInt(1200),
 			},
 		},
 	}

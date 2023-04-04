@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -33,13 +34,13 @@ type StakingKeeper interface {
 	GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (delegations []stakingtypes.Delegation)
 	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (delegations []stakingtypes.Delegation)
 	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
-	TotalBondedTokens(ctx sdk.Context) sdk.Int
+	TotalBondedTokens(ctx sdk.Context) sdkmath.Int
 }
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
 type CdpKeeper interface {
 	GetInterestFactor(ctx sdk.Context, collateralType string) (sdk.Dec, bool)
-	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdk.Int)
+	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdkmath.Int)
 	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
 	GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
 }
@@ -57,8 +58,8 @@ type HardKeeper interface {
 
 // SwapKeeper defines the required methods needed by this modules keeper
 type SwapKeeper interface {
-	GetPoolShares(ctx sdk.Context, poolID string) (shares sdk.Int, found bool)
-	GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (shares sdk.Int, found bool)
+	GetPoolShares(ctx sdk.Context, poolID string) (shares sdkmath.Int, found bool)
+	GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (shares sdkmath.Int, found bool)
 }
 
 // SavingsKeeper defines the required methods needed by this module's keeper

@@ -3,6 +3,7 @@ package testutil
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -36,7 +37,7 @@ func (b lendGenesisBuilder) WithMarket(denom, spotMarketId string, price sdk.Dec
 			denom,
 			hardtypes.NewBorrowLimit(false, sdk.NewDec(1e15), sdk.MustNewDecFromStr("0.6")),
 			spotMarketId,
-			sdk.NewInt(1e6),
+			sdkmath.NewInt(1e6),
 			hardtypes.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")),
 			sdk.MustNewDecFromStr("0.05"),
 			sdk.ZeroDec(),

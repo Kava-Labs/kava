@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/savings/types"
@@ -58,7 +59,7 @@ func (k Keeper) ValidateDeposit(ctx sdk.Context, coins sdk.Coins) error {
 }
 
 // GetTotalDeposited returns the total amount deposited for the deposit denom
-func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdk.Int) {
+func (k Keeper) GetTotalDeposited(ctx sdk.Context, depositDenom string) (total sdkmath.Int) {
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), depositDenom).Amount
 }

@@ -121,7 +121,7 @@ package simulation
 // 			if !found {
 // 				return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("issuance - no asset supply for %s", asset.Denom)
 // 			}
-// 			if asset.RateLimit.Limit.LT(supply.CurrentSupply.Amount.Add(sdk.NewInt(int64(randomAmount)))) {
+// 			if asset.RateLimit.Limit.LT(supply.CurrentSupply.Amount.Add(sdkmath.NewInt(int64(randomAmount)))) {
 // 				maxAmount := asset.RateLimit.Limit.Sub(supply.CurrentSupply.Amount)
 // 				if maxAmount.IsPositive() && maxAmount.GT(sdk.OneInt()) {
 // 					randomAmount = simulation.RandIntBetween(r, 1, int(maxAmount.Int64()))
@@ -133,7 +133,7 @@ package simulation
 // 			}
 
 // 		}
-// 		msg := types.NewMsgIssueTokens(asset.Owner, sdk.NewCoin(asset.Denom, sdk.NewInt(int64(randomAmount))), recipient.GetAddress())
+// 		msg := types.NewMsgIssueTokens(asset.Owner, sdk.NewCoin(asset.Denom, sdkmath.NewInt(int64(randomAmount))), recipient.GetAddress())
 // 		spendableCoins := ownerAcc.SpendableCoins(ctx.BlockTime())
 // 		fees, err := simulation.RandomFees(r, ctx, spendableCoins)
 // 		if err != nil {
@@ -185,11 +185,11 @@ package simulation
 // 		if spendableCoinAmount.IsZero() {
 // 			return simulation.NoOpMsg(types.ModuleName), nil, nil
 // 		}
-// 		var redeemAmount sdk.Int
+// 		var redeemAmount sdkmath.Int
 // 		if spendableCoinAmount.Equal(sdk.OneInt()) {
 // 			redeemAmount = sdk.OneInt()
 // 		} else {
-// 			redeemAmount = sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoinAmount.Int64()))))
+// 			redeemAmount = sdkmath.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoinAmount.Int64()))))
 // 		}
 
 // 		msg := types.NewMsgRedeemTokens(asset.Owner, sdk.NewCoin(asset.Denom, redeemAmount))

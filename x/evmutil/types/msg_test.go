@@ -7,6 +7,7 @@ import (
 	"github.com/kava-labs/kava/x/evmutil/types"
 	"github.com/stretchr/testify/require"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -29,7 +30,7 @@ func TestMsgConvertCoinToERC20(t *testing.T) {
 			"valid",
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-			sdk.NewCoin("erc20/weth", sdk.NewInt(1234)),
+			sdk.NewCoin("erc20/weth", sdkmath.NewInt(1234)),
 			errArgs{
 				expectPass: true,
 			},
@@ -38,7 +39,7 @@ func TestMsgConvertCoinToERC20(t *testing.T) {
 			"invalid - odd length hex address",
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc",
-			sdk.NewCoin("erc20/weth", sdk.NewInt(1234)),
+			sdk.NewCoin("erc20/weth", sdkmath.NewInt(1234)),
 			errArgs{
 				expectPass: false,
 				contains:   "Receiver is not a valid hex address: invalid address",
@@ -48,7 +49,7 @@ func TestMsgConvertCoinToERC20(t *testing.T) {
 			"invalid - zero amount",
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-			sdk.NewCoin("erc20/weth", sdk.NewInt(0)),
+			sdk.NewCoin("erc20/weth", sdkmath.NewInt(0)),
 			errArgs{
 				expectPass: false,
 				contains:   "amount cannot be zero",
@@ -59,7 +60,7 @@ func TestMsgConvertCoinToERC20(t *testing.T) {
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 			// Create manually so there is no validation
-			sdk.Coin{Denom: "erc20/weth", Amount: sdk.NewInt(-1234)},
+			sdk.Coin{Denom: "erc20/weth", Amount: sdkmath.NewInt(-1234)},
 			errArgs{
 				expectPass: false,
 				contains:   "negative coin amount",
@@ -69,7 +70,7 @@ func TestMsgConvertCoinToERC20(t *testing.T) {
 			"invalid - empty denom",
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-			sdk.Coin{Denom: "", Amount: sdk.NewInt(-1234)},
+			sdk.Coin{Denom: "", Amount: sdkmath.NewInt(-1234)},
 			errArgs{
 				expectPass: false,
 				contains:   "invalid denom",
@@ -79,7 +80,7 @@ func TestMsgConvertCoinToERC20(t *testing.T) {
 			"invalid - invalid denom",
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-			sdk.Coin{Denom: "h", Amount: sdk.NewInt(-1234)},
+			sdk.Coin{Denom: "h", Amount: sdkmath.NewInt(-1234)},
 			errArgs{
 				expectPass: false,
 				contains:   "invalid denom",
@@ -119,7 +120,7 @@ func TestMsgConvertERC20ToCoin(t *testing.T) {
 		receiver     string
 		initiator    string
 		contractAddr string
-		amount       sdk.Int
+		amount       sdkmath.Int
 		errArgs      errArgs
 	}{
 		{
@@ -127,7 +128,7 @@ func TestMsgConvertERC20ToCoin(t *testing.T) {
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 			"0x404F9466d758eA33eA84CeBE9E444b06533b369e",
-			sdk.NewInt(1234),
+			sdkmath.NewInt(1234),
 			errArgs{
 				expectPass: true,
 			},
@@ -137,7 +138,7 @@ func TestMsgConvertERC20ToCoin(t *testing.T) {
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc",
 			"0x404F9466d758eA33eA84CeBE9E444b06533b369e",
-			sdk.NewInt(1234),
+			sdkmath.NewInt(1234),
 			errArgs{
 				expectPass: false,
 				contains:   "initiator is not a valid hex address",
@@ -148,7 +149,7 @@ func TestMsgConvertERC20ToCoin(t *testing.T) {
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 			"0x404F9466d758eA33eA84CeBE9E444b06533b369e",
-			sdk.NewInt(0),
+			sdkmath.NewInt(0),
 			errArgs{
 				expectPass: false,
 				contains:   "amount cannot be zero",
@@ -159,7 +160,7 @@ func TestMsgConvertERC20ToCoin(t *testing.T) {
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 			"0x404F9466d758eA33eA84CeBE9E444b06533b369e",
-			sdk.NewInt(-1234),
+			sdkmath.NewInt(-1234),
 			errArgs{
 				expectPass: false,
 				contains:   "amount cannot be zero or less",
@@ -170,7 +171,7 @@ func TestMsgConvertERC20ToCoin(t *testing.T) {
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 			"0x404F9466d758eA33eA84CeBE9E444b06533b369",
-			sdk.NewInt(1234),
+			sdkmath.NewInt(1234),
 			errArgs{
 				expectPass: false,
 				contains:   "erc20 contract address is not a valid hex address",

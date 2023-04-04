@@ -57,7 +57,7 @@ func (k Keeper) mintIncentivePeriods(ctx sdk.Context, periods types.Periods, pre
 		// Case 2 - period has ended since the previous block time
 		case period.End.After(previousBlockTime) && (period.End.Before(ctx.BlockTime()) || period.End.Equal(ctx.BlockTime())):
 			// calculate time elapsed relative to the periods end time
-			timeElapsed := sdk.NewInt(period.End.Unix() - previousBlockTime.Unix())
+			timeElapsed := sdkmath.NewInt(period.End.Unix() - previousBlockTime.Unix())
 			_, err = k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
 			// update the value of previousBlockTime so that the next period starts from the end of the last
 			// period and not the original value of previousBlockTime
@@ -66,7 +66,7 @@ func (k Keeper) mintIncentivePeriods(ctx sdk.Context, periods types.Periods, pre
 		// Case 3 - period is ongoing
 		case (period.Start.Before(previousBlockTime) || period.Start.Equal(previousBlockTime)) && period.End.After(ctx.BlockTime()):
 			// calculate time elapsed relative to the current block time
-			timeElapsed := sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+			timeElapsed := sdkmath.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 			_, err = k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
 
 		// Case 4 - period hasn't started
@@ -81,10 +81,10 @@ func (k Keeper) mintIncentivePeriods(ctx sdk.Context, periods types.Periods, pre
 	return nil
 }
 
-func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, timePeriods sdk.Int, denom string) (sdk.Coin, error) {
+func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, timePeriods sdkmath.Int, denom string) (sdk.Coin, error) {
 	totalSupply := k.bankKeeper.GetSupply(ctx, denom)
 	// used to scale accumulator calculations by 10^18
-	scalar := sdk.NewInt(1000000000000000000)
+	scalar := sdkmath.NewInt(1000000000000000000)
 	// convert inflation rate to integer
 	inflationInt := sdkmath.NewUintFromBigInt(inflationRate.Mul(sdk.NewDecFromInt(scalar)).TruncateInt().BigInt())
 	timePeriodsUint := sdkmath.NewUintFromBigInt(timePeriods.BigInt())

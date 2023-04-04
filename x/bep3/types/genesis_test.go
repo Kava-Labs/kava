@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -82,7 +83,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 		{
 			"invalid swap",
 			args{
-				swaps:             types.AtomicSwaps{{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}}}},
+				swaps:             types.AtomicSwaps{{Amount: sdk.Coins{sdk.Coin{Denom: "Invalid Denom", Amount: sdkmath.NewInt(-1)}}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,

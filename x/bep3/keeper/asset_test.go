@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -39,9 +40,9 @@ func (suite *AssetTestSuite) SetupTest() {
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)
-	params.AssetParams[0].SupplyLimit.Limit = sdk.NewInt(50)
-	params.AssetParams[1].SupplyLimit.Limit = sdk.NewInt(100)
-	params.AssetParams[1].SupplyLimit.TimeBasedLimit = sdk.NewInt(15)
+	params.AssetParams[0].SupplyLimit.Limit = sdkmath.NewInt(50)
+	params.AssetParams[1].SupplyLimit.Limit = sdkmath.NewInt(100)
+	params.AssetParams[1].SupplyLimit.TimeBasedLimit = sdkmath.NewInt(15)
 	keeper.SetParams(ctx, params)
 	// Set asset supply with standard value for testing
 	supply := types.NewAssetSupply(c("bnb", 5), c("bnb", 5), c("bnb", 40), c("bnb", 0), time.Duration(0))
@@ -632,16 +633,16 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						Denom:  "bnb",
 						CoinID: 714,
 						SupplyLimit: types.SupplyLimit{
-							Limit:          sdk.NewInt(350000000000000),
+							Limit:          sdkmath.NewInt(350000000000000),
 							TimeLimited:    false,
 							TimeBasedLimit: sdk.ZeroInt(),
 							TimePeriod:     time.Hour,
 						},
 						Active:        true,
 						DeputyAddress: deputy,
-						FixedFee:      sdk.NewInt(1000),
+						FixedFee:      sdkmath.NewInt(1000),
 						MinSwapAmount: sdk.OneInt(),
-						MaxSwapAmount: sdk.NewInt(1000000000000),
+						MaxSwapAmount: sdkmath.NewInt(1000000000000),
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
 					},
@@ -649,16 +650,16 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						Denom:  "inc",
 						CoinID: 9999,
 						SupplyLimit: types.SupplyLimit{
-							Limit:          sdk.NewInt(100),
+							Limit:          sdkmath.NewInt(100),
 							TimeLimited:    true,
-							TimeBasedLimit: sdk.NewInt(10),
+							TimeBasedLimit: sdkmath.NewInt(10),
 							TimePeriod:     time.Hour,
 						},
 						Active:        false,
 						DeputyAddress: deputy,
-						FixedFee:      sdk.NewInt(1000),
+						FixedFee:      sdkmath.NewInt(1000),
 						MinSwapAmount: sdk.OneInt(),
-						MaxSwapAmount: sdk.NewInt(1000000000000),
+						MaxSwapAmount: sdkmath.NewInt(1000000000000),
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
 					},
@@ -666,16 +667,16 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						Denom:  "lol",
 						CoinID: 9999,
 						SupplyLimit: types.SupplyLimit{
-							Limit:          sdk.NewInt(100),
+							Limit:          sdkmath.NewInt(100),
 							TimeLimited:    true,
-							TimeBasedLimit: sdk.NewInt(10),
+							TimeBasedLimit: sdkmath.NewInt(10),
 							TimePeriod:     time.Hour,
 						},
 						Active:        false,
 						DeputyAddress: deputy,
-						FixedFee:      sdk.NewInt(1000),
+						FixedFee:      sdkmath.NewInt(1000),
 						MinSwapAmount: sdk.OneInt(),
-						MaxSwapAmount: sdk.NewInt(1000000000000),
+						MaxSwapAmount: sdkmath.NewInt(1000000000000),
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
 					},

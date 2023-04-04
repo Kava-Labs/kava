@@ -1,16 +1,17 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-//nolint
-func i(in int64) sdk.Int { return sdk.NewInt(in) }
+// nolint
+func i(in int64) sdkmath.Int { return sdkmath.NewInt(in) }
 
-//nolint
+// nolint
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 
-//nolint
+// nolint
 func cs(coins ...sdk.Coin) sdk.Coins { return sdk.NewCoins(coins...) }
 
 // func NewAuthGenStateFromAccs(accounts ...authexported.GenesisAccount) app.GenesisState {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
@@ -214,10 +215,10 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, sou
 //
 // Returns an error if oldIndex > newIndex. This should never happen, as it would mean that a global reward index has decreased in value,
 // or that a global reward index has been deleted from state.
-func (k Keeper) CalculateSingleReward(oldIndex, newIndex, sourceShares sdk.Dec) (sdk.Int, error) {
+func (k Keeper) CalculateSingleReward(oldIndex, newIndex, sourceShares sdk.Dec) (sdkmath.Int, error) {
 	increase := newIndex.Sub(oldIndex)
 	if increase.IsNegative() {
-		return sdk.Int{}, errorsmod.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
+		return sdkmath.Int{}, errorsmod.Wrapf(types.ErrDecreasingRewardFactor, "old: %v, new: %v", oldIndex, newIndex)
 	}
 	reward := increase.Mul(sourceShares).RoundInt()
 	return reward, nil

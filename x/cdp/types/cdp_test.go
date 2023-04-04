@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/tendermint/tendermint/crypto/secp256k1"
@@ -57,7 +58,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 		},
 		{
 			name: "invalid collateral",
-			cdp:  types.CDP{1, suite.addrs[0], "bnb-a", sdk.Coin{"", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
+			cdp:  types.CDP{1, suite.addrs[0], "bnb-a", sdk.Coin{"", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
 				msg:        "collateral 100: invalid coins",
@@ -65,7 +66,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 		},
 		{
 			name: "invalid principal",
-			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
+			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdkmath.NewInt(100)}, sdk.Coin{"", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
 				msg:        "principal 100: invalid coins",
@@ -73,7 +74,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 		},
 		{
 			name: "invalid fees",
-			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
+			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(100)}, sdk.Coin{"", sdkmath.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
 				msg:        "accumulated fees 0: invalid coins",
@@ -81,7 +82,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 		},
 		{
 			name: "invalid fees updated",
-			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, time.Time{}, sdk.OneDec()},
+			cdp:  types.CDP{1, suite.addrs[0], "xrp-a", sdk.Coin{"xrp", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(0)}, time.Time{}, sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
 				msg:        "cdp updated fee time cannot be zero",
@@ -89,7 +90,7 @@ func (suite *CdpValidationSuite) TestCdpValidation() {
 		},
 		{
 			name: "invalid type",
-			cdp:  types.CDP{1, suite.addrs[0], "", sdk.Coin{"xrp", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(100)}, sdk.Coin{"usdx", sdk.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
+			cdp:  types.CDP{1, suite.addrs[0], "", sdk.Coin{"xrp", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(100)}, sdk.Coin{"usdx", sdkmath.NewInt(0)}, tmtime.Now(), sdk.OneDec()},
 			errArgs: errArgs{
 				expectPass: false,
 				msg:        "cdp type cannot be empty",
@@ -146,7 +147,7 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 		},
 		{
 			name:    "invalid deposit coins",
-			deposit: types.NewDeposit(1, suite.addrs[0], sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(1000000)}),
+			deposit: types.NewDeposit(1, suite.addrs[0], sdk.Coin{Denom: "Invalid Denom", Amount: sdkmath.NewInt(1000000)}),
 			errArgs: errArgs{
 				expectPass: false,
 				msg:        "deposit 1000000Invalid Denom: invalid coins",
@@ -167,8 +168,8 @@ func (suite *CdpValidationSuite) TestDepositValidation() {
 }
 
 func (suite *CdpValidationSuite) TestCdpGetTotalPrinciple() {
-	principal := sdk.Coin{"usdx", sdk.NewInt(100500)}
-	accumulatedFees := sdk.Coin{"usdx", sdk.NewInt(25000)}
+	principal := sdk.Coin{"usdx", sdkmath.NewInt(100500)}
+	accumulatedFees := sdk.Coin{"usdx", sdkmath.NewInt(25000)}
 
 	cdp := types.CDP{Principal: principal, AccumulatedFees: accumulatedFees}
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -62,7 +63,7 @@ func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 			"time passage same period",
 			args{
 				assets: []types.Asset{
-					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
@@ -75,7 +76,7 @@ func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 			"time passage new period",
 			args{
 				assets: []types.Asset{
-					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),

@@ -3,6 +3,7 @@ package bep3_test
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -24,7 +25,7 @@ var (
 	DenomMap            = map[int]string{0: "bnb", 1: "inc"}
 )
 
-func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
+func i(in int64) sdkmath.Int                { return sdkmath.NewInt(in) }
 func d(de int64) sdk.Dec                    { return sdk.NewDec(de) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
@@ -43,16 +44,16 @@ func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 					Denom:  "bnb",
 					CoinID: 714,
 					SupplyLimit: types.SupplyLimit{
-						Limit:          sdk.NewInt(350000000000000),
+						Limit:          sdkmath.NewInt(350000000000000),
 						TimeLimited:    false,
 						TimeBasedLimit: sdk.ZeroInt(),
 						TimePeriod:     time.Hour,
 					},
 					Active:        true,
 					DeputyAddress: deputy,
-					FixedFee:      sdk.NewInt(1000),
+					FixedFee:      sdkmath.NewInt(1000),
 					MinSwapAmount: sdk.OneInt(),
-					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MaxSwapAmount: sdkmath.NewInt(1000000000000),
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},
@@ -60,16 +61,16 @@ func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 					Denom:  "inc",
 					CoinID: 9999,
 					SupplyLimit: types.SupplyLimit{
-						Limit:          sdk.NewInt(100000000000),
+						Limit:          sdkmath.NewInt(100000000000),
 						TimeLimited:    false,
 						TimeBasedLimit: sdk.ZeroInt(),
 						TimePeriod:     time.Hour,
 					},
 					Active:        true,
 					DeputyAddress: deputy,
-					FixedFee:      sdk.NewInt(1000),
+					FixedFee:      sdkmath.NewInt(1000),
 					MinSwapAmount: sdk.OneInt(),
-					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MaxSwapAmount: sdkmath.NewInt(1000000000000),
 					MinBlockLock:  types.DefaultMinBlockLock,
 					MaxBlockLock:  types.DefaultMaxBlockLock,
 				},

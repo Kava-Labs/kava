@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/liquid/types"
@@ -52,13 +53,13 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 
 // CalculateDerivativeSharesFromTokens converts a staking token amount into its equivalent delegation shares, and staking derivative amount.
 // This combines the code for calculating the shares to be transferred, and the derivative coins to be minted.
-func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdk.Int) (sdk.Int, sdk.Dec, error) {
+func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdkmath.Int) (sdkmath.Int, sdk.Dec, error) {
 	if !tokens.IsPositive() {
-		return sdk.Int{}, sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "token amount must be positive")
+		return sdkmath.Int{}, sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "token amount must be positive")
 	}
 	shares, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegator, validator, tokens)
 	if err != nil {
-		return sdk.Int{}, sdk.Dec{}, err
+		return sdkmath.Int{}, sdk.Dec{}, err
 	}
 	return shares.TruncateInt(), shares, nil
 }

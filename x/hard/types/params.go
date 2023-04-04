@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -60,7 +61,7 @@ func (bl BorrowLimit) Equal(blCompareTo BorrowLimit) bool {
 }
 
 // NewMoneyMarket returns a new MoneyMarket
-func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string, conversionFactor sdk.Int,
+func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string, conversionFactor sdkmath.Int,
 	interestRateModel InterestRateModel, reserveFactor, keeperRewardPercentage sdk.Dec,
 ) MoneyMarket {
 	return MoneyMarket{

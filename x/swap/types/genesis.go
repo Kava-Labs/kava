@@ -3,12 +3,13 @@ package types
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type poolShares struct {
-	totalShares      sdk.Int
-	totalSharesOwned sdk.Int
+	totalShares      sdkmath.Int
+	totalSharesOwned sdkmath.Int
 }
 
 var (

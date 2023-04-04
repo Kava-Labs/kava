@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
@@ -47,7 +48,7 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 	liquidMacc := accKeeper.GetModuleAccount(suite.Ctx, types.ModuleAccountName)
 
 	// Add rewards
-	rewardCoins := sdk.NewDecCoins(sdk.NewDecCoin("ukava", sdk.NewInt(500e6)))
+	rewardCoins := sdk.NewDecCoins(sdk.NewDecCoin("ukava", sdkmath.NewInt(500e6)))
 	distrKeeper.AllocateTokensToValidator(suite.Ctx, validator, rewardCoins)
 
 	delegation, found := stakingKeeper.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)

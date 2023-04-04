@@ -12,9 +12,9 @@ order: 2
 // Params governance parameters for bep3 module
 type Params struct {
 	BnbDeputyAddress  sdk.AccAddress `json:"bnb_deputy_address" yaml:"bnb_deputy_address"`     // Bnbchain deputy address
-	BnbDeputyFixedFee sdk.Int        `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
-	MinAmount         sdk.Int        `json:"min_amount" yaml:"min_amount"`                     // Minimum swap amount
-	MaxAmount         sdk.Int        `json:"max_amount" yaml:"max_amount"`                     // Maximum swap amount
+	BnbDeputyFixedFee sdkmath.Int        `json:"bnb_deputy_fixed_fee" yaml:"bnb_deputy_fixed_fee"` // Deputy fixed fee in BNB
+	MinAmount         sdkmath.Int        `json:"min_amount" yaml:"min_amount"`                     // Minimum swap amount
+	MaxAmount         sdkmath.Int        `json:"max_amount" yaml:"max_amount"`                     // Maximum swap amount
 	MinBlockLock      uint64         `json:"min_block_lock" yaml:"min_block_lock"`             // Minimum swap block lock
 	MaxBlockLock      uint64         `json:"max_block_lock" yaml:"max_block_lock"`             // Maximum swap block lock
 	SupportedAssets   AssetParams    `json:"supported_assets" yaml:"supported_assets"`         // Supported assets
@@ -24,7 +24,7 @@ type Params struct {
 type AssetParam struct {
 	Denom  string  `json:"denom" yaml:"denom"`     // name of the asset
 	CoinID int     `json:"coin_id" yaml:"coin_id"` // internationally recognized coin ID
-	Limit  sdk.Int `json:"limit" yaml:"limit"`     // asset supply limit
+	Limit  sdkmath.Int `json:"limit" yaml:"limit"`     // asset supply limit
 	Active bool    `json:"active" yaml:"active"`   // denotes if asset is active or paused
 }
 ```

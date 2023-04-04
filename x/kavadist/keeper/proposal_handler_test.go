@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/kavadist/keeper"
@@ -35,6 +36,6 @@ func (suite *keeperTestSuite) TestHandleCommunityPoolMultiSpendProposal() {
 	suite.Require().Nil(err)
 
 	balances := suite.BankKeeper.GetAllBalances(ctx, addr)
-	expected := initBalances.AmountOf("ukava").Add(sdk.NewInt(proposalAmount1 + proposalAmount2))
+	expected := initBalances.AmountOf("ukava").Add(sdkmath.NewInt(proposalAmount1 + proposalAmount2))
 	suite.Require().Equal(expected, balances.AmountOf("ukava"))
 }

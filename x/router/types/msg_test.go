@@ -4,6 +4,7 @@ import (
 	fmt "fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ func TestMsgMintDeposit_Signing(t *testing.T) {
 	msg := types.NewMsgMintDeposit(
 		address,
 		validatorAddress,
-		sdk.NewCoin("ukava", sdk.NewInt(1e9)),
+		sdk.NewCoin("ukava", sdkmath.NewInt(1e9)),
 	)
 
 	// checking for the "type" field ensures the msg is registered on the amino codec
@@ -38,7 +39,7 @@ func TestMsgDelegateMintDeposit_Signing(t *testing.T) {
 	msg := types.NewMsgDelegateMintDeposit(
 		address,
 		validatorAddress,
-		sdk.NewCoin("ukava", sdk.NewInt(1e9)),
+		sdk.NewCoin("ukava", sdkmath.NewInt(1e9)),
 	)
 
 	// checking for the "type" field ensures the msg is registered on the amino codec
@@ -57,7 +58,7 @@ func TestMsgWithdrawBurn_Signing(t *testing.T) {
 	msg := types.NewMsgWithdrawBurn(
 		address,
 		validatorAddress,
-		sdk.NewCoin("ukava", sdk.NewInt(1e9)),
+		sdk.NewCoin("ukava", sdkmath.NewInt(1e9)),
 	)
 
 	// checking for the "type" field ensures the msg is registered on the amino codec
@@ -76,7 +77,7 @@ func TestMsgWithdrawBurnUndelegate_Signing(t *testing.T) {
 	msg := types.NewMsgWithdrawBurnUndelegate(
 		address,
 		validatorAddress,
-		sdk.NewCoin("ukava", sdk.NewInt(1e9)),
+		sdk.NewCoin("ukava", sdkmath.NewInt(1e9)),
 	)
 
 	// checking for the "type" field ensures the msg is registered on the amino codec
@@ -161,7 +162,7 @@ func TestMsg_Validate(t *testing.T) {
 			msgArgs: msgArgs{
 				depositor: validAddress,
 				validator: validValidatorAddress,
-				amount:    sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)},
+				amount:    sdk.Coin{Denom: "ukava", Amount: sdkmath.NewInt(-1)},
 			},
 			expectedErr: sdkerrors.ErrInvalidCoins,
 		},

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -87,7 +88,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio
-func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType string, liquidationRatio sdk.Dec, count sdk.Int) error {
+func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType string, liquidationRatio sdk.Dec, count sdkmath.Int) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err
@@ -112,7 +113,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 }
 
 // ApplyLiquidationPenalty multiplies the input debt amount by the liquidation penalty
-func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, collateralType string, debt sdk.Int) sdk.Int {
+func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, collateralType string, debt sdkmath.Int) sdkmath.Int {
 	penalty := k.getLiquidationPenalty(ctx, collateralType)
 	return sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
 }
@@ -130,7 +131,7 @@ func (k Keeper) ValidateLiquidation(ctx sdk.Context, collateral sdk.Coin, collat
 	return nil
 }
 
-func (k Keeper) getModAccountDebt(ctx sdk.Context, accountName string) sdk.Int {
+func (k Keeper) getModAccountDebt(ctx sdk.Context, accountName string) sdkmath.Int {
 	macc := k.accountKeeper.GetModuleAccount(ctx, accountName)
 	return k.bankKeeper.GetBalance(ctx, macc.GetAddress(), k.GetDebtDenom(ctx)).Amount
 }

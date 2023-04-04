@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -12,7 +13,7 @@ const (
 )
 
 // AuctionCollateral creates auctions from the input deposits which attempt to raise the corresponding amount of debt
-func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, collateralType string, debt sdk.Int, bidDenom string) error {
+func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, collateralType string, debt sdkmath.Int, bidDenom string) error {
 	auctionSize := k.getAuctionSize(ctx, collateralType)
 	totalCollateral := deposits.SumCollateral()
 	for _, deposit := range deposits {
@@ -26,7 +27,7 @@ func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, coll
 
 // CreateAuctionsFromDeposit creates auctions from the input deposit
 func (k Keeper) CreateAuctionsFromDeposit(
-	ctx sdk.Context, collateral sdk.Coin, collateralType string, returnAddr sdk.AccAddress, debt, auctionSize sdk.Int,
+	ctx sdk.Context, collateral sdk.Coin, collateralType string, returnAddr sdk.AccAddress, debt, auctionSize sdkmath.Int,
 	principalDenom string,
 ) error {
 	// number of auctions of auctionSize
@@ -71,7 +72,7 @@ func (k Keeper) CreateAuctionsFromDeposit(
 		_, err := k.auctionKeeper.StartCollateralAuction(
 			ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, auctionSize),
 			sdk.NewCoin(principalDenom, debtAmount.Add(penalty)), []sdk.AccAddress{returnAddr},
-			[]sdk.Int{auctionSize}, sdk.NewCoin(debtDenom, debtAmount),
+			[]sdkmath.Int{auctionSize}, sdk.NewCoin(debtDenom, debtAmount),
 		)
 		if err != nil {
 			return err
@@ -96,7 +97,7 @@ func (k Keeper) CreateAuctionsFromDeposit(
 	_, err := k.auctionKeeper.StartCollateralAuction(
 		ctx, types.LiquidatorMacc, sdk.NewCoin(collateral.Denom, lastAuctionCollateral),
 		sdk.NewCoin(principalDenom, lastAuctionDebt.Add(penalty)), []sdk.AccAddress{returnAddr},
-		[]sdk.Int{lastAuctionCollateral}, sdk.NewCoin(debtDenom, lastAuctionDebt),
+		[]sdkmath.Int{lastAuctionCollateral}, sdk.NewCoin(debtDenom, lastAuctionDebt),
 	)
 
 	return err
@@ -127,14 +128,14 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 }
 
 // GetTotalSurplus returns the total amount of surplus tokens held by the liquidator module account
-func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdk.Int {
+func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdkmath.Int {
 	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
 	dp := k.GetParams(ctx).DebtParam
 	return k.bankKeeper.GetBalance(ctx, acc.GetAddress(), dp.Denom).Amount
 }
 
 // GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
-func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdk.Int {
+func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdkmath.Int {
 	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
 	return k.bankKeeper.GetBalance(ctx, acc.GetAddress(), k.GetDebtDenom(ctx)).Amount
 }
@@ -150,7 +151,7 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
 	if remainingDebt.GTE(params.DebtAuctionThreshold) {
 		debtLot := sdk.NewCoin(k.GetDebtDenom(ctx), params.DebtAuctionLot)
 		bidCoin := sdk.NewCoin(params.DebtParam.Denom, debtLot.Amount)
-		initialLot := sdk.NewCoin(k.GetGovDenom(ctx), debtLot.Amount.Mul(sdk.NewInt(dump)))
+		initialLot := sdk.NewCoin(k.GetGovDenom(ctx), debtLot.Amount.Mul(sdkmath.NewInt(dump)))
 
 		_, err := k.auctionKeeper.StartDebtAuction(ctx, types.LiquidatorMacc, bidCoin, initialLot, debtLot)
 		if err != nil {

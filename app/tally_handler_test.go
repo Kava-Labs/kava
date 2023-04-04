@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -57,41 +58,41 @@ func (suite *tallyHandlerSuite) SetupTest() {
 }
 
 func (suite *tallyHandlerSuite) TestVotePower_AllSourcesCounted() {
-	user := suite.createAccount(suite.newBondCoin(sdk.NewInt(1e9)))
+	user := suite.createAccount(suite.newBondCoin(sdkmath.NewInt(1e9)))
 
-	validator := suite.delegateToNewBondedValidator(user.GetAddress(), sdk.NewInt(1e9))
+	validator := suite.delegateToNewBondedValidator(user.GetAddress(), sdkmath.NewInt(1e9))
 
-	derivatives := suite.mintDerivative(user.GetAddress(), validator.GetOperator(), sdk.NewInt(500e6))
+	derivatives := suite.mintDerivative(user.GetAddress(), validator.GetOperator(), sdkmath.NewInt(500e6))
 
 	suite.allowBKavaEarnDeposits()
 	suite.earnDeposit(
 		user.GetAddress(),
-		sdk.NewCoin(derivatives.Denom, sdk.NewInt(250e6)),
+		sdk.NewCoin(derivatives.Denom, sdkmath.NewInt(250e6)),
 	)
 
 	proposal := suite.createProposal()
 	suite.voteOnProposal(user.GetAddress(), proposal.Id, govv1beta1.OptionYes)
 
 	_, _, results := suite.tallier.Tally(suite.ctx, proposal)
-	suite.Equal(sdk.NewInt(500e6+250e6+250e6).String(), results.YesCount)
+	suite.Equal(sdkmath.NewInt(500e6+250e6+250e6).String(), results.YesCount)
 	suite.Equal(sdk.ZeroInt().String(), results.NoCount)
 	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
 	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
 }
 
 func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
-	user := suite.createAccount(suite.newBondCoin(sdk.NewInt(1e9)))
+	user := suite.createAccount(suite.newBondCoin(sdkmath.NewInt(1e9)))
 
-	delegated := sdk.NewInt(1e9)
+	delegated := sdkmath.NewInt(1e9)
 	validator := suite.delegateToNewBondedValidator(user.GetAddress(), delegated)
 	selfDelegated := validator.GetTokens().Sub(delegated)
 
-	derivatives := suite.mintDerivative(user.GetAddress(), validator.GetOperator(), sdk.NewInt(500e6))
+	derivatives := suite.mintDerivative(user.GetAddress(), validator.GetOperator(), sdkmath.NewInt(500e6))
 
 	suite.allowBKavaEarnDeposits()
 	suite.earnDeposit(
 		user.GetAddress(),
-		sdk.NewCoin(derivatives.Denom, sdk.NewInt(250e6)),
+		sdk.NewCoin(derivatives.Denom, sdkmath.NewInt(250e6)),
 	)
 
 	proposal := suite.createProposal()
@@ -102,7 +103,7 @@ func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
 	// use wrapped context to discard the state changes
 	readOnlyCtx, _ := suite.ctx.CacheContext()
 	_, _, results := suite.tallier.Tally(readOnlyCtx, proposal)
-	userPower := sdk.NewInt(500e6 + 250e6 + 250e6)
+	userPower := sdkmath.NewInt(500e6 + 250e6 + 250e6)
 	suite.Equal(
 		selfDelegated.Add(userPower).String(),
 		results.YesCount,
@@ -127,8 +128,8 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
 		proposal := suite.createProposal()
 
-		v1 := suite.createNewBondedValidator(sdk.NewInt(399_999_999))
-		suite.createNewBondedValidator(sdk.NewInt(600_000_001))
+		v1 := suite.createNewBondedValidator(sdkmath.NewInt(399_999_999))
+		suite.createNewBondedValidator(sdkmath.NewInt(600_000_001))
 
 		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
 
@@ -141,8 +142,8 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
 		proposal := suite.createProposal()
 
-		v1 := suite.createNewBondedValidator(sdk.NewInt(334_000_001))
-		v2 := suite.createNewBondedValidator(sdk.NewInt(665_999_999))
+		v1 := suite.createNewBondedValidator(sdkmath.NewInt(334_000_001))
+		v2 := suite.createNewBondedValidator(sdkmath.NewInt(665_999_999))
 
 		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionNoWithVeto)
 		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
@@ -156,9 +157,9 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
 		proposal := suite.createProposal()
 
-		v1 := suite.createNewBondedValidator(sdk.NewInt(900_000_000))
-		v2 := suite.createNewBondedValidator(sdk.NewInt(50_000_001))
-		v3 := suite.createNewBondedValidator(sdk.NewInt(49_999_999))
+		v1 := suite.createNewBondedValidator(sdkmath.NewInt(900_000_000))
+		v2 := suite.createNewBondedValidator(sdkmath.NewInt(50_000_001))
+		v3 := suite.createNewBondedValidator(sdkmath.NewInt(49_999_999))
 
 		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionAbstain)
 		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
@@ -173,9 +174,9 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
 		proposal := suite.createProposal()
 
-		v1 := suite.createNewBondedValidator(sdk.NewInt(900_000_000))
-		v2 := suite.createNewBondedValidator(sdk.NewInt(49_999_999))
-		v3 := suite.createNewBondedValidator(sdk.NewInt(50_000_001))
+		v1 := suite.createNewBondedValidator(sdkmath.NewInt(900_000_000))
+		v2 := suite.createNewBondedValidator(sdkmath.NewInt(49_999_999))
+		v3 := suite.createNewBondedValidator(sdkmath.NewInt(50_000_001))
 
 		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionAbstain)
 		suite.voteOnProposal(v2.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionYes)
@@ -202,7 +203,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		suite.setTallyParams(d("0.4"), d("0.5"), d("0.334"))
 		proposal := suite.createProposal()
 
-		v1 := suite.createNewBondedValidator(sdk.NewInt(1e9))
+		v1 := suite.createNewBondedValidator(sdkmath.NewInt(1e9))
 
 		suite.voteOnProposal(v1.GetOperator().Bytes(), proposal.Id, govv1beta1.OptionAbstain)
 
@@ -263,7 +264,7 @@ func (suite *tallyHandlerSuite) createProposal() govv1.Proposal {
 	return proposal
 }
 
-func (suite *tallyHandlerSuite) newBondCoin(amount sdk.Int) sdk.Coin {
+func (suite *tallyHandlerSuite) newBondCoin(amount sdkmath.Int) sdk.Coin {
 	return suite.staking.newBondCoin(suite.ctx, amount)
 }
 
@@ -294,7 +295,7 @@ func (suite *tallyHandlerSuite) earnDeposit(owner sdk.AccAddress, derivative sdk
 	suite.Require().NoError(err)
 }
 
-func (suite *tallyHandlerSuite) mintDerivative(owner sdk.AccAddress, validator sdk.ValAddress, amount sdk.Int) sdk.Coin {
+func (suite *tallyHandlerSuite) mintDerivative(owner sdk.AccAddress, validator sdk.ValAddress, amount sdkmath.Int) sdk.Coin {
 	lk := suite.app.GetLiquidKeeper()
 
 	minted, err := lk.MintDerivative(suite.ctx, owner, validator, suite.newBondCoin(amount))
@@ -303,9 +304,9 @@ func (suite *tallyHandlerSuite) mintDerivative(owner sdk.AccAddress, validator s
 	return minted
 }
 
-func (suite *tallyHandlerSuite) delegateToNewBondedValidator(delegator sdk.AccAddress, amount sdk.Int) stakingtypes.ValidatorI {
-	valAcc := suite.createAccount(suite.newBondCoin(sdk.NewInt(1e9)))
-	validator, err := suite.staking.createUnbondedValidator(suite.ctx, valAcc.GetAddress().Bytes(), sdk.NewInt(1e9))
+func (suite *tallyHandlerSuite) delegateToNewBondedValidator(delegator sdk.AccAddress, amount sdkmath.Int) stakingtypes.ValidatorI {
+	valAcc := suite.createAccount(suite.newBondCoin(sdkmath.NewInt(1e9)))
+	validator, err := suite.staking.createUnbondedValidator(suite.ctx, valAcc.GetAddress().Bytes(), sdkmath.NewInt(1e9))
 	suite.Require().NoError(err)
 
 	_, err = suite.staking.delegate(suite.ctx, delegator, validator.GetOperator(), amount)
@@ -322,7 +323,7 @@ func (suite *tallyHandlerSuite) delegateToNewBondedValidator(delegator sdk.AccAd
 	return validator
 }
 
-func (suite *tallyHandlerSuite) createNewBondedValidator(selfDelegation sdk.Int) stakingtypes.ValidatorI {
+func (suite *tallyHandlerSuite) createNewBondedValidator(selfDelegation sdkmath.Int) stakingtypes.ValidatorI {
 	valAcc := suite.createAccount(suite.newBondCoin(selfDelegation))
 	validator, err := suite.staking.createUnbondedValidator(suite.ctx, valAcc.GetAddress().Bytes(), selfDelegation)
 	suite.Require().NoError(err)
@@ -355,14 +356,14 @@ type stakingHelper struct {
 	keeper stakingkeeper.Keeper
 }
 
-func (h stakingHelper) createUnbondedValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Int) (stakingtypes.ValidatorI, error) {
+func (h stakingHelper) createUnbondedValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdkmath.Int) (stakingtypes.ValidatorI, error) {
 	msg, err := stakingtypes.NewMsgCreateValidator(
 		address,
 		ed25519.GenPrivKey().PubKey(),
 		h.newBondCoin(ctx, selfDelegation),
 		stakingtypes.Description{},
 		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	)
 	if err != nil {
 		return nil, err
@@ -381,7 +382,7 @@ func (h stakingHelper) createUnbondedValidator(ctx sdk.Context, address sdk.ValA
 	return validator, nil
 }
 
-func (h stakingHelper) delegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Int) (sdk.Dec, error) {
+func (h stakingHelper) delegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdkmath.Int) (sdk.Dec, error) {
 	msg := stakingtypes.NewMsgDelegate(
 		delegator,
 		validator,
@@ -401,7 +402,7 @@ func (h stakingHelper) delegate(ctx sdk.Context, delegator sdk.AccAddress, valid
 	return del.Shares, nil
 }
 
-func (h stakingHelper) newBondCoin(ctx sdk.Context, amount sdk.Int) sdk.Coin {
+func (h stakingHelper) newBondCoin(ctx sdk.Context, amount sdkmath.Int) sdk.Coin {
 	return sdk.NewCoin(h.keeper.BondDenom(ctx), amount)
 }
 

@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -131,7 +132,7 @@ func (s *migrateTestSuite) TestMigrate_Swaps() {
 		s.Run(tc.name, func() {
 			oldSwaps := types.AtomicSwaps{
 				{
-					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(12))),
+					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(12))),
 					RandomNumberHash:    bytes.HexBytes{},
 					ExpireHeight:        tc.oldSwap.ExpireHeight,
 					Timestamp:           1110,
@@ -147,7 +148,7 @@ func (s *migrateTestSuite) TestMigrate_Swaps() {
 			}
 			expectedSwaps := types.AtomicSwaps{
 				{
-					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(12))),
+					Amount:              sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(12))),
 					RandomNumberHash:    bytes.HexBytes{},
 					ExpireHeight:        tc.newSwap.ExpireHeight,
 					Timestamp:           1110,

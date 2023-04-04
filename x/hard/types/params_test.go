@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
@@ -46,7 +47,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 							sdk.MustNewDecFromStr("0.5"),
 						),
 						SpotMarketID:           "btc:usd",
-						ConversionFactor:       sdk.NewInt(0),
+						ConversionFactor:       sdkmath.NewInt(0),
 						InterestRateModel:      types.InterestRateModel{},
 						ReserveFactor:          sdk.MustNewDecFromStr("0.05"),
 						KeeperRewardPercentage: sdk.MustNewDecFromStr("0.05"),

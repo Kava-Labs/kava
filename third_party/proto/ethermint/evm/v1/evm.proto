@@ -26,7 +26,7 @@ message Params {
   bool allow_unprotected_txs = 7;
 }
 
-// ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values
+// ChainConfig defines the Ethereum ChainConfig parameters using *sdkmath.Int values
 // instead of *big.Int.
 message ChainConfig {
   // homestead_block switch (nil no fork, 0 = already homestead)

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -113,7 +114,7 @@ func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from string, shares sdk.Int, minTokenA, minTokenB sdk.Coin, deadline int64) *MsgWithdraw {
+func NewMsgWithdraw(from string, shares sdkmath.Int, minTokenA, minTokenB sdk.Coin, deadline int64) *MsgWithdraw {
 	return &MsgWithdraw{
 		From:      from,
 		Shares:    shares,

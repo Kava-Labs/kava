@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
@@ -161,16 +162,16 @@ func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 					Denom:  "bnb",
 					CoinID: 714,
 					SupplyLimit: bep3types.SupplyLimit{
-						Limit:          sdk.NewInt(350000000000000),
+						Limit:          sdkmath.NewInt(350000000000000),
 						TimeLimited:    false,
 						TimeBasedLimit: sdk.ZeroInt(),
 						TimePeriod:     time.Hour,
 					},
 					Active:        true,
 					DeputyAddress: deputyAddress,
-					FixedFee:      sdk.NewInt(1000),
+					FixedFee:      sdkmath.NewInt(1000),
 					MinSwapAmount: sdk.OneInt(),
-					MaxSwapAmount: sdk.NewInt(1000000000000),
+					MaxSwapAmount: sdkmath.NewInt(1000000000000),
 					MinBlockLock:  bep3types.DefaultMinBlockLock,
 					MaxBlockLock:  bep3types.DefaultMaxBlockLock,
 				},

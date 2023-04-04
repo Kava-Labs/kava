@@ -33,29 +33,29 @@ func GenRandBnbDeputy(r *rand.Rand) simulation.Account {
 }
 
 // GenRandFixedFee randomized FixedFee in range [1, 10000]
-func GenRandFixedFee(r *rand.Rand) sdk.Int {
+func GenRandFixedFee(r *rand.Rand) sdkmath.Int {
 	min := int(1)
 	max := types.DefaultBnbDeputyFixedFee.Int64()
-	return sdk.NewInt(int64(r.Intn(int(max)-min) + min))
+	return sdkmath.NewInt(int64(r.Intn(int(max)-min) + min))
 }
 
 // GenMinSwapAmount randomized MinAmount in range [1, 1000]
-func GenMinSwapAmount(r *rand.Rand) sdk.Int {
-	return sdk.OneInt().Add(simulation.RandomAmount(r, sdk.NewInt(int64(MinSwapAmountLimit))))
+func GenMinSwapAmount(r *rand.Rand) sdkmath.Int {
+	return sdk.OneInt().Add(simulation.RandomAmount(r, sdkmath.NewInt(int64(MinSwapAmountLimit))))
 }
 
 // GenMaxSwapAmount randomized MaxAmount
-func GenMaxSwapAmount(r *rand.Rand, minAmount sdk.Int, supplyMax sdk.Int) sdk.Int {
+func GenMaxSwapAmount(r *rand.Rand, minAmount sdkmath.Int, supplyMax sdkmath.Int) sdkmath.Int {
 	min := minAmount.Int64()
-	max := supplyMax.Quo(sdk.NewInt(100)).Int64()
+	max := supplyMax.Quo(sdkmath.NewInt(100)).Int64()
 
-	return sdk.NewInt((int64(r.Intn(int(max-min))) + min))
+	return sdkmath.NewInt((int64(r.Intn(int(max-min))) + min))
 }
 
 // GenSupplyLimit generates a random SupplyLimit
-func GenSupplyLimit(r *rand.Rand, max int) sdk.Int {
+func GenSupplyLimit(r *rand.Rand, max int) sdkmath.Int {
 	max = simulation.RandIntBetween(r, MinSupplyLimit, max)
-	return sdk.NewInt(int64(max))
+	return sdkmath.NewInt(int64(max))
 }
 
 // GenSupplyLimit generates a random SupplyLimit
@@ -92,7 +92,7 @@ func GenSupportedAssets(r *rand.Rand) types.AssetParams {
 }
 
 func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
-	coinID, _ := simulation.RandPositiveInt(r, sdk.NewInt(100000))
+	coinID, _ := simulation.RandPositiveInt(r, sdkmath.NewInt(100000))
 	limit := GenSupplyLimit(r, MaxSupplyLimit)
 
 	minSwapAmount := GenMinSwapAmount(r)
@@ -101,9 +101,9 @@ func genSupportedAsset(r *rand.Rand, denom string) types.AssetParam {
 	timeBasedLimit := sdk.ZeroInt()
 	if timeLimited {
 		// set time-based limit to between 10 and 25% of the total limit
-		min := int(limit.Quo(sdk.NewInt(10)).Int64())
-		max := int(limit.Quo(sdk.NewInt(4)).Int64())
-		timeBasedLimit = sdk.NewInt(int64(simulation.RandIntBetween(r, min, max)))
+		min := int(limit.Quo(sdkmath.NewInt(10)).Int64())
+		max := int(limit.Quo(sdkmath.NewInt(4)).Int64())
+		timeBasedLimit = sdkmath.NewInt(int64(simulation.RandIntBetween(r, min, max)))
 	}
 	return types.AssetParam{
 		Denom:  denom,

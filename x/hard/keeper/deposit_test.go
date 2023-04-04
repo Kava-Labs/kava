@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -38,11 +39,11 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			"valid",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
 				numberDeposits:            1,
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
-				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(900)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
+				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
 			},
 			errArgs{
 				expectPass: true,
@@ -53,11 +54,11 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			"valid multi deposit",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
 				numberDeposits:            2,
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(800)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(800)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
 			},
 			errArgs{
 				expectPass: true,
@@ -68,7 +69,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			"invalid deposit denom",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("fake", sdk.NewInt(100))),
+				amount:                    sdk.NewCoins(sdk.NewCoin("fake", sdkmath.NewInt(100))),
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -83,7 +84,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			"insufficient funds",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10000))),
+				amount:                    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10000))),
 				numberDeposits:            1,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -106,8 +107,8 @@ func (suite *KeeperTestSuite) TestDeposit() {
 				tApp.AppCodec(),
 				[]sdk.Coins{
 					sdk.NewCoins(
-						sdk.NewCoin("bnb", sdk.NewInt(1000)),
-						sdk.NewCoin("btcb", sdk.NewInt(1000)),
+						sdk.NewCoin("bnb", sdkmath.NewInt(1000)),
+						sdk.NewCoin("btcb", sdkmath.NewInt(1000)),
 					),
 				},
 				[]sdk.AccAddress{tc.args.depositor},
@@ -115,10 +116,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			loanToValue, _ := sdk.NewDecFromStr("0.6")
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "usdx:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("btcb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "btcb:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "usdx:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("btcb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "btcb:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 				},
 				sdk.NewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
@@ -278,9 +279,9 @@ func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
 			)
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
-					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdk.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("busd", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "busd:usd", sdk.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("xrpb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "xrpb:usd", sdk.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("busd", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "busd:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("xrpb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "xrpb:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 				},
 				sdk.MustNewDecFromStr("10"),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,

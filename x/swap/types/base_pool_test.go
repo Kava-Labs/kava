@@ -7,19 +7,20 @@ import (
 
 	types "github.com/kava-labs/kava/x/swap/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// i creates a new sdk.Int from int64
-func i(n int64) sdk.Int {
-	return sdk.NewInt(n)
+// i creates a new sdkmath.Int from int64
+func i(n int64) sdkmath.Int {
+	return sdkmath.NewInt(n)
 }
 
-// s returns a new sdk.Int from a string
-func s(str string) sdk.Int {
-	num, ok := sdk.NewIntFromString(str)
+// s returns a new sdkmath.Int from a string
+func s(str string) sdkmath.Int {
+	num, ok := sdkmath.NewIntFromString(str)
 	if !ok {
 		panic(fmt.Sprintf("overflow creating Int from %s", str))
 	}
@@ -31,18 +32,18 @@ func d(str string) sdk.Dec {
 	return sdk.MustNewDecFromStr(str)
 }
 
-// exp takes a sdk.Int and computes the power
+// exp takes a sdkmath.Int and computes the power
 // helper to generate large numbers
-func exp(n sdk.Int, power int64) sdk.Int {
+func exp(n sdkmath.Int, power int64) sdkmath.Int {
 	b := n.BigInt()
 	b.Exp(b, big.NewInt(power), nil)
-	return sdk.NewIntFromBigInt(b)
+	return sdkmath.NewIntFromBigInt(b)
 }
 
 func TestBasePool_NewPool_Validation(t *testing.T) {
 	testCases := []struct {
-		reservesA   sdk.Int
-		reservesB   sdk.Int
+		reservesA   sdkmath.Int
+		reservesB   sdkmath.Int
 		expectedErr string
 	}{
 		{i(0), i(1e6), "reserves must be greater than zero: invalid pool"},
@@ -62,9 +63,9 @@ func TestBasePool_NewPool_Validation(t *testing.T) {
 
 func TestBasePool_NewPoolWithExistingShares_Validation(t *testing.T) {
 	testCases := []struct {
-		reservesA   sdk.Int
-		reservesB   sdk.Int
-		totalShares sdk.Int
+		reservesA   sdkmath.Int
+		reservesB   sdkmath.Int
+		totalShares sdkmath.Int
 		expectedErr string
 	}{
 		{i(0), i(1e6), i(1), "reserves must be greater than zero: invalid pool"},
@@ -87,9 +88,9 @@ func TestBasePool_NewPoolWithExistingShares_Validation(t *testing.T) {
 
 func TestBasePool_InitialState(t *testing.T) {
 	testCases := []struct {
-		reservesA      sdk.Int
-		reservesB      sdk.Int
-		expectedShares sdk.Int
+		reservesA      sdkmath.Int
+		reservesB      sdkmath.Int
+		expectedShares sdkmath.Int
 	}{
 		{i(1), i(1), i(1)},
 		{i(100), i(100), i(100)},
@@ -99,7 +100,7 @@ func TestBasePool_InitialState(t *testing.T) {
 		{i(1e15), i(7e15), i(2645751311064590)},
 		{i(1), i(6e18), i(2449489742)},
 		{i(1.345678e18), i(4.313456e18), i(2409257736973775913)},
-		// handle sqrt of large numbers, sdk.Int.ApproxSqrt() doesn't converge in 100 iterations
+		// handle sqrt of large numbers, sdkmath.Int.ApproxSqrt() doesn't converge in 100 iterations
 		{i(145345664).Mul(exp(i(10), 26)), i(6432294561).Mul(exp(i(10), 20)), s("96690543695447979624812468142651")},
 		{i(465432423).Mul(exp(i(10), 50)), i(4565432).Mul(exp(i(10), 50)), s("4609663846531258725944608083913166083991595286362304230475")},
 		{exp(i(2), 253), exp(i(2), 253), s("14474011154664524427946373126085988481658748083205070504932198000989141204992")},
@@ -118,9 +119,9 @@ func TestBasePool_InitialState(t *testing.T) {
 
 func TestBasePool_ExistingState(t *testing.T) {
 	testCases := []struct {
-		reservesA   sdk.Int
-		reservesB   sdk.Int
-		totalShares sdk.Int
+		reservesA   sdkmath.Int
+		reservesB   sdkmath.Int
+		totalShares sdkmath.Int
 	}{
 		{i(1), i(1), i(1)},
 		{i(100), i(100), i(100)},
@@ -143,8 +144,8 @@ func TestBasePool_ExistingState(t *testing.T) {
 
 func TestBasePool_ShareValue_PoolCreator(t *testing.T) {
 	testCases := []struct {
-		reservesA sdk.Int
-		reservesB sdk.Int
+		reservesA sdkmath.Int
+		reservesB sdkmath.Int
 	}{
 		{i(1), i(1)},
 		{i(100), i(100)},
@@ -174,13 +175,13 @@ func TestBasePool_ShareValue_PoolCreator(t *testing.T) {
 
 func TestBasePool_AddLiquidity(t *testing.T) {
 	testCases := []struct {
-		initialA       sdk.Int
-		initialB       sdk.Int
-		desiredA       sdk.Int
-		desiredB       sdk.Int
-		expectedA      sdk.Int
-		expectedB      sdk.Int
-		expectedShares sdk.Int
+		initialA       sdkmath.Int
+		initialB       sdkmath.Int
+		desiredA       sdkmath.Int
+		desiredB       sdkmath.Int
+		expectedA      sdkmath.Int
+		expectedB      sdkmath.Int
+		expectedShares sdkmath.Int
 	}{
 		{i(1), i(1), i(1), i(1), i(1), i(1), i(1)},   // small pool, i(100)% deposit
 		{i(10), i(10), i(5), i(5), i(5), i(5), i(5)}, // i(50)% deposit
@@ -202,7 +203,7 @@ func TestBasePool_AddLiquidity(t *testing.T) {
 		{i(10e6), i(11e6), i(5e6), i(5e6), i(4545454), i(5e6), i(4767312)},
 		{i(11e6), i(10e6), i(5e6), i(5e6), i(5e6), i(4545454), i(4767312)},
 
-		// pool size near max of sdk.Int, ensure intermidiate calculations do not overflow
+		// pool size near max of sdkmath.Int, ensure intermidiate calculations do not overflow
 		{exp(i(10), 70), exp(i(10), 70), i(1e18), i(1e18), i(1e18), i(1e18), i(1e18)},
 	}
 
@@ -251,11 +252,11 @@ func TestBasePool_AddLiquidity(t *testing.T) {
 
 func TestBasePool_RemoveLiquidity(t *testing.T) {
 	testCases := []struct {
-		reservesA sdk.Int
-		reservesB sdk.Int
-		shares    sdk.Int
-		expectedA sdk.Int
-		expectedB sdk.Int
+		reservesA sdkmath.Int
+		reservesB sdkmath.Int
+		shares    sdkmath.Int
+		expectedA sdkmath.Int
+		expectedB sdkmath.Int
 	}{
 		{i(1), i(1), i(1), i(1), i(1)},
 		{i(100), i(100), i(50), i(50), i(50)},
@@ -290,17 +291,17 @@ func TestBasePool_RemoveLiquidity(t *testing.T) {
 }
 
 func TestBasePool_Panic_OutOfBounds(t *testing.T) {
-	pool, err := types.NewBasePool(sdk.NewInt(100), sdk.NewInt(100))
+	pool, err := types.NewBasePool(sdkmath.NewInt(100), sdkmath.NewInt(100))
 	require.NoError(t, err)
 
-	assert.Panics(t, func() { pool.ShareValue(pool.TotalShares().Add(sdk.NewInt(1))) }, "ShareValue did not panic when shares > totalShares")
-	assert.Panics(t, func() { pool.RemoveLiquidity(pool.TotalShares().Add(sdk.NewInt(1))) }, "RemoveLiquidity did not panic when shares > totalShares")
+	assert.Panics(t, func() { pool.ShareValue(pool.TotalShares().Add(sdkmath.NewInt(1))) }, "ShareValue did not panic when shares > totalShares")
+	assert.Panics(t, func() { pool.RemoveLiquidity(pool.TotalShares().Add(sdkmath.NewInt(1))) }, "RemoveLiquidity did not panic when shares > totalShares")
 }
 
 func TestBasePool_EmptyAndRefill(t *testing.T) {
 	testCases := []struct {
-		reservesA sdk.Int
-		reservesB sdk.Int
+		reservesA sdkmath.Int
+		reservesB sdkmath.Int
 	}{
 		{i(1), i(1)},
 		{i(100), i(100)},
@@ -380,8 +381,8 @@ func TestBasePool_Panics_RemoveLiquidity(t *testing.T) {
 
 func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
 	testCases := []struct {
-		reservesA sdk.Int
-		reservesB sdk.Int
+		reservesA sdkmath.Int
+		reservesB sdkmath.Int
 	}{
 		{i(5), i(5)},
 		{i(100), i(100)},
@@ -415,12 +416,12 @@ func TestBasePool_ReservesOnlyDepletedWithLastShare(t *testing.T) {
 
 func TestBasePool_Swap_ExactInput(t *testing.T) {
 	testCases := []struct {
-		reservesA      sdk.Int
-		reservesB      sdk.Int
-		exactInput     sdk.Int
+		reservesA      sdkmath.Int
+		reservesB      sdkmath.Int
+		exactInput     sdkmath.Int
 		fee            sdk.Dec
-		expectedOutput sdk.Int
-		expectedFee    sdk.Int
+		expectedOutput sdkmath.Int
+		expectedFee    sdkmath.Int
 	}{
 		// test small pools
 		{i(10), i(10), i(1), d("0.003"), i(0), i(1)},
@@ -473,12 +474,12 @@ func TestBasePool_Swap_ExactInput(t *testing.T) {
 
 func TestBasePool_Swap_ExactOutput(t *testing.T) {
 	testCases := []struct {
-		reservesA     sdk.Int
-		reservesB     sdk.Int
-		exactOutput   sdk.Int
+		reservesA     sdkmath.Int
+		reservesB     sdkmath.Int
+		exactOutput   sdkmath.Int
 		fee           sdk.Dec
-		expectedInput sdk.Int
-		expectedFee   sdk.Int
+		expectedInput sdkmath.Int
+		expectedFee   sdkmath.Int
 	}{
 		// test small pools
 		{i(10), i(10), i(1), d("0.003"), i(3), i(1)},
@@ -529,7 +530,7 @@ func TestBasePool_Swap_ExactOutput(t *testing.T) {
 
 func TestBasePool_Panics_Swap_ExactInput(t *testing.T) {
 	testCases := []struct {
-		swap sdk.Int
+		swap sdkmath.Int
 		fee  sdk.Dec
 	}{
 		{i(0), d("0.003")},
@@ -559,7 +560,7 @@ func TestBasePool_Panics_Swap_ExactInput(t *testing.T) {
 
 func TestBasePool_Panics_Swap_ExactOutput(t *testing.T) {
 	testCases := []struct {
-		swap sdk.Int
+		swap sdkmath.Int
 		fee  sdk.Dec
 	}{
 		{i(0), d("0.003")},

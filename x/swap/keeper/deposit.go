@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -46,7 +47,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	var (
 		pool          *types.DenominatedPool
 		depositAmount sdk.Coins
-		shares        sdk.Int
+		shares        sdkmath.Int
 		err           error
 	)
 	if found {
@@ -113,7 +114,7 @@ func (k Keeper) depositAllowed(ctx sdk.Context, poolID string) bool {
 	return false
 }
 
-func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdk.Int, error) {
+func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdkmath.Int, error) {
 	if allowed := k.depositAllowed(ctx, poolID); !allowed {
 		return nil, sdk.Coins{}, sdk.ZeroInt(), errorsmod.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
 	}
@@ -126,7 +127,7 @@ func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.Acc
 	return pool, pool.Reserves(), pool.TotalShares(), nil
 }
 
-func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdk.Int, error) {
+func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdkmath.Int, error) {
 	pool, err := types.NewDenominatedPoolWithExistingShares(record.Reserves(), record.TotalShares)
 	if err != nil {
 		return nil, sdk.Coins{}, sdk.ZeroInt(), err

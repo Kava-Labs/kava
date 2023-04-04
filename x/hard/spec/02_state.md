@@ -26,7 +26,7 @@ type MoneyMarket struct {
   Denom                  string            `json:"denom" yaml:"denom"` // the denomination of the token for this money market
   BorrowLimit            BorrowLimit       `json:"borrow_limit" yaml:"borrow_limit"` // the borrow limits, if any, applied to this money market
   SpotMarketID           string            `json:"spot_market_id" yaml:"spot_market_id"` // the pricefeed market where price data is fetched
-  ConversionFactor       sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"` //the internal conversion factor for going from the smallest unit of a token to a whole unit (ie. 8 for BTC, 6 for KAVA, 18 for ETH)
+  ConversionFactor       sdkmath.Int           `json:"conversion_factor" yaml:"conversion_factor"` //the internal conversion factor for going from the smallest unit of a token to a whole unit (ie. 8 for BTC, 6 for KAVA, 18 for ETH)
   InterestRateModel      InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"` // the model that determines the prevailing interest rate at each block
   ReserveFactor          sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"` // the percentage of interest that is accumulated by the protocol as reserves
   KeeperRewardPercentage sdk.Dec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"` // the percentage of a liquidation that is given to the keeper that liquidated the position

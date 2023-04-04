@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -67,7 +68,7 @@ func (s queryServer) TotalSupply(
 	}, nil
 }
 
-func (s queryServer) getDelegatedBalance(ctx sdk.Context, delegator sdk.AccAddress) sdk.Int {
+func (s queryServer) getDelegatedBalance(ctx sdk.Context, delegator sdk.AccAddress) sdkmath.Int {
 	balance := sdk.ZeroDec()
 
 	s.keeper.stakingKeeper.IterateDelegatorDelegations(ctx, delegator, func(delegation stakingtypes.Delegation) bool {

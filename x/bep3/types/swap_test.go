@@ -7,6 +7,7 @@ import (
 
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -69,7 +70,7 @@ func (suite *AtomicSwapTestSuite) TestNewAtomicSwap() {
 		{
 			"invalid amount",
 			types.AtomicSwap{
-				Amount: sdk.Coins{sdk.Coin{Denom: "BNB", Amount: sdk.NewInt(10)}},
+				Amount: sdk.Coins{sdk.Coin{Denom: "BNB", Amount: sdkmath.NewInt(10)}},
 			},
 			false,
 		},

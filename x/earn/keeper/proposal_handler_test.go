@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/testutil"
@@ -28,7 +29,7 @@ func (suite *proposalTestSuite) TestCommunityDepositProposal() {
 	ctx := suite.Ctx
 	macc := distKeeper.GetDistributionAccount(ctx)
 	fundAmount := sdk.NewCoins(sdk.NewInt64Coin("ukava", 100000000))
-	depositAmount := sdk.NewCoin("ukava", sdk.NewInt(10000000))
+	depositAmount := sdk.NewCoin("ukava", sdkmath.NewInt(10000000))
 	suite.Require().NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
 	feePool := distKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = sdk.NewDecCoinsFromCoins(fundAmount...)
@@ -52,7 +53,7 @@ func (suite *proposalTestSuite) TestCommunityWithdrawProposal() {
 	ctx := suite.Ctx
 	macc := distKeeper.GetDistributionAccount(ctx)
 	fundAmount := sdk.NewCoins(sdk.NewInt64Coin("ukava", 100000000))
-	depositAmount := sdk.NewCoin("ukava", sdk.NewInt(10000000))
+	depositAmount := sdk.NewCoin("ukava", sdkmath.NewInt(10000000))
 	suite.Require().NoError(suite.App.FundModuleAccount(ctx, macc.GetName(), fundAmount))
 	feePool := distKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = sdk.NewDecCoinsFromCoins(fundAmount...)

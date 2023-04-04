@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	"github.com/kava-labs/kava/x/cdp/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,15 +22,15 @@ func TestGenesisTotalPrincipal(t *testing.T) {
 	tests := []struct {
 		giveName           string
 		giveCollateralType string
-		givePrincipal      sdk.Int
+		givePrincipal      sdkmath.Int
 		wantIsError        bool
 		wantError          string
 	}{
-		{"valid", "usdx", sdk.NewInt(10), false, ""},
-		{"zero principal", "usdx", sdk.NewInt(0), false, ""},
-		{"invalid empty collateral type", "", sdk.NewInt(10), true, "collateral type cannot be empty"},
-		{"invalid negative principal", "usdx", sdk.NewInt(-10), true, "total principal should be positive"},
-		{"both invalid", "", sdk.NewInt(-10), true, "collateral type cannot be empty"},
+		{"valid", "usdx", sdkmath.NewInt(10), false, ""},
+		{"zero principal", "usdx", sdkmath.NewInt(0), false, ""},
+		{"invalid empty collateral type", "", sdkmath.NewInt(10), true, "collateral type cannot be empty"},
+		{"invalid negative principal", "usdx", sdkmath.NewInt(-10), true, "total principal should be positive"},
+		{"both invalid", "", sdkmath.NewInt(-10), true, "collateral type cannot be empty"},
 	}
 
 	for _, tt := range tests {

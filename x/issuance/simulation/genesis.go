@@ -44,7 +44,7 @@ package simulation
 // 		if rateLimited {
 // 			timeLimit := time.Duration(3600000000000 + (r.Intn(24) + 1))
 // 			assetLimit := simulation.RandIntBetween(r, 100000000000, 1000000000000)
-// 			rateLimit = types.NewRateLimit(true, sdk.NewInt(int64(assetLimit)), timeLimit)
+// 			rateLimit = types.NewRateLimit(true, sdkmath.NewInt(int64(assetLimit)), timeLimit)
 // 		}
 // 		randomAsset := types.NewAsset(owner.Address, denom, []sdk.AccAddress{}, paused, true, rateLimit)
 // 		randomAssets = append(randomAssets, randomAsset)

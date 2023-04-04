@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/issuance/types"
@@ -28,12 +29,12 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 			"valid supply increase",
 			args{
 				assets: []types.Asset{
-					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
-				coin: sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				coin: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 			},
 			errArgs{
 				expectPass: true,
@@ -44,12 +45,12 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 			"over limit increase",
 			args{
 				assets: []types.Asset{
-					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
-				coin: sdk.NewCoin("usdtoken", sdk.NewInt(10000000001)),
+				coin: sdk.NewCoin("usdtoken", sdkmath.NewInt(10000000001)),
 			},
 			errArgs{
 				expectPass: false,
