@@ -51,7 +51,7 @@ func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
 
 	// expect the tx to fail!
 	suite.ErrorAs(res.Err, &util.ErrEvmFailedToBroadcast{})
-	suite.ErrorContains(res.Err, "insufficient fees")
+	suite.ErrorContains(res.Err, "insufficient fee")
 }
 
 func getMinFeeFromAppToml(kavaHome string) (sdk.DecCoins, error) {
