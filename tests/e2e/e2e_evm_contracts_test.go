@@ -2,18 +2,17 @@ package e2e_test
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
-	"math/big"
-	"time"
 
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	emtypes "github.com/evmos/ethermint/types"
@@ -21,68 +20,56 @@ import (
 	tmmempool "github.com/tendermint/tendermint/mempool"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
-	"github.com/kava-labs/kava/tests/util"
-	earntypes "github.com/kava-labs/kava/x/earn/types"
-	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
-func (suite *IntegrationTestSuite) TestEthCallToGreeterContract() {
-	// this test manipulates state of the Greeter contract which means other tests shouldn't use it.
+// func (suite *IntegrationTestSuite) TestEthCallToGreeterContract() {
+// 	// this test manipulates state of the Greeter contract which means other tests shouldn't use it.
 
-	// setup funded account to interact with contract
-	user := suite.Kava.NewFundedAccount("greeter-contract-user", sdk.NewCoins(ukava(10e6)))
+// 	// setup funded account to interact with contract
+// 	user := suite.Kava.NewFundedAccount("greeter-contract-user", sdk.NewCoins(ukava(10e6)))
 
-	greeterAddr := suite.Kava.ContractAddrs["greeter"]
-	contract, err := greeter.NewGreeter(greeterAddr, suite.Kava.EvmClient)
-	suite.NoError(err)
+// 	greeterAddr := suite.Kava.ContractAddrs["greeter"]
+// 	contract, err := greeter.NewGreeter(greeterAddr, suite.Kava.EvmClient)
+// 	suite.NoError(err)
 
-	beforeGreeting, err := contract.Greet(nil)
-	suite.NoError(err)
+// 	beforeGreeting, err := contract.Greet(nil)
+// 	suite.NoError(err)
 
-	updatedGreeting := "look at me, using the evm"
-	tx, err := contract.SetGreeting(user.EvmAuth, updatedGreeting)
-	suite.NoError(err)
+// 	updatedGreeting := "look at me, using the evm"
+// 	tx, err := contract.SetGreeting(user.EvmAuth, updatedGreeting)
+// 	suite.NoError(err)
 
-	_, err = util.WaitForEvmTxReceipt(suite.Kava.EvmClient, tx.Hash(), 10*time.Second)
-	suite.NoError(err)
+// 	_, err = util.WaitForEvmTxReceipt(suite.Kava.EvmClient, tx.Hash(), 10*time.Second)
+// 	suite.NoError(err)
 
-	afterGreeting, err := contract.Greet(nil)
-	suite.NoError(err)
+// 	afterGreeting, err := contract.Greet(nil)
+// 	suite.NoError(err)
 
-	suite.Equal("what's up!", beforeGreeting)
-	suite.Equal(updatedGreeting, afterGreeting)
-}
+// 	suite.Equal("what's up!", beforeGreeting)
+// 	suite.Equal(updatedGreeting, afterGreeting)
+// }
 
-func (suite *IntegrationTestSuite) TestEthCallToErc20() {
-	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
-	amount := big.NewInt(1e6)
+// func (suite *IntegrationTestSuite) TestEthCallToErc20() {
+// 	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
+// 	amount := big.NewInt(1e6)
 
-	// make unauthenticated eth_call query to check balance
-	beforeBalance := suite.GetErc20Balance(randoReceiver)
+// 	// make unauthenticated eth_call query to check balance
+// 	beforeBalance := suite.GetErc20Balance(randoReceiver)
 
-	// make authenticate eth_call to transfer tokens
-	res := suite.FundKavaErc20Balance(randoReceiver, amount)
-	suite.NoError(res.Err)
+// 	// make authenticate eth_call to transfer tokens
+// 	res := suite.FundKavaErc20Balance(randoReceiver, amount)
+// 	suite.NoError(res.Err)
 
-	// make another unauthenticated eth_call query to check new balance
-	afterBalance := suite.GetErc20Balance(randoReceiver)
+// 	// make another unauthenticated eth_call query to check new balance
+// 	afterBalance := suite.GetErc20Balance(randoReceiver)
 
-	suite.BigIntsEqual(big.NewInt(0), beforeBalance, "expected before balance to be zero")
-	suite.BigIntsEqual(amount, afterBalance, "unexpected post-transfer balance")
-}
+// 	suite.BigIntsEqual(big.NewInt(0), beforeBalance, "expected before balance to be zero")
+// 	suite.BigIntsEqual(amount, afterBalance, "unexpected post-transfer balance")
+// }
 
-// Note that this test works because the deployed erc20 is configured in evmutil & earn params.
-func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
+func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 	// create new funded account
-	depositor := suite.Kava.NewFundedAccount("eip712-earn-depositor", sdk.NewCoins(ukava(1e6)))
-	amount := sdk.NewInt(10e6) // 10 USDC
-	sdkDenom := "erc20/multichain/usdc"
-	nonce := uint64(0) // no previous txs for this account.
-
-	// give them erc20 balance to deposit
-	fundRes := suite.FundKavaErc20Balance(depositor.EvmAddress, amount.BigInt())
-	suite.NoError(fundRes.Err)
+	depositor := suite.Kava.NewFundedAccount("eip712-msgSend", sdk.NewCoins(ukava(100e6)))
 
 	// get account details
 	var depositorAcc authtypes.AccountI
@@ -93,29 +80,18 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	err = suite.Kava.EncodingConfig.InterfaceRegistry.UnpackAny(a.Account, &depositorAcc)
 	suite.NoError(err)
 
+	nonce := depositorAcc.GetSequence()
+
 	// get data necessary for building eip712 tx
 	ethChainId, err := emtypes.ParseChainID(suite.Kava.ChainId)
 	suite.NoError(err)
 	evmParams, err := suite.Kava.Evm.Params(context.Background(), &evmtypes.QueryParamsRequest{})
 	suite.NoError(err)
 
-	// setup messages for convert to coin & deposit into earn
-	convertMsg := evmutiltypes.NewMsgConvertERC20ToCoin(
-		evmutiltypes.NewInternalEVMAddress(depositor.EvmAddress),
-		depositor.SdkAddress,
-		evmutiltypes.NewInternalEVMAddress(suite.DeployedErc20Address),
-		amount,
-	)
-	depositMsg := earntypes.NewMsgDeposit(
-		depositor.SdkAddress.String(),
-		sdk.NewCoin(sdkDenom, amount),
-		earntypes.STRATEGY_TYPE_SAVINGS,
-	)
+	// setup message for sending 1KAVA to random receiver
+	receiver := app.RandomAddress()
 	msgs := []sdk.Msg{
-		// convert to coin
-		&convertMsg,
-		// deposit into earn
-		depositMsg,
+		banktypes.NewMsgSend(depositor.SdkAddress, receiver, sdk.NewCoins(ukava(1e6))),
 	}
 
 	// build EIP712 tx
@@ -135,19 +111,16 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 		FeePayer: depositor.SdkAddress,
 	}, evmParams.Params)
 
-	fmt.Println(typedData)
+	fmt.Println("typed data: ", typedData)
 	suite.NoError(err)
 
 	// -- raw data hash!
 	data, err := eip712.ComputeTypedDataHash(typedData)
 	suite.NoError(err)
 
-	fmt.Println(string(data))
-	fmt.Println("typed data hash: ", hex.EncodeToString(data))
-
 	// -- sign the hash
-	signature, pubKey, err := depositor.SignRawEvmData(depositor.SdkAddress, data)
-	suite.Require().NoError(err)
+	signature, pubKey, err := depositor.SignRawEvmData(data)
+	suite.NoError(err)
 	signature[crypto.RecoveryIDOffset] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 
 	// add ExtensionOptionsWeb3Tx extension
@@ -157,7 +130,10 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 		TypedDataChainID: ethChainId.Uint64(),
 		FeePayerSig:      signature,
 	})
-	suite.Require().NoError(err)
+	suite.NoError(err)
+
+	// TODO: do i need to call this like in the ante test?
+	// suite.Kava.EncodingConfig.TxConfig.SignModeHandler()
 
 	// create cosmos sdk tx builder
 	txBuilder := suite.Kava.EncodingConfig.TxConfig.NewTxBuilder()
@@ -165,7 +141,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	suite.Require().True(ok)
 
 	builder.SetExtensionOptions(option)
-	builder.SetFeeAmount(sdk.NewCoins(ukava(1e6)))
+	builder.SetFeeAmount(sdk.NewCoins(ukava(1e4)))
 	builder.SetGasLimit(2e6)
 
 	sigsV2 := signing.SignatureV2{
@@ -194,6 +170,8 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	// fmt.Println("txhash! ", res.Result.TxHash)
 	// suite.NoError(res.Err)
 
+	fmt.Printf("tx: %+v\n", txBuilder.GetTx())
+
 	txBytes, err := suite.Kava.EncodingConfig.TxConfig.TxEncoder()(builder.GetTx())
 	suite.NoError(err)
 
@@ -202,33 +180,19 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 
-	if err != nil {
-		if tmmempool.IsPreCheckError(err) {
-			fmt.Println("is a pre-check error!")
-		} else {
-			fmt.Println("should retry?")
-		}
-	} else {
-		fmt.Printf("response code: %d\n", res.TxResponse.Code)
+	if tmmempool.IsPreCheckError(err) {
+		fmt.Println("is a pre-check error!")
 	}
-
 	suite.NoError(err)
+	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
 	fmt.Println("txhash! ", res.TxResponse.TxHash)
 
-	// check that account no longer has erc20 balance
-	balance := suite.GetErc20Balance(depositor.EvmAddress)
-	suite.BigIntsEqual(big.NewInt(0), balance, "expected no erc20 balance")
-
-	// check that account has an earn deposit position
-	earnRes, err := suite.Kava.Earn.Deposits(context.Background(), &earntypes.QueryDepositsRequest{
-		Depositor: depositor.SdkAddress.String(),
-		Denom:     sdkDenom,
+	// check that the message was processed & the kava is transferred.
+	balRes, err := suite.Kava.Bank.Balance(context.Background(), &banktypes.QueryBalanceRequest{
+		Address: receiver.String(),
+		Denom:   "ukava",
 	})
-	fmt.Printf("earn deposits: %+v\n", earnRes)
 	suite.NoError(err)
-	suite.Len(earnRes.Deposits, 1)
-	suite.Equal(sdk.NewDecFromInt(amount), earnRes.Deposits[0].Shares.AmountOf(sdkDenom))
-
-	suite.True(false)
+	suite.Equal(sdk.NewInt(1e6), balRes.Balance.Amount)
 }

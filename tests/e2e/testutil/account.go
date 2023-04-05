@@ -29,11 +29,10 @@ type SigningAccount struct {
 	name     string
 	mnemonic string
 
+	evmPrivKey *ethsecp256k1.PrivKey
 	evmSigner  *util.EvmSigner
 	evmReqChan chan<- util.EvmTxRequest
 	evmResChan <-chan util.EvmTxResponse
-
-	SignRawEvmData func(address sdk.Address, msg []byte) ([]byte, types.PubKey, error)
 
 	kavaSigner *util.KavaSigner
 	sdkReqChan chan<- util.KavaMsgRequest
@@ -93,8 +92,6 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 	)
 	require.NoErrorf(chain.t, err, "failed to create evm signer")
 
-	rawSigner := emtests.NewSigner(privKey)
-
 	evmReqChan := make(chan util.EvmTxRequest)
 	evmResChan := evmSigner.Run(evmReqChan)
 
@@ -105,11 +102,10 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 		mnemonic: mnemonic,
 		l:        logger,
 
+		evmPrivKey: privKey,
 		evmSigner:  evmSigner,
 		evmReqChan: evmReqChan,
 		evmResChan: evmResChan,
-
-		SignRawEvmData: rawSigner.SignByAddress,
 
 		kavaSigner: kavaSigner,
 		sdkReqChan: sdkReqChan,
@@ -173,6 +169,11 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	response.Receipt, response.Err = util.WaitForEvmTxReceipt(a.evmSigner.EvmClient, res.TxHash, 10*time.Second)
 
 	return response
+}
+
+func (a *SigningAccount) SignRawEvmData(msg []byte) ([]byte, types.PubKey, error) {
+	keyringSigner := emtests.NewSigner(a.evmPrivKey)
+	return keyringSigner.SignByAddress(a.SdkAddress, msg)
 }
 
 // NewFundedAccount creates a SigningAccount for a random account & funds the account from the whale.

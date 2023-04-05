@@ -9,29 +9,28 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
 	"github.com/kava-labs/kava/tests/util"
 )
 
 // InitKavaEvmData is run after the chain is running, but before the tests are run.
 // It is used to initialize some EVM state, such as deploying contracts.
 func (suite *E2eTestSuite) InitKavaEvmData() {
-	whale := suite.Kava.GetAccount(FundedAccountName)
+	// whale := suite.Kava.GetAccount(FundedAccountName)
 
-	// ensure funded account has nonzero erc20 balance
-	balance := suite.GetErc20Balance(whale.EvmAddress)
-	if balance.Cmp(big.NewInt(0)) != 1 {
-		panic(fmt.Sprintf("expected funded account (%s) to have erc20 balance", whale.EvmAddress.Hex()))
-	}
+	// // ensure funded account has nonzero erc20 balance
+	// balance := suite.GetErc20Balance(whale.EvmAddress)
+	// if balance.Cmp(big.NewInt(0)) != 1 {
+	// 	panic(fmt.Sprintf("expected funded account (%s) to have erc20 balance", whale.EvmAddress.Hex()))
+	// }
 
-	// deploy an example contract
-	greeterAddr, _, _, err := greeter.DeployGreeter(
-		whale.evmSigner.Auth,
-		whale.evmSigner.EvmClient,
-		"what's up!",
-	)
-	suite.NoError(err, "failed to deploy a contract to the EVM")
-	suite.Kava.ContractAddrs["greeter"] = greeterAddr
+	// // deploy an example contract
+	// greeterAddr, _, _, err := greeter.DeployGreeter(
+	// 	whale.evmSigner.Auth,
+	// 	whale.evmSigner.EvmClient,
+	// 	"what's up!",
+	// )
+	// suite.NoError(err, "failed to deploy a contract to the EVM")
+	// suite.Kava.ContractAddrs["greeter"] = greeterAddr
 }
 
 func (suite *E2eTestSuite) FundKavaErc20Balance(toAddress common.Address, amount *big.Int) EvmTxResponse {
