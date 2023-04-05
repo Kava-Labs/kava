@@ -10,14 +10,14 @@ on:
         required: true
         type: string
       ssm-document-name:
-          required: true
-          type: string
+        required: true
+        type: string
       playbook-name:
-          required: true
-          type: string
+        required: true
+        type: string
       playbook-infrastructure-branch:
-          required: true
-          type: string
+        required: true
+        type: string
     secrets:
       CI_AWS_KEY_ID:
         required: true
@@ -38,7 +38,7 @@ jobs:
       - name: checkout repo from current commit
         uses: actions/checkout@v3
       - name: take the chain offline
-        run:  bash ${GITHUB_WORKSPACE}/.github/scripts/put-all-chain-nodes-on-standby.sh
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/put-all-chain-nodes-on-standby.sh
         env:
           CHAIN_ID: ${{ inputs.chain-id }}
           AWS_REGION: ${{ inputs.aws-region }}
@@ -54,11 +54,11 @@ jobs:
       - name: set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.18'
+          go-version: "1.19"
           check-latest: true
           cache: true
       - name: build kava node updater
-        run:  cd infrastructure/cli/kava-node-updater && make install && cd ../../../
+        run: cd infrastructure/cli/kava-node-updater && make install && cd ../../../
       - name: run reset playbook on all chain nodes
         run: |
           kava-node-updater \
