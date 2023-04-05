@@ -89,7 +89,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 						HandlerOptions: options,
 						isEIP712:       true,
 					})
-					fmt.Println("WE ARE USING EIP712 ANTE HANDLER")
 				default:
 					return ctx, sdkerrors.Wrapf(
 						sdkerrors.ErrUnknownExtensionOptions,
@@ -134,7 +133,6 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 
 	var sigVerification sdk.AnteDecorator = authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler)
 	if options.isEIP712 {
-		fmt.Println("AHHHHH! ANTE HANDLER!!!")
 		sigVerification = evmante.NewLegacyEip712SigVerificationDecorator(options.AccountKeeper, options.SignModeHandler, options.EvmKeeper)
 	}
 

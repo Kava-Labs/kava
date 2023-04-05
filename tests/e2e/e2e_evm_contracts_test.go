@@ -2,7 +2,6 @@ package e2e_test
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -12,6 +11,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/kava-labs/kava/app"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+
 	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
 	"github.com/kava-labs/kava/tests/util"
 )
@@ -84,17 +86,13 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 	txBytes, err := suite.Kava.EncodingConfig.TxConfig.TxEncoder()(tx)
 	suite.NoError(err)
 
+	// broadcast tx
 	res, err := suite.Kava.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
 		TxBytes: txBytes,
 		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
-
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
-
-	fmt.Println("txhash! ", res.TxResponse.TxHash)
-	fmt.Println("height: ", res.TxResponse.Height)
-	fmt.Println("logs: ", res.TxResponse.RawLog)
 
 	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 6*time.Second)
 	suite.NoError(err)
@@ -106,4 +104,72 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 	})
 	suite.NoError(err)
 	suite.Equal(sdk.NewInt(1e6), balRes.Balance.Amount)
+}
+
+// Note that this test works because the deployed erc20 is configured in evmutil & earn params.
+func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
+	amount := sdk.NewInt(10e6) // 10 USDC
+	sdkDenom := "erc20/multichain/usdc"
+
+	// create new funded account
+	depositor := suite.Kava.NewFundedAccount("eip712-earn-depositor", sdk.NewCoins(ukava(1e6)))
+	// give them erc20 balance to deposit
+	fundRes := suite.FundKavaErc20Balance(depositor.EvmAddress, amount.BigInt())
+	suite.NoError(fundRes.Err)
+
+	// setup messages for convert to coin & deposit into earn
+	convertMsg := evmutiltypes.NewMsgConvertERC20ToCoin(
+		evmutiltypes.NewInternalEVMAddress(depositor.EvmAddress),
+		depositor.SdkAddress,
+		evmutiltypes.NewInternalEVMAddress(suite.DeployedErc20Address),
+		amount,
+	)
+	depositMsg := earntypes.NewMsgDeposit(
+		depositor.SdkAddress.String(),
+		sdk.NewCoin(sdkDenom, amount),
+		earntypes.STRATEGY_TYPE_SAVINGS,
+	)
+	msgs := []sdk.Msg{
+		// convert to coin
+		&convertMsg,
+		// deposit into earn
+		depositMsg,
+	}
+
+	// create tx
+	tx := suite.NewEip712TxBuilder(
+		depositor,
+		suite.Kava,
+		1e6,
+		sdk.NewCoins(ukava(1e4)),
+		msgs,
+		"depositing my USDC into Earn!",
+	).GetTx()
+
+	txBytes, err := suite.Kava.EncodingConfig.TxConfig.TxEncoder()(tx)
+	suite.NoError(err)
+
+	// broadcast tx
+	res, err := suite.Kava.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
+		TxBytes: txBytes,
+		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
+	})
+	suite.NoError(err)
+	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
+
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 6*time.Second)
+	suite.NoError(err)
+
+	// check that depositor no longer has erc20 balance
+	balance := suite.GetErc20Balance(depositor.EvmAddress)
+	suite.BigIntsEqual(big.NewInt(0), balance, "expected no erc20 balance")
+
+	// check that account has an earn deposit position
+	earnRes, err := suite.Kava.Earn.Deposits(context.Background(), &earntypes.QueryDepositsRequest{
+		Depositor: depositor.SdkAddress.String(),
+		Denom:     sdkDenom,
+	})
+	suite.NoError(err)
+	suite.Len(earnRes.Deposits, 1)
+	suite.Equal(sdk.NewDecFromInt(amount), earnRes.Deposits[0].Shares.AmountOf(sdkDenom))
 }
