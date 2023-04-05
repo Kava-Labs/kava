@@ -7,6 +7,7 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -31,6 +32,10 @@ func init() {
 	cryptocodec.RegisterCrypto(amino)
 	// amino is not sealed so that other modules can register their own pubproposal and/or permission types.
 
+	// Register all Amino interfaces and concrete types on the authz Amino codec so that this can later be
+	// used to properly serialize MsgGrant and MsgExec instances
+	RegisterLegacyAminoCodec(authzcodec.Amino)
+
 	// CommitteeChange/Delete proposals along with Permission types are
 	// registered on gov's ModuleCdc
 	RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
@@ -42,6 +47,7 @@ func init() {
 	RegisterProposalTypeCodec(govv1beta1.TextProposal{}, "cosmos-sdk/TextProposal")
 	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
+
 }
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
