@@ -1,57 +1,73 @@
 package e2e_test
 
-// func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
-// 	// read expected min fee from app.toml
-// 	minGasPrices, err := getMinFeeFromAppToml(suite.KavaHomePath())
-// 	suite.NoError(err)
+import (
+	"context"
+	"math/big"
+	"os"
+	"path/filepath"
+	"strings"
 
-// 	// evm uses akava, get akava min fee
-// 	evmMinGas := minGasPrices.AmountOf("akava").TruncateInt().BigInt()
+	"github.com/pelletier/go-toml/v2"
 
-// 	// returns eth_gasPrice, units in kava
-// 	gasPrice, err := suite.Kava.EvmClient.SuggestGasPrice(context.Background())
-// 	suite.NoError(err)
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-// 	suite.Equal(evmMinGas, gasPrice)
-// }
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/tests/util"
+)
 
-// func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
-// 	// setup sender & receiver
-// 	sender := suite.Kava.NewFundedAccount("evm-min-fee-test-sender", sdk.NewCoins(ukava(2e6)))
-// 	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
+func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
+	// read expected min fee from app.toml
+	minGasPrices, err := getMinFeeFromAppToml(suite.KavaHomePath())
+	suite.NoError(err)
 
-// 	// get min gas price for evm (from app.toml)
-// 	minFees, err := getMinFeeFromAppToml(suite.KavaHomePath())
-// 	suite.NoError(err)
-// 	minGasPrice := minFees.AmountOf("akava").TruncateInt()
+	// evm uses akava, get akava min fee
+	evmMinGas := minGasPrices.AmountOf("akava").TruncateInt().BigInt()
 
-// 	// attempt tx with less than min gas price (min fee - 1)
-// 	tooLowGasPrice := minGasPrice.Sub(sdk.OneInt()).BigInt()
-// 	req := util.EvmTxRequest{
-// 		Tx:   ethtypes.NewTransaction(0, randoReceiver, big.NewInt(1e6), 1e5, tooLowGasPrice, nil),
-// 		Data: "this tx should fail because it's gas price is too low",
-// 	}
-// 	res := sender.SignAndBroadcastEvmTx(req)
+	// returns eth_gasPrice, units in kava
+	gasPrice, err := suite.Kava.EvmClient.SuggestGasPrice(context.Background())
+	suite.NoError(err)
 
-// 	// expect the tx to fail!
-// 	suite.ErrorAs(res.Err, &util.ErrEvmFailedToBroadcast{})
-// 	suite.ErrorContains(res.Err, "insufficient fee")
-// }
+	suite.Equal(evmMinGas, gasPrice)
+}
 
-// func getMinFeeFromAppToml(kavaHome string) (sdk.DecCoins, error) {
-// 	// read the expected min gas price from app.toml
-// 	parsed := struct {
-// 		MinGasPrices string `toml:"minimum-gas-prices"`
-// 	}{}
-// 	appToml, err := os.ReadFile(filepath.Join(kavaHome, "config", "app.toml"))
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	err = toml.Unmarshal(appToml, &parsed)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
+	// setup sender & receiver
+	sender := suite.Kava.NewFundedAccount("evm-min-fee-test-sender", sdk.NewCoins(ukava(2e6)))
+	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
 
-// 	// convert to dec coins
-// 	return sdk.ParseDecCoins(strings.ReplaceAll(parsed.MinGasPrices, ";", ","))
-// }
+	// get min gas price for evm (from app.toml)
+	minFees, err := getMinFeeFromAppToml(suite.KavaHomePath())
+	suite.NoError(err)
+	minGasPrice := minFees.AmountOf("akava").TruncateInt()
+
+	// attempt tx with less than min gas price (min fee - 1)
+	tooLowGasPrice := minGasPrice.Sub(sdk.OneInt()).BigInt()
+	req := util.EvmTxRequest{
+		Tx:   ethtypes.NewTransaction(0, randoReceiver, big.NewInt(1e6), 1e5, tooLowGasPrice, nil),
+		Data: "this tx should fail because it's gas price is too low",
+	}
+	res := sender.SignAndBroadcastEvmTx(req)
+
+	// expect the tx to fail!
+	suite.ErrorAs(res.Err, &util.ErrEvmFailedToBroadcast{})
+	suite.ErrorContains(res.Err, "insufficient fee")
+}
+
+func getMinFeeFromAppToml(kavaHome string) (sdk.DecCoins, error) {
+	// read the expected min gas price from app.toml
+	parsed := struct {
+		MinGasPrices string `toml:"minimum-gas-prices"`
+	}{}
+	appToml, err := os.ReadFile(filepath.Join(kavaHome, "config", "app.toml"))
+	if err != nil {
+		return nil, err
+	}
+	err = toml.Unmarshal(appToml, &parsed)
+	if err != nil {
+		return nil, err
+	}
+
+	// convert to dec coins
+	return sdk.ParseDecCoins(strings.ReplaceAll(parsed.MinGasPrices, ";", ","))
+}

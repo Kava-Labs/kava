@@ -20,17 +20,17 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	acc *SigningAccount, chain *Chain, gas uint64, gasAmount sdk.Coins, msgs []sdk.Msg, memo string,
 ) client.TxBuilder {
 	// get account details
-	var depositorAcc authtypes.AccountI
+	var accDetails authtypes.AccountI
 	a, err := chain.Auth.Account(context.Background(), &authtypes.QueryAccountRequest{
 		Address: acc.SdkAddress.String(),
 	})
 	suite.NoError(err)
-	err = chain.EncodingConfig.InterfaceRegistry.UnpackAny(a.Account, &depositorAcc)
+	err = chain.EncodingConfig.InterfaceRegistry.UnpackAny(a.Account, &accDetails)
 	suite.NoError(err)
 
 	// get nonce & acc number
-	nonce := depositorAcc.GetSequence()
-	accNumber := depositorAcc.GetAccountNumber()
+	nonce := accDetails.GetSequence()
+	accNumber := accDetails.GetAccountNumber()
 
 	// get chain id
 	pc, err := emtypes.ParseChainID(chain.ChainId)
