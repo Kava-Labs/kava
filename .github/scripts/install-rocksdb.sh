@@ -9,7 +9,7 @@ git clone https://github.com/facebook/rocksdb.git /home/runner/rocksdb
 
 cd /home/runner/rocksdb
 
-git checkout v7.7.3
+git checkout v7.9.2
 
 # install rocksdb locally
 sudo make -j $(nproc --all) install-shared
