@@ -1,0 +1,22 @@
+name: Continuous Integration (Rocksdb Build)
+
+on:
+  workflow_call:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+      - name: build rocksdb dependency
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
+        env:
+          ROCKSDB_VERSION: v7.10.2
+      - name: build application
+        run: make build COSMOS_BUILD_OPTIONS=rocksdb
