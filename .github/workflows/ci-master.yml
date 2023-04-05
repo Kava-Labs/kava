@@ -23,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: "1.18"
+          go-version: "1.19"
           check-latest: true
           cache: true
       - name: set build tag
@@ -31,7 +31,7 @@ jobs:
       - name: build rocksdb dependency
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
         env:
-          ROCKSDB_VERSION: v7.7.3
+          ROCKSDB_VERSION: v7.10.2
       - name: Build and upload release artifacts
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/publish-internal-release-artifacts.sh
         env:
