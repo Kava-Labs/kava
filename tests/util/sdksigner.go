@@ -2,10 +2,13 @@ package util
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/kava-labs/kava/app/params"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -16,6 +19,10 @@ import (
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	tmmempool "github.com/tendermint/tendermint/mempool"
+)
+
+var (
+	ErrSdkBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
 )
 
 type KavaMsgRequest struct {
@@ -418,4 +425,36 @@ func Sign(
 
 func GetAccAddress(privKey cryptotypes.PrivKey) sdk.AccAddress {
 	return privKey.PubKey().Address().Bytes()
+}
+
+// WaitForSdkTxCommit polls the chain until the tx hash is found or times out.
+// Returns an error immediately if tx hash is empty
+func WaitForSdkTxCommit(txClient txtypes.ServiceClient, txHash string, timeout time.Duration) (*sdk.TxResponse, error) {
+	if txHash == "" {
+		return nil, fmt.Errorf("tx hash is empty")
+	}
+	var err error
+	var txRes *sdk.TxResponse
+	var res *txtypes.GetTxResponse
+	outOfTime := time.After(timeout)
+	for {
+		select {
+		case <-outOfTime:
+			err = ErrSdkBroadcastTimeout
+		default:
+			res, err = txClient.GetTx(context.Background(), &txtypes.GetTxRequest{Hash: txHash})
+			if err != nil {
+				status, ok := grpcstatus.FromError(err)
+				if ok && status.Code() == codes.NotFound {
+					// tx still not committed to a block. retry!
+					time.Sleep(100 * time.Millisecond)
+					continue
+				}
+				break
+			}
+			txRes = res.TxResponse
+		}
+		break
+	}
+	return txRes, err
 }
