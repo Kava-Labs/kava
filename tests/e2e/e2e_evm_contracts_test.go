@@ -182,6 +182,17 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	err = builder.SetMsgs(msgs...)
 	suite.Require().NoError(err)
 
+	// tx := builder.GetTx()
+	// res := depositor.SignAndBroadcastKavaTx(util.KavaMsgRequest{
+	// 	Msgs:      tx.GetMsgs(),
+	// 	GasLimit:  tx.GetGas(),
+	// 	FeeAmount: tx.GetFee(),
+	// 	Memo:      tx.GetMemo(),
+	// 	Data:      "test eip but not really. do the messages work?",
+	// })
+	// fmt.Println("txhash! ", res.Result.TxHash)
+	// suite.NoError(res.Err)
+
 	txBytes, err := suite.Kava.EncodingConfig.TxConfig.TxEncoder()(builder.GetTx())
 	suite.NoError(err)
 
@@ -216,7 +227,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	fmt.Printf("earn deposits: %+v\n", earnRes)
 	suite.NoError(err)
 	suite.Len(earnRes.Deposits, 1)
-	suite.Equal(amount, earnRes.Deposits[0].Shares.AmountOf(sdkDenom))
+	suite.Equal(sdk.NewDecFromInt(amount), earnRes.Deposits[0].Shares.AmountOf(sdkDenom))
 
 	suite.True(false)
 }
