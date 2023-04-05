@@ -26,7 +26,7 @@ MsgWithdraw removes liquidity from a pool:
 // MsgWithdraw deposits liquidity into a pool
 type MsgWithdraw struct {
 	From      sdk.AccAddress `json:"from" yaml:"from"`
-	Shares    sdk.Int        `json:"shares" yaml:"shares"`
+	Shares    sdkmath.Int        `json:"shares" yaml:"shares"`
 	MinTokenA sdk.Coin       `json:"min_token_a" yaml:"min_token_a"`
 	MinTokenB sdk.Coin       `json:"min_token_b" yaml:"min_token_b"`
 	Deadline  int64          `json:"deadline" yaml:"deadline"`

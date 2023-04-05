@@ -42,7 +42,7 @@ type PoolRecord struct {
 	PoolID      string   `json:"pool_id" yaml:"pool_id"`
 	ReservesA   sdk.Coin `json:"reserves_a" yaml:"reserves_a"`
 	ReservesB   sdk.Coin `json:"reserves_b" yaml:"reserves_b"`
-	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
+	TotalShares sdkmath.Int  `json:"total_shares" yaml:"total_shares"`
 }
 
 // PoolRecords is a slice of PoolRecord
@@ -54,7 +54,7 @@ type ShareRecord struct {
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	// secondary / sort key
 	PoolID      string  `json:"pool_id" yaml:"pool_id"`
-	SharesOwned sdk.Int `json:"shares_owned" yaml:"shares_owned"`
+	SharesOwned sdkmath.Int `json:"shares_owned" yaml:"shares_owned"`
 }
 
 // ShareRecords is a slice of ShareRecord

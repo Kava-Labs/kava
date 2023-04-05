@@ -1,6 +1,7 @@
 package v0_16
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	v015hard "github.com/kava-labs/kava/x/hard/legacy/v0_15"
@@ -42,7 +43,7 @@ func migrateParams(params v015hard.Params) v016hard.Params {
 			LoanToValue:  sdk.MustNewDecFromStr("0.5"),
 		},
 		SpotMarketID:     "atom:usd:30",
-		ConversionFactor: sdk.NewInt(1000000),
+		ConversionFactor: sdkmath.NewInt(1000000),
 		InterestRateModel: v016hard.InterestRateModel{
 			BaseRateAPY:    sdk.ZeroDec(),
 			BaseMultiplier: sdk.MustNewDecFromStr("0.05"),

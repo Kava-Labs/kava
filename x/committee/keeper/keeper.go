@@ -3,11 +3,11 @@ package keeper
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -119,7 +119,7 @@ func (k Keeper) GetNextProposalID(ctx sdk.Context) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.NextProposalIDKey)
 	if bz == nil {
-		return 0, sdkerrors.Wrap(types.ErrInvalidGenesis, "next proposal ID not set at genesis")
+		return 0, errorsmod.Wrap(types.ErrInvalidGenesis, "next proposal ID not set at genesis")
 	}
 	return types.Uint64FromBytes(bz), nil
 }

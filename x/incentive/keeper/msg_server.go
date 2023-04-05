@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -93,7 +94,7 @@ func (k msgServer) ClaimSwapReward(goCtx context.Context, msg *types.MsgClaimSwa
 }
 
 func (k msgServer) ClaimSavingsReward(goCtx context.Context, msg *types.MsgClaimSavingsReward) (*types.MsgClaimSavingsRewardResponse, error) {
-	err := sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "savings claims disabled")
+	err := errorsmod.Wrap(sdkerrors.ErrInvalidRequest, "savings claims disabled")
 	return nil, err
 }
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -95,7 +96,7 @@ func (suite *Suite) AccountBalanceEqual(addr sdk.AccAddress, coins sdk.Coins) {
 }
 
 // AccountBalanceOfEqual checks if an account has the specified amount of one denom.
-func (suite *Suite) AccountBalanceOfEqual(addr sdk.AccAddress, denom string, amount sdk.Int) {
+func (suite *Suite) AccountBalanceOfEqual(addr sdk.AccAddress, denom string, amount sdkmath.Int) {
 	balance := suite.BankKeeper.GetBalance(suite.Ctx, addr, denom).Amount
 	suite.Equalf(amount, balance, "expected account balance to have %[1]s%[2]s, but got %[3]s%[2]s", amount, denom, balance)
 }
@@ -124,7 +125,7 @@ func (suite *Suite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAd
 		selfDelegation,
 		stakingtypes.Description{},
 		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	)
 	if err != nil {
 		return err
@@ -136,19 +137,19 @@ func (suite *Suite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAd
 }
 
 // NewBondCoin creates a Coin with the current staking denom.
-func (suite *Suite) NewBondCoin(amount sdk.Int) sdk.Coin {
+func (suite *Suite) NewBondCoin(amount sdkmath.Int) sdk.Coin {
 	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
 	return sdk.NewCoin(stakingDenom, amount)
 }
 
 // NewBondCoins creates Coins with the current staking denom.
-func (suite *Suite) NewBondCoins(amount sdk.Int) sdk.Coins {
+func (suite *Suite) NewBondCoins(amount sdkmath.Int) sdk.Coins {
 	return sdk.NewCoins(suite.NewBondCoin(amount))
 }
 
 // CreateNewUnbondedValidator creates a new validator in the staking module.
 // New validators are unbonded until the end blocker is run.
-func (suite *Suite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegation sdk.Int) stakingtypes.Validator {
+func (suite *Suite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegation sdkmath.Int) stakingtypes.Validator {
 	// Create a validator
 	err := suite.deliverMsgCreateValidator(suite.Ctx, addr, suite.NewBondCoin(selfDelegation))
 	suite.Require().NoError(err)
@@ -177,7 +178,7 @@ func (suite *Suite) SlashValidator(addr sdk.ValAddress, slashFraction sdk.Dec) {
 }
 
 // CreateDelegation delegates tokens to a validator.
-func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdk.Int) sdk.Dec {
+func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdk.Dec {
 	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
 	msg := stakingtypes.NewMsgDelegate(
 		delegator,
@@ -209,7 +210,7 @@ func (suite *Suite) DelegationSharesEqual(valAddr sdk.ValAddress, delegator sdk.
 
 // DelegationBalanceLessThan checks if a delegation's staked token balance is less the specified amount.
 // It treats not found delegations as having zero shares.
-func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator sdk.AccAddress, max sdk.Int) bool {
+func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator sdk.AccAddress, max sdkmath.Int) bool {
 	shares := sdk.ZeroDec()
 	del, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegator, valAddr)
 	if found {
@@ -226,7 +227,7 @@ func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator 
 
 // DelegationBalanceInDeltaBelow checks if a delegation's staked token balance is between `expected` and `expected - delta` inclusive.
 // It treats not found delegations as having zero shares.
-func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdk.Int) bool {
+func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdkmath.Int) bool {
 	shares := sdk.ZeroDec()
 	del, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegator, valAddr)
 	if found {
@@ -244,7 +245,7 @@ func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delega
 }
 
 // UnbondingDelegationInDeltaBelow checks if the total balance in an unbonding delegation is between `expected` and `expected - delta` inclusive.
-func (suite *Suite) UnbondingDelegationInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdk.Int) bool {
+func (suite *Suite) UnbondingDelegationInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdkmath.Int) bool {
 	tokens := sdk.ZeroInt()
 	ubd, found := suite.StakingKeeper.GetUnbondingDelegation(suite.Ctx, delegator, valAddr)
 	if found {

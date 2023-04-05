@@ -47,7 +47,7 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
 		return nil
 	}
-	interestFactor := CalculateInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
+	interestFactor := CalculateInterestFactor(borrowRateSpy, sdkmath.NewInt(timeElapsed))
 	interestAccumulated := (interestFactor.Mul(sdk.NewDecFromInt(totalPrincipalPrior))).RoundInt().Sub(totalPrincipalPrior)
 	if interestAccumulated.IsZero() {
 		// in the case accumulated interest rounds to zero, exit early without updating accrual time
@@ -86,9 +86,9 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 // CalculateInterestFactor calculates the simple interest scaling factor,
 // which is equal to: (per-second interest rate ** number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
-func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
+func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdkmath.Int) sdk.Dec {
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
-	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
+	scalingFactorInt := sdkmath.NewInt(int64(scalingFactor))
 
 	// Convert per-second interest rate to a uint scaled by 1e18
 	interestMantissa := sdkmath.NewUintFromBigInt(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().BigInt())
@@ -161,7 +161,7 @@ func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
 }
 
 // SynchronizeInterestForRiskyCDPs synchronizes the interest for the slice of cdps with the lowest collateral:debt ratio
-func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, slice sdk.Int, targetRatio sdk.Dec, collateralType string) error {
+func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, slice sdkmath.Int, targetRatio sdk.Dec, collateralType string) error {
 	cdps := k.GetSliceOfCDPsByRatioAndType(ctx, slice, targetRatio, collateralType)
 	for _, cdp := range cdps {
 		k.hooks.BeforeCDPModified(ctx, cdp)

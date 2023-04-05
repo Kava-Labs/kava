@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -106,7 +107,7 @@ func getCmdWithdraw() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			shares := sdk.NewInt(numShares)
+			shares := sdkmath.NewInt(numShares)
 
 			minTokenA, err := sdk.ParseCoinNormalized(args[1])
 			if err != nil {

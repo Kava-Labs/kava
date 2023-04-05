@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -23,7 +24,7 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 						LoanToValue:  sdk.MustNewDecFromStr("1"),
 					},
 					SpotMarketID:     "usdx:usd",
-					ConversionFactor: sdk.NewInt(USDX_CF),
+					ConversionFactor: sdkmath.NewInt(USDX_CF),
 					InterestRateModel: types.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0.05"),
 						BaseMultiplier: sdk.MustNewDecFromStr("2"),
@@ -41,7 +42,7 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
 					},
 					SpotMarketID:     "bnb:usd",
-					ConversionFactor: sdk.NewInt(USDX_CF),
+					ConversionFactor: sdkmath.NewInt(USDX_CF),
 					InterestRateModel: types.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0"),
 						BaseMultiplier: sdk.MustNewDecFromStr("0.05"),
@@ -59,7 +60,7 @@ func NewHARDGenState(cdc codec.JSONCodec) app.GenesisState {
 						LoanToValue:  sdk.MustNewDecFromStr("0.5"),
 					},
 					SpotMarketID:     "busd:usd",
-					ConversionFactor: sdk.NewInt(100000000),
+					ConversionFactor: sdkmath.NewInt(100000000),
 					InterestRateModel: types.InterestRateModel{
 						BaseRateAPY:    sdk.MustNewDecFromStr("0"),
 						BaseMultiplier: sdk.MustNewDecFromStr("0.5"),

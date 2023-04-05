@@ -66,7 +66,7 @@ type DebtAuction struct {
 // WeightedAddresses is a type for storing some addresses and associated weights.
 type WeightedAddresses struct {
 	Addresses []sdk.AccAddress
-	Weights   []sdk.Int
+	Weights   []sdkmath.Int
 }
 
 // CollateralAuction is a two phase auction.

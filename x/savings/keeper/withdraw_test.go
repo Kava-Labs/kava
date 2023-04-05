@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -20,7 +21,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 	valAccAddr, delegator := addrs[0], addrs[1]
 
 	valAddr := sdk.ValAddress(valAccAddr)
-	initialBalance := sdk.NewInt(1e9)
+	initialBalance := sdkmath.NewInt(1e9)
 
 	bkavaDenom := fmt.Sprintf("bkava-%s", valAddr.String())
 
@@ -50,12 +51,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			args{
 				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
-				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(900)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
+				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
 			},
 			errArgs{
 				expectPass:   true,
@@ -68,12 +69,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			args{
 				allowedDenoms:             []string{"bnb", "btcb", "ukava", "bkava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(100))),
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(100))),
-				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdk.NewInt(100))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(100))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(900)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(100))),
+				expectedDepositCoins:      sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(100))),
 			},
 			errArgs{
 				expectPass:   true,
@@ -85,11 +86,11 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			"valid: full withdraw",
 			args{
 				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
-				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				expectedModAccountBalance: sdk.Coins{},
 				expectedDepositCoins:      sdk.Coins{},
 			},
@@ -103,11 +104,11 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			"valid: withdraw exceeds deposit but is adjusted to match max deposit",
 			args{
 				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
-				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(300))),
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(300))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				expectedModAccountBalance: sdk.Coins{},
 				expectedDepositCoins:      sdk.Coins{},
 			},
@@ -122,11 +123,11 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			args{
 				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("btcb", sdk.NewInt(200))),
+				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("btcb", sdkmath.NewInt(200))),
 				expectedAccountBalance:    sdk.Coins{},
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
 				expectedDepositCoins:      sdk.Coins{},
 			},
 			errArgs{

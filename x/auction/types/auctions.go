@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/gogo/protobuf/proto"
@@ -250,7 +251,7 @@ func (a CollateralAuction) Validate() error {
 }
 
 // NewWeightedAddresses returns a new list addresses with weights.
-func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdk.Int) (WeightedAddresses, error) {
+func NewWeightedAddresses(addrs []sdk.AccAddress, weights []sdkmath.Int) (WeightedAddresses, error) {
 	wa := WeightedAddresses{
 		Addresses: addrs,
 		Weights:   weights,

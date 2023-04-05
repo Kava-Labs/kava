@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -173,7 +174,7 @@ func (suite *IntegrationTester) MintLiquidAnyValAddr(
 	_, found := suite.App.GetStakingKeeper().GetValidator(suite.Ctx, validator)
 	if !found {
 		// Create validator
-		if err := suite.DeliverMsgCreateValidator(validator, sdk.NewCoin("ukava", sdk.NewInt(1e9))); err != nil {
+		if err := suite.DeliverMsgCreateValidator(validator, sdk.NewCoin("ukava", sdkmath.NewInt(1e9))); err != nil {
 			return sdk.Coin{}, err
 		}
 
@@ -207,7 +208,7 @@ func (suite *IntegrationTester) DeliverMsgCreateValidator(address sdk.ValAddress
 		selfDelegation,
 		stakingtypes.Description{},
 		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-		sdk.NewInt(1_000_000),
+		sdkmath.NewInt(1_000_000),
 	)
 	if err != nil {
 		return err
@@ -438,7 +439,7 @@ func (suite *IntegrationTester) EarnRewardEquals(owner sdk.AccAddress, expected 
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
-func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdk.Int) {
+func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdkmath.Int) {
 	initCoins := sdk.NewCoins(sdk.NewCoin(suite.App.GetStakingKeeper().BondDenom(ctx), accAmt))
 
 	for _, pk := range pubKeys {

@@ -3,13 +3,14 @@ package keeper
 import (
 	"sort"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // splitIntIntoWeightedBuckets divides an initial +ve integer among several buckets in proportion to the buckets' weights
 // It uses the largest remainder method: https://en.wikipedia.org/wiki/Largest_remainder_method
 // See also: https://stackoverflow.com/questions/13483430/how-to-make-rounded-percentages-add-up-to-100
-func splitIntIntoWeightedBuckets(amount sdk.Int, buckets []sdk.Int) []sdk.Int {
+func splitIntIntoWeightedBuckets(amount sdkmath.Int, buckets []sdkmath.Int) []sdkmath.Int {
 	// Limit input to +ve numbers as algorithm hasn't been scoped to work with -ve numbers.
 	if amount.IsNegative() {
 		panic("negative amount")
@@ -53,7 +54,7 @@ func splitIntIntoWeightedBuckets(amount sdk.Int, buckets []sdk.Int) []sdk.Int {
 	leftToAllocate := amount.Sub(allocated)
 
 	// apportion according to largest remainder
-	results := make([]sdk.Int, len(quotients))
+	results := make([]sdkmath.Int, len(quotients))
 	for _, qr := range quotients {
 		results[qr.index] = qr.quo
 		if !leftToAllocate.IsZero() {
@@ -66,12 +67,12 @@ func splitIntIntoWeightedBuckets(amount sdk.Int, buckets []sdk.Int) []sdk.Int {
 
 type quoRem struct {
 	index int
-	quo   sdk.Int
-	rem   sdk.Int
+	quo   sdkmath.Int
+	rem   sdkmath.Int
 }
 
 // totalInts adds together sdk.Ints
-func totalInts(is ...sdk.Int) sdk.Int {
+func totalInts(is ...sdkmath.Int) sdkmath.Int {
 	total := sdk.ZeroInt()
 	for _, i := range is {
 		total = total.Add(i)

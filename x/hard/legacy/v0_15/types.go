@@ -3,6 +3,7 @@ package v0_15
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -36,7 +37,7 @@ type MoneyMarket struct {
 	Denom                  string            `json:"denom" yaml:"denom"`
 	BorrowLimit            BorrowLimit       `json:"borrow_limit" yaml:"borrow_limit"`
 	SpotMarketID           string            `json:"spot_market_id" yaml:"spot_market_id"`
-	ConversionFactor       sdk.Int           `json:"conversion_factor" yaml:"conversion_factor"`
+	ConversionFactor       sdkmath.Int       `json:"conversion_factor" yaml:"conversion_factor"`
 	InterestRateModel      InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
 	ReserveFactor          sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"`
 	KeeperRewardPercentage sdk.Dec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"`

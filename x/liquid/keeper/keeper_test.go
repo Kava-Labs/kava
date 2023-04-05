@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -103,7 +104,7 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 		selfDelegation,
 		stakingtypes.Description{},
 		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	)
 	if err != nil {
 		return err
@@ -115,19 +116,19 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 }
 
 // NewBondCoin creates a Coin with the current staking denom.
-func (suite *KeeperTestSuite) NewBondCoin(amount sdk.Int) sdk.Coin {
+func (suite *KeeperTestSuite) NewBondCoin(amount sdkmath.Int) sdk.Coin {
 	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
 	return sdk.NewCoin(stakingDenom, amount)
 }
 
 // NewBondCoins creates Coins with the current staking denom.
-func (suite *KeeperTestSuite) NewBondCoins(amount sdk.Int) sdk.Coins {
+func (suite *KeeperTestSuite) NewBondCoins(amount sdkmath.Int) sdk.Coins {
 	return sdk.NewCoins(suite.NewBondCoin(amount))
 }
 
 // CreateNewUnbondedValidator creates a new validator in the staking module.
 // New validators are unbonded until the end blocker is run.
-func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegation sdk.Int) stakingtypes.Validator {
+func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegation sdkmath.Int) stakingtypes.Validator {
 	// Create a validator
 	err := suite.deliverMsgCreateValidator(suite.Ctx, addr, suite.NewBondCoin(selfDelegation))
 	suite.Require().NoError(err)
@@ -156,7 +157,7 @@ func (suite *KeeperTestSuite) SlashValidator(addr sdk.ValAddress, slashFraction 
 }
 
 // CreateDelegation delegates tokens to a validator.
-func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdk.Int) sdk.Dec {
+func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdk.Dec {
 	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
 	msg := stakingtypes.NewMsgDelegate(
 		delegator,
@@ -174,7 +175,7 @@ func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator
 }
 
 // CreateRedelegation undelegates tokens from one validator and delegates to another.
-func (suite *KeeperTestSuite) CreateRedelegation(delegator sdk.AccAddress, fromValidator, toValidator sdk.ValAddress, amount sdk.Int) {
+func (suite *KeeperTestSuite) CreateRedelegation(delegator sdk.AccAddress, fromValidator, toValidator sdk.ValAddress, amount sdkmath.Int) {
 	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
 	msg := stakingtypes.NewMsgBeginRedelegate(
 		delegator,
@@ -189,7 +190,7 @@ func (suite *KeeperTestSuite) CreateRedelegation(delegator sdk.AccAddress, fromV
 }
 
 // CreateUnbondingDelegation undelegates tokens from a validator.
-func (suite *KeeperTestSuite) CreateUnbondingDelegation(delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Int) {
+func (suite *KeeperTestSuite) CreateUnbondingDelegation(delegator sdk.AccAddress, validator sdk.ValAddress, amount sdkmath.Int) {
 	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
 	msg := stakingtypes.NewMsgUndelegate(
 		delegator,

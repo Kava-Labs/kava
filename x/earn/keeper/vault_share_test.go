@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -36,7 +37,7 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 		{
 			name:          "initial 1:1",
 			beforeConvert: func() {},
-			giveAmount:    sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
+			giveAmount:    sdk.NewCoin(vaultDenom, sdkmath.NewInt(100)),
 			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewDec(100)),
 		},
 		{
@@ -46,18 +47,18 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 				// set total shares set total value for hard
 				// value is double than shares
 				// shares is 2x price now
-				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(100), sdk.NewInt(200))
+				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(100), sdkmath.NewInt(200))
 			},
-			giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
+			giveAmount: sdk.NewCoin(vaultDenom, sdkmath.NewInt(100)),
 			wantShares: types.NewVaultShare(vaultDenom, sdk.NewDec(50)),
 		},
 		{
 			name: "truncate",
 
 			beforeConvert: func() {
-				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(1000), sdk.NewInt(1001))
+				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(1000), sdkmath.NewInt(1001))
 			},
-			giveAmount: sdk.NewCoin(vaultDenom, sdk.NewInt(100)),
+			giveAmount: sdk.NewCoin(vaultDenom, sdkmath.NewInt(100)),
 			// 100 * 100 / 101 = 99.0099something
 			wantShares: types.NewVaultShare(vaultDenom, sdk.NewDec(100).MulInt64(1000).QuoInt64(1001)),
 		},
@@ -89,7 +90,7 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 func (suite *vaultShareTestSuite) addTotalShareAndValue(
 	vaultDenom string,
 	vaultShares sdk.Dec,
-	hardDeposit sdk.Int,
+	hardDeposit sdkmath.Int,
 ) {
 	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
 

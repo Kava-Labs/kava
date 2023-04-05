@@ -1,6 +1,7 @@
 package community
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -18,7 +19,7 @@ func NewCommunityPoolProposalHandler(k keeper.Keeper) govv1beta1.Handler {
 		case *types.CommunityPoolLendWithdrawProposal:
 			return keeper.HandleCommunityPoolLendWithdrawProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized community proposal content type: %T", c)
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized community proposal content type: %T", c)
 		}
 	}
 }

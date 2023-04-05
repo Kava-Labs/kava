@@ -26,10 +26,10 @@ package simulation
 
 // 	depositor := sdk.AccAddress(crypto.AddressHash([]byte("DepositorAddress")))
 // 	reserves := sdk.NewCoins(
-// 		sdk.NewCoin("ukava", sdk.NewInt(100000000)),
-// 		sdk.NewCoin("usdx", sdk.NewInt(200000000)),
+// 		sdk.NewCoin("ukava", sdkmath.NewInt(100000000)),
+// 		sdk.NewCoin("usdx", sdkmath.NewInt(200000000)),
 // 	)
-// 	shares := sdk.NewInt(123456)
+// 	shares := sdkmath.NewInt(123456)
 
 // 	poolRecord := types.NewPoolRecord(reserves, shares)
 // 	shareRecord := types.NewShareRecord(depositor, poolRecord.PoolID, shares)

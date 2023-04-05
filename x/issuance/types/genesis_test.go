@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -59,7 +60,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
-				supplies: []types.AssetSupply{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.NewInt(1000000)), time.Hour)},
+				supplies: []types.AssetSupply{types.NewAssetSupply(sdk.NewCoin("usdtoken", sdkmath.NewInt(1000000)), time.Hour)},
 			},
 			errArgs{
 				expectPass: true,
@@ -70,7 +71,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"with asset rate limit",
 			args{
 				assets: []types.Asset{
-					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(1000000000), time.Hour*24)),
+					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdkmath.NewInt(1000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{},
 			},

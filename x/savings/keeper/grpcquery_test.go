@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -232,8 +233,8 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalSupply() {
 	suite.Run("aggregates bkava denoms, accounting for slashing", func() {
 		suite.SetupTest()
 
-		address1, derivatives1, _ := suite.createAccountWithDerivatives(bkava1, sdk.NewInt(1e9))
-		address2, derivatives2, _ := suite.createAccountWithDerivatives(bkava2, sdk.NewInt(1e9))
+		address1, derivatives1, _ := suite.createAccountWithDerivatives(bkava1, sdkmath.NewInt(1e9))
+		address2, derivatives2, _ := suite.createAccountWithDerivatives(bkava2, sdkmath.NewInt(1e9))
 
 		// bond validators
 		staking.EndBlocker(suite.ctx, suite.tApp.GetStakingKeeper())
@@ -251,8 +252,8 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalSupply() {
 		expectedSupply := sdk.NewCoins(
 			sdk.NewCoin(
 				"bkava",
-				sdk.NewIntFromUint64(1e9). // derivative 1
-								Add(sdk.NewInt(1e9).MulRaw(80).QuoRaw(100))), // derivative 2: original value * 80%
+				sdkmath.NewIntFromUint64(1e9). // derivative 1
+								Add(sdkmath.NewInt(1e9).MulRaw(80).QuoRaw(100))), // derivative 2: original value * 80%
 		)
 
 		res, err := suite.queryServer.TotalSupply(
@@ -274,7 +275,7 @@ func (suite *grpcQueryTestSuite) addDeposits(deposits types.Deposits) {
 }
 
 // createUnbondedValidator creates an unbonded validator with the given amount of self-delegation.
-func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress, selfDelegation sdk.Coin, minSelfDelegation sdk.Int) error {
+func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress, selfDelegation sdk.Coin, minSelfDelegation sdkmath.Int) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
 		address,
 		ed25519.GenPrivKey().PubKey(),
@@ -294,13 +295,13 @@ func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress,
 
 // createAccountWithDerivatives creates an account with the given amount and denom of derivative token.
 // Internally, it creates a validator account and mints derivatives from the validator's self delegation.
-func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amount sdk.Int) (sdk.AccAddress, sdk.Coin, sdk.Coins) {
+func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amount sdkmath.Int) (sdk.AccAddress, sdk.Coin, sdk.Coins) {
 	bondDenom := suite.tApp.GetStakingKeeper().BondDenom(suite.ctx)
 	valAddress, err := liquidtypes.ParseLiquidStakingTokenDenom(denom)
 	suite.Require().NoError(err)
 	address := sdk.AccAddress(valAddress)
 
-	remainingSelfDelegation := sdk.NewInt(1e6)
+	remainingSelfDelegation := sdkmath.NewInt(1e6)
 	selfDelegation := sdk.NewCoin(
 		bondDenom,
 		amount.Add(remainingSelfDelegation),

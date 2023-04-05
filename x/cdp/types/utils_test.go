@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -65,16 +66,16 @@ func TestParseSortableDecBytes(t *testing.T) {
 
 func TestRelativePow(t *testing.T) {
 	tests := []struct {
-		args []sdk.Int
-		want sdk.Int
+		args []sdkmath.Int
+		want sdkmath.Int
 	}{
-		{[]sdk.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdk.OneInt()}, sdk.OneInt()},
-		{[]sdk.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdk.NewInt(10)}, sdk.NewInt(10)},
-		{[]sdk.Int{sdk.ZeroInt(), sdk.OneInt(), sdk.NewInt(10)}, sdk.ZeroInt()},
-		{[]sdk.Int{sdk.NewInt(10), sdk.NewInt(2), sdk.OneInt()}, sdk.NewInt(100)},
-		{[]sdk.Int{sdk.NewInt(210), sdk.NewInt(2), sdk.NewInt(100)}, sdk.NewInt(441)},
-		{[]sdk.Int{sdk.NewInt(2100), sdk.NewInt(2), sdk.NewInt(1000)}, sdk.NewInt(4410)},
-		{[]sdk.Int{sdk.NewInt(1000000001547125958), sdk.NewInt(600), sdk.NewInt(1000000000000000000)}, sdk.NewInt(1000000928276004850)},
+		{[]sdkmath.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdk.OneInt()}, sdk.OneInt()},
+		{[]sdkmath.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdkmath.NewInt(10)}, sdkmath.NewInt(10)},
+		{[]sdkmath.Int{sdk.ZeroInt(), sdk.OneInt(), sdkmath.NewInt(10)}, sdk.ZeroInt()},
+		{[]sdkmath.Int{sdkmath.NewInt(10), sdkmath.NewInt(2), sdk.OneInt()}, sdkmath.NewInt(100)},
+		{[]sdkmath.Int{sdkmath.NewInt(210), sdkmath.NewInt(2), sdkmath.NewInt(100)}, sdkmath.NewInt(441)},
+		{[]sdkmath.Int{sdkmath.NewInt(2100), sdkmath.NewInt(2), sdkmath.NewInt(1000)}, sdkmath.NewInt(4410)},
+		{[]sdkmath.Int{sdkmath.NewInt(1000000001547125958), sdkmath.NewInt(600), sdkmath.NewInt(1000000000000000000)}, sdkmath.NewInt(1000000928276004850)},
 	}
 	for i, tc := range tests {
 		res := RelativePow(tc.args[0], tc.args[1], tc.args[2])

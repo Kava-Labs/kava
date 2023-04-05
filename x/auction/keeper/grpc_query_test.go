@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -42,7 +43,7 @@ func TestGrpcAuctionsFilter(t *testing.T) {
 			c("usdx", 12345678),
 			types.WeightedAddresses{
 				Addresses: addrs,
-				Weights:   []sdk.Int{sdk.NewInt(100)},
+				Weights:   []sdkmath.Int{sdkmath.NewInt(100)},
 			},
 			c("debt", 12345678),
 		).WithID(2),
@@ -53,7 +54,7 @@ func TestGrpcAuctionsFilter(t *testing.T) {
 			c("usdx", 12345678),
 			types.WeightedAddresses{
 				Addresses: addrs,
-				Weights:   []sdk.Int{sdk.NewInt(100)},
+				Weights:   []sdkmath.Int{sdkmath.NewInt(100)},
 			},
 			c("debt", 12345678),
 		).WithID(3),

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -18,12 +19,12 @@ const (
 var (
 	KeyAssetParams = []byte("AssetParams")
 
-	DefaultBnbDeputyFixedFee sdk.Int = sdk.NewInt(1000) // 0.00001 BNB
-	DefaultMinAmount         sdk.Int = sdk.ZeroInt()
-	DefaultMaxAmount         sdk.Int = sdk.NewInt(1000000000000) // 10,000 BNB
-	DefaultMinBlockLock      uint64  = 220
-	DefaultMaxBlockLock      uint64  = 270
-	DefaultPreviousBlockTime         = tmtime.Canonical(time.Unix(1, 0))
+	DefaultBnbDeputyFixedFee sdkmath.Int = sdkmath.NewInt(1000) // 0.00001 BNB
+	DefaultMinAmount         sdkmath.Int = sdk.ZeroInt()
+	DefaultMaxAmount         sdkmath.Int = sdkmath.NewInt(1000000000000) // 10,000 BNB
+	DefaultMinBlockLock      uint64      = 220
+	DefaultMaxBlockLock      uint64      = 270
+	DefaultPreviousBlockTime             = tmtime.Canonical(time.Unix(1, 0))
 )
 
 // NewParams returns a new params object
@@ -41,8 +42,8 @@ func DefaultParams() Params {
 // NewAssetParam returns a new AssetParam
 func NewAssetParam(
 	denom string, coinID int64, limit SupplyLimit, active bool,
-	deputyAddr sdk.AccAddress, fixedFee sdk.Int, minSwapAmount sdk.Int,
-	maxSwapAmount sdk.Int, minBlockLock uint64, maxBlockLock uint64,
+	deputyAddr sdk.AccAddress, fixedFee sdkmath.Int, minSwapAmount sdkmath.Int,
+	maxSwapAmount sdkmath.Int, minBlockLock uint64, maxBlockLock uint64,
 ) AssetParam {
 	return AssetParam{
 		Denom:         denom,

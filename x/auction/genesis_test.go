@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -24,7 +25,7 @@ var (
 		c("lotdenom", 10),
 		testTime,
 		c("biddenom", 1000),
-		types.WeightedAddresses{Addresses: testAddrs, Weights: []sdk.Int{sdk.OneInt(), sdk.OneInt()}},
+		types.WeightedAddresses{Addresses: testAddrs, Weights: []sdkmath.Int{sdk.OneInt(), sdk.OneInt()}},
 		c("debt", 1000),
 	).WithID(3).(types.GenesisAuction)
 )

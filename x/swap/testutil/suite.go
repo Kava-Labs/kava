@@ -9,6 +9,7 @@ import (
 	"github.com/kava-labs/kava/x/swap/keeper"
 	"github.com/kava-labs/kava/x/swap/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -149,14 +150,14 @@ func (suite *Suite) PoolDeleted(denomA, denomB string) {
 }
 
 // PoolShareTotalEqual asserts the total shares match the stored pool
-func (suite *Suite) PoolShareTotalEqual(poolID string, totalShares sdk.Int) {
+func (suite *Suite) PoolShareTotalEqual(poolID string, totalShares sdkmath.Int) {
 	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
 	suite.Require().True(found, fmt.Sprintf("expected pool %s to exist", poolID))
 	suite.Equal(totalShares, poolRecord.TotalShares, "expected pool total shares to be equal")
 }
 
 // PoolDepositorSharesEqual asserts the depositor owns the shares for the provided pool
-func (suite *Suite) PoolDepositorSharesEqual(depositor sdk.AccAddress, poolID string, shares sdk.Int) {
+func (suite *Suite) PoolDepositorSharesEqual(depositor sdk.AccAddress, poolID string, shares sdkmath.Int) {
 	shareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor, poolID)
 	suite.Require().True(found, fmt.Sprintf("expected share record to exist for depositor %s and pool %s", depositor.String(), poolID))
 	suite.Equal(shares, shareRecord.SharesOwned)

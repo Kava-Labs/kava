@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
@@ -34,8 +35,8 @@ func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiR
 
 func GetProportionalRewardsPerSecond(
 	rewardPeriod types.MultiRewardPeriod,
-	totalBkavaSupply sdk.Int,
-	singleBkavaSupply sdk.Int,
+	totalBkavaSupply sdkmath.Int,
+	singleBkavaSupply sdkmath.Int,
 ) sdk.DecCoins {
 	// Rate per bkava-xxx = rewardsPerSecond * % of bkava-xxx
 	//                    = rewardsPerSecond * (bkava-xxx / total bkava)

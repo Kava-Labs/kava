@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -117,7 +118,7 @@ func ValidateAssets(as []Asset) error {
 }
 
 // NewRateLimit initializes a new RateLimit
-func NewRateLimit(active bool, limit sdk.Int, timePeriod time.Duration) RateLimit {
+func NewRateLimit(active bool, limit sdkmath.Int, timePeriod time.Duration) RateLimit {
 	return RateLimit{
 		Active:     active,
 		Limit:      limit,

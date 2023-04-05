@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -82,7 +83,7 @@ func (k Keeper) getLiquidationPenalty(ctx sdk.Context, collateralType string) sd
 	return cp.LiquidationPenalty
 }
 
-func (k Keeper) getAuctionSize(ctx sdk.Context, collateralType string) sdk.Int {
+func (k Keeper) getAuctionSize(ctx sdk.Context, collateralType string) sdkmath.Int {
 	cp, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("collateral not found: %s", collateralType))

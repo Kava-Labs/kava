@@ -13,13 +13,13 @@ package simulation_test
 // func TestShiftDec(t *testing.T) {
 // 	tests := []struct {
 // 		value    sdk.Dec
-// 		shift    sdk.Int
+// 		shift    sdkmath.Int
 // 		expected sdk.Dec
 // 	}{
-// 		{sdk.MustNewDecFromStr("5.5"), sdk.NewInt(1), sdk.MustNewDecFromStr("55")},
-// 		{sdk.MustNewDecFromStr("5.5"), sdk.NewInt(-1), sdk.MustNewDecFromStr("0.55")},
-// 		{sdk.MustNewDecFromStr("5.5"), sdk.NewInt(2), sdk.MustNewDecFromStr("550")},
-// 		{sdk.MustNewDecFromStr("5.5"), sdk.NewInt(-2), sdk.MustNewDecFromStr("0.055")},
+// 		{sdk.MustNewDecFromStr("5.5"), sdkmath.NewInt(1), sdk.MustNewDecFromStr("55")},
+// 		{sdk.MustNewDecFromStr("5.5"), sdkmath.NewInt(-1), sdk.MustNewDecFromStr("0.55")},
+// 		{sdk.MustNewDecFromStr("5.5"), sdkmath.NewInt(2), sdk.MustNewDecFromStr("550")},
+// 		{sdk.MustNewDecFromStr("5.5"), sdkmath.NewInt(-2), sdk.MustNewDecFromStr("0.055")},
 // 	}
 
 // 	for _, tt := range tests {

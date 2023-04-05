@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -64,7 +65,7 @@ func ParseDecBytes(db []byte) (sdk.Dec, error) {
 // RelativePow raises x to the power of n, where x (and the result, z) are scaled by factor b.
 // For example, RelativePow(210, 2, 100) = 441 (2.1^2 = 4.41)
 // Only defined for positive ints.
-func RelativePow(x sdk.Int, n sdk.Int, b sdk.Int) (z sdk.Int) {
+func RelativePow(x sdkmath.Int, n sdkmath.Int, b sdkmath.Int) (z sdkmath.Int) {
 	if x.IsZero() {
 		if n.IsZero() {
 			z = b // 0^0 = 1
@@ -75,12 +76,12 @@ func RelativePow(x sdk.Int, n sdk.Int, b sdk.Int) (z sdk.Int) {
 	}
 
 	z = x
-	if n.Mod(sdk.NewInt(2)).Equal(sdk.ZeroInt()) {
+	if n.Mod(sdkmath.NewInt(2)).Equal(sdk.ZeroInt()) {
 		z = b
 	}
 
-	halfOfB := b.Quo(sdk.NewInt(2))
-	n = n.Quo(sdk.NewInt(2))
+	halfOfB := b.Quo(sdkmath.NewInt(2))
+	n = n.Quo(sdkmath.NewInt(2))
 
 	for n.GT(sdk.ZeroInt()) {
 		xSquared := x.Mul(x)
@@ -88,12 +89,12 @@ func RelativePow(x sdk.Int, n sdk.Int, b sdk.Int) (z sdk.Int) {
 
 		x = xSquaredRounded.Quo(b)
 
-		if n.Mod(sdk.NewInt(2)).Equal(sdk.OneInt()) {
+		if n.Mod(sdkmath.NewInt(2)).Equal(sdk.OneInt()) {
 			zx := z.Mul(x)
 			zxRounded := zx.Add(halfOfB)
 			z = zxRounded.Quo(b)
 		}
-		n = n.Quo(sdk.NewInt(2))
+		n = n.Quo(sdkmath.NewInt(2))
 	}
 	return
 }

@@ -3,8 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )
@@ -14,7 +14,7 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 	// validation
 	cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, collateralType)
+		return errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, collateralType)
 	}
 	err := k.ValidatePrincipalDraw(ctx, principal, cdp.Principal.Denom)
 	if err != nil {
@@ -75,7 +75,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	// validation
 	cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, collateralType)
+		return errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, collateralType)
 	}
 
 	err := k.ValidatePaymentCoins(ctx, cdp, payment)
@@ -178,11 +178,11 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 func (k Keeper) ValidatePaymentCoins(ctx sdk.Context, cdp types.CDP, payment sdk.Coin) error {
 	debt := cdp.GetTotalPrincipal()
 	if payment.Denom != debt.Denom {
-		return sdkerrors.Wrapf(types.ErrInvalidPayment, "cdp %d: expected %s, got %s", cdp.ID, debt.Denom, payment.Denom)
+		return errorsmod.Wrapf(types.ErrInvalidPayment, "cdp %d: expected %s, got %s", cdp.ID, debt.Denom, payment.Denom)
 	}
 	_, found := k.GetDebtParam(ctx, payment.Denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrInvalidPayment, "payment denom %s not found", payment.Denom)
+		return errorsmod.Wrapf(types.ErrInvalidPayment, "payment denom %s not found", payment.Denom)
 	}
 	return nil
 }
@@ -237,7 +237,7 @@ func (k Keeper) validatePrincipalPayment(ctx sdk.Context, cdp types.CDP, payment
 	proposedBalance := cdp.Principal.Amount.Sub(payment.Amount)
 	dp, _ := k.GetDebtParam(ctx, payment.Denom)
 	if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
-		return sdkerrors.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoin(payment.Denom, proposedBalance), dp.DebtFloor)
+		return errorsmod.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoin(payment.Denom, proposedBalance), dp.DebtFloor)
 	}
 	return nil
 }

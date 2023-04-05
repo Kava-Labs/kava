@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -27,7 +28,7 @@ var (
 )
 
 func ukava(amt int64) sdk.Coin {
-	return sdk.NewCoin("ukava", sdk.NewInt(amt))
+	return sdk.NewCoin("ukava", sdkmath.NewInt(amt))
 }
 
 type IntegrationTestSuite struct {
@@ -102,13 +103,13 @@ func (suite *IntegrationTestSuite) TestTransferOverEVM() {
 	suite.Equal(ethtypes.ReceiptStatusSuccessful, res.Receipt.Status)
 
 	// evm txs refund unused gas. so to know the expected balance we need to know how much gas was used.
-	ukavaUsedForGas := sdk.NewIntFromBigInt(minEvmGasPrice).
-		Mul(sdk.NewIntFromUint64(res.Receipt.GasUsed)).
+	ukavaUsedForGas := sdkmath.NewIntFromBigInt(minEvmGasPrice).
+		Mul(sdkmath.NewIntFromUint64(res.Receipt.GasUsed)).
 		QuoRaw(1e12) // convert akava to ukava
 
 	// expect (9 - gas used) KAVA remaining in account.
 	balance := suite.Kava.QuerySdkForBalances(acc.SdkAddress)
-	suite.Equal(sdk.NewInt(9e6).Sub(ukavaUsedForGas), balance.AmountOf("ukava"))
+	suite.Equal(sdkmath.NewInt(9e6).Sub(ukavaUsedForGas), balance.AmountOf("ukava"))
 }
 
 // TestIbcTransfer transfers KAVA from the primary kava chain (suite.Kava) to the ibc chain (suite.Ibc).

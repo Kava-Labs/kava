@@ -3,6 +3,8 @@ package types
 import (
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -55,35 +57,35 @@ func (msg MsgDeposit) Type() string { return TypeMsgDeposit }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDeposit) ValidateBasic() error {
 	if msg.Depositor == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "depositor address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "depositor address cannot be empty")
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "token a deposit amount %s", msg.TokenA)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "token a deposit amount %s", msg.TokenA)
 	}
 
 	if !msg.TokenB.IsValid() || msg.TokenB.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "token b deposit amount %s", msg.TokenB)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "token b deposit amount %s", msg.TokenB)
 	}
 
 	if msg.TokenA.Denom == msg.TokenB.Denom {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
 	}
 
 	if msg.Slippage.IsNil() {
-		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage must be set")
+		return errorsmod.Wrapf(ErrInvalidSlippage, "slippage must be set")
 	}
 
 	if msg.Slippage.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
+		return errorsmod.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
 	}
 
 	if msg.Deadline <= 0 {
-		return sdkerrors.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
+		return errorsmod.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
 	}
 
 	return nil
@@ -112,7 +114,7 @@ func (msg MsgDeposit) DeadlineExceeded(blockTime time.Time) bool {
 }
 
 // NewMsgWithdraw returns a new MsgWithdraw
-func NewMsgWithdraw(from string, shares sdk.Int, minTokenA, minTokenB sdk.Coin, deadline int64) *MsgWithdraw {
+func NewMsgWithdraw(from string, shares sdkmath.Int, minTokenA, minTokenB sdk.Coin, deadline int64) *MsgWithdraw {
 	return &MsgWithdraw{
 		From:      from,
 		Shares:    shares,
@@ -131,35 +133,35 @@ func (msg MsgWithdraw) Type() string { return TypeMsgWithdraw }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdraw) ValidateBasic() error {
 	if msg.From == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "from address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "from address cannot be empty")
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
 	}
 
 	if msg.Shares.IsNil() {
-		return sdkerrors.Wrapf(ErrInvalidShares, "shares must be set")
+		return errorsmod.Wrapf(ErrInvalidShares, "shares must be set")
 	}
 
 	if msg.Shares.IsZero() || msg.Shares.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidShares, msg.Shares.String())
+		return errorsmod.Wrapf(ErrInvalidShares, msg.Shares.String())
 	}
 
 	if !msg.MinTokenA.IsValid() || msg.MinTokenA.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "min token a amount %s", msg.MinTokenA)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "min token a amount %s", msg.MinTokenA)
 	}
 
 	if !msg.MinTokenB.IsValid() || msg.MinTokenB.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "min token b amount %s", msg.MinTokenB)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "min token b amount %s", msg.MinTokenB)
 	}
 
 	if msg.MinTokenA.Denom == msg.MinTokenB.Denom {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
 	}
 
 	if msg.Deadline <= 0 {
-		return sdkerrors.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
+		return errorsmod.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
 	}
 
 	return nil
@@ -207,35 +209,35 @@ func (msg MsgSwapExactForTokens) Type() string { return TypeSwapExactForTokens }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSwapExactForTokens) ValidateBasic() error {
 	if msg.Requester == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
 	}
 
 	if !msg.ExactTokenA.IsValid() || msg.ExactTokenA.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "exact token a deposit amount %s", msg.ExactTokenA)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "exact token a deposit amount %s", msg.ExactTokenA)
 	}
 
 	if !msg.TokenB.IsValid() || msg.TokenB.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "token b deposit amount %s", msg.TokenB)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "token b deposit amount %s", msg.TokenB)
 	}
 
 	if msg.ExactTokenA.Denom == msg.TokenB.Denom {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
 	}
 
 	if msg.Slippage.IsNil() {
-		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage must be set")
+		return errorsmod.Wrapf(ErrInvalidSlippage, "slippage must be set")
 	}
 
 	if msg.Slippage.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
+		return errorsmod.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
 	}
 
 	if msg.Deadline <= 0 {
-		return sdkerrors.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
+		return errorsmod.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
 	}
 
 	return nil
@@ -283,35 +285,35 @@ func (msg MsgSwapForExactTokens) Type() string { return TypeSwapForExactTokens }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgSwapForExactTokens) ValidateBasic() error {
 	if msg.Requester == "" {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "requester address cannot be empty")
 	}
 
 	if _, err := sdk.AccAddressFromBech32(msg.Requester); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid requester address: %s", err)
 	}
 
 	if !msg.TokenA.IsValid() || msg.TokenA.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "token a deposit amount %s", msg.TokenA)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "token a deposit amount %s", msg.TokenA)
 	}
 
 	if !msg.ExactTokenB.IsValid() || msg.ExactTokenB.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "exact token b deposit amount %s", msg.ExactTokenB)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "exact token b deposit amount %s", msg.ExactTokenB)
 	}
 
 	if msg.TokenA.Denom == msg.ExactTokenB.Denom {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "denominations can not be equal")
 	}
 
 	if msg.Slippage.IsNil() {
-		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage must be set")
+		return errorsmod.Wrapf(ErrInvalidSlippage, "slippage must be set")
 	}
 
 	if msg.Slippage.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
+		return errorsmod.Wrapf(ErrInvalidSlippage, "slippage can not be negative")
 	}
 
 	if msg.Deadline <= 0 {
-		return sdkerrors.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
+		return errorsmod.Wrapf(ErrInvalidDeadline, "deadline %d", msg.Deadline)
 	}
 
 	return nil

@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -62,7 +63,7 @@ func (suite *MsgServerTestSuite) SetupTest() {
 		[]types.Proposal{},
 		[]types.Vote{},
 	)
-	suite.communityPoolAmt = sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000)))
+	suite.communityPoolAmt = sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000)))
 	suite.app.InitializeFromGenesisStates(
 		app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(testGenesis)},
 		// TODO: not used?

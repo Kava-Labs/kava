@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -28,7 +29,7 @@ func PoolID(denomA string, denomB string) string {
 
 // NewPoolRecord takes reserve coins and total shares, returning
 // a new pool record with a id
-func NewPoolRecord(reserves sdk.Coins, totalShares sdk.Int) PoolRecord {
+func NewPoolRecord(reserves sdk.Coins, totalShares sdkmath.Int) PoolRecord {
 	if len(reserves) != 2 {
 		panic("reserves must have two denominations")
 	}
@@ -118,7 +119,7 @@ func (prs PoolRecords) Validate() error {
 
 // NewShareRecord takes a depositor, poolID, and shares and returns
 // a new share record for storage in state.
-func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdk.Int) ShareRecord {
+func NewShareRecord(depositor sdk.AccAddress, poolID string, sharesOwned sdkmath.Int) ShareRecord {
 	return ShareRecord{
 		Depositor:   depositor,
 		PoolID:      poolID,

@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -93,7 +93,7 @@ func QueryProposalByID(cliCtx client.Context, cdc *codec.LegacyAmino, queryRoute
 	cdc.MustUnmarshalJSON(res, &nextProposalID)
 
 	if proposalID >= nextProposalID {
-		return nil, 0, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+		return nil, 0, errorsmod.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 	}
 
 	events := []string{
@@ -122,7 +122,7 @@ func QueryProposalByID(cliCtx client.Context, cdc *codec.LegacyAmino, queryRoute
 		}
 	}
 
-	return nil, 0, sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+	return nil, 0, errorsmod.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 }
 
 // calculateDeadline returns the proposal deadline for a committee and block height

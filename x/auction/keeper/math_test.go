@@ -5,15 +5,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 )
 
 func TestSplitIntIntoWeightedBuckets(t *testing.T) {
 	testCases := []struct {
 		name        string
-		amount      sdk.Int
-		buckets     []sdk.Int
-		want        []sdk.Int
+		amount      sdkmath.Int
+		buckets     []sdkmath.Int
+		want        []sdkmath.Int
 		expectPanic bool
 	}{
 		{
@@ -91,7 +91,7 @@ func TestSplitIntIntoWeightedBuckets(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var got []sdk.Int
+			var got []sdkmath.Int
 			run := func() {
 				got = splitIntIntoWeightedBuckets(tc.amount, tc.buckets)
 			}
@@ -106,10 +106,10 @@ func TestSplitIntIntoWeightedBuckets(t *testing.T) {
 	}
 }
 
-func i(n int64) sdk.Int { return sdk.NewInt(n) }
-func is(ns ...int64) (is []sdk.Int) {
+func i(n int64) sdkmath.Int { return sdkmath.NewInt(n) }
+func is(ns ...int64) (is []sdkmath.Int) {
 	for _, n := range ns {
-		is = append(is, sdk.NewInt(n))
+		is = append(is, sdkmath.NewInt(n))
 	}
 	return
 }

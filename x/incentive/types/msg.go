@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
@@ -52,10 +53,10 @@ func (msg MsgClaimUSDXMintingReward) Type() string { return TypeMsgClaimUSDXMint
 func (msg MsgClaimUSDXMintingReward) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if msg.MultiplierName == "" {
-		return sdkerrors.Wrap(ErrInvalidMultiplier, "multiplier name cannot be empty")
+		return errorsmod.Wrap(ErrInvalidMultiplier, "multiplier name cannot be empty")
 	}
 	return nil
 }
@@ -95,7 +96,7 @@ func (msg MsgClaimHardReward) Type() string {
 func (msg MsgClaimHardReward) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -138,7 +139,7 @@ func (msg MsgClaimDelegatorReward) Type() string {
 func (msg MsgClaimDelegatorReward) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -181,7 +182,7 @@ func (msg MsgClaimSwapReward) Type() string {
 func (msg MsgClaimSwapReward) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -224,7 +225,7 @@ func (msg MsgClaimSavingsReward) Type() string {
 func (msg MsgClaimSavingsReward) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err
@@ -267,7 +268,7 @@ func (msg MsgClaimEarnReward) Type() string {
 func (msg MsgClaimEarnReward) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty or invalid")
 	}
 	if err := msg.DenomsToClaim.Validate(); err != nil {
 		return err

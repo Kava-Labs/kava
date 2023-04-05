@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -194,7 +195,7 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 				banktypes.NewMsgSend(whale.SdkAddress, acc.SdkAddress, funds),
 			},
 			GasLimit:  2e5,
-			FeeAmount: sdk.NewCoins(sdk.NewCoin(chain.StakingDenom, sdk.NewInt(75000))),
+			FeeAmount: sdk.NewCoins(sdk.NewCoin(chain.StakingDenom, sdkmath.NewInt(75000))),
 			Data:      fmt.Sprintf("initial funding of account %s", name),
 		},
 	)

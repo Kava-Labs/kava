@@ -3,8 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/swap/types"
 )
@@ -21,16 +22,16 @@ import (
 //
 // In addition, if the withdrawn liquidity for each reserve is below the provided minimum, a slippage exceeded
 // error is returned.
-func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, minCoinA, minCoinB sdk.Coin) error {
+func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdkmath.Int, minCoinA, minCoinB sdk.Coin) error {
 	poolID := types.PoolID(minCoinA.Denom, minCoinB.Denom)
 
 	shareRecord, found := k.GetDepositorShares(ctx, owner, poolID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositNotFound, "no deposit for account %s and pool %s", owner, poolID)
+		return errorsmod.Wrapf(types.ErrDepositNotFound, "no deposit for account %s and pool %s", owner, poolID)
 	}
 
 	if shares.GT(shareRecord.SharesOwned) {
-		return sdkerrors.Wrapf(types.ErrInvalidShares, "withdraw of %s shares greater than %s shares owned", shares, shareRecord.SharesOwned)
+		return errorsmod.Wrapf(types.ErrInvalidShares, "withdraw of %s shares greater than %s shares owned", shares, shareRecord.SharesOwned)
 	}
 
 	poolRecord, found := k.GetPool(ctx, poolID)
@@ -45,10 +46,10 @@ func (k Keeper) Withdraw(ctx sdk.Context, owner sdk.AccAddress, shares sdk.Int, 
 
 	withdrawnAmount := pool.RemoveLiquidity(shares)
 	if withdrawnAmount.AmountOf(minCoinA.Denom).IsZero() || withdrawnAmount.AmountOf(minCoinB.Denom).IsZero() {
-		return sdkerrors.Wrap(types.ErrInsufficientLiquidity, "shares must be increased")
+		return errorsmod.Wrap(types.ErrInsufficientLiquidity, "shares must be increased")
 	}
 	if withdrawnAmount.AmountOf(minCoinA.Denom).LT(minCoinA.Amount) || withdrawnAmount.AmountOf(minCoinB.Denom).LT(minCoinB.Amount) {
-		return sdkerrors.Wrap(types.ErrSlippageExceeded, "minimum withdraw not met")
+		return errorsmod.Wrap(types.ErrSlippageExceeded, "minimum withdraw not met")
 	}
 
 	k.updatePool(ctx, poolID, pool)

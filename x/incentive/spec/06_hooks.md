@@ -117,11 +117,11 @@ Swap module hooks manage the creation and synchronization of Swap protocol liqui
 ```go
 // ------------------- Swap Module Hooks -------------------
 
-func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdk.Int) {
+func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdkmath.Int) {
 	h.k.InitializeSwapReward(ctx, poolID, depositor)
 }
 
-func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdk.Int) {
+func (h Hooks) BeforePoolDepositModified(ctx sdk.Context, poolID string, depositor sdk.AccAddress, sharesOwned sdkmath.Int) {
 	h.k.SynchronizeSwapReward(ctx, poolID, depositor, sharesOwned)
 }
 ```

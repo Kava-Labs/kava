@@ -3,9 +3,9 @@ package keeper
 import (
 	"math"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/hard/types"
 )
@@ -112,7 +112,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	// Fetch money market from the store
 	mm, found := k.GetMoneyMarket(ctx, denom)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrMoneyMarketNotFound, "%s", denom)
+		return errorsmod.Wrapf(types.ErrMoneyMarketNotFound, "%s", denom)
 	}
 
 	// GetBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has been borrowed)
@@ -128,7 +128,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 	}
 
 	// Calculate borrow interest factor and update
-	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdk.NewInt(timeElapsed))
+	borrowInterestFactor := CalculateBorrowInterestFactor(borrowRateSpy, sdkmath.NewInt(timeElapsed))
 	interestBorrowAccumulated := (borrowInterestFactor.Mul(sdk.NewDecFromInt(borrowedPrior.Amount)).TruncateInt()).Sub(borrowedPrior.Amount)
 
 	if interestBorrowAccumulated.IsZero() && borrowRateApy.IsPositive() {
@@ -190,9 +190,9 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 // CalculateBorrowInterestFactor calculates the simple interest scaling factor,
 // which is equal to: (per-second interest rate * number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
-func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdk.Int) sdk.Dec {
+func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdkmath.Int) sdk.Dec {
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
-	scalingFactorInt := sdk.NewInt(int64(scalingFactor))
+	scalingFactorInt := sdkmath.NewInt(int64(scalingFactor))
 
 	// Convert per-second interest rate to a uint scaled by 1e18
 	interestMantissa := sdkmath.NewUintFromBigInt(perSecondInterestRate.MulInt(scalingFactorInt).RoundInt().BigInt())

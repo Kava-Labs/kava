@@ -96,7 +96,7 @@ package simulation
 // 			maxCollateralDeposit := spendableCoins.AmountOf(randCollateralParam.Denom)
 
 // 			// randomly select a collateral deposit amount
-// 			collateralDeposit := sdk.NewInt(int64(simulation.RandIntBetween(r, int(minCollateralDepositRounded.Int64()), int(maxCollateralDeposit.Int64()))))
+// 			collateralDeposit := sdkmath.NewInt(int64(simulation.RandIntBetween(r, int(minCollateralDepositRounded.Int64()), int(maxCollateralDeposit.Int64()))))
 // 			// calculate how much the randomly selected deposit is worth
 // 			collateralDepositValue := ShiftDec(sdk.NewDecFromInt(collateralDeposit), randCollateralParam.ConversionFactor.Neg()).Mul(priceShifted)
 // 			// calculate the max amount of debt that could be drawn for the chosen deposit
@@ -110,7 +110,7 @@ package simulation
 // 			// ensure that the debt draw does not exceed the debt limit
 // 			maxDebtDraw = sdk.MinInt(maxDebtDraw, availableAssetDebt)
 // 			// randomly select a debt draw amount
-// 			debtDraw := sdk.NewInt(int64(simulation.RandIntBetween(r, int(debtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
+// 			debtDraw := sdkmath.NewInt(int64(simulation.RandIntBetween(r, int(debtParam.DebtFloor.Int64()), int(maxDebtDraw.Int64()))))
 
 // 			msg := types.NewMsgCreateCDP(acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, collateralDeposit), sdk.NewCoin(debtParam.Denom, debtDraw), randCollateralParam.Type)
 
@@ -163,7 +163,7 @@ package simulation
 
 // 		// deposit 25% of the time
 // 		if hasCoins(spendableCoins, randCollateralParam.Denom) && shouldDeposit(r) {
-// 			randDepositAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
+// 			randDepositAmount := sdkmath.NewInt(int64(simulation.RandIntBetween(r, 1, int(spendableCoins.AmountOf(randCollateralParam.Denom).Int64()))))
 // 			msg := types.NewMsgDeposit(acc.GetAddress(), acc.GetAddress(), sdk.NewCoin(randCollateralParam.Denom, randDepositAmount), randCollateralParam.Type)
 
 // 			tx := helpers.GenTx(
@@ -206,7 +206,7 @@ package simulation
 // 			}
 // 			maxDraw := sdk.MinInt(maxDebt, availableAssetDebt)
 
-// 			randDrawAmount := sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
+// 			randDrawAmount := sdkmath.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxDraw.Int64()))))
 // 			msg := types.NewMsgDrawDebt(acc.GetAddress(), randCollateralParam.Type, sdk.NewCoin(debtParam.Denom, randDrawAmount))
 
 // 			tx := helpers.GenTx(
@@ -238,11 +238,11 @@ package simulation
 // 				spendableCoins.AmountOf(debtParam.Denom),
 // 				payableDebt,
 // 			)
-// 			var randRepayAmount sdk.Int
+// 			var randRepayAmount sdkmath.Int
 // 			if maxRepay.Equal(sdk.OneInt()) {
 // 				randRepayAmount = sdk.OneInt()
 // 			} else {
-// 				randRepayAmount = sdk.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
+// 				randRepayAmount = sdkmath.NewInt(int64(simulation.RandIntBetween(r, 1, int(maxRepay.Int64()))))
 // 			}
 
 // 			msg := types.NewMsgRepayDebt(acc.GetAddress(), randCollateralParam.Type, sdk.NewCoin(debtParam.Denom, randRepayAmount))

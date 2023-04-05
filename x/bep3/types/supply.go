@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -22,16 +23,16 @@ func NewAssetSupply(incomingSupply, outgoingSupply, currentSupply, timeLimitedSu
 // Validate performs a basic validation of an asset supply fields.
 func (a AssetSupply) Validate() error {
 	if !a.IncomingSupply.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "incoming supply %s", a.IncomingSupply)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "incoming supply %s", a.IncomingSupply)
 	}
 	if !a.OutgoingSupply.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "outgoing supply %s", a.OutgoingSupply)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "outgoing supply %s", a.OutgoingSupply)
 	}
 	if !a.CurrentSupply.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "current supply %s", a.CurrentSupply)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "current supply %s", a.CurrentSupply)
 	}
 	if !a.TimeLimitedCurrentSupply.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "time-limited current supply %s", a.TimeLimitedCurrentSupply)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "time-limited current supply %s", a.TimeLimitedCurrentSupply)
 	}
 	denom := a.CurrentSupply.Denom
 	if (a.IncomingSupply.Denom != denom) ||

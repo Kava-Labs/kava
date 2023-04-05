@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -14,7 +15,7 @@ import (
 )
 
 // Avoid cluttering test cases with long function names
-func i(in int64) sdk.Int                    { return sdk.NewInt(in) }
+func i(in int64) sdkmath.Int                { return sdkmath.NewInt(in) }
 func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
@@ -307,10 +308,10 @@ func NewCDPGenStateHighDebtLimit(cdc codec.JSONCodec) app.GenesisState {
 
 func cdps() (cdps types.CDPs) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
-	c1 := types.NewCDP(uint64(1), addrs[0], sdk.NewCoin("xrp", sdk.NewInt(10000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(8000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
-	c2 := types.NewCDP(uint64(2), addrs[1], sdk.NewCoin("xrp", sdk.NewInt(100000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
-	c3 := types.NewCDP(uint64(3), addrs[1], sdk.NewCoin("btc", sdk.NewInt(1000000000)), "btc-a", sdk.NewCoin("usdx", sdk.NewInt(10000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
-	c4 := types.NewCDP(uint64(4), addrs[2], sdk.NewCoin("xrp", sdk.NewInt(1000000000)), "xrp-a", sdk.NewCoin("usdx", sdk.NewInt(500000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
+	c1 := types.NewCDP(uint64(1), addrs[0], sdk.NewCoin("xrp", sdkmath.NewInt(10000000)), "xrp-a", sdk.NewCoin("usdx", sdkmath.NewInt(8000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
+	c2 := types.NewCDP(uint64(2), addrs[1], sdk.NewCoin("xrp", sdkmath.NewInt(100000000)), "xrp-a", sdk.NewCoin("usdx", sdkmath.NewInt(10000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
+	c3 := types.NewCDP(uint64(3), addrs[1], sdk.NewCoin("btc", sdkmath.NewInt(1000000000)), "btc-a", sdk.NewCoin("usdx", sdkmath.NewInt(10000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
+	c4 := types.NewCDP(uint64(4), addrs[2], sdk.NewCoin("xrp", sdkmath.NewInt(1000000000)), "xrp-a", sdk.NewCoin("usdx", sdkmath.NewInt(500000000)), tmtime.Canonical(time.Now()), sdk.OneDec())
 	cdps = append(cdps, c1, c2, c3, c4)
 	return
 }

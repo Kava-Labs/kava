@@ -9,6 +9,7 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -43,12 +44,12 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
-			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(2e6))), sdk.NewInt(1e6)),
-			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6))), sdk.NewInt(3e6)),
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6))), sdkmath.NewInt(1e6)),
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6))), sdkmath.NewInt(3e6)),
 		},
 		types.ShareRecords{
-			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdk.NewInt(1e6)),
-			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdk.NewInt(3e6)),
+			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdkmath.NewInt(1e6)),
+			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdkmath.NewInt(3e6)),
 		},
 	)
 
@@ -82,12 +83,12 @@ func (suite *genesisTestSuite) Test_Marshall() {
 			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
-			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(2e6))), sdk.NewInt(1e6)),
-			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6))), sdk.NewInt(3e6)),
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6))), sdkmath.NewInt(1e6)),
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6))), sdkmath.NewInt(3e6)),
 		},
 		types.ShareRecords{
-			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdk.NewInt(1e6)),
-			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdk.NewInt(3e6)),
+			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdkmath.NewInt(1e6)),
+			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdkmath.NewInt(3e6)),
 		},
 	)
 
@@ -117,12 +118,12 @@ func (suite *genesisTestSuite) Test_LegacyJSONConversion() {
 			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
-			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(2e6))), sdk.NewInt(1e6)),
-			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e6)), sdk.NewCoin("usdx", sdk.NewInt(5e6))), sdk.NewInt(3e6)),
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6))), sdkmath.NewInt(1e6)),
+			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6))), sdkmath.NewInt(3e6)),
 		},
 		types.ShareRecords{
-			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdk.NewInt(1e6)),
-			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdk.NewInt(3e6)),
+			types.NewShareRecord(depositor_2, types.PoolID("hard", "usdx"), sdkmath.NewInt(1e6)),
+			types.NewShareRecord(depositor_1, types.PoolID("ukava", "usdx"), sdkmath.NewInt(3e6)),
 		},
 	)
 

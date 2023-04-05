@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
@@ -41,7 +42,7 @@ func (suite *invariantTestSuite) SetupValidState() {
 	suite.FundModuleAccountWithKava(
 		types.ModuleName,
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(2)), // ( sum of all minor balances ) / conversion multiplier
+			sdk.NewCoin("ukava", sdkmath.NewInt(2)), // ( sum of all minor balances ) / conversion multiplier
 		),
 	)
 

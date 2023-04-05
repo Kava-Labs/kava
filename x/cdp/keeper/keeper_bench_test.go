@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -36,8 +37,8 @@ func BenchmarkAccountIteration(b *testing.B) {
 		{name: "1000000 Accounts, With Coins", numberAccounts: 1000000, coins: true},
 	}
 	coins := sdk.Coins{
-		sdk.NewCoin("xrp", sdk.NewInt(1000000000)),
-		sdk.NewCoin("usdx", sdk.NewInt(1000000000)),
+		sdk.NewCoin("xrp", sdkmath.NewInt(1000000000)),
+		sdk.NewCoin("usdx", sdkmath.NewInt(1000000000)),
 	}
 
 	for _, bm := range benchmarks {

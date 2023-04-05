@@ -4,6 +4,7 @@ import (
 	fmt "fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/stretchr/testify/require"
@@ -38,8 +39,8 @@ func (suite *ParamsChangeTestSuite) SetupTest() {
 	suite.cdpDebtParam = cdptypes.DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
-		ConversionFactor: sdk.NewInt(6),
-		DebtFloor:        sdk.NewInt(1000),
+		ConversionFactor: sdkmath.NewInt(6),
+		DebtFloor:        sdkmath.NewInt(1000),
 	}
 
 	suite.cdpCollateralParams = cdptypes.CollateralParams{
@@ -47,27 +48,27 @@ func (suite *ParamsChangeTestSuite) SetupTest() {
 			Denom:                            "bnb",
 			Type:                             "bnb-a",
 			LiquidationRatio:                 sdk.MustNewDecFromStr("2.0"),
-			DebtLimit:                        sdk.NewCoin("usdx", sdk.NewInt(100)),
+			DebtLimit:                        sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 			StabilityFee:                     sdk.MustNewDecFromStr("1.02"),
 			LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
-			AuctionSize:                      sdk.NewInt(100),
-			ConversionFactor:                 sdk.NewInt(6),
+			AuctionSize:                      sdkmath.NewInt(100),
+			ConversionFactor:                 sdkmath.NewInt(6),
 			SpotMarketID:                     "bnb:usd",
 			LiquidationMarketID:              "bnb:usd",
-			CheckCollateralizationIndexCount: sdk.NewInt(0),
+			CheckCollateralizationIndexCount: sdkmath.NewInt(0),
 		},
 		{
 			Denom:                            "btc",
 			Type:                             "btc-a",
 			LiquidationRatio:                 sdk.MustNewDecFromStr("1.5"),
-			DebtLimit:                        sdk.NewCoin("usdx", sdk.NewInt(100)),
+			DebtLimit:                        sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 			StabilityFee:                     sdk.MustNewDecFromStr("1.01"),
 			LiquidationPenalty:               sdk.MustNewDecFromStr("0.10"),
-			AuctionSize:                      sdk.NewInt(1000),
-			ConversionFactor:                 sdk.NewInt(8),
+			AuctionSize:                      sdkmath.NewInt(1000),
+			ConversionFactor:                 sdkmath.NewInt(8),
 			SpotMarketID:                     "btc:usd",
 			LiquidationMarketID:              "btc:usd",
-			CheckCollateralizationIndexCount: sdk.NewInt(1),
+			CheckCollateralizationIndexCount: sdkmath.NewInt(1),
 			KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.12"),
 		},
 	}
@@ -779,7 +780,7 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirement
 			changes: []paramsproposal.ParamChange{{
 				Subspace: cdptypes.ModuleName,
 				Key:      string(cdptypes.KeySurplusThreshold),
-				Value:    sdk.NewInt(120).String(),
+				Value:    sdkmath.NewInt(120).String(),
 			}},
 		},
 		{
@@ -788,7 +789,7 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirement
 			changes: []paramsproposal.ParamChange{{
 				Subspace: cdptypes.ModuleName,
 				Key:      string(cdptypes.KeySurplusLot),
-				Value:    sdk.NewInt(120).String(),
+				Value:    sdkmath.NewInt(120).String(),
 			}},
 		},
 		{
@@ -798,12 +799,12 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirement
 				{
 					Subspace: cdptypes.ModuleName,
 					Key:      string(cdptypes.KeySurplusThreshold),
-					Value:    sdk.NewInt(120).String(),
+					Value:    sdkmath.NewInt(120).String(),
 				},
 				{
 					Subspace: cdptypes.ModuleName,
 					Key:      string(cdptypes.KeySurplusLot),
-					Value:    sdk.NewInt(120).String(),
+					Value:    sdkmath.NewInt(120).String(),
 				},
 			},
 		},
@@ -815,8 +816,8 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_NoSubparamRequirement
 
 			subspace, found := s.pk.GetSubspace(cdptypes.ModuleName)
 			s.Require().True(found)
-			subspace.Set(s.ctx, cdptypes.KeySurplusThreshold, sdk.NewInt(100))
-			subspace.Set(s.ctx, cdptypes.KeySurplusLot, sdk.NewInt(110))
+			subspace.Set(s.ctx, cdptypes.KeySurplusThreshold, sdkmath.NewInt(100))
+			subspace.Set(s.ctx, cdptypes.KeySurplusLot, sdkmath.NewInt(110))
 
 			proposal := paramsproposal.NewParameterChangeProposal(
 				"A Title",

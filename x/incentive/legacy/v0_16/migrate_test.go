@@ -62,7 +62,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "usdx",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoin("usdx", sdk.NewInt(10)),
+					RewardsPerSecond: sdk.NewCoin("usdx", sdkmath.NewInt(10)),
 				},
 			},
 			HardSupplyRewardPeriods: v015incentive.MultiRewardPeriods{
@@ -71,7 +71,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "usdx",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(10))),
 				},
 			},
 			HardBorrowRewardPeriods: v015incentive.MultiRewardPeriods{
@@ -80,7 +80,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "bnb",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10))),
 				},
 			},
 			DelegatorRewardPeriods: v015incentive.MultiRewardPeriods{
@@ -89,7 +89,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "bnb",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10))),
 				},
 			},
 			SwapRewardPeriods: v015incentive.MultiRewardPeriods{
@@ -98,7 +98,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "bnb",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10))),
 				},
 			},
 			ClaimMultipliers: v015incentive.MultipliersPerDenom{
@@ -147,7 +147,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseClaim: v015incentive.BaseClaim{
 					Owner:  s.addresses[0],
-					Reward: sdk.NewCoin("usdx", sdk.NewInt(100)),
+					Reward: sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 				},
 				RewardIndexes: v015incentive.RewardIndexes{
 					{
@@ -237,7 +237,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseMultiClaim: v015incentive.BaseMultiClaim{
 					Owner:  s.addresses[1],
-					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(100))),
 				},
 				SupplyRewardIndexes: v015incentive.MultiRewardIndexes{
 					{
@@ -267,7 +267,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseMultiClaim: v015incentive.BaseMultiClaim{
 					Owner:  s.addresses[1],
-					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(100))),
 				},
 				RewardIndexes: v015incentive.MultiRewardIndexes{
 					{
@@ -286,7 +286,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseMultiClaim: v015incentive.BaseMultiClaim{
 					Owner:  s.addresses[1],
-					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(100))),
 				},
 				RewardIndexes: v015incentive.MultiRewardIndexes{
 					{
@@ -330,7 +330,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "usdx",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoin("usdx", sdk.NewInt(10)),
+					RewardsPerSecond: sdk.NewCoin("usdx", sdkmath.NewInt(10)),
 				},
 			},
 			HardSupplyRewardPeriods: v016incentive.MultiRewardPeriods{
@@ -339,7 +339,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "usdx",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(10))),
 				},
 			},
 			HardBorrowRewardPeriods: v016incentive.MultiRewardPeriods{
@@ -348,7 +348,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "bnb",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10))),
 				},
 			},
 			DelegatorRewardPeriods: v016incentive.MultiRewardPeriods{
@@ -357,7 +357,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "bnb",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10))),
 				},
 			},
 			SwapRewardPeriods: v016incentive.MultiRewardPeriods{
@@ -366,7 +366,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					CollateralType:   "bnb",
 					Start:            time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 					End:              time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
-					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(10))),
+					RewardsPerSecond: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10))),
 				},
 			},
 			ClaimMultipliers: []v016incentive.MultipliersPerDenom{
@@ -396,7 +396,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseClaim: v016incentive.BaseClaim{
 					Owner:  s.addresses[0],
-					Reward: sdk.NewCoin("usdx", sdk.NewInt(100)),
+					Reward: sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 				},
 				RewardIndexes: v016incentive.RewardIndexes{
 					{
@@ -486,7 +486,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseMultiClaim: v016incentive.BaseMultiClaim{
 					Owner:  s.addresses[1],
-					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(100))),
 				},
 				SupplyRewardIndexes: v016incentive.MultiRewardIndexes{
 					{
@@ -516,7 +516,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseMultiClaim: v016incentive.BaseMultiClaim{
 					Owner:  s.addresses[1],
-					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(100))),
 				},
 				RewardIndexes: v016incentive.MultiRewardIndexes{
 					{
@@ -535,7 +535,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 			{
 				BaseMultiClaim: v016incentive.BaseMultiClaim{
 					Owner:  s.addresses[1],
-					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdk.NewInt(100))),
+					Reward: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(100))),
 				},
 				RewardIndexes: v016incentive.MultiRewardIndexes{
 					{

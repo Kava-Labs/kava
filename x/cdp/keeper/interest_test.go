@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stretchr/testify/suite"
@@ -41,7 +42,7 @@ func (suite *InterestTestSuite) SetupTest() {
 func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 	type args struct {
 		perSecondInterestRate sdk.Dec
-		timeElapsed           sdk.Int
+		timeElapsed           sdkmath.Int
 		expectedValue         sdk.Dec
 	}
 
@@ -57,7 +58,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 year",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("1.191463614477847370"),
 			},
 		},
@@ -65,7 +66,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"10 year",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds * 10),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds * 10),
 				expectedValue:         sdk.MustNewDecFromStr("5.765113233897391189"),
 			},
 		},
@@ -73,7 +74,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 month",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds / 12),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds / 12),
 				expectedValue:         sdk.MustNewDecFromStr("1.014705619075717373"),
 			},
 		},
@@ -81,7 +82,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 day",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds / 365),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds / 365),
 				expectedValue:         sdk.MustNewDecFromStr("1.000480067194057924"),
 			},
 		},
@@ -89,7 +90,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 year: low interest rate",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("1.017656545925063632"),
 			},
 		},
@@ -97,7 +98,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 year, lower interest rate",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000055"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("1.001735985079841390"),
 			},
 		},
@@ -105,7 +106,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 year, lowest interest rate",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000005"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("1.000157692432076670"),
 			},
 		},
@@ -113,7 +114,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 year: high interest rate",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000055555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("5.766022095987868825"),
 			},
 		},
@@ -121,7 +122,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 year: higher interest rate",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000555555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("40628388.864535408465693310"),
 			},
 		},
@@ -131,7 +132,7 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 			"1 year: highest interest rate",
 			args{
 				perSecondInterestRate: sdk.MustNewDecFromStr("1.000001555555"),
-				timeElapsed:           sdk.NewInt(oneYearInSeconds),
+				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
 				expectedValue:         sdk.MustNewDecFromStr("2017093013158200407564.613502861572552603"),
 			},
 		},
@@ -149,9 +150,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 	type args struct {
 		ctype                   string
 		initialTime             time.Time
-		totalPrincipal          sdk.Int
+		totalPrincipal          sdkmath.Int
 		timeElapsed             int
-		expectedTotalPrincipal  sdk.Int
+		expectedTotalPrincipal  sdkmath.Int
 		expectedLastAccrualTime time.Time
 	}
 
@@ -167,9 +168,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			args{
 				ctype:                   "bnb-a",
 				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				totalPrincipal:          sdk.NewInt(100000000000000),
+				totalPrincipal:          sdkmath.NewInt(100000000000000),
 				timeElapsed:             oneYearInSeconds,
-				expectedTotalPrincipal:  sdk.NewInt(105000000000012),
+				expectedTotalPrincipal:  sdkmath.NewInt(105000000000012),
 				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * oneYearInSeconds)),
 			},
 		},
@@ -189,9 +190,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			args{
 				ctype:                   "bnb-a",
 				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				totalPrincipal:          sdk.NewInt(100000000000000),
+				totalPrincipal:          sdkmath.NewInt(100000000000000),
 				timeElapsed:             86400 * 30,
-				expectedTotalPrincipal:  sdk.NewInt(100401820189198),
+				expectedTotalPrincipal:  sdkmath.NewInt(100401820189198),
 				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 86400 * 30)),
 			},
 		},
@@ -200,9 +201,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			args{
 				ctype:                   "bnb-a",
 				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				totalPrincipal:          sdk.NewInt(10),
+				totalPrincipal:          sdkmath.NewInt(10),
 				timeElapsed:             86400 * 30,
-				expectedTotalPrincipal:  sdk.NewInt(10),
+				expectedTotalPrincipal:  sdkmath.NewInt(10),
 				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 			},
 		},
@@ -211,9 +212,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			args{
 				ctype:                   "bnb-a",
 				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				totalPrincipal:          sdk.NewInt(100000000000000),
+				totalPrincipal:          sdkmath.NewInt(100000000000000),
 				timeElapsed:             7,
-				expectedTotalPrincipal:  sdk.NewInt(100000001082988),
+				expectedTotalPrincipal:  sdkmath.NewInt(100000001082988),
 				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7)),
 			},
 		},
@@ -222,9 +223,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			args{
 				ctype:                   "bnb-a",
 				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				totalPrincipal:          sdk.NewInt(30000000),
+				totalPrincipal:          sdkmath.NewInt(30000000),
 				timeElapsed:             7,
-				expectedTotalPrincipal:  sdk.NewInt(30000000),
+				expectedTotalPrincipal:  sdkmath.NewInt(30000000),
 				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
 			},
 		},
@@ -233,9 +234,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			args{
 				ctype:                   "busd-a",
 				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				totalPrincipal:          sdk.NewInt(100000000000000),
+				totalPrincipal:          sdkmath.NewInt(100000000000000),
 				timeElapsed:             7,
-				expectedTotalPrincipal:  sdk.NewInt(100000000000000),
+				expectedTotalPrincipal:  sdkmath.NewInt(100000000000000),
 				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * 7)),
 			},
 		},
@@ -400,10 +401,10 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 		expectedFeesPerCDP           sdk.Coin
 		expectedTotalPrincipalPerCDP sdk.Coin
 		expectedFeesUpdatedTime      time.Time
-		expectedTotalPrincipal       sdk.Int
-		expectedDebtBalance          sdk.Int
-		expectedStableBalance        sdk.Int
-		expectedSumOfCDPPrincipal    sdk.Int
+		expectedTotalPrincipal       sdkmath.Int
+		expectedDebtBalance          sdkmath.Int
+		expectedStableBalance        sdkmath.Int
+		expectedSumOfCDPPrincipal    sdkmath.Int
 	}
 
 	type test struct {

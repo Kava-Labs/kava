@@ -7,6 +7,7 @@ import (
 	"github.com/kava-labs/kava/x/swap/testutil"
 	"github.com/kava-labs/kava/x/swap/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 )
@@ -25,45 +26,45 @@ func (suite *invariantTestSuite) SetupTest() {
 func (suite *invariantTestSuite) SetupValidState() {
 	suite.Keeper.SetPool(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
 		),
-		sdk.NewInt(3e6),
+		sdkmath.NewInt(3e6),
 	))
 	suite.AddCoinsToModule(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
 		),
 	)
 	suite.Keeper.SetDepositorShares(suite.Ctx, types.NewShareRecord(
 		sdk.AccAddress("depositor 1---------"), // TODO these addresses are padded to get to the required length of 20 bytes. What is a nicer setup?
 		types.PoolID("ukava", "usdx"),
-		sdk.NewInt(2e6),
+		sdkmath.NewInt(2e6),
 	))
 	suite.Keeper.SetDepositorShares(suite.Ctx, types.NewShareRecord(
 		sdk.AccAddress("depositor 2---------"),
 		types.PoolID("ukava", "usdx"),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	))
 
 	suite.Keeper.SetPool(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
-			sdk.NewCoin("hard", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(2e6)),
+			sdk.NewCoin("hard", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(2e6)),
 		),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	))
 	suite.AddCoinsToModule(
 		sdk.NewCoins(
-			sdk.NewCoin("hard", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(2e6)),
+			sdk.NewCoin("hard", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(2e6)),
 		),
 	)
 	suite.Keeper.SetDepositorShares(suite.Ctx, types.NewShareRecord(
 		sdk.AccAddress("depositor 1---------"),
 		types.PoolID("hard", "usdx"),
-		sdk.NewInt(1e6),
+		sdkmath.NewInt(1e6),
 	))
 }
 
@@ -116,10 +117,10 @@ func (suite *invariantTestSuite) TestPoolRecordsInvariant() {
 	// broken with invalid pool record
 	suite.Keeper.SetPool_Raw(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
 		),
-		sdk.NewInt(-1e6),
+		sdkmath.NewInt(-1e6),
 	))
 	message, broken = suite.runInvariant("pool-records", keeper.PoolRecordsInvariant)
 	suite.Equal("swap: validate pool records broken invariant\npool record invalid\n", message)
@@ -140,7 +141,7 @@ func (suite *invariantTestSuite) TestShareRecordsInvariant() {
 	suite.Keeper.SetDepositorShares_Raw(suite.Ctx, types.NewShareRecord(
 		sdk.AccAddress("depositor 1---------"),
 		types.PoolID("ukava", "usdx"),
-		sdk.NewInt(-1e6),
+		sdkmath.NewInt(-1e6),
 	))
 	message, broken = suite.runInvariant("share-records", keeper.ShareRecordsInvariant)
 	suite.Equal("swap: validate share records broken invariant\nshare record invalid\n", message)
@@ -160,10 +161,10 @@ func (suite *invariantTestSuite) TestPoolReservesInvariant() {
 	// broken when reserves are greater than module balance
 	suite.Keeper.SetPool(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(2e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(10e6)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(2e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(10e6)),
 		),
-		sdk.NewInt(5e6),
+		sdkmath.NewInt(5e6),
 	))
 	message, broken = suite.runInvariant("pool-reserves", keeper.PoolReservesInvariant)
 	suite.Equal("swap: pool reserves broken invariant\npool reserves do not match module account\n", message)
@@ -172,10 +173,10 @@ func (suite *invariantTestSuite) TestPoolReservesInvariant() {
 	// broken when reserves are less than the module balance
 	suite.Keeper.SetPool(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(1e5)),
-			sdk.NewCoin("usdx", sdk.NewInt(5e5)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1e5)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(5e5)),
 		),
-		sdk.NewInt(3e5),
+		sdkmath.NewInt(3e5),
 	))
 	message, broken = suite.runInvariant("pool-reserves", keeper.PoolReservesInvariant)
 	suite.Equal("swap: pool reserves broken invariant\npool reserves do not match module account\n", message)
@@ -195,10 +196,10 @@ func (suite *invariantTestSuite) TestPoolSharesInvariant() {
 	// broken when total shares are greater than depositor shares
 	suite.Keeper.SetPool(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
 		),
-		sdk.NewInt(5e6),
+		sdkmath.NewInt(5e6),
 	))
 	message, broken = suite.runInvariant("pool-shares", keeper.PoolSharesInvariant)
 	suite.Equal("swap: pool shares broken invariant\npool shares do not match depositor shares\n", message)
@@ -207,10 +208,10 @@ func (suite *invariantTestSuite) TestPoolSharesInvariant() {
 	// broken when total shares are less than the depositor shares
 	suite.Keeper.SetPool(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
 		),
-		sdk.NewInt(1e5),
+		sdkmath.NewInt(1e5),
 	))
 	message, broken = suite.runInvariant("pool-shares", keeper.PoolSharesInvariant)
 	suite.Equal("swap: pool shares broken invariant\npool shares do not match depositor shares\n", message)
@@ -220,8 +221,8 @@ func (suite *invariantTestSuite) TestPoolSharesInvariant() {
 	suite.Keeper.DeletePool(suite.Ctx, types.PoolID("ukava", "usdx"))
 	suite.RemoveCoinsFromModule(
 		sdk.NewCoins(
-			sdk.NewCoin("ukava", sdk.NewInt(1e6)),
-			sdk.NewCoin("usdx", sdk.NewInt(5e6)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
+			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
 		),
 	)
 	message, broken = suite.runInvariant("pool-shares", keeper.PoolSharesInvariant)

@@ -65,8 +65,8 @@ package keeper_test
 
 // func (suite *querierTestSuite) TestQueryPool() {
 // 	// Set up pool in store
-// 	coinA := sdk.NewCoin("ukava", sdk.NewInt(10))
-// 	coinB := sdk.NewCoin("usdx", sdk.NewInt(200))
+// 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(10))
+// 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(200))
 
 // 	pool, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinB))
 // 	suite.Nil(err)
@@ -95,9 +95,9 @@ package keeper_test
 
 // func (suite *querierTestSuite) TestQueryPools() {
 // 	// Set up pools in store
-// 	coinA := sdk.NewCoin("ukava", sdk.NewInt(10))
-// 	coinB := sdk.NewCoin("usdx", sdk.NewInt(200))
-// 	coinC := sdk.NewCoin("usdx", sdk.NewInt(200))
+// 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(10))
+// 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(200))
+// 	coinC := sdk.NewCoin("usdx", sdkmath.NewInt(200))
 
 // 	poolAB, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinB))
 // 	suite.Nil(err)
@@ -138,8 +138,8 @@ package keeper_test
 
 // func (suite *querierTestSuite) TestQueryDeposit() {
 // 	// Set up pool in store
-// 	coinA := sdk.NewCoin("ukava", sdk.NewInt(10))
-// 	coinB := sdk.NewCoin("usdx", sdk.NewInt(200))
+// 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(10))
+// 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(200))
 // 	pool, err := types.NewDenominatedPool(sdk.NewCoins(coinA, coinB))
 // 	suite.Nil(err)
 // 	poolRecord := types.NewPoolRecordFromPool(pool)

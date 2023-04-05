@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -42,12 +43,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialModAccountBalance:  sdk.Coins(nil),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
 				createDeposit:             true,
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(900)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
-				finalDepositAmount:        sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(100))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(900)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
+				finalDepositAmount:        sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
 			},
 			errArgs{
 				expectPass:   true,
@@ -60,10 +61,10 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialModAccountBalance:  sdk.Coins(nil),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
 				createDeposit:             true,
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				expectedModAccountBalance: sdk.Coins(nil),
 				finalDepositAmount:        sdk.Coins{},
 			},
@@ -77,12 +78,12 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			"valid: withdraw exceeds deposit but is adjusted to match max deposit",
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				initialModAccountBalance:  sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000))),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(300))),
+				initialModAccountBalance:  sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(300))),
 				createDeposit:             true,
-				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000)), sdk.NewCoin("btcb", sdk.NewInt(1000))),
-				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(1000))),
+				expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
+				expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000))),
 				finalDepositAmount:        sdk.Coins{},
 			},
 			errArgs{
@@ -96,8 +97,8 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			args{
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialModAccountBalance:  sdk.Coins(nil),
-				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdk.NewInt(200))),
-				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("btcb", sdk.NewInt(200))),
+				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(200))),
+				withdrawAmount:            sdk.NewCoins(sdk.NewCoin("btcb", sdkmath.NewInt(200))),
 				createDeposit:             true,
 				expectedAccountBalance:    sdk.Coins{},
 				expectedModAccountBalance: sdk.Coins{},
@@ -120,8 +121,8 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			authGS := app.NewFundedGenStateWithCoins(
 				tApp.AppCodec(),
 				[]sdk.Coins{sdk.NewCoins(
-					sdk.NewCoin("bnb", sdk.NewInt(1000)),
-					sdk.NewCoin("btcb", sdk.NewInt(1000)),
+					sdk.NewCoin("bnb", sdkmath.NewInt(1000)),
+					sdk.NewCoin("btcb", sdkmath.NewInt(1000)),
 				)},
 				[]sdk.AccAddress{tc.args.depositor},
 			)
@@ -129,9 +130,9 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 			loanToValue := sdk.MustNewDecFromStr("0.6")
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "usdx:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdk.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdk.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "usdx:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
 				},
 				sdk.NewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
@@ -243,11 +244,11 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			"invalid: withdraw is outside loan-to-value range",
 			args{
 				borrower:             borrower,
-				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))),
-				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdk.NewInt(100*KAVA_CF))),
-				depositCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(100*KAVA_CF))), // 100 * 2 = $200
-				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(80*KAVA_CF))),  // 80 * 2 = $160
-				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(60*KAVA_CF))),  // 60 * 2 = $120
+				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
+				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdkmath.NewInt(100*KAVA_CF))),
+				depositCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))), // 100 * 2 = $200
+				borrowCoins:          sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(80*KAVA_CF))),  // 80 * 2 = $160
+				repayCoins:           sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(60*KAVA_CF))),  // 60 * 2 = $120
 				futureTime:           oneMonthInSeconds,
 			},
 			errArgs{
@@ -276,14 +277,14 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 					types.NewMoneyMarket("ukava",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",                     // Market ID
-						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdkmath.NewInt(KAVA_CF),        // Conversion Factor
 						model,                          // Interest Rate Model
 						reserveFactor,                  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
 					types.NewMoneyMarket("usdx",
 						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
 						"usdx:usd",                     // Market ID
-						sdk.NewInt(KAVA_CF),            // Conversion Factor
+						sdkmath.NewInt(KAVA_CF),        // Conversion Factor
 						model,                          // Interest Rate Model
 						reserveFactor,                  // Reserve Factor
 						sdk.MustNewDecFromStr("0.05")), // Keeper Reward Percent
@@ -371,7 +372,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 
 			// Withdrawing 10% of the coins should succeed
-			withdrawCoins := sdk.NewCoins(sdk.NewCoin("ukava", tc.args.depositCoins[0].Amount.Quo(sdk.NewInt(10))))
+			withdrawCoins := sdk.NewCoins(sdk.NewCoin("ukava", tc.args.depositCoins[0].Amount.Quo(sdkmath.NewInt(10))))
 			err = suite.keeper.Withdraw(suite.ctx, tc.args.borrower, withdrawCoins)
 			suite.Require().NoError(err)
 		})

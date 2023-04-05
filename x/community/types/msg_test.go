@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community/types"
@@ -12,8 +13,8 @@ import (
 
 func TestFundCommunityPool_ValidateBasic(t *testing.T) {
 	validCoins := sdk.NewCoins(
-		sdk.NewCoin("ukava", sdk.NewIntFromUint64(1e6)),
-		sdk.NewCoin("some-denom", sdk.NewIntFromUint64(1e4)),
+		sdk.NewCoin("ukava", sdkmath.NewIntFromUint64(1e6)),
+		sdk.NewCoin("some-denom", sdkmath.NewIntFromUint64(1e4)),
 	)
 	testCases := []struct {
 		name       string

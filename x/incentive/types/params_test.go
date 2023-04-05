@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stretchr/testify/suite"
@@ -94,7 +95,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						"bnb-a",
 						time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 						time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
-						sdk.NewCoin(types.USDXMintingRewardDenom, sdk.NewInt(122354)),
+						sdk.NewCoin(types.USDXMintingRewardDenom, sdkmath.NewInt(122354)),
 					),
 				},
 				HardSupplyRewardPeriods: types.DefaultMultiRewardPeriods,

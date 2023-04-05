@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
@@ -31,7 +32,7 @@ func (suite *ConversionTestSuite) TestMint() {
 
 	coin, err := suite.Keeper.MintConversionPairCoin(suite.Ctx, pair, amount, recipient)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount)), coin)
+	suite.Require().Equal(sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(amount)), coin)
 
 	bal := suite.App.GetBankKeeper().GetBalance(suite.Ctx, recipient, pair.Denom)
 	suite.Require().Equal(amount, bal.Amount.BigInt(), "minted amount should increase balance")
@@ -43,7 +44,7 @@ func (suite *ConversionTestSuite) TestBurn_InsufficientBalance() {
 		"erc20/usdc",
 	)
 
-	amount := sdk.NewInt(100)
+	amount := sdkmath.NewInt(100)
 	recipient := suite.Key1.PubKey().Address().Bytes()
 
 	err := suite.Keeper.BurnConversionPairCoin(suite.Ctx, pair, sdk.NewCoin(pair.Denom, amount), recipient)
@@ -57,7 +58,7 @@ func (suite *ConversionTestSuite) TestBurn() {
 		"erc20/usdc",
 	)
 
-	amount := sdk.NewInt(100)
+	amount := sdkmath.NewInt(100)
 	recipient := suite.Key1.PubKey().Address().Bytes()
 
 	coin, err := suite.Keeper.MintConversionPairCoin(suite.Ctx, pair, amount.BigInt(), recipient)
@@ -153,7 +154,7 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20() {
 	// Starting balance of origin account
 	coin, err := suite.Keeper.MintConversionPairCoin(suite.Ctx, pair, amount, originAcc)
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount)), coin)
+	suite.Require().Equal(sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(amount)), coin)
 
 	// Mint same initial balance for module account as backing erc20 supply
 	err = suite.Keeper.MintERC20(
@@ -170,7 +171,7 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20() {
 		ctx,
 		originAcc,
 		recipientAcc,
-		sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount)),
+		sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(amount)),
 	)
 	suite.Require().NoError(err)
 	suite.Require().LessOrEqual(ctx.GasMeter().GasConsumed(), uint64(500000))
@@ -232,7 +233,7 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20_InsufficientBalance() {
 		suite.Ctx,
 		originAcc,
 		recipientAcc,
-		sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount)),
+		sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(amount)),
 	)
 
 	suite.Require().Error(err)
@@ -255,7 +256,7 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20_NotEnabled() {
 		suite.Ctx,
 		originAcc,
 		recipientAcc,
-		sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount)),
+		sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(amount)),
 	)
 
 	suite.Require().Error(err)
@@ -284,7 +285,7 @@ func (suite *ConversionTestSuite) TestConvertERC20ToCoin() {
 	suite.Require().NoError(err)
 
 	ctx := suite.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
-	convertAmt := sdk.NewInt(50)
+	convertAmt := sdkmath.NewInt(50)
 	err = suite.Keeper.ConvertERC20ToCoin(
 		ctx,
 		userEvmAddr,
@@ -333,7 +334,7 @@ func (suite *ConversionTestSuite) TestConvertERC20ToCoin_EmptyContract() {
 
 	userAddr := sdk.AccAddress(suite.Key1.PubKey().Address().Bytes())
 	userEvmAddr := types.NewInternalEVMAddress(common.BytesToAddress(suite.Key1.PubKey().Address()))
-	convertAmt := sdk.NewInt(100)
+	convertAmt := sdkmath.NewInt(100)
 
 	// Trying to convert erc20 from an empty contract should fail
 	err := suite.Keeper.ConvertERC20ToCoin(

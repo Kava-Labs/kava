@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
@@ -324,7 +325,7 @@ func (builder HardDepositBuilder) WithSourceShares(denom string, shares int64) H
 	factor := sdk.MustNewDecFromStr("2")
 
 	// Calculate deposit amount that would equal the requested source shares given the above factor.
-	amt := sdk.NewInt(shares).Mul(factor.RoundInt())
+	amt := sdkmath.NewInt(shares).Mul(factor.RoundInt())
 
 	builder.Amount = builder.Amount.Add(sdk.NewCoin(denom, amt))
 	builder.Index = builder.Index.SetInterestFactor(denom, factor)

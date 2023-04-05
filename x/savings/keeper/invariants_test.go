@@ -7,6 +7,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
@@ -56,7 +57,7 @@ func (suite *invariantTestSuite) RegisterRoute(moduleName string, route string, 
 }
 
 func (suite *invariantTestSuite) SetupValidState() {
-	depositAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e8)))
+	depositAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(2e8)))
 
 	suite.keeper.SetDeposit(suite.ctx, types.NewDeposit(
 		suite.addrs[0],
@@ -126,7 +127,7 @@ func (suite *invariantTestSuite) TestSolvencyInvariant() {
 	// broken when deposits are greater than module balance
 	suite.keeper.SetDeposit(suite.ctx, types.NewDeposit(
 		suite.addrs[0],
-		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(3e8))),
+		sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(3e8))),
 	))
 
 	message, broken = suite.runInvariant("solvency", keeper.SolvencyInvariant)
@@ -136,7 +137,7 @@ func (suite *invariantTestSuite) TestSolvencyInvariant() {
 	// broken when deposits are less than the module balance
 	suite.keeper.SetDeposit(suite.ctx, types.NewDeposit(
 		suite.addrs[0],
-		sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e8))),
+		sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e8))),
 	))
 
 	message, broken = suite.runInvariant("solvency", keeper.SolvencyInvariant)

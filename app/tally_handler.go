@@ -1,6 +1,7 @@
 package app
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govkeeper "github.com/cosmos/cosmos-sdk/x/gov/keeper"
@@ -188,7 +189,7 @@ func (th TallyHandler) Tally(
 }
 
 // bkavaByDenom a map of the bkava denom and the amount of bkava for that denom.
-type bkavaByDenom map[string]sdk.Int
+type bkavaByDenom map[string]sdkmath.Int
 
 func (bkavaMap bkavaByDenom) add(coin sdk.Coin) {
 	_, found := bkavaMap[coin.Denom]

@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 
@@ -46,15 +47,15 @@ func (msg MsgMintDeposit) Type() string { return TypeMsgMintDeposit }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgMintDeposit) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
 	}
 
 	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
 	}
 
 	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
 	return nil
 }
@@ -89,15 +90,15 @@ func (msg MsgDelegateMintDeposit) Type() string { return TypeMsgDelegateMintDepo
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgDelegateMintDeposit) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.Depositor); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid depositor address: %s", err)
 	}
 
 	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
 	}
 
 	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
 	return nil
 }
@@ -132,15 +133,15 @@ func (msg MsgWithdrawBurn) Type() string { return TypeMsgWithdrawBurn }
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdrawBurn) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
 	}
 
 	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
 	}
 
 	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
 	return nil
 }
@@ -175,15 +176,15 @@ func (msg MsgWithdrawBurnUndelegate) Type() string { return TypeMsgWithdrawBurnU
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgWithdrawBurnUndelegate) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromBech32(msg.From); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address: %s", err)
 	}
 
 	if _, err := sdk.ValAddressFromBech32(msg.Validator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid validator address: %s", err)
 	}
 
 	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
 	}
 	return nil
 }

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/earn/testutil"
@@ -254,7 +255,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw_WithAccumulatedSavings() {
 	// Query account value
 	accValue, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, savingsVaultDenom, acc)
 	suite.Require().NoError(err)
-	suite.Equal(depositAmount.AddAmount(sdk.NewInt(10)), accValue)
+	suite.Equal(depositAmount.AddAmount(sdkmath.NewInt(10)), accValue)
 
 	// Withdraw 100, 10 remaining
 	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, depositAmount, types.STRATEGY_TYPE_SAVINGS)
@@ -270,11 +271,11 @@ func (suite *strategySavingsTestSuite) TestWithdraw_WithAccumulatedSavings() {
 	)
 
 	// Half of remaining 10, 5 remaining
-	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdkmath.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	// Withdraw all
-	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc, sdk.NewCoin(savingsVaultDenom, sdkmath.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	accValue, err = suite.Keeper.GetVaultAccountValue(suite.Ctx, savingsVaultDenom, acc)
@@ -323,7 +324,7 @@ func (suite *strategySavingsTestSuite) TestAccountShares() {
 	acc2Value, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, savingsVaultDenom, acc2)
 	suite.Require().NoError(err)
 	suite.Equal(
-		sdk.NewInt(99),
+		sdkmath.NewInt(99),
 		acc2Value.Amount,
 		"value 1 less than deposit amount with different share price, decimals truncated",
 	)
@@ -393,7 +394,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw_AccumulatedAmount() {
 	suite.Require().NoError(err)
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(10)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdkmath.NewInt(10)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	_, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -432,10 +433,10 @@ func (suite *strategySavingsTestSuite) TestWithdraw_AccumulatedTruncated() {
 
 	accBal, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, savingsVaultDenom, acc1)
 	suite.Require().NoError(err)
-	suite.Equal(depositAmount.AddAmount(sdk.NewInt(5)), accBal, "acc1 should have 105 usdx")
+	suite.Equal(depositAmount.AddAmount(sdkmath.NewInt(5)), accBal, "acc1 should have 105 usdx")
 
 	// 3. Withdraw all from acc1 - including accumulated amount
-	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdk.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
+	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, depositAmount.AddAmount(sdkmath.NewInt(5)), types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
 	acc1Shares, found = suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
@@ -472,7 +473,7 @@ func (suite *strategySavingsTestSuite) TestWithdraw_ExpensiveShares() {
 
 	accBal, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, savingsVaultDenom, acc1)
 	suite.Require().NoError(err)
-	suite.Equal(sdk.NewInt(2000), accBal.Amount, "acc1 should have 2000 usdx")
+	suite.Equal(sdkmath.NewInt(2000), accBal.Amount, "acc1 should have 2000 usdx")
 
 	// 3. Withdraw all from acc1 - including accumulated amount
 	_, err = suite.Keeper.Withdraw(suite.Ctx, acc1, sdk.NewInt64Coin(savingsVaultDenom, 2000), types.STRATEGY_TYPE_SAVINGS)

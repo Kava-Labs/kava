@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/simulation"
 
@@ -278,7 +279,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 						MaxBid:            c("usdx", 1366663250),
 						LotReturns: auctiontypes.WeightedAddresses{
 							Addresses: []sdk.AccAddress{addr},
-							Weights:   []sdk.Int{sdk.NewInt(9900000)},
+							Weights:   []sdkmath.Int{sdkmath.NewInt(9900000)},
 						},
 					},
 				},
@@ -317,7 +318,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 						MaxBid:            c("usdx", 1366663250),
 						LotReturns: auctiontypes.WeightedAddresses{
 							Addresses: []sdk.AccAddress{addr},
-							Weights:   []sdk.Int{sdk.NewInt(9900000)},
+							Weights:   []sdkmath.Int{sdkmath.NewInt(9900000)},
 						},
 					},
 				},
@@ -496,7 +497,7 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 						MaxBid:            c("usdx", 1025000000),
 						LotReturns: auctiontypes.WeightedAddresses{
 							Addresses: []sdk.AccAddress{addr},
-							Weights:   []sdk.Int{sdk.NewInt(10000000)},
+							Weights:   []sdkmath.Int{sdkmath.NewInt(10000000)},
 						},
 					},
 				},

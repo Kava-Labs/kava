@@ -9,6 +9,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -83,17 +84,17 @@ func (msg MsgCreateAtomicSwap) GetSigners() []sdk.AccAddress {
 func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	to, err := sdk.AccAddressFromBech32(msg.To)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if from.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	if to.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "recipient address cannot be empty")
 	}
 	if strings.TrimSpace(msg.RecipientOtherChain) == "" {
 		return errors.New("missing recipient address on other chain")
@@ -115,10 +116,10 @@ func (msg MsgCreateAtomicSwap) ValidateBasic() error {
 		return errors.New("timestamp must be positive")
 	}
 	if len(msg.Amount) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "amount cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, "amount cannot be empty")
 	}
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 	if msg.HeightSpan <= 0 {
 		return errors.New("height span must be positive")
@@ -170,10 +171,10 @@ func (msg MsgClaimAtomicSwap) GetSigners() []sdk.AccAddress {
 func (msg MsgClaimAtomicSwap) ValidateBasic() error {
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if from.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	swapID, err := hex.DecodeString(msg.SwapID)
 	if err != nil {
@@ -235,10 +236,10 @@ func (msg MsgRefundAtomicSwap) GetSigners() []sdk.AccAddress {
 func (msg MsgRefundAtomicSwap) ValidateBasic() error {
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 	if from.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	swapID, err := hex.DecodeString(msg.SwapID)
 	if err != nil {

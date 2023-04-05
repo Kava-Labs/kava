@@ -1,8 +1,9 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/x/liquid/types"
@@ -23,11 +24,11 @@ func (k Keeper) TransferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, from
 	}
 
 	if shares.IsNil() || shares.LT(sdk.ZeroDec()) {
-		return sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "nil or negative shares")
+		return sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "nil or negative shares")
 	}
 	if shares.Equal(sdk.ZeroDec()) {
 		// Block 0 transfers to reduce edge cases.
-		return sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "zero shares")
+		return sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "zero shares")
 	}
 
 	fromDelegation, found := k.stakingKeeper.GetDelegation(ctx, fromDelegator, valAddr)
@@ -69,15 +70,15 @@ func isBelowMinSelfDelegation(validator stakingtypes.ValidatorI, shares sdk.Dec)
 }
 
 // fastUndelegate undelegates shares from a validator skipping the unbonding period and not creating any unbonding delegations.
-func (k Keeper) fastUndelegate(ctx sdk.Context, valAddr sdk.ValAddress, delegator sdk.AccAddress, shares sdk.Dec) (sdk.Int, error) {
+func (k Keeper) fastUndelegate(ctx sdk.Context, valAddr sdk.ValAddress, delegator sdk.AccAddress, shares sdk.Dec) (sdkmath.Int, error) {
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
-		return sdk.Int{}, types.ErrNoDelegatorForAddress
+		return sdkmath.Int{}, types.ErrNoDelegatorForAddress
 	}
 
 	returnAmount, err := k.stakingKeeper.Unbond(ctx, delegator, valAddr, shares)
 	if err != nil {
-		return sdk.Int{}, err
+		return sdkmath.Int{}, err
 	}
 	returnCoins := sdk.NewCoins(sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), returnAmount))
 
@@ -89,13 +90,13 @@ func (k Keeper) fastUndelegate(ctx sdk.Context, valAddr sdk.ValAddress, delegato
 	}
 
 	if err := k.bankKeeper.UndelegateCoinsFromModuleToAccount(ctx, stakingtypes.NotBondedPoolName, delegator, returnCoins); err != nil {
-		return sdk.Int{}, err
+		return sdkmath.Int{}, err
 	}
 	return returnAmount, nil
 }
 
 // delegateFromAccount delegates to a validator from an account (vs redelegating from an existing delegation)
-func (k Keeper) delegateFromAccount(ctx sdk.Context, valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdk.Int) (sdk.Dec, error) {
+func (k Keeper) delegateFromAccount(ctx sdk.Context, valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) (sdk.Dec, error) {
 	validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
 	if !found {
 		return sdk.Dec{}, types.ErrNoValidatorFound

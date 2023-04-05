@@ -1,6 +1,8 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
@@ -47,18 +49,18 @@ func (msg MsgConvertCoinToERC20) GetSigners() []sdk.AccAddress {
 func (msg MsgConvertCoinToERC20) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Initiator)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if !common.IsHexAddress(msg.Receiver) {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidAddress,
 			"Receiver is not a valid hex address",
 		)
 	}
 
 	if msg.Amount.IsZero() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "amount cannot be zero")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "amount cannot be zero")
 	}
 
 	// Checks for negative
@@ -85,7 +87,7 @@ func NewMsgConvertERC20ToCoin(
 	initiator InternalEVMAddress,
 	receiver sdk.AccAddress,
 	contractAddr InternalEVMAddress,
-	amount sdk.Int,
+	amount sdkmath.Int,
 ) MsgConvertERC20ToCoin {
 	return MsgConvertERC20ToCoin{
 		Initiator:        initiator.String(),
@@ -105,14 +107,14 @@ func (msg MsgConvertERC20ToCoin) GetSigners() []sdk.AccAddress {
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgConvertERC20ToCoin) ValidateBasic() error {
 	if !common.IsHexAddress(msg.Initiator) {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidAddress,
 			"initiator is not a valid hex address",
 		)
 	}
 
 	if !common.IsHexAddress(msg.KavaERC20Address) {
-		return sdkerrors.Wrap(
+		return errorsmod.Wrap(
 			sdkerrors.ErrInvalidAddress,
 			"erc20 contract address is not a valid hex address",
 		)
@@ -120,11 +122,11 @@ func (msg MsgConvertERC20ToCoin) ValidateBasic() error {
 
 	_, err := sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver is not a valid bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "receiver is not a valid bech32 address")
 	}
 
 	if msg.Amount.IsNil() || msg.Amount.LTE(sdk.ZeroInt()) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "amount cannot be zero or less")
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "amount cannot be zero or less")
 	}
 
 	return nil

@@ -4,21 +4,22 @@ import (
 	"fmt"
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 var zero = sdk.ZeroInt()
 
 // calculateInitialShares calculates initial shares as sqrt(A*B), the geometric mean of A and B
-func calculateInitialShares(reservesA, reservesB sdk.Int) sdk.Int {
+func calculateInitialShares(reservesA, reservesB sdkmath.Int) sdkmath.Int {
 	// Big.Int allows multiplication without overflow at 255 bits.
 	// In addition, Sqrt converges to a correct solution for inputs
-	// where sdk.Int.ApproxSqrt does not converge due to exceeding
+	// where sdkmath.Int.ApproxSqrt does not converge due to exceeding
 	// 100 iterations.
 	var result big.Int
 	result.Mul(reservesA.BigInt(), reservesB.BigInt()).Sqrt(&result)
-	return sdk.NewIntFromBigInt(&result)
+	return sdkmath.NewIntFromBigInt(&result)
 }
 
 // BasePool implements a unitless constant-product liquidity pool.
@@ -27,20 +28,20 @@ func calculateInitialShares(reservesA, reservesB sdk.Int) sdk.Int {
 // will result in equal state values of A', B', s': F(A,B,s) => (A',B',s'), F(B,A,s) => (B',A',s')
 //
 // In addition, the pool is protected from overflow in intermediate calculations, and will
-// only overflow when A, B, or s become larger than the max sdk.Int.
+// only overflow when A, B, or s become larger than the max sdkmath.Int.
 //
 // Pool operations with non-positive values are invalid, and all functions on a pool will panic
 // when given zero or negative values.
 type BasePool struct {
-	reservesA   sdk.Int
-	reservesB   sdk.Int
-	totalShares sdk.Int
+	reservesA   sdkmath.Int
+	reservesB   sdkmath.Int
+	totalShares sdkmath.Int
 }
 
 // NewBasePool returns a pointer to a base pool with reserves and total shares initialized
-func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
+func NewBasePool(reservesA, reservesB sdkmath.Int) (*BasePool, error) {
 	if reservesA.LTE(zero) || reservesB.LTE(zero) {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "reserves must be greater than zero")
 	}
 
 	totalShares := calculateInitialShares(reservesA, reservesB)
@@ -53,13 +54,13 @@ func NewBasePool(reservesA, reservesB sdk.Int) (*BasePool, error) {
 }
 
 // NewBasePoolWithExistingShares returns a pointer to a base pool with existing shares
-func NewBasePoolWithExistingShares(reservesA, reservesB, totalShares sdk.Int) (*BasePool, error) {
+func NewBasePoolWithExistingShares(reservesA, reservesB, totalShares sdkmath.Int) (*BasePool, error) {
 	if reservesA.LTE(zero) || reservesB.LTE(zero) {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "reserves must be greater than zero")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "reserves must be greater than zero")
 	}
 
 	if totalShares.LTE(zero) {
-		return nil, sdkerrors.Wrap(ErrInvalidPool, "total shares must be greater than zero")
+		return nil, errorsmod.Wrap(ErrInvalidPool, "total shares must be greater than zero")
 	}
 
 	return &BasePool{
@@ -70,12 +71,12 @@ func NewBasePoolWithExistingShares(reservesA, reservesB, totalShares sdk.Int) (*
 }
 
 // ReservesA returns the A reserves of the pool
-func (p *BasePool) ReservesA() sdk.Int {
+func (p *BasePool) ReservesA() sdkmath.Int {
 	return p.reservesA
 }
 
 // ReservesB returns the B reserves of the pool
-func (p *BasePool) ReservesB() sdk.Int {
+func (p *BasePool) ReservesB() sdkmath.Int {
 	return p.reservesB
 }
 
@@ -86,14 +87,14 @@ func (p *BasePool) IsEmpty() bool {
 }
 
 // TotalShares returns the total number of shares in the pool
-func (p *BasePool) TotalShares() sdk.Int {
+func (p *BasePool) TotalShares() sdkmath.Int {
 	return p.totalShares
 }
 
 // AddLiquidity adds liquidity to the pool returns the actual reservesA, reservesB deposits in addition
 // to the number of shares created.  The deposits are always less than or equal to the provided and desired
 // values.
-func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sdk.Int, sdk.Int) {
+func (p *BasePool) AddLiquidity(desiredA sdkmath.Int, desiredB sdkmath.Int) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	// Panics if provided values are zero
 	p.assertDepositsArePositive(desiredA, desiredB)
 
@@ -176,15 +177,15 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 	// than the deposit ratio for either A or B, ensuring there are no
 	// cases where a withdraw will allow funds to be removed at a higher ratio
 	// than it was deposited.
-	var shares sdk.Int
+	var shares sdkmath.Int
 	if sharesA.Cmp(&sharesB) <= 0 {
-		shares = sdk.NewIntFromBigInt(&sharesA)
+		shares = sdkmath.NewIntFromBigInt(&sharesA)
 	} else {
-		shares = sdk.NewIntFromBigInt(&sharesB)
+		shares = sdkmath.NewIntFromBigInt(&sharesB)
 	}
 
-	depositA := sdk.NewIntFromBigInt(actualA)
-	depositB := sdk.NewIntFromBigInt(actualB)
+	depositA := sdkmath.NewIntFromBigInt(actualA)
+	depositB := sdkmath.NewIntFromBigInt(actualB)
 
 	// update internal pool state
 	p.reservesA = p.reservesA.Add(depositA)
@@ -199,7 +200,7 @@ func (p *BasePool) AddLiquidity(desiredA sdk.Int, desiredB sdk.Int) (sdk.Int, sd
 // or the shares are not positive.
 // In addition, also panics if reserves go negative, which should not happen.
 // If panic occurs, it is a bug.
-func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
+func (p *BasePool) RemoveLiquidity(shares sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
 	// calculate amount to withdraw from the pool based
 	// on the number of shares provided. s/S * reserves
 	withdrawA, withdrawB := p.ShareValue(shares)
@@ -218,7 +219,7 @@ func (p *BasePool) RemoveLiquidity(shares sdk.Int) (sdk.Int, sdk.Int) {
 
 // SwapExactAForB trades an exact value of a for b.  Returns the positive amount b
 // that is removed from the pool and the portion of a that is used for paying the fee.
-func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) SwapExactAForB(a sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
 	b, feeValue := p.calculateOutputForExactInput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -230,7 +231,7 @@ func (p *BasePool) SwapExactAForB(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 
 // SwapExactBForA trades an exact value of b for a.  Returns the positive amount a
 // that is removed from the pool and the portion of b that is used for paying the fee.
-func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) SwapExactBForA(b sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
 	a, feeValue := p.calculateOutputForExactInput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -247,7 +248,7 @@ func (p *BasePool) SwapExactBForA(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 // by splitting a trade into multiple trades.
 //
 // The swap output is truncated to ensure the pool invariant is always greater than or equal to the previous invariant.
-func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
 	p.assertSwapInputIsValid(in)
 	p.assertFeeIsValid(fee)
 
@@ -257,7 +258,7 @@ func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdk.
 	result.Mul(outReserves.BigInt(), inAfterFee.BigInt())
 	result.Quo(&result, inReserves.Add(inAfterFee).BigInt())
 
-	out := sdk.NewIntFromBigInt(&result)
+	out := sdkmath.NewIntFromBigInt(&result)
 	feeValue := in.Sub(inAfterFee)
 
 	return out, feeValue
@@ -265,7 +266,7 @@ func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdk.
 
 // SwapAForExactB trades a for an exact b.  Returns the positive amount a
 // that is added to the pool, and the portion of a that is used to pay the fee.
-func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) SwapAForExactB(b sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
 	a, feeValue := p.calculateInputForExactOutput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -277,7 +278,7 @@ func (p *BasePool) SwapAForExactB(b sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 
 // SwapBForExactA trades b for an exact a.  Returns the positive amount b
 // that is added to the pool, and the portion of b that is used to pay the fee.
-func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) SwapBForExactA(a sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
 	b, feeValue := p.calculateInputForExactOutput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -294,7 +295,7 @@ func (p *BasePool) SwapBForExactA(a sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
 // by splitting a trade into multiple trades.
 //
 // The swap input is ceiled to ensure the pool invariant is always greater than or equal to the previous invariant.
-func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdk.Int, fee sdk.Dec) (sdk.Int, sdk.Int) {
+func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
 	p.assertSwapOutputIsValid(out, outReserves)
 	p.assertFeeIsValid(fee)
 
@@ -305,7 +306,7 @@ func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdk
 	var remainder big.Int
 	result.QuoRem(&result, newOutReserves.BigInt(), &remainder)
 
-	inWithoutFee := sdk.NewIntFromBigInt(&result)
+	inWithoutFee := sdkmath.NewIntFromBigInt(&result)
 	if remainder.Sign() != 0 {
 		inWithoutFee = inWithoutFee.Add(sdk.OneInt())
 	}
@@ -319,7 +320,7 @@ func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdk
 // ShareValue returns the value of the provided shares and panics
 // if the shares are greater than the total shares of the pool or
 // if the shares are not positive.
-func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
+func (p *BasePool) ShareValue(shares sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
 	p.assertSharesArePositive(shares)
 	p.assertSharesAreLessThanTotal(shares)
 
@@ -331,12 +332,12 @@ func (p *BasePool) ShareValue(shares sdk.Int) (sdk.Int, sdk.Int) {
 	resultB.Mul(p.reservesB.BigInt(), shares.BigInt())
 	resultB.Quo(&resultB, p.totalShares.BigInt())
 
-	return sdk.NewIntFromBigInt(&resultA), sdk.NewIntFromBigInt(&resultB)
+	return sdkmath.NewIntFromBigInt(&resultA), sdkmath.NewIntFromBigInt(&resultB)
 }
 
 // assertInvariantAndUpdateRerserves asserts the constant product invariant is not violated, subtracting
 // any fees first, then updates the pool reserves.  Panics if invariant is violated.
-func (p *BasePool) assertInvariantAndUpdateReserves(newReservesA, feeA, newReservesB, feeB sdk.Int) {
+func (p *BasePool) assertInvariantAndUpdateReserves(newReservesA, feeA, newReservesB, feeB sdkmath.Int) {
 	var invariant big.Int
 	invariant.Mul(p.reservesA.BigInt(), p.reservesB.BigInt())
 
@@ -351,7 +352,7 @@ func (p *BasePool) assertInvariantAndUpdateReserves(newReservesA, feeA, newReser
 
 // assertSwapInputIsValid checks if the provided swap input is positive
 // and panics if it is 0 or negative
-func (p *BasePool) assertSwapInputIsValid(input sdk.Int) {
+func (p *BasePool) assertSwapInputIsValid(input sdkmath.Int) {
 	if !input.IsPositive() {
 		panic("invalid value: swap input must be positive")
 	}
@@ -359,7 +360,7 @@ func (p *BasePool) assertSwapInputIsValid(input sdk.Int) {
 
 // assertSwapOutputIsValid checks if the provided swap input is positive and
 // less than the provided reserves.
-func (p *BasePool) assertSwapOutputIsValid(output sdk.Int, reserves sdk.Int) {
+func (p *BasePool) assertSwapOutputIsValid(output sdkmath.Int, reserves sdkmath.Int) {
 	if !output.IsPositive() {
 		panic("invalid value: swap output must be positive")
 	}
@@ -377,21 +378,21 @@ func (p *BasePool) assertFeeIsValid(fee sdk.Dec) {
 }
 
 // assertSharesPositive panics if shares is zero or negative
-func (p *BasePool) assertSharesArePositive(shares sdk.Int) {
+func (p *BasePool) assertSharesArePositive(shares sdkmath.Int) {
 	if !shares.IsPositive() {
 		panic("invalid value: shares must be positive")
 	}
 }
 
 // assertSharesLessThanTotal panics if the number of shares is greater than the total shares
-func (p *BasePool) assertSharesAreLessThanTotal(shares sdk.Int) {
+func (p *BasePool) assertSharesAreLessThanTotal(shares sdkmath.Int) {
 	if shares.GT(p.totalShares) {
 		panic(fmt.Sprintf("out of bounds: shares %s > total shares %s", shares, p.totalShares))
 	}
 }
 
 // assertDepositsPositive panics if a deposit is zero or negative
-func (p *BasePool) assertDepositsArePositive(depositA, depositB sdk.Int) {
+func (p *BasePool) assertDepositsArePositive(depositA, depositB sdkmath.Int) {
 	if !depositA.IsPositive() {
 		panic("invalid value: deposit A must be positive")
 	}

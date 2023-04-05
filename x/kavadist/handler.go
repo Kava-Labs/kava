@@ -3,6 +3,7 @@ package kavadist
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+errorsmod "cosmossdk.io/errors"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/kava-labs/kava/x/kavadist/keeper"
@@ -16,7 +17,7 @@ func NewCommunityPoolMultiSpendProposalHandler(k keeper.Keeper) govv1beta1.Handl
 		case *types.CommunityPoolMultiSpendProposal:
 			return keeper.HandleCommunityPoolMultiSpendProposal(ctx, k, c)
 		default:
-			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized kavadist proposal content type: %T", c)
+			return errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized kavadist proposal content type: %T", c)
 		}
 	}
 }

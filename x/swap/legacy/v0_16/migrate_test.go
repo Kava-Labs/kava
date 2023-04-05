@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -83,29 +84,29 @@ func (s *migrateTestSuite) TestMigrate_PoolRecords() {
 	s.v15genstate.PoolRecords = v015swap.PoolRecords{
 		{
 			PoolID:      "pool-1",
-			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(100)),
-			ReservesB:   sdk.NewCoin("xrpb", sdk.NewInt(200)),
-			TotalShares: sdk.NewInt(300),
+			ReservesA:   sdk.NewCoin("usdx", sdkmath.NewInt(100)),
+			ReservesB:   sdk.NewCoin("xrpb", sdkmath.NewInt(200)),
+			TotalShares: sdkmath.NewInt(300),
 		},
 		{
 			PoolID:      "pool-2",
-			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(500)),
-			ReservesB:   sdk.NewCoin("ukava", sdk.NewInt(500)),
-			TotalShares: sdk.NewInt(1000),
+			ReservesA:   sdk.NewCoin("usdx", sdkmath.NewInt(500)),
+			ReservesB:   sdk.NewCoin("ukava", sdkmath.NewInt(500)),
+			TotalShares: sdkmath.NewInt(1000),
 		},
 	}
 	expected := v016swap.PoolRecords{
 		{
 			PoolID:      "pool-1",
-			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(100)),
-			ReservesB:   sdk.NewCoin("xrpb", sdk.NewInt(200)),
-			TotalShares: sdk.NewInt(300),
+			ReservesA:   sdk.NewCoin("usdx", sdkmath.NewInt(100)),
+			ReservesB:   sdk.NewCoin("xrpb", sdkmath.NewInt(200)),
+			TotalShares: sdkmath.NewInt(300),
 		},
 		{
 			PoolID:      "pool-2",
-			ReservesA:   sdk.NewCoin("usdx", sdk.NewInt(500)),
-			ReservesB:   sdk.NewCoin("ukava", sdk.NewInt(500)),
-			TotalShares: sdk.NewInt(1000),
+			ReservesA:   sdk.NewCoin("usdx", sdkmath.NewInt(500)),
+			ReservesB:   sdk.NewCoin("ukava", sdkmath.NewInt(500)),
+			TotalShares: sdkmath.NewInt(1000),
 		},
 	}
 	genState := Migrate(s.v15genstate)
@@ -117,24 +118,24 @@ func (s *migrateTestSuite) TestMigrate_ShareRecords() {
 		{
 			PoolID:      "pool-1",
 			Depositor:   s.addresses[0],
-			SharesOwned: sdk.NewInt(100),
+			SharesOwned: sdkmath.NewInt(100),
 		},
 		{
 			PoolID:      "pool-2",
 			Depositor:   s.addresses[1],
-			SharesOwned: sdk.NewInt(410),
+			SharesOwned: sdkmath.NewInt(410),
 		},
 	}
 	expected := v016swap.ShareRecords{
 		{
 			PoolID:      "pool-1",
 			Depositor:   s.addresses[0],
-			SharesOwned: sdk.NewInt(100),
+			SharesOwned: sdkmath.NewInt(100),
 		},
 		{
 			PoolID:      "pool-2",
 			Depositor:   s.addresses[1],
-			SharesOwned: sdk.NewInt(410),
+			SharesOwned: sdkmath.NewInt(410),
 		},
 	}
 	genState := Migrate(s.v15genstate)

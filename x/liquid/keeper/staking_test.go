@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -16,8 +17,8 @@ import (
 var (
 	// d is an alias for sdk.MustNewDecFromStr
 	d = sdk.MustNewDecFromStr
-	// i is an alias for sdk.NewInt
-	i = sdk.NewInt
+	// i is an alias for sdkmath.NewInt
+	i = sdkmath.NewInt
 	// c is an alias for sdk.NewInt64Coin
 	c = sdk.NewInt64Coin
 )

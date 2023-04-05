@@ -1,6 +1,7 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -40,21 +41,21 @@ func (msg MsgIssueTokens) Type() string { return TypeMsgIssueTokens }
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgIssueTokens) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	if msg.Tokens.IsZero() || !msg.Tokens.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
 	}
 	if len(msg.Receiver) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "receiver address cannot be empty")
 	}
 	_, err = sdk.AccAddressFromBech32(msg.Receiver)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "invalid receiver bech32 address")
 	}
 	return nil
 }
@@ -91,14 +92,14 @@ func (msg MsgRedeemTokens) Type() string { return TypeMsgRedeemTokens }
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgRedeemTokens) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	if msg.Tokens.IsZero() || !msg.Tokens.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "invalid tokens %s", msg.Tokens)
 	}
 	return nil
 }
@@ -136,14 +137,14 @@ func (msg MsgBlockAddress) Type() string { return TypeMsgBlockAddress }
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgBlockAddress) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	if len(msg.BlockedAddress) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
 	}
 	return sdk.ValidateDenom(msg.Denom)
 }
@@ -181,14 +182,14 @@ func (msg MsgUnblockAddress) Type() string { return TypeMsgUnBlockAddress }
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgUnblockAddress) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	if len(msg.BlockedAddress) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "blocked address cannot be empty")
 	}
 	return sdk.ValidateDenom(msg.Denom)
 }
@@ -226,11 +227,11 @@ func (msg MsgSetPauseStatus) Type() string { return TypeMsgSetPauseStatus }
 // ValidateBasic does a simple validation check that doesn't require access to state.
 func (msg MsgSetPauseStatus) ValidateBasic() error {
 	if len(msg.Sender) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender address cannot be empty")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender bech32 address")
 	}
 	return sdk.ValidateDenom(msg.Denom)
 }

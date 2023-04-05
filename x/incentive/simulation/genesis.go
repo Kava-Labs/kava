@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -13,7 +12,7 @@ import (
 var (
 	CollateralDenoms    = []string{}
 	RewardDenom         = "ukava"
-	MaxTotalAssetReward = sdk.NewInt(1000000000)
+	MaxTotalAssetReward = sdkmath.NewInt(1000000000)
 )
 
 // RandomizedGenState generates a random GenesisState for incentive module

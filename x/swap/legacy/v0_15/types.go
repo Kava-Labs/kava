@@ -1,6 +1,7 @@
 package v0_15
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -29,10 +30,10 @@ type PoolRecords []PoolRecord
 // and is used to store the state of a denominated pool
 type PoolRecord struct {
 	// primary key
-	PoolID      string   `json:"pool_id" yaml:"pool_id"`
-	ReservesA   sdk.Coin `json:"reserves_a" yaml:"reserves_a"`
-	ReservesB   sdk.Coin `json:"reserves_b" yaml:"reserves_b"`
-	TotalShares sdk.Int  `json:"total_shares" yaml:"total_shares"`
+	PoolID      string      `json:"pool_id" yaml:"pool_id"`
+	ReservesA   sdk.Coin    `json:"reserves_a" yaml:"reserves_a"`
+	ReservesB   sdk.Coin    `json:"reserves_b" yaml:"reserves_b"`
+	TotalShares sdkmath.Int `json:"total_shares" yaml:"total_shares"`
 }
 
 // ShareRecords is a slice of ShareRecord
@@ -43,8 +44,8 @@ type ShareRecord struct {
 	// primary key
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	// secondary / sort key
-	PoolID      string  `json:"pool_id" yaml:"pool_id"`
-	SharesOwned sdk.Int `json:"shares_owned" yaml:"shares_owned"`
+	PoolID      string      `json:"pool_id" yaml:"pool_id"`
+	SharesOwned sdkmath.Int `json:"shares_owned" yaml:"shares_owned"`
 }
 
 // AllowedPools is a slice of AllowedPool

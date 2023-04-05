@@ -3,8 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/liquid/types"
 )
@@ -16,7 +17,7 @@ import (
 func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error) {
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	if amount.Denom != bondDenom {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "expected %s", bondDenom)
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidDenom, "expected %s", bondDenom)
 	}
 
 	derivativeAmount, shares, err := k.CalculateDerivativeSharesFromTokens(ctx, delegatorAddr, valAddr, amount.Amount)
@@ -52,13 +53,13 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 
 // CalculateDerivativeSharesFromTokens converts a staking token amount into its equivalent delegation shares, and staking derivative amount.
 // This combines the code for calculating the shares to be transferred, and the derivative coins to be minted.
-func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdk.Int) (sdk.Int, sdk.Dec, error) {
+func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdkmath.Int) (sdkmath.Int, sdk.Dec, error) {
 	if !tokens.IsPositive() {
-		return sdk.Int{}, sdk.Dec{}, sdkerrors.Wrap(types.ErrUntransferableShares, "token amount must be positive")
+		return sdkmath.Int{}, sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "token amount must be positive")
 	}
 	shares, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegator, validator, tokens)
 	if err != nil {
-		return sdk.Int{}, sdk.Dec{}, err
+		return sdkmath.Int{}, sdk.Dec{}, err
 	}
 	return shares.TruncateInt(), shares, nil
 }
@@ -69,7 +70,7 @@ func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator s
 func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Dec, error) {
 
 	if amount.Denom != k.GetLiquidStakingTokenDenom(valAddr) {
-		return sdk.Dec{}, sdkerrors.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
+		return sdk.Dec{}, errorsmod.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
 	}
 
 	if err := k.burnCoins(ctx, delegatorAddr, sdk.NewCoins(amount)); err != nil {
@@ -182,7 +183,7 @@ func (k Keeper) burnCoins(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coi
 func (k Keeper) DerivativeFromTokens(ctx sdk.Context, valAddr sdk.ValAddress, tokens sdk.Coin) (sdk.Coin, error) {
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	if tokens.Denom != bondDenom {
-		return sdk.Coin{}, sdkerrors.Wrapf(types.ErrInvalidDenom, "'%s' does not match staking denom '%s'", tokens.Denom, bondDenom)
+		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidDenom, "'%s' does not match staking denom '%s'", tokens.Denom, bondDenom)
 	}
 
 	// Use GetModuleAddress instead of GetModuleAccount to avoid creating a module account if it doesn't exist.

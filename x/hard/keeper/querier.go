@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,7 +40,7 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case types.QueryGetInterestFactors:
 			return queryGetInterestFactors(ctx, req, k, legacyQuerierCdc)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
+			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint", types.ModuleName)
 		}
 	}
 }
@@ -51,7 +52,7 @@ func queryGetParams(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQuerie
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -60,7 +61,7 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 	var params types.QueryAccountParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	var accs []authtypes.ModuleAccountI
 	if len(params.Name) > 0 {
@@ -83,7 +84,7 @@ func queryGetModAccounts(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, response)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -93,7 +94,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 	var params types.QueryDepositsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	denom := len(params.Denom) > 0
 	owner := len(params.Owner) > 0
@@ -134,7 +135,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 	if owner {
 		bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, deposits)
 		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+			return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
 		return bz, nil
 	}
@@ -155,7 +156,7 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 
 	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, syncedDeposits)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -164,7 +165,7 @@ func queryGetUnsyncedDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 	var params types.QueryUnsyncedDepositsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	denom := len(params.Denom) > 0
 	owner := len(params.Owner) > 0
@@ -210,7 +211,7 @@ func queryGetUnsyncedDeposits(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 
 	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, deposits)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -219,7 +220,7 @@ func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQue
 	var params types.QueryBorrowsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	denom := len(params.Denom) > 0
 	owner := len(params.Owner) > 0
@@ -260,7 +261,7 @@ func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQue
 	if owner {
 		bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, borrows)
 		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+			return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
 		return bz, nil
 	}
@@ -281,7 +282,7 @@ func queryGetBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQue
 
 	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, syncedBorrows)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -290,7 +291,7 @@ func queryGetUnsyncedBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, l
 	var params types.QueryUnsyncedBorrowsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	denom := len(params.Denom) > 0
 	owner := len(params.Owner) > 0
@@ -336,7 +337,7 @@ func queryGetUnsyncedBorrows(ctx sdk.Context, req abci.RequestQuery, k Keeper, l
 
 	bz, err = codec.MarshalJSONIndent(legacyQuerierCdc, borrows)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -345,7 +346,7 @@ func queryGetTotalBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 	var params types.QueryTotalBorrowedParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
@@ -360,7 +361,7 @@ func queryGetTotalBorrowed(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, borrowedCoins)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -370,7 +371,7 @@ func queryGetTotalDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper, le
 	var params types.QueryTotalDepositedParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	suppliedCoins, found := k.GetSuppliedCoins(ctx)
@@ -385,7 +386,7 @@ func queryGetTotalDeposited(ctx sdk.Context, req abci.RequestQuery, k Keeper, le
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, suppliedCoins)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -395,7 +396,7 @@ func queryGetInterestRate(ctx sdk.Context, req abci.RequestQuery, k Keeper, lega
 	var params types.QueryInterestRateParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	var moneyMarketInterestRates types.MoneyMarketInterestRates
@@ -448,7 +449,7 @@ func queryGetInterestRate(ctx sdk.Context, req abci.RequestQuery, k Keeper, lega
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, moneyMarketInterestRates)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -458,7 +459,7 @@ func queryGetReserves(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 	var params types.QueryReservesParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	reserveCoins, found := k.GetTotalReserves(ctx)
@@ -473,7 +474,7 @@ func queryGetReserves(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQu
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, reserveCoins)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -483,7 +484,7 @@ func queryGetInterestFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, l
 	var params types.QueryInterestFactorsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	var interestFactors types.InterestFactors
@@ -528,7 +529,7 @@ func queryGetInterestFactors(ctx sdk.Context, req abci.RequestQuery, k Keeper, l
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, interestFactors)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil

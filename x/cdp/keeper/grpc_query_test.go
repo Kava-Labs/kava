@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/kava-labs/kava/app"
@@ -109,11 +110,11 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalPrincipal() {
 
 	suite.Contains(res.TotalPrincipal, types.TotalPrincipal{
 		CollateralType: "xrp-a",
-		Amount:         sdk.NewCoin("usdx", sdk.NewInt(10000000)),
+		Amount:         sdk.NewCoin("usdx", sdkmath.NewInt(10000000)),
 	}, "total principals should include added cdp")
 	suite.Contains(res.TotalPrincipal, types.TotalPrincipal{
 		CollateralType: "busd-a",
-		Amount:         sdk.NewCoin("usdx", sdk.NewInt(0)),
+		Amount:         sdk.NewCoin("usdx", sdkmath.NewInt(0)),
 	}, "total busd principal should be 0")
 }
 
@@ -126,11 +127,11 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalCollateral() {
 	suite.Len(res.TotalCollateral, 4, "total collateral should include all collateral params")
 	suite.Contains(res.TotalCollateral, types.TotalCollateral{
 		CollateralType: "xrp-a",
-		Amount:         sdk.NewCoin("xrp", sdk.NewInt(100000000)),
+		Amount:         sdk.NewCoin("xrp", sdkmath.NewInt(100000000)),
 	}, "total collaterals should include added cdp")
 	suite.Contains(res.TotalCollateral, types.TotalCollateral{
 		CollateralType: "busd-a",
-		Amount:         sdk.NewCoin("busd", sdk.NewInt(0)),
+		Amount:         sdk.NewCoin("busd", sdkmath.NewInt(0)),
 	}, "busd total collateral should be 0")
 }
 
@@ -237,7 +238,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryDeposits() {
 			&types.Deposit{
 				CdpID:     1,
 				Depositor: suite.addrs[0],
-				Amount:    sdk.NewCoin("xrp", sdk.NewInt(100000000)),
+				Amount:    sdk.NewCoin("xrp", sdkmath.NewInt(100000000)),
 			},
 			false,
 			"",

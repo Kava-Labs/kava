@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -141,10 +142,10 @@ func (k Keeper) GetAllPools(ctx sdk.Context) (records types.PoolRecords) {
 }
 
 // GetPoolShares gets the total shares in a pool from the store
-func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdk.Int, bool) {
+func (k Keeper) GetPoolShares(ctx sdk.Context, poolID string) (sdkmath.Int, bool) {
 	pool, found := k.GetPool(ctx, poolID)
 	if !found {
-		return sdk.Int{}, false
+		return sdkmath.Int{}, false
 	}
 	return pool.TotalShares, true
 }
@@ -230,10 +231,10 @@ func (k Keeper) GetAllDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddre
 }
 
 // GetDepositorSharesAmount gets a depositor's shares in a pool from the store
-func (k Keeper) GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdk.Int, bool) {
+func (k Keeper) GetDepositorSharesAmount(ctx sdk.Context, depositor sdk.AccAddress, poolID string) (sdkmath.Int, bool) {
 	record, found := k.GetDepositorShares(ctx, depositor, poolID)
 	if !found {
-		return sdk.Int{}, false
+		return sdkmath.Int{}, false
 	}
 	return record.SharesOwned, true
 }
@@ -248,7 +249,7 @@ func (k Keeper) updatePool(ctx sdk.Context, poolID string, pool *types.Denominat
 }
 
 // updateDepositorShares updates a depositor share records for a pool, deleting the record if the new shares are zero
-func (k Keeper) updateDepositorShares(ctx sdk.Context, owner sdk.AccAddress, poolID string, shares sdk.Int) {
+func (k Keeper) updateDepositorShares(ctx sdk.Context, owner sdk.AccAddress, poolID string, shares sdkmath.Int) {
 	if shares.IsZero() {
 		k.DeleteDepositorShares(ctx, owner, poolID)
 	} else {

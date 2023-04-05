@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -25,24 +27,24 @@ var (
 	DefaultDebtParam        = DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
-		ConversionFactor: sdk.NewInt(6),
-		DebtFloor:        sdk.NewInt(10000000),
+		ConversionFactor: sdkmath.NewInt(6),
+		DebtFloor:        sdkmath.NewInt(10000000),
 	}
 	DefaultCdpStartingID    = uint64(1)
 	DefaultDebtDenom        = "debt"
 	DefaultGovDenom         = "ukava"
 	DefaultStableDenom      = "usdx"
-	DefaultSurplusThreshold = sdk.NewInt(500000000000)
-	DefaultDebtThreshold    = sdk.NewInt(100000000000)
-	DefaultSurplusLot       = sdk.NewInt(10000000000)
-	DefaultDebtLot          = sdk.NewInt(10000000000)
+	DefaultSurplusThreshold = sdkmath.NewInt(500000000000)
+	DefaultDebtThreshold    = sdkmath.NewInt(100000000000)
+	DefaultSurplusLot       = sdkmath.NewInt(10000000000)
+	DefaultDebtLot          = sdkmath.NewInt(10000000000)
 	stabilityFeeMax         = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
 )
 
 // NewParams returns a new params object
 func NewParams(
 	debtLimit sdk.Coin, collateralParams CollateralParams, debtParam DebtParam, surplusThreshold,
-	surplusLot, debtThreshold, debtLot sdk.Int, breaker bool,
+	surplusLot, debtThreshold, debtLot sdkmath.Int, breaker bool,
 ) Params {
 	return Params{
 		GlobalDebtLimit:         debtLimit,
@@ -67,8 +69,8 @@ func DefaultParams() Params {
 
 // NewCollateralParam returns a new CollateralParam
 func NewCollateralParam(
-	denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdk.Int,
-	liqPenalty sdk.Dec, spotMarketID, liquidationMarketID string, keeperReward sdk.Dec, checkIndexCount sdk.Int, conversionFactor sdk.Int,
+	denom, ctype string, liqRatio sdk.Dec, debtLimit sdk.Coin, stabilityFee sdk.Dec, auctionSize sdkmath.Int,
+	liqPenalty sdk.Dec, spotMarketID, liquidationMarketID string, keeperReward sdk.Dec, checkIndexCount sdkmath.Int, conversionFactor sdkmath.Int,
 ) CollateralParam {
 	return CollateralParam{
 		Denom:                            denom,
@@ -90,7 +92,7 @@ func NewCollateralParam(
 type CollateralParams []CollateralParam
 
 // NewDebtParam returns a new DebtParam
-func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdk.Int) DebtParam {
+func NewDebtParam(denom, refAsset string, conversionFactor, debtFloor sdkmath.Int) DebtParam {
 	return DebtParam{
 		Denom:            denom,
 		ReferenceAsset:   refAsset,
@@ -208,7 +210,7 @@ func validateGlobalDebtLimitParam(i interface{}) error {
 	}
 
 	if !globalDebtLimit.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "global debt limit %s", globalDebtLimit.String())
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "global debt limit %s", globalDebtLimit.String())
 	}
 
 	return nil
@@ -294,7 +296,7 @@ func validateCircuitBreakerParam(i interface{}) error {
 }
 
 func validateSurplusAuctionThresholdParam(i interface{}) error {
-	sat, ok := i.(sdk.Int)
+	sat, ok := i.(sdkmath.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -307,7 +309,7 @@ func validateSurplusAuctionThresholdParam(i interface{}) error {
 }
 
 func validateSurplusAuctionLotParam(i interface{}) error {
-	sal, ok := i.(sdk.Int)
+	sal, ok := i.(sdkmath.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -320,7 +322,7 @@ func validateSurplusAuctionLotParam(i interface{}) error {
 }
 
 func validateDebtAuctionThresholdParam(i interface{}) error {
-	dat, ok := i.(sdk.Int)
+	dat, ok := i.(sdkmath.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -333,7 +335,7 @@ func validateDebtAuctionThresholdParam(i interface{}) error {
 }
 
 func validateDebtAuctionLotParam(i interface{}) error {
-	dal, ok := i.(sdk.Int)
+	dal, ok := i.(sdkmath.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

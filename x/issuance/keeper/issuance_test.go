@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -104,7 +105,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
-				tokens:   sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				tokens:   sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 				receiver: suite.addrs[2],
 			},
 			errArgs{
@@ -119,7 +120,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[2],
-				tokens:   sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				tokens:   sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 				receiver: suite.addrs[3],
 			},
 			errArgs{
@@ -134,7 +135,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
-				tokens:   sdk.NewCoin("othertoken", sdk.NewInt(100000)),
+				tokens:   sdk.NewCoin("othertoken", sdkmath.NewInt(100000)),
 				receiver: suite.addrs[2],
 			},
 			errArgs{
@@ -149,7 +150,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
-				tokens:   sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				tokens:   sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 				receiver: suite.addrs[1],
 			},
 			errArgs{
@@ -164,7 +165,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
-				tokens:   sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				tokens:   sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 				receiver: suite.modAccount.String(),
 			},
 			errArgs{
@@ -179,7 +180,7 @@ func (suite *KeeperTestSuite) TestIssueTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, true, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:   suite.addrs[0],
-				tokens:   sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				tokens:   sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 				receiver: suite.addrs[1],
 			},
 			errArgs{
@@ -229,13 +230,13 @@ func (suite *KeeperTestSuite) TestIssueTokensRateLimited() {
 			"valid issuance",
 			args{
 				assets: []types.Asset{
-					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
 				sender:    suite.addrs[0],
-				tokens:    sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				tokens:    sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 				receiver:  suite.addrs[2],
 				blockTime: suite.ctx.BlockTime().Add(time.Hour),
 			},
@@ -248,13 +249,13 @@ func (suite *KeeperTestSuite) TestIssueTokensRateLimited() {
 			"over-limit issuance",
 			args{
 				assets: []types.Asset{
-					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdk.NewInt(10000000000), time.Hour*24)),
+					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
 					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
 				},
 				sender:    suite.addrs[0],
-				tokens:    sdk.NewCoin("usdtoken", sdk.NewInt(10000000001)),
+				tokens:    sdk.NewCoin("usdtoken", sdkmath.NewInt(10000000001)),
 				receiver:  suite.addrs[2],
 				blockTime: suite.ctx.BlockTime().Add(time.Hour),
 			},
@@ -310,8 +311,8 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
-				initialTokens: sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
-				redeemTokens:  sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				initialTokens: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
+				redeemTokens:  sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 			},
 			errArgs{
 				expectPass: true,
@@ -325,8 +326,8 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
-				initialTokens: sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
-				redeemTokens:  sdk.NewCoin("othertoken", sdk.NewInt(100000)),
+				initialTokens: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
+				redeemTokens:  sdk.NewCoin("othertoken", sdkmath.NewInt(100000)),
 			},
 			errArgs{
 				expectPass: false,
@@ -340,8 +341,8 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[2],
-				initialTokens: sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
-				redeemTokens:  sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				initialTokens: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
+				redeemTokens:  sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 			},
 			errArgs{
 				expectPass: false,
@@ -355,8 +356,8 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, true, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
-				initialTokens: sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
-				redeemTokens:  sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
+				initialTokens: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
+				redeemTokens:  sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 			},
 			errArgs{
 				expectPass: false,
@@ -370,8 +371,8 @@ func (suite *KeeperTestSuite) TestRedeemTokens() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
 				sender:        suite.addrs[0],
-				initialTokens: sdk.NewCoin("usdtoken", sdk.NewInt(100000)),
-				redeemTokens:  sdk.NewCoin("usdtoken", sdk.NewInt(200000)),
+				initialTokens: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
+				redeemTokens:  sdk.NewCoin("usdtoken", sdkmath.NewInt(200000)),
 			},
 			errArgs{
 				expectPass: false,
@@ -739,7 +740,7 @@ func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
-				initialCoins: sdk.NewCoin("usdtoken", sdk.NewInt(100000000)),
+				initialCoins: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000000)),
 				denom:        "usdtoken",
 				blockedAddrs: []string{suite.addrs[1], suite.addrs[2]},
 			},
@@ -754,7 +755,7 @@ func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 				assets: []types.Asset{
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{}, false, true, types.NewRateLimit(false, sdk.ZeroInt(), time.Duration(0))),
 				},
-				initialCoins: sdk.NewCoin("usdtoken", sdk.NewInt(100000000)),
+				initialCoins: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000000)),
 				denom:        "othertoken",
 				blockedAddrs: []string{suite.addrs[1], suite.addrs[2]},
 			},
@@ -788,7 +789,7 @@ func (suite *KeeperTestSuite) TestSeizeCoinsFromBlockedAddress() {
 				asset, found := suite.keeper.GetAsset(suite.ctx, tc.args.denom)
 				suite.Require().True(found)
 				owner, _ := sdk.AccAddressFromBech32(asset.Owner)
-				ownerCoinAmount := tc.args.initialCoins.Amount.Mul(sdk.NewInt(int64(len(tc.args.blockedAddrs))))
+				ownerCoinAmount := tc.args.initialCoins.Amount.Mul(sdkmath.NewInt(int64(len(tc.args.blockedAddrs))))
 				suite.Require().Equal(sdk.NewCoins(sdk.NewCoin(tc.args.denom, ownerCoinAmount)), sdk.NewCoins(suite.getBalance(owner, tc.args.initialCoins.Denom)))
 			} else {
 				suite.Require().Error(err, tc.name)

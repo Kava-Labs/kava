@@ -116,7 +116,7 @@ package simulation
 // 		}
 
 // 		// Get random slippage amount between 1-99%
-// 		slippageRaw, err := RandIntInclusive(r, sdk.OneInt(), sdk.NewInt(99))
+// 		slippageRaw, err := RandIntInclusive(r, sdk.OneInt(), sdkmath.NewInt(99))
 // 		if err != nil {
 // 			panic(err)
 // 		}
@@ -215,21 +215,21 @@ package simulation
 // 		coinsOwned := denominatedPool.ShareValue(shareRecord.SharesOwned)
 
 // 		// Get random amount of shares between 2-10% of the total
-// 		sharePercentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(10))
+// 		sharePercentage, err := RandIntInclusive(r, sdkmath.NewInt(2), sdkmath.NewInt(10))
 // 		if err != nil {
 // 			panic(err)
 // 		}
-// 		shares := shareRecord.SharesOwned.Mul(sharePercentage).Quo(sdk.NewInt(100))
+// 		shares := shareRecord.SharesOwned.Mul(sharePercentage).Quo(sdkmath.NewInt(100))
 
 // 		// Expect minimum token amounts relative to the % of shares owned and withdrawn
 // 		oneLessThanSharePercentage := sharePercentage.Sub(sdk.OneInt())
 
 // 		amtTokenAOwned := coinsOwned.AmountOf(poolRecord.ReservesA.Denom)
-// 		minAmtTokenA := amtTokenAOwned.Mul(oneLessThanSharePercentage).Quo(sdk.NewInt(100))
+// 		minAmtTokenA := amtTokenAOwned.Mul(oneLessThanSharePercentage).Quo(sdkmath.NewInt(100))
 // 		minTokenA := sdk.NewCoin(poolRecord.ReservesA.Denom, minAmtTokenA)
 
 // 		amtTokenBOwned := coinsOwned.AmountOf(poolRecord.ReservesB.Denom)
-// 		minTokenAmtB := amtTokenBOwned.Mul(oneLessThanSharePercentage).Quo(sdk.NewInt(100))
+// 		minTokenAmtB := amtTokenBOwned.Mul(oneLessThanSharePercentage).Quo(sdkmath.NewInt(100))
 // 		minTokenB := sdk.NewCoin(poolRecord.ReservesB.Denom, minTokenAmtB)
 
 // 		// Generate random deadline
@@ -289,7 +289,7 @@ package simulation
 // 		}
 
 // 		// Select input token
-// 		randInt, err := RandInt(r, sdk.OneInt(), sdk.NewInt(9))
+// 		randInt, err := RandInt(r, sdk.OneInt(), sdkmath.NewInt(9))
 // 		if err != nil {
 // 			panic(err)
 // 		}
@@ -308,11 +308,11 @@ package simulation
 // 		}
 
 // 		// Exact input token is between 2-10% of the max trade amount
-// 		percentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(10))
+// 		percentage, err := RandIntInclusive(r, sdkmath.NewInt(2), sdkmath.NewInt(10))
 // 		if err != nil {
 // 			panic(err)
 // 		}
-// 		tradeAmount := maxTradeAmount.Mul(percentage).Quo(sdk.NewInt(100))
+// 		tradeAmount := maxTradeAmount.Mul(percentage).Quo(sdkmath.NewInt(100))
 // 		exactInputToken := sdk.NewCoin(inputToken.Denom, tradeAmount)
 
 // 		// Calculate expected output coin
@@ -322,11 +322,11 @@ package simulation
 // 		var outputAmt big.Int
 // 		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmountAfterFee.BigInt())
 // 		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmountAfterFee).BigInt())
-// 		expectedOutTokenAmount := sdk.NewIntFromBigInt(&outputAmt)
+// 		expectedOutTokenAmount := sdkmath.NewIntFromBigInt(&outputAmt)
 // 		expectedOutputToken := sdk.NewCoin(outputToken.Denom, expectedOutTokenAmount)
 
 // 		// Get random slippage amount between 50-100%
-// 		slippageRaw, err := RandIntInclusive(r, sdk.NewInt(50), sdk.NewInt(99))
+// 		slippageRaw, err := RandIntInclusive(r, sdkmath.NewInt(50), sdkmath.NewInt(99))
 // 		if err != nil {
 // 			panic(err)
 // 		}
@@ -388,7 +388,7 @@ package simulation
 // 		}
 
 // 		// Select input token
-// 		randInt, err := RandInt(r, sdk.OneInt(), sdk.NewInt(9))
+// 		randInt, err := RandInt(r, sdk.OneInt(), sdkmath.NewInt(9))
 // 		if err != nil {
 // 			panic(err)
 // 		}
@@ -407,11 +407,11 @@ package simulation
 // 		}
 
 // 		// Expected input token is between 2-10% of the max trade amount
-// 		percentage, err := RandIntInclusive(r, sdk.NewInt(2), sdk.NewInt(10))
+// 		percentage, err := RandIntInclusive(r, sdkmath.NewInt(2), sdkmath.NewInt(10))
 // 		if err != nil {
 // 			panic(err)
 // 		}
-// 		tradeAmount := maxTradeAmount.Mul(percentage).Quo(sdk.NewInt(100))
+// 		tradeAmount := maxTradeAmount.Mul(percentage).Quo(sdkmath.NewInt(100))
 // 		expectedInputToken := sdk.NewCoin(inputToken.Denom, tradeAmount)
 
 // 		// Calculate exact output coin
@@ -421,11 +421,11 @@ package simulation
 // 		var outputAmt big.Int
 // 		outputAmt.Mul(outputToken.Amount.BigInt(), tradeAmountAfterFee.BigInt())
 // 		outputAmt.Quo(&outputAmt, inputToken.Amount.Add(tradeAmountAfterFee).BigInt())
-// 		outputTokenAmount := sdk.NewIntFromBigInt(&outputAmt)
+// 		outputTokenAmount := sdkmath.NewIntFromBigInt(&outputAmt)
 // 		exactOutputToken := sdk.NewCoin(outputToken.Denom, outputTokenAmount)
 
 // 		// Get random slippage amount between 50-100%
-// 		slippageRaw, err := RandIntInclusive(r, sdk.NewInt(50), sdk.NewInt(99))
+// 		slippageRaw, err := RandIntInclusive(r, sdkmath.NewInt(50), sdkmath.NewInt(99))
 // 		if err != nil {
 // 			panic(err)
 // 		}
@@ -463,12 +463,12 @@ package simulation
 
 // // From a set of coins return a coin of the specified denom with 1-10% of the total amount
 // func randCoinFromCoins(r *rand.Rand, coins sdk.Coins, denom string) sdk.Coin {
-// 	percentOfBalance, err := RandIntInclusive(r, sdk.OneInt(), sdk.NewInt(10))
+// 	percentOfBalance, err := RandIntInclusive(r, sdk.OneInt(), sdkmath.NewInt(10))
 // 	if err != nil {
 // 		panic(err)
 // 	}
 // 	balance := coins.AmountOf(denom)
-// 	amtToken := balance.Mul(percentOfBalance).Quo(sdk.NewInt(100))
+// 	amtToken := balance.Mul(percentOfBalance).Quo(sdkmath.NewInt(100))
 // 	return sdk.NewCoin(denom, amtToken)
 // }
 
@@ -478,7 +478,7 @@ package simulation
 // 	tokenABalance := depositorCoins.AmountOf(allowedPool.TokenA)
 // 	tokenBBalance := depositorCoins.AmountOf(allowedPool.TokenB)
 
-// 	oneThousand := sdk.NewInt(1000)
+// 	oneThousand := sdkmath.NewInt(1000)
 // 	if tokenABalance.LT(oneThousand) || tokenBBalance.LT(oneThousand) {
 // 		return errorNotEnoughCoins
 // 	}
@@ -515,8 +515,8 @@ package simulation
 // func genRandDeadline(r *rand.Rand, blockTime time.Time) int64 {
 // 	// Set up deadline
 // 	durationNanoseconds, err := RandIntInclusive(r,
-// 		sdk.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
-// 		sdk.NewInt((time.Hour * 24).Nanoseconds()),   // one day
+// 		sdkmath.NewInt((time.Second * 10).Nanoseconds()), // ten seconds
+// 		sdkmath.NewInt((time.Hour * 24).Nanoseconds()),   // one day
 // 	)
 // 	if err != nil {
 // 		panic(err)
@@ -525,24 +525,24 @@ package simulation
 // 	return blockTime.Add(extraTime).Unix()
 // }
 
-// // RandIntInclusive randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
-// func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdk.Int) (sdk.Int, error) {
+// // RandIntInclusive randomly generates an sdkmath.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
+// func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdkmath.Int) (sdkmath.Int, error) {
 // 	if inclusiveMin.GT(inclusiveMax) {
-// 		return sdk.Int{}, fmt.Errorf("min larger than max")
+// 		return sdkmath.Int{}, fmt.Errorf("min larger than max")
 // 	}
 // 	return RandInt(r, inclusiveMin, inclusiveMax.Add(sdk.OneInt()))
 // }
 
-// // RandInt randomly generates an sdk.Int in the range [inclusiveMin, exclusiveMax). It works for negative and positive integers.
-// func RandInt(r *rand.Rand, inclusiveMin, exclusiveMax sdk.Int) (sdk.Int, error) {
+// // RandInt randomly generates an sdkmath.Int in the range [inclusiveMin, exclusiveMax). It works for negative and positive integers.
+// func RandInt(r *rand.Rand, inclusiveMin, exclusiveMax sdkmath.Int) (sdkmath.Int, error) {
 // 	// validate input
 // 	if inclusiveMin.GTE(exclusiveMax) {
-// 		return sdk.Int{}, fmt.Errorf("min larger or equal to max")
+// 		return sdkmath.Int{}, fmt.Errorf("min larger or equal to max")
 // 	}
 // 	// shift the range to start at 0
 // 	shiftedRange := exclusiveMax.Sub(inclusiveMin) // should always be positive given the check above
 // 	// randomly pick from the shifted range
-// 	shiftedRandInt := sdk.NewIntFromBigInt(new(big.Int).Rand(r, shiftedRange.BigInt()))
+// 	shiftedRandInt := sdkmath.NewIntFromBigInt(new(big.Int).Rand(r, shiftedRange.BigInt()))
 // 	// shift back to the original range
 // 	return shiftedRandInt.Add(inclusiveMin), nil
 // }

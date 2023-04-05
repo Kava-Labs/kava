@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -46,7 +47,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 			"default",
 			args{
 				sender:   suite.addrs[0],
-				tokens:   sdk.NewCoin("valid", sdk.NewInt(100)),
+				tokens:   sdk.NewCoin("valid", sdkmath.NewInt(100)),
 				receiver: suite.addrs[1],
 			},
 			errArgs{
@@ -58,7 +59,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 			"invalid sender",
 			args{
 				sender:   "",
-				tokens:   sdk.NewCoin("valid", sdk.NewInt(100)),
+				tokens:   sdk.NewCoin("valid", sdkmath.NewInt(100)),
 				receiver: suite.addrs[1],
 			},
 			errArgs{
@@ -70,7 +71,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 			"invalid receiver",
 			args{
 				sender:   suite.addrs[0],
-				tokens:   sdk.NewCoin("valid", sdk.NewInt(100)),
+				tokens:   sdk.NewCoin("valid", sdkmath.NewInt(100)),
 				receiver: "",
 			},
 			errArgs{
@@ -82,7 +83,7 @@ func (suite *MsgTestSuite) TestMsgIssueTokens() {
 			"invalid tokens",
 			args{
 				sender:   suite.addrs[0],
-				tokens:   sdk.Coin{Denom: "In~val~id", Amount: sdk.NewInt(100)},
+				tokens:   sdk.Coin{Denom: "In~val~id", Amount: sdkmath.NewInt(100)},
 				receiver: suite.addrs[1],
 			},
 			errArgs{
@@ -123,7 +124,7 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 			"default",
 			args{
 				sender: suite.addrs[0],
-				tokens: sdk.NewCoin("valid", sdk.NewInt(100)),
+				tokens: sdk.NewCoin("valid", sdkmath.NewInt(100)),
 			},
 			errArgs{
 				expectPass: true,
@@ -134,7 +135,7 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 			"invalid sender",
 			args{
 				sender: "",
-				tokens: sdk.NewCoin("valid", sdk.NewInt(100)),
+				tokens: sdk.NewCoin("valid", sdkmath.NewInt(100)),
 			},
 			errArgs{
 				expectPass: false,
@@ -145,7 +146,7 @@ func (suite *MsgTestSuite) TestMsgRedeemTokens() {
 			"invalid tokens",
 			args{
 				sender: suite.addrs[0],
-				tokens: sdk.Coin{Denom: "In~val~id", Amount: sdk.NewInt(100)},
+				tokens: sdk.Coin{Denom: "In~val~id", Amount: sdkmath.NewInt(100)},
 			},
 			errArgs{
 				expectPass: false,

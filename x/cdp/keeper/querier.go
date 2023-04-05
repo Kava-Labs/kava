@@ -6,6 +6,7 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +39,7 @@ func NewQuerier(keeper Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier 
 		case types.QueryGetTotalCollateral:
 			return queryGetTotalCollateral(ctx, req, keeper, legacyQuerierCdc)
 		default:
-			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
+			return nil, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "unknown %s query endpoint %s", types.ModuleName, path[0])
 		}
 	}
 }
@@ -48,24 +49,24 @@ func queryGetCdp(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQu
 	var requestParams types.QueryCdpParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
+		return nil, errorsmod.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndCollateralType(ctx, requestParams.Owner, requestParams.CollateralType)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralType)
+		return nil, errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralType)
 	}
 
 	augmentedCDP := keeper.LoadAugmentedCDP(ctx, cdp)
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedCDP)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -75,24 +76,24 @@ func queryGetDeposits(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 	var requestParams types.QueryCdpDeposits
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
+		return nil, errorsmod.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	cdp, found := keeper.GetCdpByOwnerAndCollateralType(ctx, requestParams.Owner, requestParams.CollateralType)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralType)
+		return nil, errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", requestParams.Owner, requestParams.CollateralType)
 	}
 
 	deposits := keeper.GetDeposits(ctx, cdp.ID)
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, deposits)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -102,16 +103,16 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, 
 	var requestParams types.QueryCdpsByRatioParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
+		return nil, errorsmod.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	ratio, err := keeper.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, requestParams.CollateralType, requestParams.Ratio, "liquidation")
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "couldn't get collateralization ratio from absolute ratio")
+		return nil, errorsmod.Wrap(err, "couldn't get collateralization ratio from absolute ratio")
 	}
 
 	cdps := keeper.GetAllCdpsByCollateralTypeAndRatio(ctx, requestParams.CollateralType, ratio)
@@ -123,7 +124,7 @@ func queryGetCdpsByRatio(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, 
 	}
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedCDPs)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -133,11 +134,11 @@ func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper
 	var requestParams types.QueryCdpsByCollateralTypeParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &requestParams)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 	_, valid := keeper.GetCollateral(ctx, requestParams.CollateralType)
 	if !valid {
-		return nil, sdkerrors.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
+		return nil, errorsmod.Wrap(types.ErrInvalidCollateral, requestParams.CollateralType)
 	}
 
 	cdps := keeper.GetAllCdpsByCollateralType(ctx, requestParams.CollateralType)
@@ -149,7 +150,7 @@ func queryGetCdpsByCollateralType(ctx sdk.Context, req abci.RequestQuery, keeper
 	}
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, augmentedCDPs)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -162,7 +163,7 @@ func queryGetParams(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legac
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -180,7 +181,7 @@ func queryGetAccounts(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, leg
 	// Encode results
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, accounts)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -190,18 +191,18 @@ func queryGetCdps(ctx sdk.Context, req abci.RequestQuery, keeper Keeper, legacyQ
 	var params types.QueryCdpsParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	// Filter CDPs
 	filteredCDPs, err := FilterCDPs(ctx, keeper, params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, filteredCDPs)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -212,7 +213,7 @@ func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keepe
 	var params types.QueryGetTotalPrincipalParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	var queryCollateralTypes []string
@@ -243,7 +244,7 @@ func queryGetTotalPrincipal(ctx sdk.Context, req abci.RequestQuery, keeper Keepe
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, collateralPrincipals)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
@@ -254,7 +255,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 	var request types.QueryGetTotalCollateralParams
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &request)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	params := keeper.GetParams(ctx)
@@ -332,7 +333,7 @@ func queryGetTotalCollateral(ctx sdk.Context, req abci.RequestQuery, keeper Keep
 	// encode response
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, response)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, errorsmod.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil

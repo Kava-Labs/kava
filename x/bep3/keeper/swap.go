@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -21,12 +22,12 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 	swapID := types.CalculateSwapID(randomNumberHash, sender, senderOtherChain)
 	_, found := k.GetAtomicSwap(ctx, swapID)
 	if found {
-		return sdkerrors.Wrap(types.ErrAtomicSwapAlreadyExists, hex.EncodeToString(swapID))
+		return errorsmod.Wrap(types.ErrAtomicSwapAlreadyExists, hex.EncodeToString(swapID))
 	}
 
 	// Cannot send coins to a module account
 	if k.Maccs[recipient.String()] {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is a module account", recipient)
 	}
 
 	if len(amount) != 1 {
@@ -44,25 +45,25 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 	// Swap amount must be within the specified swap amount limits
 	if amount[0].Amount.LT(asset.MinSwapAmount) || amount[0].Amount.GT(asset.MaxSwapAmount) {
-		return sdkerrors.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%s, %s]", amount[0].Amount, asset.MinSwapAmount, asset.MaxSwapAmount)
+		return errorsmod.Wrapf(types.ErrInvalidAmount, "amount %d outside range [%s, %s]", amount[0].Amount, asset.MinSwapAmount, asset.MaxSwapAmount)
 	}
 
 	// Unix timestamp must be in range [-15 mins, 30 mins] of the current time
 	pastTimestampLimit := ctx.BlockTime().Add(time.Duration(-15) * time.Minute).Unix()
 	futureTimestampLimit := ctx.BlockTime().Add(time.Duration(30) * time.Minute).Unix()
 	if timestamp < pastTimestampLimit || timestamp >= futureTimestampLimit {
-		return sdkerrors.Wrap(types.ErrInvalidTimestamp, fmt.Sprintf("block time: %s, timestamp: %s", ctx.BlockTime().String(), time.Unix(timestamp, 0).UTC().String()))
+		return errorsmod.Wrap(types.ErrInvalidTimestamp, fmt.Sprintf("block time: %s, timestamp: %s", ctx.BlockTime().String(), time.Unix(timestamp, 0).UTC().String()))
 	}
 
 	var direction types.SwapDirection
 	if sender.Equals(asset.DeputyAddress) {
 		if recipient.Equals(asset.DeputyAddress) {
-			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy cannot be both sender and receiver: %s", asset.DeputyAddress)
+			return errorsmod.Wrapf(types.ErrInvalidSwapAccount, "deputy cannot be both sender and receiver: %s", asset.DeputyAddress)
 		}
 		direction = types.SWAP_DIRECTION_INCOMING
 	} else {
 		if !recipient.Equals(asset.DeputyAddress) {
-			return sdkerrors.Wrapf(types.ErrInvalidSwapAccount, "deputy must be recipient for outgoing account: %s", recipient)
+			return errorsmod.Wrapf(types.ErrInvalidSwapAccount, "deputy must be recipient for outgoing account: %s", recipient)
 		}
 		direction = types.SWAP_DIRECTION_OUTGOING
 	}
@@ -82,11 +83,11 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 		// Outgoing swaps must have a height span within the accepted range
 		if heightSpan < asset.MinBlockLock || heightSpan > asset.MaxBlockLock {
-			return sdkerrors.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, asset.MinBlockLock, asset.MaxBlockLock)
+			return errorsmod.Wrapf(types.ErrInvalidHeightSpan, "height span %d outside range [%d, %d]", heightSpan, asset.MinBlockLock, asset.MaxBlockLock)
 		}
 		// Amount in outgoing swaps must be able to pay the deputy's fixed fee.
 		if amount[0].Amount.LTE(asset.FixedFee.Add(asset.MinSwapAmount)) {
-			return sdkerrors.Wrap(types.ErrInsufficientAmount, amount[0].String())
+			return errorsmod.Wrap(types.ErrInsufficientAmount, amount[0].String())
 		}
 		err = k.IncrementOutgoingAssetSupply(ctx, amount[0])
 		if err != nil {
@@ -133,12 +134,12 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
+		return errorsmod.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
 	}
 
 	// Only open atomic swaps can be claimed
 	if atomicSwap.Status != types.SWAP_STATUS_OPEN {
-		return sdkerrors.Wrapf(types.ErrSwapNotClaimable, "status %s", atomicSwap.Status.String())
+		return errorsmod.Wrapf(types.ErrSwapNotClaimable, "status %s", atomicSwap.Status.String())
 	}
 
 	//  Calculate hashed secret using submitted number
@@ -147,7 +148,7 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 
 	// Confirm that secret unlocks the atomic swap
 	if !bytes.Equal(hashedSecret, atomicSwap.GetSwapID()) {
-		return sdkerrors.Wrapf(types.ErrInvalidClaimSecret, "the submitted random number is incorrect")
+		return errorsmod.Wrapf(types.ErrInvalidClaimSecret, "the submitted random number is incorrect")
 	}
 
 	var err error
@@ -217,11 +218,11 @@ func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []b
 func (k Keeper) RefundAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte) error {
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
+		return errorsmod.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)
 	}
 	// Only expired swaps may be refunded
 	if atomicSwap.Status != types.SWAP_STATUS_EXPIRED {
-		return sdkerrors.Wrapf(types.ErrSwapNotRefundable, "status %s", atomicSwap.Status.String())
+		return errorsmod.Wrapf(types.ErrSwapNotRefundable, "status %s", atomicSwap.Status.String())
 	}
 
 	var err error

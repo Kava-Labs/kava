@@ -12,6 +12,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -119,7 +120,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				debtDenom:          types.DefaultDebtDenom,
 				govDenom:           types.DefaultGovDenom,
 				genAccumTimes:      types.DefaultGenesisState().PreviousAccumulationTimes,
-				genTotalPrincipals: types.GenesisTotalPrincipals{types.NewGenesisTotalPrincipal("bnb-a", sdk.NewInt(-1))},
+				genTotalPrincipals: types.GenesisTotalPrincipals{types.NewGenesisTotalPrincipal("bnb-a", sdkmath.NewInt(-1))},
 			},
 			errArgs: errArgs{
 				expectPass: false,

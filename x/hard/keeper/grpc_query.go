@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -79,7 +80,7 @@ func (s queryServer) Deposits(ctx context.Context, req *types.QueryDepositsReque
 	if hasOwner {
 		owner, err = sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 		}
 	}
 
@@ -164,7 +165,7 @@ func (s queryServer) UnsyncedDeposits(ctx context.Context, req *types.QueryUnsyn
 	if hasOwner {
 		owner, err = sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 		}
 	}
 
@@ -231,7 +232,7 @@ func (s queryServer) Borrows(ctx context.Context, req *types.QueryBorrowsRequest
 	if hasOwner {
 		owner, err = sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 		}
 	}
 
@@ -312,7 +313,7 @@ func (s queryServer) UnsyncedBorrows(ctx context.Context, req *types.QueryUnsync
 	if hasOwner {
 		owner, err = sdk.AccAddressFromBech32(req.Owner)
 		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+			return nil, errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 		}
 	}
 

@@ -3,8 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/swap/types"
 )
@@ -46,7 +47,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	var (
 		pool          *types.DenominatedPool
 		depositAmount sdk.Coins
-		shares        sdk.Int
+		shares        sdkmath.Int
 		err           error
 	)
 	if found {
@@ -59,11 +60,11 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	}
 
 	if depositAmount.AmountOf(coinA.Denom).IsZero() || depositAmount.AmountOf(coinB.Denom).IsZero() {
-		return sdkerrors.Wrap(types.ErrInsufficientLiquidity, "deposit must be increased")
+		return errorsmod.Wrap(types.ErrInsufficientLiquidity, "deposit must be increased")
 	}
 
 	if shares.IsZero() {
-		return sdkerrors.Wrap(types.ErrInsufficientLiquidity, "deposit must be increased")
+		return errorsmod.Wrap(types.ErrInsufficientLiquidity, "deposit must be increased")
 	}
 
 	maxPercentPriceChange := sdk.MaxDec(
@@ -73,7 +74,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 	slippage := maxPercentPriceChange.Sub(sdk.OneDec())
 
 	if slippage.GT(slippageLimit) {
-		return sdkerrors.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
+		return errorsmod.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
 	}
 
 	k.updatePool(ctx, poolID, pool)
@@ -113,9 +114,9 @@ func (k Keeper) depositAllowed(ctx sdk.Context, poolID string) bool {
 	return false
 }
 
-func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdk.Int, error) {
+func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdkmath.Int, error) {
 	if allowed := k.depositAllowed(ctx, poolID); !allowed {
-		return nil, sdk.Coins{}, sdk.ZeroInt(), sdkerrors.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
+		return nil, sdk.Coins{}, sdk.ZeroInt(), errorsmod.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
 	}
 
 	pool, err := types.NewDenominatedPool(reserves)
@@ -126,7 +127,7 @@ func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.Acc
 	return pool, pool.Reserves(), pool.TotalShares(), nil
 }
 
-func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdk.Int, error) {
+func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdkmath.Int, error) {
 	pool, err := types.NewDenominatedPoolWithExistingShares(record.Reserves(), record.TotalShares)
 	if err != nil {
 		return nil, sdk.Coins{}, sdk.ZeroInt(), err

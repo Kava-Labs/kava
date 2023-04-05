@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -143,23 +144,23 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 
 	derivativeDenom := suite.setupEarnForDeposits(valAddr)
 
-	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(sdk.NewInt(1e9)))
-	vesting := sdk.NewInt(1000)
+	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(sdkmath.NewInt(1e9)))
+	vesting := sdkmath.NewInt(1000)
 	suite.CreateVestingAccountWithAddress(user,
-		suite.NewBondCoins(sdk.NewInt(1e9).Add(vesting)),
+		suite.NewBondCoins(sdkmath.NewInt(1e9).Add(vesting)),
 		suite.NewBondCoins(vesting),
 	)
 
 	// Create a slashed validator, where the delegator owns fractional tokens.
-	suite.CreateNewUnbondedValidator(valAddr, sdk.NewInt(1e9))
-	suite.CreateDelegation(valAddr, user, sdk.NewInt(1e9))
+	suite.CreateNewUnbondedValidator(valAddr, sdkmath.NewInt(1e9))
+	suite.CreateDelegation(valAddr, user, sdkmath.NewInt(1e9))
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 	suite.SlashValidator(valAddr, sdk.MustNewDecFromStr("0.666666666666666667"))
 
 	// Query the full staked balance and convert it all to derivatives
 	// user technically 333_333_333.333333333333333333 staked tokens without rounding
 	delegation := suite.QueryStaking_Delegation(valAddr, user)
-	suite.Equal(sdk.NewInt(333_333_333), delegation.Balance.Amount)
+	suite.Equal(sdkmath.NewInt(333_333_333), delegation.Balance.Amount)
 
 	msgDeposit := types.NewMsgMintDeposit(
 		user,
@@ -170,7 +171,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	suite.Require().NoError(err)
 
 	// There should be no extractable balance left in delegation
-	suite.DelegationBalanceLessThan(valAddr, user, sdk.NewInt(1))
+	suite.DelegationBalanceLessThan(valAddr, user, sdkmath.NewInt(1))
 	// All derivative coins should be deposited to earn
 	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
 	// Earn vault has all minted derivatives
@@ -178,7 +179,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 
 	// Query the full kava balance of the earn deposit and convert all to a delegation
 	deposit := suite.QueryEarn_VaultValue(user, "bkava")
-	suite.Equal(suite.NewBondCoins(sdk.NewInt(333_333_332)), deposit.Value) // 1 lost due to lost shares
+	suite.Equal(suite.NewBondCoins(sdkmath.NewInt(333_333_332)), deposit.Value) // 1 lost due to lost shares
 
 	msgWithdraw := types.NewMsgWithdrawBurn(
 		user,
@@ -193,7 +194,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	// All derivative coins should be converted to a delegation
 	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
 	// The user should get back most of their original deposited balance
-	suite.DelegationBalanceInDeltaBelow(valAddr, user, sdk.NewInt(333_333_332), sdk.NewInt(2))
+	suite.DelegationBalanceInDeltaBelow(valAddr, user, sdkmath.NewInt(333_333_332), sdkmath.NewInt(2))
 }
 
 func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegate_TransferEntireBalance() {
@@ -203,7 +204,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 
 	derivativeDenom := suite.setupEarnForDeposits(valAddr)
 
-	valBalance := sdk.NewInt(1e9)
+	valBalance := sdkmath.NewInt(1e9)
 	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(valBalance))
 
 	// Create a slashed validator, where a future delegator will own fractional tokens.
@@ -211,8 +212,8 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 	suite.SlashValidator(valAddr, sdk.MustNewDecFromStr("0.4")) // tokens remaining 600_000_000
 
-	userBalance := sdk.NewInt(100e6)
-	vesting := sdk.NewInt(1000)
+	userBalance := sdkmath.NewInt(100e6)
+	vesting := sdkmath.NewInt(1000)
 	suite.CreateVestingAccountWithAddress(user,
 		suite.NewBondCoins(userBalance.Add(vesting)),
 		suite.NewBondCoins(vesting),
@@ -243,7 +244,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 
 	// Query the full kava balance of the earn deposit and convert all to a delegation
 	deposit := suite.QueryEarn_VaultValue(user, "bkava")
-	suite.Equal(suite.NewBondCoins(sdk.NewInt(99_999_999)), deposit.Value) // 1 lost due to truncating shares to derivatives
+	suite.Equal(suite.NewBondCoins(sdkmath.NewInt(99_999_999)), deposit.Value) // 1 lost due to truncating shares to derivatives
 
 	msgWithdraw := types.NewMsgWithdrawBurnUndelegate(
 		user,
@@ -260,15 +261,15 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	// There should be zero shares left because undelegate removes all created by burn.
 	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
 	// User should have most of their original balance back in an unbonding delegation
-	suite.UnbondingDelegationInDeltaBelow(valAddr, user, userBalance, sdk.NewInt(2))
+	suite.UnbondingDelegationInDeltaBelow(valAddr, user, userBalance, sdkmath.NewInt(2))
 }
 
-func (suite *msgServerTestSuite) setupValidator() (sdk.AccAddress, sdk.ValAddress, sdk.Int) {
+func (suite *msgServerTestSuite) setupValidator() (sdk.AccAddress, sdk.ValAddress, sdkmath.Int) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	valAccAddr, user := addrs[0], addrs[1]
 	valAddr := sdk.ValAddress(valAccAddr)
 
-	balance := sdk.NewInt(1e9)
+	balance := sdkmath.NewInt(1e9)
 
 	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(balance))
 	suite.CreateAccountWithAddress(user, suite.NewBondCoins(balance))
@@ -278,12 +279,12 @@ func (suite *msgServerTestSuite) setupValidator() (sdk.AccAddress, sdk.ValAddres
 	return user, valAddr, balance
 }
 
-func (suite *msgServerTestSuite) setupValidatorAndDelegation() (sdk.AccAddress, sdk.ValAddress, sdk.Int) {
+func (suite *msgServerTestSuite) setupValidatorAndDelegation() (sdk.AccAddress, sdk.ValAddress, sdkmath.Int) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	valAccAddr, user := addrs[0], addrs[1]
 	valAddr := sdk.ValAddress(valAccAddr)
 
-	balance := sdk.NewInt(1e9)
+	balance := sdkmath.NewInt(1e9)
 
 	suite.CreateAccountWithAddress(valAccAddr, suite.NewBondCoins(balance))
 	suite.CreateAccountWithAddress(user, suite.NewBondCoins(balance))

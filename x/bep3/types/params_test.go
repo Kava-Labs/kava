@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -24,15 +25,15 @@ func (suite *ParamsTestSuite) SetupTest() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addr = addrs[0]
 	supply1 := types.SupplyLimit{
-		Limit:          sdk.NewInt(10000000000000),
+		Limit:          sdkmath.NewInt(10000000000000),
 		TimeLimited:    false,
 		TimeBasedLimit: sdk.ZeroInt(),
 		TimePeriod:     time.Hour,
 	}
 	supply2 := types.SupplyLimit{
-		Limit:          sdk.NewInt(10000000000000),
+		Limit:          sdkmath.NewInt(10000000000000),
 		TimeLimited:    true,
-		TimeBasedLimit: sdk.NewInt(100000000000),
+		TimeBasedLimit: sdkmath.NewInt(100000000000),
 		TimePeriod:     time.Hour * 24,
 	}
 	suite.supply = append(suite.supply, supply1, supply2)
@@ -62,7 +63,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  true,
@@ -73,7 +74,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[1], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  true,
@@ -85,11 +86,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				assetParams: types.AssetParams{
 					types.NewAssetParam(
 						"bnb", 714, suite.supply[0], true,
-						suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+						suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 					types.NewAssetParam(
 						"btcb", 0, suite.supply[1], true,
-						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
+						suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(10000000), sdkmath.NewInt(100000000000),
 						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 				},
 			},
@@ -101,7 +102,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -112,7 +113,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					243, 243)},
 			},
 			expectPass:  true,
@@ -123,7 +124,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					244, 243)},
 			},
 			expectPass:  false,
@@ -134,7 +135,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(0), sdk.NewInt(10000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(0), sdkmath.NewInt(10000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -145,7 +146,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(10000), sdk.NewInt(0),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(10000), sdkmath.NewInt(0),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -156,7 +157,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000000), sdk.NewInt(10000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000000), sdkmath.NewInt(10000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -167,7 +168,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", -714, suite.supply[0], true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -178,8 +179,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
-					types.SupplyLimit{sdk.NewInt(-10000000000000), false, time.Hour, sdk.ZeroInt()}, true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.SupplyLimit{sdkmath.NewInt(-10000000000000), false, time.Hour, sdk.ZeroInt()}, true,
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -190,8 +191,8 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
-					types.SupplyLimit{sdk.NewInt(10000000000000), false, time.Hour, sdk.NewInt(-10000000000000)}, true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					types.SupplyLimit{sdkmath.NewInt(10000000000000), false, time.Hour, sdkmath.NewInt(-10000000000000)}, true,
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -202,9 +203,9 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
-					types.SupplyLimit{sdk.NewInt(10000000000000), true, time.Hour, sdk.NewInt(100000000000000)},
+					types.SupplyLimit{sdkmath.NewInt(10000000000000), true, time.Hour, sdkmath.NewInt(100000000000000)},
 					true,
-					suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},
 			expectPass:  false,
@@ -216,11 +217,11 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				assetParams: types.AssetParams{
 					types.NewAssetParam(
 						"bnb", 714, suite.supply[0], true,
-						suite.addr, sdk.NewInt(1000), sdk.NewInt(100000000), sdk.NewInt(100000000000),
+						suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 					types.NewAssetParam(
 						"bnb", 0, suite.supply[0], true,
-						suite.addr, sdk.NewInt(1000), sdk.NewInt(10000000), sdk.NewInt(100000000000),
+						suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(10000000), sdkmath.NewInt(100000000000),
 						types.DefaultMinBlockLock, types.DefaultMaxBlockLock),
 				},
 			},

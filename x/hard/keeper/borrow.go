@@ -3,6 +3,8 @@ package keeper
 import (
 	"errors"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -50,7 +52,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 			for _, coin := range coins {
 				_, isNegative := modAccCoins.SafeSub(coin)
 				if isNegative {
-					return sdkerrors.Wrapf(types.ErrBorrowExceedsAvailableBalance,
+					return errorsmod.Wrapf(types.ErrBorrowExceedsAvailableBalance,
 						"the requested borrow amount of %s exceeds the total amount of %s%s available to borrow",
 						coin, modAccCoins.AmountOf(coin.Denom), coin.Denom,
 					)
@@ -124,10 +126,10 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 	fundsAvailableToBorrow, isNegative := hardMaccCoins.SafeSub(reserveCoins...)
 	if isNegative {
-		return sdkerrors.Wrapf(types.ErrReservesExceedCash, "reserves %s > cash %s", reserveCoins, hardMaccCoins)
+		return errorsmod.Wrapf(types.ErrReservesExceedCash, "reserves %s > cash %s", reserveCoins, hardMaccCoins)
 	}
 	if amount.IsAnyGT(fundsAvailableToBorrow) {
-		return sdkerrors.Wrapf(types.ErrExceedsProtocolBorrowableBalance, "requested borrow %s > available to borrow %s", amount, fundsAvailableToBorrow)
+		return errorsmod.Wrapf(types.ErrExceedsProtocolBorrowableBalance, "requested borrow %s > available to borrow %s", amount, fundsAvailableToBorrow)
 	}
 
 	// Get the proposed borrow USD value
@@ -135,19 +137,19 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	for _, coin := range amount {
 		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
 		if !found {
-			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
+			return errorsmod.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 		}
 
 		// Calculate this coin's USD value and add it borrow's total USD value
 		assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
 		if err != nil {
-			return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
+			return errorsmod.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
 		coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 
 		// Validate the requested borrow value for the asset against the money market's global borrow limit
 		if moneyMarket.BorrowLimit.HasMaxLimit {
-			var assetTotalBorrowedAmount sdk.Int
+			var assetTotalBorrowedAmount sdkmath.Int
 			totalBorrowedCoins, found := k.GetBorrowedCoins(ctx)
 			if !found {
 				assetTotalBorrowedAmount = sdk.ZeroInt()
@@ -156,7 +158,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 			}
 			newProposedAssetTotalBorrowedAmount := sdk.NewDecFromInt(assetTotalBorrowedAmount.Add(coin.Amount))
 			if newProposedAssetTotalBorrowedAmount.GT(moneyMarket.BorrowLimit.MaximumLimit) {
-				return sdkerrors.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
+				return errorsmod.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
 					"proposed borrow would result in %s borrowed, but the maximum global asset borrow limit is %s",
 					newProposedAssetTotalBorrowedAmount, moneyMarket.BorrowLimit.MaximumLimit)
 			}
@@ -167,19 +169,19 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	// Get the total borrowable USD amount at user's existing deposits
 	deposit, found := k.GetDeposit(ctx, borrower)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
+		return errorsmod.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
 	totalBorrowableAmount := sdk.ZeroDec()
 	for _, coin := range deposit.Amount {
 		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
 		if !found {
-			return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
+			return errorsmod.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 		}
 
 		// Calculate the borrowable amount and add it to the user's total borrowable amount
 		assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
 		if err != nil {
-			return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
+			return errorsmod.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
 		depositUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 		borrowableAmountForDeposit := depositUSDValue.Mul(moneyMarket.BorrowLimit.LoanToValue)
@@ -193,13 +195,13 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		for _, coin := range existingBorrow.Amount {
 			moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
 			if !found {
-				return sdkerrors.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
+				return errorsmod.Wrapf(types.ErrMarketNotFound, "no money market found for denom %s", coin.Denom)
 			}
 
 			// Calculate this borrow coin's USD value and add it to the total previous borrowed USD value
 			assetPriceInfo, err := k.pricefeedKeeper.GetCurrentPrice(ctx, moneyMarket.SpotMarketID)
 			if err != nil {
-				return sdkerrors.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
+				return errorsmod.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 			}
 			coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 			existingBorrowUSDValue = existingBorrowUSDValue.Add(coinUSDValue)
@@ -209,12 +211,12 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	// Borrow's updated total USD value must be greater than the minimum global USD borrow limit
 	totalBorrowUSDValue := proprosedBorrowUSDValue.Add(existingBorrowUSDValue)
 	if totalBorrowUSDValue.LT(k.GetMinimumBorrowUSDValue(ctx)) {
-		return sdkerrors.Wrapf(types.ErrBelowMinimumBorrowValue, "the proposed borrow's USD value $%s is below the minimum borrow limit $%s", totalBorrowUSDValue, k.GetMinimumBorrowUSDValue(ctx))
+		return errorsmod.Wrapf(types.ErrBelowMinimumBorrowValue, "the proposed borrow's USD value $%s is below the minimum borrow limit $%s", totalBorrowUSDValue, k.GetMinimumBorrowUSDValue(ctx))
 	}
 
 	// Validate that the proposed borrow's USD value is within user's borrowable limit
 	if proprosedBorrowUSDValue.GT(totalBorrowableAmount.Sub(existingBorrowUSDValue)) {
-		return sdkerrors.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s exceeds the allowable amount as determined by the collateralization ratio", amount)
+		return errorsmod.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s exceeds the allowable amount as determined by the collateralization ratio", amount)
 	}
 	return nil
 }
@@ -235,7 +237,7 @@ func (k Keeper) IncrementBorrowedCoins(ctx sdk.Context, newCoins sdk.Coins) {
 func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 	borrowedCoins, found := k.GetBorrowedCoins(ctx)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrBorrowedCoinsNotFound, "cannot repay coins if no coins are currently borrowed")
+		return errorsmod.Wrapf(types.ErrBorrowedCoinsNotFound, "cannot repay coins if no coins are currently borrowed")
 	}
 
 	updatedBorrowedCoins, isNegative := borrowedCoins.SafeSub(coins...)

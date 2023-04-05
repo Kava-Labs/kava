@@ -4,13 +4,14 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAssetSupplyValidate(t *testing.T) {
 	coin := sdk.NewCoin("kava", sdk.OneInt())
-	invalidCoin := sdk.Coin{Denom: "Invalid Denom", Amount: sdk.NewInt(-1)}
+	invalidCoin := sdk.Coin{Denom: "Invalid Denom", Amount: sdkmath.NewInt(-1)}
 	testCases := []struct {
 		msg     string
 		asset   AssetSupply

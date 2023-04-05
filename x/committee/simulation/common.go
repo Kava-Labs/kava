@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 )
@@ -48,24 +49,24 @@ func RandomTime(r *rand.Rand, inclusiveMin, exclusiveMax time.Time) (time.Time, 
 	return inclusiveMin.Add(subPeriod), nil
 }
 
-// RandInt randomly generates an sdk.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
-func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdk.Int) (sdk.Int, error) {
+// RandInt randomly generates an sdkmath.Int in the range [inclusiveMin, inclusiveMax]. It works for negative and positive integers.
+func RandIntInclusive(r *rand.Rand, inclusiveMin, inclusiveMax sdkmath.Int) (sdkmath.Int, error) {
 	if inclusiveMin.GT(inclusiveMax) {
-		return sdk.Int{}, fmt.Errorf("min larger than max")
+		return sdkmath.Int{}, fmt.Errorf("min larger than max")
 	}
 	return RandInt(r, inclusiveMin, inclusiveMax.Add(sdk.OneInt()))
 }
 
-// RandInt randomly generates an sdk.Int in the range [inclusiveMin, exclusiveMax). It works for negative and positive integers.
-func RandInt(r *rand.Rand, inclusiveMin, exclusiveMax sdk.Int) (sdk.Int, error) {
+// RandInt randomly generates an sdkmath.Int in the range [inclusiveMin, exclusiveMax). It works for negative and positive integers.
+func RandInt(r *rand.Rand, inclusiveMin, exclusiveMax sdkmath.Int) (sdkmath.Int, error) {
 	// validate input
 	if inclusiveMin.GTE(exclusiveMax) {
-		return sdk.Int{}, fmt.Errorf("min larger or equal to max")
+		return sdkmath.Int{}, fmt.Errorf("min larger or equal to max")
 	}
 	// shift the range to start at 0
 	shiftedRange := exclusiveMax.Sub(inclusiveMin) // should always be positive given the check above
 	// randomly pick from the shifted range
-	shiftedRandInt := sdk.NewIntFromBigInt(new(big.Int).Rand(r, shiftedRange.BigInt()))
+	shiftedRandInt := sdkmath.NewIntFromBigInt(new(big.Int).Rand(r, shiftedRange.BigInt()))
 	// shift back to the original range
 	return shiftedRandInt.Add(inclusiveMin), nil
 }

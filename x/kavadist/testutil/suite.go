@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -40,7 +41,7 @@ func (suite *Suite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 	tApp := app.NewTestApp()
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	coins := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000000000000)))
+	coins := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000000000000)))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})

@@ -3,8 +3,9 @@ package keeper
 import (
 	"math/big"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -17,7 +18,7 @@ func (k Keeper) MintConversionPairCoin(
 	amount *big.Int,
 	recipient sdk.AccAddress,
 ) (sdk.Coin, error) {
-	coin := sdk.NewCoin(pair.Denom, sdk.NewIntFromBigInt(amount))
+	coin := sdk.NewCoin(pair.Denom, sdkmath.NewIntFromBigInt(amount))
 	coins := sdk.NewCoins(coin)
 
 	if err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
@@ -92,7 +93,7 @@ func (k Keeper) ConvertERC20ToCoin(
 	initiator types.InternalEVMAddress,
 	receiver sdk.AccAddress,
 	contractAddr types.InternalEVMAddress,
-	amount sdk.Int,
+	amount sdkmath.Int,
 ) error {
 	// Check that the contract is enabled to convert to coin
 	pair, err := k.GetEnabledConversionPairFromERC20Address(ctx, contractAddr)
@@ -134,7 +135,7 @@ func (k Keeper) UnlockERC20Tokens(
 	contractAddr := pair.GetAddress()
 	startBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 	res, err := k.CallEVM(
 		ctx,
@@ -153,11 +154,11 @@ func (k Keeper) UnlockERC20Tokens(
 	// validate end bal
 	endBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, receiver)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 	expectedEndBal := big.NewInt(0).Add(startBal, amount)
 	if expectedEndBal.Cmp(endBal) != 0 {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrBalanceInvariance,
 			"invalid token balance - expected: %v, actual: %v",
 			expectedEndBal, endBal,
@@ -183,7 +184,7 @@ func (k Keeper) LockERC20Tokens(
 	contractAddr := pair.GetAddress()
 	initiatorStartBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, initiator)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 
 	res, err := k.CallEVM(
@@ -203,11 +204,11 @@ func (k Keeper) LockERC20Tokens(
 	// validate end bal
 	initiatorEndBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, initiator)
 	if err != nil {
-		return sdkerrors.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
 	}
 	expectedEndBal := big.NewInt(0).Sub(initiatorStartBal, amount)
 	if expectedEndBal.Cmp(initiatorEndBal) != 0 {
-		return sdkerrors.Wrapf(
+		return errorsmod.Wrapf(
 			types.ErrBalanceInvariance,
 			"invalid token balance - expected: %v, actual: %v",
 			expectedEndBal, initiatorEndBal,

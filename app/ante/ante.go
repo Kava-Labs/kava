@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -35,16 +36,16 @@ type HandlerOptions struct {
 
 func (options HandlerOptions) Validate() error {
 	if options.AccountKeeper == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "account keeper is required for AnteHandler")
+		return errorsmod.Wrap(sdkerrors.ErrLogic, "account keeper is required for AnteHandler")
 	}
 	if options.BankKeeper == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "bank keeper is required for AnteHandler")
+		return errorsmod.Wrap(sdkerrors.ErrLogic, "bank keeper is required for AnteHandler")
 	}
 	if options.SignModeHandler == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
+		return errorsmod.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
 	}
 	if options.EvmKeeper == nil {
-		return sdkerrors.Wrap(sdkerrors.ErrLogic, "evm keeper is required for AnteHandler")
+		return errorsmod.Wrap(sdkerrors.ErrLogic, "evm keeper is required for AnteHandler")
 	}
 	return nil
 }
@@ -72,7 +73,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		if ok {
 			opts := txWithExtensions.GetExtensionOptions()
 			if len(opts) > 1 {
-				return ctx, sdkerrors.Wrap(
+				return ctx, errorsmod.Wrap(
 					sdkerrors.ErrInvalidRequest,
 					"rejecting tx with more than 1 extension option",
 				)
@@ -90,7 +91,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 						isEIP712:       true,
 					})
 				default:
-					return ctx, sdkerrors.Wrapf(
+					return ctx, errorsmod.Wrapf(
 						sdkerrors.ErrUnknownExtensionOptions,
 						"rejecting tx with unsupported extension option: %s", typeURL,
 					)
@@ -108,7 +109,7 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 				isEIP712:       false,
 			})
 		default:
-			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx)
+			return ctx, errorsmod.Wrapf(sdkerrors.ErrUnknownRequest, "invalid transaction type: %T", tx)
 		}
 
 		return anteHandler(ctx, tx, sim)
@@ -176,7 +177,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 
 func Recover(logger tmlog.Logger, err *error) {
 	if r := recover(); r != nil {
-		*err = sdkerrors.Wrapf(sdkerrors.ErrPanic, "%v", r)
+		*err = errorsmod.Wrapf(sdkerrors.ErrPanic, "%v", r)
 
 		if e, ok := r.(error); ok {
 			logger.Error(

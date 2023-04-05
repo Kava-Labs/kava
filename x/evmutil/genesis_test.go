@@ -3,9 +3,9 @@ package evmutil_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/kava-labs/kava/x/evmutil"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -22,7 +22,7 @@ func (suite *genesisTestSuite) SetupTest() {
 func (s *genesisTestSuite) TestInitGenesis_SetAccounts() {
 	gs := types.NewGenesisState(
 		[]types.Account{
-			{Address: s.Addrs[0], Balance: sdk.NewInt(100)},
+			{Address: s.Addrs[0], Balance: sdkmath.NewInt(100)},
 		},
 		types.DefaultParams(),
 	)
@@ -33,7 +33,7 @@ func (s *genesisTestSuite) TestInitGenesis_SetAccounts() {
 	s.Require().Len(accounts, 1)
 	account := s.Keeper.GetAccount(s.Ctx, s.Addrs[0])
 	s.Require().Equal(account.Address, s.Addrs[0])
-	s.Require().Equal(account.Balance, sdk.NewInt(100))
+	s.Require().Equal(account.Balance, sdkmath.NewInt(100))
 }
 
 func (s *genesisTestSuite) TestInitGenesis_SetParams() {
@@ -56,7 +56,7 @@ func (s *genesisTestSuite) TestInitGenesis_SetParams() {
 func (s *genesisTestSuite) TestInitGenesis_ValidateFail() {
 	gs := types.NewGenesisState(
 		[]types.Account{
-			{Address: s.Addrs[0], Balance: sdk.NewInt(-100)},
+			{Address: s.Addrs[0], Balance: sdkmath.NewInt(-100)},
 		},
 		types.DefaultParams(),
 	)
@@ -67,8 +67,8 @@ func (s *genesisTestSuite) TestInitGenesis_ValidateFail() {
 
 func (s *genesisTestSuite) TestExportGenesis() {
 	accounts := []types.Account{
-		{Address: s.Addrs[0], Balance: sdk.NewInt(10)},
-		{Address: s.Addrs[1], Balance: sdk.NewInt(20)},
+		{Address: s.Addrs[0], Balance: sdkmath.NewInt(10)},
+		{Address: s.Addrs[1], Balance: sdkmath.NewInt(20)},
 	}
 	for _, account := range accounts {
 		s.Keeper.SetAccount(s.Ctx, account)

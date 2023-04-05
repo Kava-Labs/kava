@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -14,15 +15,15 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	// Limit proposals to only be submitted by committee members
 	com, found := k.GetCommittee(ctx, committeeID)
 	if !found {
-		return 0, sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", committeeID)
+		return 0, errorsmod.Wrapf(types.ErrUnknownCommittee, "%d", committeeID)
 	}
 	if !com.HasMember(proposer) {
-		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "proposer not member of committee")
+		return 0, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "proposer not member of committee")
 	}
 
 	// Check committee has permissions to enact proposal.
 	if !com.HasPermissionsFor(ctx, k.cdc, k.paramKeeper, pubProposal) {
-		return 0, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
+		return 0, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
 	// Check proposal is valid
@@ -53,22 +54,22 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 	// Validate
 	pr, found := k.GetProposal(ctx, proposalID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
+		return errorsmod.Wrapf(types.ErrUnknownProposal, "%d", proposalID)
 	}
 	if pr.HasExpiredBy(ctx.BlockTime()) {
-		return sdkerrors.Wrapf(types.ErrProposalExpired, "%s ≥ %s", ctx.BlockTime(), pr.Deadline)
+		return errorsmod.Wrapf(types.ErrProposalExpired, "%s ≥ %s", ctx.BlockTime(), pr.Deadline)
 	}
 	com, found := k.GetCommittee(ctx, pr.CommitteeID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
+		return errorsmod.Wrapf(types.ErrUnknownCommittee, "%d", pr.CommitteeID)
 	}
 
 	if _, ok := com.(*types.MemberCommittee); ok {
 		if !com.HasMember(voter) {
-			return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "voter must be a member of committee")
+			return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "voter must be a member of committee")
 		}
 		if voteType != types.VOTE_TYPE_YES {
-			return sdkerrors.Wrap(types.ErrInvalidVoteType, "member committees only accept yes votes")
+			return errorsmod.Wrap(types.ErrInvalidVoteType, "member committees only accept yes votes")
 		}
 	}
 
@@ -90,14 +91,14 @@ func (k Keeper) AddVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddress
 // ValidatePubProposal checks if a pubproposal is valid.
 func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubProposal) (returnErr error) {
 	if pubProposal == nil {
-		return sdkerrors.Wrap(types.ErrInvalidPubProposal, "pub proposal cannot be nil")
+		return errorsmod.Wrap(types.ErrInvalidPubProposal, "pub proposal cannot be nil")
 	}
 	if err := pubProposal.ValidateBasic(); err != nil {
 		return err
 	}
 
 	if !k.router.HasRoute(pubProposal.ProposalRoute()) {
-		return sdkerrors.Wrapf(types.ErrNoProposalHandlerExists, "%T", pubProposal)
+		return errorsmod.Wrapf(types.ErrNoProposalHandlerExists, "%T", pubProposal)
 	}
 
 	// Run the proposal's changes through the associated handler using a cached version of state to ensure changes are not permanent.
@@ -110,7 +111,7 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 	// reference: https://stackoverflow.com/questions/33167282/how-to-return-a-value-in-a-go-function-that-panics?noredirect=1&lq=1
 	defer func() {
 		if r := recover(); r != nil {
-			returnErr = sdkerrors.Wrapf(types.ErrInvalidPubProposal, "proposal handler panicked: %s", r)
+			returnErr = errorsmod.Wrapf(types.ErrInvalidPubProposal, "proposal handler panicked: %s", r)
 		}
 	}()
 
@@ -227,10 +228,10 @@ func (k Keeper) enactProposal(ctx sdk.Context, proposal types.Proposal) error {
 	// Since the proposal was submitted params could have changed, invalidating the permission of the committee.
 	com, found := k.GetCommittee(ctx, proposal.CommitteeID)
 	if !found {
-		return sdkerrors.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
+		return errorsmod.Wrapf(types.ErrUnknownCommittee, "%d", proposal.CommitteeID)
 	}
 	if !com.HasPermissionsFor(ctx, k.cdc, k.paramKeeper, proposal.GetContent()) {
-		return sdkerrors.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
+		return errorsmod.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
 	if err := k.ValidatePubProposal(ctx, proposal.GetContent()); err != nil {

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -119,7 +120,7 @@ func (s *migrateTestSuite) TestMigrate_Params() {
 				Blockable:        true,
 				RateLimit: v015issuance.RateLimit{
 					Active:     true,
-					Limit:      sdk.NewInt(10),
+					Limit:      sdkmath.NewInt(10),
 					TimePeriod: 1 * time.Hour,
 				},
 			},
@@ -135,7 +136,7 @@ func (s *migrateTestSuite) TestMigrate_Params() {
 				Blockable:        true,
 				RateLimit: v016issuance.RateLimit{
 					Active:     true,
-					Limit:      sdk.NewInt(10),
+					Limit:      sdkmath.NewInt(10),
 					TimePeriod: 1 * time.Hour,
 				},
 			},
@@ -148,21 +149,21 @@ func (s *migrateTestSuite) TestMigrate_Params() {
 func (s *migrateTestSuite) TestMigrate_Supplies() {
 	s.v15genstate.Supplies = v015issuance.AssetSupplies{
 		{
-			CurrentSupply: sdk.NewCoin("ukava", sdk.NewInt(100)),
+			CurrentSupply: sdk.NewCoin("ukava", sdkmath.NewInt(100)),
 			TimeElapsed:   time.Duration(1 * time.Hour),
 		},
 		{
-			CurrentSupply: sdk.NewCoin("bnb", sdk.NewInt(300)),
+			CurrentSupply: sdk.NewCoin("bnb", sdkmath.NewInt(300)),
 			TimeElapsed:   time.Duration(5 * time.Minute),
 		},
 	}
 	expected := []v016issuance.AssetSupply{
 		{
-			CurrentSupply: sdk.NewCoin("ukava", sdk.NewInt(100)),
+			CurrentSupply: sdk.NewCoin("ukava", sdkmath.NewInt(100)),
 			TimeElapsed:   time.Duration(1 * time.Hour),
 		},
 		{
-			CurrentSupply: sdk.NewCoin("bnb", sdk.NewInt(300)),
+			CurrentSupply: sdk.NewCoin("bnb", sdkmath.NewInt(300)),
 			TimeElapsed:   time.Duration(5 * time.Minute),
 		},
 	}

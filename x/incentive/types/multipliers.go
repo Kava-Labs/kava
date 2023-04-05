@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // NewMultiplier returns a new Multiplier
@@ -89,10 +89,10 @@ func NewSelection(denom, multiplierName string) Selection {
 // Validate performs basic validation checks
 func (s Selection) Validate() error {
 	if err := sdk.ValidateDenom(s.Denom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidClaimDenoms, err.Error())
+		return errorsmod.Wrap(ErrInvalidClaimDenoms, err.Error())
 	}
 	if s.MultiplierName == "" {
-		return sdkerrors.Wrap(ErrInvalidMultiplier, "multiplier name cannot be empty")
+		return errorsmod.Wrap(ErrInvalidMultiplier, "multiplier name cannot be empty")
 	}
 	return nil
 }
@@ -120,10 +120,10 @@ func NewSelectionsFromMap(selectionMap map[string]string) Selections {
 // Valdate performs basic validaton checks
 func (ss Selections) Validate() error {
 	if len(ss) == 0 {
-		return sdkerrors.Wrap(ErrInvalidClaimDenoms, "cannot claim 0 denoms")
+		return errorsmod.Wrap(ErrInvalidClaimDenoms, "cannot claim 0 denoms")
 	}
 	if len(ss) >= MaxDenomsToClaim {
-		return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
+		return errorsmod.Wrapf(ErrInvalidClaimDenoms, "cannot claim more than %d denoms", MaxDenomsToClaim)
 	}
 	foundDenoms := map[string]bool{}
 	for _, s := range ss {
@@ -131,7 +131,7 @@ func (ss Selections) Validate() error {
 			return err
 		}
 		if foundDenoms[s.Denom] {
-			return sdkerrors.Wrapf(ErrInvalidClaimDenoms, "cannot claim denom '%s' more than once", s.Denom)
+			return errorsmod.Wrapf(ErrInvalidClaimDenoms, "cannot claim denom '%s' more than once", s.Denom)
 		}
 		foundDenoms[s.Denom] = true
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -50,7 +51,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 					loanToValue,
 				),
 				"kava:usd",
-				sdk.NewInt(1e6),
+				sdkmath.NewInt(1e6),
 				types.NewInterestRateModel(
 					sdk.MustNewDecFromStr("0.05"),
 					sdk.MustNewDecFromStr("2"),
@@ -67,7 +68,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	deposits := types.Deposits{
 		types.NewDeposit(
 			suite.addrs[0],
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e8))), // 100 ukava
+			sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e8))), // 100 ukava
 			types.SupplyInterestFactors{
 				{
 					Denom: "ukava",
@@ -85,7 +86,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	borrows := types.Borrows{
 		types.NewBorrow(
 			suite.addrs[1],
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e7))), // 10 ukava
+			sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e7))), // 10 ukava
 			types.BorrowInterestFactors{
 				{
 					Denom: "ukava",

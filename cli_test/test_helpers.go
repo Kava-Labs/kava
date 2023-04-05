@@ -48,7 +48,7 @@ var (
 		sdk.NewCoin(fee2Denom, sdk.TokensFromConsensusPower(2000000)),
 		sdk.NewCoin(feeDenom, sdk.TokensFromConsensusPower(2000000)),
 		sdk.NewCoin(fooDenom, sdk.TokensFromConsensusPower(2000)),
-		sdk.NewCoin(denom, sdk.TokensFromConsensusPower(300).Add(sdk.NewInt(12))), // add coins from inflation
+		sdk.NewCoin(denom, sdk.TokensFromConsensusPower(300).Add(sdkmath.NewInt(12))), // add coins from inflation
 	)
 
 	startCoins = sdk.NewCoins(
@@ -707,12 +707,12 @@ func (f *Fixtures) QueryTotalSupply(flags ...string) (totalSupply sdk.Coins) {
 }
 
 // QueryTotalSupplyOf returns the total supply of a given coin denom
-func (f *Fixtures) QueryTotalSupplyOf(denom string, flags ...string) sdk.Int {
+func (f *Fixtures) QueryTotalSupplyOf(denom string, flags ...string) sdkmath.Int {
 	cmd := fmt.Sprintf("%s query supply total %s %s", f.KvcliBinary, denom, f.Flags())
 	res, errStr := tests.ExecuteT(f.T, cmd, "")
 	require.Empty(f.T, errStr)
 
-	var supplyOf sdk.Int
+	var supplyOf sdkmath.Int
 	err := f.cdc.UnmarshalJSON([]byte(res), &supplyOf)
 	require.NoError(f.T, err)
 	return supplyOf

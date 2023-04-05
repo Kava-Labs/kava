@@ -6,6 +6,7 @@ import (
 
 	types "github.com/kava-labs/kava/x/swap/types"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,17 +14,17 @@ import (
 
 // create a new ukava coin from int64
 func ukava(amount int64) sdk.Coin {
-	return sdk.NewCoin("ukava", sdk.NewInt(amount))
+	return sdk.NewCoin("ukava", sdkmath.NewInt(amount))
 }
 
 // create a new usdx coin from int64
 func usdx(amount int64) sdk.Coin {
-	return sdk.NewCoin("usdx", sdk.NewInt(amount))
+	return sdk.NewCoin("usdx", sdkmath.NewInt(amount))
 }
 
 // create a new hard coin from int64
 func hard(amount int64) sdk.Coin {
-	return sdk.NewCoin("hard", sdk.NewInt(amount))
+	return sdk.NewCoin("hard", sdkmath.NewInt(amount))
 }
 
 func TestDenominatedPool_NewDenominatedPool_Validation(t *testing.T) {
@@ -51,7 +52,7 @@ func TestDenominatedPool_NewDenominatedPoolWithExistingShares_Validation(t *test
 	testCases := []struct {
 		reservesA   sdk.Coin
 		reservesB   sdk.Coin
-		totalShares sdk.Int
+		totalShares sdkmath.Int
 		expectedErr string
 	}{
 		{ukava(0), usdx(1e6), i(1), "reserves must have two denominations: invalid pool"},

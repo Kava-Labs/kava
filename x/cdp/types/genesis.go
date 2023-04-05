@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -74,7 +75,7 @@ func (gs GenesisState) Validate() error {
 }
 
 // NewGenesisTotalPrincipal returns a new GenesisTotalPrincipal
-func NewGenesisTotalPrincipal(ctype string, principal sdk.Int) GenesisTotalPrincipal {
+func NewGenesisTotalPrincipal(ctype string, principal sdkmath.Int) GenesisTotalPrincipal {
 	return GenesisTotalPrincipal{
 		CollateralType: ctype,
 		TotalPrincipal: principal,

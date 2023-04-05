@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
@@ -31,10 +32,10 @@ func TestMsgServerTestSuite(t *testing.T) {
 }
 
 func (suite *msgServerTestSuite) TestMsgFundCommunityPool() {
-	singleCoin := sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(2e6)))
+	singleCoin := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(2e6)))
 	multipleCoins := sdk.NewCoins(
-		sdk.NewCoin("ukava", sdk.NewInt(3e6)),
-		sdk.NewCoin("usdx", sdk.NewInt(1e7)),
+		sdk.NewCoin("ukava", sdkmath.NewInt(3e6)),
+		sdk.NewCoin("usdx", sdkmath.NewInt(1e7)),
 	)
 	testCases := []struct {
 		name            string

@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
@@ -29,8 +30,8 @@ func (suite *KeeperTestSuite) TestCommunityPool() {
 	maccAddr := suite.App.GetAccountKeeper().GetModuleAddress(types.ModuleAccountName)
 
 	funds := sdk.NewCoins(
-		sdk.NewCoin("ukava", sdk.NewInt(10000)),
-		sdk.NewCoin("usdx", sdk.NewInt(100)),
+		sdk.NewCoin("ukava", sdkmath.NewInt(10000)),
+		sdk.NewCoin("usdx", sdkmath.NewInt(100)),
 	)
 	sender := suite.CreateFundedAccount(funds)
 

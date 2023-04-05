@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -261,25 +262,25 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 }
 
 func (suite *CdpTestSuite) TestValidateCollateral() {
-	c := sdk.NewCoin("xrp", sdk.NewInt(1))
+	c := sdk.NewCoin("xrp", sdkmath.NewInt(1))
 	err := suite.keeper.ValidateCollateral(suite.ctx, c, "xrp-a")
 	suite.NoError(err)
-	c = sdk.NewCoin("lol", sdk.NewInt(1))
+	c = sdk.NewCoin("lol", sdkmath.NewInt(1))
 	err = suite.keeper.ValidateCollateral(suite.ctx, c, "lol-a")
 	suite.Require().True(errors.Is(err, types.ErrCollateralNotSupported))
 }
 
 func (suite *CdpTestSuite) TestValidatePrincipal() {
-	d := sdk.NewCoin("usdx", sdk.NewInt(10000000))
+	d := sdk.NewCoin("usdx", sdkmath.NewInt(10000000))
 	err := suite.keeper.ValidatePrincipalAdd(suite.ctx, d)
 	suite.NoError(err)
-	d = sdk.NewCoin("xusd", sdk.NewInt(1))
+	d = sdk.NewCoin("xusd", sdkmath.NewInt(1))
 	err = suite.keeper.ValidatePrincipalAdd(suite.ctx, d)
 	suite.Require().True(errors.Is(err, types.ErrDebtNotSupported))
-	d = sdk.NewCoin("usdx", sdk.NewInt(1000000000001))
+	d = sdk.NewCoin("usdx", sdkmath.NewInt(1000000000001))
 	err = suite.keeper.ValidateDebtLimit(suite.ctx, "xrp-a", d)
 	suite.Require().True(errors.Is(err, types.ErrExceedsDebtLimit))
-	d = sdk.NewCoin("usdx", sdk.NewInt(100000000))
+	d = sdk.NewCoin("usdx", sdkmath.NewInt(100000000))
 	err = suite.keeper.ValidateDebtLimit(suite.ctx, "xrp-a", d)
 	suite.NoError(err)
 }

@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -114,7 +116,7 @@ func (k Keeper) SetAccount(ctx sdk.Context, account types.Account) error {
 }
 
 // GetBalance returns the total balance of akava for a given account by address.
-func (k Keeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
+func (k Keeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress) sdkmath.Int {
 	account := k.GetAccount(ctx, addr)
 	if account == nil {
 		return sdk.ZeroInt()
@@ -123,7 +125,7 @@ func (k Keeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
 }
 
 // SetBalance sets the total balance of akava for a given account by address.
-func (k Keeper) SetBalance(ctx sdk.Context, addr sdk.AccAddress, bal sdk.Int) error {
+func (k Keeper) SetBalance(ctx sdk.Context, addr sdk.AccAddress, bal sdkmath.Int) error {
 	account := k.GetAccount(ctx, addr)
 	if account == nil {
 		account = types.NewAccount(addr, bal)
@@ -139,7 +141,7 @@ func (k Keeper) SetBalance(ctx sdk.Context, addr sdk.AccAddress, bal sdk.Int) er
 }
 
 // SendBalance transfers the akava balance from sender addr to recipient addr.
-func (k Keeper) SendBalance(ctx sdk.Context, senderAddr sdk.AccAddress, recipientAddr sdk.AccAddress, amt sdk.Int) error {
+func (k Keeper) SendBalance(ctx sdk.Context, senderAddr sdk.AccAddress, recipientAddr sdk.AccAddress, amt sdkmath.Int) error {
 	if amt.IsNegative() {
 		return fmt.Errorf("cannot send a negative amount of akava: %d", amt)
 	}
@@ -150,7 +152,7 @@ func (k Keeper) SendBalance(ctx sdk.Context, senderAddr sdk.AccAddress, recipien
 
 	senderBal := k.GetBalance(ctx, senderAddr)
 	if senderBal.LT(amt) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
+		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
 	}
 	if err := k.SetBalance(ctx, senderAddr, senderBal.Sub(amt)); err != nil {
 		return err
@@ -161,13 +163,13 @@ func (k Keeper) SendBalance(ctx sdk.Context, senderAddr sdk.AccAddress, recipien
 }
 
 // AddBalance increments the akava balance of an address.
-func (k Keeper) AddBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int) error {
+func (k Keeper) AddBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdkmath.Int) error {
 	bal := k.GetBalance(ctx, addr)
 	return k.SetBalance(ctx, addr, amt.Add(bal))
 }
 
 // RemoveBalance decrements the akava balance of an address.
-func (k Keeper) RemoveBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int) error {
+func (k Keeper) RemoveBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdkmath.Int) error {
 	if amt.IsNegative() {
 		return fmt.Errorf("cannot remove a negative amount from balance: %d", amt)
 	}
@@ -177,7 +179,7 @@ func (k Keeper) RemoveBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int)
 	bal := k.GetBalance(ctx, addr)
 	finalBal := bal.Sub(amt)
 	if finalBal.IsNegative() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
+		return errorsmod.Wrapf(sdkerrors.ErrInsufficientFunds, "insufficient funds to send %s", amt.String())
 	}
 	return k.SetBalance(ctx, addr, finalBal)
 }

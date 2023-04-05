@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
-func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods, previousBlockTime time.Time) (sdk.Coin, sdk.Int, error) {
+func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods, previousBlockTime time.Time) (sdk.Coin, sdkmath.Int, error) {
 	var err error
 	coinsMinted := sdk.NewCoin(types.GovDenom, sdk.ZeroInt())
 	timeElapsed := sdk.ZeroInt()
@@ -22,7 +23,7 @@ func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods
 		// Case 2 - period has ended since the previous block time
 		case period.End.After(previousBlockTime) && (period.End.Before(ctx.BlockTime()) || period.End.Equal(ctx.BlockTime())):
 			// calculate time elapsed relative to the periods end time
-			timeElapsed = sdk.NewInt(period.End.Unix() - previousBlockTime.Unix())
+			timeElapsed = sdkmath.NewInt(period.End.Unix() - previousBlockTime.Unix())
 			coins, errI := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
 			err = errI
 			if !coins.IsZero() {
@@ -35,7 +36,7 @@ func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods
 		// Case 3 - period is ongoing
 		case (period.Start.Before(previousBlockTime) || period.Start.Equal(previousBlockTime)) && period.End.After(ctx.BlockTime()):
 			// calculate time elapsed relative to the current block time
-			timeElapsed = sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+			timeElapsed = sdkmath.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 			coins, errI := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
 			if !coins.IsZero() {
 				coinsMinted = coinsMinted.Add(coins)
@@ -44,18 +45,18 @@ func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods
 
 		// Case 4 - period hasn't started
 		case period.Start.After(ctx.BlockTime()) || period.Start.Equal(ctx.BlockTime()):
-			timeElapsed = sdk.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+			timeElapsed = sdkmath.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
 			continue
 		}
 
 		if err != nil {
-			return sdk.Coin{}, sdk.Int{}, err
+			return sdk.Coin{}, sdkmath.Int{}, err
 		}
 	}
 	return coinsMinted, timeElapsed, nil
 }
 
-func (k Keeper) distributeInfrastructureCoins(ctx sdk.Context, partnerRewards types.PartnerRewards, coreRewards types.CoreRewards, timeElapsed sdk.Int, coinsToDistribute sdk.Coin) error {
+func (k Keeper) distributeInfrastructureCoins(ctx sdk.Context, partnerRewards types.PartnerRewards, coreRewards types.CoreRewards, timeElapsed sdkmath.Int, coinsToDistribute sdk.Coin) error {
 	if timeElapsed.IsZero() {
 		return nil
 	}

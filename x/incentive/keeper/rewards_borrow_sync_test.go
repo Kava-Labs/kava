@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -328,7 +329,7 @@ func (builder BorrowBuilder) WithSourceShares(denom string, shares int64) Borrow
 	factor := sdk.MustNewDecFromStr("2")
 
 	// Calculate borrow amount that would equal the requested source shares given the above factor.
-	amt := sdk.NewInt(shares).Mul(factor.RoundInt())
+	amt := sdkmath.NewInt(shares).Mul(factor.RoundInt())
 
 	builder.Amount = builder.Amount.Add(sdk.NewCoin(denom, amt))
 	builder.Index = builder.Index.SetInterestFactor(denom, factor)
@@ -508,7 +509,7 @@ func TestCalculateRewards(t *testing.T) {
 func TestCalculateSingleReward(t *testing.T) {
 	type expected struct {
 		err    error
-		reward sdk.Int
+		reward sdkmath.Int
 	}
 	type args struct {
 		oldIndex, newIndex sdk.Dec
