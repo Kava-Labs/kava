@@ -7,6 +7,7 @@ import (
 
 	"github.com/kava-labs/kava/app/params"
 
+	errorsmod "cosmossdk.io/errors"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -303,7 +304,7 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 					// determine action to take based on rpc result
 					switch response.Result.Code {
 					// 0: success, in mempool
-					case sdkerrors.SuccessABCICode:
+					case errorsmod.SuccessABCICode:
 						txResult = txOK
 					// 4: unauthorized
 					case sdkerrors.ErrUnauthorized.ABCICode():
