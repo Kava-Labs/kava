@@ -11,14 +11,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/legacy/legacytx"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/evmos/ethermint/ethereum/eip712"
+	emtypes "github.com/evmos/ethermint/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	tmmempool "github.com/tendermint/tendermint/mempool"
-	"github.com/tharsis/ethermint/ethereum/eip712"
-	emtypes "github.com/tharsis/ethermint/types"
-	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
@@ -128,6 +128,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 		legacytx.NewStdFee(1e10, sdk.NewCoins(ukava(1e5))),
 		msgs,
 		"memo goes here",
+		nil,
 	)
 	// -- typed data
 	typedData, err := eip712.WrapTxToTypedData(ethChainId.Uint64(), msgs, untypedData, &eip712.FeeDelegationOptions{
