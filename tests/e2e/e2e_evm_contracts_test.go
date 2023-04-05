@@ -182,6 +182,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	err = builder.SetMsgs(msgs...)
 	suite.Require().NoError(err)
 
+	// NOTE: the messages work as expected when passed directly to kava sdk.
 	// tx := builder.GetTx()
 	// res := depositor.SignAndBroadcastKavaTx(util.KavaMsgRequest{
 	// 	Msgs:      tx.GetMsgs(),
