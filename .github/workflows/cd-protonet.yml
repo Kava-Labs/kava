@@ -43,7 +43,7 @@ jobs:
     with:
       chain-api-url: https://rpc.app.protonet.us-east.production.kava.io:443
       chain-id: proto_2221-17000
-      seed-script-filename: seed-internal-testnet.sh
+      seed-script-filename: seed-protonet.sh
       erc20-deployer-network-name: protonet
       genesis_validator_addresses: "kavavaloper14w4avgdvqrlpww6l5dhgj4egfn6ln7gmtp7r2m"
     secrets: inherit
