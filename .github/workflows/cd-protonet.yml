@@ -46,6 +46,7 @@ jobs:
       seed-script-filename: seed-protonet.sh
       erc20-deployer-network-name: protonet
       genesis_validator_addresses: "kavavaloper14w4avgdvqrlpww6l5dhgj4egfn6ln7gmtp7r2m"
+      kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
     secrets: inherit
     needs: [start-chain-api]
   post-pipeline-metrics:
