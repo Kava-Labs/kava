@@ -18,6 +18,9 @@ on:
       genesis_validator_addresses:
         required: true
         type: string
+      kava_version_filepath:
+        required: true
+        type: string
     secrets:
       DEV_WALLET_MNEMONIC:
         required: true
@@ -26,8 +29,16 @@ jobs:
   seed-chain-state:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout repo from current commit
+      - name: checkout repo from master
         uses: actions/checkout@v3
+        with:
+         ref: master
+      - name: checkout version of kava used by network
+        run: |
+          git pull -p
+          git checkout $(cat ${KAVA_VERSION_FILEPATH})
+         env:
+            KAVA_VERSION_FILEPATH: ${{ inputs.kava_version_filepath }}
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
