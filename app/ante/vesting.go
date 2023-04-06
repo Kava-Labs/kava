@@ -9,17 +9,38 @@ import (
 
 var _ sdk.AnteDecorator = VestingAccountDecorator{}
 
-// VestingAccountDecorator blocks MsgCreateVestingAccount from reaching the mempool
-type VestingAccountDecorator struct{}
-
-func NewVestingAccountDecorator() VestingAccountDecorator {
-	return VestingAccountDecorator{}
+// VestingAccountDecorator blocks vesting messages from reaching the mempool
+type VestingAccountDecorator struct {
+	disabledMsgTypeUrls []string
 }
 
-func (vad VestingAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+func NewVestingAccountDecorator() VestingAccountDecorator {
+	return VestingAccountDecorator{
+		disabledMsgTypeUrls: []string{
+			sdk.MsgTypeURL(&vesting.MsgCreateVestingAccount{}),
+			sdk.MsgTypeURL(&vesting.MsgCreatePermanentLockedAccount{}),
+			sdk.MsgTypeURL(&vesting.MsgCreatePeriodicVestingAccount{}),
+		},
+	}
+}
+
+func (vad VestingAccountDecorator) AnteHandle(
+	ctx sdk.Context,
+	tx sdk.Tx,
+	simulate bool,
+	next sdk.AnteHandler,
+) (newCtx sdk.Context, err error) {
 	for _, msg := range tx.GetMsgs() {
-		if _, ok := msg.(*vesting.MsgCreateVestingAccount); ok {
-			return ctx, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "MsgCreateVestingAccount not supported")
+		typeUrl := sdk.MsgTypeURL(msg)
+
+		for _, disabledTypeUrl := range vad.disabledMsgTypeUrls {
+			if typeUrl == disabledTypeUrl {
+				return ctx, errorsmod.Wrapf(
+					sdkerrors.ErrUnauthorized,
+					"MsgTypeURL %s not supported",
+					typeUrl,
+				)
+			}
 		}
 	}
 
