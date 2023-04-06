@@ -141,9 +141,9 @@ func (app *App) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
-// InitializeDefaultGenesis runs InitGenesis for all specified modules using a given context. It does not initialize a chain from Genesis (as happens during InitChain).
-// It is intended as a shorthand to initialize modules without calling keeper methods.
-func (tApp TestApp) InitializeDefaultGenesis(ctx sdk.Context, overrideGenesisStates ...GenesisState) {
+// InitDefaultGenesis runs InitGenesis for all modules using a given context. It does not fully initialize an app from Genesis (as happens during InitChain).
+// Any genesis state not supplied is filled in the the module's default genesis state.
+func (tApp TestApp) InitDefaultGenesis(ctx sdk.Context, overrideGenesisStates ...GenesisState) {
 
 	genesisState := NewDefaultGenesisState()
 	modifiedStates := make(map[string]bool)
