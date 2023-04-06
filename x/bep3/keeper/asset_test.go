@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/keeper"
@@ -32,11 +31,11 @@ func (suite *AssetTestSuite) SetupTest() {
 
 	// Initialize test app and set context
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, ChainID: app.TestChainID})
 
 	// Initialize genesis state
 	deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
-	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), deputy))
+	tApp.InitDefaultGenesis(ctx, NewBep3GenStateMulti(tApp.AppCodec(), deputy))
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)

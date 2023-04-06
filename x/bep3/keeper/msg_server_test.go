@@ -29,7 +29,7 @@ type MsgServerTestSuite struct {
 
 func (suite *MsgServerTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 
 	cdc := tApp.AppCodec()
 
@@ -37,7 +37,7 @@ func (suite *MsgServerTestSuite) SetupTest() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	coins := sdk.NewCoins(c("bnb", 10000000000), c("ukava", 10000000000))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, addrs[0]))
+	tApp.InitDefaultGenesis(ctx, authGS, NewBep3GenStateMulti(cdc, addrs[0]))
 
 	suite.addrs = addrs
 	suite.keeper = tApp.GetBep3Keeper()

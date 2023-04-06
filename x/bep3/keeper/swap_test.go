@@ -45,7 +45,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 
 	// Initialize test app and set context
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 	cdc := tApp.AppCodec()
 
 	// Create and load 20 accounts with bnb tokens
@@ -55,7 +55,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 
 	// Initialize genesis state
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(cdc, deputy))
+	tApp.InitDefaultGenesis(ctx, authGS, NewBep3GenStateMulti(cdc, deputy))
 
 	keeper := tApp.GetBep3Keeper()
 	params := keeper.GetParams(ctx)

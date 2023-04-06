@@ -29,7 +29,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 
 	tApp := app.NewTestApp()
-	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.app = tApp
 
@@ -65,7 +65,7 @@ func (suite *GenesisTestSuite) TestModulePermissionsCheck() {
 				types.ModuleName:     cdc.MustMarshalJSON(&bep3Genesis),
 			}
 
-			initApp := func() { suite.app.InitializeFromGenesisStates(genState) }
+			initApp := func() { suite.app.InitDefaultGenesis(suite.ctx, genState) }
 
 			if tc.expectedPanic == "" {
 				suite.NotPanics(initApp)
@@ -375,11 +375,11 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 			gs := tc.genState()
 			if tc.expectPass {
 				suite.NotPanics(func() {
-					suite.app.InitializeFromGenesisStates(gs)
+					suite.app.InitDefaultGenesis(suite.ctx, gs)
 				}, tc.name)
 			} else {
 				suite.PanicsWithValue(tc.expectedErr, func() {
-					suite.app.InitializeFromGenesisStates(gs)
+					suite.app.InitDefaultGenesis(suite.ctx, gs)
 				}, tc.name)
 			}
 		})

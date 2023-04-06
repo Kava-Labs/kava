@@ -29,14 +29,14 @@ type ABCITestSuite struct {
 
 func (suite *ABCITestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 
 	// Set up auth GenesisState
 	_, addrs := app.GeneratePrivKeyAddressPairs(12)
 	coins := sdk.NewCoins(c("bnb", 10000000000), c("ukava", 10000000000))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	// Initialize test app
-	tApp.InitializeFromGenesisStates(authGS, NewBep3GenStateMulti(tApp.AppCodec(), addrs[11]))
+	tApp.InitDefaultGenesis(ctx, authGS, NewBep3GenStateMulti(tApp.AppCodec(), addrs[11]))
 
 	suite.ctx = ctx
 	suite.app = tApp
@@ -132,7 +132,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 			// Run the second begin blocker
 			bep3.BeginBlocker(tc.secondCtx, suite.keeper)
 
-			// Check each swap's availibility and status
+			// Check each swap's availability and status
 			for _, swapID := range suite.swapIDs {
 				storedSwap, found := suite.keeper.GetAtomicSwap(tc.secondCtx, swapID)
 				if tc.expectInStorage {
