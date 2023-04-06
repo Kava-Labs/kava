@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -334,13 +335,21 @@ func TestRewardIndexes(t *testing.T) {
 
 		for _, tc := range testcases {
 			t.Run(tc.name, func(t *testing.T) {
-				// require.Equal() fails with zero values abs: <nil> and abs: {}
+				actual := tc.rewardIndexes.Mul(tc.multiplier)
 
-				for i := range tc.rewardIndexes {
-					require.True(t,
-						tc.expected[i].RewardFactor.
-							Equal(tc.rewardIndexes[i].RewardFactor.Mul(tc.multiplier)),
-					)
+				if len(tc.expected) == 0 {
+					require.Equal(t, actual, tc.expected)
+				} else {
+					require.Len(t, actual, len(tc.expected))
+					for i := range tc.expected {
+						assert.Equal(t,
+							actual[i].CollateralType,
+							tc.expected[i].CollateralType,
+						)
+						assert.True(t,
+							actual[i].RewardFactor.Equal(tc.expected[i].RewardFactor),
+						)
+					}
 				}
 			})
 		}
