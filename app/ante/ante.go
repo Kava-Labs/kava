@@ -143,6 +143,8 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 		NewAuthzLimiterDecorator(
 			sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}),
 			sdk.MsgTypeURL(&vesting.MsgCreateVestingAccount{}),
+			sdk.MsgTypeURL(&vesting.MsgCreatePermanentLockedAccount{}),
+			sdk.MsgTypeURL(&vesting.MsgCreatePeriodicVestingAccount{}),
 		),
 		authante.NewValidateBasicDecorator(),
 		authante.NewTxTimeoutHeightDecorator(),
