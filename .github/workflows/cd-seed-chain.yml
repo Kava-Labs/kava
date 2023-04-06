@@ -37,7 +37,7 @@ jobs:
         run: |
           git pull -p
           git checkout $(cat ${KAVA_VERSION_FILEPATH})
-         env:
+        env:
             KAVA_VERSION_FILEPATH: ${{ inputs.kava_version_filepath }}
       - name: Set up Go
         uses: actions/setup-go@v3
