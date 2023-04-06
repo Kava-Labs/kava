@@ -7,25 +7,6 @@ on:
       - completed
 
 jobs:
-  changes:
-    name: check for any deployment worthy changes
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: technote-space/get-diff-action@v6
-        with:
-          PATTERNS: ci/env/kava-internal-testnet/*.*
-          FILES: |
-            ci/env/kava-internal-testnet/genesis.json
-            ci/env/kava-internal-testnet/KAVA.VERSION
-      - name: set output
-        run: |
-            if [[ $GIT_DIFF = '' ]];
-            then
-                exit 1
-            else
-                echo "success"
-            fi
   # in order:
   # enter standby (prevents autoscaling group from killing node during deploy)
   # stop kava
@@ -34,9 +15,7 @@ jobs:
   # reset application database state (only done on internal testnet)
   reset-chain-to-zero-state:
     # only start cd pipeline if last ci run was successful
-    # and there are changes that need to be deployed
-    if: ${{ github.event.workflow_run.conclusion == 'success' && contains(needs.changes.result, 'success') }}
-    needs: [changes]
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/cd-reset-internal-testnet.yml
     with:
       aws-region: us-east-1
