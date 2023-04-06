@@ -34,7 +34,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-**As of v0.16.2+, changes are documented in [Kava's Github Releases](https://github.com/Kava-Labs/kava/releases/).**
+## Deprecated
+
+* (x/validator-vesting) [#1542] Deprecate legacy circulating and total supply
+  rest endpoints.
 
 ## [v0.16.1](https://github.com/Kava-Labs/kava/releases/tag/v0.16.1)
 
@@ -151,3 +154,5 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 ### Improvements
 
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
+
+[#1542]: https://github.com/Kava-Labs/kava/pulls/1542

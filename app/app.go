@@ -150,6 +150,7 @@ import (
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 	validatorvesting "github.com/kava-labs/kava/x/validator-vesting"
+	validatorvestingrest "github.com/kava-labs/kava/x/validator-vesting/client/rest"
 	validatorvestingtypes "github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
@@ -1055,6 +1056,9 @@ func (app *App) SimulationManager() *module.SimulationManager {
 // RegisterAPIRoutes registers all application module routes with the provided API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
+
+	// Register custom REST routes
+	validatorvestingrest.RegisterRoutes(clientCtx, apiSvr.Router)
 
 	// Register GRPC Gateway routes
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)

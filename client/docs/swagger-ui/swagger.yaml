@@ -57868,6 +57868,153 @@ paths:
           format: boolean
       tags:
         - IBC
+  /vesting/circulatingsupply:
+    get:
+      deprecated: true
+      summary: Get the current circulating supply of KAVA
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: KAVA circulating supply
+          schema:
+            properties:
+              height:
+                type: string
+                example: '100'
+              result:
+                type: string
+                example: '81443180'
+        '500':
+          description: Server internal error
+  /vesting/totalsupply:
+    get:
+      deprecated: true
+      summary: Get the total supply of KAVA
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: KAVA total supply
+          schema:
+            properties:
+              height:
+                type: string
+                example: '100'
+              result:
+                type: string
+                example: '120000000'
+        '500':
+          description: Server internal error
+  /vesting/circulatingsupplyhard:
+    get:
+      deprecated: true
+      summary: Get the current circulating supply of HARD
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: HARD circulating supply
+          schema:
+            properties:
+              height:
+                type: string
+                example: '100'
+              result:
+                type: string
+                example: '63750000'
+        '500':
+          description: Server internal error
+  /vesting/totalsupplyhard:
+    get:
+      deprecated: true
+      summary: Get the total supply of HARD
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: HARD total supply
+          schema:
+            properties:
+              height:
+                type: string
+                example: '100'
+              result:
+                type: string
+                example: '200000000'
+        '500':
+          description: Server internal error
+  /vesting/circulatingsupplyswp:
+    get:
+      deprecated: true
+      summary: Get the current circulating supply of SWP
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: SWP circulating supply
+          schema:
+            properties:
+              height:
+                type: string
+                example: '100'
+              result:
+                type: string
+                example: '63750000'
+        '500':
+          description: Server internal error
+  /vesting/circulatingsupplyusdx:
+    get:
+      deprecated: true
+      summary: Get the current circulating supply of USDX
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: USDX circulating supply
+          schema:
+            properties:
+              height:
+                type: string
+                example: '100'
+              result:
+                type: string
+                example: '63750000'
+        '500':
+          description: Server internal error
+  /vesting/totalsupplyusdx:
+    get:
+      deprecated: true
+      summary: Get the total supply of USDX
+      tags:
+        - Vesting
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: USDX total supply
+          schema:
+            properties:
+              height:
+                type: string
+                example: '100'
+              result:
+                type: string
+                example: '200000000'
+        '500':
+          description: Server internal error
 definitions:
   cosmos.base.query.v1beta1.PageRequest:
     type: object
@@ -94634,3 +94781,6 @@ definitions:
       ready to send and receive packets.
        - STATE_CLOSED: A channel has been closed and can no longer be used to send or receive
       packets.
+securityDefinitions:
+  kms:
+    type: basic
