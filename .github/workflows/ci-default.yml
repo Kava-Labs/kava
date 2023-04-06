@@ -33,7 +33,28 @@ jobs:
         run: make test
       - name: run e2e tests
         run: make docker-build test-e2e
-  validate-testnet-genesis:
+  validate-internal-testnet-genesis:
+    runs-on: ubuntu-latest
+    steps:
+        - name: checkout repo from master
+          uses: actions/checkout@v3
+          with:
+           ref: master
+        - name: checkout version of kava used by internal testnet
+          run: |
+           git pull -p
+           git checkout $(cat ./ci/env/kava-internal-testnet/KAVA.VERSION)
+        - name: Set up Go
+          uses: actions/setup-go@v3
+          with:
+            go-version: "1.19"
+            check-latest: true
+            cache: true
+        - name: build kava cli
+          run: make install
+        - name: validate testnet genesis
+          run: kava validate-genesis ci/env/kava-internal-testnet/genesis.json
+  validate-protonet-genesis:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from current commit
@@ -46,7 +67,5 @@ jobs:
           cache: true
       - name: build kava cli
         run: make install
-      - name: validate testnet genesis
-        run: kava validate-genesis ci/env/kava-internal-testnet/genesis.json
       - name: validate protonet genesis
         run: kava validate-genesis ci/env/kava-protonet/genesis.json
