@@ -267,6 +267,12 @@
           }
         ]
       }
+    },
+    {
+      "url": "./client/docs/legacy-swagger.yml",
+      "dereference": {
+        "circular": "ignore"
+      }
     }
   ]
 }
