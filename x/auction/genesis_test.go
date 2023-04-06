@@ -9,7 +9,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
@@ -37,10 +36,7 @@ func TestInitGenesis(t *testing.T) {
 		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
 
 		// setup module account
-		modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(types.ModuleName), nil, 0, 0)
-		modAcc := authtypes.NewModuleAccount(modBaseAcc, types.ModuleName, []string{authtypes.Minter, authtypes.Burner}...)
-		tApp.GetAccountKeeper().SetModuleAccount(ctx, modAcc)
-		tApp.GetBankKeeper().MintCoins(ctx, types.ModuleName, testAuction.GetModuleAccountCoins())
+		tApp.FundModuleAccount(ctx, types.ModuleName, testAuction.GetModuleAccountCoins())
 
 		// set up auction genesis state with module account
 		auctionGS, err := types.NewGenesisState(
@@ -84,10 +80,7 @@ func TestInitGenesis(t *testing.T) {
 		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
 
 		// setup module account
-		modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(types.ModuleName), nil, 0, 0)
-		modAcc := authtypes.NewModuleAccount(modBaseAcc, types.ModuleName, []string{authtypes.Minter, authtypes.Burner}...)
-		tApp.GetAccountKeeper().SetModuleAccount(ctx, modAcc)
-		tApp.GetBankKeeper().MintCoins(ctx, types.ModuleName, testAuction.GetModuleAccountCoins())
+		tApp.FundModuleAccount(ctx, types.ModuleName, testAuction.GetModuleAccountCoins())
 
 		// create invalid genesis
 		auctionGS, err := types.NewGenesisState(
@@ -126,34 +119,43 @@ func TestInitGenesis(t *testing.T) {
 
 func TestExportGenesis(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
-		// setup state
 		tApp := app.NewTestApp()
 		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
-		tApp.InitializeFromGenesisStates()
 
-		// export
+		expectedGenesisState := types.DefaultGenesisState()
+		auction.InitGenesis(
+			ctx,
+			tApp.GetAuctionKeeper(),
+			tApp.GetBankKeeper(),
+			tApp.GetAccountKeeper(),
+			expectedGenesisState,
+		)
+
 		gs := auction.ExportGenesis(ctx, tApp.GetAuctionKeeper())
-
-		// check state matches
-		defaultGS := types.DefaultGenesisState()
-		require.Equal(t, defaultGS, gs)
+		require.Equal(t, expectedGenesisState, gs)
 	})
 	t.Run("one auction", func(t *testing.T) {
-		// setup state
 		tApp := app.NewTestApp()
 		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
-		tApp.InitializeFromGenesisStates()
-		tApp.GetAuctionKeeper().SetAuction(ctx, testAuction)
 
-		// export
-		gs := auction.ExportGenesis(ctx, tApp.GetAuctionKeeper())
-
-		// check state matches
-		expectedGenesisState := types.DefaultGenesisState()
-		packedGenesisAuctions, err := types.PackGenesisAuctions([]types.GenesisAuction{testAuction})
+		expectedGenesisState, err := types.NewGenesisState(
+			10,
+			types.DefaultParams(),
+			[]types.GenesisAuction{testAuction},
+		)
 		require.NoError(t, err)
 
-		expectedGenesisState.Auctions = append(expectedGenesisState.Auctions, packedGenesisAuctions...)
+		// fund module account to pass InitGenesis validation
+		tApp.FundModuleAccount(ctx, types.ModuleName, testAuction.GetModuleAccountCoins())
+		auction.InitGenesis(
+			ctx,
+			tApp.GetAuctionKeeper(),
+			tApp.GetBankKeeper(),
+			tApp.GetAccountKeeper(),
+			expectedGenesisState,
+		)
+
+		gs := auction.ExportGenesis(ctx, tApp.GetAuctionKeeper())
 		require.Equal(t, expectedGenesisState, gs)
 	})
 }

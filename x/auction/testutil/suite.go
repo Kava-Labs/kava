@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -39,13 +38,12 @@ func (suite *Suite) SetupTest(numAddrs int) {
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(numAddrs)
 
-	// Fund liquidator module account
 	coins := sdk.NewCoins(
 		sdk.NewCoin("token1", sdkmath.NewInt(100)),
 		sdk.NewCoin("token2", sdkmath.NewInt(100)),
 	)
 
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, ChainID: app.TestChainID})
 
 	modName := "liquidator"
 	modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(modName), nil, 0, 0)
@@ -68,7 +66,7 @@ func (suite *Suite) SetupTest(numAddrs int) {
 
 	moduleGs := tApp.AppCodec().MustMarshalJSON(auctionGs)
 	gs := app.GenesisState{types.ModuleName: moduleGs}
-	tApp.InitializeFromGenesisStates(authGS, gs)
+	tApp.InitDefaultGenesis(ctx, authGS, gs)
 
 	suite.App = tApp
 	suite.Ctx = ctx

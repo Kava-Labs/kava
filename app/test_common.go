@@ -167,6 +167,9 @@ func (tApp TestApp) InitDefaultGenesis(ctx sdk.Context, overrideGenesisStates ..
 
 	// This doesn't call ModuleManager.InitGenesis, or app.InitChainer to avoid the requirement to return validator updates.
 	for _, module := range tApp.mm.OrderInitGenesis {
+		if genesisState[module] == nil {
+			continue
+		}
 		_ = tApp.mm.Modules[module].InitGenesis(ctx, tApp.appCodec, genesisState[module])
 		// discards val updates
 	}
@@ -460,6 +463,7 @@ func (tApp TestApp) NewQueryServerTestHelper(ctx sdk.Context) *baseapp.QueryServ
 }
 
 // FundModuleAccount is a utility function that funds a module account by minting and sending the coins to the address.
+// It creates the module account if it doesn't exist.
 func (tApp TestApp) FundModuleAccount(ctx sdk.Context, recipientMod string, amounts sdk.Coins) error {
 	if err := tApp.bankKeeper.MintCoins(ctx, minttypes.ModuleName, amounts); err != nil {
 		return err

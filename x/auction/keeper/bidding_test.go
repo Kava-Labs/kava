@@ -444,6 +444,7 @@ func TestAuctionBidding(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			// Setup test
 			tApp := app.NewTestApp()
+			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: someTime, ChainID: app.TestChainID})
 
 			// Set up module account
 			modName := "liquidator"
@@ -469,9 +470,8 @@ func TestAuctionBidding(t *testing.T) {
 
 			moduleGs := tApp.AppCodec().MustMarshalJSON(auctionGs)
 			gs := app.GenesisState{types.ModuleName: moduleGs}
-			tApp.InitializeFromGenesisStates(authGS, gs)
+			tApp.InitDefaultGenesis(ctx, authGS, gs)
 
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: someTime})
 			keeper := tApp.GetAuctionKeeper()
 			bank := tApp.GetBankKeeper()
 
