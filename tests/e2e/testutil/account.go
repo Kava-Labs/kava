@@ -9,6 +9,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
@@ -17,6 +18,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	emtests "github.com/evmos/ethermint/tests"
 	emtypes "github.com/evmos/ethermint/types"
 	"github.com/stretchr/testify/require"
 
@@ -28,6 +30,7 @@ type SigningAccount struct {
 	name     string
 	mnemonic string
 
+	evmPrivKey *ethsecp256k1.PrivKey
 	evmSigner  *util.EvmSigner
 	evmReqChan chan<- util.EvmTxRequest
 	evmResChan <-chan util.EvmTxResponse
@@ -66,7 +69,7 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 
 	kavaSigner := util.NewKavaSigner(
 		chainId,
-		chain.encodingConfig,
+		chain.EncodingConfig,
 		chain.Auth,
 		chain.Tx,
 		privKey,
@@ -100,6 +103,7 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 		mnemonic: mnemonic,
 		l:        logger,
 
+		evmPrivKey: privKey,
 		evmSigner:  evmSigner,
 		evmReqChan: evmReqChan,
 		evmResChan: evmResChan,
@@ -166,6 +170,11 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	response.Receipt, response.Err = util.WaitForEvmTxReceipt(a.evmSigner.EvmClient, res.TxHash, 10*time.Second)
 
 	return response
+}
+
+func (a *SigningAccount) SignRawEvmData(msg []byte) ([]byte, types.PubKey, error) {
+	keyringSigner := emtests.NewSigner(a.evmPrivKey)
+	return keyringSigner.SignByAddress(a.SdkAddress, msg)
 }
 
 // NewFundedAccount creates a SigningAccount for a random account & funds the account from the whale.

@@ -31,6 +31,9 @@ type SuiteConfig struct {
 	// Tag of kava docker image that will be upgraded to the current image before tests are run, if upgrade is enabled.
 	KavaUpgradeBaseImageTag string
 
+	// The contract address of a deployed ERC-20 token
+	KavaErc20Address string
+
 	// When true, the chains will remain running after tests complete (pass or fail)
 	SkipShutdown bool
 }
@@ -41,6 +44,7 @@ func ParseSuiteConfig() SuiteConfig {
 		// new accounts created during tests. it will be available under Accounts["whale"]
 		FundedAccountMnemonic:   nonemptyStringEnv("E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC"),
 		KavaConfigTemplate:      nonemptyStringEnv("E2E_KVTOOL_KAVA_CONFIG_TEMPLATE"),
+		KavaErc20Address:        nonemptyStringEnv("E2E_KAVA_ERC20_ADDRESS"),
 		IncludeIbcTests:         mustParseBool("E2E_INCLUDE_IBC_TESTS"),
 		IncludeAutomatedUpgrade: mustParseBool("E2E_INCLUDE_AUTOMATED_UPGRADE"),
 	}

@@ -13,6 +13,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/kava-labs/kava/app"
@@ -25,9 +26,8 @@ import (
 
 // Chain wraps query clients & accounts for a network
 type Chain struct {
-	encodingConfig kavaparams.EncodingConfig
-	accounts       map[string]*SigningAccount
-	t              *testing.T
+	accounts map[string]*SigningAccount
+	t        *testing.T
 
 	StakingDenom string
 	ChainId      string
@@ -35,10 +35,13 @@ type Chain struct {
 	EvmClient     *ethclient.Client
 	ContractAddrs map[string]common.Address
 
+	EncodingConfig kavaparams.EncodingConfig
+
 	Auth      authtypes.QueryClient
 	Bank      banktypes.QueryClient
 	Community communitytypes.QueryClient
 	Earn      earntypes.QueryClient
+	Evm       evmtypes.QueryClient
 	Tm        tmservice.ServiceClient
 	Tx        txtypes.ServiceClient
 }
@@ -53,7 +56,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		ChainId:       details.ChainId,
 		ContractAddrs: make(map[string]common.Address),
 	}
-	chain.encodingConfig = app.MakeEncodingConfig()
+	chain.EncodingConfig = app.MakeEncodingConfig()
 
 	grpcUrl := fmt.Sprintf("http://localhost:%s", details.GrpcPort)
 	grpcConn, err := util.NewGrpcConnection(grpcUrl)
@@ -71,6 +74,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Bank = banktypes.NewQueryClient(grpcConn)
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
+	chain.Evm = evmtypes.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
 
