@@ -9,7 +9,7 @@ import (
 
 var _ sdk.AnteDecorator = VestingAccountDecorator{}
 
-// VestingAccountDecorator blocks MsgCreateVestingAccount from reaching the mempool
+// VestingAccountDecorator blocks vesting messages from reaching the mempool
 type VestingAccountDecorator struct {
 	disabledMsgTypeUrls []string
 }
@@ -24,7 +24,12 @@ func NewVestingAccountDecorator() VestingAccountDecorator {
 	}
 }
 
-func (vad VestingAccountDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+func (vad VestingAccountDecorator) AnteHandle(
+	ctx sdk.Context,
+	tx sdk.Tx,
+	simulate bool,
+	next sdk.AnteHandler,
+) (newCtx sdk.Context, err error) {
 	for _, msg := range tx.GetMsgs() {
 		typeUrl := sdk.MsgTypeURL(msg)
 
