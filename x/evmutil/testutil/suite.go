@@ -33,7 +33,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
-	tmtime "github.com/tendermint/tendermint/types/time"
 	"github.com/tendermint/tendermint/version"
 
 	"github.com/kava-labs/kava/app"
@@ -63,7 +62,6 @@ type Suite struct {
 func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
 
-	suite.Ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.App = tApp
 	suite.BankKeeper = tApp.GetBankKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
@@ -100,7 +98,9 @@ func (suite *Suite) SetupTest() {
 		evmtypes.ModuleName:       cdc.MustMarshalJSON(evmGenesis),
 		feemarkettypes.ModuleName: cdc.MustMarshalJSON(feemarketGenesis),
 	}
-	suite.App.InitializeFromGenesisStates(authGS, gs)
+	genTime := time.Now().UTC()
+	chainID := app.TestChainID
+	suite.App.InitializeFromGenesisStatesWithTimeAndChainID(genTime, chainID, authGS, gs)
 
 	// consensus key - needed to set up evm module
 	consPriv, err := ethsecp256k1.GenerateKey()
@@ -110,8 +110,8 @@ func (suite *Suite) SetupTest() {
 	// InitializeFromGenesisStates commits first block so we start at 2 here
 	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
 		Height:          suite.App.LastBlockHeight() + 1,
-		ChainID:         "kavatest_1-1",
-		Time:            time.Now().UTC(),
+		ChainID:         chainID,
+		Time:            genTime,
 		ProposerAddress: consAddress.Bytes(),
 		Version: tmversion.Consensus{
 			Block: version.BlockProtocol,

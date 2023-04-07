@@ -54,14 +54,15 @@ func (suite *DelegatorRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.stakingKeeper = suite.app.GetStakingKeeper()
 
-	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime, ChainID: "kavatest_1-1"})
+	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime, ChainID: app.TestChainID})
 }
 
 func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {
 	suite.SetupApp()
 
-	suite.app.InitializeFromGenesisStatesWithTime(
+	suite.app.InitializeFromGenesisStatesWithTimeAndChainID(
 		suite.genesisTime,
+		app.TestChainID,
 		authBuilder.BuildMarshalled(suite.app.AppCodec()),
 		NewStakingGenesisState(suite.app.AppCodec()),
 		incentBuilder.BuildMarshalled(suite.app.AppCodec()),

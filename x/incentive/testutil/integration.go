@@ -38,7 +38,7 @@ import (
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
-var testChainID = "kavatest_1-1"
+var testChainID = app.TestChainID
 
 type IntegrationTester struct {
 	suite.Suite
