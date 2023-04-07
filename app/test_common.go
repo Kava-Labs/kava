@@ -58,8 +58,10 @@ import (
 )
 
 var (
+	// TestChainID is chain id for use in local testing. It is unique from kava mainnet and testnets, and other popular evm chains.
+	TestChainID = "kavatest_2220-1"
+
 	emptyTime            time.Time
-	testChainID                = "kavatest_1-1"
 	defaultInitialHeight int64 = 1
 )
 
@@ -304,13 +306,13 @@ func genesisStateWithValSet(
 // InitializeFromGenesisStates calls InitChain on the app using the provided genesis states.
 // If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(emptyTime, testChainID, defaultInitialHeight, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(emptyTime, TestChainID, defaultInitialHeight, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTime calls InitChain on the app using the provided genesis states and time.
 // If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, testChainID, defaultInitialHeight, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, TestChainID, defaultInitialHeight, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTimeAndChainID calls InitChain on the app using the provided genesis states, time, and chain id.
