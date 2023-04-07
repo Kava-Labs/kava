@@ -27,12 +27,12 @@ type grpcQueryTestSuite struct {
 
 func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.tApp = app.NewTestApp()
-	suite.tApp.InitializeFromGenesisStates(
+	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{Height: 1, Time: time.Now().UTC(), ChainID: app.TestChainID})
+	suite.tApp.InitDefaultGenesis(
+		suite.ctx,
 		NewPricefeedGenStateMulti(suite.tApp.AppCodec()),
 		NewCDPGenStateMulti(suite.tApp.AppCodec()),
 	)
-	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
-		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetCDPKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 

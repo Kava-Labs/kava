@@ -46,7 +46,7 @@ type QuerierTestSuite struct {
 
 func (suite *QuerierTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 	suite.cdc = tApp.AppCodec()
 	suite.legacyAmino = *tApp.LegacyAmino()
 
@@ -56,7 +56,8 @@ func (suite *QuerierTestSuite) SetupTest() {
 	coins := cs(c("btc", 10000000000), c("xrp", 10000000000))
 
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
-	tApp.InitializeFromGenesisStates(
+	tApp.InitDefaultGenesis(
+		ctx,
 		authGS,
 		NewPricefeedGenStateMulti(suite.cdc),
 		NewCDPGenStateHighDebtLimit(suite.cdc),

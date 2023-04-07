@@ -27,7 +27,7 @@ type DepositTestSuite struct {
 
 func (suite *DepositTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 	cdc := tApp.AppCodec()
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
@@ -39,7 +39,8 @@ func (suite *DepositTestSuite) SetupTest() {
 		},
 		addrs[0:2],
 	)
-	tApp.InitializeFromGenesisStates(
+	tApp.InitDefaultGenesis(
+		ctx,
 		authGS,
 		NewPricefeedGenStateMulti(cdc),
 		NewCDPGenStateMulti(cdc),

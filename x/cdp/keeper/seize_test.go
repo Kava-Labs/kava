@@ -43,13 +43,14 @@ type liquidationTracker struct {
 
 func (suite *SeizeTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: "kavatest_1-1"})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 	tracker := liquidationTracker{}
 	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
-	tApp.InitializeFromGenesisStates(
+	tApp.InitDefaultGenesis(
+		ctx,
 		authGS,
 		NewPricefeedGenStateMulti(tApp.AppCodec()),
 		NewCDPGenStateMulti(tApp.AppCodec()),
@@ -63,23 +64,9 @@ func (suite *SeizeTestSuite) SetupTest() {
 }
 
 func (suite *SeizeTestSuite) createCdps() {
-	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(types.CDPs, 100)
-	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 	tracker := liquidationTracker{}
-	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
 
-	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
-	tApp.InitializeFromGenesisStates(
-		authGS,
-		NewPricefeedGenStateMulti(tApp.AppCodec()),
-		NewCDPGenStateMulti(tApp.AppCodec()),
-	)
-
-	suite.ctx = ctx
-	suite.app = tApp
-	suite.keeper = tApp.GetCDPKeeper()
 	randSource := rand.New(rand.NewSource(int64(777)))
 	for j := 0; j < 100; j++ {
 		collateral := "xrp"
@@ -99,7 +86,7 @@ func (suite *SeizeTestSuite) createCdps() {
 				tracker.debt += int64(debt)
 			}
 		}
-		err := suite.keeper.AddCdp(suite.ctx, addrs[j], c(collateral, int64(amount)), c("usdx", int64(debt)), collateral+"-a")
+		err := suite.keeper.AddCdp(suite.ctx, suite.addrs[j], c(collateral, int64(amount)), c("usdx", int64(debt)), collateral+"-a")
 		suite.NoError(err)
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral+"-a", uint64(j+1))
 		suite.True(f)
@@ -107,7 +94,6 @@ func (suite *SeizeTestSuite) createCdps() {
 	}
 
 	suite.cdps = cdps
-	suite.addrs = addrs
 	suite.liquidations = tracker
 }
 

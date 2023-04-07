@@ -28,8 +28,9 @@ type CdpTestSuite struct {
 
 func (suite *CdpTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	tApp.InitializeFromGenesisStates(
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
+	tApp.InitDefaultGenesis(
+		ctx,
 		NewPricefeedGenStateMulti(tApp.AppCodec()),
 		NewCDPGenStateMulti(tApp.AppCodec()),
 	)

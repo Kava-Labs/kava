@@ -27,9 +27,10 @@ type InterestTestSuite struct {
 
 func (suite *InterestTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 	cdc := tApp.AppCodec()
-	tApp.InitializeFromGenesisStates(
+	tApp.InitDefaultGenesis(
+		ctx,
 		NewPricefeedGenStateMulti(cdc),
 		NewCDPGenStateMulti(cdc),
 	)

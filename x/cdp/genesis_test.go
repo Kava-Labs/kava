@@ -34,7 +34,7 @@ type GenesisTestSuite struct {
 func (suite *GenesisTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	suite.genTime = tmtime.Canonical(time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC))
-	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genTime})
+	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genTime, ChainID: app.TestChainID})
 	suite.keeper = tApp.GetCDPKeeper()
 	suite.app = tApp
 
@@ -147,7 +147,8 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 	cdc := suite.app.AppCodec()
 
 	suite.NotPanics(func() {
-		suite.app.InitializeFromGenesisStates(
+		suite.app.InitDefaultGenesis(
+			suite.ctx,
 			NewPricefeedGenStateMulti(cdc),
 			NewCDPGenStateMulti(cdc),
 		)
@@ -161,7 +162,8 @@ func (suite *GenesisTestSuite) TestValidGenState() {
 	appGS := app.GenesisState{"cdp": suite.app.AppCodec().MustMarshalJSON(&gs)}
 	suite.NotPanics(func() {
 		suite.SetupTest()
-		suite.app.InitializeFromGenesisStates(
+		suite.app.InitDefaultGenesis(
+			suite.ctx,
 			NewPricefeedGenStateMulti(cdc),
 			appGS,
 		)
@@ -260,8 +262,8 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 	}
 
 	suite.NotPanics(func() {
-		suite.app.InitializeFromGenesisStatesWithTime(
-			suite.genTime,
+		suite.app.InitDefaultGenesis(
+			suite.ctx,
 			NewPricefeedGenStateMulti(suite.app.AppCodec()),
 			app.GenesisState{types.ModuleName: suite.app.AppCodec().MustMarshalJSON(&cdpGenesis)},
 		)

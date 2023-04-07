@@ -28,7 +28,7 @@ type DrawTestSuite struct {
 
 func (suite *DrawTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainID})
 	cdc := tApp.AppCodec()
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	coins := []sdk.Coins{
@@ -38,7 +38,8 @@ func (suite *DrawTestSuite) SetupTest() {
 	}
 
 	authGS := app.NewFundedGenStateWithCoins(cdc, coins, addrs)
-	tApp.InitializeFromGenesisStates(
+	tApp.InitDefaultGenesis(
+		ctx,
 		authGS,
 		NewPricefeedGenStateMulti(cdc),
 		NewCDPGenStateMulti(cdc),
