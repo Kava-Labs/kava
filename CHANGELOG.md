@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (deps) [#1477] Bump ibc-go to v6.1.0.
 - (deps) [#1477] Migrate to CometBFT.
 - (x/incentive) [#1512] Add grpc query service.
+- (deps) [#1544] Bump confio/ics23/go to v0.9.0, cosmos/keyring to v1.2.0.
 
 ### Deprecated
 
@@ -223,6 +224,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1544]: https://github.com/Kava-Labs/kava/pull/1544
 [#1477]: https://github.com/Kava-Labs/kava/pull/1477
 [#1512]: https://github.com/Kava-Labs/kava/pull/1512
 [#1519]: https://github.com/Kava-Labs/kava/pull/1519
