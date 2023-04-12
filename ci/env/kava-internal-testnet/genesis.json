@@ -300,6 +300,18 @@
               "amount": "10000000000"
             },
             {
+              "denom": "erc20/multichain/btc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/multichain/usdc",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "erc20/multichain/usdt",
+              "amount": "10000000000"
+            },
+            {
               "denom": "hard",
               "amount": "1000000000"
             },
@@ -1963,6 +1975,60 @@
             "keeper_reward_percentage": "0.020000000000000000"
           },
           {
+            "denom": "erc20/multichain/btc",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "0.000000000000000000",
+              "loan_to_value": "0.000000000000000000"
+            },
+            "spot_market_id": "btc:usd:30",
+            "conversion_factor": "1000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
+          },
+          {
+            "denom": "erc20/multichain/usdc",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "0.000000000000000000",
+              "loan_to_value": "0.000000000000000000"
+            },
+            "spot_market_id": "usdc:usd:30",
+            "conversion_factor": "1000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
+          },
+          {
+            "denom": "erc20/multichain/usdt",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "0.000000000000000000",
+              "loan_to_value": "0.000000000000000000"
+            },
+            "spot_market_id": "usdt:usd:30",
+            "conversion_factor": "1000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
+          },
+          {
             "denom": "bnb",
             "borrow_limit": {
               "has_max_limit": true,
@@ -2264,6 +2330,42 @@
           {
             "active": true,
             "collateral_type": "erc20/axelar/btc",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "787"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "erc20/multichain/usdc",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "787"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "erc20/multichain/usdt",
+            "start": "2022-11-11T15:00:00Z",
+            "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "787"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "erc20/multichain/btc",
             "start": "2022-11-11T15:00:00Z",
             "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
