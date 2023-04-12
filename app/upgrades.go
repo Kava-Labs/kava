@@ -36,7 +36,6 @@ func (app App) RegisterUpgradeHandlers() {
 				return toVM, err
 			}
 
-			// migrating after module migrations since x/authz have a pending migration
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
 
@@ -57,7 +56,6 @@ func (app App) RegisterUpgradeHandlers() {
 				return toVM, err
 			}
 
-			// migrating after module migrations since x/authz have a pending migration
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
 
