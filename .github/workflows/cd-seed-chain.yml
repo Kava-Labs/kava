@@ -76,8 +76,13 @@ jobs:
       - name: compile default erc20 contracts
         run: make compile-contracts
         working-directory: kava-bridge
+      - name: download seed script from master
+        run: wget https://raw.githubusercontent.com/Kava-Labs/kava/master/.github/scripts/${SEED_SCRIPT_FILENAME} && chmod +x ${SEED_SCRIPT_FILENAME}
+        working-directory: kava-bridge/contract
+        env:
+            SEED_SCRIPT_FILENAME: ${{ inputs.seed-script-filename }}
       - name: run seed scripts
-        run: bash ${GITHUB_WORKSPACE}/.github/scripts/${SEED_SCRIPT_FILENAME}
+        run: bash ./${SEED_SCRIPT_FILENAME}
         working-directory: kava-bridge/contract
         env:
           CHAIN_API_URL: ${{ inputs.chain-api-url }}
