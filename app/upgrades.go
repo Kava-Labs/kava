@@ -28,13 +28,13 @@ func (app App) RegisterUpgradeHandlers() {
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("running mainnet upgrade handler")
 
-			app.Logger().Info("move all community pool funds from x/distribution to x/community")
-			FundCommunityPoolModule(ctx, app.distrKeeper, app.bankKeeper, app)
-
 			toVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 			if err != nil {
 				return toVM, err
 			}
+
+			app.Logger().Info("move all community pool funds from x/distribution to x/community")
+			FundCommunityPoolModule(ctx, app.distrKeeper, app.bankKeeper, app)
 
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
@@ -48,13 +48,13 @@ func (app App) RegisterUpgradeHandlers() {
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("running testnet upgrade handler")
 
-			app.Logger().Info("move all community pool funds from x/distribution to x/community")
-			FundCommunityPoolModule(ctx, app.distrKeeper, app.bankKeeper, app)
-
 			toVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 			if err != nil {
 				return toVM, err
 			}
+
+			app.Logger().Info("move all community pool funds from x/distribution to x/community")
+			FundCommunityPoolModule(ctx, app.distrKeeper, app.bankKeeper, app)
 
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
