@@ -305,13 +305,13 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 	suite.Equal(genesisState, exportedGenesisState)
 }
 
-func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesToLongAgo() {
+func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesTooLongAgo() {
 	genesisTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	invalidRewardState := types.NewGenesisRewardState(
 		types.AccumulationTimes{
 			types.NewAccumulationTime(
 				"bnb",
-				genesisTime.Add(-23*incentive.EarliestValidAccumulationTime).Add(-time.Nanosecond),
+				genesisTime.Add(-4*incentive.EarliestValidAccumulationTime).Add(-time.Nanosecond),
 			),
 		},
 		types.MultiRewardIndexes{},
@@ -373,7 +373,7 @@ func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesToLongA
 		)
 
 		suite.PanicsWithValue(
-			"found accumulation time '1975-01-06 23:59:59.999999999 +0000 UTC' more than '8760h0m0s' behind genesis time '1998-01-01 00:00:00 +0000 UTC'",
+			"found accumulation time '1978-01-05 23:59:59.999999999 +0000 UTC' more than '43800h0m0s' behind genesis time '1998-01-01 00:00:00 +0000 UTC'",
 			func() {
 				incentive.InitGenesis(
 					ctx, tApp.GetIncentiveKeeper(),
