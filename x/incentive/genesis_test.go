@@ -311,7 +311,7 @@ func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesTooLong
 		types.AccumulationTimes{
 			types.NewAccumulationTime(
 				"bnb",
-				genesisTime.Add(-4*incentive.EarliestValidAccumulationTime).Add(-time.Nanosecond),
+				time.Time{},
 			),
 		},
 		types.MultiRewardIndexes{},
@@ -373,7 +373,7 @@ func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesTooLong
 		)
 
 		suite.PanicsWithValue(
-			"found accumulation time '1978-01-05 23:59:59.999999999 +0000 UTC' more than '43800h0m0s' behind genesis time '1998-01-01 00:00:00 +0000 UTC'",
+			"accumulation time is not set",
 			func() {
 				incentive.InitGenesis(
 					ctx, tApp.GetIncentiveKeeper(),
@@ -388,13 +388,12 @@ func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesTooLong
 }
 
 func (suite *GenesisTestSuite) TestValidateAccumulationTime() {
-	genTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	// valid when set
+	accTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
+	suite.NoError(incentive.ValidateAccumulationTime(accTime))
 
-	err := incentive.ValidateAccumulationTime(
-		genTime.Add(-incentive.EarliestValidAccumulationTime).Add(-time.Nanosecond),
-		genTime,
-	)
-	suite.Error(err)
+	// invalid when nil value
+	suite.Error(incentive.ValidateAccumulationTime(time.Time{}))
 }
 
 func TestGenesisTestSuite(t *testing.T) {

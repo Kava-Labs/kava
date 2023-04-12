@@ -57,7 +57,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
-- (x/incentive) [#1550] Increase earliest valid accumulation time to 5 years ago.
+- (x/incentive) [#1550] Fix validation on genesis reward accumulation time.
 
 ## [v0.16.1]
 
