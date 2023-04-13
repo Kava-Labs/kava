@@ -10,12 +10,6 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-const year = 365 * 24 * time.Hour
-
-// EarliestValidAccumulationTime is how far behind the genesis time an accumulation time can be for it to be valid.
-// It's a safety check to ensure rewards aren't accidentally accumulated for many years on the first block (eg since Jan 1970).
-var EarliestValidAccumulationTime time.Duration = year
-
 // InitGenesis initializes the store state from a genesis state.
 func InitGenesis(
 	ctx sdk.Context,
@@ -49,7 +43,7 @@ func InitGenesis(
 		k.SetUSDXMintingClaim(ctx, claim)
 	}
 	for _, gat := range gs.USDXRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime); err != nil {
 			panic(err.Error())
 		}
 		k.SetPreviousUSDXMintingAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
@@ -67,7 +61,7 @@ func InitGenesis(
 		k.SetHardLiquidityProviderClaim(ctx, claim)
 	}
 	for _, gat := range gs.HardSupplyRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime); err != nil {
 			panic(err.Error())
 		}
 		k.SetPreviousHardSupplyRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
@@ -76,7 +70,7 @@ func InitGenesis(
 		k.SetHardSupplyRewardIndexes(ctx, mri.CollateralType, mri.RewardIndexes)
 	}
 	for _, gat := range gs.HardBorrowRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime); err != nil {
 			panic(err.Error())
 		}
 		k.SetPreviousHardBorrowRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
@@ -90,7 +84,7 @@ func InitGenesis(
 		k.SetDelegatorClaim(ctx, claim)
 	}
 	for _, gat := range gs.DelegatorRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime); err != nil {
 			panic(err.Error())
 		}
 		k.SetPreviousDelegatorRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
@@ -104,7 +98,7 @@ func InitGenesis(
 		k.SetSwapClaim(ctx, claim)
 	}
 	for _, gat := range gs.SwapRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime); err != nil {
 			panic(err.Error())
 		}
 		k.SetSwapRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
@@ -118,7 +112,7 @@ func InitGenesis(
 		k.SetSavingsClaim(ctx, claim)
 	}
 	for _, gat := range gs.SavingsRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime); err != nil {
 			panic(err.Error())
 		}
 		k.SetSavingsRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
@@ -132,7 +126,7 @@ func InitGenesis(
 		k.SetEarnClaim(ctx, claim)
 	}
 	for _, gat := range gs.EarnRewardState.AccumulationTimes {
-		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime, ctx.BlockTime()); err != nil {
+		if err := ValidateAccumulationTime(gat.PreviousAccumulationTime); err != nil {
 			panic(err.Error())
 		}
 		k.SetEarnRewardAccrualTime(ctx, gat.CollateralType, gat.PreviousAccumulationTime)
@@ -292,14 +286,9 @@ func getEarnGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) types.Gene
 	return types.NewGenesisRewardState(ats, mris)
 }
 
-func ValidateAccumulationTime(previousAccumulationTime, genesisTime time.Time) error {
-	if previousAccumulationTime.Before(genesisTime.Add(-1 * EarliestValidAccumulationTime)) {
-		return fmt.Errorf(
-			"found accumulation time '%s' more than '%s' behind genesis time '%s'",
-			previousAccumulationTime,
-			EarliestValidAccumulationTime,
-			genesisTime,
-		)
+func ValidateAccumulationTime(previousAccumulationTime time.Time) error {
+	if previousAccumulationTime.Equal(time.Time{}) {
+		return fmt.Errorf("accumulation time is not set")
 	}
 	return nil
 }

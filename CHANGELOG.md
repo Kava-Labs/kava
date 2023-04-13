@@ -55,6 +55,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - [#1477] Remove legacy REST endpoints.
 - [#1519] Remove required denom path parameter from hard grpc query endpoints.
 
+### Bug Fixes
+
+- (x/incentive) [#1550] Fix validation on genesis reward accumulation time.
+
 ## [v0.16.1]
 
 ### State Machine Breaking
