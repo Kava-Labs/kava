@@ -898,6 +898,10 @@
                     "key": "DebtParam"
                   },
                   {
+                    "subspace": "evmutil",
+                    "key": "EnabledConversionPairs"
+                  },
+                  {
                     "subspace": "incentive",
                     "key": "Active"
                   },
@@ -1254,8 +1258,7 @@
                 "type": "string"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertCoinToERC20",
@@ -1274,8 +1277,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.earn.v1beta1.MsgDeposit",
@@ -1294,8 +1296,7 @@
                 "type": "int32"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.earn.v1beta1.MsgWithdraw",
@@ -1314,8 +1315,7 @@
                 "type": "int32"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/cosmos.staking.v1beta1.MsgDelegate",
@@ -1334,8 +1334,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/cosmos.staking.v1beta1.MsgUndelegate",
@@ -1354,8 +1353,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/cosmos.staking.v1beta1.MsgBeginRedelegate",
@@ -1378,8 +1376,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.incentive.v1beta1.MsgClaimUSDXMintingReward",
@@ -1394,8 +1391,7 @@
                 "type": "string"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.incentive.v1beta1.MsgClaimHardReward",
@@ -1559,8 +1555,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.router.v1beta1.MsgDelegateMintDeposit",
@@ -1617,8 +1612,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/cosmos.gov.v1beta1.MsgVote",
@@ -1637,8 +1631,7 @@
                 "type": "int32"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/cosmos.bank.v1beta1.MsgSend",
@@ -1657,8 +1650,7 @@
                 "type": "Coin[]"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.liquid.v1beta1.MsgMintDerivative",
@@ -1677,8 +1669,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.liquid.v1beta1.MsgBurnDerivative",
@@ -1697,8 +1688,7 @@
                 "type": "Coin"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.hard.v1beta1.MsgWithdraw",
@@ -1713,8 +1703,7 @@
                 "type": "Coin[]"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           },
           {
             "msg_type_url": "/kava.hard.v1beta1.MsgDeposit",
@@ -1729,8 +1718,7 @@
                 "type": "Coin[]"
               }
             ],
-            "nested_types": [
-            ]
+            "nested_types": []
           }
         ]
       }
@@ -1740,19 +1728,19 @@
       "params": {
         "enabled_conversion_pairs": [
           {
-            "kava_erc20_address": "0xc23D1AF09CC20A39b02270F65466AdFBb63e8D87",
+            "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
             "denom": "erc20/multichain/usdc"
           },
           {
-            "kava_erc20_address": "0x3Fb95aE44FDa6EEd43453f9FA3C76E255295BA6C",
+            "kava_erc20_address": "0xA637F4CECbA91Ad19075bA3d330cd95f694B1707",
             "denom": "erc20/multichain/usdt"
           },
           {
-            "kava_erc20_address": "0x016786E16cE58A53fBB5D1d6C014762fDCbed849",
+            "kava_erc20_address": "0x288429bc07B8d030ba418bb30F170327F9fBE502",
             "denom": "erc20/multichain/btc"
           },
           {
-            "kava_erc20_address": "0xc221Be7423B0441B544206EAD8790514Da99FBA2",
+            "kava_erc20_address": "0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d",
             "denom": "erc20/axelar/usdc"
           },
           {
