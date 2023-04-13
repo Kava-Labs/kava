@@ -36,14 +36,24 @@ jobs:
   validate-internal-testnet-genesis:
     runs-on: ubuntu-latest
     steps:
+        - name: checkout repo from current commit
+          uses: actions/checkout@v3
+          with:
+            submodules: true
+        - name: save version of kava that will be deployed if this pr is merged
+          id: kava-version
+          run: |
+            echo "KAVA_VERSION=$(cat ./ci/env/kava-internal-testnet/KAVA.VERSION)" >> $GITHUB_OUTPUT
         - name: checkout repo from master
           uses: actions/checkout@v3
           with:
-           ref: master
-        - name: checkout version of kava used by internal testnet
+              ref: master
+        - name: checkout version of kava that will be deployed if this pr is merged
           run: |
-           git pull -p
-           git checkout $(cat ./ci/env/kava-internal-testnet/KAVA.VERSION)
+                git pull -p
+                git checkout $KAVA_VERSION
+          env:
+                KAVA_VERSION: ${{ steps.kava-version.outputs.KAVA_VERSION }}
         - name: Set up Go
           uses: actions/setup-go@v3
           with:
