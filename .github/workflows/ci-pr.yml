@@ -7,6 +7,16 @@ on:
       - 'releases/**'
 # run default ci checks against current PR
 jobs:
+  seed-chain-state:
+    uses: ./.github/workflows/cd-seed-chain.yml
+    with:
+        chain-api-url: https://rpc.app.internal.testnet.us-east.production.kava.io:443
+        chain-id: kava_2221-17000
+        seed-script-filename: seed-internal-testnet.sh
+        erc20-deployer-network-name: internal_testnet
+        genesis_validator_addresses: "kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s"
+        kava_version_filepath:  ./ci/env/kava-internal-testnet/KAVA.VERSION
+    secrets: inherit
   default:
     uses: ./.github/workflows/ci-default.yml
   rocksdb:
