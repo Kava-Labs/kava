@@ -1087,11 +1087,11 @@ func RegisterAPIRouteRewrites(router *mux.Router) {
 		"/cosmos/distribution/v1beta1/community_pool": "/kava/community/v1beta1/total_balance",
 	}
 
-	for oldPath, newPath := range routeMap {
+	for clientPath, backendPath := range routeMap {
 		router.HandleFunc(
-			oldPath,
+			clientPath,
 			func(w http.ResponseWriter, r *http.Request) {
-				r.URL.Path = newPath
+				r.URL.Path = backendPath
 
 				// Use handler of the new path
 				router.ServeHTTP(w, r)
