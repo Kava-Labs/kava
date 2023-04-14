@@ -36,24 +36,19 @@ func (f HardLiquidateSpamFilter) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		return next(ctx, tx, simulate)
 	}
 
-	// check all tx messages for a hard liquidate
-	hasHardLiquidate := false
-	for _, msg := range tx.GetMsgs() {
-		if sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&hardtypes.MsgLiquidate{}) {
-			hasHardLiquidate = true
-			// one liquidate msg enough to end search
-			break
-		}
-	}
+	// check if the tx gas is over the limit
+	isOverGasLimit := feeTx.GetGas() > f.gasLimit
 
-	// continue if no hard liquidate messages are found
-	if !hasHardLiquidate {
+	// tx is under limit, continue normally
+	if !isOverGasLimit {
 		return next(ctx, tx, simulate)
 	}
 
-	// reject transaction if greater than the set gas limit
-	if feeTx.GetGas() > f.gasLimit {
-		return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%v", fmt.Errorf("liquidation gas %d over %d limit", feeTx.GetGas(), f.gasLimit))
+	// tx is over limit and error if we find a hard liquidate message
+	for _, msg := range tx.GetMsgs() {
+		if sdk.MsgTypeURL(msg) == sdk.MsgTypeURL(&hardtypes.MsgLiquidate{}) {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "%v", fmt.Errorf("liquidation gas %d over %d limit", feeTx.GetGas(), f.gasLimit))
+		}
 	}
 
 	// continue normally
