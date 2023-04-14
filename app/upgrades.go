@@ -86,7 +86,7 @@ func GrantGovCommunityPoolMessages(
 ) {
 	communityAddr := accountKeeper.GetModuleAddress(communitytypes.ModuleName)
 	govAddr := accountKeeper.GetModuleAddress(govtypes.ModuleName)
-	allowedMsgs := getCommunityPoolAllowedMsgs()
+	allowedMsgs := GetCommunityPoolAllowedMsgs()
 	for _, msg := range allowedMsgs {
 		auth := authz.NewGenericAuthorization(msg)
 		if err := authzKeeper.SaveGrant(ctx, govAddr, communityAddr, auth, nil); err != nil {
@@ -129,7 +129,7 @@ func FundCommunityPoolModule(
 	distKeeper.SetFeePool(ctx, feePool)
 }
 
-func getCommunityPoolAllowedMsgs() []string {
+func GetCommunityPoolAllowedMsgs() []string {
 	return []string{
 		"/cosmos.bank.v1beta1.MsgSend",
 		"/cosmos.bank.v1beta1.MsgMultiSend",
