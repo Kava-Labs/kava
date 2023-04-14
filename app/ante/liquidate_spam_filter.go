@@ -51,6 +51,6 @@ func (f HardLiquidateSpamFilter) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate
 		}
 	}
 
-	// continue normally
+	// no hard liquidate messages found, continue normally
 	return next(ctx, tx, simulate)
 }
