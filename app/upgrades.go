@@ -86,35 +86,7 @@ func GrantGovCommunityPoolMessages(
 ) {
 	communityAddr := accountKeeper.GetModuleAddress(communitytypes.ModuleName)
 	govAddr := accountKeeper.GetModuleAddress(govtypes.ModuleName)
-	allowedMsgs := []string{
-		"/cosmos.bank.v1beta1.MsgSend",
-		"/cosmos.bank.v1beta1.MsgMultiSend",
-		"/cosmos.staking.v1beta1.MsgDelegate",
-		"/cosmos.staking.v1beta1.MsgBeginRedelegate",
-		"/cosmos.staking.v1beta1.MsgUndelegate",
-		"/cosmos.staking.v1beta1.MsgCancelUnbondingDelegation",
-		"/cosmos.gov.v1.MsgVote",
-		"/cosmos.gov.v1beta1.MsgVote",
-		"/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
-		"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
-		"/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
-		"/cosmos.distribution.v1beta1.MsgFundCommunityPool",
-		"/kava.cdp.v1beta1.MsgCreateCDP",
-		"/kava.cdp.v1beta1.MsgDeposit",
-		"/kava.cdp.v1beta1.MsgWithdraw",
-		"/kava.cdp.v1beta1.MsgDrawDebt",
-		"/kava.cdp.v1beta1.MsgRepayDebt",
-		"/kava.hard.v1beta1.MsgDeposit",
-		"/kava.hard.v1beta1.MsgWithdraw",
-		"/kava.hard.v1beta1.MsgBorrow",
-		"/kava.hard.v1beta1.MsgRepay",
-		"/kava.swap.v1beta1.MsgDeposit",
-		"/kava.swap.v1beta1.MsgWithdraw",
-		"/kava.swap.v1beta1.MsgSwapExactForTokens",
-		"/kava.swap.v1beta1.MsgSwapForExactTokens",
-		"/kava.liquid.v1beta1.MsgMintDerivative",
-		"/kava.liquid.v1beta1.MsgBurnDerivative",
-	}
+	allowedMsgs := getCommunityPoolAllowedMsgs()
 	for _, msg := range allowedMsgs {
 		auth := authz.NewGenericAuthorization(msg)
 		if err := authzKeeper.SaveGrant(ctx, govAddr, communityAddr, auth, nil); err != nil {
@@ -155,4 +127,34 @@ func FundCommunityPoolModule(
 	feePool := distKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = leftoverDust
 	distKeeper.SetFeePool(ctx, feePool)
+}
+
+func getCommunityPoolAllowedMsgs() []string {
+	return []string{
+		"/cosmos.bank.v1beta1.MsgSend",
+		"/cosmos.bank.v1beta1.MsgMultiSend",
+		"/cosmos.staking.v1beta1.MsgDelegate",
+		"/cosmos.staking.v1beta1.MsgBeginRedelegate",
+		"/cosmos.staking.v1beta1.MsgUndelegate",
+		"/cosmos.staking.v1beta1.MsgCancelUnbondingDelegation",
+		"/cosmos.distribution.v1beta1.MsgSetWithdrawAddress",
+		"/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+		"/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission",
+		"/cosmos.distribution.v1beta1.MsgFundCommunityPool",
+		"/kava.cdp.v1beta1.MsgCreateCDP",
+		"/kava.cdp.v1beta1.MsgDeposit",
+		"/kava.cdp.v1beta1.MsgWithdraw",
+		"/kava.cdp.v1beta1.MsgDrawDebt",
+		"/kava.cdp.v1beta1.MsgRepayDebt",
+		"/kava.hard.v1beta1.MsgDeposit",
+		"/kava.hard.v1beta1.MsgWithdraw",
+		"/kava.hard.v1beta1.MsgBorrow",
+		"/kava.hard.v1beta1.MsgRepay",
+		"/kava.swap.v1beta1.MsgDeposit",
+		"/kava.swap.v1beta1.MsgWithdraw",
+		"/kava.swap.v1beta1.MsgSwapExactForTokens",
+		"/kava.swap.v1beta1.MsgSwapForExactTokens",
+		"/kava.liquid.v1beta1.MsgMintDerivative",
+		"/kava.liquid.v1beta1.MsgBurnDerivative",
+	}
 }
