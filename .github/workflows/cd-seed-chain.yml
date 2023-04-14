@@ -24,6 +24,8 @@ on:
     secrets:
       DEV_WALLET_MNEMONIC:
         required: true
+      KAVA_TESTNET_GOD_MNEMONIC:
+        required: true
 
 jobs:
   seed-chain-state:
@@ -88,6 +90,7 @@ jobs:
           CHAIN_API_URL: ${{ inputs.chain-api-url }}
           CHAIN_ID: ${{ inputs.chain-id }}
           DEV_WALLET_MNEMONIC: ${{ secrets.DEV_WALLET_MNEMONIC }}
+          KAVA_TESTNET_GOD_MNEMONIC: ${{ secrets.KAVA_TESTNET_GOD_MNEMONIC }}
           SEED_SCRIPT_FILENAME: ${{ inputs.seed-script-filename }}
           ERC20_DEPLOYER_NETWORK_NAME: ${{ inputs.erc20-deployer-network-name }}
           GENESIS_VALIDATOR_ADDRESSES: ${{ inputs.genesis_validator_addresses }}
