@@ -921,6 +921,10 @@
                     "key": "DebtParam"
                   },
                   {
+                    "subspace": "evmutil",
+                    "key": "EnabledConversionPairs"
+                  },
+                  {
                     "subspace": "incentive",
                     "key": "Active"
                   },
