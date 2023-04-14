@@ -117,6 +117,7 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 	decorators := []sdk.AnteDecorator{}
 
 	decorators = append(decorators,
+		NewHardLiquidateSpamFilter(1000000),
 		evmante.RejectMessagesDecorator{},   // reject MsgEthereumTxs
 		authante.NewSetUpContextDecorator(), // second decorator. SetUpContext must be called before other decorators
 	)
