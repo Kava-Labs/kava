@@ -16,6 +16,8 @@ import (
 	evmtypes "github.com/tharsis/ethermint/x/evm/types"
 )
 
+const MaxHardLiquidateTxGas = uint64(1000000)
+
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper, EVM Keeper and Fee Market Keeper.
 type HandlerOptions struct {
@@ -117,7 +119,7 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 	decorators := []sdk.AnteDecorator{}
 
 	decorators = append(decorators,
-		NewHardLiquidateSpamFilter(1000000),
+		NewHardLiquidateSpamFilter(MaxHardLiquidateTxGas),
 		evmante.RejectMessagesDecorator{},   // reject MsgEthereumTxs
 		authante.NewSetUpContextDecorator(), // second decorator. SetUpContext must be called before other decorators
 	)
