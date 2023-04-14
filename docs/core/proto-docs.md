@@ -185,6 +185,8 @@
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
+    - [QueryTotalBalanceRequest](#kava.community.v1beta1.QueryTotalBalanceRequest)
+    - [QueryTotalBalanceResponse](#kava.community.v1beta1.QueryTotalBalanceResponse)
   
     - [Query](#kava.community.v1beta1.Query)
   
@@ -2918,6 +2920,32 @@ QueryBalanceResponse defines the response type for querying x/community balance.
 
 
 
+
+<a name="kava.community.v1beta1.QueryTotalBalanceRequest"></a>
+
+### QueryTotalBalanceRequest
+QueryTotalBalanceRequest defines the request type for querying total community pool balance.
+
+
+
+
+
+
+<a name="kava.community.v1beta1.QueryTotalBalanceResponse"></a>
+
+### QueryTotalBalanceResponse
+QueryTotalBalanceResponse defines the response type for querying total
+community pool balance. This matches the x/distribution CommunityPool query response.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `pool` | [cosmos.base.v1beta1.DecCoin](#cosmos.base.v1beta1.DecCoin) | repeated | pool defines community pool's coins. |
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -2933,6 +2961,7 @@ Query defines the gRPC querier service for x/community.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
+| `TotalBalance` | [QueryTotalBalanceRequest](#kava.community.v1beta1.QueryTotalBalanceRequest) | [QueryTotalBalanceResponse](#kava.community.v1beta1.QueryTotalBalanceResponse) | TotalBalance queries the balance of all coins, including x/distribution, x/community, and supplied balances. | GET|/kava/community/v1beta1/total_balance|
 
  <!-- end services -->
 

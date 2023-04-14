@@ -13,6 +13,12 @@ service Query {
   rpc Balance(QueryBalanceRequest) returns (QueryBalanceResponse) {
     option (google.api.http).get = "/kava/community/v1beta1/balance";
   }
+
+  // TotalBalance queries the balance of all coins, including x/distribution,
+  // x/community, and supplied balances.
+  rpc TotalBalance(QueryTotalBalanceRequest) returns (QueryTotalBalanceResponse) {
+    option (google.api.http).get = "/kava/community/v1beta1/total_balance";
+  }
 }
 
 // QueryBalanceRequest defines the request type for querying x/community balance.
@@ -23,5 +29,18 @@ message QueryBalanceResponse {
   repeated cosmos.base.v1beta1.Coin coins = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// QueryTotalBalanceRequest defines the request type for querying total community pool balance.
+message QueryTotalBalanceRequest {}
+
+// QueryTotalBalanceResponse defines the response type for querying total
+// community pool balance. This matches the x/distribution CommunityPool query response.
+message QueryTotalBalanceResponse {
+  // pool defines community pool's coins.
+  repeated cosmos.base.v1beta1.DecCoin pool = 1 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable) = false
   ];
 }
