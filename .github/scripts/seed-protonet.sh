@@ -93,3 +93,55 @@ done
 
 # create a text proposal
 kava tx gov submit-legacy-proposal --deposit 1000000000ukava --type "Text" --title "Example Proposal" --description "This is an example proposal" --gas auto --gas-adjustment 1.2 --from dev-wallet --gas-prices 0.01ukava -y
+
+# setup god's wallet
+echo "${KAVA_TESTNET_GOD_MNEMONIC}" | kava keys add --recover god
+
+# create template string for the proposal we want to enact
+# https://kava-labs.atlassian.net/wiki/spaces/ENG/pages/1228537857/Submitting+Governance+Proposals+WIP
+PARAM_CHANGE_PROP_TEMPLATE=$(cat <<'END_HEREDOC'
+{
+    "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+    "title": "Set Initial ERC-20 Contracts",
+    "description": "Set Initial ERC-20 Contracts",
+    "changes": [
+        {
+            "subspace": "evmutil",
+            "key": "EnabledConversionPairs",
+            "value": "[{\"kava_erc20_address\":\"MULTICHAIN_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdc\"},{\"kava_erc20_address\":\"MULTICHAIN_USDT_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdt\"},{\"kava_erc20_address\":\"MULTICHAIN_wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/btc\"},{\"kava_erc20_address\":\"AXL_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/usdc\"},{\"kava_erc20_address\":\"wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/btc\"},{\"kava_erc20_address\":\"wETH_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/eth\"}]"
+        }
+    ]
+}
+END_HEREDOC
+)
+
+# substitute freshly deployed contract addresses
+finalProposal=$PARAM_CHANGE_PROP_TEMPLATE
+
+finalProposal="${finalProposal/MULTICHAIN_USDC_CONTRACT_ADDRESS/$MULTICHAIN_USDC_CONTRACT_ADDRESS}"
+finalProposal="${finalProposal/MULTICHAIN_USDT_CONTRACT_ADDRESS/$MULTICHAIN_USDT_CONTRACT_ADDRESS}"
+finalProposal="${finalProposal/MULTICHAIN_wBTC_CONTRACT_ADDRESS/$MULTICHAIN_wBTC_CONTRACT_ADDRESS}"
+finalProposal="${finalProposal/AXL_USDC_CONTRACT_ADDRESS/$AXL_USDC_CONTRACT_ADDRESS}"
+finalProposal="${finalProposal/wBTC_CONTRACT_ADDRESS/$wBTC_CONTRACT_ADDRESS}"
+finalProposal="${finalProposal/wETH_CONTRACT_ADDRESS/$wETH_CONTRACT_ADDRESS}"
+
+# create unique proposal filename
+proposalFileName="$(date +%s)-proposal.json"
+touch $proposalFileName
+
+# save proposal as file to disk
+echo "$finalProposal" > $proposalFileName
+
+# snapshot original module params
+originalEvmUtilParams=$(curl https://api.app.internal.testnet.us-east.production.kava.io/kava/evmutil/v1beta1/params)
+printf "original evm util module params\n %s" , "$originalEvmUtilParams"
+
+# change the params of the chain like a god - make it so 🖖🏽
+# make sure to update god committee member permissions for the module
+# and params being updated (see below for example)
+# https://github.com/Kava-Labs/kava/pull/1556/files#diff-0bd6043650c708661f37bbe6fa5b29b52149e0ec0069103c3954168fc9f12612R900-R903
+kava tx committee submit-proposal 1 "$proposalFileName" --gas 2000000 --gas-prices 0.01ukava --from god -y
+
+# fetch current module params
+updatedEvmUtilParams=$(curl https://api.app.internal.testnet.us-east.production.kava.io/kava/evmutil/v1beta1/params)
+printf "updated evm util module params\n %s" , "$updatedEvmUtilParams"
