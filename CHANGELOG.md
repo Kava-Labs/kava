@@ -44,6 +44,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (deps) [#1477] Migrate to CometBFT.
 - (x/incentive) [#1512] Add grpc query service.
 - (deps) [#1544] Bump confio/ics23/go to v0.9.0, cosmos/keyring to v1.2.0.
+- (x/community) [#xxx] Include x/community module pool balance in x/distribution
+  community_pool query response.
 
 ### Deprecated
 
