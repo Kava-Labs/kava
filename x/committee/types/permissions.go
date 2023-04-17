@@ -12,6 +12,7 @@ import (
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	proto "github.com/gogo/protobuf/proto"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
@@ -53,6 +54,7 @@ var (
 	_ Permission = TextPermission{}
 	_ Permission = SoftwareUpgradePermission{}
 	_ Permission = ParamsChangePermission{}
+	_ Permission = CommunityPoolLendWithdrawPermission{}
 )
 
 // Allows implement permission interface for GodPermission.
@@ -67,6 +69,12 @@ func (TextPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
 // Allows implement permission interface for SoftwareUpgradePermission.
 func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(*upgradetypes.SoftwareUpgradeProposal)
+	return ok
+}
+
+// Allows implement permission interface for CommunityPoolLendWithdrawPermission.
+func (CommunityPoolLendWithdrawPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
+	_, ok := p.(*communitytypes.CommunityPoolLendWithdrawProposal)
 	return ok
 }
 

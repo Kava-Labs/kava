@@ -685,6 +685,7 @@ func NewApp(
 	committeeGovRouter := govv1beta1.NewRouter()
 	committeeGovRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
+		AddRoute(communitytypes.RouterKey, community.NewCommunityPoolProposalHandler(app.communityKeeper)).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
