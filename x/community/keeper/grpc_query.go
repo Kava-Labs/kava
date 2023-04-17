@@ -25,3 +25,23 @@ func (s queryServer) Balance(c context.Context, _ *types.QueryBalanceRequest) (*
 		Coins: s.keeper.GetModuleAccountBalance(ctx),
 	}, nil
 }
+
+// CommunityPool queries the community pool coins
+func (s queryServer) TotalBalance(
+	c context.Context,
+	req *types.QueryTotalBalanceRequest,
+) (*types.QueryTotalBalanceResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// x/distribution community pool balance
+	nativePoolBalance := s.keeper.distrKeeper.GetFeePoolCommunityCoins(ctx)
+
+	// x/community pool balance
+	communityPoolBalance := s.keeper.GetModuleAccountBalance(ctx)
+
+	totalBalance := nativePoolBalance.Add(sdk.NewDecCoinsFromCoins(communityPoolBalance...)...)
+
+	return &types.QueryTotalBalanceResponse{
+		Pool: totalBalance,
+	}, nil
+}

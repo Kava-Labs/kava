@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	stdlog "log"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -90,6 +91,7 @@ import (
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+	"github.com/gorilla/mux"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -1060,6 +1062,9 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	// Register custom REST routes
 	validatorvestingrest.RegisterRoutes(clientCtx, apiSvr.Router)
 
+	// Register rewrite routes
+	RegisterAPIRouteRewrites(apiSvr.Router)
+
 	// Register GRPC Gateway routes
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -1067,6 +1072,33 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Swagger API configuration is ignored
+}
+
+// RegisterAPIRouteRewrites registers overwritten API routes that are
+// registered after this function is called. This must be called before any
+// other route registrations on the router in order for rewrites to take effect.
+// The first route that matches in the mux router wins, so any registrations
+// here will be prioritized over the later registrations in modules.
+func RegisterAPIRouteRewrites(router *mux.Router) {
+	// Mapping of client path to backend path. Similar to nginx rewrite rules,
+	// but does not return a 301 or 302 redirect.
+	// Eg: querying /cosmos/distribution/v1beta1/community_pool will return
+	// the same response as querying /kava/community/v1beta1/total_balance
+	routeMap := map[string]string{
+		"/cosmos/distribution/v1beta1/community_pool": "/kava/community/v1beta1/total_balance",
+	}
+
+	for clientPath, backendPath := range routeMap {
+		router.HandleFunc(
+			clientPath,
+			func(w http.ResponseWriter, r *http.Request) {
+				r.URL.Path = backendPath
+
+				// Use handler of the new path
+				router.ServeHTTP(w, r)
+			},
+		).Methods("GET")
+	}
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
