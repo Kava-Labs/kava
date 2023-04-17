@@ -1075,9 +1075,10 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 }
 
 // RegisterAPIRouteRewrites registers overwritten API routes that are
-// registered after this function is called. The first route that matches in the
-// mux router wins, so any registrations here will be prioritized over the later
-// registrations in modules.
+// registered after this function is called. This must be called before any
+// other route registrations on the router in order for rewrites to take effect.
+// The first route that matches in the mux router wins, so any registrations
+// here will be prioritized over the later registrations in modules.
 func RegisterAPIRouteRewrites(router *mux.Router) {
 	// Mapping of client path to backend path. Similar to nginx rewrite rules,
 	// but does not return a 301 or 302 redirect.
