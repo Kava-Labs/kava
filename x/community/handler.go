@@ -14,6 +14,8 @@ import (
 func NewCommunityPoolProposalHandler(k keeper.Keeper) govv1beta1.Handler {
 	return func(ctx sdk.Context, content govv1beta1.Content) error {
 		switch c := content.(type) {
+		case *types.CommunityPoolCDPRepayDebtProposal:
+			return keeper.HandleCommunityPoolCDPRepayDebtProposal(ctx, k, c)
 		case *types.CommunityPoolLendDepositProposal:
 			return keeper.HandleCommunityPoolLendDepositProposal(ctx, k, c)
 		case *types.CommunityPoolLendWithdrawProposal:
