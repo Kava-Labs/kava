@@ -122,6 +122,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&upgradetypes.SoftwareUpgradeProposal{},
 		&upgradetypes.CancelSoftwareUpgradeProposal{},
 		&communitytypes.CommunityPoolLendWithdrawProposal{},
+		&kavadisttypes.CommunityPoolMultiSpendProposal{},
 	)
 
 	registry.RegisterImplementations(
