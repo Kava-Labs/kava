@@ -366,6 +366,30 @@ func (suite *proposalTestSuite) TestCommunityPoolCDPRepayDebtProposal() {
 			expectedErr:    "",
 			expectedRepaid: c("usdx", 1e9),
 		},
+		{
+			name:        "valid - partial payment",
+			initialDebt: &debt{c("ukava", 1e10), c("usdx", 1e9)},
+			proposal: types.NewCommunityPoolCDPRepayDebtProposal(
+				"title goes here",
+				"description goes here",
+				collateralType,
+				c("usdx", 1e8),
+			),
+			expectedErr:    "",
+			expectedRepaid: c("usdx", 1e8),
+		},
+		{
+			name:        "invalid - insufficient funds",
+			initialDebt: &debt{c("ukava", 1e10), c("usdx", 1e9)},
+			proposal: types.NewCommunityPoolCDPRepayDebtProposal(
+				"title goes here",
+				"description goes here",
+				collateralType,
+				c("usdx", 1e10), // <-- more usdx than we have
+			),
+			expectedErr:    "insufficient balance",
+			expectedRepaid: c("usdx", 0),
+		},
 	}
 
 	for _, tc := range testcases {
