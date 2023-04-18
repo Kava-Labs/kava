@@ -48,6 +48,7 @@ func init() {
 	RegisterProposalTypeCodec(govv1beta1.TextProposal{}, "cosmos-sdk/TextProposal")
 	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
+	RegisterProposalTypeCodec(communitytypes.CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal")
 }
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
