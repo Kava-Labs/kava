@@ -1112,6 +1112,22 @@
             "strategies": [
               "STRATEGY_TYPE_SAVINGS"
             ]
+          },
+          {
+            "denom": "bnb",
+            "strategies": [
+              "STRATEGY_TYPE_SAVINGS"
+            ],
+            "is_private_vault": false,
+            "allowed_depositors": []
+          },
+          {
+            "denom": "erc20/multichain/usdt",
+            "strategies": [
+              "STRATEGY_TYPE_SAVINGS"
+            ],
+            "is_private_vault": false,
+            "allowed_depositors": []
           }
         ]
       },
