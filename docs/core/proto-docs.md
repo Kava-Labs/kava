@@ -180,6 +180,7 @@
     - [Msg](#kava.committee.v1beta1.Msg)
   
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
+    - [CommunityPoolCDPRepayDebtProposal](#kava.community.v1beta1.CommunityPoolCDPRepayDebtProposal)
     - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
   
@@ -2857,6 +2858,24 @@ Msg defines the committee Msg service
 
 
 
+<a name="kava.community.v1beta1.CommunityPoolCDPRepayDebtProposal"></a>
+
+### CommunityPoolCDPRepayDebtProposal
+CommunityPoolCDPRepayDebtProposal repays a cdp debt position owned by the community pool
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `payment` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
 <a name="kava.community.v1beta1.CommunityPoolLendDepositProposal"></a>
 
 ### CommunityPoolLendDepositProposal
@@ -2878,6 +2897,7 @@ CommunityPoolLendDepositProposal deposits from the community pool into lend
 
 ### CommunityPoolLendWithdrawProposal
 CommunityPoolLendWithdrawProposal withdraws a lend position back to the community pool
+This proposal exists primarily to allow committees to repay community pool cdp debts.
 
 
 | Field | Type | Label | Description |
