@@ -340,7 +340,7 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 
 // expectation: funds in the community module will be used to repay cdps.
 // if collateral is returned, it stays in the community module.
-func (suite *proposalTestSuite) TestCommunityPoolCDPRepayDebtProposal() {
+func (suite *proposalTestSuite) TestCommunityCDPRepayDebtProposal() {
 	initialModuleFunds := ukava(2e10).Add(otherdenom(1e9)...)
 	collateralType := "kava-a"
 	type debt struct {
@@ -350,14 +350,14 @@ func (suite *proposalTestSuite) TestCommunityPoolCDPRepayDebtProposal() {
 	testcases := []struct {
 		name           string
 		initialDebt    *debt
-		proposal       *types.CommunityPoolCDPRepayDebtProposal
+		proposal       *types.CommunityCDPRepayDebtProposal
 		expectedErr    string
 		expectedRepaid sdk.Coin
 	}{
 		{
 			name:        "valid - paid in full",
 			initialDebt: &debt{c("ukava", 1e10), c("usdx", 1e9)},
-			proposal: types.NewCommunityPoolCDPRepayDebtProposal(
+			proposal: types.NewCommunityCDPRepayDebtProposal(
 				"repaying my debts in full",
 				"title says it all",
 				collateralType,
@@ -369,7 +369,7 @@ func (suite *proposalTestSuite) TestCommunityPoolCDPRepayDebtProposal() {
 		{
 			name:        "valid - partial payment",
 			initialDebt: &debt{c("ukava", 1e10), c("usdx", 1e9)},
-			proposal: types.NewCommunityPoolCDPRepayDebtProposal(
+			proposal: types.NewCommunityCDPRepayDebtProposal(
 				"title goes here",
 				"description goes here",
 				collateralType,
@@ -381,7 +381,7 @@ func (suite *proposalTestSuite) TestCommunityPoolCDPRepayDebtProposal() {
 		{
 			name:        "invalid - insufficient funds",
 			initialDebt: &debt{c("ukava", 1e10), c("usdx", 1e9)},
-			proposal: types.NewCommunityPoolCDPRepayDebtProposal(
+			proposal: types.NewCommunityCDPRepayDebtProposal(
 				"title goes here",
 				"description goes here",
 				collateralType,
@@ -408,7 +408,7 @@ func (suite *proposalTestSuite) TestCommunityPoolCDPRepayDebtProposal() {
 			balanceBefore := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
 
 			// submit proposal
-			err = keeper.HandleCommunityPoolCDPRepayDebtProposal(suite.Ctx, suite.Keeper, tc.proposal)
+			err = keeper.HandleCommunityCDPRepayDebtProposal(suite.Ctx, suite.Keeper, tc.proposal)
 			if tc.expectedErr == "" {
 				suite.NoError(err)
 			} else {

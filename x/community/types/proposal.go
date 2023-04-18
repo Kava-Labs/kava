@@ -16,15 +16,15 @@ const (
 	ProposalTypeCommunityPoolLendDeposit = "CommunityPoolLendDeposit"
 	// ProposalTypeCommunityPoolLendWithdraw defines the type for a CommunityPoolLendDepositProposal
 	ProposalTypeCommunityPoolLendWithdraw = "CommunityPoolLendWithdraw"
-	// ProposalTypeCommunityPoolCDPRepayDebt defines the type for a CommunityPoolCDPRepayDebtProposal
-	ProposalTypeCommunityPoolCDPRepayDebt = "CommunityPoolCDPRepayDebt"
+	// ProposalTypeCommunityCDPRepayDebt defines the type for a CommunityCDPRepayDebtProposal
+	ProposalTypeCommunityCDPRepayDebt = "CommunityCDPRepayDebt"
 )
 
 // Assert CommunityPoolLendDepositProposal implements govtypes.Content at compile-time
 var (
 	_ govv1beta1.Content = &CommunityPoolLendDepositProposal{}
 	_ govv1beta1.Content = &CommunityPoolLendWithdrawProposal{}
-	_ govv1beta1.Content = &CommunityPoolCDPRepayDebtProposal{}
+	_ govv1beta1.Content = &CommunityCDPRepayDebtProposal{}
 )
 
 func init() {
@@ -32,8 +32,8 @@ func init() {
 	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendDepositProposal{}, "kava/CommunityPoolLendDepositProposal", nil)
 	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolLendWithdraw)
 	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal", nil)
-	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolCDPRepayDebt)
-	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolCDPRepayDebtProposal{}, "kava/CommunityPoolCDPRepayDebtProposal", nil)
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityCDPRepayDebt)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityCDPRepayDebtProposal{}, "kava/CommunityCDPRepayDebtProposal", nil)
 }
 
 //////////////////
@@ -136,14 +136,14 @@ func (p *CommunityPoolLendWithdrawProposal) ValidateBasic() error {
 // CDP Proposals
 /////////////////
 
-// NewCommunityPoolCDPRepayDebtProposal creates a new community pool cdp debt repay proposal.
-func NewCommunityPoolCDPRepayDebtProposal(
+// NewCommunityCDPRepayDebtProposal creates a new community pool cdp debt repay proposal.
+func NewCommunityCDPRepayDebtProposal(
 	title string,
 	description string,
 	collateralType string,
 	payment sdk.Coin,
-) *CommunityPoolCDPRepayDebtProposal {
-	return &CommunityPoolCDPRepayDebtProposal{
+) *CommunityCDPRepayDebtProposal {
+	return &CommunityCDPRepayDebtProposal{
 		Title:          title,
 		Description:    description,
 		CollateralType: collateralType,
@@ -152,21 +152,21 @@ func NewCommunityPoolCDPRepayDebtProposal(
 }
 
 // GetTitle returns the title of the proposal.
-func (p *CommunityPoolCDPRepayDebtProposal) GetTitle() string { return p.Title }
+func (p *CommunityCDPRepayDebtProposal) GetTitle() string { return p.Title }
 
 // GetDescription returns the description of the proposal.
-func (p *CommunityPoolCDPRepayDebtProposal) GetDescription() string { return p.Description }
+func (p *CommunityCDPRepayDebtProposal) GetDescription() string { return p.Description }
 
 // GetDescription returns the routing key of the proposal.
-func (p *CommunityPoolCDPRepayDebtProposal) ProposalRoute() string { return ModuleName }
+func (p *CommunityCDPRepayDebtProposal) ProposalRoute() string { return ModuleName }
 
 // ProposalType returns the type of the proposal.
-func (p *CommunityPoolCDPRepayDebtProposal) ProposalType() string {
-	return ProposalTypeCommunityPoolCDPRepayDebt
+func (p *CommunityCDPRepayDebtProposal) ProposalType() string {
+	return ProposalTypeCommunityCDPRepayDebt
 }
 
 // String implements fmt.Stringer
-func (p *CommunityPoolCDPRepayDebtProposal) String() string {
+func (p *CommunityCDPRepayDebtProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Community Pool Lend Deposit Proposal:
   Title:           %s
@@ -178,7 +178,7 @@ func (p *CommunityPoolCDPRepayDebtProposal) String() string {
 }
 
 // ValidateBasic stateless validation of the proposal.
-func (p *CommunityPoolCDPRepayDebtProposal) ValidateBasic() error {
+func (p *CommunityCDPRepayDebtProposal) ValidateBasic() error {
 	if err := govv1beta1.ValidateAbstract(p); err != nil {
 		return err
 	}

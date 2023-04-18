@@ -135,7 +135,7 @@ func TestCommunityPoolLendWithdrawProposal_Stringer(t *testing.T) {
 `, proposal.String())
 }
 
-func TestCommunityPoolCDPRepayDebtProposal_ValidateBasic(t *testing.T) {
+func TestCommunityCDPRepayDebtProposal_ValidateBasic(t *testing.T) {
 	type proposalData struct {
 		Title          string
 		Description    string
@@ -196,7 +196,7 @@ func TestCommunityPoolCDPRepayDebtProposal_ValidateBasic(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repayDebt := types.NewCommunityPoolCDPRepayDebtProposal(
+			repayDebt := types.NewCommunityCDPRepayDebtProposal(
 				tc.proposal.Title,
 				tc.proposal.Description,
 				tc.proposal.CollateralType,
@@ -212,7 +212,7 @@ func TestCommunityPoolCDPRepayDebtProposal_ValidateBasic(t *testing.T) {
 			require.Equal(t, repayDebt.Title, repayDebt.GetTitle())
 			require.Equal(t, repayDebt.Description, repayDebt.GetDescription())
 			require.Equal(t, types.ModuleName, repayDebt.ProposalRoute())
-			require.Equal(t, types.ProposalTypeCommunityPoolCDPRepayDebt, repayDebt.ProposalType())
+			require.Equal(t, types.ProposalTypeCommunityCDPRepayDebt, repayDebt.ProposalType())
 		})
 	}
 }

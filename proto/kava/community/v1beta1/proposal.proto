@@ -20,7 +20,6 @@ message CommunityPoolLendDepositProposal {
 }
 
 // CommunityPoolLendWithdrawProposal withdraws a lend position back to the community pool
-// This proposal exists primarily to allow committees to repay community pool cdp debts.
 message CommunityPoolLendWithdrawProposal {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.goproto_getters) = false;
@@ -33,8 +32,9 @@ message CommunityPoolLendWithdrawProposal {
   ];
 }
 
-// CommunityPoolCDPRepayDebtProposal repays a cdp debt position owned by the community pool
-message CommunityPoolCDPRepayDebtProposal {
+// CommunityCDPRepayDebtProposal repays a cdp debt position owned by the community module
+// This proposal exists primarily to allow committees to repay community module cdp debts.
+message CommunityCDPRepayDebtProposal {
   option (gogoproto.goproto_stringer) = false;
   option (gogoproto.goproto_getters) = false;
 

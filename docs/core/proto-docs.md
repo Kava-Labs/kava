@@ -180,7 +180,7 @@
     - [Msg](#kava.committee.v1beta1.Msg)
   
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
-    - [CommunityPoolCDPRepayDebtProposal](#kava.community.v1beta1.CommunityPoolCDPRepayDebtProposal)
+    - [CommunityCDPRepayDebtProposal](#kava.community.v1beta1.CommunityCDPRepayDebtProposal)
     - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
   
@@ -2858,10 +2858,11 @@ Msg defines the committee Msg service
 
 
 
-<a name="kava.community.v1beta1.CommunityPoolCDPRepayDebtProposal"></a>
+<a name="kava.community.v1beta1.CommunityCDPRepayDebtProposal"></a>
 
-### CommunityPoolCDPRepayDebtProposal
-CommunityPoolCDPRepayDebtProposal repays a cdp debt position owned by the community pool
+### CommunityCDPRepayDebtProposal
+CommunityCDPRepayDebtProposal repays a cdp debt position owned by the community module
+This proposal exists primarily to allow committees to repay community module cdp debts.
 
 
 | Field | Type | Label | Description |
@@ -2897,7 +2898,6 @@ CommunityPoolLendDepositProposal deposits from the community pool into lend
 
 ### CommunityPoolLendWithdrawProposal
 CommunityPoolLendWithdrawProposal withdraws a lend position back to the community pool
-This proposal exists primarily to allow committees to repay community pool cdp debts.
 
 
 | Field | Type | Label | Description |
