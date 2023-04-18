@@ -168,11 +168,11 @@ func (p *CommunityCDPRepayDebtProposal) ProposalType() string {
 // String implements fmt.Stringer
 func (p *CommunityCDPRepayDebtProposal) String() string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf(`Community Pool Lend Deposit Proposal:
+	b.WriteString(fmt.Sprintf(`Community CDP Repay Debt Proposal:
   Title:           %s
   Description:     %s
   Collateral Type: %s
-	Payment:         %s
+  Payment:         %s
 `, p.Title, p.Description, p.CollateralType, p.Payment))
 	return b.String()
 }

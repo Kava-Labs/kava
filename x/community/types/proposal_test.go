@@ -216,3 +216,18 @@ func TestCommunityCDPRepayDebtProposal_ValidateBasic(t *testing.T) {
 		})
 	}
 }
+
+func TestCommunityCDPRepayDebtProposal_Stringer(t *testing.T) {
+	proposal := types.NewCommunityCDPRepayDebtProposal(
+		"title",
+		"description",
+		"collateral-type",
+		sdk.NewInt64Coin("ukava", 42),
+	)
+	require.Equal(t, `Community CDP Repay Debt Proposal:
+  Title:           title
+  Description:     description
+  Collateral Type: collateral-type
+  Payment:         42ukava
+`, proposal.String())
+}
