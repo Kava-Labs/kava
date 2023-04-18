@@ -11,6 +11,7 @@ import (
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/kava-labs/kava/x/committee/types"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
 func TestPackPermissions_Success(t *testing.T) {
@@ -38,6 +39,43 @@ func TestUnpackPermissions_Failure(t *testing.T) {
 	require.NoError(t, err)
 	_, err = types.UnpackPermissions([]*codectypes.Any{vote})
 	require.Error(t, err)
+}
+
+func TestCommunityPoolLendWithdrawPermission_Allows(t *testing.T) {
+	permission := types.CommunityPoolLendWithdrawPermission{}
+	testcases := []struct {
+		name     string
+		proposal types.PubProposal
+		allowed  bool
+	}{
+		{
+			name: "allowed for correct proposal",
+			proposal: communitytypes.NewCommunityPoolLendWithdrawProposal(
+				"withdraw lend position",
+				"this fake proposal withdraws a lend position for the community pool",
+				sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e10))),
+			),
+			allowed: true,
+		},
+		{
+			name:     "fails for nil proposal",
+			proposal: nil,
+			allowed:  false,
+		},
+		{
+			name: "fails for wrong proposal",
+			proposal: newTestParamsChangeProposalWithChanges([]paramsproposal.ParamChange{
+				{Subspace: "cdp", Key: "DebtThreshold", Value: `test`},
+			}),
+			allowed: false,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.allowed, permission.Allows(sdk.Context{}, nil, tc.proposal))
+		})
+	}
 }
 
 func TestParamsChangePermission_SimpleParamsChange_Allows(t *testing.T) {

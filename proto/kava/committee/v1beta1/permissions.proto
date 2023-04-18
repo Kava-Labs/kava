@@ -21,6 +21,11 @@ message TextPermission {
   option (cosmos_proto.implements_interface) = "Permission";
 }
 
+// CommunityPoolLendWithdrawPermission allows submission of CommunityPoolLendWithdrawProposal
+message CommunityPoolLendWithdrawPermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
 // ParamsChangePermission allows any parameter or sub parameter change proposal.
 message ParamsChangePermission {
   option (cosmos_proto.implements_interface) = "Permission";

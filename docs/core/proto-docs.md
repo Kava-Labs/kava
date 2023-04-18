@@ -138,6 +138,7 @@
   
 - [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
     - [AllowedParamsChange](#kava.committee.v1beta1.AllowedParamsChange)
+    - [CommunityPoolLendWithdrawPermission](#kava.committee.v1beta1.CommunityPoolLendWithdrawPermission)
     - [GodPermission](#kava.committee.v1beta1.GodPermission)
     - [ParamsChangePermission](#kava.committee.v1beta1.ParamsChangePermission)
     - [SoftwareUpgradePermission](#kava.committee.v1beta1.SoftwareUpgradePermission)
@@ -2317,6 +2318,16 @@ AllowedParamsChange contains data on the allowed parameter changes for subspace,
 | `key` | [string](#string) |  |  |
 | `single_subparam_allowed_attrs` | [string](#string) | repeated | Requirements for when the subparam value is a single record. This contains list of allowed attribute keys that can be changed on the subparam record. |
 | `multi_subparams_requirements` | [SubparamRequirement](#kava.committee.v1beta1.SubparamRequirement) | repeated | Requirements for when the subparam value is a list of records. The requirements contains requirements for each record in the list. |
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.CommunityPoolLendWithdrawPermission"></a>
+
+### CommunityPoolLendWithdrawPermission
+CommunityPoolLendWithdrawPermission allows submission of CommunityPoolLendWithdrawProposal
 
 
 

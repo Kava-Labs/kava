@@ -12,6 +12,7 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -47,7 +48,7 @@ func init() {
 	RegisterProposalTypeCodec(govv1beta1.TextProposal{}, "cosmos-sdk/TextProposal")
 	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
-
+	RegisterProposalTypeCodec(communitytypes.CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal")
 }
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
@@ -69,6 +70,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
 	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
 	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
+	cdc.RegisterConcrete(CommunityPoolLendWithdrawPermission{}, "kava/CommunityPoolLendWithdrawPermission", nil)
 
 	// Msgs
 	legacy.RegisterAminoMsg(cdc, &MsgSubmitProposal{}, "kava/MsgSubmitProposal")
@@ -104,6 +106,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&TextPermission{},
 		&SoftwareUpgradePermission{},
 		&ParamsChangePermission{},
+		&CommunityPoolLendWithdrawPermission{},
 	)
 
 	// Need to register PubProposal here since we use this as alias for the x/gov Content interface for all the proposal implementations used in this module.
@@ -118,6 +121,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&proposaltypes.ParameterChangeProposal{},
 		&upgradetypes.SoftwareUpgradeProposal{},
 		&upgradetypes.CancelSoftwareUpgradeProposal{},
+		&communitytypes.CommunityPoolLendWithdrawProposal{},
+		&kavadisttypes.CommunityPoolMultiSpendProposal{},
 	)
 
 	registry.RegisterImplementations(
