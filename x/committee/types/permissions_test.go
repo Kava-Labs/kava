@@ -116,6 +116,44 @@ func TestCommunityPoolLendWithdrawPermission_Allows(t *testing.T) {
 	}
 }
 
+func TestCommunityCDPWithdrawCollateralPermission_Allows(t *testing.T) {
+	permission := types.CommunityCDPWithdrawCollateralPermission{}
+	testcases := []struct {
+		name     string
+		proposal types.PubProposal
+		allowed  bool
+	}{
+		{
+			name: "allowed for correct proposal",
+			proposal: communitytypes.NewCommunityCDPWithdrawCollateralProposal(
+				"withdraw x/community cdp collateral",
+				"yes",
+				"collateral-type",
+				sdk.NewInt64Coin("ukava", 1e10),
+			),
+			allowed: true,
+		},
+		{
+			name:     "fails for nil proposal",
+			proposal: nil,
+			allowed:  false,
+		},
+		{
+			name: "fails for wrong proposal",
+			proposal: newTestParamsChangeProposalWithChanges([]paramsproposal.ParamChange{
+				{Subspace: "cdp", Key: "DebtThreshold", Value: `test`},
+			}),
+			allowed: false,
+		},
+	}
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.allowed, permission.Allows(sdk.Context{}, nil, tc.proposal))
+		})
+	}
+}
+
 func TestParamsChangePermission_SimpleParamsChange_Allows(t *testing.T) {
 	testPermission := types.ParamsChangePermission{
 		AllowedParamsChanges: types.AllowedParamsChanges{

@@ -1098,6 +1098,9 @@
                 "@type": "/kava.committee.v1beta1.CommunityCDPRepayDebtPermission"
               },
               {
+                "@type": "/kava.committee.v1beta1.CommunityCDPWithdrawCollateralPermission"
+              },
+              {
                 "@type": "/kava.committee.v1beta1.ParamsChangePermission",
                 "allowed_params_changes": [
                   {

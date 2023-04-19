@@ -74,6 +74,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
 	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
 	cdc.RegisterConcrete(CommunityCDPRepayDebtPermission{}, "kava/CommunityCDPRepayDebtPermission", nil)
+	cdc.RegisterConcrete(CommunityCDPWithdrawCollateralPermission{}, "kava/CommunityCDPWithdrawCollateralPermission", nil)
 	cdc.RegisterConcrete(CommunityPoolLendWithdrawPermission{}, "kava/CommunityPoolLendWithdrawPermission", nil)
 
 	// Msgs
@@ -111,6 +112,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&SoftwareUpgradePermission{},
 		&ParamsChangePermission{},
 		&CommunityCDPRepayDebtPermission{},
+		&CommunityCDPWithdrawCollateralPermission{},
 		&CommunityPoolLendWithdrawPermission{},
 	)
 
