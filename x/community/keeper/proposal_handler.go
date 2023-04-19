@@ -42,3 +42,13 @@ func HandleCommunityCDPRepayDebtProposal(ctx sdk.Context, k Keeper, p *types.Com
 	// make debt repayment
 	return k.cdpKeeper.RepayPrincipal(ctx, k.moduleAddress, p.CollateralType, p.Payment)
 }
+
+// HandleCommunityCDPWithdrawProposal is a handler for executing a passed community pool cdp withdraw collateral proposal.
+func HandleCommunityPoolCDPWithdrawCollateralProposal(
+	ctx sdk.Context,
+	k Keeper,
+	p *types.CommunityPoolCDPWithdrawCollateralProposal,
+) error {
+	// withdraw collateral
+	return k.cdpKeeper.WithdrawCollateral(ctx, k.moduleAddress, k.moduleAddress, p.Collateral, p.CollateralType)
+}

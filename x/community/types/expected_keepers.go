@@ -22,6 +22,7 @@ type BankKeeper interface {
 // CdpKeeper defines the contract needed to be fulfilled for cdp dependencies.
 type CdpKeeper interface {
 	RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralType string, payment sdk.Coin) error
+	WithdrawCollateral(ctx sdk.Context, owner, depositor sdk.AccAddress, collateral sdk.Coin, collateralType string) error
 }
 
 // HardKeeper defines the contract needed to be fulfilled for Kava Lend dependencies.

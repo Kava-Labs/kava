@@ -18,6 +18,8 @@ const (
 	ProposalTypeCommunityPoolLendWithdraw = "CommunityPoolLendWithdraw"
 	// ProposalTypeCommunityCDPRepayDebt defines the type for a CommunityCDPRepayDebtProposal
 	ProposalTypeCommunityCDPRepayDebt = "CommunityCDPRepayDebt"
+	// ProposalTypeCommunityPoolCDPWithdrawCollateral defines the type for a CommunityPoolCDPWithdrawCollateralProposal
+	ProposalTypeCommunityPoolCDPWithdrawCollateral = "CommunityPoolCDPWithdrawCollateral"
 )
 
 // Assert CommunityPoolLendDepositProposal implements govtypes.Content at compile-time
@@ -25,6 +27,7 @@ var (
 	_ govv1beta1.Content = &CommunityPoolLendDepositProposal{}
 	_ govv1beta1.Content = &CommunityPoolLendWithdrawProposal{}
 	_ govv1beta1.Content = &CommunityCDPRepayDebtProposal{}
+	_ govv1beta1.Content = &CommunityPoolCDPWithdrawCollateralProposal{}
 )
 
 func init() {
@@ -189,6 +192,65 @@ func (p *CommunityCDPRepayDebtProposal) ValidateBasic() error {
 	// ensure the proposal has payment amount
 	if !p.Payment.IsValid() || p.Payment.IsZero() {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "payment amount %s", p.Payment)
+	}
+	return nil
+}
+
+// NewCommunityCDPRepayDebtProposal creates a new community pool cdp debt repay proposal.
+func NewCommunityCDPWithdrawCollateralProposal(
+	title string,
+	description string,
+	collateralType string,
+	collateral sdk.Coin,
+) *CommunityPoolCDPWithdrawCollateralProposal {
+	return &CommunityPoolCDPWithdrawCollateralProposal{
+		Title:          title,
+		Description:    description,
+		CollateralType: collateralType,
+		Collateral:     collateral,
+	}
+}
+
+// GetTitle returns the title of the proposal.
+func (p *CommunityPoolCDPWithdrawCollateralProposal) GetTitle() string { return p.Title }
+
+// GetDescription returns the description of the proposal.
+func (p *CommunityPoolCDPWithdrawCollateralProposal) GetDescription() string { return p.Description }
+
+// GetDescription returns the routing key of the proposal.
+func (p *CommunityPoolCDPWithdrawCollateralProposal) ProposalRoute() string { return ModuleName }
+
+// ProposalType returns the type of the proposal.
+func (p *CommunityPoolCDPWithdrawCollateralProposal) ProposalType() string {
+	return ProposalTypeCommunityPoolCDPWithdrawCollateral
+}
+
+// String implements fmt.Stringer
+func (p *CommunityPoolCDPWithdrawCollateralProposal) String() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`Community CDP Withdraw Collateral Proposal:
+  Title:           %s
+  Description:     %s
+  Collateral Type: %s
+  Collateral:      %s
+`, p.Title, p.Description, p.CollateralType, p.Collateral))
+	return b.String()
+}
+
+// ValidateBasic stateless validation of the proposal.
+func (p *CommunityPoolCDPWithdrawCollateralProposal) ValidateBasic() error {
+	if err := govv1beta1.ValidateAbstract(p); err != nil {
+		return err
+	}
+
+	// ensure collateral type is set
+	if strings.TrimSpace(p.CollateralType) == "" {
+		return errors.New("cdp collateral type cannot be blank")
+	}
+
+	// ensure the proposal has collateral amount
+	if !p.Collateral.IsValid() || p.Collateral.IsZero() {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "collateral amount %s", p.Collateral)
 	}
 	return nil
 }
