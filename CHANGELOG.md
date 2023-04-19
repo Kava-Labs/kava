@@ -48,6 +48,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (x/community) [#1563] Include x/community module pool balance in x/distribution
   community_pool query response.
 - (x/community) [#1565] Add CommunityCDPRepayDebtProposal
+- (x/committee) [#1566] Add CommunityCDPRepayDebtPermission
 
 ### Deprecated
 
@@ -233,6 +234,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
   large-scale simulations remotely using aws-batch
 
 
+[#1566]: https://github.com/Kava-Labs/kava/pull/1566
 [#1565]: https://github.com/Kava-Labs/kava/pull/1565
 [#1563]: https://github.com/Kava-Labs/kava/pull/1563
 [#1562]: https://github.com/Kava-Labs/kava/pull/1562
