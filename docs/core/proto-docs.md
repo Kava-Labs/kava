@@ -182,7 +182,7 @@
   
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
     - [CommunityCDPRepayDebtProposal](#kava.community.v1beta1.CommunityCDPRepayDebtProposal)
-    - [CommunityPoolCDPWithdrawCollateralProposal](#kava.community.v1beta1.CommunityPoolCDPWithdrawCollateralProposal)
+    - [CommunityCDPWithdrawCollateralProposal](#kava.community.v1beta1.CommunityCDPWithdrawCollateralProposal)
     - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
   
@@ -2889,10 +2889,10 @@ This proposal exists primarily to allow committees to repay community module cdp
 
 
 
-<a name="kava.community.v1beta1.CommunityPoolCDPWithdrawCollateralProposal"></a>
+<a name="kava.community.v1beta1.CommunityCDPWithdrawCollateralProposal"></a>
 
-### CommunityPoolCDPWithdrawCollateralProposal
-CommunityPoolCDPWithdrawCollateralProposal withdraws cdp collateral owned by the community module
+### CommunityCDPWithdrawCollateralProposal
+CommunityCDPWithdrawCollateralProposal withdraws cdp collateral owned by the community module
 This proposal exists primarily to allow committees to withdraw community module cdp collateral.
 
 

@@ -453,7 +453,7 @@ func (suite *proposalTestSuite) TestCommunityCDPWithdrawCollateralProposal() {
 	testcases := []struct {
 		name              string
 		initialDebt       *debt
-		proposal          *types.CommunityPoolCDPWithdrawCollateralProposal
+		proposal          *types.CommunityCDPWithdrawCollateralProposal
 		expectedErr       string
 		expectedWithdrawn sdk.Coin
 	}{
@@ -520,7 +520,7 @@ func (suite *proposalTestSuite) TestCommunityCDPWithdrawCollateralProposal() {
 			balanceBefore := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
 
 			// submit proposal
-			err = keeper.HandleCommunityPoolCDPWithdrawCollateralProposal(suite.Ctx, suite.Keeper, tc.proposal)
+			err = keeper.HandleCommunityCDPWithdrawCollateralProposal(suite.Ctx, suite.Keeper, tc.proposal)
 			if tc.expectedErr == "" {
 				suite.NoError(err)
 			} else {

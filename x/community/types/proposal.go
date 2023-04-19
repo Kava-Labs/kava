@@ -18,7 +18,7 @@ const (
 	ProposalTypeCommunityPoolLendWithdraw = "CommunityPoolLendWithdraw"
 	// ProposalTypeCommunityCDPRepayDebt defines the type for a CommunityCDPRepayDebtProposal
 	ProposalTypeCommunityCDPRepayDebt = "CommunityCDPRepayDebt"
-	// ProposalTypeCommunityPoolCDPWithdrawCollateral defines the type for a CommunityPoolCDPWithdrawCollateralProposal
+	// ProposalTypeCommunityPoolCDPWithdrawCollateral defines the type for a CommunityCDPWithdrawCollateralProposal
 	ProposalTypeCommunityPoolCDPWithdrawCollateral = "CommunityPoolCDPWithdrawCollateral"
 )
 
@@ -27,7 +27,7 @@ var (
 	_ govv1beta1.Content = &CommunityPoolLendDepositProposal{}
 	_ govv1beta1.Content = &CommunityPoolLendWithdrawProposal{}
 	_ govv1beta1.Content = &CommunityCDPRepayDebtProposal{}
-	_ govv1beta1.Content = &CommunityPoolCDPWithdrawCollateralProposal{}
+	_ govv1beta1.Content = &CommunityCDPWithdrawCollateralProposal{}
 )
 
 func init() {
@@ -202,8 +202,8 @@ func NewCommunityCDPWithdrawCollateralProposal(
 	description string,
 	collateralType string,
 	collateral sdk.Coin,
-) *CommunityPoolCDPWithdrawCollateralProposal {
-	return &CommunityPoolCDPWithdrawCollateralProposal{
+) *CommunityCDPWithdrawCollateralProposal {
+	return &CommunityCDPWithdrawCollateralProposal{
 		Title:          title,
 		Description:    description,
 		CollateralType: collateralType,
@@ -212,21 +212,21 @@ func NewCommunityCDPWithdrawCollateralProposal(
 }
 
 // GetTitle returns the title of the proposal.
-func (p *CommunityPoolCDPWithdrawCollateralProposal) GetTitle() string { return p.Title }
+func (p *CommunityCDPWithdrawCollateralProposal) GetTitle() string { return p.Title }
 
 // GetDescription returns the description of the proposal.
-func (p *CommunityPoolCDPWithdrawCollateralProposal) GetDescription() string { return p.Description }
+func (p *CommunityCDPWithdrawCollateralProposal) GetDescription() string { return p.Description }
 
 // GetDescription returns the routing key of the proposal.
-func (p *CommunityPoolCDPWithdrawCollateralProposal) ProposalRoute() string { return ModuleName }
+func (p *CommunityCDPWithdrawCollateralProposal) ProposalRoute() string { return ModuleName }
 
 // ProposalType returns the type of the proposal.
-func (p *CommunityPoolCDPWithdrawCollateralProposal) ProposalType() string {
+func (p *CommunityCDPWithdrawCollateralProposal) ProposalType() string {
 	return ProposalTypeCommunityPoolCDPWithdrawCollateral
 }
 
 // String implements fmt.Stringer
-func (p *CommunityPoolCDPWithdrawCollateralProposal) String() string {
+func (p *CommunityCDPWithdrawCollateralProposal) String() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Community CDP Withdraw Collateral Proposal:
   Title:           %s
@@ -238,7 +238,7 @@ func (p *CommunityPoolCDPWithdrawCollateralProposal) String() string {
 }
 
 // ValidateBasic stateless validation of the proposal.
-func (p *CommunityPoolCDPWithdrawCollateralProposal) ValidateBasic() error {
+func (p *CommunityCDPWithdrawCollateralProposal) ValidateBasic() error {
 	if err := govv1beta1.ValidateAbstract(p); err != nil {
 		return err
 	}
