@@ -231,3 +231,100 @@ func TestCommunityCDPRepayDebtProposal_Stringer(t *testing.T) {
   Payment:         42ukava
 `, proposal.String())
 }
+
+func TestCommunityCDPWithdrawCollateralProposal_ValidateBasic(t *testing.T) {
+	type proposalData struct {
+		Title          string
+		Description    string
+		CollateralType string
+		Collateral     sdk.Coin
+	}
+	testCases := []struct {
+		name        string
+		proposal    proposalData
+		expectedErr string
+	}{
+		{
+			name: "valid proposal",
+			proposal: proposalData{
+				Title:          "withdraw my collateral plz",
+				Description:    "I interact with cdp",
+				CollateralType: "type-a",
+				Collateral:     sdk.NewInt64Coin("ukava", 1e6),
+			},
+			expectedErr: "",
+		},
+		{
+			name: "invalid - fails gov validation",
+			proposal: proposalData{
+				Description: "I have no title.",
+			},
+			expectedErr: "invalid proposal content",
+		},
+		{
+			name: "invalid - empty collateral type",
+			proposal: proposalData{
+				Title:       "Error profoundly",
+				Description: "I have no collateral type",
+			},
+			expectedErr: "collateral type cannot be blank",
+		},
+		{
+			name: "invalid - empty coins",
+			proposal: proposalData{
+				Title:          "Error profoundly",
+				Description:    "My coins are empty",
+				CollateralType: "type-a",
+				Collateral:     sdk.Coin{},
+			},
+			expectedErr: "invalid coins",
+		},
+		{
+			name: "invalid - zero coins",
+			proposal: proposalData{
+				Title:          "Error profoundly",
+				Description:    "My coins are zero",
+				CollateralType: "type-a",
+				Collateral:     sdk.NewInt64Coin("ukava", 0),
+			},
+			expectedErr: "invalid coins",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			repayDebt := types.NewCommunityCDPWithdrawCollateralProposal(
+				tc.proposal.Title,
+				tc.proposal.Description,
+				tc.proposal.CollateralType,
+				tc.proposal.Collateral,
+			)
+			err := repayDebt.ValidateBasic()
+			if tc.expectedErr != "" {
+				require.ErrorContains(t, err, tc.expectedErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, repayDebt.Title, repayDebt.GetTitle())
+			require.Equal(t, repayDebt.Description, repayDebt.GetDescription())
+			require.Equal(t, types.ModuleName, repayDebt.ProposalRoute())
+			require.Equal(t, types.ProposalTypeCommunityCDPWithdrawCollateral, repayDebt.ProposalType())
+		})
+	}
+}
+
+func TestCommunityCDPWithdrawCollateralProposal_Stringer(t *testing.T) {
+	proposal := types.NewCommunityCDPWithdrawCollateralProposal(
+		"title",
+		"description",
+		"collateral-type",
+		sdk.NewInt64Coin("ukava", 42),
+	)
+	require.Equal(t, `Community CDP Withdraw Collateral Proposal:
+  Title:           title
+  Description:     description
+  Collateral Type: collateral-type
+  Collateral:      42ukava
+`, proposal.String())
+}

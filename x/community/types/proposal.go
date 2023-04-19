@@ -18,8 +18,8 @@ const (
 	ProposalTypeCommunityPoolLendWithdraw = "CommunityPoolLendWithdraw"
 	// ProposalTypeCommunityCDPRepayDebt defines the type for a CommunityCDPRepayDebtProposal
 	ProposalTypeCommunityCDPRepayDebt = "CommunityCDPRepayDebt"
-	// ProposalTypeCommunityPoolCDPWithdrawCollateral defines the type for a CommunityCDPWithdrawCollateralProposal
-	ProposalTypeCommunityPoolCDPWithdrawCollateral = "CommunityPoolCDPWithdrawCollateral"
+	// ProposalTypeCommunityCDPWithdrawCollateral defines the type for a CommunityCDPWithdrawCollateralProposal
+	ProposalTypeCommunityCDPWithdrawCollateral = "CommunityCDPWithdrawCollateral"
 )
 
 // Assert CommunityPoolLendDepositProposal implements govtypes.Content at compile-time
@@ -37,6 +37,8 @@ func init() {
 	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal", nil)
 	govv1beta1.RegisterProposalType(ProposalTypeCommunityCDPRepayDebt)
 	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityCDPRepayDebtProposal{}, "kava/CommunityCDPRepayDebtProposal", nil)
+	govv1beta1.RegisterProposalType(ProposalTypeCommunityCDPWithdrawCollateral)
+	govv1beta1.ModuleCdc.Amino.RegisterConcrete(&CommunityCDPWithdrawCollateralProposal{}, "kava/CommunityCDPWithdrawCollateralProposal", nil)
 }
 
 //////////////////
@@ -222,7 +224,7 @@ func (p *CommunityCDPWithdrawCollateralProposal) ProposalRoute() string { return
 
 // ProposalType returns the type of the proposal.
 func (p *CommunityCDPWithdrawCollateralProposal) ProposalType() string {
-	return ProposalTypeCommunityPoolCDPWithdrawCollateral
+	return ProposalTypeCommunityCDPWithdrawCollateral
 }
 
 // String implements fmt.Stringer
