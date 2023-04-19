@@ -54,6 +54,7 @@ var (
 	_ Permission = TextPermission{}
 	_ Permission = SoftwareUpgradePermission{}
 	_ Permission = ParamsChangePermission{}
+	_ Permission = CommunityCDPRepayDebtPermission{}
 	_ Permission = CommunityPoolLendWithdrawPermission{}
 )
 
@@ -69,6 +70,12 @@ func (TextPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
 // Allows implement permission interface for SoftwareUpgradePermission.
 func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(*upgradetypes.SoftwareUpgradeProposal)
+	return ok
+}
+
+// Allows implement permission interface for CommunityCDPRepayDebtPermission.
+func (CommunityCDPRepayDebtPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
+	_, ok := p.(*communitytypes.CommunityCDPRepayDebtProposal)
 	return ok
 }
 
