@@ -49,6 +49,7 @@ func init() {
 	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(communitytypes.CommunityCDPRepayDebtProposal{}, "kava/CommunityCDPRepayDebtProposal")
+	RegisterProposalTypeCodec(communitytypes.CommunityCDPWithdrawCollateralProposal{}, "kava/CommunityCDPWithdrawCollateralProposal")
 	RegisterProposalTypeCodec(communitytypes.CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal")
 	RegisterProposalTypeCodec(kavadisttypes.CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal")
 }
@@ -126,6 +127,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&upgradetypes.SoftwareUpgradeProposal{},
 		&upgradetypes.CancelSoftwareUpgradeProposal{},
 		&communitytypes.CommunityCDPRepayDebtProposal{},
+		&communitytypes.CommunityCDPWithdrawCollateralProposal{},
 		&communitytypes.CommunityPoolLendWithdrawProposal{},
 	)
 
