@@ -232,7 +232,233 @@
       ]
     },
     "authz": {
-      "authorization": []
+      "authorization": [
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.bank.v1beta1.MsgMultiSend"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.bank.v1beta1.MsgSend"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgFundCommunityPool"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgBeginRedelegate"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgCancelUnbondingDelegation"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgDelegate"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgUndelegate"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgCreateCDP"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgDeposit"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgDrawDebt"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgRepayDebt"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgWithdraw"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgBorrow"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgDeposit"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgRepay"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgWithdraw"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.liquid.v1beta1.MsgBurnDerivative"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.liquid.v1beta1.MsgMintDerivative"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgDeposit"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgSwapExactForTokens"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgSwapForExactTokens"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgWithdraw"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        }
+      ]      
     },
     "bank": {
       "params": {
