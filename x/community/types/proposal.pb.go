@@ -103,9 +103,51 @@ func (m *CommunityPoolLendWithdrawProposal) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CommunityPoolLendWithdrawProposal proto.InternalMessageInfo
 
+// CommunityCDPRepayDebtProposal repays a cdp debt position owned by the community module
+// This proposal exists primarily to allow committees to repay community module cdp debts.
+type CommunityCDPRepayDebtProposal struct {
+	Title          string     `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Description    string     `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
+	CollateralType string     `protobuf:"bytes,3,opt,name=collateral_type,json=collateralType,proto3" json:"collateral_type,omitempty"`
+	Payment        types.Coin `protobuf:"bytes,4,opt,name=payment,proto3" json:"payment"`
+}
+
+func (m *CommunityCDPRepayDebtProposal) Reset()      { *m = CommunityCDPRepayDebtProposal{} }
+func (*CommunityCDPRepayDebtProposal) ProtoMessage() {}
+func (*CommunityCDPRepayDebtProposal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_64aa83b2ed448ec1, []int{2}
+}
+func (m *CommunityCDPRepayDebtProposal) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CommunityCDPRepayDebtProposal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CommunityCDPRepayDebtProposal.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CommunityCDPRepayDebtProposal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CommunityCDPRepayDebtProposal.Merge(m, src)
+}
+func (m *CommunityCDPRepayDebtProposal) XXX_Size() int {
+	return m.Size()
+}
+func (m *CommunityCDPRepayDebtProposal) XXX_DiscardUnknown() {
+	xxx_messageInfo_CommunityCDPRepayDebtProposal.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CommunityCDPRepayDebtProposal proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*CommunityPoolLendDepositProposal)(nil), "kava.community.v1beta1.CommunityPoolLendDepositProposal")
 	proto.RegisterType((*CommunityPoolLendWithdrawProposal)(nil), "kava.community.v1beta1.CommunityPoolLendWithdrawProposal")
+	proto.RegisterType((*CommunityCDPRepayDebtProposal)(nil), "kava.community.v1beta1.CommunityCDPRepayDebtProposal")
 }
 
 func init() {
@@ -113,7 +155,7 @@ func init() {
 }
 
 var fileDescriptor_64aa83b2ed448ec1 = []byte{
-	// 325 bytes of a gzipped FileDescriptorProto
+	// 399 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0xcd, 0x4e, 0x2c, 0x4b,
 	0xd4, 0x4f, 0xce, 0xcf, 0xcd, 0x2d, 0xcd, 0xcb, 0x2c, 0xa9, 0xd4, 0x2f, 0x33, 0x4c, 0x4a, 0x2d,
 	0x49, 0x34, 0xd4, 0x2f, 0x28, 0xca, 0x2f, 0xc8, 0x2f, 0x4e, 0xcc, 0xd1, 0x2b, 0x28, 0xca, 0x2f,
@@ -130,11 +172,15 @@ var fileDescriptor_64aa83b2ed448ec1 = []byte{
 	0xe9, 0x43, 0x3d, 0x04, 0xa1, 0x74, 0x8b, 0x53, 0xb2, 0xf5, 0x4b, 0x2a, 0x0b, 0x52, 0x8b, 0xc1,
 	0x1a, 0x8a, 0x83, 0xa0, 0x46, 0x5b, 0x71, 0x74, 0x2c, 0x90, 0x67, 0x98, 0xb1, 0x40, 0x9e, 0x41,
 	0xe9, 0x14, 0x23, 0x97, 0x22, 0x86, 0x5f, 0xc2, 0x33, 0x4b, 0x32, 0x52, 0x8a, 0x12, 0xcb, 0x87,
-	0x98, 0x67, 0x9c, 0x5c, 0x4f, 0x3c, 0x92, 0x63, 0xbc, 0xf0, 0x48, 0x8e, 0xf1, 0xc1, 0x23, 0x39,
-	0xc6, 0x09, 0x8f, 0xe5, 0x18, 0x2e, 0x3c, 0x96, 0x63, 0xb8, 0xf1, 0x58, 0x8e, 0x21, 0x4a, 0x1b,
-	0xc9, 0x54, 0x50, 0x5a, 0xd0, 0xcd, 0x49, 0x4c, 0x2a, 0x06, 0xb3, 0xf4, 0x2b, 0x90, 0x92, 0x0f,
-	0xd8, 0xf8, 0x24, 0x36, 0x70, 0x34, 0x1b, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xa0, 0x07, 0x87,
-	0x4d, 0x5d, 0x02, 0x00, 0x00,
+	0x9a, 0x67, 0x8e, 0x32, 0x72, 0xc9, 0xc2, 0x3d, 0xe3, 0xec, 0x12, 0x10, 0x94, 0x5a, 0x90, 0x58,
+	0xe9, 0x92, 0x9a, 0x44, 0x79, 0xac, 0xa8, 0x73, 0xf1, 0x27, 0xe7, 0xe7, 0xe4, 0x24, 0x96, 0xa4,
+	0x16, 0x25, 0xe6, 0xc4, 0x83, 0x5c, 0x21, 0xc1, 0x0c, 0x56, 0xc5, 0x87, 0x10, 0x0e, 0xa9, 0x2c,
+	0x48, 0x15, 0xb2, 0xe4, 0x62, 0x2f, 0x48, 0xac, 0xcc, 0x4d, 0xcd, 0x2b, 0x91, 0x60, 0x51, 0x60,
+	0xc4, 0xef, 0x65, 0x16, 0x90, 0x97, 0x83, 0x60, 0xea, 0x11, 0xfe, 0x70, 0x72, 0x3d, 0xf1, 0x48,
+	0x8e, 0xf1, 0xc2, 0x23, 0x39, 0xc6, 0x07, 0x8f, 0xe4, 0x18, 0x27, 0x3c, 0x96, 0x63, 0xb8, 0xf0,
+	0x58, 0x8e, 0xe1, 0xc6, 0x63, 0x39, 0x86, 0x28, 0x6d, 0xa4, 0xd0, 0x01, 0xa5, 0x69, 0xdd, 0x9c,
+	0xc4, 0xa4, 0x62, 0x30, 0x4b, 0xbf, 0x02, 0x29, 0x1b, 0x80, 0x83, 0x29, 0x89, 0x0d, 0x9c, 0x5c,
+	0x8d, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x4a, 0xf3, 0xc5, 0x33, 0x25, 0x03, 0x00, 0x00,
 }
 
 func (m *CommunityPoolLendDepositProposal) Marshal() (dAtA []byte, err error) {
@@ -239,6 +285,60 @@ func (m *CommunityPoolLendWithdrawProposal) MarshalToSizedBuffer(dAtA []byte) (i
 	return len(dAtA) - i, nil
 }
 
+func (m *CommunityCDPRepayDebtProposal) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CommunityCDPRepayDebtProposal) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CommunityCDPRepayDebtProposal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Payment.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintProposal(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.CollateralType) > 0 {
+		i -= len(m.CollateralType)
+		copy(dAtA[i:], m.CollateralType)
+		i = encodeVarintProposal(dAtA, i, uint64(len(m.CollateralType)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintProposal(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Title) > 0 {
+		i -= len(m.Title)
+		copy(dAtA[i:], m.Title)
+		i = encodeVarintProposal(dAtA, i, uint64(len(m.Title)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintProposal(dAtA []byte, offset int, v uint64) int {
 	offset -= sovProposal(v)
 	base := offset
@@ -293,6 +393,29 @@ func (m *CommunityPoolLendWithdrawProposal) Size() (n int) {
 			n += 1 + l + sovProposal(uint64(l))
 		}
 	}
+	return n
+}
+
+func (m *CommunityCDPRepayDebtProposal) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Title)
+	if l > 0 {
+		n += 1 + l + sovProposal(uint64(l))
+	}
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovProposal(uint64(l))
+	}
+	l = len(m.CollateralType)
+	if l > 0 {
+		n += 1 + l + sovProposal(uint64(l))
+	}
+	l = m.Payment.Size()
+	n += 1 + l + sovProposal(uint64(l))
 	return n
 }
 
@@ -574,6 +697,185 @@ func (m *CommunityPoolLendWithdrawProposal) Unmarshal(dAtA []byte) error {
 			}
 			m.Amount = append(m.Amount, types.Coin{})
 			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipProposal(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthProposal
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CommunityCDPRepayDebtProposal) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowProposal
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CommunityCDPRepayDebtProposal: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CommunityCDPRepayDebtProposal: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Title", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProposal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthProposal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthProposal
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Title = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProposal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthProposal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthProposal
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CollateralType", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProposal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthProposal
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthProposal
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CollateralType = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Payment", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowProposal
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthProposal
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthProposal
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Payment.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

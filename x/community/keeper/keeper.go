@@ -12,6 +12,7 @@ import (
 // Keeper of the community store
 type Keeper struct {
 	bankKeeper    types.BankKeeper
+	cdpKeeper     types.CdpKeeper
 	distrKeeper   types.DistributionKeeper
 	hardKeeper    types.HardKeeper
 	moduleAddress sdk.AccAddress
@@ -20,7 +21,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new community Keeper instance
-func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper, dk types.DistributionKeeper, hk types.HardKeeper) Keeper {
+func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper, ck types.CdpKeeper, dk types.DistributionKeeper, hk types.HardKeeper) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
 	if addr == nil {
@@ -33,6 +34,7 @@ func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper, dk types.Distributio
 
 	return Keeper{
 		bankKeeper:    bk,
+		cdpKeeper:     ck,
 		distrKeeper:   dk,
 		hardKeeper:    hk,
 		moduleAddress: addr,

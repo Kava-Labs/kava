@@ -31,3 +31,15 @@ message CommunityPoolLendWithdrawProposal {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
+
+// CommunityCDPRepayDebtProposal repays a cdp debt position owned by the community module
+// This proposal exists primarily to allow committees to repay community module cdp debts.
+message CommunityCDPRepayDebtProposal {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string title = 1;
+  string description = 2;
+  string collateral_type = 3;
+  cosmos.base.v1beta1.Coin payment = 4 [(gogoproto.nullable) = false];
+}

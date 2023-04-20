@@ -180,6 +180,7 @@
     - [Msg](#kava.committee.v1beta1.Msg)
   
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
+    - [CommunityCDPRepayDebtProposal](#kava.community.v1beta1.CommunityCDPRepayDebtProposal)
     - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
   
@@ -2854,6 +2855,25 @@ Msg defines the committee Msg service
 <p align="right"><a href="#top">Top</a></p>
 
 ## kava/community/v1beta1/proposal.proto
+
+
+
+<a name="kava.community.v1beta1.CommunityCDPRepayDebtProposal"></a>
+
+### CommunityCDPRepayDebtProposal
+CommunityCDPRepayDebtProposal repays a cdp debt position owned by the community module
+This proposal exists primarily to allow committees to repay community module cdp debts.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `payment` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
 
 
 

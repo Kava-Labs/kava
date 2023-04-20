@@ -19,6 +19,11 @@ type BankKeeper interface {
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
 
+// CdpKeeper defines the contract needed to be fulfilled for cdp dependencies.
+type CdpKeeper interface {
+	RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralType string, payment sdk.Coin) error
+}
+
 // HardKeeper defines the contract needed to be fulfilled for Kava Lend dependencies.
 type HardKeeper interface {
 	Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coins) error

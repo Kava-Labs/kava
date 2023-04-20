@@ -36,3 +36,9 @@ func HandleCommunityPoolLendWithdrawProposal(ctx sdk.Context, k Keeper, p *types
 	// send all withdrawn coins back to community pool
 	return k.distrKeeper.FundCommunityPool(ctx, totalWithdrawn, k.moduleAddress)
 }
+
+// HandleCommunityCDPRepayDebtProposal is a handler for executing a passed community pool cdp repay debt proposal.
+func HandleCommunityCDPRepayDebtProposal(ctx sdk.Context, k Keeper, p *types.CommunityCDPRepayDebtProposal) error {
+	// make debt repayment
+	return k.cdpKeeper.RepayPrincipal(ctx, k.moduleAddress, p.CollateralType, p.Payment)
+}

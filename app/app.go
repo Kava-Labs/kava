@@ -635,8 +635,9 @@ func NewApp(
 	app.communityKeeper = communitykeeper.NewKeeper(
 		app.accountKeeper,
 		app.bankKeeper,
+		&cdpKeeper,
 		app.distrKeeper,
-		hardKeeper,
+		&hardKeeper,
 	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
