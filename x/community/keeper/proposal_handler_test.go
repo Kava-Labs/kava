@@ -440,3 +440,108 @@ func (suite *proposalTestSuite) TestCommunityCDPRepayDebtProposal() {
 		})
 	}
 }
+
+// expectation: funds in the community module used as cdp collateral will be
+// withdrawn and stays in the community module.
+func (suite *proposalTestSuite) TestCommunityCDPWithdrawCollateralProposal() {
+	initialModuleFunds := ukava(2e10).Add(otherdenom(1e9)...)
+	collateralType := "kava-a"
+	type debt struct {
+		collateral sdk.Coin
+		principal  sdk.Coin
+	}
+	testcases := []struct {
+		name              string
+		initialDebt       *debt
+		proposal          *types.CommunityCDPWithdrawCollateralProposal
+		expectedErr       string
+		expectedWithdrawn sdk.Coin
+	}{
+		{
+			name: "valid - withdrawing max collateral",
+			initialDebt: &debt{
+				c("ukava", 1e10),
+				c("usdx", 1e9),
+			},
+			proposal: types.NewCommunityCDPWithdrawCollateralProposal(
+				"withdrawing max collateral",
+				"i might get liquidated",
+				collateralType,
+				c("ukava", 8e9-1), // Withdraw all collateral except 2*principal-1 amount
+			),
+			expectedErr:       "",
+			expectedWithdrawn: c("ukava", 8e9-1),
+		},
+		{
+			name: "valid - withdrawing partial collateral",
+			initialDebt: &debt{
+				c("ukava", 1e10),
+				c("usdx", 1e9),
+			},
+			proposal: types.NewCommunityCDPWithdrawCollateralProposal(
+				"title goes here",
+				"description goes here",
+				collateralType,
+				c("ukava", 1e9),
+			),
+			expectedErr:       "",
+			expectedWithdrawn: c("ukava", 1e9),
+		},
+		{
+			name: "invalid - withdrawing too much collateral",
+			initialDebt: &debt{
+				c("ukava", 1e10),
+				c("usdx", 1e9),
+			},
+			proposal: types.NewCommunityCDPWithdrawCollateralProposal(
+				"title goes here",
+				"description goes here",
+				collateralType,
+				c("ukava", 9e9), // <-- would be under collateralized
+			),
+			expectedErr:       "proposed collateral ratio is below liquidation ratio",
+			expectedWithdrawn: c("ukava", 0),
+		},
+	}
+
+	for _, tc := range testcases {
+		suite.Run(tc.name, func() {
+			var err error
+			suite.SetupTest()
+
+			// setup the community module with some initial funds
+			err = suite.App.FundModuleAccount(suite.Ctx, types.ModuleAccountName, initialModuleFunds)
+			suite.NoError(err, "failed to initially fund module account for cdp creation")
+
+			// setup initial debt position
+			err = suite.cdpKeeper.AddCdp(suite.Ctx, suite.MaccAddress, tc.initialDebt.collateral, tc.initialDebt.principal, collateralType)
+			suite.NoError(err, "unexpected error while creating initial cdp")
+
+			balanceBefore := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
+
+			// submit proposal
+			err = keeper.HandleCommunityCDPWithdrawCollateralProposal(suite.Ctx, suite.Keeper, tc.proposal)
+			if tc.expectedErr == "" {
+				suite.NoError(err)
+			} else {
+				suite.Require().ErrorContains(err, tc.expectedErr)
+			}
+			suite.NextBlock()
+
+			cdps := suite.cdpKeeper.GetAllCdpsByCollateralType(suite.Ctx, collateralType)
+			expectedRemainingCollateral := tc.initialDebt.collateral.Sub(tc.expectedWithdrawn)
+
+			// expect withdrawn funds to add to community module account
+			expectedModuleBalance := balanceBefore.Add(tc.expectedWithdrawn)
+
+			suite.Len(cdps, 1, "expected debt position to remain open")
+			suite.Equal(suite.MaccAddress, cdps[0].Owner, "sanity check: unexpected owner")
+			// check the remaining principle on the cdp
+			suite.Equal(expectedRemainingCollateral, cdps[0].Collateral)
+
+			// verify the balance changed as expected
+			moduleBalanceAfter := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
+			suite.True(expectedModuleBalance.IsEqual(moduleBalanceAfter), "module balance changed unexpectedly")
+		})
+	}
+}

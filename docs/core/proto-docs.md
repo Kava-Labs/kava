@@ -182,6 +182,7 @@
   
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
     - [CommunityCDPRepayDebtProposal](#kava.community.v1beta1.CommunityCDPRepayDebtProposal)
+    - [CommunityCDPWithdrawCollateralProposal](#kava.community.v1beta1.CommunityCDPWithdrawCollateralProposal)
     - [CommunityPoolLendDepositProposal](#kava.community.v1beta1.CommunityPoolLendDepositProposal)
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
   
@@ -2882,6 +2883,25 @@ This proposal exists primarily to allow committees to repay community module cdp
 | `description` | [string](#string) |  |  |
 | `collateral_type` | [string](#string) |  |  |
 | `payment` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.CommunityCDPWithdrawCollateralProposal"></a>
+
+### CommunityCDPWithdrawCollateralProposal
+CommunityCDPWithdrawCollateralProposal withdraws cdp collateral owned by the community module
+This proposal exists primarily to allow committees to withdraw community module cdp collateral.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `title` | [string](#string) |  |  |
+| `description` | [string](#string) |  |  |
+| `collateral_type` | [string](#string) |  |  |
+| `collateral` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
 
 
 

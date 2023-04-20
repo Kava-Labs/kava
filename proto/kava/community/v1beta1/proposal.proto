@@ -43,3 +43,15 @@ message CommunityCDPRepayDebtProposal {
   string collateral_type = 3;
   cosmos.base.v1beta1.Coin payment = 4 [(gogoproto.nullable) = false];
 }
+
+// CommunityCDPWithdrawCollateralProposal withdraws cdp collateral owned by the community module
+// This proposal exists primarily to allow committees to withdraw community module cdp collateral.
+message CommunityCDPWithdrawCollateralProposal {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string title = 1;
+  string description = 2;
+  string collateral_type = 3;
+  cosmos.base.v1beta1.Coin collateral = 4 [(gogoproto.nullable) = false];
+}

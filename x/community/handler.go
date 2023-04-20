@@ -16,6 +16,8 @@ func NewCommunityPoolProposalHandler(k keeper.Keeper) govv1beta1.Handler {
 		switch c := content.(type) {
 		case *types.CommunityCDPRepayDebtProposal:
 			return keeper.HandleCommunityCDPRepayDebtProposal(ctx, k, c)
+		case *types.CommunityCDPWithdrawCollateralProposal:
+			return keeper.HandleCommunityCDPWithdrawCollateralProposal(ctx, k, c)
 		case *types.CommunityPoolLendDepositProposal:
 			return keeper.HandleCommunityPoolLendDepositProposal(ctx, k, c)
 		case *types.CommunityPoolLendWithdrawProposal:

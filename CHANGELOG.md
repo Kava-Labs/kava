@@ -45,10 +45,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (x/incentive) [#1512] Add grpc query service.
 - (deps) [#1544] Bump confio/ics23/go to v0.9.0, cosmos/keyring to v1.2.0.
 - (x/committee) [#1562] Add CommunityPoolLendWithdrawPermission
-- (x/community) [#1563] Include x/community module pool balance in x/distribution
-  community_pool query response.
+- (x/community) [#1563] Include x/community module pool balance in
+  x/distribution community_pool query response.
 - (x/community) [#1565] Add CommunityCDPRepayDebtProposal
 - (x/committee) [#1566] Add CommunityCDPRepayDebtPermission
+- (x/community) [#1567] Add CommunityCDPWithdrawCollateralProposal
 
 ### Deprecated
 
@@ -234,6 +235,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
   large-scale simulations remotely using aws-batch
 
 
+[#1567]: https://github.com/Kava-Labs/kava/pull/1567
 [#1566]: https://github.com/Kava-Labs/kava/pull/1566
 [#1565]: https://github.com/Kava-Labs/kava/pull/1565
 [#1563]: https://github.com/Kava-Labs/kava/pull/1563
