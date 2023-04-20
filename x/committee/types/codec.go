@@ -48,7 +48,9 @@ func init() {
 	RegisterProposalTypeCodec(govv1beta1.TextProposal{}, "cosmos-sdk/TextProposal")
 	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
+	RegisterProposalTypeCodec(communitytypes.CommunityCDPRepayDebtProposal{}, "kava/CommunityCDPRepayDebtProposal")
 	RegisterProposalTypeCodec(communitytypes.CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal")
+	RegisterProposalTypeCodec(kavadisttypes.CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal")
 }
 
 // RegisterLegacyAminoCodec registers all the necessary types and interfaces for the module.
@@ -70,6 +72,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(TextPermission{}, "kava/TextPermission", nil)
 	cdc.RegisterConcrete(SoftwareUpgradePermission{}, "kava/SoftwareUpgradePermission", nil)
 	cdc.RegisterConcrete(ParamsChangePermission{}, "kava/ParamsChangePermission", nil)
+	cdc.RegisterConcrete(CommunityCDPRepayDebtPermission{}, "kava/CommunityCDPRepayDebtPermission", nil)
 	cdc.RegisterConcrete(CommunityPoolLendWithdrawPermission{}, "kava/CommunityPoolLendWithdrawPermission", nil)
 
 	// Msgs
@@ -106,6 +109,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&TextPermission{},
 		&SoftwareUpgradePermission{},
 		&ParamsChangePermission{},
+		&CommunityCDPRepayDebtPermission{},
 		&CommunityPoolLendWithdrawPermission{},
 	)
 
@@ -121,8 +125,8 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&proposaltypes.ParameterChangeProposal{},
 		&upgradetypes.SoftwareUpgradeProposal{},
 		&upgradetypes.CancelSoftwareUpgradeProposal{},
+		&communitytypes.CommunityCDPRepayDebtProposal{},
 		&communitytypes.CommunityPoolLendWithdrawProposal{},
-		&kavadisttypes.CommunityPoolMultiSpendProposal{},
 	)
 
 	registry.RegisterImplementations(
