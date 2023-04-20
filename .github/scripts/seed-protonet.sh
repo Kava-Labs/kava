@@ -23,8 +23,8 @@ echo "sweet ocean blush coil mobile ten floor sample nuclear power legend where 
 # fund evm-contract-deployer account (using issuance)
 kava tx issuance issue 200000000ukava kava1van3znl6597xgwwh46jgquutnqkwvwszjg04fz --from dev-wallet --gas-prices 0.5ukava -y
 
-# fund 5k kava to x/community account (using issuance)
-kava tx issuance issue 5000000000ukava kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5 --from dev-wallet --gas-prices 0.5ukava -y
+# fund 5k kava to x/community account
+kava tx community fund-community-pool 5000000000ukava --from dev-wallet --gas-prices 0.5ukava -y
 
 # deploy and fund USDC ERC20 contract
 MULTICHAIN_USDC_CONTRACT_DEPLOY=$(npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" deploy-erc20 "USD Coin" USDC 6)
