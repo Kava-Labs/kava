@@ -50,6 +50,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (x/community) [#1565] Add CommunityCDPRepayDebtProposal
 - (x/committee) [#1566] Add CommunityCDPRepayDebtPermission
 - (x/community) [#1567] Add CommunityCDPWithdrawCollateralProposal
+- (x/committee) [#1568] Add CommunityCDPWithdrawCollateralPermission
 
 ### Deprecated
 
@@ -234,7 +235,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
-
+[#1568]: https://github.com/Kava-Labs/kava/pull/1568
 [#1567]: https://github.com/Kava-Labs/kava/pull/1567
 [#1566]: https://github.com/Kava-Labs/kava/pull/1566
 [#1565]: https://github.com/Kava-Labs/kava/pull/1565

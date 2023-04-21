@@ -56,6 +56,7 @@ var (
 	_ Permission = ParamsChangePermission{}
 	_ Permission = CommunityCDPRepayDebtPermission{}
 	_ Permission = CommunityPoolLendWithdrawPermission{}
+	_ Permission = CommunityCDPWithdrawCollateralPermission{}
 )
 
 // Allows implement permission interface for GodPermission.
@@ -76,6 +77,12 @@ func (SoftwareUpgradePermission) Allows(_ sdk.Context, _ ParamKeeper, p PubPropo
 // Allows implement permission interface for CommunityCDPRepayDebtPermission.
 func (CommunityCDPRepayDebtPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
 	_, ok := p.(*communitytypes.CommunityCDPRepayDebtProposal)
+	return ok
+}
+
+// Allows implement permission interface for CommunityCDPWithdrawCollateralPermission.
+func (CommunityCDPWithdrawCollateralPermission) Allows(_ sdk.Context, _ ParamKeeper, p PubProposal) bool {
+	_, ok := p.(*communitytypes.CommunityCDPWithdrawCollateralProposal)
 	return ok
 }
 

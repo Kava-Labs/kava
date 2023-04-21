@@ -26,6 +26,11 @@ message CommunityCDPRepayDebtPermission {
   option (cosmos_proto.implements_interface) = "Permission";
 }
 
+// CommunityCDPWithdrawCollateralPermission allows submission of CommunityCDPWithdrawCollateralProposal
+message CommunityCDPWithdrawCollateralPermission {
+  option (cosmos_proto.implements_interface) = "Permission";
+}
+
 // CommunityPoolLendWithdrawPermission allows submission of CommunityPoolLendWithdrawProposal
 message CommunityPoolLendWithdrawPermission {
   option (cosmos_proto.implements_interface) = "Permission";

@@ -139,6 +139,7 @@
 - [kava/committee/v1beta1/permissions.proto](#kava/committee/v1beta1/permissions.proto)
     - [AllowedParamsChange](#kava.committee.v1beta1.AllowedParamsChange)
     - [CommunityCDPRepayDebtPermission](#kava.committee.v1beta1.CommunityCDPRepayDebtPermission)
+    - [CommunityCDPWithdrawCollateralPermission](#kava.committee.v1beta1.CommunityCDPWithdrawCollateralPermission)
     - [CommunityPoolLendWithdrawPermission](#kava.committee.v1beta1.CommunityPoolLendWithdrawPermission)
     - [GodPermission](#kava.committee.v1beta1.GodPermission)
     - [ParamsChangePermission](#kava.committee.v1beta1.ParamsChangePermission)
@@ -2331,6 +2332,16 @@ AllowedParamsChange contains data on the allowed parameter changes for subspace,
 
 ### CommunityCDPRepayDebtPermission
 CommunityCDPRepayDebtPermission allows submission of CommunityCDPRepayDebtProposal
+
+
+
+
+
+
+<a name="kava.committee.v1beta1.CommunityCDPWithdrawCollateralPermission"></a>
+
+### CommunityCDPWithdrawCollateralPermission
+CommunityCDPWithdrawCollateralPermission allows submission of CommunityCDPWithdrawCollateralProposal
 
 
 
