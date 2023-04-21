@@ -976,6 +976,22 @@ func (app *App) RegisterServices(cfg module.Configurator) {
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	upgradeHeight := int64(4461275)
+	if ctx.BlockHeight() == upgradeHeight-1 {
+		upgradePlan := upgradetypes.Plan{
+			Name:   "v0.22.0",
+			Height: upgradeHeight,
+		}
+		if err := app.upgradeKeeper.ScheduleUpgrade(ctx, upgradePlan); err != nil {
+			panic(
+				fmt.Errorf(
+					"failed to schedule upgrade %s during BeginBlock at height %d: %w",
+					upgradePlan.Name, upgradePlan.Height, err,
+				),
+			)
+		}
+	}
+
 	return app.mm.BeginBlock(ctx, req)
 }
 
