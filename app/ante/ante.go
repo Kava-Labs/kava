@@ -5,6 +5,7 @@ import (
 	"runtime/debug"
 
 	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -32,6 +33,7 @@ type HandlerOptions struct {
 	AddressFetchers        []AddressFetcher
 	ExtensionOptionChecker authante.ExtensionOptionChecker
 	TxFeeChecker           authante.TxFeeChecker
+	Cdc                    codec.BinaryCodec
 }
 
 func (options HandlerOptions) Validate() error {
@@ -146,6 +148,7 @@ func newCosmosAnteHandler(options cosmosHandlerOptions) sdk.AnteHandler {
 			sdk.MsgTypeURL(&vesting.MsgCreatePermanentLockedAccount{}),
 			sdk.MsgTypeURL(&vesting.MsgCreatePeriodicVestingAccount{}),
 		),
+		NewMinCommissionDecorator(options.Cdc),
 		authante.NewValidateBasicDecorator(),
 		authante.NewTxTimeoutHeightDecorator(),
 		// If ethermint x/feemarket is enabled, align Cosmos min fee with the EVM
