@@ -16,7 +16,7 @@ func WaitForProposalStatus(
 ) (uint64, error) {
 	var err error
 	var passedProposalId uint64
-	outOfTime := time.After(10 * time.Second)
+	outOfTime := time.After(timeout)
 	for {
 		select {
 		case <-outOfTime:
