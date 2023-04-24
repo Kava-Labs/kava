@@ -20,6 +20,7 @@ import (
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/tests/e2e/runner"
 	"github.com/kava-labs/kava/tests/util"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 )
@@ -39,6 +40,7 @@ type Chain struct {
 
 	Auth      authtypes.QueryClient
 	Bank      banktypes.QueryClient
+	Committee committeetypes.QueryClient
 	Community communitytypes.QueryClient
 	Earn      earntypes.QueryClient
 	Evm       evmtypes.QueryClient
@@ -72,6 +74,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 
 	chain.Auth = authtypes.NewQueryClient(grpcConn)
 	chain.Bank = banktypes.NewQueryClient(grpcConn)
+	chain.Committee = committeetypes.NewQueryClient(grpcConn)
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
