@@ -14,12 +14,17 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
 const (
 	MainnetUpgradeName = "v0.22.0"
 	TestnetUpgradeName = "v0.22.0-alpha.0"
+
+	MainnetStabilityCommitteeId = uint64(1)
+	TestnetStabilityCommitteeId = uint64(1)
 )
 
 func (app App) RegisterUpgradeHandlers() {
@@ -38,6 +43,9 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
+
+			app.Logger().Info(fmt.Sprintf("adding lend & cdp committee permissions to stability committee (id=%d)", MainnetStabilityCommitteeId))
+			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
 			return toVM, nil
 		},
@@ -58,6 +66,9 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
+
+			app.Logger().Info(fmt.Sprintf("adding lend & cdp committee permissions to stability committee (id=%d)", TestnetStabilityCommitteeId))
+			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
 
 			return toVM, nil
 		},
@@ -127,6 +138,28 @@ func FundCommunityPoolModule(
 	feePool := distKeeper.GetFeePool(ctx)
 	feePool.CommunityPool = leftoverDust
 	distKeeper.SetFeePool(ctx, feePool)
+}
+
+// AddNewPermissionsToStabilityCommittee adds the following permissions to the committee with the passed in id:
+// - CommunityCDPRepayDebtPermission
+// - CommunityPoolLendWithdrawPermission
+// - CommunityCDPWithdrawCollateralPermission
+func AddNewPermissionsToStabilityCommittee(ctx sdk.Context, committeeKeeper committeekeeper.Keeper, committeeId uint64) {
+	// get committee
+	comm, found := committeeKeeper.GetCommittee(ctx, committeeId)
+	if !found {
+		panic(fmt.Sprintf("expected to find committee with id %d but found none", committeeId))
+	}
+	// set new permissions
+	perms := comm.GetPermissions()
+	perms = append(perms,
+		&committeetypes.CommunityCDPRepayDebtPermission{},
+		&committeetypes.CommunityPoolLendWithdrawPermission{},
+		&committeetypes.CommunityCDPWithdrawCollateralPermission{},
+	)
+	comm.SetPermissions(perms)
+	// save permission changes
+	committeeKeeper.SetCommittee(ctx, comm)
 }
 
 func GetCommunityPoolAllowedMsgs() []string {
