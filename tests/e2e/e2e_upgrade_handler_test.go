@@ -1,11 +1,15 @@
 package e2e_test
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/util"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
 // TestUpgradeHandler can be used to run tests post-upgrade. If an upgrade is enabled, all tests
@@ -63,4 +67,41 @@ func (suite *IntegrationTestSuite) committeeHasPermissionWithTypeUrl(c committee
 		}
 	}
 	return false
+}
+
+func (suite IntegrationTestSuite) TestAuthzPermissions() {
+	suite.SkipIfUpgradeDisabled()
+
+	expectedMsgs := app.GetCommunityPoolAllowedMsgs()
+	govAccount := suite.Kava.QuerySdkForModuleAccount(govtypes.ModuleName).GetAddress()
+	rsp, err := suite.Kava.Authz.GranteeGrants(context.Background(), &authz.QueryGranteeGrantsRequest{
+		Grantee: govAccount.String(),
+	})
+	suite.NoError(err)
+	govGrantedMsgs := []string{}
+	for _, grant := range rsp.Grants {
+		var grantAuth authz.Authorization
+		err := suite.Kava.EncodingConfig.InterfaceRegistry.UnpackAny(grant.Authorization, &grantAuth)
+		suite.NoError(err)
+		govGrantedMsgs = append(govGrantedMsgs, grantAuth.MsgTypeURL())
+	}
+	suite.ElementsMatch(expectedMsgs, govGrantedMsgs)
+}
+
+func (suite IntegrationTestSuite) TestCommunityPoolFundsMigration() {
+	suite.SkipIfUpgradeDisabled()
+
+	beforeUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight - 1)
+	afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight)
+
+	// check community pool balance before & after
+	beforeCommPoolBalance, err := suite.Kava.Community.Balance(beforeUpgradeCtx, &communitytypes.QueryBalanceRequest{})
+	suite.NoError(err)
+	afterCommPoolBalance, err := suite.Kava.Community.Balance(afterUpgradeCtx, &communitytypes.QueryBalanceRequest{})
+	suite.NoError(err)
+
+	// expect no balance before upgrade
+	suite.True(beforeCommPoolBalance.Coins.Empty())
+	// expect handler-moved tokens to be in macc now!
+	suite.Greater(afterCommPoolBalance.Coins.AmountOf("ukava").Int64(), int64(0))
 }
