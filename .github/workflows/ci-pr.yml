@@ -4,6 +4,7 @@ on:
     # run CI on pull requests to master or a release branch
     branches:
       - master
+      - 'release/**'
       - 'releases/**'
 # run default ci checks against current PR
 jobs:
