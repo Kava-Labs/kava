@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -14,9 +15,12 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
+	hardkeeper "github.com/kava-labs/kava/x/hard/keeper"
+	incentivekeeper "github.com/kava-labs/kava/x/incentive/keeper"
 )
 
 const (
@@ -47,6 +51,9 @@ func (app App) RegisterUpgradeHandlers() {
 			app.Logger().Info(fmt.Sprintf("adding lend & cdp committee permissions to stability committee (id=%d)", MainnetStabilityCommitteeId))
 			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
+			app.Logger().Info("enabling community pool incentive tracking")
+			EnableCommunityPoolIncentiveTracking(ctx, app.hardKeeper, app.incentiveKeeper)
+
 			return toVM, nil
 		},
 	)
@@ -69,6 +76,9 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info(fmt.Sprintf("adding lend & cdp committee permissions to stability committee (id=%d)", TestnetStabilityCommitteeId))
 			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
+
+			app.Logger().Info("enabling community pool incentive tracking")
+			EnableCommunityPoolIncentiveTracking(ctx, app.hardKeeper, app.incentiveKeeper)
 
 			return toVM, nil
 		},
@@ -190,4 +200,20 @@ func GetCommunityPoolAllowedMsgs() []string {
 		"/kava.liquid.v1beta1.MsgMintDerivative",
 		"/kava.liquid.v1beta1.MsgBurnDerivative",
 	}
+}
+
+// EnableCommunityPoolIncentiveTracking fixes an issue in v0.21.0 where the community account was not tracked by incentive.
+// It only updates tracking for deposits and assumes there have been no borrows.
+func EnableCommunityPoolIncentiveTracking(ctx sdk.Context, hardkeeper hardkeeper.Keeper, incentiveKeeper incentivekeeper.Keeper) {
+	communityAddr := authtypes.NewModuleAddress(communitytypes.ModuleName)
+	deposit, found := hardkeeper.GetDeposit(ctx, communityAddr)
+	if !found {
+		return
+	}
+
+	_, found = incentiveKeeper.GetHardLiquidityProviderClaim(ctx, communityAddr)
+	if found {
+		return // skip if claim already exists
+	}
+	incentiveKeeper.InitializeHardSupplyReward(ctx, deposit)
 }
