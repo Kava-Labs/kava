@@ -300,7 +300,7 @@
               "amount": "10000000000"
             },
             {
-              "denom": "erc20/multichain/btc",
+              "denom": "erc20/multichain/wbtc",
               "amount": "1000000000"
             },
             {
@@ -1753,7 +1753,7 @@
           },
           {
             "kava_erc20_address": "0x288429bc07B8d030ba418bb30F170327F9fBE502",
-            "denom": "erc20/multichain/btc"
+            "denom": "erc20/multichain/wbtc"
           },
           {
             "kava_erc20_address": "0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d",
@@ -1969,7 +1969,7 @@
             "keeper_reward_percentage": "0.020000000000000000"
           },
           {
-            "denom": "erc20/multichain/btc",
+            "denom": "erc20/multichain/wbtc",
             "borrow_limit": {
               "has_max_limit": true,
               "maximum_limit": "0.000000000000000000",
@@ -2359,7 +2359,7 @@
           },
           {
             "active": true,
-            "collateral_type": "erc20/multichain/btc",
+            "collateral_type": "erc20/multichain/wbtc",
             "start": "2022-11-11T15:00:00Z",
             "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
