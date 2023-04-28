@@ -51,13 +51,13 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info(fmt.Sprintf(
 				"adding lend & cdp committee permissions to stability committee (id=%d)",
-				TestnetStabilityCommitteeId,
+				MainnetStabilityCommitteeId,
 			))
-			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
+			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
 			app.Logger().Info(fmt.Sprintf(
 				"removing x/evm AllowedParamsChange from stability committee (id=%d)",
-				TestnetStabilityCommitteeId,
+				MainntStabilityCommitteeId,
 			))
 			RemoveEVMCommitteePermissions(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
