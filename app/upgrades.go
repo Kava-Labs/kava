@@ -50,10 +50,16 @@ func (app App) RegisterUpgradeHandlers() {
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
 
 			app.Logger().Info(fmt.Sprintf(
-				"adding lend & cdp committee permissions and removing x/evm AllowedParamsChange from stability committee (id=%d)",
+				"adding lend & cdp committee permissions to stability committee (id=%d)",
 				TestnetStabilityCommitteeId,
 			))
-			UpdateStabilityCommitteePermissions(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
+			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
+
+			app.Logger().Info(fmt.Sprintf(
+				"removing x/evm AllowedParamsChange from stability committee (id=%d)",
+				TestnetStabilityCommitteeId,
+			))
+			RemoveEVMCommitteePermissions(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
 			app.Logger().Info("enabling community pool incentive tracking")
 			EnableCommunityPoolIncentiveTracking(ctx, app.hardKeeper, app.incentiveKeeper)
@@ -79,10 +85,10 @@ func (app App) RegisterUpgradeHandlers() {
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
 
 			app.Logger().Info(fmt.Sprintf(
-				"adding lend & cdp committee permissions and removing x/evm AllowedParamsChange from stability committee (id=%d)",
+				"adding lend & cdp committee permissions from stability committee (id=%d)",
 				TestnetStabilityCommitteeId,
 			))
-			UpdateStabilityCommitteePermissions(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
+			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
 
 			app.Logger().Info("enabling community pool incentive tracking")
 			EnableCommunityPoolIncentiveTracking(ctx, app.hardKeeper, app.incentiveKeeper)
@@ -157,17 +163,31 @@ func FundCommunityPoolModule(
 	distKeeper.SetFeePool(ctx, feePool)
 }
 
-// UpdateStabilityCommitteePermissions updates the following permissions to the
-// committee with the passed in id:
-//
-// Add:
+// AddNewPermissionsToStabilityCommittee adds the following permissions to the committee with the passed in id:
 // - CommunityCDPRepayDebtPermission
 // - CommunityPoolLendWithdrawPermission
 // - CommunityCDPWithdrawCollateralPermission
-//
-// Remove:
+func AddNewPermissionsToStabilityCommittee(ctx sdk.Context, committeeKeeper committeekeeper.Keeper, committeeId uint64) {
+	// get committee
+	comm, found := committeeKeeper.GetCommittee(ctx, committeeId)
+	if !found {
+		panic(fmt.Sprintf("expected to find committee with id %d but found none", committeeId))
+	}
+	// set new permissions
+	perms := comm.GetPermissions()
+	perms = append(perms,
+		&committeetypes.CommunityCDPRepayDebtPermission{},
+		&committeetypes.CommunityPoolLendWithdrawPermission{},
+		&committeetypes.CommunityCDPWithdrawCollateralPermission{},
+	)
+	comm.SetPermissions(perms)
+	// save permission changes
+	committeeKeeper.SetCommittee(ctx, comm)
+}
+
+// RemoveEVMCommitteePermissions removes the following permissions to the committee with the passed in id:
 // - AllowedParamsChange for x/evm subspace (no longer stored in params)
-func UpdateStabilityCommitteePermissions(ctx sdk.Context, committeeKeeper committeekeeper.Keeper, committeeId uint64) {
+func RemoveEVMCommitteePermissions(ctx sdk.Context, committeeKeeper committeekeeper.Keeper, committeeId uint64) {
 	// get committee
 	comm, found := committeeKeeper.GetCommittee(ctx, committeeId)
 	if !found {
@@ -199,13 +219,6 @@ func UpdateStabilityCommitteePermissions(ctx sdk.Context, committeeKeeper commit
 		// Update the permission
 		perms[i] = paramPerm
 	}
-
-	// Add new permissions
-	perms = append(perms,
-		&committeetypes.CommunityCDPRepayDebtPermission{},
-		&committeetypes.CommunityPoolLendWithdrawPermission{},
-		&committeetypes.CommunityCDPWithdrawCollateralPermission{},
-	)
 
 	comm.SetPermissions(perms)
 	// save permission changes
