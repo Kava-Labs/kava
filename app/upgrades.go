@@ -57,7 +57,7 @@ func (app App) RegisterUpgradeHandlers() {
 
 			app.Logger().Info(fmt.Sprintf(
 				"removing x/evm AllowedParamsChange from stability committee (id=%d)",
-				MainntStabilityCommitteeId,
+				MainnetStabilityCommitteeId,
 			))
 			RemoveEVMCommitteePermissions(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
