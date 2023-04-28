@@ -15,6 +15,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
@@ -48,8 +49,17 @@ func (app App) RegisterUpgradeHandlers() {
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
 
-			app.Logger().Info(fmt.Sprintf("adding lend & cdp committee permissions to stability committee (id=%d)", MainnetStabilityCommitteeId))
+			app.Logger().Info(fmt.Sprintf(
+				"adding lend & cdp committee permissions to stability committee (id=%d)",
+				MainnetStabilityCommitteeId,
+			))
 			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
+
+			app.Logger().Info(fmt.Sprintf(
+				"removing x/evm AllowedParamsChange from stability committee (id=%d)",
+				MainnetStabilityCommitteeId,
+			))
+			RemoveEVMCommitteePermissions(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
 			app.Logger().Info("enabling community pool incentive tracking")
 			EnableCommunityPoolIncentiveTracking(ctx, app.hardKeeper, app.incentiveKeeper)
@@ -74,7 +84,10 @@ func (app App) RegisterUpgradeHandlers() {
 			app.Logger().Info("granting x/gov module account x/community module authz messages")
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
 
-			app.Logger().Info(fmt.Sprintf("adding lend & cdp committee permissions to stability committee (id=%d)", TestnetStabilityCommitteeId))
+			app.Logger().Info(fmt.Sprintf(
+				"adding lend & cdp committee permissions from stability committee (id=%d)",
+				TestnetStabilityCommitteeId,
+			))
 			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
 
 			app.Logger().Info("enabling community pool incentive tracking")
@@ -167,6 +180,46 @@ func AddNewPermissionsToStabilityCommittee(ctx sdk.Context, committeeKeeper comm
 		&committeetypes.CommunityPoolLendWithdrawPermission{},
 		&committeetypes.CommunityCDPWithdrawCollateralPermission{},
 	)
+	comm.SetPermissions(perms)
+	// save permission changes
+	committeeKeeper.SetCommittee(ctx, comm)
+}
+
+// RemoveEVMCommitteePermissions removes the following permissions to the committee with the passed in id:
+// - AllowedParamsChange for x/evm subspace (no longer stored in params)
+func RemoveEVMCommitteePermissions(ctx sdk.Context, committeeKeeper committeekeeper.Keeper, committeeId uint64) {
+	// get committee
+	comm, found := committeeKeeper.GetCommittee(ctx, committeeId)
+	if !found {
+		panic(fmt.Sprintf("expected to find committee with id %d but found none", committeeId))
+	}
+	perms := comm.GetPermissions()
+
+	// Remove the x/evm param permissions
+	for i, permission := range perms {
+		// Must be a pointer
+		paramPerm, ok := permission.(*committeetypes.ParamsChangePermission)
+		if !ok {
+			continue
+		}
+
+		var newAllowedParamsChanges committeetypes.AllowedParamsChanges
+		for _, param := range paramPerm.AllowedParamsChanges {
+			// Exclude the x/evm allowed param
+			if param.Subspace == evmtypes.ModuleName {
+				continue
+			}
+
+			newAllowedParamsChanges = append(newAllowedParamsChanges, param)
+		}
+
+		// Update the allowed params
+		paramPerm.AllowedParamsChanges = newAllowedParamsChanges
+
+		// Update the permission
+		perms[i] = paramPerm
+	}
+
 	comm.SetPermissions(perms)
 	// save permission changes
 	committeeKeeper.SetCommittee(ctx, comm)
