@@ -29,7 +29,7 @@ func (suite IntegrationTestSuite) TestUpgradeHandler() {
 
 	// check stability committee permissions before upgrade to ensure it starts without them
 	res, err := suite.Kava.Committee.Committee(
-		beforeUpgradeCtx, &committeetypes.QueryCommitteeRequest{CommitteeId: app.TestnetStabilityCommitteeId},
+		beforeUpgradeCtx, &committeetypes.QueryCommitteeRequest{CommitteeId: app.MainnetStabilityCommitteeId},
 	)
 	suite.NoError(err)
 	var beforeCommittee committeetypes.Committee
@@ -42,7 +42,7 @@ func (suite IntegrationTestSuite) TestUpgradeHandler() {
 
 	// check stability committee permission after upgrade to ensure it gets them
 	res, err = suite.Kava.Committee.Committee(
-		afterUpgradeCtx, &committeetypes.QueryCommitteeRequest{CommitteeId: app.TestnetStabilityCommitteeId},
+		afterUpgradeCtx, &committeetypes.QueryCommitteeRequest{CommitteeId: app.MainnetStabilityCommitteeId},
 	)
 	suite.NoError(err)
 	var afterCommittee committeetypes.Committee
