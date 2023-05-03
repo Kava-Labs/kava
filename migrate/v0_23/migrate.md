@@ -2,8 +2,8 @@
 
 ## Software Version and Key Dates
 
-- The version of `kava` for Kava 13 is v0.22.0
-- The Kava 12 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at approximately 15:00 UTC on May, 10th 2023.
+- The version of `kava` for Kava 13 is v0.23.0
+- The Kava 12 chain will be shutdown with a `SoftwareUpgradeProposal` that activates at approximately 15:00 UTC on May, 17th 2023.
 
 ### On the day of the upgrade
 
@@ -13,7 +13,7 @@
 
 **Ensure you are using golang 1.20.x and not aa different version.** Golang 1.19 and below may cause app hash mismatches!
 
-1. Update to v0.22.0
+1. Update to v0.23.0
 
 ```sh
   # check go version - look for 1.20!
@@ -22,7 +22,7 @@
 
   # in the `kava` folder
   git fetch
-  git checkout v0.22.0
+  git checkout v0.23.0
 
   # Note: Golang 1.20 must be installed before this step
   make install
@@ -31,7 +31,7 @@
   kava version --long
   # name: kava
   # server_name: kava
-  # version: 0.21.0
+  # version: 0.23.0
   # commit: <commit placeholder>
   # build_tags: netgo ledger,
   # go: go version go1.20.3 linux/arm64
