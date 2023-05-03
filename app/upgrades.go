@@ -25,16 +25,18 @@ import (
 )
 
 const (
-	TestnetUpgradeName = "v0.22.0-alpha.0"
+	MainnetUpgradeName = "v0.23.0"
+	TestnetUpgradeName = "v0.23.0-alpha.0"
 
+	MainnetStabilityCommitteeId = uint64(1)
 	TestnetStabilityCommitteeId = uint64(1)
 )
 
 func (app App) RegisterUpgradeHandlers() {
-	// register upgrade handler for testnet
-	app.upgradeKeeper.SetUpgradeHandler(TestnetUpgradeName,
+	// register upgrade handler for mainnet
+	app.upgradeKeeper.SetUpgradeHandler(MainnetUpgradeName,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			app.Logger().Info("running testnet upgrade handler")
+			app.Logger().Info("running mainnet upgrade handler")
 
 			toVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 			if err != nil {
@@ -48,13 +50,34 @@ func (app App) RegisterUpgradeHandlers() {
 			GrantGovCommunityPoolMessages(ctx, app.authzKeeper, app.accountKeeper)
 
 			app.Logger().Info(fmt.Sprintf(
-				"adding lend & cdp committee permissions from stability committee (id=%d)",
-				TestnetStabilityCommitteeId,
+				"adding lend & cdp committee permissions to stability committee (id=%d)",
+				MainnetStabilityCommitteeId,
 			))
-			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, TestnetStabilityCommitteeId)
+			AddNewPermissionsToStabilityCommittee(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
+
+			app.Logger().Info(fmt.Sprintf(
+				"removing x/evm AllowedParamsChange from stability committee (id=%d)",
+				MainnetStabilityCommitteeId,
+			))
+			RemoveEVMCommitteePermissions(ctx, app.committeeKeeper, MainnetStabilityCommitteeId)
 
 			app.Logger().Info("enabling community pool incentive tracking")
 			EnableCommunityPoolIncentiveTracking(ctx, app.hardKeeper, app.incentiveKeeper)
+
+			return toVM, nil
+		},
+	)
+
+	// register upgrade handler for testnet. This only runs the module
+	// migrations, as testnet already ran the other upgrades in v0.22.0.
+	app.upgradeKeeper.SetUpgradeHandler(TestnetUpgradeName,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("running testnet upgrade handler")
+
+			toVM, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
+			if err != nil {
+				return toVM, err
+			}
 
 			return toVM, nil
 		},
@@ -66,7 +89,7 @@ func (app App) RegisterUpgradeHandlers() {
 	}
 
 	// note: no store updates
-	doUpgrade := upgradeInfo.Name == TestnetUpgradeName
+	doUpgrade := upgradeInfo.Name == MainnetUpgradeName || upgradeInfo.Name == TestnetUpgradeName
 	if doUpgrade && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{}
 
