@@ -520,9 +520,8 @@ func NewApp(
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
 	app.evmKeeper = evmkeeper.NewKeeper(
-		appCodec, legacyAmino,
+		appCodec,
 		keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
-		keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey],
 		// Authority
 		authtypes.NewModuleAddress(govtypes.ModuleName),
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
