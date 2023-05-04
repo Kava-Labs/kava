@@ -764,7 +764,7 @@ func NewApp(
 		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
-		evm.NewAppModule(app.evmKeeper, app.accountKeeper, evmSubspace),
+		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		feemarket.NewAppModule(app.feeMarketKeeper, feemarketSubspace),
 		upgrade.NewAppModule(app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
