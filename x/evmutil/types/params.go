@@ -6,8 +6,10 @@ import (
 
 // Parameter keys and default values
 var (
-	KeyEnabledConversionPairs = []byte("EnabledConversionPairs")
-	DefaultConversionPairs    = ConversionPairs{}
+	KeyEnabledConversionPairs  = []byte("EnabledConversionPairs")
+	DefaultConversionPairs     = ConversionPairs{}
+	KeyAllowedNativeDenoms     = []byte("AllowedNativeDenoms")
+	DefaultAllowedNativeDenoms = AllowedNativeCoinERC20Tokens{}
 )
 
 // ParamKeyTable for evmutil module.
@@ -20,15 +22,18 @@ func ParamKeyTable() paramtypes.KeyTable {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyEnabledConversionPairs, &p.EnabledConversionPairs, validateConversionPairs),
+		paramtypes.NewParamSetPair(KeyAllowedNativeDenoms, &p.AllowedNativeDenoms, validateAllowedNativeCoinERC20Tokens),
 	}
 }
 
 // NewParams returns new evmutil module Params.
 func NewParams(
 	conversionPairs ConversionPairs,
+	allowedNativeDenoms AllowedNativeCoinERC20Tokens,
 ) Params {
 	return Params{
 		EnabledConversionPairs: conversionPairs,
+		AllowedNativeDenoms:    allowedNativeDenoms,
 	}
 }
 
@@ -36,12 +41,16 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		DefaultConversionPairs,
+		DefaultAllowedNativeDenoms,
 	)
 }
 
-// Validate returns an error if the Parmas is invalid.
+// Validate returns an error if the Params is invalid.
 func (p *Params) Validate() error {
 	if err := p.EnabledConversionPairs.Validate(); err != nil {
+		return err
+	}
+	if err := p.AllowedNativeDenoms.Validate(); err != nil {
 		return err
 	}
 	return nil

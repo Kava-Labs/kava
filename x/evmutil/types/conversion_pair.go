@@ -161,3 +161,13 @@ func (tokens AllowedNativeCoinERC20Tokens) Validate() error {
 
 	return nil
 }
+
+// validateAllowedNativeCoinERC20Tokens validates an interface as AllowedNativeCoinERC20Tokens
+func validateAllowedNativeCoinERC20Tokens(i interface{}) error {
+	pairs, ok := i.(AllowedNativeCoinERC20Tokens)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return pairs.Validate()
+}

@@ -34,9 +34,13 @@ func (suite *ParamsTestSuite) TestMarshalYAML() {
 			"usdc",
 		),
 	)
+	allowedNativeDenoms := types.NewAllowedNativeCoinERC20Tokens(
+		types.NewAllowedNativeCoinERC20Token("denom", "Sdk Denom!", "DENOM", 6),
+	)
 
 	p := types.NewParams(
 		conversionPairs,
+		allowedNativeDenoms,
 	)
 
 	data, err := yaml.Marshal(p)
@@ -47,6 +51,8 @@ func (suite *ParamsTestSuite) TestMarshalYAML() {
 	suite.Require().NoError(err)
 	_, ok := params["enabled_conversion_pairs"]
 	suite.Require().True(ok, "enabled_conversion_pairs should exist in yaml")
+	_, ok = params["allowed_native_denoms"]
+	suite.Require().True(ok, "allowed_native_denoms should exist in yaml")
 }
 
 func (suite *ParamsTestSuite) TestParamSetPairs_EnabledConversionPairs() {
@@ -65,6 +71,27 @@ func (suite *ParamsTestSuite) TestParamSetPairs_EnabledConversionPairs() {
 	pairs, ok := paramSetPair.Value.(*types.ConversionPairs)
 	suite.Require().True(ok)
 	suite.Require().Equal(pairs, &defaultParams.EnabledConversionPairs)
+
+	suite.Require().Nil(paramSetPair.ValidatorFn(*pairs))
+	suite.Require().EqualError(paramSetPair.ValidatorFn(struct{}{}), "invalid parameter type: struct {}")
+}
+
+func (suite *ParamsTestSuite) TestParamSetPairs_AllowedNativeDenoms() {
+	suite.Require().Equal([]byte("AllowedNativeDenoms"), types.KeyAllowedNativeDenoms)
+	defaultParams := types.DefaultParams()
+
+	var paramSetPair *paramstypes.ParamSetPair
+	for _, pair := range defaultParams.ParamSetPairs() {
+		if bytes.Equal(pair.Key, types.KeyAllowedNativeDenoms) {
+			paramSetPair = &pair
+			break
+		}
+	}
+	suite.Require().NotNil(paramSetPair)
+
+	pairs, ok := paramSetPair.Value.(*types.AllowedNativeCoinERC20Tokens)
+	suite.Require().True(ok)
+	suite.Require().Equal(pairs, &defaultParams.AllowedNativeDenoms)
 
 	suite.Require().Nil(paramSetPair.ValidatorFn(*pairs))
 	suite.Require().EqualError(paramSetPair.ValidatorFn(struct{}{}), "invalid parameter type: struct {}")
