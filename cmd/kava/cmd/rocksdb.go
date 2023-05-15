@@ -32,6 +32,8 @@ func RocksDBInfo(homeDir string) *cobra.Command {
 			opts.IncreaseParallelism(runtime.NumCPU())
 			opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
 
+			opts.SetOptimizeFiltersForHits(true)
+
 			for _, dbname := range dbnames {
 				db, err := grocksdb.OpenDb(opts, filepath.Join(dataDir, dbname))
 
