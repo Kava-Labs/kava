@@ -36,6 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## Features
+- (evmutil) [#1590] Add allow list param of sdk native denoms that can be transferred to evm
+
 ## [v0.23.0]
 
 ### Improvements
@@ -237,6 +240,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1590]: https://github.com/Kava-Labs/kava/pull/1590
 [#1568]: https://github.com/Kava-Labs/kava/pull/1568
 [#1567]: https://github.com/Kava-Labs/kava/pull/1567
 [#1566]: https://github.com/Kava-Labs/kava/pull/1566
