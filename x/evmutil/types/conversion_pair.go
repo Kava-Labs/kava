@@ -9,6 +9,10 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+///////////////
+// EVM -> SDK
+///////////////
+
 // NewConversionPair returns a new ConversionPair.
 func NewConversionPair(address InternalEVMAddress, denom string) ConversionPair {
 	return ConversionPair{
@@ -87,3 +91,9 @@ func validateConversionPairs(i interface{}) error {
 
 	return pairs.Validate()
 }
+
+///////////////
+// SDK -> EVM
+///////////////
+
+type AllowedNativeCoinERC20Tokens = []AllowedNativeCoinERC20Token
