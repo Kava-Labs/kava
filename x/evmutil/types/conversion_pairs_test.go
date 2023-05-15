@@ -231,3 +231,63 @@ func TestConversionPairs_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestAllowedNativeCoinERC20Token_Validate(t *testing.T) {
+	testCases := []struct {
+		name   string
+		token  types.AllowedNativeCoinERC20Token
+		expErr string
+	}{
+		{
+			name: "valid token",
+			token: types.NewAllowedNativeCoinERC20Token(
+				"uatom",
+				"Kava-wrapped ATOM",
+				"kATOM",
+				6,
+			),
+			expErr: "",
+		},
+		{
+			name: "invalid - Empty SdkDenom",
+			token: types.AllowedNativeCoinERC20Token{
+				SdkDenom: "",
+				Name:     "Example Token",
+				Symbol:   "ETK",
+				Decimal:  0,
+			},
+			expErr: "sdk denom is invalid",
+		},
+		{
+			name: "invalid - Empty Name",
+			token: types.AllowedNativeCoinERC20Token{
+				SdkDenom: "example_denom",
+				Name:     "",
+				Symbol:   "ETK",
+				Decimal:  6,
+			},
+			expErr: "name cannot be empty",
+		},
+		{
+			name: "invalid - Empty Symbol",
+			token: types.AllowedNativeCoinERC20Token{
+				SdkDenom: "example_denom",
+				Name:     "Example Token",
+				Symbol:   "",
+				Decimal:  6,
+			},
+			expErr: "symbol cannot be empty",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.token.Validate()
+			if tc.expErr != "" {
+				require.ErrorContains(t, err, tc.expErr, "Expected validation error")
+			} else {
+				require.NoError(t, err, "Expected no validation error")
+			}
+		})
+	}
+}

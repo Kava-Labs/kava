@@ -3,6 +3,7 @@ package types
 import (
 	bytes "bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -95,5 +96,36 @@ func validateConversionPairs(i interface{}) error {
 ///////////////
 // SDK -> EVM
 ///////////////
+
+// NewAllowedNativeCoinERC20Token returns an AllowedNativeCoinERC20Token
+func NewAllowedNativeCoinERC20Token(
+	sdkDenom, name, symbol string,
+	decimal uint32,
+) AllowedNativeCoinERC20Token {
+	return AllowedNativeCoinERC20Token{
+		SdkDenom: sdkDenom,
+		Name:     name,
+		Symbol:   symbol,
+		Decimal:  decimal,
+	}
+}
+
+// Validate validates the fields of a single AllowedNativeCoinERC20Token
+func (token AllowedNativeCoinERC20Token) Validate() error {
+	// disallow empty string fields
+	if err := sdk.ValidateDenom(token.SdkDenom); err != nil {
+		return fmt.Errorf("allowed native coin erc20 token's sdk denom is invalid: %v", err)
+	}
+
+	if token.Name == "" {
+		return errors.New("allowed native coin erc20 token's name cannot be empty")
+	}
+
+	if token.Symbol == "" {
+		return errors.New("allowed native coin erc20 token's symbol cannot be empty")
+	}
+
+	return nil
+}
 
 type AllowedNativeCoinERC20Tokens = []AllowedNativeCoinERC20Token
