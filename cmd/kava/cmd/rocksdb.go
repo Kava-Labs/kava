@@ -46,6 +46,9 @@ func RocksDBInfo(homeDir string) *cobra.Command {
 
 				fmt.Printf("%s %s %s\n", dbname, estReaderMem, numKeys)
 
+				stats := db.GetProperty("rocksdb.stats")
+				fmt.Println(stats)
+
 				db.Close()
 			}
 
