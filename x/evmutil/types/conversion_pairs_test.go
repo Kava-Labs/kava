@@ -291,3 +291,60 @@ func TestAllowedNativeCoinERC20Token_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestAllowedNativeCoinERC20Tokens_Validate(t *testing.T) {
+	token1 := types.NewAllowedNativeCoinERC20Token("denom1", "Token 1", "TK1", 6)
+	token2 := types.NewAllowedNativeCoinERC20Token("denom2", "Token 2", "TK2", 0)
+	invalidToken := types.NewAllowedNativeCoinERC20Token("", "No SDK Denom Token", "TK3", 18)
+
+	testCases := []struct {
+		name   string
+		tokens types.AllowedNativeCoinERC20Tokens
+		expErr string
+	}{
+		{
+			name:   "valid - no tokens",
+			tokens: types.NewAllowedNativeCoinERC20Tokens(),
+			expErr: "",
+		},
+		{
+			name:   "valid - one token",
+			tokens: types.NewAllowedNativeCoinERC20Tokens(token1),
+			expErr: "",
+		},
+		{
+			name:   "valid - multiple tokens",
+			tokens: types.NewAllowedNativeCoinERC20Tokens(token1, token2),
+			expErr: "",
+		},
+		{
+			name:   "invalid - contains invalid token",
+			tokens: types.NewAllowedNativeCoinERC20Tokens(token1, token2, invalidToken),
+			expErr: "invalid token at index 2",
+		},
+		{
+			name:   "invalid - duplicate denoms",
+			tokens: types.NewAllowedNativeCoinERC20Tokens(token1, token2, token1),
+			expErr: "found duplicate token with sdk denom denom1",
+		},
+		{
+			name: "invalid - duplicate symbol",
+			tokens: types.NewAllowedNativeCoinERC20Tokens(
+				token1,
+				types.NewAllowedNativeCoinERC20Token("diff", "Diff Denom, Same Symbol", "TK1", 6),
+			),
+			expErr: "found duplicate token with symbol TK1",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.tokens.Validate()
+			if tc.expErr != "" {
+				require.ErrorContains(t, err, tc.expErr, "Expected validation error")
+			} else {
+				require.NoError(t, err, "Expected no validation error")
+			}
+		})
+	}
+}

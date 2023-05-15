@@ -128,4 +128,36 @@ func (token AllowedNativeCoinERC20Token) Validate() error {
 	return nil
 }
 
-type AllowedNativeCoinERC20Tokens = []AllowedNativeCoinERC20Token
+// AllowedNativeCoinERC20Tokens defines a slice of AllowedNativeCoinERC20Token
+type AllowedNativeCoinERC20Tokens []AllowedNativeCoinERC20Token
+
+// NewAllowedNativeCoinERC20Tokens returns AllowedNativeCoinERC20Tokens from the provided values.
+func NewAllowedNativeCoinERC20Tokens(pairs ...AllowedNativeCoinERC20Token) AllowedNativeCoinERC20Tokens {
+	return AllowedNativeCoinERC20Tokens(pairs)
+}
+
+// Validate checks that all containing tokens are valid and that there are
+// no duplicate denoms or symbols.
+func (tokens AllowedNativeCoinERC20Tokens) Validate() error {
+	// Disallow multiple instances of a single sdk_denom or evm symbol
+	denoms := make(map[string]struct{}, len(tokens))
+	symbols := make(map[string]struct{}, len(tokens))
+
+	for i, t := range tokens {
+		if err := t.Validate(); err != nil {
+			return fmt.Errorf("invalid token at index %d: %s", i, err)
+		}
+
+		if _, found := denoms[t.SdkDenom]; found {
+			return fmt.Errorf("found duplicate token with sdk denom %s", t.SdkDenom)
+		}
+		if _, found := symbols[t.Symbol]; found {
+			return fmt.Errorf("found duplicate token with symbol %s", t.Symbol)
+		}
+
+		denoms[t.SdkDenom] = struct{}{}
+		symbols[t.Symbol] = struct{}{}
+	}
+
+	return nil
+}
