@@ -335,15 +335,16 @@ func (suite *EIP712TestSuite) SetupTest() {
 	suite.usdcEVMAddr = pair.GetAddress()
 
 	// Add a contract to evmutil conversion pair
-	suite.evmutilKeeper.SetParams(suite.ctx, evmutiltypes.NewParams(
+	evmutilParams := suite.evmutilKeeper.GetParams(suite.ctx)
+	evmutilParams.EnabledConversionPairs =
 		evmutiltypes.NewConversionPairs(
 			evmutiltypes.NewConversionPair(
 				// First contract evmutil module deploys
 				evmutiltestutil.MustNewInternalEVMAddressFromString("0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3"),
 				"erc20/usdc",
 			),
-		),
-	))
+		)
+	suite.evmutilKeeper.SetParams(suite.ctx, evmutilParams)
 
 	// allow msgs through evm eip712
 	evmKeeper := suite.tApp.GetEvmKeeper()
