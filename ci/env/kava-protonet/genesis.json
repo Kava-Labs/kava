@@ -2004,6 +2004,7 @@
     "evmutil": {
       "accounts": [],
       "params": {
+        "allowed_native_denoms": [],
         "enabled_conversion_pairs": [
           {
             "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
