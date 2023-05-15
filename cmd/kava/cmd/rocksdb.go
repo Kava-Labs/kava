@@ -27,7 +27,7 @@ func RocksDBInfo(homeDir string) *cobra.Command {
 			bbto.SetFilterPolicy(grocksdb.NewBloomFilter(10))
 			opts := grocksdb.NewDefaultOptions()
 			opts.SetBlockBasedTableFactory(bbto)
-			opts.SetMaxOpenFiles(4096)
+			opts.SetMaxOpenFiles(-1)
 			opts.SetCreateIfMissing(true)
 			opts.IncreaseParallelism(runtime.NumCPU())
 			opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
