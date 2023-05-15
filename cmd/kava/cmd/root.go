@@ -105,6 +105,7 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
+		RocksDBInfo(defaultNodeHome),
 		StatusCommand(),
 		newQueryCmd(),
 		newTxCmd(),
