@@ -239,13 +239,13 @@ func TestAllowedNativeCoinERC20Token_Validate(t *testing.T) {
 		expErr string
 	}{
 		{
-			name: "valid token",
-			token: types.NewAllowedNativeCoinERC20Token(
-				"uatom",
-				"Kava-wrapped ATOM",
-				"kATOM",
-				6,
-			),
+			name:   "valid token",
+			token:  types.NewAllowedNativeCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 6),
+			expErr: "",
+		},
+		{
+			name:   "valid - highest allowed decimals",
+			token:  types.NewAllowedNativeCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 255),
 			expErr: "",
 		},
 		{
@@ -277,6 +277,11 @@ func TestAllowedNativeCoinERC20Token_Validate(t *testing.T) {
 				Decimals: 6,
 			},
 			expErr: "symbol cannot be empty",
+		},
+		{
+			name:   "invalid - decimals higher than uint8",
+			token:  types.NewAllowedNativeCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 256),
+			expErr: "decimals must be less than 256",
 		},
 	}
 

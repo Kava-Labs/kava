@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -123,6 +124,11 @@ func (token AllowedNativeCoinERC20Token) Validate() error {
 
 	if token.Symbol == "" {
 		return errors.New("allowed native coin erc20 token's symbol cannot be empty")
+	}
+
+	// ensure decimals will properly cast to uint8 of erc20 spec
+	if token.Decimals > math.MaxUint8 {
+		return fmt.Errorf("allowed native coin erc20 token's decimals must be less than 256, found %d", token.Decimals)
 	}
 
 	return nil
