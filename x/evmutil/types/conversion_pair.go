@@ -106,7 +106,7 @@ func NewAllowedNativeCoinERC20Token(
 		SdkDenom: sdkDenom,
 		Name:     name,
 		Symbol:   symbol,
-		Decimal:  decimal,
+		Decimals: decimal,
 	}
 }
 

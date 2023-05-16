@@ -3673,7 +3673,7 @@ sdk_denom will not change metadata of deployed contract.
 | `sdk_denom` | [string](#string) |  | Denom of the sdk.Coin |
 | `name` | [string](#string) |  | Name of ERC20 contract |
 | `symbol` | [string](#string) |  | Symbol of ERC20 contract |
-| `decimal` | [uint32](#uint32) |  | Number of decimals ERC20 contract is deployed with. |
+| `decimals` | [uint32](#uint32) |  | Number of decimals ERC20 contract is deployed with. |
 
 
 

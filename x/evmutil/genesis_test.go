@@ -84,7 +84,7 @@ func (s *genesisTestSuite) TestExportGenesis() {
 			SdkDenom: "hard",
 			Name:     "Kava EVM HARD",
 			Symbol:   "HARD",
-			Decimal:  6,
+			Decimals: 6,
 		},
 	}
 	s.Keeper.SetParams(s.Ctx, params)

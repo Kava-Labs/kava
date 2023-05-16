@@ -36,5 +36,5 @@ message AllowedNativeCoinERC20Token {
   // Symbol of ERC20 contract
   string symbol = 3;
   // Number of decimals ERC20 contract is deployed with.
-  uint32 decimal = 4;
+  uint32 decimals = 4;
 }
