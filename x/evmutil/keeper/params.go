@@ -11,7 +11,7 @@ import (
 
 // GetParams returns the total set of evm parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSubspace.GetParamSet(ctx, &params)
+	k.paramSubspace.GetParamSetIfExists(ctx, &params)
 	return params
 }
 
