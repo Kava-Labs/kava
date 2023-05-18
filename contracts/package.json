@@ -1,0 +1,23 @@
+{
+  "name": "kava-contracts",
+  "version": "0.0.1",
+  "author": "Kava Labs",
+  "private": true,
+  "description": "Solidity contracts for Kava Blockchain",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "coverage": "hardhat coverage",
+    "dev": "hardhat watch dev",
+    "clean": "hardhat clean",
+    "compile": "hardhat compile",
+    "gen-ts-types": "hardhat typechain",
+    "test": "hardhat test",
+    "test-watch": "hardhat watch test"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "hardhat": "^2.14.0"
+  }
+}
