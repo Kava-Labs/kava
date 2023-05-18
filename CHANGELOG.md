@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## Features
 - (evmutil) [#1590] Add allow list param of sdk native denoms that can be transferred to evm
+- (evmutil) [#1591] Configure module to support deploying ERC20KavaWrappedNativeCoin contracts
 
 ## [v0.23.0]
 
@@ -240,6 +241,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1591]: https://github.com/Kava-Labs/kava/pull/1591
 [#1590]: https://github.com/Kava-Labs/kava/pull/1590
 [#1568]: https://github.com/Kava-Labs/kava/pull/1568
 [#1567]: https://github.com/Kava-Labs/kava/pull/1567
