@@ -17,6 +17,8 @@
     "lint-fix": "eslint '**/*.{js,ts}' --fix",
     "prettier": "prettier '**/*.{json,sol,md}' --check",
     "prettier-fix": "prettier '**/*.{json,sol,md}' --write",
+    "solhint": "solhint 'contracts/**/*.sol' --max-warnings 0",
+    "solhint-fix": "solhint 'contracts/**/*.sol' --fix",
     "test": "hardhat test",
     "test-watch": "hardhat watch test"
   },
@@ -30,6 +32,7 @@
     "hardhat": "^2.14.0",
     "prettier": "2.8.8",
     "prettier-plugin-solidity": "^1.1.3",
+    "solhint": "^3.4.1",
     "typescript": "^5.0.4"
   }
 }
