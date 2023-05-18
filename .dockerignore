@@ -3,6 +3,7 @@ out/
 .git/
 docs/
 tests/
+contracts/
 
 go.work
 go.work.sum
