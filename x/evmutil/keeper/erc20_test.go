@@ -84,3 +84,64 @@ func (suite *ERC20TestSuite) TestERC20Mint() {
 	suite.Require().True(ok, "balanceOf should respond with *big.Int")
 	suite.Require().Equal(big.NewInt(1234), balance)
 }
+
+func (suite *ERC20TestSuite) TestDeployKavaWrappedNativeCoinERC20Contract() {
+	suite.Run("fails to deploy invalid contract", func() {
+		// empty other fields means this token is invalid.
+		invalidToken := types.AllowedNativeCoinERC20Token{SdkDenom: "nope"}
+		_, err := suite.Keeper.DeployKavaWrappedNativeCoinERC20Contract(suite.Ctx, invalidToken)
+		suite.ErrorContains(err, "token's name cannot be empty")
+	})
+
+	suite.Run("deploys contract with expected metadata & permissions", func() {
+		caller, privKey := suite.RandomAccount()
+
+		token := types.NewAllowedNativeCoinERC20Token("hard", "EVM HARD", "HARD", 6)
+		addr, err := suite.Keeper.DeployKavaWrappedNativeCoinERC20Contract(suite.Ctx, token)
+		suite.NoError(err)
+		suite.NotNil(addr)
+
+		callContract := func(method string, args ...interface{}) ([]interface{}, error) {
+			return suite.QueryContract(
+				types.ERC20KavaWrappedNativeCoinContract.ABI,
+				caller,
+				privKey,
+				addr,
+				method,
+				args...,
+			)
+		}
+
+		// owner must be the evmutil module account
+		data, err := callContract("owner")
+		suite.NoError(err)
+		suite.Len(data, 1)
+		suite.Equal(types.ModuleEVMAddress, data[0].(common.Address))
+
+		// get name
+		data, err = callContract("name")
+		suite.NoError(err)
+		suite.Len(data, 1)
+		suite.Equal(token.Name, data[0].(string))
+
+		// get symbol
+		data, err = callContract("symbol")
+		suite.NoError(err)
+		suite.Len(data, 1)
+		suite.Equal(token.Symbol, data[0].(string))
+
+		// get decimals
+		data, err = callContract("decimals")
+		suite.NoError(err)
+		suite.Len(data, 1)
+		suite.Equal(token.Decimals, uint32(data[0].(uint8)))
+
+		// should not be able to call mint
+		_, err = callContract("mint", caller, big.NewInt(1))
+		suite.ErrorContains(err, "Ownable: caller is not the owner")
+
+		// should not be able to call burn
+		_, err = callContract("burn", caller, big.NewInt(1))
+		suite.ErrorContains(err, "Ownable: caller is not the owner")
+	})
+}

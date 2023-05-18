@@ -32,6 +32,12 @@ var (
 
 	// ERC20MintableBurnableAddress is the erc20 module address
 	ERC20MintableBurnableAddress common.Address
+
+	//go:embed ethermint_json/ERC20KavaWrappedNativeCoin.json
+	ERC20KavaWrappedNativeCoinJSON []byte
+
+	// ERC20KavaWrappedNativeCoinContract is the compiled erc20 contract
+	ERC20KavaWrappedNativeCoinContract evmtypes.CompiledContract
 )
 
 func init() {
@@ -44,5 +50,14 @@ func init() {
 
 	if len(ERC20MintableBurnableContract.Bin) == 0 {
 		panic("load contract failed")
+	}
+
+	err = json.Unmarshal(ERC20KavaWrappedNativeCoinJSON, &ERC20KavaWrappedNativeCoinContract)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(ERC20KavaWrappedNativeCoinContract.Bin) == 0 {
+		panic("loading ERC20KavaWrappedNativeCoin contract failed")
 	}
 }

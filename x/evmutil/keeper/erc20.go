@@ -64,6 +64,48 @@ func (k Keeper) DeployTestMintableERC20Contract(
 	return types.NewInternalEVMAddress(contractAddr), nil
 }
 
+func (k Keeper) DeployKavaWrappedNativeCoinERC20Contract(
+	ctx sdk.Context,
+	token types.AllowedNativeCoinERC20Token,
+) (types.InternalEVMAddress, error) {
+	if err := token.Validate(); err != nil {
+		return types.InternalEVMAddress{}, err
+	}
+
+	packedAbi, err := types.ERC20KavaWrappedNativeCoinContract.ABI.Pack(
+		"", // Empty string for contract constructor
+		token.Name,
+		token.Symbol,
+		uint8(token.Decimals), // cast to uint8 is safe because of Validate()
+	)
+	if err != nil {
+		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to pack token with details %+v", token)
+	}
+
+	data := make([]byte, len(types.ERC20KavaWrappedNativeCoinContract.Bin)+len(packedAbi))
+	copy(
+		data[:len(types.ERC20KavaWrappedNativeCoinContract.Bin)],
+		types.ERC20KavaWrappedNativeCoinContract.Bin,
+	)
+	copy(
+		data[len(types.ERC20KavaWrappedNativeCoinContract.Bin):],
+		packedAbi,
+	)
+
+	nonce, err := k.accountKeeper.GetSequence(ctx, types.ModuleEVMAddress.Bytes())
+	if err != nil {
+		return types.InternalEVMAddress{}, err
+	}
+
+	contractAddr := crypto.CreateAddress(types.ModuleEVMAddress, nonce)
+	_, err = k.CallEVMWithData(ctx, types.ModuleEVMAddress, nil, data)
+	if err != nil {
+		return types.InternalEVMAddress{}, fmt.Errorf("failed to deploy ERC20 %s: %s", token.Name, err)
+	}
+
+	return types.NewInternalEVMAddress(contractAddr), nil
+}
+
 // MintERC20 mints the given amount of an ERC20 token to an address. This is
 // unchecked and should only be called after permission and enabled ERC20 checks.
 func (k Keeper) MintERC20(
