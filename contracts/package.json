@@ -8,16 +8,22 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "coverage": "hardhat coverage",
-    "dev": "hardhat watch dev",
     "clean": "hardhat clean",
     "compile": "hardhat compile",
+    "coverage": "hardhat coverage",
+    "dev": "hardhat watch dev",
     "gen-ts-types": "hardhat typechain",
+    "lint": "eslint '**/*.{js,ts}'",
+    "lint-fix": "eslint '**/*.{js,ts}' --fix",
     "test": "hardhat test",
     "test-watch": "hardhat watch test"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
-    "hardhat": "^2.14.0"
+    "@typescript-eslint/eslint-plugin": "^5.59.6",
+    "@typescript-eslint/parser": "^5.59.6",
+    "eslint": "^8.40.0",
+    "hardhat": "^2.14.0",
+    "typescript": "^5.0.4"
   }
 }
