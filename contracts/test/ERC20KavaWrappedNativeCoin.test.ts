@@ -13,15 +13,13 @@ describe("ERC20KavaWrappedNativeCoin", function () {
   let erc20Factory: ERC20KavaWrappedNativeCoinFactory;
   let owner: Signer;
   let sender: Signer;
-  let ethAddr: Signer;
-  let receiver: Signer;
 
   beforeEach(async function () {
     erc20Factory = await ethers.getContractFactory(
       "ERC20KavaWrappedNativeCoin"
     );
     erc20 = await erc20Factory.deploy("Wrapped ATOM", "ATOM", decimals);
-    [owner, sender, ethAddr, receiver] = await ethers.getSigners();
+    [owner, sender] = await ethers.getSigners();
   });
 
   describe("decimals", function () {
