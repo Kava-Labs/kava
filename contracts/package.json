@@ -8,10 +8,12 @@
     "node": ">=18.0.0"
   },
   "scripts": {
+    "build": "npm run clean && npm run compile && npm run ethermint-json",
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage",
     "dev": "hardhat watch dev",
+    "ethermint-json": "jq '{ abi: .abi | tostring, bin: .bytecode | ltrimstr(\"0x\")}' artifacts/contracts/ERC20KavaWrappedNativeCoin.sol/ERC20KavaWrappedNativeCoin.json > ../x/evmutil/types/ethermint_json/ERC20KavaWrappedNativeCoin.json",
     "gen-ts-types": "hardhat typechain",
     "lint": "eslint '**/*.{js,ts}'",
     "lint-fix": "eslint '**/*.{js,ts}' --fix",
