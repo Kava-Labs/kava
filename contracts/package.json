@@ -12,7 +12,6 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage",
-    "dev": "hardhat watch dev",
     "ethermint-json": "jq '{ abi: .abi | tostring, bin: .bytecode | ltrimstr(\"0x\")}' artifacts/contracts/ERC20KavaWrappedNativeCoin.sol/ERC20KavaWrappedNativeCoin.json > ../x/evmutil/types/ethermint_json/ERC20KavaWrappedNativeCoin.json",
     "gen-ts-types": "hardhat typechain",
     "lint": "eslint '**/*.{js,ts}'",
@@ -21,8 +20,7 @@
     "prettier-fix": "prettier '**/*.{json,sol,md}' --write",
     "solhint": "solhint 'contracts/**/*.sol' --max-warnings 0",
     "solhint-fix": "solhint 'contracts/**/*.sol' --fix",
-    "test": "hardhat test",
-    "test-watch": "hardhat watch test"
+    "test": "hardhat test"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.2",
