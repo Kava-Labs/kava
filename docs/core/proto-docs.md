@@ -266,6 +266,8 @@
     - [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response)
     - [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin)
     - [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse)
+    - [MsgConvertNativeCoinToERC20](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20)
+    - [MsgConvertNativeCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20Response)
   
     - [Msg](#kava.evmutil.v1beta1.Msg)
   
@@ -3883,6 +3885,33 @@ Msg/MsgConvertERC20ToCoin.
 
 
 
+
+<a name="kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20"></a>
+
+### MsgConvertNativeCoinToERC20
+ConvertNativeCoinToERC20 defines a conversion from native sdk.Coin to ERC20.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `initiator` | [string](#string) |  | Kava bech32 address initiating the conversion. |
+| `receiver` | [string](#string) |  | EVM hex address that will receive the ERC20 tokens. |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount is the sdk.Coin amount to convert. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20Response"></a>
+
+### MsgConvertNativeCoinToERC20Response
+MsgConvertNativeCoinToERC20Response defines the response value from Msg/MsgConvertNativeCoinToERC20.
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -3899,6 +3928,7 @@ Msg defines the evmutil Msg service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `ConvertCoinToERC20` | [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20) | [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response) | ConvertCoinToERC20 defines a method for converting sdk.Coin to Kava ERC20. | |
 | `ConvertERC20ToCoin` | [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin) | [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse) | ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin. | |
+| `ConvertNativeCoinToERC20` | [MsgConvertNativeCoinToERC20](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20) | [MsgConvertNativeCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20Response) | ConvertNativeCoinToERC20 defines a method for converting a native sdk.Coin to an ERC20. | |
 
  <!-- end services -->
 
