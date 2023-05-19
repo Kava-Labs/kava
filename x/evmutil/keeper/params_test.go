@@ -5,6 +5,9 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -33,4 +36,27 @@ func (suite *ParamsTestSuite) TestEnabledConversionPair() {
 	)
 	suite.Require().NoError(err)
 	suite.Require().Equal(expPair, actualPair)
+}
+
+func (suite *ParamsTestSuite) TestHistoricParamsQuery() {
+	// setup a params store that lacks allowed_native_denoms param (as was the case in v1)
+	oldParamStore := suite.App.GetParamsKeeper().Subspace("test_subspace_for_evmutil")
+	oldParamStore.WithKeyTable(types.ParamKeyTable())
+	oldParamStore.Set(suite.Ctx, types.KeyEnabledConversionPairs, types.ConversionPairs{})
+
+	suite.True(oldParamStore.Has(suite.Ctx, types.KeyEnabledConversionPairs))
+	suite.False(oldParamStore.Has(suite.Ctx, types.KeyAllowedNativeDenoms))
+
+	oldStateKeeper := keeper.NewKeeper(
+		suite.App.AppCodec(),
+		sdk.NewKVStoreKey(types.StoreKey),
+		oldParamStore,
+		suite.App.GetBankKeeper(),
+		suite.App.GetAccountKeeper(),
+	)
+
+	// prior to making GetParams() use GetParamSetIfExists, this would panic.
+	suite.NotPanics(func() {
+		_ = oldStateKeeper.GetParams(suite.Ctx)
+	})
 }

@@ -47,9 +47,12 @@ func TestGenesisState_Validate(t *testing.T) {
 				{Address: addrs[0], Balance: sdkmath.NewInt(100)},
 				{Address: addrs[1], Balance: sdkmath.NewInt(150)},
 			},
-			params: types.NewParams(types.NewConversionPairs(
-				types.NewConversionPair(types.NewInternalEVMAddress(common.HexToAddress("0xinvalidaddress")), "weth"),
-			)),
+			params: types.NewParams(
+				types.NewConversionPairs(
+					types.NewConversionPair(types.NewInternalEVMAddress(common.HexToAddress("0xinvalidaddress")), "weth"),
+				),
+				types.NewAllowedNativeCoinERC20Tokens(),
+			),
 			success: false,
 		},
 		{

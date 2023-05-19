@@ -79,6 +79,14 @@ func (s *genesisTestSuite) TestExportGenesis() {
 			KavaERC20Address: testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").Bytes(),
 			Denom:            "weth"},
 	}
+	params.AllowedNativeDenoms = []types.AllowedNativeCoinERC20Token{
+		{
+			SdkDenom: "hard",
+			Name:     "Kava EVM HARD",
+			Symbol:   "HARD",
+			Decimals: 6,
+		},
+	}
 	s.Keeper.SetParams(s.Ctx, params)
 	gs := evmutil.ExportGenesis(s.Ctx, s.Keeper)
 	s.Require().Equal(gs.Accounts, accounts)

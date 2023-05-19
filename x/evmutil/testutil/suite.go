@@ -156,6 +156,7 @@ func (suite *Suite) SetupTest() {
 				"erc20/usdc",
 			),
 		),
+		types.NewAllowedNativeCoinERC20Tokens(),
 	))
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())

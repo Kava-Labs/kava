@@ -247,6 +247,7 @@
     - [Msg](#kava.earn.v1beta1.Msg)
   
 - [kava/evmutil/v1beta1/conversion_pair.proto](#kava/evmutil/v1beta1/conversion_pair.proto)
+    - [AllowedNativeCoinERC20Token](#kava.evmutil.v1beta1.AllowedNativeCoinERC20Token)
     - [ConversionPair](#kava.evmutil.v1beta1.ConversionPair)
   
 - [kava/evmutil/v1beta1/genesis.proto](#kava/evmutil/v1beta1/genesis.proto)
@@ -3658,6 +3659,27 @@ Msg defines the earn Msg service.
 
 
 
+<a name="kava.evmutil.v1beta1.AllowedNativeCoinERC20Token"></a>
+
+### AllowedNativeCoinERC20Token
+AllowedNativeCoinERC20Token defines allowed sdk denom & metadata
+for evm token representations of sdk assets.
+NOTE: once evm token contracts are deployed, changes to metadata for a given
+sdk_denom will not change metadata of deployed contract.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `sdk_denom` | [string](#string) |  | Denom of the sdk.Coin |
+| `name` | [string](#string) |  | Name of ERC20 contract |
+| `symbol` | [string](#string) |  | Symbol of ERC20 contract |
+| `decimals` | [uint32](#uint32) |  | Number of decimals ERC20 contract is deployed with. |
+
+
+
+
+
+
 <a name="kava.evmutil.v1beta1.ConversionPair"></a>
 
 ### ConversionPair
@@ -3732,6 +3754,7 @@ Params defines the evmutil module params
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `enabled_conversion_pairs` | [ConversionPair](#kava.evmutil.v1beta1.ConversionPair) | repeated | enabled_conversion_pairs defines the list of conversion pairs allowed to be converted between Kava ERC20 and sdk.Coin |
+| `allowed_native_denoms` | [AllowedNativeCoinERC20Token](#kava.evmutil.v1beta1.AllowedNativeCoinERC20Token) | repeated | allowed_native_denoms is a list of denom & erc20 token metadata pairs. if a denom is in the list, it is allowed to be converted to an erc20 in the evm. |
 
 
 
