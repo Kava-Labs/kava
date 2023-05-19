@@ -47,7 +47,7 @@ describe("ERC20KavaWrappedNativeCoin", function () {
 
   describe("burn", function () {
     it("should reject non-owner", async function () {
-      const tx = erc20.connect(sender).mint(await sender.getAddress(), 10n);
+      const tx = erc20.connect(sender).burn(await sender.getAddress(), 10n);
       await expect(tx).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
