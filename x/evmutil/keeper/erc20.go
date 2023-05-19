@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -64,12 +65,15 @@ func (k Keeper) DeployTestMintableERC20Contract(
 	return types.NewInternalEVMAddress(contractAddr), nil
 }
 
+// DeployKavaWrappedNativeCoinERC20Contract validates token details and then deploys an ERC20
+// contract with the token metadata.
+// This method does NOT check if a token for the provided SdkDenom has already been deployed.
 func (k Keeper) DeployKavaWrappedNativeCoinERC20Contract(
 	ctx sdk.Context,
 	token types.AllowedNativeCoinERC20Token,
 ) (types.InternalEVMAddress, error) {
 	if err := token.Validate(); err != nil {
-		return types.InternalEVMAddress{}, err
+		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to deploy erc20 for sdk denom %s", token.SdkDenom)
 	}
 
 	packedAbi, err := types.ERC20KavaWrappedNativeCoinContract.ABI.Pack(
@@ -100,7 +104,7 @@ func (k Keeper) DeployKavaWrappedNativeCoinERC20Contract(
 	contractAddr := crypto.CreateAddress(types.ModuleEVMAddress, nonce)
 	_, err = k.CallEVMWithData(ctx, types.ModuleEVMAddress, nil, data)
 	if err != nil {
-		return types.InternalEVMAddress{}, fmt.Errorf("failed to deploy ERC20 %s: %s", token.Name, err)
+		return types.InternalEVMAddress{}, fmt.Errorf("failed to deploy ERC20 %s (nonce=%d, data=%s): %s", token.Name, nonce, hex.EncodeToString(data), err)
 	}
 
 	return types.NewInternalEVMAddress(contractAddr), nil
