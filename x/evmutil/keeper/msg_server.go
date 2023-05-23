@@ -22,7 +22,7 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 ////////////////////////////
-// EVM-native assets -> SDK
+// EVM-native assets -> Cosmos SDK
 ////////////////////////////
 
 // ConvertCoinToERC20 handles a MsgConvertCoinToERC20 message to convert
@@ -108,7 +108,7 @@ func (s msgServer) ConvertERC20ToCoin(
 }
 
 ////////////////////////////
-// SDK-native assets -> EVM
+// Cosmos SDK-native assets -> EVM
 ////////////////////////////
 
 // ConvertNativeCoinToERC20 converts a native sdk.Coin to an ERC20.

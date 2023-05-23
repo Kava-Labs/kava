@@ -29,7 +29,7 @@ const (
 )
 
 ////////////////////////////
-// EVM-native assets -> SDK
+// EVM-native assets -> Cosmos SDK
 ////////////////////////////
 
 // NewMsgConvertCoinToERC20 returns a new MsgConvertCoinToERC20
@@ -157,7 +157,7 @@ func (msg MsgConvertERC20ToCoin) Type() string {
 }
 
 ////////////////////////////
-// SDK-native assets -> EVM
+// Cosmos SDK-native assets -> EVM
 ////////////////////////////
 
 // NewMsgConvertNativeCoinToERC20 returns a new MsgConvertNativeCoinToERC20
