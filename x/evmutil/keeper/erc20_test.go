@@ -103,7 +103,7 @@ func (suite *ERC20TestSuite) TestDeployKavaWrappedNativeCoinERC20Contract() {
 
 		callContract := func(method string, args ...interface{}) ([]interface{}, error) {
 			return suite.QueryContract(
-				types.ERC20KavaWrappedNativeCoinContract.ABI,
+				types.ERC20KavaWrappedCosmosCoinContract.ABI,
 				caller,
 				privKey,
 				addr,

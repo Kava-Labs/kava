@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title An ERC20 token contract owned and deployed by the evmutil module of Kava.
-///        Tokens are backed one-for-one by sdk coins held in the module account.
+///        Tokens are backed one-for-one by cosmos-sdk coins held in the module account.
 /// @author Kava Labs, LLC
 /// @custom:security-contact security@kava.io
-contract ERC20KavaWrappedNativeCoin is ERC20, Ownable {
+contract ERC20KavaWrappedCosmosCoin is ERC20, Ownable {
     /// @notice The decimals places of the token. For display purposes only.
     uint8 private immutable _decimals;
 

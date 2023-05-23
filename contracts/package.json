@@ -12,7 +12,7 @@
     "clean": "hardhat clean",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage",
-    "ethermint-json": "jq '{ abi: .abi | tostring, bin: .bytecode | ltrimstr(\"0x\")}' artifacts/contracts/ERC20KavaWrappedNativeCoin.sol/ERC20KavaWrappedNativeCoin.json > ../x/evmutil/types/ethermint_json/ERC20KavaWrappedNativeCoin.json",
+    "ethermint-json": "jq '{ abi: .abi | tostring, bin: .bytecode | ltrimstr(\"0x\")}' artifacts/contracts/ERC20KavaWrappedCosmosCoin.sol/ERC20KavaWrappedCosmosCoin.json > ../x/evmutil/types/ethermint_json/ERC20KavaWrappedCosmosCoin.json",
     "gen-ts-types": "hardhat typechain",
     "lint": "eslint '**/*.{js,ts}'",
     "lint-fix": "eslint '**/*.{js,ts}' --fix",

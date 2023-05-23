@@ -76,7 +76,7 @@ func (k Keeper) DeployKavaWrappedNativeCoinERC20Contract(
 		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to deploy erc20 for sdk denom %s", token.SdkDenom)
 	}
 
-	packedAbi, err := types.ERC20KavaWrappedNativeCoinContract.ABI.Pack(
+	packedAbi, err := types.ERC20KavaWrappedCosmosCoinContract.ABI.Pack(
 		"", // Empty string for contract constructor
 		token.Name,
 		token.Symbol,
@@ -86,13 +86,13 @@ func (k Keeper) DeployKavaWrappedNativeCoinERC20Contract(
 		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to pack token with details %+v", token)
 	}
 
-	data := make([]byte, len(types.ERC20KavaWrappedNativeCoinContract.Bin)+len(packedAbi))
+	data := make([]byte, len(types.ERC20KavaWrappedCosmosCoinContract.Bin)+len(packedAbi))
 	copy(
-		data[:len(types.ERC20KavaWrappedNativeCoinContract.Bin)],
-		types.ERC20KavaWrappedNativeCoinContract.Bin,
+		data[:len(types.ERC20KavaWrappedCosmosCoinContract.Bin)],
+		types.ERC20KavaWrappedCosmosCoinContract.Bin,
 	)
 	copy(
-		data[len(types.ERC20KavaWrappedNativeCoinContract.Bin):],
+		data[len(types.ERC20KavaWrappedCosmosCoinContract.Bin):],
 		packedAbi,
 	)
 
