@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/big"
 
@@ -59,6 +60,51 @@ func (k Keeper) DeployTestMintableERC20Contract(
 	_, err = k.CallEVMWithData(ctx, types.ModuleEVMAddress, nil, data)
 	if err != nil {
 		return types.InternalEVMAddress{}, fmt.Errorf("failed to deploy ERC20 for %s: %w", name, err)
+	}
+
+	return types.NewInternalEVMAddress(contractAddr), nil
+}
+
+// DeployKavaWrappedNativeCoinERC20Contract validates token details and then deploys an ERC20
+// contract with the token metadata.
+// This method does NOT check if a token for the provided SdkDenom has already been deployed.
+func (k Keeper) DeployKavaWrappedNativeCoinERC20Contract(
+	ctx sdk.Context,
+	token types.AllowedNativeCoinERC20Token,
+) (types.InternalEVMAddress, error) {
+	if err := token.Validate(); err != nil {
+		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to deploy erc20 for sdk denom %s", token.SdkDenom)
+	}
+
+	packedAbi, err := types.ERC20KavaWrappedNativeCoinContract.ABI.Pack(
+		"", // Empty string for contract constructor
+		token.Name,
+		token.Symbol,
+		uint8(token.Decimals), // cast to uint8 is safe because of Validate()
+	)
+	if err != nil {
+		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to pack token with details %+v", token)
+	}
+
+	data := make([]byte, len(types.ERC20KavaWrappedNativeCoinContract.Bin)+len(packedAbi))
+	copy(
+		data[:len(types.ERC20KavaWrappedNativeCoinContract.Bin)],
+		types.ERC20KavaWrappedNativeCoinContract.Bin,
+	)
+	copy(
+		data[len(types.ERC20KavaWrappedNativeCoinContract.Bin):],
+		packedAbi,
+	)
+
+	nonce, err := k.accountKeeper.GetSequence(ctx, types.ModuleEVMAddress.Bytes())
+	if err != nil {
+		return types.InternalEVMAddress{}, err
+	}
+
+	contractAddr := crypto.CreateAddress(types.ModuleEVMAddress, nonce)
+	_, err = k.CallEVMWithData(ctx, types.ModuleEVMAddress, nil, data)
+	if err != nil {
+		return types.InternalEVMAddress{}, fmt.Errorf("failed to deploy ERC20 %s (nonce=%d, data=%s): %s", token.Name, nonce, hex.EncodeToString(data), err)
 	}
 
 	return types.NewInternalEVMAddress(contractAddr), nil

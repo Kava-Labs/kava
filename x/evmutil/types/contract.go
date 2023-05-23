@@ -18,6 +18,7 @@ import (
 	// Embed ERC20 JSON files
 	_ "embed"
 	"encoding/json"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -32,6 +33,12 @@ var (
 
 	// ERC20MintableBurnableAddress is the erc20 module address
 	ERC20MintableBurnableAddress common.Address
+
+	//go:embed ethermint_json/ERC20KavaWrappedNativeCoin.json
+	ERC20KavaWrappedNativeCoinJSON []byte
+
+	// ERC20KavaWrappedNativeCoinContract is the compiled erc20 contract
+	ERC20KavaWrappedNativeCoinContract evmtypes.CompiledContract
 )
 
 func init() {
@@ -39,10 +46,19 @@ func init() {
 
 	err := json.Unmarshal(ERC20MintableBurnableJSON, &ERC20MintableBurnableContract)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("failed to unmarshal ERC20MintableBurnableJSON: %s. %s", err, string(ERC20MintableBurnableJSON)))
 	}
 
 	if len(ERC20MintableBurnableContract.Bin) == 0 {
-		panic("load contract failed")
+		panic("loading ERC20MintableBurnable contract failed")
+	}
+
+	err = json.Unmarshal(ERC20KavaWrappedNativeCoinJSON, &ERC20KavaWrappedNativeCoinContract)
+	if err != nil {
+		panic(fmt.Sprintf("failed to unmarshal ERC20KavaWrappedNativeCoinJSON: %s. %s", err, string(ERC20KavaWrappedNativeCoinJSON)))
+	}
+
+	if len(ERC20KavaWrappedNativeCoinContract.Bin) == 0 {
+		panic("loading ERC20KavaWrappedNativeCoin contract failed")
 	}
 }

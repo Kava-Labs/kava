@@ -72,12 +72,10 @@ func (suite *Suite) SetupTest() {
 	suite.EvmModuleAddr = suite.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
 
 	// test evm user keys that have no minting permissions
-	key1, err := ethsecp256k1.GenerateKey()
-	suite.Require().NoError(err)
-	suite.Key1 = key1
-	suite.Key1Addr = types.NewInternalEVMAddress(common.BytesToAddress(suite.Key1.PubKey().Address()))
-	suite.Key2, err = ethsecp256k1.GenerateKey()
-	suite.Require().NoError(err)
+	addr, privKey := suite.RandomAccount()
+	suite.Key1 = privKey
+	suite.Key1Addr = types.NewInternalEVMAddress(addr)
+	_, suite.Key2 = suite.RandomAccount()
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	suite.Addrs = addrs
@@ -180,6 +178,13 @@ func (suite *Suite) Commit() {
 
 	// update ctx
 	suite.Ctx = suite.App.NewContext(false, header)
+}
+
+func (suite *Suite) RandomAccount() (common.Address, *ethsecp256k1.PrivKey) {
+	privKey, err := ethsecp256k1.GenerateKey()
+	suite.NoError(err)
+	addr := common.BytesToAddress(privKey.PubKey().Address())
+	return addr, privKey
 }
 
 func (suite *Suite) FundAccountWithKava(addr sdk.AccAddress, coins sdk.Coins) {
