@@ -111,12 +111,12 @@ func (s msgServer) ConvertERC20ToCoin(
 // Cosmos SDK-native assets -> EVM
 ////////////////////////////
 
-// ConvertNativeCoinToERC20 converts a native sdk.Coin to an ERC20.
+// ConvertCosmosCoinToERC20 converts a native sdk.Coin to an ERC20.
 // If no ERC20 contract has been deployed for the given denom, a new
 // contract will be deployed and registered to the module.
-func (msgServer) ConvertNativeCoinToERC20(
+func (msgServer) ConvertCosmosCoinToERC20(
 	ctx context.Context,
-	msg *types.MsgConvertNativeCoinToERC20,
-) (*types.MsgConvertNativeCoinToERC20Response, error) {
+	msg *types.MsgConvertCosmosCoinToERC20,
+) (*types.MsgConvertCosmosCoinToERC20Response, error) {
 	return nil, fmt.Errorf("unimplemented - coming soon")
 }

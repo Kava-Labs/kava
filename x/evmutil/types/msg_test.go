@@ -200,7 +200,7 @@ func TestMsgConvertERC20ToCoin(t *testing.T) {
 	}
 }
 
-func TestConvertNativeCoinToERC20_ValidateBasic(t *testing.T) {
+func TestConvertCosmosCoinToERC20_ValidateBasic(t *testing.T) {
 	validKavaAddr := app.RandomAddress()
 	validHexAddr, _ := testutil.RandomEvmAccount()
 	invalidAddr := "not-an-address"
@@ -273,7 +273,7 @@ func TestConvertNativeCoinToERC20_ValidateBasic(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			msg := types.NewMsgConvertNativeCoinToERC20(
+			msg := types.NewMsgConvertCosmosCoinToERC20(
 				tc.initiator,
 				tc.receiver,
 				tc.amount,
@@ -285,17 +285,17 @@ func TestConvertNativeCoinToERC20_ValidateBasic(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 				require.Equal(t, "evmutil", msg.Route())
-				require.Equal(t, "evmutil_convert_native_coin_to_erc20", msg.Type())
+				require.Equal(t, "evmutil_convert_cosmos_coin_to_erc20", msg.Type())
 				require.NotPanics(t, func() { _ = msg.GetSignBytes() })
 			}
 		})
 	}
 }
 
-func TestConvertNativeCoinToERC20_GetSigners(t *testing.T) {
+func TestConvertCosmosCoinToERC20_GetSigners(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		initiator := app.RandomAddress()
-		signers := types.MsgConvertNativeCoinToERC20{
+		signers := types.MsgConvertCosmosCoinToERC20{
 			Initiator: initiator.String(),
 		}.GetSigners()
 		require.Len(t, signers, 1)
@@ -304,7 +304,7 @@ func TestConvertNativeCoinToERC20_GetSigners(t *testing.T) {
 
 	t.Run("panics when depositor is invalid", func(t *testing.T) {
 		require.Panics(t, func() {
-			types.MsgConvertNativeCoinToERC20{
+			types.MsgConvertCosmosCoinToERC20{
 				Initiator: "not-an-address",
 			}.GetSigners()
 		})

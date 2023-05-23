@@ -45,10 +45,10 @@ message Params {
     (gogoproto.castrepeated) = "ConversionPairs"
   ];
 
-  // allowed_native_denoms is a list of denom & erc20 token metadata pairs.
+  // allowed_cosmos_denoms is a list of denom & erc20 token metadata pairs.
   // if a denom is in the list, it is allowed to be converted to an erc20 in the evm.
-  repeated AllowedNativeCoinERC20Token allowed_native_denoms = 1 [
+  repeated AllowedCosmosCoinERC20Token allowed_cosmos_denoms = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "AllowedNativeCoinERC20Tokens"
+    (gogoproto.castrepeated) = "AllowedCosmosCoinERC20Tokens"
   ];
 }

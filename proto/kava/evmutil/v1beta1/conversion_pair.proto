@@ -22,15 +22,15 @@ message ConversionPair {
   string denom = 2;
 }
 
-// AllowedNativeCoinERC20Token defines allowed sdk denom & metadata
+// AllowedCosmosCoinERC20Token defines allowed cosmos-sdk denom & metadata
 // for evm token representations of sdk assets.
 // NOTE: once evm token contracts are deployed, changes to metadata for a given
-// sdk_denom will not change metadata of deployed contract.
-message AllowedNativeCoinERC20Token {
+// cosmos_denom will not change metadata of deployed contract.
+message AllowedCosmosCoinERC20Token {
   option (gogoproto.goproto_getters) = false;
 
   // Denom of the sdk.Coin
-  string sdk_denom = 1;
+  string cosmos_denom = 1;
   // Name of ERC20 contract
   string name = 2;
   // Symbol of ERC20 contract

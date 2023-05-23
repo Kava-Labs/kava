@@ -247,7 +247,7 @@
     - [Msg](#kava.earn.v1beta1.Msg)
   
 - [kava/evmutil/v1beta1/conversion_pair.proto](#kava/evmutil/v1beta1/conversion_pair.proto)
-    - [AllowedNativeCoinERC20Token](#kava.evmutil.v1beta1.AllowedNativeCoinERC20Token)
+    - [AllowedCosmosCoinERC20Token](#kava.evmutil.v1beta1.AllowedCosmosCoinERC20Token)
     - [ConversionPair](#kava.evmutil.v1beta1.ConversionPair)
   
 - [kava/evmutil/v1beta1/genesis.proto](#kava/evmutil/v1beta1/genesis.proto)
@@ -264,10 +264,10 @@
 - [kava/evmutil/v1beta1/tx.proto](#kava/evmutil/v1beta1/tx.proto)
     - [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20)
     - [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response)
+    - [MsgConvertCosmosCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20)
+    - [MsgConvertCosmosCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20Response)
     - [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin)
     - [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse)
-    - [MsgConvertNativeCoinToERC20](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20)
-    - [MsgConvertNativeCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20Response)
   
     - [Msg](#kava.evmutil.v1beta1.Msg)
   
@@ -3661,18 +3661,18 @@ Msg defines the earn Msg service.
 
 
 
-<a name="kava.evmutil.v1beta1.AllowedNativeCoinERC20Token"></a>
+<a name="kava.evmutil.v1beta1.AllowedCosmosCoinERC20Token"></a>
 
-### AllowedNativeCoinERC20Token
-AllowedNativeCoinERC20Token defines allowed sdk denom & metadata
+### AllowedCosmosCoinERC20Token
+AllowedCosmosCoinERC20Token defines allowed cosmos-sdk denom & metadata
 for evm token representations of sdk assets.
 NOTE: once evm token contracts are deployed, changes to metadata for a given
-sdk_denom will not change metadata of deployed contract.
+cosmos_denom will not change metadata of deployed contract.
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `sdk_denom` | [string](#string) |  | Denom of the sdk.Coin |
+| `cosmos_denom` | [string](#string) |  | Denom of the sdk.Coin |
 | `name` | [string](#string) |  | Name of ERC20 contract |
 | `symbol` | [string](#string) |  | Symbol of ERC20 contract |
 | `decimals` | [uint32](#uint32) |  | Number of decimals ERC20 contract is deployed with. |
@@ -3756,7 +3756,7 @@ Params defines the evmutil module params
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `enabled_conversion_pairs` | [ConversionPair](#kava.evmutil.v1beta1.ConversionPair) | repeated | enabled_conversion_pairs defines the list of conversion pairs allowed to be converted between Kava ERC20 and sdk.Coin |
-| `allowed_native_denoms` | [AllowedNativeCoinERC20Token](#kava.evmutil.v1beta1.AllowedNativeCoinERC20Token) | repeated | allowed_native_denoms is a list of denom & erc20 token metadata pairs. if a denom is in the list, it is allowed to be converted to an erc20 in the evm. |
+| `allowed_cosmos_denoms` | [AllowedCosmosCoinERC20Token](#kava.evmutil.v1beta1.AllowedCosmosCoinERC20Token) | repeated | allowed_cosmos_denoms is a list of denom & erc20 token metadata pairs. if a denom is in the list, it is allowed to be converted to an erc20 in the evm. |
 
 
 
@@ -3857,6 +3857,33 @@ MsgConvertCoinToERC20Response defines the response value from Msg/ConvertCoinToE
 
 
 
+<a name="kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20"></a>
+
+### MsgConvertCosmosCoinToERC20
+ConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `initiator` | [string](#string) |  | Kava bech32 address initiating the conversion. |
+| `receiver` | [string](#string) |  | EVM hex address that will receive the ERC20 tokens. |
+| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount is the sdk.Coin amount to convert. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20Response"></a>
+
+### MsgConvertCosmosCoinToERC20Response
+MsgConvertCosmosCoinToERC20Response defines the response value from Msg/MsgConvertCosmosCoinToERC20.
+
+
+
+
+
+
 <a name="kava.evmutil.v1beta1.MsgConvertERC20ToCoin"></a>
 
 ### MsgConvertERC20ToCoin
@@ -3885,33 +3912,6 @@ Msg/MsgConvertERC20ToCoin.
 
 
 
-
-<a name="kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20"></a>
-
-### MsgConvertNativeCoinToERC20
-ConvertNativeCoinToERC20 defines a conversion from native sdk.Coin to ERC20.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `initiator` | [string](#string) |  | Kava bech32 address initiating the conversion. |
-| `receiver` | [string](#string) |  | EVM hex address that will receive the ERC20 tokens. |
-| `amount` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | Amount is the sdk.Coin amount to convert. |
-
-
-
-
-
-
-<a name="kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20Response"></a>
-
-### MsgConvertNativeCoinToERC20Response
-MsgConvertNativeCoinToERC20Response defines the response value from Msg/MsgConvertNativeCoinToERC20.
-
-
-
-
-
  <!-- end messages -->
 
  <!-- end enums -->
@@ -3928,7 +3928,7 @@ Msg defines the evmutil Msg service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `ConvertCoinToERC20` | [MsgConvertCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCoinToERC20) | [MsgConvertCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCoinToERC20Response) | ConvertCoinToERC20 defines a method for converting sdk.Coin to Kava ERC20. | |
 | `ConvertERC20ToCoin` | [MsgConvertERC20ToCoin](#kava.evmutil.v1beta1.MsgConvertERC20ToCoin) | [MsgConvertERC20ToCoinResponse](#kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse) | ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin. | |
-| `ConvertNativeCoinToERC20` | [MsgConvertNativeCoinToERC20](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20) | [MsgConvertNativeCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20Response) | ConvertNativeCoinToERC20 defines a method for converting a native sdk.Coin to an ERC20. | |
+| `ConvertCosmosCoinToERC20` | [MsgConvertCosmosCoinToERC20](#kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20) | [MsgConvertCosmosCoinToERC20Response](#kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20Response) | ConvertCosmosCoinToERC20 defines a method for converting a cosmos sdk.Coin to an ERC20. | |
 
  <!-- end services -->
 

@@ -65,15 +65,15 @@ func (k Keeper) DeployTestMintableERC20Contract(
 	return types.NewInternalEVMAddress(contractAddr), nil
 }
 
-// DeployKavaWrappedNativeCoinERC20Contract validates token details and then deploys an ERC20
+// DeployKavaWrappedCosmosCoinERC20Contract validates token details and then deploys an ERC20
 // contract with the token metadata.
 // This method does NOT check if a token for the provided SdkDenom has already been deployed.
-func (k Keeper) DeployKavaWrappedNativeCoinERC20Contract(
+func (k Keeper) DeployKavaWrappedCosmosCoinERC20Contract(
 	ctx sdk.Context,
-	token types.AllowedNativeCoinERC20Token,
+	token types.AllowedCosmosCoinERC20Token,
 ) (types.InternalEVMAddress, error) {
 	if err := token.Validate(); err != nil {
-		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to deploy erc20 for sdk denom %s", token.SdkDenom)
+		return types.InternalEVMAddress{}, errorsmod.Wrapf(err, "failed to deploy erc20 for sdk denom %s", token.CosmosDenom)
 	}
 
 	packedAbi, err := types.ERC20KavaWrappedCosmosCoinContract.ABI.Pack(

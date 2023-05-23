@@ -51,7 +51,7 @@ func TestGenesisState_Validate(t *testing.T) {
 				types.NewConversionPairs(
 					types.NewConversionPair(types.NewInternalEVMAddress(common.HexToAddress("0xinvalidaddress")), "weth"),
 				),
-				types.NewAllowedNativeCoinERC20Tokens(),
+				types.NewAllowedCosmosCoinERC20Tokens(),
 			),
 			success: false,
 		},
