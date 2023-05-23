@@ -85,25 +85,25 @@ func (suite *ERC20TestSuite) TestERC20Mint() {
 	suite.Require().Equal(big.NewInt(1234), balance)
 }
 
-func (suite *ERC20TestSuite) TestDeployKavaWrappedNativeCoinERC20Contract() {
+func (suite *ERC20TestSuite) TestDeployKavaWrappedCosmosCoinERC20Contract() {
 	suite.Run("fails to deploy invalid contract", func() {
 		// empty other fields means this token is invalid.
-		invalidToken := types.AllowedNativeCoinERC20Token{SdkDenom: "nope"}
-		_, err := suite.Keeper.DeployKavaWrappedNativeCoinERC20Contract(suite.Ctx, invalidToken)
+		invalidToken := types.AllowedCosmosCoinERC20Token{CosmosDenom: "nope"}
+		_, err := suite.Keeper.DeployKavaWrappedCosmosCoinERC20Contract(suite.Ctx, invalidToken)
 		suite.ErrorContains(err, "token's name cannot be empty")
 	})
 
 	suite.Run("deploys contract with expected metadata & permissions", func() {
 		caller, privKey := testutil.RandomEvmAccount()
 
-		token := types.NewAllowedNativeCoinERC20Token("hard", "EVM HARD", "HARD", 6)
-		addr, err := suite.Keeper.DeployKavaWrappedNativeCoinERC20Contract(suite.Ctx, token)
+		token := types.NewAllowedCosmosCoinERC20Token("hard", "EVM HARD", "HARD", 6)
+		addr, err := suite.Keeper.DeployKavaWrappedCosmosCoinERC20Contract(suite.Ctx, token)
 		suite.NoError(err)
 		suite.NotNil(addr)
 
 		callContract := func(method string, args ...interface{}) ([]interface{}, error) {
 			return suite.QueryContract(
-				types.ERC20KavaWrappedNativeCoinContract.ABI,
+				types.ERC20KavaWrappedCosmosCoinContract.ABI,
 				caller,
 				privKey,
 				addr,

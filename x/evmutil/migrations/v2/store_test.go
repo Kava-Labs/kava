@@ -22,14 +22,14 @@ func TestStoreMigrationAddsKeyTableIncludingNewParam(t *testing.T) {
 	paramstore := paramtypes.NewSubspace(encCfg.Codec, encCfg.Amino, evmutilKey, tEvmutilKey, types.ModuleName)
 
 	// Check param doesn't exist before
-	require.False(t, paramstore.Has(ctx, types.KeyAllowedNativeDenoms))
+	require.False(t, paramstore.Has(ctx, types.KeyAllowedCosmosDenoms))
 
 	// Run migrations.
 	err := v2evmutil.MigrateStore(ctx, paramstore)
 	require.NoError(t, err)
 
 	// Make sure the new params are set.
-	require.True(t, paramstore.Has(ctx, types.KeyAllowedNativeDenoms))
+	require.True(t, paramstore.Has(ctx, types.KeyAllowedCosmosDenoms))
 }
 
 func TestStoreMigrationSetsNewParamOnExistingKeyTable(t *testing.T) {
@@ -43,12 +43,12 @@ func TestStoreMigrationSetsNewParamOnExistingKeyTable(t *testing.T) {
 	// expect it to have key table
 	require.True(t, paramstore.HasKeyTable())
 	// expect it to not have new param
-	require.False(t, paramstore.Has(ctx, types.KeyAllowedNativeDenoms))
+	require.False(t, paramstore.Has(ctx, types.KeyAllowedCosmosDenoms))
 
 	// Run migrations.
 	err := v2evmutil.MigrateStore(ctx, paramstore)
 	require.NoError(t, err)
 
 	// Make sure the new params are set.
-	require.True(t, paramstore.Has(ctx, types.KeyAllowedNativeDenoms))
+	require.True(t, paramstore.Has(ctx, types.KeyAllowedCosmosDenoms))
 }

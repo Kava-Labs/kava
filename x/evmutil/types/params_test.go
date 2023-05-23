@@ -34,13 +34,13 @@ func (suite *ParamsTestSuite) TestMarshalYAML() {
 			"usdc",
 		),
 	)
-	allowedNativeDenoms := types.NewAllowedNativeCoinERC20Tokens(
-		types.NewAllowedNativeCoinERC20Token("denom", "Sdk Denom!", "DENOM", 6),
+	allowedCosmosDenoms := types.NewAllowedCosmosCoinERC20Tokens(
+		types.NewAllowedCosmosCoinERC20Token("denom", "Sdk Denom!", "DENOM", 6),
 	)
 
 	p := types.NewParams(
 		conversionPairs,
-		allowedNativeDenoms,
+		allowedCosmosDenoms,
 	)
 
 	data, err := yaml.Marshal(p)
@@ -51,8 +51,8 @@ func (suite *ParamsTestSuite) TestMarshalYAML() {
 	suite.Require().NoError(err)
 	_, ok := params["enabled_conversion_pairs"]
 	suite.Require().True(ok, "enabled_conversion_pairs should exist in yaml")
-	_, ok = params["allowed_native_denoms"]
-	suite.Require().True(ok, "allowed_native_denoms should exist in yaml")
+	_, ok = params["allowed_cosmos_denoms"]
+	suite.Require().True(ok, "allowed_cosmos_denoms should exist in yaml")
 }
 
 func (suite *ParamsTestSuite) TestParamSetPairs_EnabledConversionPairs() {
@@ -76,22 +76,22 @@ func (suite *ParamsTestSuite) TestParamSetPairs_EnabledConversionPairs() {
 	suite.Require().EqualError(paramSetPair.ValidatorFn(struct{}{}), "invalid parameter type: struct {}")
 }
 
-func (suite *ParamsTestSuite) TestParamSetPairs_AllowedNativeDenoms() {
-	suite.Require().Equal([]byte("AllowedNativeDenoms"), types.KeyAllowedNativeDenoms)
+func (suite *ParamsTestSuite) TestParamSetPairs_AllowedCosmosDenoms() {
+	suite.Require().Equal([]byte("AllowedCosmosDenoms"), types.KeyAllowedCosmosDenoms)
 	defaultParams := types.DefaultParams()
 
 	var paramSetPair *paramstypes.ParamSetPair
 	for _, pair := range defaultParams.ParamSetPairs() {
-		if bytes.Equal(pair.Key, types.KeyAllowedNativeDenoms) {
+		if bytes.Equal(pair.Key, types.KeyAllowedCosmosDenoms) {
 			paramSetPair = &pair
 			break
 		}
 	}
 	suite.Require().NotNil(paramSetPair)
 
-	pairs, ok := paramSetPair.Value.(*types.AllowedNativeCoinERC20Tokens)
+	pairs, ok := paramSetPair.Value.(*types.AllowedCosmosCoinERC20Tokens)
 	suite.Require().True(ok)
-	suite.Require().Equal(pairs, &defaultParams.AllowedNativeDenoms)
+	suite.Require().Equal(pairs, &defaultParams.AllowedCosmosDenoms)
 
 	suite.Require().Nil(paramSetPair.ValidatorFn(*pairs))
 	suite.Require().EqualError(paramSetPair.ValidatorFn(struct{}{}), "invalid parameter type: struct {}")
@@ -114,11 +114,11 @@ func (suite *ParamsTestSuite) TestParams_Validate() {
 			"kava", // duplicate denom!
 		),
 	)
-	validAllowedNativeDenoms := types.NewAllowedNativeCoinERC20Tokens(
-		types.NewAllowedNativeCoinERC20Token("hard", "EVM Hard", "HARD", 6),
+	validAllowedCosmosDenoms := types.NewAllowedCosmosCoinERC20Tokens(
+		types.NewAllowedCosmosCoinERC20Token("hard", "EVM Hard", "HARD", 6),
 	)
-	invalidAllowedNativeDenoms := types.NewAllowedNativeCoinERC20Tokens(
-		types.NewAllowedNativeCoinERC20Token("", "Invalid Token", "NOPE", 0), // empty sdk denom
+	invalidAllowedCosmosDenoms := types.NewAllowedCosmosCoinERC20Tokens(
+		types.NewAllowedCosmosCoinERC20Token("", "Invalid Token", "NOPE", 0), // empty sdk denom
 	)
 
 	testCases := []struct {
@@ -128,22 +128,22 @@ func (suite *ParamsTestSuite) TestParams_Validate() {
 	}{
 		{
 			name:   "valid - empty",
-			params: types.NewParams(types.NewConversionPairs(), types.NewAllowedNativeCoinERC20Tokens()),
+			params: types.NewParams(types.NewConversionPairs(), types.NewAllowedCosmosCoinERC20Tokens()),
 			expErr: "",
 		},
 		{
 			name:   "valid - with data",
-			params: types.NewParams(validConversionPairs, validAllowedNativeDenoms),
+			params: types.NewParams(validConversionPairs, validAllowedCosmosDenoms),
 			expErr: "",
 		},
 		{
 			name:   "invalid - invalid conversion pair",
-			params: types.NewParams(invalidConversionPairs, validAllowedNativeDenoms),
+			params: types.NewParams(invalidConversionPairs, validAllowedCosmosDenoms),
 			expErr: "found duplicate",
 		},
 		{
-			name:   "invalid - invalid allowed native denoms",
-			params: types.NewParams(validConversionPairs, invalidAllowedNativeDenoms),
+			name:   "invalid - invalid allowed cosmos denoms",
+			params: types.NewParams(validConversionPairs, invalidAllowedCosmosDenoms),
 			expErr: "invalid token",
 		},
 	}

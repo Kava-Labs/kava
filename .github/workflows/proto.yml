@@ -18,9 +18,10 @@ jobs:
       - run: make check-proto-deps
       - run: make check-proto-lint
       - run: make check-proto-format
-      - run: make check-proto-breaking-remote
-      - run: BUF_CHECK_BREAKING_AGAINST_REMOTE="branch=$GITHUB_BASE_REF" make check-proto-breaking-remote
-        if: github.event_name == 'pull_request'
+      # TODO: reenable me after merge of Native -> Cosmos name change committed to master.
+      # - run: make check-proto-breaking-remote
+      # - run: BUF_CHECK_BREAKING_AGAINST_REMOTE="branch=$GITHUB_BASE_REF" make check-proto-breaking-remote
+      #   if: github.event_name == 'pull_request'
       - run: make check-proto-gen
       - run: make check-proto-gen-doc
       - run: make check-proto-gen-swagger

@@ -232,55 +232,55 @@ func TestConversionPairs_Validate(t *testing.T) {
 	}
 }
 
-func TestAllowedNativeCoinERC20Token_Validate(t *testing.T) {
+func TestAllowedCosmosCoinERC20Token_Validate(t *testing.T) {
 	testCases := []struct {
 		name   string
-		token  types.AllowedNativeCoinERC20Token
+		token  types.AllowedCosmosCoinERC20Token
 		expErr string
 	}{
 		{
 			name:   "valid token",
-			token:  types.NewAllowedNativeCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 6),
+			token:  types.NewAllowedCosmosCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 6),
 			expErr: "",
 		},
 		{
 			name:   "valid - highest allowed decimals",
-			token:  types.NewAllowedNativeCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 255),
+			token:  types.NewAllowedCosmosCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 255),
 			expErr: "",
 		},
 		{
 			name: "invalid - Empty SdkDenom",
-			token: types.AllowedNativeCoinERC20Token{
-				SdkDenom: "",
-				Name:     "Example Token",
-				Symbol:   "ETK",
-				Decimals: 0,
+			token: types.AllowedCosmosCoinERC20Token{
+				CosmosDenom: "",
+				Name:        "Example Token",
+				Symbol:      "ETK",
+				Decimals:    0,
 			},
 			expErr: "sdk denom is invalid",
 		},
 		{
 			name: "invalid - Empty Name",
-			token: types.AllowedNativeCoinERC20Token{
-				SdkDenom: "example_denom",
-				Name:     "",
-				Symbol:   "ETK",
-				Decimals: 6,
+			token: types.AllowedCosmosCoinERC20Token{
+				CosmosDenom: "example_denom",
+				Name:        "",
+				Symbol:      "ETK",
+				Decimals:    6,
 			},
 			expErr: "name cannot be empty",
 		},
 		{
 			name: "invalid - Empty Symbol",
-			token: types.AllowedNativeCoinERC20Token{
-				SdkDenom: "example_denom",
-				Name:     "Example Token",
-				Symbol:   "",
-				Decimals: 6,
+			token: types.AllowedCosmosCoinERC20Token{
+				CosmosDenom: "example_denom",
+				Name:        "Example Token",
+				Symbol:      "",
+				Decimals:    6,
 			},
 			expErr: "symbol cannot be empty",
 		},
 		{
 			name:   "invalid - decimals higher than uint8",
-			token:  types.NewAllowedNativeCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 256),
+			token:  types.NewAllowedCosmosCoinERC20Token("uatom", "Kava-wrapped ATOM", "kATOM", 256),
 			expErr: "decimals must be less than 256",
 		},
 	}
@@ -297,46 +297,46 @@ func TestAllowedNativeCoinERC20Token_Validate(t *testing.T) {
 	}
 }
 
-func TestAllowedNativeCoinERC20Tokens_Validate(t *testing.T) {
-	token1 := types.NewAllowedNativeCoinERC20Token("denom1", "Token 1", "TK1", 6)
-	token2 := types.NewAllowedNativeCoinERC20Token("denom2", "Token 2", "TK2", 0)
-	invalidToken := types.NewAllowedNativeCoinERC20Token("", "No SDK Denom Token", "TK3", 18)
+func TestAllowedCosmosCoinERC20Tokens_Validate(t *testing.T) {
+	token1 := types.NewAllowedCosmosCoinERC20Token("denom1", "Token 1", "TK1", 6)
+	token2 := types.NewAllowedCosmosCoinERC20Token("denom2", "Token 2", "TK2", 0)
+	invalidToken := types.NewAllowedCosmosCoinERC20Token("", "No SDK Denom Token", "TK3", 18)
 
 	testCases := []struct {
 		name   string
-		tokens types.AllowedNativeCoinERC20Tokens
+		tokens types.AllowedCosmosCoinERC20Tokens
 		expErr string
 	}{
 		{
 			name:   "valid - no tokens",
-			tokens: types.NewAllowedNativeCoinERC20Tokens(),
+			tokens: types.NewAllowedCosmosCoinERC20Tokens(),
 			expErr: "",
 		},
 		{
 			name:   "valid - one token",
-			tokens: types.NewAllowedNativeCoinERC20Tokens(token1),
+			tokens: types.NewAllowedCosmosCoinERC20Tokens(token1),
 			expErr: "",
 		},
 		{
 			name:   "valid - multiple tokens",
-			tokens: types.NewAllowedNativeCoinERC20Tokens(token1, token2),
+			tokens: types.NewAllowedCosmosCoinERC20Tokens(token1, token2),
 			expErr: "",
 		},
 		{
 			name:   "invalid - contains invalid token",
-			tokens: types.NewAllowedNativeCoinERC20Tokens(token1, token2, invalidToken),
+			tokens: types.NewAllowedCosmosCoinERC20Tokens(token1, token2, invalidToken),
 			expErr: "invalid token at index 2",
 		},
 		{
 			name:   "invalid - duplicate denoms",
-			tokens: types.NewAllowedNativeCoinERC20Tokens(token1, token2, token1),
+			tokens: types.NewAllowedCosmosCoinERC20Tokens(token1, token2, token1),
 			expErr: "found duplicate token with sdk denom denom1",
 		},
 		{
 			name: "invalid - duplicate symbol",
-			tokens: types.NewAllowedNativeCoinERC20Tokens(
+			tokens: types.NewAllowedCosmosCoinERC20Tokens(
 				token1,
-				types.NewAllowedNativeCoinERC20Token("diff", "Diff Denom, Same Symbol", "TK1", 6),
+				types.NewAllowedCosmosCoinERC20Token("diff", "Diff Denom, Same Symbol", "TK1", 6),
 			),
 			expErr: "found duplicate token with symbol TK1",
 		},

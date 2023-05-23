@@ -39,13 +39,13 @@ func (suite *ParamsTestSuite) TestEnabledConversionPair() {
 }
 
 func (suite *ParamsTestSuite) TestHistoricParamsQuery() {
-	// setup a params store that lacks allowed_native_denoms param (as was the case in v1)
+	// setup a params store that lacks allowed_cosmos_denoms param (as was the case in v1)
 	oldParamStore := suite.App.GetParamsKeeper().Subspace("test_subspace_for_evmutil")
 	oldParamStore.WithKeyTable(types.ParamKeyTable())
 	oldParamStore.Set(suite.Ctx, types.KeyEnabledConversionPairs, types.ConversionPairs{})
 
 	suite.True(oldParamStore.Has(suite.Ctx, types.KeyEnabledConversionPairs))
-	suite.False(oldParamStore.Has(suite.Ctx, types.KeyAllowedNativeDenoms))
+	suite.False(oldParamStore.Has(suite.Ctx, types.KeyAllowedCosmosDenoms))
 
 	oldStateKeeper := keeper.NewKeeper(
 		suite.App.AppCodec(),

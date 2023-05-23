@@ -5,10 +5,10 @@ async function main() {
   const tokenSymbol = "kATOM";
   const tokenDecimals = 6;
 
-  const ERC20KavaWrappedNativeCoin = await ethers.getContractFactory(
-    "ERC20KavaWrappedNativeCoin"
+  const ERC20KavaWrappedCosmosCoin = await ethers.getContractFactory(
+    "ERC20KavaWrappedCosmosCoin"
   );
-  const token = await ERC20KavaWrappedNativeCoin.deploy(
+  const token = await ERC20KavaWrappedCosmosCoin.deploy(
     tokenName,
     tokenSymbol,
     tokenDecimals

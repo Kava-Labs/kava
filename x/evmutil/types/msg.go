@@ -16,8 +16,8 @@ var (
 	_ sdk.Msg            = &MsgConvertERC20ToCoin{}
 	_ legacytx.LegacyMsg = &MsgConvertERC20ToCoin{}
 
-	_ sdk.Msg            = &MsgConvertNativeCoinToERC20{}
-	_ legacytx.LegacyMsg = &MsgConvertNativeCoinToERC20{}
+	_ sdk.Msg            = &MsgConvertCosmosCoinToERC20{}
+	_ legacytx.LegacyMsg = &MsgConvertCosmosCoinToERC20{}
 )
 
 // legacy message types
@@ -25,7 +25,7 @@ const (
 	TypeMsgConvertCoinToERC20 = "evmutil_convert_coin_to_erc20"
 	TypeMsgConvertERC20ToCoin = "evmutil_convert_erc20_to_coin"
 
-	TypeMsgConvertNativeCoinToERC20 = "evmutil_convert_native_coin_to_erc20"
+	TypeMsgConvertCosmosCoinToERC20 = "evmutil_convert_cosmos_coin_to_erc20"
 )
 
 ////////////////////////////
@@ -160,13 +160,13 @@ func (msg MsgConvertERC20ToCoin) Type() string {
 // Cosmos SDK-native assets -> EVM
 ////////////////////////////
 
-// NewMsgConvertNativeCoinToERC20 returns a new MsgConvertNativeCoinToERC20
-func NewMsgConvertNativeCoinToERC20(
+// NewMsgConvertCosmosCoinToERC20 returns a new MsgConvertCosmosCoinToERC20
+func NewMsgConvertCosmosCoinToERC20(
 	initiator string,
 	receiver string,
 	amount sdk.Coin,
-) MsgConvertNativeCoinToERC20 {
-	return MsgConvertNativeCoinToERC20{
+) MsgConvertCosmosCoinToERC20 {
+	return MsgConvertCosmosCoinToERC20{
 		Initiator: initiator,
 		Receiver:  receiver,
 		Amount:    &amount,
@@ -174,7 +174,7 @@ func NewMsgConvertNativeCoinToERC20(
 }
 
 // GetSigners implements types.Msg
-func (msg MsgConvertNativeCoinToERC20) GetSigners() []sdk.AccAddress {
+func (msg MsgConvertCosmosCoinToERC20) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Initiator)
 	if err != nil {
 		panic(err)
@@ -183,7 +183,7 @@ func (msg MsgConvertNativeCoinToERC20) GetSigners() []sdk.AccAddress {
 }
 
 // ValidateBasic implements types.Msg
-func (msg MsgConvertNativeCoinToERC20) ValidateBasic() error {
+func (msg MsgConvertCosmosCoinToERC20) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Initiator)
 	if err != nil {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid initiator address (%s): %s", msg.Initiator, err.Error())
@@ -201,12 +201,12 @@ func (msg MsgConvertNativeCoinToERC20) ValidateBasic() error {
 }
 
 // GetSignBytes implements legacytx.LegacyMsg
-func (msg MsgConvertNativeCoinToERC20) GetSignBytes() []byte {
+func (msg MsgConvertCosmosCoinToERC20) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
 }
 
 // Route implements legacytx.LegacyMsg
-func (MsgConvertNativeCoinToERC20) Route() string { return RouterKey }
+func (MsgConvertCosmosCoinToERC20) Route() string { return RouterKey }
 
 // Type implements legacytx.LegacyMsg
-func (MsgConvertNativeCoinToERC20) Type() string { return TypeMsgConvertNativeCoinToERC20 }
+func (MsgConvertCosmosCoinToERC20) Type() string { return TypeMsgConvertCosmosCoinToERC20 }

@@ -236,8 +236,8 @@ func (m *MsgConvertERC20ToCoinResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConvertERC20ToCoinResponse proto.InternalMessageInfo
 
-// ConvertNativeCoinToERC20 defines a conversion from native sdk.Coin to ERC20.
-type MsgConvertNativeCoinToERC20 struct {
+// ConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20.
+type MsgConvertCosmosCoinToERC20 struct {
 	// Kava bech32 address initiating the conversion.
 	Initiator string `protobuf:"bytes,1,opt,name=initiator,proto3" json:"initiator,omitempty"`
 	// EVM hex address that will receive the ERC20 tokens.
@@ -246,18 +246,18 @@ type MsgConvertNativeCoinToERC20 struct {
 	Amount *types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 }
 
-func (m *MsgConvertNativeCoinToERC20) Reset()         { *m = MsgConvertNativeCoinToERC20{} }
-func (m *MsgConvertNativeCoinToERC20) String() string { return proto.CompactTextString(m) }
-func (*MsgConvertNativeCoinToERC20) ProtoMessage()    {}
-func (*MsgConvertNativeCoinToERC20) Descriptor() ([]byte, []int) {
+func (m *MsgConvertCosmosCoinToERC20) Reset()         { *m = MsgConvertCosmosCoinToERC20{} }
+func (m *MsgConvertCosmosCoinToERC20) String() string { return proto.CompactTextString(m) }
+func (*MsgConvertCosmosCoinToERC20) ProtoMessage()    {}
+func (*MsgConvertCosmosCoinToERC20) Descriptor() ([]byte, []int) {
 	return fileDescriptor_6e82783c6c58f89c, []int{4}
 }
-func (m *MsgConvertNativeCoinToERC20) XXX_Unmarshal(b []byte) error {
+func (m *MsgConvertCosmosCoinToERC20) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgConvertNativeCoinToERC20) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgConvertCosmosCoinToERC20) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgConvertNativeCoinToERC20.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgConvertCosmosCoinToERC20.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -267,55 +267,55 @@ func (m *MsgConvertNativeCoinToERC20) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *MsgConvertNativeCoinToERC20) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgConvertNativeCoinToERC20.Merge(m, src)
+func (m *MsgConvertCosmosCoinToERC20) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgConvertCosmosCoinToERC20.Merge(m, src)
 }
-func (m *MsgConvertNativeCoinToERC20) XXX_Size() int {
+func (m *MsgConvertCosmosCoinToERC20) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgConvertNativeCoinToERC20) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgConvertNativeCoinToERC20.DiscardUnknown(m)
+func (m *MsgConvertCosmosCoinToERC20) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgConvertCosmosCoinToERC20.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgConvertNativeCoinToERC20 proto.InternalMessageInfo
+var xxx_messageInfo_MsgConvertCosmosCoinToERC20 proto.InternalMessageInfo
 
-func (m *MsgConvertNativeCoinToERC20) GetInitiator() string {
+func (m *MsgConvertCosmosCoinToERC20) GetInitiator() string {
 	if m != nil {
 		return m.Initiator
 	}
 	return ""
 }
 
-func (m *MsgConvertNativeCoinToERC20) GetReceiver() string {
+func (m *MsgConvertCosmosCoinToERC20) GetReceiver() string {
 	if m != nil {
 		return m.Receiver
 	}
 	return ""
 }
 
-func (m *MsgConvertNativeCoinToERC20) GetAmount() *types.Coin {
+func (m *MsgConvertCosmosCoinToERC20) GetAmount() *types.Coin {
 	if m != nil {
 		return m.Amount
 	}
 	return nil
 }
 
-// MsgConvertNativeCoinToERC20Response defines the response value from Msg/MsgConvertNativeCoinToERC20.
-type MsgConvertNativeCoinToERC20Response struct {
+// MsgConvertCosmosCoinToERC20Response defines the response value from Msg/MsgConvertCosmosCoinToERC20.
+type MsgConvertCosmosCoinToERC20Response struct {
 }
 
-func (m *MsgConvertNativeCoinToERC20Response) Reset()         { *m = MsgConvertNativeCoinToERC20Response{} }
-func (m *MsgConvertNativeCoinToERC20Response) String() string { return proto.CompactTextString(m) }
-func (*MsgConvertNativeCoinToERC20Response) ProtoMessage()    {}
-func (*MsgConvertNativeCoinToERC20Response) Descriptor() ([]byte, []int) {
+func (m *MsgConvertCosmosCoinToERC20Response) Reset()         { *m = MsgConvertCosmosCoinToERC20Response{} }
+func (m *MsgConvertCosmosCoinToERC20Response) String() string { return proto.CompactTextString(m) }
+func (*MsgConvertCosmosCoinToERC20Response) ProtoMessage()    {}
+func (*MsgConvertCosmosCoinToERC20Response) Descriptor() ([]byte, []int) {
 	return fileDescriptor_6e82783c6c58f89c, []int{5}
 }
-func (m *MsgConvertNativeCoinToERC20Response) XXX_Unmarshal(b []byte) error {
+func (m *MsgConvertCosmosCoinToERC20Response) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgConvertNativeCoinToERC20Response) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgConvertCosmosCoinToERC20Response) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgConvertNativeCoinToERC20Response.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgConvertCosmosCoinToERC20Response.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -325,64 +325,64 @@ func (m *MsgConvertNativeCoinToERC20Response) XXX_Marshal(b []byte, deterministi
 		return b[:n], nil
 	}
 }
-func (m *MsgConvertNativeCoinToERC20Response) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgConvertNativeCoinToERC20Response.Merge(m, src)
+func (m *MsgConvertCosmosCoinToERC20Response) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgConvertCosmosCoinToERC20Response.Merge(m, src)
 }
-func (m *MsgConvertNativeCoinToERC20Response) XXX_Size() int {
+func (m *MsgConvertCosmosCoinToERC20Response) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgConvertNativeCoinToERC20Response) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgConvertNativeCoinToERC20Response.DiscardUnknown(m)
+func (m *MsgConvertCosmosCoinToERC20Response) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgConvertCosmosCoinToERC20Response.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgConvertNativeCoinToERC20Response proto.InternalMessageInfo
+var xxx_messageInfo_MsgConvertCosmosCoinToERC20Response proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgConvertCoinToERC20)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20")
 	proto.RegisterType((*MsgConvertCoinToERC20Response)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20Response")
 	proto.RegisterType((*MsgConvertERC20ToCoin)(nil), "kava.evmutil.v1beta1.MsgConvertERC20ToCoin")
 	proto.RegisterType((*MsgConvertERC20ToCoinResponse)(nil), "kava.evmutil.v1beta1.MsgConvertERC20ToCoinResponse")
-	proto.RegisterType((*MsgConvertNativeCoinToERC20)(nil), "kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20")
-	proto.RegisterType((*MsgConvertNativeCoinToERC20Response)(nil), "kava.evmutil.v1beta1.MsgConvertNativeCoinToERC20Response")
+	proto.RegisterType((*MsgConvertCosmosCoinToERC20)(nil), "kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20")
+	proto.RegisterType((*MsgConvertCosmosCoinToERC20Response)(nil), "kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20Response")
 }
 
 func init() { proto.RegisterFile("kava/evmutil/v1beta1/tx.proto", fileDescriptor_6e82783c6c58f89c) }
 
 var fileDescriptor_6e82783c6c58f89c = []byte{
-	// 519 bytes of a gzipped FileDescriptorProto
+	// 517 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x41, 0x6b, 0x13, 0x41,
-	0x14, 0xce, 0x34, 0x52, 0xcc, 0x78, 0x29, 0x43, 0x84, 0xed, 0x6a, 0x37, 0x25, 0xa2, 0x54, 0x24,
-	0xb3, 0x4d, 0x2a, 0x82, 0xe0, 0xc5, 0x84, 0x1e, 0x4a, 0xa9, 0x87, 0x35, 0x27, 0x2f, 0x61, 0x76,
-	0x33, 0xac, 0x43, 0x9b, 0x99, 0xb0, 0x33, 0x59, 0xea, 0xcd, 0x8b, 0x20, 0x9e, 0xfc, 0x05, 0x9e,
-	0xfd, 0x01, 0xfd, 0x11, 0x3d, 0x96, 0x9e, 0xc4, 0x43, 0xa8, 0x9b, 0x3f, 0x22, 0xb3, 0x3b, 0xd9,
-	0x2c, 0x76, 0x4d, 0x08, 0xf4, 0xb4, 0x33, 0xef, 0x7d, 0xef, 0xbd, 0xef, 0x7b, 0xef, 0xed, 0xc0,
-	0x9d, 0x53, 0x12, 0x13, 0x97, 0xc6, 0xa3, 0x89, 0x62, 0x67, 0x6e, 0xdc, 0xf6, 0xa9, 0x22, 0x6d,
-	0x57, 0x9d, 0xe3, 0x71, 0x24, 0x94, 0x40, 0x75, 0xed, 0xc6, 0xc6, 0x8d, 0x8d, 0xdb, 0x76, 0x02,
-	0x21, 0x47, 0x42, 0xba, 0x3e, 0x91, 0x34, 0x8f, 0x09, 0x04, 0xe3, 0x59, 0x94, 0xbd, 0x9d, 0xf9,
-	0x07, 0xe9, 0xcd, 0xcd, 0x2e, 0xc6, 0x55, 0x0f, 0x45, 0x28, 0x32, 0xbb, 0x3e, 0x65, 0xd6, 0xe6,
-	0x0f, 0x00, 0x1f, 0x9e, 0xc8, 0xb0, 0x27, 0x78, 0x4c, 0x23, 0xd5, 0x13, 0x8c, 0xf7, 0xc5, 0xa1,
-	0xd7, 0xeb, 0xec, 0xa3, 0x57, 0xb0, 0xc6, 0x38, 0x53, 0x8c, 0x28, 0x11, 0x59, 0x60, 0x17, 0xec,
-	0xd5, 0xba, 0xd6, 0xf5, 0x45, 0xab, 0x6e, 0x92, 0xbe, 0x1d, 0x0e, 0x23, 0x2a, 0xe5, 0x7b, 0x15,
-	0x31, 0x1e, 0x7a, 0x0b, 0x28, 0xb2, 0xe1, 0xfd, 0x88, 0x06, 0x94, 0xc5, 0x34, 0xb2, 0x36, 0x74,
-	0x98, 0x97, 0xdf, 0x51, 0x1b, 0x6e, 0x92, 0x91, 0x98, 0x70, 0x65, 0x55, 0x77, 0xc1, 0xde, 0x83,
-	0xce, 0x36, 0x36, 0xd9, 0xb4, 0x9e, 0xb9, 0x48, 0xac, 0x59, 0x78, 0x06, 0xd8, 0x6c, 0xc0, 0x9d,
-	0x52, 0x7e, 0x1e, 0x95, 0x63, 0xc1, 0x25, 0x6d, 0x7e, 0xd9, 0x28, 0x2a, 0x48, 0x7d, 0x7d, 0xa1,
-	0x81, 0xe8, 0xf1, 0x2d, 0x05, 0x45, 0x9e, 0x2f, 0xff, 0xe5, 0xb9, 0x44, 0xde, 0x42, 0x41, 0x17,
-	0x22, 0x3d, 0x98, 0x01, 0x8d, 0x82, 0xce, 0xfe, 0x80, 0x64, 0xa8, 0x54, 0x4d, 0xad, 0x5b, 0x4f,
-	0xa6, 0x8d, 0xad, 0x63, 0x12, 0x93, 0x94, 0x84, 0xc9, 0xe0, 0x6d, 0x69, 0xfc, 0xa1, 0x86, 0x1b,
-	0x0b, 0xea, 0xe7, 0x5d, 0xb8, 0x97, 0xc6, 0xbd, 0xb9, 0x9c, 0x36, 0x2a, 0xbf, 0xa7, 0x8d, 0x67,
-	0x21, 0x53, 0x1f, 0x27, 0x3e, 0x0e, 0xc4, 0xc8, 0x8c, 0xce, 0x7c, 0x5a, 0x72, 0x78, 0xea, 0xaa,
-	0x4f, 0x63, 0x2a, 0xf1, 0x11, 0x57, 0xd7, 0x17, 0x2d, 0x68, 0x58, 0x1e, 0x71, 0x55, 0xde, 0xa8,
-	0x42, 0x1b, 0xf2, 0x46, 0x7d, 0x03, 0xf0, 0xd1, 0x02, 0xf1, 0x8e, 0x28, 0x16, 0xd3, 0xe2, 0xc0,
-	0x97, 0xb7, 0xeb, 0x8e, 0xc7, 0xfa, 0x14, 0x3e, 0x59, 0xc2, 0x65, 0xce, 0xb9, 0xf3, 0xb9, 0x0a,
-	0xab, 0x27, 0x32, 0x44, 0x31, 0x44, 0x25, 0x2b, 0xfa, 0x02, 0x97, 0xfd, 0x24, 0xb8, 0x74, 0x5f,
-	0xec, 0x83, 0x35, 0xc0, 0xf3, 0xfa, 0x85, 0xba, 0xc5, 0xc5, 0x5a, 0x59, 0xb7, 0x00, 0x5e, 0x5d,
-	0xb7, 0x64, 0x56, 0xe8, 0x2b, 0x80, 0xd6, 0x7f, 0x07, 0xd5, 0x5e, 0x95, 0xf1, 0x56, 0x88, 0xfd,
-	0x7a, 0xed, 0x90, 0x39, 0x95, 0xee, 0xf1, 0xcd, 0x1f, 0x07, 0xfc, 0x4c, 0x1c, 0x70, 0x99, 0x38,
-	0xe0, 0x2a, 0x71, 0xc0, 0x4d, 0xe2, 0x80, 0xef, 0x33, 0xa7, 0x72, 0x35, 0x73, 0x2a, 0xbf, 0x66,
-	0x4e, 0xe5, 0xc3, 0xf3, 0xc2, 0xde, 0xea, 0x32, 0xad, 0x33, 0xe2, 0xcb, 0xf4, 0xe4, 0x9e, 0xe7,
-	0x0f, 0x5c, 0xba, 0xbe, 0xfe, 0x66, 0xfa, 0xea, 0x1c, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0xc5,
-	0xd4, 0x72, 0x6a, 0xfd, 0x04, 0x00, 0x00,
+	0x14, 0xce, 0xb4, 0x52, 0xcc, 0x78, 0x29, 0x43, 0x84, 0xed, 0x6a, 0x37, 0x25, 0xa2, 0x54, 0x24,
+	0xb3, 0x4d, 0x2a, 0x82, 0xe0, 0xc5, 0x84, 0x1e, 0x4a, 0xe9, 0x65, 0xcd, 0xc9, 0x4b, 0x98, 0xdd,
+	0x0c, 0xeb, 0xd0, 0x66, 0x26, 0xec, 0x4c, 0x96, 0x7a, 0xf3, 0x22, 0x88, 0x27, 0x7f, 0x81, 0x67,
+	0x7f, 0x40, 0x7f, 0x44, 0x8f, 0xa5, 0x27, 0xf1, 0x10, 0xea, 0xe6, 0x8f, 0xc8, 0xec, 0x4e, 0xb6,
+	0x43, 0x5d, 0x13, 0x0a, 0x9e, 0x76, 0xe6, 0xbd, 0xef, 0xbd, 0xf7, 0x7d, 0xef, 0xbd, 0x1d, 0xb8,
+	0x7d, 0x42, 0x52, 0xe2, 0xd3, 0x74, 0x3c, 0x55, 0xec, 0xd4, 0x4f, 0x3b, 0x21, 0x55, 0xa4, 0xe3,
+	0xab, 0x33, 0x3c, 0x49, 0x84, 0x12, 0xa8, 0xa1, 0xdd, 0xd8, 0xb8, 0xb1, 0x71, 0xbb, 0x5e, 0x24,
+	0xe4, 0x58, 0x48, 0x3f, 0x24, 0x92, 0x96, 0x31, 0x91, 0x60, 0xbc, 0x88, 0x72, 0xb7, 0x0a, 0xff,
+	0x30, 0xbf, 0xf9, 0xc5, 0xc5, 0xb8, 0x1a, 0xb1, 0x88, 0x45, 0x61, 0xd7, 0xa7, 0xc2, 0xda, 0xfa,
+	0x0e, 0xe0, 0xc3, 0x63, 0x19, 0xf7, 0x05, 0x4f, 0x69, 0xa2, 0xfa, 0x82, 0xf1, 0x81, 0x38, 0x08,
+	0xfa, 0xdd, 0x3d, 0xf4, 0x0a, 0xd6, 0x19, 0x67, 0x8a, 0x11, 0x25, 0x12, 0x07, 0xec, 0x80, 0xdd,
+	0x7a, 0xcf, 0xb9, 0x3a, 0x6f, 0x37, 0x4c, 0xd2, 0xb7, 0xa3, 0x51, 0x42, 0xa5, 0x7c, 0xa7, 0x12,
+	0xc6, 0xe3, 0xe0, 0x06, 0x8a, 0x5c, 0x78, 0x3f, 0xa1, 0x11, 0x65, 0x29, 0x4d, 0x9c, 0x35, 0x1d,
+	0x16, 0x94, 0x77, 0xd4, 0x81, 0x1b, 0x64, 0x2c, 0xa6, 0x5c, 0x39, 0xeb, 0x3b, 0x60, 0xf7, 0x41,
+	0x77, 0x0b, 0x9b, 0x6c, 0x5a, 0xcf, 0x42, 0x24, 0xd6, 0x2c, 0x02, 0x03, 0x6c, 0x35, 0xe1, 0x76,
+	0x25, 0xbf, 0x80, 0xca, 0x89, 0xe0, 0x92, 0xb6, 0x3e, 0xaf, 0xd9, 0x0a, 0x72, 0xdf, 0x40, 0x68,
+	0x20, 0x7a, 0xfc, 0x97, 0x02, 0x9b, 0xe7, 0xcb, 0xdb, 0x3c, 0x97, 0xc8, 0xbb, 0x51, 0xd0, 0x83,
+	0x48, 0x0f, 0x66, 0x48, 0x93, 0xa8, 0xbb, 0x37, 0x24, 0x05, 0x2a, 0x57, 0x53, 0xef, 0x35, 0xb2,
+	0x59, 0x73, 0xf3, 0x88, 0xa4, 0x24, 0x27, 0x61, 0x32, 0x04, 0x9b, 0x1a, 0x7f, 0xa0, 0xe1, 0xc6,
+	0x82, 0x06, 0x65, 0x17, 0xee, 0xe5, 0x71, 0x6f, 0x2e, 0x66, 0xcd, 0xda, 0xaf, 0x59, 0xf3, 0x59,
+	0xcc, 0xd4, 0x87, 0x69, 0x88, 0x23, 0x31, 0x36, 0xa3, 0x33, 0x9f, 0xb6, 0x1c, 0x9d, 0xf8, 0xea,
+	0xe3, 0x84, 0x4a, 0x7c, 0xc8, 0xd5, 0xd5, 0x79, 0x1b, 0x1a, 0x96, 0x87, 0x5c, 0x55, 0x37, 0xca,
+	0x6a, 0x43, 0xd9, 0xa8, 0xaf, 0x00, 0x3e, 0xb2, 0x5b, 0xa9, 0x33, 0xd8, 0x03, 0x5f, 0xde, 0xae,
+	0xff, 0x3c, 0xd6, 0xa7, 0xf0, 0xc9, 0x12, 0x2e, 0x0b, 0xce, 0xdd, 0x4f, 0xeb, 0x70, 0xfd, 0x58,
+	0xc6, 0x28, 0x85, 0xa8, 0x62, 0x45, 0x5f, 0xe0, 0xaa, 0x9f, 0x04, 0x57, 0xee, 0x8b, 0xbb, 0x7f,
+	0x07, 0xf0, 0xa2, 0xbe, 0x55, 0xd7, 0x5e, 0xac, 0x95, 0x75, 0x2d, 0xf0, 0xea, 0xba, 0x15, 0xb3,
+	0x42, 0x5f, 0x00, 0x74, 0xfe, 0x39, 0xa8, 0xce, 0x6a, 0x25, 0xb7, 0x42, 0xdc, 0xd7, 0x77, 0x0e,
+	0x59, 0x50, 0xe9, 0x1d, 0x5d, 0xff, 0xf6, 0xc0, 0x8f, 0xcc, 0x03, 0x17, 0x99, 0x07, 0x2e, 0x33,
+	0x0f, 0x5c, 0x67, 0x1e, 0xf8, 0x36, 0xf7, 0x6a, 0x97, 0x73, 0xaf, 0xf6, 0x73, 0xee, 0xd5, 0xde,
+	0x3f, 0xb7, 0xf6, 0x56, 0x97, 0x69, 0x9f, 0x92, 0x50, 0xe6, 0x27, 0xff, 0xac, 0x7c, 0xe0, 0xf2,
+	0xf5, 0x0d, 0x37, 0xf2, 0x57, 0x67, 0xff, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x1c, 0x66, 0xcd,
+	0xe3, 0xfd, 0x04, 0x00, 0x00,
 }
 
 func (this *MsgConvertCoinToERC20) VerboseEqual(that interface{}) error {
@@ -619,7 +619,7 @@ func (this *MsgConvertERC20ToCoinResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *MsgConvertNativeCoinToERC20) VerboseEqual(that interface{}) error {
+func (this *MsgConvertCosmosCoinToERC20) VerboseEqual(that interface{}) error {
 	if that == nil {
 		if this == nil {
 			return nil
@@ -627,22 +627,22 @@ func (this *MsgConvertNativeCoinToERC20) VerboseEqual(that interface{}) error {
 		return fmt.Errorf("that == nil && this != nil")
 	}
 
-	that1, ok := that.(*MsgConvertNativeCoinToERC20)
+	that1, ok := that.(*MsgConvertCosmosCoinToERC20)
 	if !ok {
-		that2, ok := that.(MsgConvertNativeCoinToERC20)
+		that2, ok := that.(MsgConvertCosmosCoinToERC20)
 		if ok {
 			that1 = &that2
 		} else {
-			return fmt.Errorf("that is not of type *MsgConvertNativeCoinToERC20")
+			return fmt.Errorf("that is not of type *MsgConvertCosmosCoinToERC20")
 		}
 	}
 	if that1 == nil {
 		if this == nil {
 			return nil
 		}
-		return fmt.Errorf("that is type *MsgConvertNativeCoinToERC20 but is nil && this != nil")
+		return fmt.Errorf("that is type *MsgConvertCosmosCoinToERC20 but is nil && this != nil")
 	} else if this == nil {
-		return fmt.Errorf("that is type *MsgConvertNativeCoinToERC20 but is not nil && this == nil")
+		return fmt.Errorf("that is type *MsgConvertCosmosCoinToERC20 but is not nil && this == nil")
 	}
 	if this.Initiator != that1.Initiator {
 		return fmt.Errorf("Initiator this(%v) Not Equal that(%v)", this.Initiator, that1.Initiator)
@@ -655,14 +655,14 @@ func (this *MsgConvertNativeCoinToERC20) VerboseEqual(that interface{}) error {
 	}
 	return nil
 }
-func (this *MsgConvertNativeCoinToERC20) Equal(that interface{}) bool {
+func (this *MsgConvertCosmosCoinToERC20) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*MsgConvertNativeCoinToERC20)
+	that1, ok := that.(*MsgConvertCosmosCoinToERC20)
 	if !ok {
-		that2, ok := that.(MsgConvertNativeCoinToERC20)
+		that2, ok := that.(MsgConvertCosmosCoinToERC20)
 		if ok {
 			that1 = &that2
 		} else {
@@ -685,7 +685,7 @@ func (this *MsgConvertNativeCoinToERC20) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *MsgConvertNativeCoinToERC20Response) VerboseEqual(that interface{}) error {
+func (this *MsgConvertCosmosCoinToERC20Response) VerboseEqual(that interface{}) error {
 	if that == nil {
 		if this == nil {
 			return nil
@@ -693,33 +693,33 @@ func (this *MsgConvertNativeCoinToERC20Response) VerboseEqual(that interface{}) 
 		return fmt.Errorf("that == nil && this != nil")
 	}
 
-	that1, ok := that.(*MsgConvertNativeCoinToERC20Response)
+	that1, ok := that.(*MsgConvertCosmosCoinToERC20Response)
 	if !ok {
-		that2, ok := that.(MsgConvertNativeCoinToERC20Response)
+		that2, ok := that.(MsgConvertCosmosCoinToERC20Response)
 		if ok {
 			that1 = &that2
 		} else {
-			return fmt.Errorf("that is not of type *MsgConvertNativeCoinToERC20Response")
+			return fmt.Errorf("that is not of type *MsgConvertCosmosCoinToERC20Response")
 		}
 	}
 	if that1 == nil {
 		if this == nil {
 			return nil
 		}
-		return fmt.Errorf("that is type *MsgConvertNativeCoinToERC20Response but is nil && this != nil")
+		return fmt.Errorf("that is type *MsgConvertCosmosCoinToERC20Response but is nil && this != nil")
 	} else if this == nil {
-		return fmt.Errorf("that is type *MsgConvertNativeCoinToERC20Response but is not nil && this == nil")
+		return fmt.Errorf("that is type *MsgConvertCosmosCoinToERC20Response but is not nil && this == nil")
 	}
 	return nil
 }
-func (this *MsgConvertNativeCoinToERC20Response) Equal(that interface{}) bool {
+func (this *MsgConvertCosmosCoinToERC20Response) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*MsgConvertNativeCoinToERC20Response)
+	that1, ok := that.(*MsgConvertCosmosCoinToERC20Response)
 	if !ok {
-		that2, ok := that.(MsgConvertNativeCoinToERC20Response)
+		that2, ok := that.(MsgConvertCosmosCoinToERC20Response)
 		if ok {
 			that1 = &that2
 		} else {
@@ -750,8 +750,8 @@ type MsgClient interface {
 	ConvertCoinToERC20(ctx context.Context, in *MsgConvertCoinToERC20, opts ...grpc.CallOption) (*MsgConvertCoinToERC20Response, error)
 	// ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin.
 	ConvertERC20ToCoin(ctx context.Context, in *MsgConvertERC20ToCoin, opts ...grpc.CallOption) (*MsgConvertERC20ToCoinResponse, error)
-	// ConvertNativeCoinToERC20 defines a method for converting a native sdk.Coin to an ERC20.
-	ConvertNativeCoinToERC20(ctx context.Context, in *MsgConvertNativeCoinToERC20, opts ...grpc.CallOption) (*MsgConvertNativeCoinToERC20Response, error)
+	// ConvertCosmosCoinToERC20 defines a method for converting a cosmos sdk.Coin to an ERC20.
+	ConvertCosmosCoinToERC20(ctx context.Context, in *MsgConvertCosmosCoinToERC20, opts ...grpc.CallOption) (*MsgConvertCosmosCoinToERC20Response, error)
 }
 
 type msgClient struct {
@@ -780,9 +780,9 @@ func (c *msgClient) ConvertERC20ToCoin(ctx context.Context, in *MsgConvertERC20T
 	return out, nil
 }
 
-func (c *msgClient) ConvertNativeCoinToERC20(ctx context.Context, in *MsgConvertNativeCoinToERC20, opts ...grpc.CallOption) (*MsgConvertNativeCoinToERC20Response, error) {
-	out := new(MsgConvertNativeCoinToERC20Response)
-	err := c.cc.Invoke(ctx, "/kava.evmutil.v1beta1.Msg/ConvertNativeCoinToERC20", in, out, opts...)
+func (c *msgClient) ConvertCosmosCoinToERC20(ctx context.Context, in *MsgConvertCosmosCoinToERC20, opts ...grpc.CallOption) (*MsgConvertCosmosCoinToERC20Response, error) {
+	out := new(MsgConvertCosmosCoinToERC20Response)
+	err := c.cc.Invoke(ctx, "/kava.evmutil.v1beta1.Msg/ConvertCosmosCoinToERC20", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -795,8 +795,8 @@ type MsgServer interface {
 	ConvertCoinToERC20(context.Context, *MsgConvertCoinToERC20) (*MsgConvertCoinToERC20Response, error)
 	// ConvertERC20ToCoin defines a method for converting Kava ERC20 to sdk.Coin.
 	ConvertERC20ToCoin(context.Context, *MsgConvertERC20ToCoin) (*MsgConvertERC20ToCoinResponse, error)
-	// ConvertNativeCoinToERC20 defines a method for converting a native sdk.Coin to an ERC20.
-	ConvertNativeCoinToERC20(context.Context, *MsgConvertNativeCoinToERC20) (*MsgConvertNativeCoinToERC20Response, error)
+	// ConvertCosmosCoinToERC20 defines a method for converting a cosmos sdk.Coin to an ERC20.
+	ConvertCosmosCoinToERC20(context.Context, *MsgConvertCosmosCoinToERC20) (*MsgConvertCosmosCoinToERC20Response, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -809,8 +809,8 @@ func (*UnimplementedMsgServer) ConvertCoinToERC20(ctx context.Context, req *MsgC
 func (*UnimplementedMsgServer) ConvertERC20ToCoin(ctx context.Context, req *MsgConvertERC20ToCoin) (*MsgConvertERC20ToCoinResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConvertERC20ToCoin not implemented")
 }
-func (*UnimplementedMsgServer) ConvertNativeCoinToERC20(ctx context.Context, req *MsgConvertNativeCoinToERC20) (*MsgConvertNativeCoinToERC20Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ConvertNativeCoinToERC20 not implemented")
+func (*UnimplementedMsgServer) ConvertCosmosCoinToERC20(ctx context.Context, req *MsgConvertCosmosCoinToERC20) (*MsgConvertCosmosCoinToERC20Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConvertCosmosCoinToERC20 not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -853,20 +853,20 @@ func _Msg_ConvertERC20ToCoin_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_ConvertNativeCoinToERC20_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgConvertNativeCoinToERC20)
+func _Msg_ConvertCosmosCoinToERC20_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgConvertCosmosCoinToERC20)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).ConvertNativeCoinToERC20(ctx, in)
+		return srv.(MsgServer).ConvertCosmosCoinToERC20(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/kava.evmutil.v1beta1.Msg/ConvertNativeCoinToERC20",
+		FullMethod: "/kava.evmutil.v1beta1.Msg/ConvertCosmosCoinToERC20",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).ConvertNativeCoinToERC20(ctx, req.(*MsgConvertNativeCoinToERC20))
+		return srv.(MsgServer).ConvertCosmosCoinToERC20(ctx, req.(*MsgConvertCosmosCoinToERC20))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -884,8 +884,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_ConvertERC20ToCoin_Handler,
 		},
 		{
-			MethodName: "ConvertNativeCoinToERC20",
-			Handler:    _Msg_ConvertNativeCoinToERC20_Handler,
+			MethodName: "ConvertCosmosCoinToERC20",
+			Handler:    _Msg_ConvertCosmosCoinToERC20_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1041,7 +1041,7 @@ func (m *MsgConvertERC20ToCoinResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgConvertNativeCoinToERC20) Marshal() (dAtA []byte, err error) {
+func (m *MsgConvertCosmosCoinToERC20) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1051,12 +1051,12 @@ func (m *MsgConvertNativeCoinToERC20) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgConvertNativeCoinToERC20) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgConvertCosmosCoinToERC20) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgConvertNativeCoinToERC20) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgConvertCosmosCoinToERC20) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1090,7 +1090,7 @@ func (m *MsgConvertNativeCoinToERC20) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgConvertNativeCoinToERC20Response) Marshal() (dAtA []byte, err error) {
+func (m *MsgConvertCosmosCoinToERC20Response) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1100,12 +1100,12 @@ func (m *MsgConvertNativeCoinToERC20Response) Marshal() (dAtA []byte, err error)
 	return dAtA[:n], nil
 }
 
-func (m *MsgConvertNativeCoinToERC20Response) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgConvertCosmosCoinToERC20Response) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgConvertNativeCoinToERC20Response) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgConvertCosmosCoinToERC20Response) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1186,7 +1186,7 @@ func (m *MsgConvertERC20ToCoinResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgConvertNativeCoinToERC20) Size() (n int) {
+func (m *MsgConvertCosmosCoinToERC20) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1207,7 +1207,7 @@ func (m *MsgConvertNativeCoinToERC20) Size() (n int) {
 	return n
 }
 
-func (m *MsgConvertNativeCoinToERC20Response) Size() (n int) {
+func (m *MsgConvertCosmosCoinToERC20Response) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1652,7 +1652,7 @@ func (m *MsgConvertERC20ToCoinResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgConvertNativeCoinToERC20) Unmarshal(dAtA []byte) error {
+func (m *MsgConvertCosmosCoinToERC20) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1675,10 +1675,10 @@ func (m *MsgConvertNativeCoinToERC20) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgConvertNativeCoinToERC20: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgConvertCosmosCoinToERC20: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgConvertNativeCoinToERC20: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgConvertCosmosCoinToERC20: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1802,7 +1802,7 @@ func (m *MsgConvertNativeCoinToERC20) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgConvertNativeCoinToERC20Response) Unmarshal(dAtA []byte) error {
+func (m *MsgConvertCosmosCoinToERC20Response) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1825,10 +1825,10 @@ func (m *MsgConvertNativeCoinToERC20Response) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgConvertNativeCoinToERC20Response: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgConvertCosmosCoinToERC20Response: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgConvertNativeCoinToERC20Response: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgConvertCosmosCoinToERC20Response: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
