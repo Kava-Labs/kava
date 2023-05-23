@@ -94,7 +94,7 @@ func (suite *ERC20TestSuite) TestDeployKavaWrappedNativeCoinERC20Contract() {
 	})
 
 	suite.Run("deploys contract with expected metadata & permissions", func() {
-		caller, privKey := suite.RandomAccount()
+		caller, privKey := testutil.RandomEvmAccount()
 
 		token := types.NewAllowedNativeCoinERC20Token("hard", "EVM HARD", "HARD", 6)
 		addr, err := suite.Keeper.DeployKavaWrappedNativeCoinERC20Contract(suite.Ctx, token)

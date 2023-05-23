@@ -12,7 +12,7 @@ import (
 )
 
 ///////////////
-// EVM -> SDK
+// EVM -> Cosmos SDK
 ///////////////
 
 // NewConversionPair returns a new ConversionPair.
@@ -95,7 +95,7 @@ func validateConversionPairs(i interface{}) error {
 }
 
 ///////////////
-// SDK -> EVM
+// Cosmos SDK -> EVM
 ///////////////
 
 // NewAllowedNativeCoinERC20Token returns an AllowedNativeCoinERC20Token

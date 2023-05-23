@@ -21,6 +21,10 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
+////////////////////////////
+// EVM-native assets -> Cosmos SDK
+////////////////////////////
+
 // ConvertCoinToERC20 handles a MsgConvertCoinToERC20 message to convert
 // sdk.Coin to Kava EVM tokens.
 func (s msgServer) ConvertCoinToERC20(
@@ -101,4 +105,18 @@ func (s msgServer) ConvertERC20ToCoin(
 	)
 
 	return &types.MsgConvertERC20ToCoinResponse{}, nil
+}
+
+////////////////////////////
+// Cosmos SDK-native assets -> EVM
+////////////////////////////
+
+// ConvertNativeCoinToERC20 converts a native sdk.Coin to an ERC20.
+// If no ERC20 contract has been deployed for the given denom, a new
+// contract will be deployed and registered to the module.
+func (msgServer) ConvertNativeCoinToERC20(
+	ctx context.Context,
+	msg *types.MsgConvertNativeCoinToERC20,
+) (*types.MsgConvertNativeCoinToERC20Response, error) {
+	return nil, fmt.Errorf("unimplemented - coming soon")
 }

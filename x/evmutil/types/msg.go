@@ -12,16 +12,25 @@ import (
 // ensure Msg interface compliance at compile time
 var (
 	_ sdk.Msg            = &MsgConvertCoinToERC20{}
-	_ sdk.Msg            = &MsgConvertERC20ToCoin{}
 	_ legacytx.LegacyMsg = &MsgConvertCoinToERC20{}
+	_ sdk.Msg            = &MsgConvertERC20ToCoin{}
 	_ legacytx.LegacyMsg = &MsgConvertERC20ToCoin{}
+
+	_ sdk.Msg            = &MsgConvertNativeCoinToERC20{}
+	_ legacytx.LegacyMsg = &MsgConvertNativeCoinToERC20{}
 )
 
 // legacy message types
 const (
 	TypeMsgConvertCoinToERC20 = "evmutil_convert_coin_to_erc20"
 	TypeMsgConvertERC20ToCoin = "evmutil_convert_erc20_to_coin"
+
+	TypeMsgConvertNativeCoinToERC20 = "evmutil_convert_native_coin_to_erc20"
 )
+
+////////////////////////////
+// EVM-native assets -> Cosmos SDK
+////////////////////////////
 
 // NewMsgConvertCoinToERC20 returns a new MsgConvertCoinToERC20
 func NewMsgConvertCoinToERC20(
@@ -146,3 +155,58 @@ func (msg MsgConvertERC20ToCoin) Route() string {
 func (msg MsgConvertERC20ToCoin) Type() string {
 	return TypeMsgConvertERC20ToCoin
 }
+
+////////////////////////////
+// Cosmos SDK-native assets -> EVM
+////////////////////////////
+
+// NewMsgConvertNativeCoinToERC20 returns a new MsgConvertNativeCoinToERC20
+func NewMsgConvertNativeCoinToERC20(
+	initiator string,
+	receiver string,
+	amount sdk.Coin,
+) MsgConvertNativeCoinToERC20 {
+	return MsgConvertNativeCoinToERC20{
+		Initiator: initiator,
+		Receiver:  receiver,
+		Amount:    &amount,
+	}
+}
+
+// GetSigners implements types.Msg
+func (msg MsgConvertNativeCoinToERC20) GetSigners() []sdk.AccAddress {
+	sender, err := sdk.AccAddressFromBech32(msg.Initiator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender}
+}
+
+// ValidateBasic implements types.Msg
+func (msg MsgConvertNativeCoinToERC20) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Initiator)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid initiator address (%s): %s", msg.Initiator, err.Error())
+	}
+
+	if !common.IsHexAddress(msg.Receiver) {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "receiver is not a valid hex address (%s)", msg.Receiver)
+	}
+
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+	}
+
+	return nil
+}
+
+// GetSignBytes implements legacytx.LegacyMsg
+func (msg MsgConvertNativeCoinToERC20) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+// Route implements legacytx.LegacyMsg
+func (MsgConvertNativeCoinToERC20) Route() string { return RouterKey }
+
+// Type implements legacytx.LegacyMsg
+func (MsgConvertNativeCoinToERC20) Type() string { return TypeMsgConvertNativeCoinToERC20 }
