@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -118,5 +119,47 @@ func (s msgServer) ConvertCosmosCoinToERC20(
 	goCtx context.Context,
 	msg *types.MsgConvertCosmosCoinToERC20,
 ) (*types.MsgConvertCosmosCoinToERC20Response, error) {
-	return nil, fmt.Errorf("unimplemented - coming soon")
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	initiator, err := sdk.AccAddressFromBech32(msg.Initiator)
+	if err != nil {
+		return nil, fmt.Errorf("invalid initiator address: %w", err)
+	}
+
+	receiver, err := types.NewInternalEVMAddressFromString(msg.Receiver)
+	if err != nil {
+		return nil, fmt.Errorf("invalid receiver address: %w", err)
+	}
+
+	// TODO: extract to separate keeper method
+	// check that the conversion is allowed
+	tokenInfo, allowed := s.keeper.GetAllowedTokenMetadata(ctx, msg.Amount.Denom)
+	if !allowed {
+		return nil, errorsmod.Wrapf(types.ErrSDKConversionNotEnabled, msg.Amount.Denom)
+	}
+
+	// send coins from initiator to the module account
+	// do this before possible contract deploy to prevent unnecessary store interactions
+	err = s.keeper.bankKeeper.SendCoinsFromAccountToModule(
+		ctx, initiator, types.ModuleName, sdk.NewCoins(*msg.Amount),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// find deployed contract if it exits
+	contractAddress, err := s.keeper.GetOrDeployCosmosCoinERC20Contract(ctx, tokenInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	// mint erc20 tokens for the user
+	err = s.keeper.MintERC20(ctx, contractAddress, receiver, msg.Amount.Amount.BigInt())
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: emit event
+
+	return &types.MsgConvertCosmosCoinToERC20Response{}, nil
 }
