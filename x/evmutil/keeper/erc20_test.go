@@ -7,6 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -143,5 +144,68 @@ func (suite *ERC20TestSuite) TestDeployKavaWrappedCosmosCoinERC20Contract() {
 		// should not be able to call burn
 		_, err = callContract("burn", caller, big.NewInt(1))
 		suite.ErrorContains(err, "Ownable: caller is not the owner")
+	})
+}
+
+func (suite *ERC20TestSuite) TestGetOrDeployCosmosCoinERC20Contract() {
+	suite.Run("finds existing contract address", func() {
+		suite.SetupTest()
+		denom := "magic"
+		addr := types.BytesToInternalEVMAddress(app.RandomAddress().Bytes())
+		// pretend like we've registered a contract in a previous life
+		err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, denom, addr)
+		suite.NoError(err)
+
+		// expect it to find the registered address
+		tokenInfo := types.AllowedCosmosCoinERC20Token{CosmosDenom: denom}
+		contractAddress, err := suite.Keeper.GetOrDeployCosmosCoinERC20Contract(suite.Ctx, tokenInfo)
+		suite.NoError(err)
+		suite.Equal(addr, contractAddress)
+
+		// expect it to still be registered
+		contractAddress, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
+		suite.True(found)
+		suite.Equal(addr, contractAddress)
+	})
+
+	suite.Run("deploys & registers contract when one does not exist", func() {
+		suite.SetupTest()
+		denom := "magic"
+		tokenInfo := types.NewAllowedCosmosCoinERC20Token(denom, "Magic Coin", "MAGIC", 6)
+
+		// expect it to not be registered
+		_, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
+		suite.False(found)
+
+		// deploy the contract
+		contractAddress, err := suite.Keeper.GetOrDeployCosmosCoinERC20Contract(suite.Ctx, tokenInfo)
+		suite.NoError(err)
+
+		// expect it to be registered now
+		registeredAddress, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
+		suite.True(found)
+		suite.False(registeredAddress.IsNil())
+		suite.Equal(contractAddress, registeredAddress)
+	})
+
+	// this can only happen if governance passes a bad allowed token
+	suite.Run("fails when token can't be deployed", func() {
+		suite.SetupTest()
+		denom := "nope"
+		// empty other fields means this token is invalid.
+		invalidToken := types.AllowedCosmosCoinERC20Token{CosmosDenom: denom}
+
+		// expect it to not be registered
+		_, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
+		suite.False(found)
+
+		// attempt to deploy the contract
+		contractAddress, err := suite.Keeper.GetOrDeployCosmosCoinERC20Contract(suite.Ctx, invalidToken)
+		suite.ErrorContains(err, "failed to deploy erc20")
+		suite.True(contractAddress.IsNil())
+
+		// still expect it to not be registered
+		_, found = suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
+		suite.False(found)
 	})
 }

@@ -355,6 +355,42 @@ func (suite *keeperTestSuite) TestGetBalance() {
 	}
 }
 
+func (suite *keeperTestSuite) TestDeployedCosmosCoinContractStoreState() {
+	suite.Run("returns nil for nonexistent denom", func() {
+		suite.SetupTest()
+		addr, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, "undeployed-denom")
+		suite.False(found)
+		suite.Equal(addr, types.InternalEVMAddress{})
+	})
+
+	suite.Run("handles setting & getting a contract address", func() {
+		suite.SetupTest()
+		denom := "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
+		address := testutil.RandomInternalEVMAddress()
+
+		err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, denom, address)
+		suite.NoError(err)
+
+		stored, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
+		suite.True(found)
+		suite.Equal(address, stored)
+	})
+
+	suite.Run("fails when setting an invalid denom", func() {
+		suite.SetupTest()
+		invalidDenom := ""
+		err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, invalidDenom, testutil.RandomInternalEVMAddress())
+		suite.ErrorContains(err, "invalid cosmos denom")
+	})
+
+	suite.Run("fails when setting 0 address", func() {
+		suite.SetupTest()
+		invalidAddr := types.InternalEVMAddress{}
+		err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, "denom", invalidAddr)
+		suite.ErrorContains(err, "attempting to register empty contract address")
+	})
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(keeperTestSuite))
 }

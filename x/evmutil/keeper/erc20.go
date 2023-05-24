@@ -110,6 +110,32 @@ func (k Keeper) DeployKavaWrappedCosmosCoinERC20Contract(
 	return types.NewInternalEVMAddress(contractAddr), nil
 }
 
+// GetOrDeployCosmosCoinERC20Contract checks the module store for a deployed contract for the given
+// token info and returns it if preset. Otherwise, it deploys and registers the contract.
+func (k *Keeper) GetOrDeployCosmosCoinERC20Contract(
+	ctx sdk.Context,
+	tokenInfo types.AllowedCosmosCoinERC20Token,
+) (types.InternalEVMAddress, error) {
+	contractAddress, found := k.GetDeployedCosmosCoinContract(ctx, tokenInfo.CosmosDenom)
+	if found {
+		// contract has already been deployed
+		return contractAddress, nil
+	}
+
+	// deploy a new contract
+	contractAddress, err := k.DeployKavaWrappedCosmosCoinERC20Contract(ctx, tokenInfo)
+	if err != nil {
+		return contractAddress, err
+	}
+
+	// register the contract to the module store
+	err = k.SetDeployedCosmosCoinContract(ctx, tokenInfo.CosmosDenom, contractAddress)
+
+	// TODO: emit event that contract was deployed
+
+	return contractAddress, err
+}
+
 // MintERC20 mints the given amount of an ERC20 token to an address. This is
 // unchecked and should only be called after permission and enabled ERC20 checks.
 func (k Keeper) MintERC20(

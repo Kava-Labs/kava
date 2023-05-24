@@ -4,13 +4,16 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/ethereum/go-ethereum/common/math"
+
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type MsgServerSuite struct {
