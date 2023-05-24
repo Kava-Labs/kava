@@ -6,9 +6,39 @@ order: 3
 
 Users can submit various messages to the evmutil module which trigger state changes detailed below.
 
+## MsgConvertCosmosCoinToERC20
+
+`MsgConvertCosmosCoinToERC20` converts an sdk.Coin to an ERC20. This message is for moving Cosmos-native assets from the Cosmos ecosystem to the EVM.
+
+Upon first conversion, the message also deploys the ERC20 contract that will represent the cosmos-sdk asset in the EVM. The contract is owned by the `x/evmutil` module.
+
+```proto
+service Msg {
+  // ConvertCosmosCoinToERC20 defines a method for converting a cosmos sdk.Coin to an ERC20.
+  rpc ConvertCosmosCoinToERC20(MsgConvertCosmosCoinToERC20) returns (MsgConvertCosmosCoinToERC20Response);
+}
+
+// ConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20.
+message MsgConvertCosmosCoinToERC20 {
+  // Kava bech32 address initiating the conversion.
+  string initiator = 1;
+  // EVM hex address that will receive the ERC20 tokens.
+  string receiver = 2;
+  // Amount is the sdk.Coin amount to convert.
+  cosmos.base.v1beta1.Coin amount = 3;
+}
+```
+
+### State Changes
+
+- The `AllowedCosmosDenoms` param from `x/evmutil` is checked to ensure the conversion is allowed.
+- The module's store is checked for the address of the deployed ERC20 contract. If none is found, a new contract is deployed and its address is saved to the module store.
+- The `amount` is deducted from the `initiator`'s balance and transferred to the module account.
+- An equivalent amount of ERC20 tokens are minted by `x/evmutil` to the `receiver`.
+
 ## MsgConvertERC20ToCoin
 
-`MsgConvertCoinToERC20` converts a Kava ERC20 coin to sdk.Coin.
+`MsgConvertCoinToERC20` converts a Kava ERC20 coin to sdk.Coin. This message is for moving EVM-native assets from the EVM to the Cosmos ecosystem.
 
 ```protobuf
 service Msg {
@@ -39,7 +69,7 @@ message MsgConvertERC20ToCoin {
 
 ## MsgConvertCoinToERC20
 
-`MsgConvertCoinToERC20` converts sdk.Coin to Kava ERC20.
+`MsgConvertCoinToERC20` converts sdk.Coin to Kava ERC20. This message is for moving EVM-native assets from the Cosmos ecosystem back to the EVM.
 
 ```protobuf
 service Msg {
