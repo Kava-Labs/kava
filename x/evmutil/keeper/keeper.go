@@ -183,3 +183,32 @@ func (k Keeper) RemoveBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdkmath.
 	}
 	return k.SetBalance(ctx, addr, finalBal)
 }
+
+// SetDeployedCosmosCoinContract stores a single deployed ERC20KavaWrappedCosmosCoin contract address
+func (k *Keeper) SetDeployedCosmosCoinContract(ctx sdk.Context, cosmosDenom string, contractAddress types.InternalEVMAddress) error {
+	if err := sdk.ValidateDenom(cosmosDenom); err != nil {
+		return errorsmod.Wrap(types.ErrInvalidCosmosDenom, cosmosDenom)
+	}
+	if contractAddress.IsNil() {
+		return errorsmod.Wrapf(
+			sdkerrors.ErrInvalidAddress,
+			"attempting to register empty contract address for denom '%s'",
+			cosmosDenom,
+		)
+	}
+	store := ctx.KVStore(k.storeKey)
+	storeKey := types.DeployedCosmosCoinContractKey(cosmosDenom)
+
+	store.Set(storeKey, contractAddress.Bytes())
+	return nil
+}
+
+// SetDeployedCosmosCoinContract gets a deployed ERC20KavaWrappedCosmosCoin contract address by cosmos denom
+// Returns the stored address and a bool indicating if it was found or not
+func (k *Keeper) GetDeployedCosmosCoinContract(ctx sdk.Context, cosmosDenom string) (types.InternalEVMAddress, bool) {
+	store := ctx.KVStore(k.storeKey)
+	storeKey := types.DeployedCosmosCoinContractKey(cosmosDenom)
+	bz := store.Get(storeKey)
+	found := len(bz) != 0
+	return types.BytesToInternalEVMAddress(bz), found
+}

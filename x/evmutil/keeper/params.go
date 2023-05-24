@@ -20,6 +20,18 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramSubspace.SetParamSet(ctx, &params)
 }
 
+// GetAllowedTokenMetadata gets the token metadata for the given cosmosDenom if it is allowed.
+// Returns the metadata if allowed, and a bool indicating if the denom was in the allow list or not.
+func (k Keeper) GetAllowedTokenMetadata(ctx sdk.Context, cosmosDenom string) (types.AllowedCosmosCoinERC20Token, bool) {
+	params := k.GetParams(ctx)
+	for _, token := range params.AllowedCosmosDenoms {
+		if token.CosmosDenom == cosmosDenom {
+			return token, true
+		}
+	}
+	return types.AllowedCosmosCoinERC20Token{}, false
+}
+
 // GetEnabledConversionPairFromERC20Address returns an ConversionPair from the internal contract address.
 func (k Keeper) GetEnabledConversionPairFromERC20Address(
 	ctx sdk.Context,

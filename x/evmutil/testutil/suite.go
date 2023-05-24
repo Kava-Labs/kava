@@ -180,6 +180,10 @@ func (suite *Suite) Commit() {
 	suite.Ctx = suite.App.NewContext(false, header)
 }
 
+func (suite *Suite) ModuleBalance(denom string) sdk.Int {
+	return suite.App.GetModuleAccountBalance(suite.Ctx, types.ModuleName, denom)
+}
+
 func (suite *Suite) FundAccountWithKava(addr sdk.AccAddress, coins sdk.Coins) {
 	ukava := coins.AmountOf("ukava")
 	if ukava.IsPositive() {
@@ -410,4 +414,13 @@ func RandomEvmAccount() (common.Address, *ethsecp256k1.PrivKey) {
 	}
 	addr := common.BytesToAddress(privKey.PubKey().Address())
 	return addr, privKey
+}
+
+func RandomEvmAddress() common.Address {
+	addr, _ := RandomEvmAccount()
+	return addr
+}
+
+func RandomInternalEVMAddress() types.InternalEVMAddress {
+	return types.NewInternalEVMAddress(RandomEvmAddress())
 }
