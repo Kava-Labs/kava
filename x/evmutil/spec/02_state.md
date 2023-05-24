@@ -45,7 +45,6 @@ message AllowedCosmosCoinERC20Token {
   // Number of decimals ERC20 contract is deployed with.
   uint32 decimals = 4;
 }
-
 ```
 
 `GenesisState` defines the state that must be persisted when the blockchain stops/restarts in order for normal function of the evmutil module to resume.
@@ -70,6 +69,17 @@ message Account {
 }
 ```
 
+## Deployed Cosmos Coin Contract Addresses
+
+Addresses for the ERC20 contracts representing cosmos-sdk `Coin`s are kept in the module store. They are stored as bytes by the cosmos-sdk denom they represent.
+
+Example:
+If a contract for representing the cosmos-sdk denom `cow` as an ERC20 in the EVM is deployed by the module to the address `0xbeef00000000000000000000000000000000beef`, the module store will contain:
+
+`0x01 | bytes("cow") => bytes(0xbeef00000000000000000000000000000000beef)`
+
+Where `0x01` is the `DeployedCosmosCoinContractKeyPrefix` defined in [keys.go](../types/keys.go).
+
 ## Store
 
-For complete implementation details for how items are stored, see [keys.go](../types/keys.go). `x/evmutil` store state consists of accounts.
+For complete implementation details for how items are stored, see [keys.go](../types/keys.go). `x/evmutil` store state consists of accounts and deployed contract addresses.
