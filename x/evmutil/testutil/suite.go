@@ -386,6 +386,11 @@ func (suite *Suite) EventsDoNotContain(events sdk.Events, eventType string) {
 	suite.Falsef(foundMatch, "event of type %s should not be found, but was found", eventType)
 }
 
+// BigIntsEqual is a helper method for comparing the equality of two big ints
+func (suite *Suite) BigIntsEqual(expected *big.Int, actual *big.Int, msg string) {
+	suite.Truef(expected.Cmp(actual) == 0, "%s (expected: %s, actual: %s)", msg, expected.String(), actual.String())
+}
+
 func attrsToMap(attrs []abci.EventAttribute) []sdk.Attribute {
 	out := []sdk.Attribute{}
 
