@@ -44,6 +44,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Client Breaking
 - (evmutil) [#1603] Renamed error `ErrConversionNotEnabled` to `ErrEVMConversionNotEnabled`
+- (evmutil) [#1604] Renamed event types
+  - `convert_erc20_to_coin` -> `convert_evm_erc20_to_coin`
+  - `convert_coin_to_erc20` -> `convert_evm_erc20_from_coin`
 
 ## [v0.23.0]
 
@@ -246,6 +249,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1604]: https://github.com/Kava-Labs/kava/pull/1604
 [#1603]: https://github.com/Kava-Labs/kava/pull/1603
 [#1598]: https://github.com/Kava-Labs/kava/pull/1598
 [#1596]: https://github.com/Kava-Labs/kava/pull/1596
