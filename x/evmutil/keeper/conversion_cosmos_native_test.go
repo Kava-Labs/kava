@@ -119,6 +119,17 @@ func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
 		checkBalanceOf(receiver1, amount.Amount)
 		// total supply of erc20 should have increased
 		checkTotalSupply(amount.Amount)
+
+		// event should be emitted
+		suite.EventsContains(suite.GetEvents(),
+			sdk.NewEvent(
+				types.EventTypeConvertCosmosCoinToERC20,
+				sdk.NewAttribute(types.AttributeKeyInitiator, initiator.String()),
+				sdk.NewAttribute(types.AttributeKeyReceiver, receiver1.String()),
+				sdk.NewAttribute(types.AttributeKeyERC20Address, contractAddress.Hex()),
+				sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+			),
+		)
 	})
 
 	suite.Run("2nd deploy uses same contract", func() {
@@ -147,5 +158,16 @@ func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
 		checkBalanceOf(receiver2, amount.Amount)
 		// total supply of erc20 should have increased
 		checkTotalSupply(amount.Amount.MulRaw(2))
+
+		// event should be emitted
+		suite.EventsContains(suite.GetEvents(),
+			sdk.NewEvent(
+				types.EventTypeConvertCosmosCoinToERC20,
+				sdk.NewAttribute(types.AttributeKeyInitiator, initiator.String()),
+				sdk.NewAttribute(types.AttributeKeyReceiver, receiver2.String()),
+				sdk.NewAttribute(types.AttributeKeyERC20Address, contractAddress.Hex()),
+				sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+			),
+		)
 	})
 }

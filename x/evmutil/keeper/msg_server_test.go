@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -418,14 +417,22 @@ func (suite *MsgServerSuite) TestConvertCosmosCoinToERC20_InitialContractDeploy(
 			suite.NoError(err)
 			suite.Equal(tc.amountConverted.BigInt(), erc20Balance, "unexpected erc20 balance for receiver")
 
-			fmt.Printf("%+v\n", suite.GetEvents())
-
 			// msg server event
 			suite.EventsContains(suite.GetEvents(),
 				sdk.NewEvent(
 					sdk.EventTypeMessage,
 					sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 					sdk.NewAttribute(sdk.AttributeKeySender, initiator.String()),
+				))
+
+			// keeper event
+			suite.EventsContains(suite.GetEvents(),
+				sdk.NewEvent(
+					types.EventTypeConvertCosmosCoinToERC20,
+					sdk.NewAttribute(types.AttributeKeyInitiator, initiator.String()),
+					sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
+					sdk.NewAttribute(types.AttributeKeyERC20Address, contractAddress.Hex()),
+					sdk.NewAttribute(types.AttributeKeyAmount, tc.msg.Amount.String()),
 				))
 		})
 	}

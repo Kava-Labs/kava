@@ -44,7 +44,13 @@ func (k *Keeper) ConvertCosmosCoinToERC20(
 		return err
 	}
 
-	// TODO emit conversion event
+	ctx.EventManager().EmitEvent(sdk.NewEvent(
+		types.EventTypeConvertCosmosCoinToERC20,
+		sdk.NewAttribute(types.AttributeKeyInitiator, initiator.String()),
+		sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
+		sdk.NewAttribute(types.AttributeKeyERC20Address, contractAddress.Hex()),
+		sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+	))
 
 	return nil
 }

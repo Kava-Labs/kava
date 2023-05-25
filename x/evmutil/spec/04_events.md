@@ -29,3 +29,14 @@ The evmutil module emits the following events:
 | convert_evm_erc20_from_coin | amount        | `{amount}`         |
 | message                     | module        | evmutil            |
 | message                     | sender        | {'sender address'} |
+
+### MsgConvertCosmosCoinToERC20
+
+| Type                         | Attribute Key | Attribute Value    |
+| ---------------------------- | ------------- | ------------------ |
+| convert_cosmos_coin_to_erc20 | initiator     | `{initiator}`      |
+| convert_cosmos_coin_to_erc20 | receiver      | `{receiver}`       |
+| convert_cosmos_coin_to_erc20 | erc20_address | `{erc20_address}`  |
+| convert_cosmos_coin_to_erc20 | amount        | `{amount}`         |
+| message                      | module        | evmutil            |
+| message                      | sender        | {'sender address'} |
