@@ -111,34 +111,191 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
+// QueryDeployedCosmosCoinContractsRequest defines the request type for Query/DeployedCosmosCoinContracts method.
+type QueryDeployedCosmosCoinContractsRequest struct {
+	// optional query param to only return specific denoms in the list
+	CosmosDenoms []string `protobuf:"bytes,1,rep,name=cosmos_denoms,json=cosmosDenoms,proto3" json:"cosmos_denoms,omitempty"`
+}
+
+func (m *QueryDeployedCosmosCoinContractsRequest) Reset() {
+	*m = QueryDeployedCosmosCoinContractsRequest{}
+}
+func (m *QueryDeployedCosmosCoinContractsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDeployedCosmosCoinContractsRequest) ProtoMessage()    {}
+func (*QueryDeployedCosmosCoinContractsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4a8d0512331709e7, []int{2}
+}
+func (m *QueryDeployedCosmosCoinContractsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryDeployedCosmosCoinContractsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryDeployedCosmosCoinContractsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryDeployedCosmosCoinContractsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDeployedCosmosCoinContractsRequest.Merge(m, src)
+}
+func (m *QueryDeployedCosmosCoinContractsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryDeployedCosmosCoinContractsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDeployedCosmosCoinContractsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryDeployedCosmosCoinContractsRequest proto.InternalMessageInfo
+
+func (m *QueryDeployedCosmosCoinContractsRequest) GetCosmosDenoms() []string {
+	if m != nil {
+		return m.CosmosDenoms
+	}
+	return nil
+}
+
+// QueryDeployedCosmosCoinContractsResponse defines the response type for the Query/DeployedCosmosCoinContracts method.
+type QueryDeployedCosmosCoinContractsResponse struct {
+	// deployed_cosmos_coin_contracts is a list of cosmos-sdk coin denom and its deployed contract address
+	DeployedCosmosCoinContracts []DeployedCosmosCoinContract `protobuf:"bytes,1,rep,name=deployed_cosmos_coin_contracts,json=deployedCosmosCoinContracts,proto3" json:"deployed_cosmos_coin_contracts"`
+}
+
+func (m *QueryDeployedCosmosCoinContractsResponse) Reset() {
+	*m = QueryDeployedCosmosCoinContractsResponse{}
+}
+func (m *QueryDeployedCosmosCoinContractsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDeployedCosmosCoinContractsResponse) ProtoMessage()    {}
+func (*QueryDeployedCosmosCoinContractsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4a8d0512331709e7, []int{3}
+}
+func (m *QueryDeployedCosmosCoinContractsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryDeployedCosmosCoinContractsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryDeployedCosmosCoinContractsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryDeployedCosmosCoinContractsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDeployedCosmosCoinContractsResponse.Merge(m, src)
+}
+func (m *QueryDeployedCosmosCoinContractsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryDeployedCosmosCoinContractsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDeployedCosmosCoinContractsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryDeployedCosmosCoinContractsResponse proto.InternalMessageInfo
+
+func (m *QueryDeployedCosmosCoinContractsResponse) GetDeployedCosmosCoinContracts() []DeployedCosmosCoinContract {
+	if m != nil {
+		return m.DeployedCosmosCoinContracts
+	}
+	return nil
+}
+
+// DeployedCosmosCoinContract defines a deployed token contract to the evm representing a native cosmos-sdk coin
+type DeployedCosmosCoinContract struct {
+	CosmosDenom string              `protobuf:"bytes,1,opt,name=cosmos_denom,json=cosmosDenom,proto3" json:"cosmos_denom,omitempty"`
+	Address     *InternalEVMAddress `protobuf:"bytes,2,opt,name=address,proto3,customtype=InternalEVMAddress" json:"address,omitempty"`
+}
+
+func (m *DeployedCosmosCoinContract) Reset()         { *m = DeployedCosmosCoinContract{} }
+func (m *DeployedCosmosCoinContract) String() string { return proto.CompactTextString(m) }
+func (*DeployedCosmosCoinContract) ProtoMessage()    {}
+func (*DeployedCosmosCoinContract) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4a8d0512331709e7, []int{4}
+}
+func (m *DeployedCosmosCoinContract) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DeployedCosmosCoinContract) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DeployedCosmosCoinContract.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DeployedCosmosCoinContract) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeployedCosmosCoinContract.Merge(m, src)
+}
+func (m *DeployedCosmosCoinContract) XXX_Size() int {
+	return m.Size()
+}
+func (m *DeployedCosmosCoinContract) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeployedCosmosCoinContract.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeployedCosmosCoinContract proto.InternalMessageInfo
+
+func (m *DeployedCosmosCoinContract) GetCosmosDenom() string {
+	if m != nil {
+		return m.CosmosDenom
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "kava.evmutil.v1beta1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "kava.evmutil.v1beta1.QueryParamsResponse")
+	proto.RegisterType((*QueryDeployedCosmosCoinContractsRequest)(nil), "kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsRequest")
+	proto.RegisterType((*QueryDeployedCosmosCoinContractsResponse)(nil), "kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsResponse")
+	proto.RegisterType((*DeployedCosmosCoinContract)(nil), "kava.evmutil.v1beta1.DeployedCosmosCoinContract")
 }
 
 func init() { proto.RegisterFile("kava/evmutil/v1beta1/query.proto", fileDescriptor_4a8d0512331709e7) }
 
 var fileDescriptor_4a8d0512331709e7 = []byte{
-	// 294 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x90, 0x31, 0x4b, 0xc4, 0x30,
-	0x18, 0x86, 0x1b, 0xd1, 0x0e, 0x71, 0x8b, 0x1d, 0xa4, 0x94, 0x78, 0x14, 0x87, 0xbb, 0xc1, 0x84,
-	0x3b, 0x37, 0xc7, 0x5b, 0x5d, 0xbc, 0x1b, 0xdd, 0x52, 0x09, 0xb1, 0xd8, 0xf6, 0xeb, 0x35, 0x69,
-	0xf1, 0x56, 0x9d, 0x05, 0xc1, 0x3f, 0xe1, 0x4f, 0xb9, 0xf1, 0xc0, 0xc5, 0x49, 0xce, 0xd6, 0x1f,
-	0x22, 0x6d, 0x8a, 0x20, 0x76, 0x70, 0x0b, 0x5f, 0x9e, 0xef, 0x79, 0xdf, 0x04, 0x8f, 0xee, 0x44,
-	0x25, 0xb8, 0xac, 0xd2, 0xd2, 0xc4, 0x09, 0xaf, 0xa6, 0x91, 0x34, 0x62, 0xca, 0x57, 0xa5, 0x2c,
-	0xd6, 0x2c, 0x2f, 0xc0, 0x00, 0xf1, 0x5a, 0x82, 0xf5, 0x04, 0xeb, 0x09, 0xdf, 0x53, 0xa0, 0xa0,
-	0x03, 0x78, 0x7b, 0xb2, 0xac, 0x1f, 0x28, 0x00, 0x95, 0x48, 0x2e, 0xf2, 0x98, 0x8b, 0x2c, 0x03,
-	0x23, 0x4c, 0x0c, 0x99, 0xee, 0x6f, 0xc3, 0xc1, 0x2c, 0x25, 0x33, 0xa9, 0xe3, 0x9e, 0x09, 0x3d,
-	0x4c, 0x16, 0x6d, 0xf8, 0x95, 0x28, 0x44, 0xaa, 0x97, 0x72, 0x55, 0x4a, 0x6d, 0xc2, 0x05, 0x3e,
-	0xfa, 0x35, 0xd5, 0x39, 0x64, 0x5a, 0x92, 0x0b, 0xec, 0xe6, 0xdd, 0xe4, 0x18, 0x8d, 0xd0, 0xf8,
-	0x70, 0x16, 0xb0, 0xa1, 0xae, 0xcc, 0x6e, 0xcd, 0xf7, 0x37, 0x1f, 0x27, 0xce, 0xb2, 0xdf, 0x98,
-	0x3d, 0x21, 0x7c, 0xd0, 0x39, 0xc9, 0x23, 0xc2, 0xae, 0x45, 0xc8, 0x78, 0x58, 0xf0, 0xb7, 0x91,
-	0x3f, 0xf9, 0x07, 0x69, 0x5b, 0x86, 0xa7, 0x0f, 0x6f, 0x5f, 0x2f, 0x7b, 0x94, 0x04, 0x7c, 0xf0,
-	0xfd, 0xb6, 0xcf, 0xfc, 0x72, 0xf7, 0x49, 0xd1, 0x6b, 0x4d, 0xd1, 0xa6, 0xa6, 0x68, 0x5b, 0x53,
-	0xb4, 0xab, 0x29, 0x7a, 0x6e, 0xa8, 0xb3, 0x6d, 0xa8, 0xf3, 0xde, 0x50, 0xe7, 0x7a, 0xa2, 0x62,
-	0x73, 0x5b, 0x46, 0xec, 0x06, 0xd2, 0xce, 0x74, 0x96, 0x88, 0x48, 0x5b, 0xe7, 0xfd, 0x8f, 0xd5,
-	0xac, 0x73, 0xa9, 0x23, 0xb7, 0xfb, 0xcc, 0xf3, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xeb, 0xa2,
-	0x8d, 0x8c, 0xde, 0x01, 0x00, 0x00,
+	// 482 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0xc1, 0x6e, 0xd3, 0x40,
+	0x10, 0x86, 0xb3, 0x01, 0x82, 0xba, 0x29, 0x97, 0x25, 0x42, 0x95, 0x1b, 0x6d, 0x8b, 0x41, 0x22,
+	0x3d, 0x60, 0xb7, 0x01, 0x71, 0x40, 0x80, 0x44, 0x52, 0x0e, 0x08, 0x81, 0xa8, 0x0f, 0x1c, 0xb8,
+	0x44, 0x1b, 0x7b, 0x65, 0x2c, 0x9c, 0x1d, 0xc7, 0xbb, 0x89, 0x88, 0xb8, 0xc1, 0x0b, 0x20, 0xf1,
+	0x10, 0xf0, 0x28, 0x3d, 0x56, 0xe2, 0x82, 0x7a, 0xa8, 0x4a, 0xc2, 0x89, 0xa7, 0x40, 0xde, 0xdd,
+	0xa0, 0x22, 0x9c, 0x04, 0xf5, 0x66, 0xcd, 0xfc, 0x3b, 0xdf, 0xfc, 0x33, 0x63, 0xbc, 0xfd, 0x96,
+	0x8d, 0x99, 0xcf, 0xc7, 0x83, 0x91, 0x4a, 0x52, 0x7f, 0xbc, 0xd7, 0xe7, 0x8a, 0xed, 0xf9, 0xc3,
+	0x11, 0xcf, 0x27, 0x5e, 0x96, 0x83, 0x02, 0xd2, 0x28, 0x14, 0x9e, 0x55, 0x78, 0x56, 0xe1, 0x34,
+	0x62, 0x88, 0x41, 0x0b, 0xfc, 0xe2, 0xcb, 0x68, 0x9d, 0x66, 0x0c, 0x10, 0xa7, 0xdc, 0x67, 0x59,
+	0xe2, 0x33, 0x21, 0x40, 0x31, 0x95, 0x80, 0x90, 0x36, 0xeb, 0x96, 0xb2, 0x62, 0x2e, 0xb8, 0x4c,
+	0xac, 0xc6, 0x6d, 0x60, 0x72, 0x50, 0xc0, 0x5f, 0xb2, 0x9c, 0x0d, 0x64, 0xc0, 0x87, 0x23, 0x2e,
+	0x95, 0x7b, 0x80, 0xaf, 0xfe, 0x15, 0x95, 0x19, 0x08, 0xc9, 0xc9, 0x7d, 0x5c, 0xcb, 0x74, 0x64,
+	0x03, 0x6d, 0xa3, 0x56, 0xbd, 0xdd, 0xf4, 0xca, 0x7a, 0xf5, 0xcc, 0xab, 0xce, 0xc5, 0xc3, 0x93,
+	0xad, 0x4a, 0x60, 0x5f, 0xb8, 0x2f, 0xf0, 0x2d, 0x5d, 0x72, 0x9f, 0x67, 0x29, 0x4c, 0x78, 0xd4,
+	0x05, 0x39, 0x00, 0xd9, 0x85, 0x44, 0x74, 0x41, 0xa8, 0x9c, 0x85, 0x6a, 0x4e, 0x27, 0x37, 0xf0,
+	0x95, 0x50, 0x67, 0x7b, 0x11, 0x17, 0xa0, 0x69, 0x17, 0x5a, 0x6b, 0xc1, 0xba, 0x09, 0xee, 0xeb,
+	0x98, 0xfb, 0x05, 0xe1, 0xd6, 0xea, 0x82, 0xb6, 0xf1, 0xf7, 0x98, 0x46, 0x56, 0xd6, 0xb3, 0xa5,
+	0x43, 0x48, 0x44, 0x2f, 0x9c, 0x2b, 0x35, 0xa2, 0xde, 0xde, 0x2d, 0x37, 0xb4, 0x18, 0x61, 0x4d,
+	0x6e, 0x46, 0x8b, 0x9b, 0x70, 0x87, 0xd8, 0x59, 0x5c, 0x80, 0x5c, 0xc7, 0xeb, 0x67, 0xcd, 0xea,
+	0xc9, 0xae, 0x05, 0xf5, 0x33, 0x5e, 0xc9, 0x2e, 0xbe, 0xcc, 0xa2, 0x28, 0xe7, 0x52, 0x6e, 0x54,
+	0x8b, 0x6c, 0xe7, 0xda, 0xf1, 0xc9, 0x16, 0x79, 0x2a, 0x14, 0xcf, 0x05, 0x4b, 0x9f, 0xbc, 0x7a,
+	0xfe, 0xd8, 0x64, 0x83, 0xb9, 0xac, 0xfd, 0xab, 0x8a, 0x2f, 0xe9, 0xe1, 0x90, 0x8f, 0x08, 0xd7,
+	0xcc, 0x3e, 0x48, 0xab, 0xdc, 0xdc, 0xbf, 0xeb, 0x77, 0x76, 0xfe, 0x43, 0x69, 0x26, 0xeb, 0xde,
+	0xfc, 0xf0, 0xed, 0xe7, 0xe7, 0x2a, 0x25, 0x4d, 0xbf, 0xf4, 0xd8, 0xcc, 0xf2, 0xc9, 0x31, 0xc2,
+	0x9b, 0x4b, 0xf6, 0x44, 0x1e, 0x2e, 0x01, 0xae, 0x3e, 0x18, 0xe7, 0xd1, 0x79, 0x9f, 0x5b, 0x13,
+	0x0f, 0xb4, 0x89, 0x7b, 0xe4, 0x6e, 0xb9, 0x89, 0xe5, 0xa7, 0xd3, 0x79, 0x76, 0xfa, 0x83, 0xa2,
+	0xaf, 0x53, 0x8a, 0x0e, 0xa7, 0x14, 0x1d, 0x4d, 0x29, 0x3a, 0x9d, 0x52, 0xf4, 0x69, 0x46, 0x2b,
+	0x47, 0x33, 0x5a, 0xf9, 0x3e, 0xa3, 0x95, 0xd7, 0x3b, 0x71, 0xa2, 0xde, 0x8c, 0xfa, 0x5e, 0x08,
+	0x03, 0x4d, 0xb8, 0x9d, 0xb2, 0xbe, 0x34, 0xac, 0x77, 0x7f, 0x68, 0x6a, 0x92, 0x71, 0xd9, 0xaf,
+	0xe9, 0xdf, 0xf2, 0xce, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb0, 0x3c, 0x9b, 0xb9, 0x28, 0x04,
+	0x00, 0x00,
 }
 
 func (this *QueryParamsRequest) VerboseEqual(that interface{}) error {
@@ -243,6 +400,202 @@ func (this *QueryParamsResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
+func (this *QueryDeployedCosmosCoinContractsRequest) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*QueryDeployedCosmosCoinContractsRequest)
+	if !ok {
+		that2, ok := that.(QueryDeployedCosmosCoinContractsRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *QueryDeployedCosmosCoinContractsRequest")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsRequest but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsRequest but is not nil && this == nil")
+	}
+	if len(this.CosmosDenoms) != len(that1.CosmosDenoms) {
+		return fmt.Errorf("CosmosDenoms this(%v) Not Equal that(%v)", len(this.CosmosDenoms), len(that1.CosmosDenoms))
+	}
+	for i := range this.CosmosDenoms {
+		if this.CosmosDenoms[i] != that1.CosmosDenoms[i] {
+			return fmt.Errorf("CosmosDenoms this[%v](%v) Not Equal that[%v](%v)", i, this.CosmosDenoms[i], i, that1.CosmosDenoms[i])
+		}
+	}
+	return nil
+}
+func (this *QueryDeployedCosmosCoinContractsRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*QueryDeployedCosmosCoinContractsRequest)
+	if !ok {
+		that2, ok := that.(QueryDeployedCosmosCoinContractsRequest)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.CosmosDenoms) != len(that1.CosmosDenoms) {
+		return false
+	}
+	for i := range this.CosmosDenoms {
+		if this.CosmosDenoms[i] != that1.CosmosDenoms[i] {
+			return false
+		}
+	}
+	return true
+}
+func (this *QueryDeployedCosmosCoinContractsResponse) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*QueryDeployedCosmosCoinContractsResponse)
+	if !ok {
+		that2, ok := that.(QueryDeployedCosmosCoinContractsResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *QueryDeployedCosmosCoinContractsResponse")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsResponse but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsResponse but is not nil && this == nil")
+	}
+	if len(this.DeployedCosmosCoinContracts) != len(that1.DeployedCosmosCoinContracts) {
+		return fmt.Errorf("DeployedCosmosCoinContracts this(%v) Not Equal that(%v)", len(this.DeployedCosmosCoinContracts), len(that1.DeployedCosmosCoinContracts))
+	}
+	for i := range this.DeployedCosmosCoinContracts {
+		if !this.DeployedCosmosCoinContracts[i].Equal(&that1.DeployedCosmosCoinContracts[i]) {
+			return fmt.Errorf("DeployedCosmosCoinContracts this[%v](%v) Not Equal that[%v](%v)", i, this.DeployedCosmosCoinContracts[i], i, that1.DeployedCosmosCoinContracts[i])
+		}
+	}
+	return nil
+}
+func (this *QueryDeployedCosmosCoinContractsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*QueryDeployedCosmosCoinContractsResponse)
+	if !ok {
+		that2, ok := that.(QueryDeployedCosmosCoinContractsResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.DeployedCosmosCoinContracts) != len(that1.DeployedCosmosCoinContracts) {
+		return false
+	}
+	for i := range this.DeployedCosmosCoinContracts {
+		if !this.DeployedCosmosCoinContracts[i].Equal(&that1.DeployedCosmosCoinContracts[i]) {
+			return false
+		}
+	}
+	return true
+}
+func (this *DeployedCosmosCoinContract) VerboseEqual(that interface{}) error {
+	if that == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that == nil && this != nil")
+	}
+
+	that1, ok := that.(*DeployedCosmosCoinContract)
+	if !ok {
+		that2, ok := that.(DeployedCosmosCoinContract)
+		if ok {
+			that1 = &that2
+		} else {
+			return fmt.Errorf("that is not of type *DeployedCosmosCoinContract")
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return nil
+		}
+		return fmt.Errorf("that is type *DeployedCosmosCoinContract but is nil && this != nil")
+	} else if this == nil {
+		return fmt.Errorf("that is type *DeployedCosmosCoinContract but is not nil && this == nil")
+	}
+	if this.CosmosDenom != that1.CosmosDenom {
+		return fmt.Errorf("CosmosDenom this(%v) Not Equal that(%v)", this.CosmosDenom, that1.CosmosDenom)
+	}
+	if that1.Address == nil {
+		if this.Address != nil {
+			return fmt.Errorf("this.Address != nil && that1.Address == nil")
+		}
+	} else if !this.Address.Equal(*that1.Address) {
+		return fmt.Errorf("Address this(%v) Not Equal that(%v)", this.Address, that1.Address)
+	}
+	return nil
+}
+func (this *DeployedCosmosCoinContract) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*DeployedCosmosCoinContract)
+	if !ok {
+		that2, ok := that.(DeployedCosmosCoinContract)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.CosmosDenom != that1.CosmosDenom {
+		return false
+	}
+	if that1.Address == nil {
+		if this.Address != nil {
+			return false
+		}
+	} else if !this.Address.Equal(*that1.Address) {
+		return false
+	}
+	return true
+}
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
@@ -258,6 +611,8 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Params queries all parameters of the evmutil module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	// DeployedCosmosCoinContracts queries a list cosmos coin denom and their deployed erc20 address
+	DeployedCosmosCoinContracts(ctx context.Context, in *QueryDeployedCosmosCoinContractsRequest, opts ...grpc.CallOption) (*QueryDeployedCosmosCoinContractsResponse, error)
 }
 
 type queryClient struct {
@@ -277,10 +632,21 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) DeployedCosmosCoinContracts(ctx context.Context, in *QueryDeployedCosmosCoinContractsRequest, opts ...grpc.CallOption) (*QueryDeployedCosmosCoinContractsResponse, error) {
+	out := new(QueryDeployedCosmosCoinContractsResponse)
+	err := c.cc.Invoke(ctx, "/kava.evmutil.v1beta1.Query/DeployedCosmosCoinContracts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Params queries all parameters of the evmutil module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	// DeployedCosmosCoinContracts queries a list cosmos coin denom and their deployed erc20 address
+	DeployedCosmosCoinContracts(context.Context, *QueryDeployedCosmosCoinContractsRequest) (*QueryDeployedCosmosCoinContractsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -289,6 +655,9 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (*UnimplementedQueryServer) DeployedCosmosCoinContracts(ctx context.Context, req *QueryDeployedCosmosCoinContractsRequest) (*QueryDeployedCosmosCoinContractsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeployedCosmosCoinContracts not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -313,6 +682,24 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_DeployedCosmosCoinContracts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDeployedCosmosCoinContractsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).DeployedCosmosCoinContracts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.evmutil.v1beta1.Query/DeployedCosmosCoinContracts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).DeployedCosmosCoinContracts(ctx, req.(*QueryDeployedCosmosCoinContractsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.evmutil.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -320,6 +707,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "DeployedCosmosCoinContracts",
+			Handler:    _Query_DeployedCosmosCoinContracts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -382,6 +773,117 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryDeployedCosmosCoinContractsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryDeployedCosmosCoinContractsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryDeployedCosmosCoinContractsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.CosmosDenoms) > 0 {
+		for iNdEx := len(m.CosmosDenoms) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.CosmosDenoms[iNdEx])
+			copy(dAtA[i:], m.CosmosDenoms[iNdEx])
+			i = encodeVarintQuery(dAtA, i, uint64(len(m.CosmosDenoms[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryDeployedCosmosCoinContractsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryDeployedCosmosCoinContractsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryDeployedCosmosCoinContractsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.DeployedCosmosCoinContracts) > 0 {
+		for iNdEx := len(m.DeployedCosmosCoinContracts) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.DeployedCosmosCoinContracts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DeployedCosmosCoinContract) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DeployedCosmosCoinContract) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DeployedCosmosCoinContract) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Address != nil {
+		{
+			size := m.Address.Size()
+			i -= size
+			if _, err := m.Address.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.CosmosDenom) > 0 {
+		i -= len(m.CosmosDenom)
+		copy(dAtA[i:], m.CosmosDenom)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.CosmosDenom)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -410,6 +912,53 @@ func (m *QueryParamsResponse) Size() (n int) {
 	_ = l
 	l = m.Params.Size()
 	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryDeployedCosmosCoinContractsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.CosmosDenoms) > 0 {
+		for _, s := range m.CosmosDenoms {
+			l = len(s)
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QueryDeployedCosmosCoinContractsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.DeployedCosmosCoinContracts) > 0 {
+		for _, e := range m.DeployedCosmosCoinContracts {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *DeployedCosmosCoinContract) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.CosmosDenom)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Address != nil {
+		l = m.Address.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -528,6 +1077,290 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryDeployedCosmosCoinContractsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryDeployedCosmosCoinContractsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryDeployedCosmosCoinContractsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CosmosDenoms", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CosmosDenoms = append(m.CosmosDenoms, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryDeployedCosmosCoinContractsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryDeployedCosmosCoinContractsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryDeployedCosmosCoinContractsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DeployedCosmosCoinContracts", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DeployedCosmosCoinContracts = append(m.DeployedCosmosCoinContracts, DeployedCosmosCoinContract{})
+			if err := m.DeployedCosmosCoinContracts[len(m.DeployedCosmosCoinContracts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DeployedCosmosCoinContract) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DeployedCosmosCoinContract: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DeployedCosmosCoinContract: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CosmosDenom", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CosmosDenom = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			var v InternalEVMAddress
+			m.Address = &v
+			if err := m.Address.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

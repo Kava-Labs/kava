@@ -33,3 +33,9 @@ func (s queryServer) Params(stdCtx context.Context, req *types.QueryParamsReques
 
 	return &types.QueryParamsResponse{Params: params}, nil
 }
+
+// DeployedCosmosCoinContracts gets contract addresses for deployed erc20 contracts
+// representing cosmos-sdk coins
+func (queryServer) DeployedCosmosCoinContracts(context.Context, *types.QueryDeployedCosmosCoinContractsRequest) (*types.QueryDeployedCosmosCoinContractsResponse, error) {
+	panic("unimplemented")
+}
