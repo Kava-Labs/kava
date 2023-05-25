@@ -139,7 +139,13 @@ func (s msgServer) ConvertCosmosCoinToERC20(
 		return nil, err
 	}
 
-	// TODO: emit message event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Initiator),
+		),
+	)
 
 	return &types.MsgConvertCosmosCoinToERC20Response{}, nil
 }
