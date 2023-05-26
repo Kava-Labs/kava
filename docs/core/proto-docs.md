@@ -3807,6 +3807,7 @@ QueryDeployedCosmosCoinContractsRequest defines the request type for Query/Deplo
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `cosmos_denoms` | [string](#string) | repeated | optional query param to only return specific denoms in the list |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
 
 
@@ -3822,6 +3823,7 @@ QueryDeployedCosmosCoinContractsResponse defines the response type for the Query
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `deployed_cosmos_coin_contracts` | [DeployedCosmosCoinContract](#kava.evmutil.v1beta1.DeployedCosmosCoinContract) | repeated | deployed_cosmos_coin_contracts is a list of cosmos-sdk coin denom and its deployed contract address |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
 
 
 

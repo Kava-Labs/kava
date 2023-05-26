@@ -160,7 +160,7 @@ func (suite *Suite) SetupTest() {
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
 	evmtypes.RegisterQueryServer(queryHelper, suite.App.GetEvmKeeper())
 	suite.QueryClientEvm = evmtypes.NewQueryClient(queryHelper)
-	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.App.GetEvmutilKeeper()))
+	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.Keeper))
 	suite.QueryClient = types.NewQueryClient(queryHelper)
 
 	// We need to commit so that the ethermint feemarket beginblock runs to set the minfee

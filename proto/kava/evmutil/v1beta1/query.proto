@@ -1,13 +1,12 @@
 syntax = "proto3";
 package kava.evmutil.v1beta1;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "kava/evmutil/v1beta1/genesis.proto";
 
 option go_package = "github.com/kava-labs/kava/x/evmutil/types";
-option (gogoproto.equal_all) = true;
-option (gogoproto.verbose_equal_all) = true;
 
 // Query defines the gRPC querier service for evmutil module
 service Query {
@@ -32,14 +31,23 @@ message QueryParamsResponse {
 
 // QueryDeployedCosmosCoinContractsRequest defines the request type for Query/DeployedCosmosCoinContracts method.
 message QueryDeployedCosmosCoinContractsRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
   // optional query param to only return specific denoms in the list
   repeated string cosmos_denoms = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryDeployedCosmosCoinContractsResponse defines the response type for the Query/DeployedCosmosCoinContracts method.
 message QueryDeployedCosmosCoinContractsResponse {
   // deployed_cosmos_coin_contracts is a list of cosmos-sdk coin denom and its deployed contract address
   repeated DeployedCosmosCoinContract deployed_cosmos_coin_contracts = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // DeployedCosmosCoinContract defines a deployed token contract to the evm representing a native cosmos-sdk coin

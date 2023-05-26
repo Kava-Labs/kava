@@ -6,6 +6,7 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -115,6 +116,8 @@ func (m *QueryParamsResponse) GetParams() Params {
 type QueryDeployedCosmosCoinContractsRequest struct {
 	// optional query param to only return specific denoms in the list
 	CosmosDenoms []string `protobuf:"bytes,1,rep,name=cosmos_denoms,json=cosmosDenoms,proto3" json:"cosmos_denoms,omitempty"`
+	// pagination defines an optional pagination for the request.
+	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryDeployedCosmosCoinContractsRequest) Reset() {
@@ -152,17 +155,12 @@ func (m *QueryDeployedCosmosCoinContractsRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryDeployedCosmosCoinContractsRequest proto.InternalMessageInfo
 
-func (m *QueryDeployedCosmosCoinContractsRequest) GetCosmosDenoms() []string {
-	if m != nil {
-		return m.CosmosDenoms
-	}
-	return nil
-}
-
 // QueryDeployedCosmosCoinContractsResponse defines the response type for the Query/DeployedCosmosCoinContracts method.
 type QueryDeployedCosmosCoinContractsResponse struct {
 	// deployed_cosmos_coin_contracts is a list of cosmos-sdk coin denom and its deployed contract address
 	DeployedCosmosCoinContracts []DeployedCosmosCoinContract `protobuf:"bytes,1,rep,name=deployed_cosmos_coin_contracts,json=deployedCosmosCoinContracts,proto3" json:"deployed_cosmos_coin_contracts"`
+	// pagination defines the pagination in the response.
+	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (m *QueryDeployedCosmosCoinContractsResponse) Reset() {
@@ -203,6 +201,13 @@ var xxx_messageInfo_QueryDeployedCosmosCoinContractsResponse proto.InternalMessa
 func (m *QueryDeployedCosmosCoinContractsResponse) GetDeployedCosmosCoinContracts() []DeployedCosmosCoinContract {
 	if m != nil {
 		return m.DeployedCosmosCoinContracts
+	}
+	return nil
+}
+
+func (m *QueryDeployedCosmosCoinContractsResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
 	}
 	return nil
 }
@@ -264,337 +269,41 @@ func init() {
 func init() { proto.RegisterFile("kava/evmutil/v1beta1/query.proto", fileDescriptor_4a8d0512331709e7) }
 
 var fileDescriptor_4a8d0512331709e7 = []byte{
-	// 482 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x93, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x86, 0xb3, 0x01, 0x82, 0xba, 0x29, 0x97, 0x25, 0x42, 0x95, 0x1b, 0x6d, 0x8b, 0x41, 0x22,
-	0x3d, 0x60, 0xb7, 0x01, 0x71, 0x40, 0x80, 0x44, 0x52, 0x0e, 0x08, 0x81, 0xa8, 0x0f, 0x1c, 0xb8,
-	0x44, 0x1b, 0x7b, 0x65, 0x2c, 0x9c, 0x1d, 0xc7, 0xbb, 0x89, 0x88, 0xb8, 0xc1, 0x0b, 0x20, 0xf1,
-	0x10, 0xf0, 0x28, 0x3d, 0x56, 0xe2, 0x82, 0x7a, 0xa8, 0x4a, 0xc2, 0x89, 0xa7, 0x40, 0xde, 0xdd,
-	0xa0, 0x22, 0x9c, 0x04, 0xf5, 0x66, 0xcd, 0xfc, 0x3b, 0xdf, 0xfc, 0x33, 0x63, 0xbc, 0xfd, 0x96,
-	0x8d, 0x99, 0xcf, 0xc7, 0x83, 0x91, 0x4a, 0x52, 0x7f, 0xbc, 0xd7, 0xe7, 0x8a, 0xed, 0xf9, 0xc3,
-	0x11, 0xcf, 0x27, 0x5e, 0x96, 0x83, 0x02, 0xd2, 0x28, 0x14, 0x9e, 0x55, 0x78, 0x56, 0xe1, 0x34,
-	0x62, 0x88, 0x41, 0x0b, 0xfc, 0xe2, 0xcb, 0x68, 0x9d, 0x66, 0x0c, 0x10, 0xa7, 0xdc, 0x67, 0x59,
-	0xe2, 0x33, 0x21, 0x40, 0x31, 0x95, 0x80, 0x90, 0x36, 0xeb, 0x96, 0xb2, 0x62, 0x2e, 0xb8, 0x4c,
-	0xac, 0xc6, 0x6d, 0x60, 0x72, 0x50, 0xc0, 0x5f, 0xb2, 0x9c, 0x0d, 0x64, 0xc0, 0x87, 0x23, 0x2e,
-	0x95, 0x7b, 0x80, 0xaf, 0xfe, 0x15, 0x95, 0x19, 0x08, 0xc9, 0xc9, 0x7d, 0x5c, 0xcb, 0x74, 0x64,
-	0x03, 0x6d, 0xa3, 0x56, 0xbd, 0xdd, 0xf4, 0xca, 0x7a, 0xf5, 0xcc, 0xab, 0xce, 0xc5, 0xc3, 0x93,
-	0xad, 0x4a, 0x60, 0x5f, 0xb8, 0x2f, 0xf0, 0x2d, 0x5d, 0x72, 0x9f, 0x67, 0x29, 0x4c, 0x78, 0xd4,
-	0x05, 0x39, 0x00, 0xd9, 0x85, 0x44, 0x74, 0x41, 0xa8, 0x9c, 0x85, 0x6a, 0x4e, 0x27, 0x37, 0xf0,
-	0x95, 0x50, 0x67, 0x7b, 0x11, 0x17, 0xa0, 0x69, 0x17, 0x5a, 0x6b, 0xc1, 0xba, 0x09, 0xee, 0xeb,
-	0x98, 0xfb, 0x05, 0xe1, 0xd6, 0xea, 0x82, 0xb6, 0xf1, 0xf7, 0x98, 0x46, 0x56, 0xd6, 0xb3, 0xa5,
-	0x43, 0x48, 0x44, 0x2f, 0x9c, 0x2b, 0x35, 0xa2, 0xde, 0xde, 0x2d, 0x37, 0xb4, 0x18, 0x61, 0x4d,
-	0x6e, 0x46, 0x8b, 0x9b, 0x70, 0x87, 0xd8, 0x59, 0x5c, 0x80, 0x5c, 0xc7, 0xeb, 0x67, 0xcd, 0xea,
-	0xc9, 0xae, 0x05, 0xf5, 0x33, 0x5e, 0xc9, 0x2e, 0xbe, 0xcc, 0xa2, 0x28, 0xe7, 0x52, 0x6e, 0x54,
-	0x8b, 0x6c, 0xe7, 0xda, 0xf1, 0xc9, 0x16, 0x79, 0x2a, 0x14, 0xcf, 0x05, 0x4b, 0x9f, 0xbc, 0x7a,
-	0xfe, 0xd8, 0x64, 0x83, 0xb9, 0xac, 0xfd, 0xab, 0x8a, 0x2f, 0xe9, 0xe1, 0x90, 0x8f, 0x08, 0xd7,
-	0xcc, 0x3e, 0x48, 0xab, 0xdc, 0xdc, 0xbf, 0xeb, 0x77, 0x76, 0xfe, 0x43, 0x69, 0x26, 0xeb, 0xde,
-	0xfc, 0xf0, 0xed, 0xe7, 0xe7, 0x2a, 0x25, 0x4d, 0xbf, 0xf4, 0xd8, 0xcc, 0xf2, 0xc9, 0x31, 0xc2,
-	0x9b, 0x4b, 0xf6, 0x44, 0x1e, 0x2e, 0x01, 0xae, 0x3e, 0x18, 0xe7, 0xd1, 0x79, 0x9f, 0x5b, 0x13,
-	0x0f, 0xb4, 0x89, 0x7b, 0xe4, 0x6e, 0xb9, 0x89, 0xe5, 0xa7, 0xd3, 0x79, 0x76, 0xfa, 0x83, 0xa2,
-	0xaf, 0x53, 0x8a, 0x0e, 0xa7, 0x14, 0x1d, 0x4d, 0x29, 0x3a, 0x9d, 0x52, 0xf4, 0x69, 0x46, 0x2b,
-	0x47, 0x33, 0x5a, 0xf9, 0x3e, 0xa3, 0x95, 0xd7, 0x3b, 0x71, 0xa2, 0xde, 0x8c, 0xfa, 0x5e, 0x08,
-	0x03, 0x4d, 0xb8, 0x9d, 0xb2, 0xbe, 0x34, 0xac, 0x77, 0x7f, 0x68, 0x6a, 0x92, 0x71, 0xd9, 0xaf,
-	0xe9, 0xdf, 0xf2, 0xce, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb0, 0x3c, 0x9b, 0xb9, 0x28, 0x04,
-	0x00, 0x00,
-}
-
-func (this *QueryParamsRequest) VerboseEqual(that interface{}) error {
-	if that == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that == nil && this != nil")
-	}
-
-	that1, ok := that.(*QueryParamsRequest)
-	if !ok {
-		that2, ok := that.(QueryParamsRequest)
-		if ok {
-			that1 = &that2
-		} else {
-			return fmt.Errorf("that is not of type *QueryParamsRequest")
-		}
-	}
-	if that1 == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that is type *QueryParamsRequest but is nil && this != nil")
-	} else if this == nil {
-		return fmt.Errorf("that is type *QueryParamsRequest but is not nil && this == nil")
-	}
-	return nil
-}
-func (this *QueryParamsRequest) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*QueryParamsRequest)
-	if !ok {
-		that2, ok := that.(QueryParamsRequest)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	return true
-}
-func (this *QueryParamsResponse) VerboseEqual(that interface{}) error {
-	if that == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that == nil && this != nil")
-	}
-
-	that1, ok := that.(*QueryParamsResponse)
-	if !ok {
-		that2, ok := that.(QueryParamsResponse)
-		if ok {
-			that1 = &that2
-		} else {
-			return fmt.Errorf("that is not of type *QueryParamsResponse")
-		}
-	}
-	if that1 == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that is type *QueryParamsResponse but is nil && this != nil")
-	} else if this == nil {
-		return fmt.Errorf("that is type *QueryParamsResponse but is not nil && this == nil")
-	}
-	if !this.Params.Equal(&that1.Params) {
-		return fmt.Errorf("Params this(%v) Not Equal that(%v)", this.Params, that1.Params)
-	}
-	return nil
-}
-func (this *QueryParamsResponse) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*QueryParamsResponse)
-	if !ok {
-		that2, ok := that.(QueryParamsResponse)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if !this.Params.Equal(&that1.Params) {
-		return false
-	}
-	return true
-}
-func (this *QueryDeployedCosmosCoinContractsRequest) VerboseEqual(that interface{}) error {
-	if that == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that == nil && this != nil")
-	}
-
-	that1, ok := that.(*QueryDeployedCosmosCoinContractsRequest)
-	if !ok {
-		that2, ok := that.(QueryDeployedCosmosCoinContractsRequest)
-		if ok {
-			that1 = &that2
-		} else {
-			return fmt.Errorf("that is not of type *QueryDeployedCosmosCoinContractsRequest")
-		}
-	}
-	if that1 == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsRequest but is nil && this != nil")
-	} else if this == nil {
-		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsRequest but is not nil && this == nil")
-	}
-	if len(this.CosmosDenoms) != len(that1.CosmosDenoms) {
-		return fmt.Errorf("CosmosDenoms this(%v) Not Equal that(%v)", len(this.CosmosDenoms), len(that1.CosmosDenoms))
-	}
-	for i := range this.CosmosDenoms {
-		if this.CosmosDenoms[i] != that1.CosmosDenoms[i] {
-			return fmt.Errorf("CosmosDenoms this[%v](%v) Not Equal that[%v](%v)", i, this.CosmosDenoms[i], i, that1.CosmosDenoms[i])
-		}
-	}
-	return nil
-}
-func (this *QueryDeployedCosmosCoinContractsRequest) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*QueryDeployedCosmosCoinContractsRequest)
-	if !ok {
-		that2, ok := that.(QueryDeployedCosmosCoinContractsRequest)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if len(this.CosmosDenoms) != len(that1.CosmosDenoms) {
-		return false
-	}
-	for i := range this.CosmosDenoms {
-		if this.CosmosDenoms[i] != that1.CosmosDenoms[i] {
-			return false
-		}
-	}
-	return true
-}
-func (this *QueryDeployedCosmosCoinContractsResponse) VerboseEqual(that interface{}) error {
-	if that == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that == nil && this != nil")
-	}
-
-	that1, ok := that.(*QueryDeployedCosmosCoinContractsResponse)
-	if !ok {
-		that2, ok := that.(QueryDeployedCosmosCoinContractsResponse)
-		if ok {
-			that1 = &that2
-		} else {
-			return fmt.Errorf("that is not of type *QueryDeployedCosmosCoinContractsResponse")
-		}
-	}
-	if that1 == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsResponse but is nil && this != nil")
-	} else if this == nil {
-		return fmt.Errorf("that is type *QueryDeployedCosmosCoinContractsResponse but is not nil && this == nil")
-	}
-	if len(this.DeployedCosmosCoinContracts) != len(that1.DeployedCosmosCoinContracts) {
-		return fmt.Errorf("DeployedCosmosCoinContracts this(%v) Not Equal that(%v)", len(this.DeployedCosmosCoinContracts), len(that1.DeployedCosmosCoinContracts))
-	}
-	for i := range this.DeployedCosmosCoinContracts {
-		if !this.DeployedCosmosCoinContracts[i].Equal(&that1.DeployedCosmosCoinContracts[i]) {
-			return fmt.Errorf("DeployedCosmosCoinContracts this[%v](%v) Not Equal that[%v](%v)", i, this.DeployedCosmosCoinContracts[i], i, that1.DeployedCosmosCoinContracts[i])
-		}
-	}
-	return nil
-}
-func (this *QueryDeployedCosmosCoinContractsResponse) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*QueryDeployedCosmosCoinContractsResponse)
-	if !ok {
-		that2, ok := that.(QueryDeployedCosmosCoinContractsResponse)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if len(this.DeployedCosmosCoinContracts) != len(that1.DeployedCosmosCoinContracts) {
-		return false
-	}
-	for i := range this.DeployedCosmosCoinContracts {
-		if !this.DeployedCosmosCoinContracts[i].Equal(&that1.DeployedCosmosCoinContracts[i]) {
-			return false
-		}
-	}
-	return true
-}
-func (this *DeployedCosmosCoinContract) VerboseEqual(that interface{}) error {
-	if that == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that == nil && this != nil")
-	}
-
-	that1, ok := that.(*DeployedCosmosCoinContract)
-	if !ok {
-		that2, ok := that.(DeployedCosmosCoinContract)
-		if ok {
-			that1 = &that2
-		} else {
-			return fmt.Errorf("that is not of type *DeployedCosmosCoinContract")
-		}
-	}
-	if that1 == nil {
-		if this == nil {
-			return nil
-		}
-		return fmt.Errorf("that is type *DeployedCosmosCoinContract but is nil && this != nil")
-	} else if this == nil {
-		return fmt.Errorf("that is type *DeployedCosmosCoinContract but is not nil && this == nil")
-	}
-	if this.CosmosDenom != that1.CosmosDenom {
-		return fmt.Errorf("CosmosDenom this(%v) Not Equal that(%v)", this.CosmosDenom, that1.CosmosDenom)
-	}
-	if that1.Address == nil {
-		if this.Address != nil {
-			return fmt.Errorf("this.Address != nil && that1.Address == nil")
-		}
-	} else if !this.Address.Equal(*that1.Address) {
-		return fmt.Errorf("Address this(%v) Not Equal that(%v)", this.Address, that1.Address)
-	}
-	return nil
-}
-func (this *DeployedCosmosCoinContract) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*DeployedCosmosCoinContract)
-	if !ok {
-		that2, ok := that.(DeployedCosmosCoinContract)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.CosmosDenom != that1.CosmosDenom {
-		return false
-	}
-	if that1.Address == nil {
-		if this.Address != nil {
-			return false
-		}
-	} else if !this.Address.Equal(*that1.Address) {
-		return false
-	}
-	return true
+	// 542 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0x4f, 0x6f, 0xd3, 0x30,
+	0x14, 0x8f, 0x0b, 0x14, 0xea, 0x8e, 0x8b, 0xa9, 0xd0, 0xd4, 0x55, 0xe9, 0x08, 0x88, 0x75, 0x48,
+	0x38, 0x5b, 0x41, 0x1c, 0x26, 0x40, 0xa2, 0x1d, 0x20, 0x0e, 0x48, 0x2c, 0x07, 0x0e, 0x5c, 0x2a,
+	0x27, 0xb1, 0x42, 0x44, 0x6a, 0xa7, 0xb1, 0x5b, 0x51, 0x71, 0x83, 0x0b, 0x47, 0x24, 0xbe, 0x40,
+	0x3f, 0xce, 0x8e, 0x93, 0xb8, 0xa0, 0x1d, 0x26, 0xd4, 0x72, 0x40, 0x9c, 0xf8, 0x08, 0xa8, 0xb6,
+	0xbb, 0x15, 0x91, 0xb6, 0x88, 0x9b, 0xf5, 0xfc, 0x7b, 0xfe, 0xfd, 0x79, 0x2f, 0x81, 0x9b, 0x6f,
+	0xc8, 0x80, 0xb8, 0x74, 0xd0, 0xed, 0xcb, 0x38, 0x71, 0x07, 0xbb, 0x3e, 0x95, 0x64, 0xd7, 0xed,
+	0xf5, 0x69, 0x36, 0xc4, 0x69, 0xc6, 0x25, 0x47, 0x95, 0x29, 0x02, 0x1b, 0x04, 0x36, 0x88, 0xea,
+	0xad, 0x80, 0x8b, 0x2e, 0x17, 0xae, 0x4f, 0x04, 0xd5, 0xf0, 0xd3, 0xe6, 0x94, 0x44, 0x31, 0x23,
+	0x32, 0xe6, 0x4c, 0xbf, 0x50, 0xad, 0x44, 0x3c, 0xe2, 0xea, 0xe8, 0x4e, 0x4f, 0xa6, 0x5a, 0x8b,
+	0x38, 0x8f, 0x12, 0xea, 0x92, 0x34, 0x76, 0x09, 0x63, 0x5c, 0xaa, 0x16, 0x61, 0x6e, 0x9d, 0x5c,
+	0x5d, 0x11, 0x65, 0x54, 0xc4, 0x06, 0xe3, 0x54, 0x20, 0x3a, 0x98, 0x32, 0xbf, 0x20, 0x19, 0xe9,
+	0x0a, 0x8f, 0xf6, 0xfa, 0x54, 0x48, 0xe7, 0x00, 0x5e, 0xf9, 0xa3, 0x2a, 0x52, 0xce, 0x04, 0x45,
+	0x7b, 0xb0, 0x98, 0xaa, 0xca, 0x3a, 0xd8, 0x04, 0x8d, 0x72, 0xb3, 0x86, 0xf3, 0x7c, 0x61, 0xdd,
+	0xd5, 0x3a, 0x7f, 0x78, 0x52, 0xb7, 0x3c, 0xd3, 0xe1, 0x8c, 0x00, 0xdc, 0x52, 0x6f, 0xee, 0xd3,
+	0x34, 0xe1, 0x43, 0x1a, 0xb6, 0x95, 0xf9, 0x36, 0x8f, 0x59, 0x9b, 0x33, 0x99, 0x91, 0x40, 0xce,
+	0xe8, 0xd1, 0x75, 0x78, 0x59, 0x47, 0xd3, 0x09, 0x29, 0xe3, 0x8a, 0xee, 0x5c, 0xa3, 0xe4, 0xad,
+	0xe9, 0xe2, 0xbe, 0xaa, 0xa1, 0x27, 0x10, 0x9e, 0xa5, 0xb4, 0x5e, 0x50, 0x82, 0x6e, 0x62, 0x0d,
+	0xc1, 0xd3, 0x48, 0xb1, 0x9e, 0xc0, 0x99, 0xaa, 0x88, 0x1a, 0x02, 0x6f, 0xae, 0x73, 0xef, 0xd2,
+	0xc7, 0x51, 0xdd, 0xfa, 0x31, 0xaa, 0x5b, 0xce, 0x2f, 0x00, 0x1b, 0xab, 0x25, 0x9a, 0x2c, 0xde,
+	0x41, 0x3b, 0x34, 0xb0, 0x8e, 0x11, 0x1b, 0xf0, 0x98, 0x75, 0x82, 0x19, 0x52, 0x89, 0x2e, 0x37,
+	0x77, 0xf2, 0x33, 0x5a, 0x4c, 0x61, 0x72, 0xdb, 0x08, 0x17, 0x8b, 0x40, 0x4f, 0x73, 0xbc, 0x6f,
+	0xad, 0xf4, 0xae, 0x95, 0xcf, 0x9b, 0x77, 0x7a, 0xb0, 0xba, 0x58, 0x09, 0xba, 0x06, 0xd7, 0xe6,
+	0xe7, 0xa0, 0xa6, 0x5e, 0xf2, 0xca, 0x73, 0x63, 0x40, 0x3b, 0xf0, 0x22, 0x09, 0xc3, 0x8c, 0x0a,
+	0xa1, 0x64, 0x94, 0x5a, 0x57, 0x8f, 0x4f, 0xea, 0xe8, 0x19, 0x93, 0x34, 0x63, 0x24, 0x79, 0xfc,
+	0xf2, 0xf9, 0x23, 0x7d, 0xeb, 0xcd, 0x60, 0xcd, 0x9f, 0x05, 0x78, 0x41, 0xa5, 0x8c, 0x3e, 0x00,
+	0x58, 0xd4, 0xbb, 0x82, 0x1a, 0xf9, 0x29, 0xfd, 0xbd, 0x9a, 0xd5, 0xed, 0x7f, 0x40, 0x6a, 0xa3,
+	0xce, 0x8d, 0xf7, 0x5f, 0xbe, 0x7f, 0x2e, 0xd8, 0xa8, 0xe6, 0xe6, 0x7e, 0x08, 0x7a, 0x31, 0xd1,
+	0x31, 0x80, 0x1b, 0x4b, 0x06, 0x8e, 0x1e, 0x2c, 0x21, 0x5c, 0xbd, 0xcb, 0xd5, 0x87, 0xff, 0xdb,
+	0x6e, 0x4c, 0xdc, 0x57, 0x26, 0xee, 0xa1, 0xbb, 0xf9, 0x26, 0x96, 0xef, 0x60, 0xab, 0x7d, 0x38,
+	0xb6, 0xc1, 0xd1, 0xd8, 0x06, 0xdf, 0xc6, 0x36, 0xf8, 0x34, 0xb1, 0xad, 0xa3, 0x89, 0x6d, 0x7d,
+	0x9d, 0xd8, 0xd6, 0xab, 0xed, 0x28, 0x96, 0xaf, 0xfb, 0x3e, 0x0e, 0x78, 0x57, 0xbd, 0x7c, 0x3b,
+	0x21, 0xbe, 0xd0, 0x1c, 0x6f, 0x4f, 0x59, 0xe4, 0x30, 0xa5, 0xc2, 0x2f, 0xaa, 0x5f, 0xc5, 0x9d,
+	0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x1f, 0xfa, 0x86, 0x41, 0xe8, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -793,6 +502,18 @@ func (m *QueryDeployedCosmosCoinContractsRequest) MarshalToSizedBuffer(dAtA []by
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.CosmosDenoms) > 0 {
 		for iNdEx := len(m.CosmosDenoms) - 1; iNdEx >= 0; iNdEx-- {
 			i -= len(m.CosmosDenoms[iNdEx])
@@ -825,6 +546,18 @@ func (m *QueryDeployedCosmosCoinContractsResponse) MarshalToSizedBuffer(dAtA []b
 	_ = i
 	var l int
 	_ = l
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
 	if len(m.DeployedCosmosCoinContracts) > 0 {
 		for iNdEx := len(m.DeployedCosmosCoinContracts) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -927,6 +660,10 @@ func (m *QueryDeployedCosmosCoinContractsRequest) Size() (n int) {
 			n += 1 + l + sovQuery(uint64(l))
 		}
 	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
 	return n
 }
 
@@ -941,6 +678,10 @@ func (m *QueryDeployedCosmosCoinContractsResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -1162,6 +903,42 @@ func (m *QueryDeployedCosmosCoinContractsRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.CosmosDenoms = append(m.CosmosDenoms, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
@@ -1243,6 +1020,42 @@ func (m *QueryDeployedCosmosCoinContractsResponse) Unmarshal(dAtA []byte) error 
 			}
 			m.DeployedCosmosCoinContracts = append(m.DeployedCosmosCoinContracts, DeployedCosmosCoinContract{})
 			if err := m.DeployedCosmosCoinContracts[len(m.DeployedCosmosCoinContracts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
