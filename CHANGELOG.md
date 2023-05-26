@@ -40,7 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evmutil) [#1590] & [#1596] Add allow list param of sdk native denoms that can be transferred to evm
 - (evmutil) [#1591] & [#1596] Configure module to support deploying ERC20KavaWrappedCosmosCoin contracts
 - (evmutil) [#1598] Track deployed ERC20 contract addresses for representing cosmos coins in module state
-- (evmutil) [#1603] Add MsgConvertCosmosCoinToERC20 for converting representing an sdk.Coin as an ERC20 in the EVM
+- (evmutil) [#1603] Add MsgConvertCosmosCoinToERC20 for converting an sdk.Coin to an ERC20 in the EVM
 
 ### Client Breaking
 - (evmutil) [#1603] Renamed error `ErrConversionNotEnabled` to `ErrEVMConversionNotEnabled`

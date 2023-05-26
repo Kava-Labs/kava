@@ -129,7 +129,7 @@ func getCmdMsgConvertCosmosCoinToERC20() *cobra.Command {
 		Short: "converts asset native to Cosmos Co-chain to an ERC20 on the EVM Co-chain",
 		Example: fmt.Sprintf(
 			`Convert 500 ATOM and send ERC20 to 0x03db6b11F47d074a532b9eb8a98aB7AdA5845087:
-  %s tx~ %s convert-cosmos-coin-to-erc20 0x03db6b11F47d074a532b9eb8a98aB7AdA5845087 500000000ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2 --from <key> --gas 2000000`,
+  %s tx %s convert-cosmos-coin-to-erc20 0x03db6b11F47d074a532b9eb8a98aB7AdA5845087 500000000ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2 --from <key> --gas 2000000`,
 			version.AppName, types.ModuleName,
 		),
 		Args: cobra.ExactArgs(2),

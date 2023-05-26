@@ -24,14 +24,14 @@ func TestConversionCosmosNativeSuite(t *testing.T) {
 }
 
 // fail test if contract for denom not registered
-func (suite *ConversionCosmosNativeSuite) DenomContractRegistered(denom string) types.InternalEVMAddress {
+func (suite *ConversionCosmosNativeSuite) denomContractRegistered(denom string) types.InternalEVMAddress {
 	contractAddress, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
 	suite.True(found)
 	return contractAddress
 }
 
 // fail test if contract for denom IS registered
-func (suite *ConversionCosmosNativeSuite) DenomContractNotRegistered(denom string) {
+func (suite *ConversionCosmosNativeSuite) denomContractNotRegistered(denom string) {
 	_, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
 	suite.False(found)
 }
@@ -75,7 +75,7 @@ func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
 	suite.SetupTest()
 
 	suite.Run("fails when denom not allowed", func() {
-		suite.DenomContractNotRegistered(allowedDenom)
+		suite.denomContractNotRegistered(allowedDenom)
 		err := suite.Keeper.ConvertCosmosCoinToERC20(
 			suite.Ctx,
 			initiator,
@@ -83,7 +83,7 @@ func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
 			sdk.NewCoin(allowedDenom, sdkmath.NewInt(6e8)),
 		)
 		suite.ErrorContains(err, "sdk.Coin not enabled to convert to ERC20 token")
-		suite.DenomContractNotRegistered(allowedDenom)
+		suite.denomContractNotRegistered(allowedDenom)
 	})
 
 	suite.Run("allowed denoms have contract deploys on first conversion", func() {
@@ -108,7 +108,7 @@ func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
 		suite.NoError(err)
 
 		// contract should be deployed & registered
-		contractAddress = suite.DenomContractRegistered(allowedDenom)
+		contractAddress = suite.denomContractRegistered(allowedDenom)
 
 		// sdk coin deducted from initiator
 		expectedBalance := initialFunding.Sub(amount)
@@ -135,7 +135,7 @@ func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
 		suite.NoError(err)
 
 		// contract address should not change
-		convertTwiceContractAddress := suite.DenomContractRegistered(allowedDenom)
+		convertTwiceContractAddress := suite.denomContractRegistered(allowedDenom)
 		suite.Equal(contractAddress, convertTwiceContractAddress)
 
 		// sdk coin deducted from initiator
