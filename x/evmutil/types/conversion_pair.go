@@ -98,6 +98,14 @@ func validateConversionPairs(i interface{}) error {
 // Cosmos SDK -> EVM
 ///////////////
 
+// NewDeployedCosmosCoinContract returns a new DeployedCosmosCoinContract
+func NewDeployedCosmosCoinContract(denom string, address InternalEVMAddress) DeployedCosmosCoinContract {
+	return DeployedCosmosCoinContract{
+		CosmosDenom: denom,
+		Address:     &address,
+	}
+}
+
 // NewAllowedCosmosCoinERC20Token returns an AllowedCosmosCoinERC20Token
 func NewAllowedCosmosCoinERC20Token(
 	cosmosDenom, name, symbol string,

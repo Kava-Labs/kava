@@ -212,3 +212,32 @@ func (k *Keeper) GetDeployedCosmosCoinContract(ctx sdk.Context, cosmosDenom stri
 	found := len(bz) != 0
 	return types.BytesToInternalEVMAddress(bz), found
 }
+
+// IterateAllDeployedCosmosCoinContracts iterates all deployed contracts registered to the module store
+// The callback func will be called on each one until the callback returns true, or all objects have been iterated.
+func (k *Keeper) IterateAllDeployedCosmosCoinContracts(ctx sdk.Context, cb func(types.DeployedCosmosCoinContract) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.DeployedCosmosCoinContractKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		contract := types.NewDeployedCosmosCoinContract(
+			types.DenomFromDeployedCosmosCoinContractKey(iterator.Key()),
+			types.BytesToInternalEVMAddress(iterator.Value()),
+		)
+		if cb(contract) {
+			break
+		}
+	}
+}
+
+// GetAllDeployedCosmosCoinContracts iterates and collects all deployed ERC20 contracts that
+// represent Cosmos-SDK coins.
+func (k *Keeper) GetAllDeployedCosmosCoinContracts(ctx sdk.Context) []types.DeployedCosmosCoinContract {
+	contracts := make([]types.DeployedCosmosCoinContract, 0)
+	k.IterateAllDeployedCosmosCoinContracts(ctx, func(c types.DeployedCosmosCoinContract) bool {
+		contracts = append(contracts, c)
+		return false
+	})
+	return contracts
+}

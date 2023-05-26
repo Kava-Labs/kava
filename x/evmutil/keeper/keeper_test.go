@@ -391,6 +391,73 @@ func (suite *keeperTestSuite) TestDeployedCosmosCoinContractStoreState() {
 	})
 }
 
+func (suite *keeperTestSuite) TestIterateAllDeployedCosmosCoinContracts_StopsWhenTold() {
+	suite.SetupTest()
+	address := testutil.RandomInternalEVMAddress()
+	register := func(denom string) {
+		addr := testutil.RandomInternalEVMAddress()
+		if denom == "waldo" {
+			addr = address
+		}
+		err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, denom, addr)
+		suite.NoError(err)
+	}
+
+	// register some contracts
+	register("magic")
+	register("popcorn")
+	register("waldo")
+	register("zzz")
+	register("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2")
+
+	// test out stopping the iteration
+	// NOTE: don't actually look for a single contract this way. the keys are deterministic by denom.
+	var contract types.DeployedCosmosCoinContract
+	suite.Keeper.IterateAllDeployedCosmosCoinContracts(suite.Ctx, func(c types.DeployedCosmosCoinContract) bool {
+		contract = c
+		return c.CosmosDenom == "waldo"
+	})
+	suite.Equal(types.NewDeployedCosmosCoinContract("waldo", address), contract)
+}
+
+func (suite *keeperTestSuite) TestGetAllDeployedCosmosCoinContracts() {
+	testCases := []struct {
+		name      string
+		contracts []types.DeployedCosmosCoinContract
+	}{
+		{"none", []types.DeployedCosmosCoinContract{}},
+		{"one", []types.DeployedCosmosCoinContract{
+			types.NewDeployedCosmosCoinContract("magic", testutil.RandomInternalEVMAddress()),
+		}},
+		{"many", []types.DeployedCosmosCoinContract{
+			types.NewDeployedCosmosCoinContract("magic", testutil.RandomInternalEVMAddress()),
+			types.NewDeployedCosmosCoinContract("magic2", testutil.RandomInternalEVMAddress()),
+			types.NewDeployedCosmosCoinContract("another", testutil.RandomInternalEVMAddress()),
+			types.NewDeployedCosmosCoinContract(
+				"ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+				testutil.RandomInternalEVMAddress(),
+			),
+		}},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			// register the deployed contracts
+			for _, c := range tc.contracts {
+				err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, c.CosmosDenom, *c.Address)
+				suite.NoError(err)
+			}
+
+			// get them all!
+			res := suite.Keeper.GetAllDeployedCosmosCoinContracts(suite.Ctx)
+			suite.Len(res, len(tc.contracts))
+			suite.ElementsMatch(tc.contracts, res)
+		})
+	}
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(keeperTestSuite))
 }
