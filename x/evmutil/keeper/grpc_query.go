@@ -70,7 +70,7 @@ func getAllDeployedCosmosCoinContractsPage(
 	pageRes, err := query.FilteredPaginate(contractStore, pagination,
 		func(key []byte, value []byte, accumulate bool) (bool, error) {
 			if !accumulate {
-				return false, nil
+				return true, nil
 			}
 			address := types.BytesToInternalEVMAddress(value)
 			contract := types.DeployedCosmosCoinContract{

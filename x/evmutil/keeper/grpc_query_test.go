@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
@@ -123,6 +124,43 @@ func (suite *grpcQueryTestSuite) TestQueryDeployedCosmosCoinContracts() {
 		suite.NoError(err)
 		// equal because it respects requested order
 		suite.Equal(expectedContracts, res.DeployedCosmosCoinContracts)
+	})
+
+	suite.Run("manages pagination of >100 denoms when requesting all", func() {
+		// register 100 denoms
+		for i := 1; i <= 100; i++ {
+			suite.Keeper.SetDeployedCosmosCoinContract(
+				suite.Ctx,
+				fmt.Sprintf("denom-%d", i),
+				testutil.RandomInternalEVMAddress(),
+			)
+		}
+
+		// first page has 100 results
+		res, err := suite.QueryClient.DeployedCosmosCoinContracts(
+			context.Background(),
+			&types.QueryDeployedCosmosCoinContractsRequest{},
+		)
+		suite.NoError(err)
+		// equal because it respects requested order
+		suite.Len(res.DeployedCosmosCoinContracts, 100)
+		fmt.Println(res.Pagination)
+		suite.NotNil(res.Pagination.NextKey)
+
+		// 2nd page has the rest
+		res, err = suite.QueryClient.DeployedCosmosCoinContracts(
+			context.Background(),
+			&types.QueryDeployedCosmosCoinContractsRequest{
+				CosmosDenoms: []string{},
+				Pagination: &query.PageRequest{
+					Key: res.Pagination.NextKey,
+				},
+			},
+		)
+		suite.NoError(err)
+		// equal because it respects requested order
+		suite.Len(res.DeployedCosmosCoinContracts, len(contracts), "incorrect page 2 length")
+		suite.Nil(res.Pagination.NextKey)
 	})
 
 	suite.Run("rejects requests for >100 denoms", func() {
