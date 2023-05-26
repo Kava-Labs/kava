@@ -35,6 +35,8 @@ message QueryDeployedCosmosCoinContractsRequest {
   option (gogoproto.goproto_getters) = false;
 
   // optional query param to only return specific denoms in the list
+  // denoms that do not have deployed contracts will be omitted from the result
+  // must request fewer than 100 denoms at a time.
   repeated string cosmos_denoms = 1;
 
   // pagination defines an optional pagination for the request.

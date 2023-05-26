@@ -3806,7 +3806,7 @@ QueryDeployedCosmosCoinContractsRequest defines the request type for Query/Deplo
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `cosmos_denoms` | [string](#string) | repeated | optional query param to only return specific denoms in the list |
+| `cosmos_denoms` | [string](#string) | repeated | optional query param to only return specific denoms in the list denoms that do not have deployed contracts will be omitted from the result must request fewer than 100 denoms at a time. |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
 
 

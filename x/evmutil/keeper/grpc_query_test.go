@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -94,16 +95,11 @@ func (suite *grpcQueryTestSuite) TestQueryDeployedCosmosCoinContracts() {
 
 	suite.Run("returns deployed contract addresses for requested denoms", func() {
 		denoms := []string{ibcDenom, "another-denom", "magic"}
-		expectedContracts := make([]types.DeployedCosmosCoinContract, 0, len(denoms))
-		for _, d := range denoms {
-			// inefficient but readable
-			for _, c := range contracts {
-				if c.CosmosDenom == d {
-					expectedContracts = append(expectedContracts, c)
-				}
-			}
+		expectedContracts := []types.DeployedCosmosCoinContract{
+			contracts[2],
+			contracts[4],
+			contracts[0],
 		}
-
 		res, err := suite.QueryClient.DeployedCosmosCoinContracts(
 			context.Background(),
 			&types.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: denoms},
@@ -113,5 +109,42 @@ func (suite *grpcQueryTestSuite) TestQueryDeployedCosmosCoinContracts() {
 		suite.Equal(expectedContracts, res.DeployedCosmosCoinContracts)
 	})
 
-	// suite.Run("handles querying un-deployed denoms")
+	suite.Run("un-deployed denoms get omitted from results", func() {
+		denoms := []string{"doesnt-exist", ibcDenom, "also-doesnt-exist", "another-denom", "magic"}
+		expectedContracts := []types.DeployedCosmosCoinContract{
+			contracts[2],
+			contracts[4],
+			contracts[0],
+		}
+		res, err := suite.QueryClient.DeployedCosmosCoinContracts(
+			context.Background(),
+			&types.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: denoms},
+		)
+		suite.NoError(err)
+		// equal because it respects requested order
+		suite.Equal(expectedContracts, res.DeployedCosmosCoinContracts)
+	})
+
+	suite.Run("rejects requests for >100 denoms", func() {
+		denoms := make([]string, 0, 101)
+		for i := 1; i <= 100; i++ {
+			denoms = append(denoms, fmt.Sprintf("nonexistent-%d", i))
+		}
+
+		// accepts 100 denoms
+		res, err := suite.QueryClient.DeployedCosmosCoinContracts(
+			context.Background(),
+			&types.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: denoms},
+		)
+		suite.NoError(err)
+		suite.Len(res.DeployedCosmosCoinContracts, 0)
+
+		// rejects 101
+		denoms = append(denoms, "nonexistent-101")
+		_, err = suite.QueryClient.DeployedCosmosCoinContracts(
+			context.Background(),
+			&types.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: denoms},
+		)
+		suite.ErrorContains(err, "maximum of 100 denoms allowed per request")
+	})
 }

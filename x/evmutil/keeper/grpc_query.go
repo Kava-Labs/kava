@@ -48,8 +48,9 @@ func (s queryServer) DeployedCosmosCoinContracts(
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if len(req.CosmosDenoms) > 0 {
-		panic("unimplemented")
+		res, err = getDeployedCosmosCoinContractsByDenoms(&s.keeper, ctx, req.CosmosDenoms)
 	} else {
+		// requesting no sdk denoms is a request for all denoms
 		res, err = getAllDeployedCosmosCoinContractsPage(&s.keeper, ctx, req.Pagination)
 	}
 
@@ -68,6 +69,9 @@ func getAllDeployedCosmosCoinContractsPage(
 
 	pageRes, err := query.FilteredPaginate(contractStore, pagination,
 		func(key []byte, value []byte, accumulate bool) (bool, error) {
+			if !accumulate {
+				return false, nil
+			}
 			address := types.BytesToInternalEVMAddress(value)
 			contract := types.DeployedCosmosCoinContract{
 				CosmosDenom: string(key),
@@ -83,5 +87,27 @@ func getAllDeployedCosmosCoinContractsPage(
 	return &types.QueryDeployedCosmosCoinContractsResponse{
 		DeployedCosmosCoinContracts: contracts,
 		Pagination:                  pageRes,
+	}, nil
+}
+
+func getDeployedCosmosCoinContractsByDenoms(
+	k *Keeper, ctx sdk.Context, denoms []string,
+) (*types.QueryDeployedCosmosCoinContractsResponse, error) {
+	if len(denoms) > query.DefaultLimit {
+		// forego dealing with pagination by rejecting reqs for >100 denoms
+		return nil, status.Errorf(codes.InvalidArgument, "maximum of %d denoms allowed per request", query.DefaultLimit)
+	}
+
+	contracts := make([]types.DeployedCosmosCoinContract, 0, len(denoms))
+	for _, denom := range denoms {
+		address, found := k.GetDeployedCosmosCoinContract(ctx, denom)
+		if !found {
+			continue
+		}
+		contracts = append(contracts, types.NewDeployedCosmosCoinContract(denom, address))
+	}
+
+	return &types.QueryDeployedCosmosCoinContractsResponse{
+		DeployedCosmosCoinContracts: contracts,
 	}, nil
 }

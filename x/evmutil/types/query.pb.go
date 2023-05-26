@@ -115,6 +115,8 @@ func (m *QueryParamsResponse) GetParams() Params {
 // QueryDeployedCosmosCoinContractsRequest defines the request type for Query/DeployedCosmosCoinContracts method.
 type QueryDeployedCosmosCoinContractsRequest struct {
 	// optional query param to only return specific denoms in the list
+	// denoms that do not have deployed contracts will be omitted from the result
+	// must request fewer than 100 denoms at a time.
 	CosmosDenoms []string `protobuf:"bytes,1,rep,name=cosmos_denoms,json=cosmosDenoms,proto3" json:"cosmos_denoms,omitempty"`
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
