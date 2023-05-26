@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -52,6 +53,11 @@ func (addr InternalEVMAddress) Equal(other InternalEVMAddress) bool {
 func (addr InternalEVMAddress) MarshalTo(data []byte) (int, error) {
 	addressBytes := addr.Address.Bytes()
 	return copy(data, addressBytes[:]), nil
+}
+
+// MarshalJSON allows PrintProto to handle InternalEVMAddress
+func (addr InternalEVMAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(addr.Hex())
 }
 
 // Size implements protobuf Unmarshaler interface.
