@@ -78,10 +78,10 @@ func TestLegacyMsgAreAminoRegistered(t *testing.T) {
 
 	// Use the proto codec as the canonical list of msg types.
 	protoCodec := tApp.AppCodec().(*codec.ProtoCodec)
-	msgProtoNames := protoCodec.InterfaceRegistry().ListImplementations(sdk.MsgInterfaceProtoName)
+	protoRegisteredMsgs := protoCodec.InterfaceRegistry().ListImplementations(sdk.MsgInterfaceProtoName)
 
-	for i, msgName := range msgProtoNames {
-		// skip external unregistered msgs
+	for i, msgName := range protoRegisteredMsgs {
+		// Skip msgs from dependencies that were never amino registered.
 		if msgName == sdk.MsgTypeURL(&evmtypes.MsgEthereumTx{}) ||
 			msgName == sdk.MsgTypeURL(&vestingtypes.MsgCreatePeriodicVestingAccount{}) {
 			continue
