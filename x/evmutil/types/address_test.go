@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kava-labs/kava/x/evmutil/testutil"
@@ -44,7 +45,7 @@ func TestInternalEVMAddress_ProtobufMarshaller(t *testing.T) {
 	})
 
 	t.Run("MarshalTo", func(t *testing.T) {
-		addr := types.NewInternalEVMAddress(testutil.RandomEvmAddress())
+		addr := testutil.RandomInternalEVMAddress()
 		expectedBytes := addr.Bytes()
 
 		data := make([]byte, len(expectedBytes))
@@ -56,8 +57,16 @@ func TestInternalEVMAddress_ProtobufMarshaller(t *testing.T) {
 		require.Equal(t, expectedBytes, data)
 	})
 
+	t.Run("MarshalJSON", func(t *testing.T) {
+		addr := testutil.RandomInternalEVMAddress()
+		expected := fmt.Sprintf("\"%s\"", addr.Hex())
+		marshalled, err := addr.MarshalJSON()
+		require.NoError(t, err)
+		require.Equal(t, expected, string(marshalled))
+	})
+
 	t.Run("Size", func(t *testing.T) {
-		addr := types.NewInternalEVMAddress(testutil.RandomEvmAddress())
+		addr := testutil.RandomInternalEVMAddress()
 		require.Equal(t, 20, addr.Size())
 	})
 
