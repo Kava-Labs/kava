@@ -363,15 +363,25 @@ func (suite *Suite) GetEvents() sdk.Events {
 // EventsContains asserts that the expected event is in the provided events
 func (suite *Suite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
 	foundMatch := false
+	var possibleFailedMatch []sdk.Attribute
+	expectedAttrs := attrsToMap(expectedEvent.Attributes)
+
 	for _, event := range events {
 		if event.Type == expectedEvent.Type {
-			if reflect.DeepEqual(attrsToMap(expectedEvent.Attributes), attrsToMap(event.Attributes)) {
+			attrs := attrsToMap(event.Attributes)
+			if reflect.DeepEqual(expectedAttrs, attrs) {
 				foundMatch = true
+			} else {
+				possibleFailedMatch = attrs
 			}
 		}
 	}
 
-	suite.Truef(foundMatch, "event of type %s not found or did not match", expectedEvent.Type)
+	if !foundMatch && possibleFailedMatch != nil {
+		suite.ElementsMatch(expectedAttrs, possibleFailedMatch, "unmatched attributes on event of type %s", expectedEvent.Type)
+	} else {
+		suite.Truef(foundMatch, "event of type %s not found", expectedEvent.Type)
+	}
 }
 
 // EventsDoNotContain asserts that the event is **not** is in the provided events
