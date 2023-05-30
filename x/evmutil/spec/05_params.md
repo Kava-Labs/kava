@@ -20,12 +20,12 @@ Example parameters for `ConversionPair`:
 
 Example parameters for `AllowedCosmosCoinERC20Token`:
 
-| Key          | Type   | Example                                                                | Description                                        |
-| ------------ | ------ | ---------------------------------------------------------------------- | -------------------------------------------------- |
-| cosmos_denom | string | "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2" | denom of the sdk.Coin                              |
-| name         | string | "Kava-wrapped Atom"                                                    | name field of the erc20 token                      |
-| symbol       | string | "kATOM"                                                                | symbol field of the erc20 token                    |
-| decimal      | uint32 | 6                                                                      | decimal field of the erc20 token, for display only |
+| Key          | Type   | Example                                                                | Description                                         |
+| ------------ | ------ | ---------------------------------------------------------------------- | --------------------------------------------------- |
+| cosmos_denom | string | "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2" | denom of the sdk.Coin                               |
+| name         | string | "Kava-wrapped Atom"                                                    | name field of the erc20 token                       |
+| symbol       | string | "kATOM"                                                                | symbol field of the erc20 token                     |
+| decimals     | uint32 | 6                                                                      | decimals field of the erc20 token, for display only |
 
 ## EnabledConversionPairs
 

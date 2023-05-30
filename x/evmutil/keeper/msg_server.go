@@ -118,5 +118,28 @@ func (s msgServer) ConvertCosmosCoinToERC20(
 	goCtx context.Context,
 	msg *types.MsgConvertCosmosCoinToERC20,
 ) (*types.MsgConvertCosmosCoinToERC20Response, error) {
-	return nil, fmt.Errorf("unimplemented - coming soon")
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	initiator, err := sdk.AccAddressFromBech32(msg.Initiator)
+	if err != nil {
+		return nil, fmt.Errorf("invalid initiator address: %w", err)
+	}
+
+	receiver, err := types.NewInternalEVMAddressFromString(msg.Receiver)
+	if err != nil {
+		return nil, fmt.Errorf("invalid receiver address: %w", err)
+	}
+
+	if err := s.keeper.ConvertCosmosCoinToERC20(
+		ctx,
+		initiator,
+		receiver,
+		*msg.Amount,
+	); err != nil {
+		return nil, err
+	}
+
+	// TODO: emit message event
+
+	return &types.MsgConvertCosmosCoinToERC20Response{}, nil
 }

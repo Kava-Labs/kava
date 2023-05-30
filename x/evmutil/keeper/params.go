@@ -44,7 +44,7 @@ func (k Keeper) GetEnabledConversionPairFromERC20Address(
 		}
 	}
 
-	return types.ConversionPair{}, errorsmod.Wrap(types.ErrConversionNotEnabled, address.String())
+	return types.ConversionPair{}, errorsmod.Wrap(types.ErrEVMConversionNotEnabled, address.String())
 }
 
 // GetEnabledConversionPairFromDenom returns an ConversionPair from the sdk.Coin denom.
@@ -59,5 +59,5 @@ func (k Keeper) GetEnabledConversionPairFromDenom(
 		}
 	}
 
-	return types.ConversionPair{}, errorsmod.Wrap(types.ErrConversionNotEnabled, denom)
+	return types.ConversionPair{}, errorsmod.Wrap(types.ErrEVMConversionNotEnabled, denom)
 }

@@ -30,6 +30,7 @@ func GetTxCmd() *cobra.Command {
 	cmds := []*cobra.Command{
 		getCmdMsgConvertCoinToERC20(),
 		getCmdConvertERC20ToCoin(),
+		getCmdMsgConvertCosmosCoinToERC20(),
 	}
 
 	for _, cmd := range cmds {
@@ -43,7 +44,7 @@ func GetTxCmd() *cobra.Command {
 
 func getCmdMsgConvertCoinToERC20() *cobra.Command {
 	return &cobra.Command{
-		Use:   "convert-coin-to-erc20 [Kava ERC20 address] [coin]",
+		Use:   "convert-coin-to-erc20 [Kava EVM address] [coin]",
 		Short: "converts sdk.Coin to erc20 tokens on Kava eth co-chain",
 		Example: fmt.Sprintf(
 			`%s tx %s convert-coin-to-erc20 0x7Bbf300890857b8c241b219C6a489431669b3aFA 500000000erc20/usdc --from <key> --gas 2000000`,
@@ -113,6 +114,43 @@ func getCmdConvertERC20ToCoin() *cobra.Command {
 			}
 			contractAddr := types.NewInternalEVMAddress(common.HexToAddress(args[1]))
 			msg := types.NewMsgConvertERC20ToCoin(types.NewInternalEVMAddress(initiator), receiver, contractAddr, amount)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+}
+
+func getCmdMsgConvertCosmosCoinToERC20() *cobra.Command {
+	return &cobra.Command{
+		Use:   "convert-cosmos-coin-to-erc20 [receiver_0x_address] [amount] [flags]",
+		Short: "converts asset native to Cosmos Co-chain to an ERC20 on the EVM Co-chain",
+		Example: fmt.Sprintf(
+			`Convert 500 ATOM and send ERC20 to 0x03db6b11F47d074a532b9eb8a98aB7AdA5845087:
+  %s tx %s convert-cosmos-coin-to-erc20 0x03db6b11F47d074a532b9eb8a98aB7AdA5845087 500000000ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2 --from <key> --gas 2000000`,
+			version.AppName, types.ModuleName,
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			receiver := args[0]
+			if !common.IsHexAddress(receiver) {
+				return fmt.Errorf("receiver '%s' is an invalid hex address", args[0])
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			signer := clientCtx.GetFromAddress()
+			msg := types.NewMsgConvertCosmosCoinToERC20(signer.String(), receiver, amount)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
