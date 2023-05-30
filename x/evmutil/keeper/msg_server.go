@@ -149,3 +149,12 @@ func (s msgServer) ConvertCosmosCoinToERC20(
 
 	return &types.MsgConvertCosmosCoinToERC20Response{}, nil
 }
+
+// ConvertCosmosCoinFromERC20 converts an ERC20 representation of a cosmos-native asset
+// back into an sdk.Coin.
+func (s msgServer) ConvertCosmosCoinFromERC20(
+	goCtx context.Context,
+	req *types.MsgConvertCosmosCoinFromERC20,
+) (*types.MsgConvertCosmosCoinFromERC20Response, error) {
+	panic("unimplemented - coming soon!")
+}
