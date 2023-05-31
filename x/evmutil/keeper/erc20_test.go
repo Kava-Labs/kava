@@ -86,6 +86,27 @@ func (suite *ERC20TestSuite) TestERC20Mint() {
 	suite.Require().Equal(big.NewInt(1234), balance)
 }
 
+func (suite *ERC20TestSuite) TestQueryERC20TotalSupply() {
+	suite.Run("with no balance", func() {
+		bal, err := suite.Keeper.QueryERC20TotalSupply(suite.Ctx, suite.contractAddr)
+		suite.NoError(err)
+		suite.BigIntsEqual(big.NewInt(0), bal, "expected total supply of 0")
+	})
+
+	suite.Run("with balance", func() {
+		amount := big.NewInt(1e10)
+		expectedTotal := big.NewInt(3e10)
+		// mint 1e10 to three random accounts
+		suite.NoError(suite.Keeper.MintERC20(suite.Ctx, suite.contractAddr, testutil.RandomInternalEVMAddress(), amount))
+		suite.NoError(suite.Keeper.MintERC20(suite.Ctx, suite.contractAddr, testutil.RandomInternalEVMAddress(), amount))
+		suite.NoError(suite.Keeper.MintERC20(suite.Ctx, suite.contractAddr, testutil.RandomInternalEVMAddress(), amount))
+
+		bal, err := suite.Keeper.QueryERC20TotalSupply(suite.Ctx, suite.contractAddr)
+		suite.NoError(err)
+		suite.BigIntsEqual(expectedTotal, bal, "unexpected total supply after minting")
+	})
+}
+
 func (suite *ERC20TestSuite) TestDeployKavaWrappedCosmosCoinERC20Contract() {
 	suite.Run("fails to deploy invalid contract", func() {
 		// empty other fields means this token is invalid.

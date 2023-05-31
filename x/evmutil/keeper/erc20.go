@@ -182,6 +182,8 @@ func (k Keeper) BurnERC20(
 	return err
 }
 
+// QueryERC20BalanceOf makes a contract call to the balanceOf method of the ERC20 contract to get
+// the ERC20 balance of the given account.
 func (k Keeper) QueryERC20BalanceOf(
 	ctx sdk.Context,
 	contractAddr types.InternalEVMAddress,
@@ -201,6 +203,27 @@ func (k Keeper) QueryERC20BalanceOf(
 	}
 
 	return unpackERC20ResToBigInt(res, erc20BalanceOfMethod)
+}
+
+// QueryERC20TotalSupply makes a contract call to the totalSupply method of the ERC20 contract to
+// get the total supply of the token.
+func (k Keeper) QueryERC20TotalSupply(
+	ctx sdk.Context,
+	contractAddr types.InternalEVMAddress,
+) (*big.Int, error) {
+	res, err := k.CallEVM(
+		ctx,
+		types.ERC20KavaWrappedCosmosCoinContract.ABI,
+		types.ModuleEVMAddress,
+		contractAddr,
+		erc20TotalSupplyMethod,
+		// totalSupply takes no args
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return unpackERC20ResToBigInt(res, erc20TotalSupplyMethod)
 }
 
 func unpackERC20ResToBigInt(res *evmtypes.MsgEthereumTxResponse, methodName string) (*big.Int, error) {
