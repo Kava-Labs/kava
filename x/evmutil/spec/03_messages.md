@@ -18,7 +18,7 @@ service Msg {
   rpc ConvertCosmosCoinToERC20(MsgConvertCosmosCoinToERC20) returns (MsgConvertCosmosCoinToERC20Response);
 }
 
-// ConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20.
+// MsgConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20.
 message MsgConvertCosmosCoinToERC20 {
   // Kava bech32 address initiating the conversion.
   string initiator = 1;
@@ -35,6 +35,33 @@ message MsgConvertCosmosCoinToERC20 {
 - The module's store is checked for the address of the deployed ERC20 contract. If none is found, a new contract is deployed and its address is saved to the module store.
 - The `amount` is deducted from the `initiator`'s balance and transferred to the module account.
 - An equivalent amount of ERC20 tokens are minted by `x/evmutil` to the `receiver`.
+
+## MsgConvertCosmosCoinFromERC20
+
+`MsgConvertCosmosCoinFromERC20` is the inverse of `MsgConvertCosmosCoinToERC20`. It converts an ERC20 representation of a cosmos-sdk coin back to its underlying sdk.Coin.
+
+
+```proto
+service Msg {
+  // ConvertCosmosCoinFromERC20 defines a method for converting a cosmos sdk.Coin to an ERC20.
+  rpc ConvertCosmosCoinFromERC20(MsgConvertCosmosCoinFromERC20) returns (MsgConvertCosmosCoinFromERC20Response);
+}
+
+// MsgConvertCosmosCoinFromERC20 defines a conversion from ERC20 to cosmos coins for cosmos-native assets.
+message MsgConvertCosmosCoinFromERC20 {
+  // EVM hex address initiating the conversion.
+  string initiator = 1;
+  // Kava bech32 address that will receive the cosmos coins.
+  string receiver = 2;
+  // Amount is the amount to convert, expressed as a Cosmos coin.
+  cosmos.base.v1beta1.Coin amount = 3;
+}
+```
+
+### State Changes
+
+- The `amount` is transferred from the `x/evmutil` module account to the `receiver`.
+- The same amount of the corresponding ERC20 is burned from the `initiator` account in the EVM.
 
 ## MsgConvertERC20ToCoin
 

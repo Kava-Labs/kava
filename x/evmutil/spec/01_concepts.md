@@ -54,6 +54,8 @@ Only Cosmos co-chain denominations that are in the `AllowedCosmosDenoms` param (
 
 The ERC20 contracts are deployed and managed by x/evmutil. The contract is deployed on first convert of the coin. Once deployed, the addresses of the contracts can be queried via the `DeployedCosmosCoinContracts` query (`deployed_cosmos_coin_contracts` endpoint).
 
+If a denom is removed from the `AllowedCosmosDenoms` param, existing ERC20 tokens can be converted back to the underlying sdk.Coin via `MsgConvertCosmosCoinFromERC20`, but no conversions from sdk.Coin -> ERC via `MsgConvertCosmosCoinToERC20` are allowed.
+
 ### EVM-Native Assets
 
 ERC-20 tokens native to the EVM can be converted into an `sdk.Coin` in the Cosmos ecosystem. This works by transferring the tokens to `x/evmutil`'s module account and then minting an `sdk.Coin` to the receiver. Converting back is the inverse: the `sdk.Coin` of the initiator is burned and the original ERC-20 tokens that were locked into the module account are transferred back to the receiver.

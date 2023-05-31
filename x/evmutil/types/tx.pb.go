@@ -236,7 +236,7 @@ func (m *MsgConvertERC20ToCoinResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConvertERC20ToCoinResponse proto.InternalMessageInfo
 
-// ConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20 for cosmos-native assets.
+// MsgConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20 for cosmos-native assets.
 type MsgConvertCosmosCoinToERC20 struct {
 	// Kava bech32 address initiating the conversion.
 	Initiator string `protobuf:"bytes,1,opt,name=initiator,proto3" json:"initiator,omitempty"`
@@ -337,7 +337,7 @@ func (m *MsgConvertCosmosCoinToERC20Response) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgConvertCosmosCoinToERC20Response proto.InternalMessageInfo
 
-// ConvertCosmosCoinFromERC20 defines a conversion from ERC20 to cosmos coins for cosmos-native assets.
+// MsgConvertCosmosCoinFromERC20 defines a conversion from ERC20 to cosmos coins for cosmos-native assets.
 type MsgConvertCosmosCoinFromERC20 struct {
 	// EVM hex address initiating the conversion.
 	Initiator string `protobuf:"bytes,1,opt,name=initiator,proto3" json:"initiator,omitempty"`

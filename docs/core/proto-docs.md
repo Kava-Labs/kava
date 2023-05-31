@@ -3914,7 +3914,7 @@ MsgConvertCoinToERC20Response defines the response value from Msg/ConvertCoinToE
 <a name="kava.evmutil.v1beta1.MsgConvertCosmosCoinFromERC20"></a>
 
 ### MsgConvertCosmosCoinFromERC20
-ConvertCosmosCoinFromERC20 defines a conversion from ERC20 to cosmos coins for cosmos-native assets.
+MsgConvertCosmosCoinFromERC20 defines a conversion from ERC20 to cosmos coins for cosmos-native assets.
 
 
 | Field | Type | Label | Description |
@@ -3941,7 +3941,7 @@ MsgConvertCosmosCoinFromERC20Response defines the response value from Msg/MsgCon
 <a name="kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20"></a>
 
 ### MsgConvertCosmosCoinToERC20
-ConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20 for cosmos-native assets.
+MsgConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20 for cosmos-native assets.
 
 
 | Field | Type | Label | Description |
