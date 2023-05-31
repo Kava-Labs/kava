@@ -17,7 +17,10 @@ import (
 )
 
 const (
-	erc20BalanceOfMethod = "balanceOf"
+	erc20BalanceOfMethod   = "balanceOf"
+	erc20BurnMethod        = "burn"
+	erc20MintMethod        = "mint"
+	erc20TotalSupplyMethod = "totalSupply"
 )
 
 // DeployTestMintableERC20Contract deploys an ERC20 contract on the EVM as the
@@ -149,7 +152,7 @@ func (k Keeper) MintERC20(
 		types.ERC20MintableBurnableContract.ABI,
 		types.ModuleEVMAddress,
 		contractAddr,
-		"mint",
+		erc20MintMethod,
 		// Mint ERC20 args
 		receiver.Address,
 		amount,
@@ -170,7 +173,7 @@ func (k Keeper) BurnERC20(
 		types.ERC20KavaWrappedCosmosCoinContract.ABI,
 		types.ModuleEVMAddress,
 		contractAddr,
-		"burn",
+		erc20BurnMethod,
 		// Burn ERC20 args
 		initiator.Address,
 		amount,
@@ -197,6 +200,10 @@ func (k Keeper) QueryERC20BalanceOf(
 		return nil, err
 	}
 
+	return unpackERC20ResToBigInt(res, erc20BalanceOfMethod)
+}
+
+func unpackERC20ResToBigInt(res *evmtypes.MsgEthereumTxResponse, methodName string) (*big.Int, error) {
 	if res.Failed() {
 		if res.VmError == vm.ErrExecutionReverted.Error() {
 			// Unpacks revert
@@ -206,11 +213,11 @@ func (k Keeper) QueryERC20BalanceOf(
 		return nil, status.Error(codes.Internal, res.VmError)
 	}
 
-	anyOutput, err := types.ERC20MintableBurnableContract.ABI.Unpack(erc20BalanceOfMethod, res.Ret)
+	anyOutput, err := types.ERC20MintableBurnableContract.ABI.Unpack(methodName, res.Ret)
 	if err != nil {
 		return nil, fmt.Errorf(
 			"failed to unpack method %v response: %w",
-			erc20BalanceOfMethod,
+			methodName,
 			err,
 		)
 	}
@@ -218,7 +225,7 @@ func (k Keeper) QueryERC20BalanceOf(
 	if len(anyOutput) != 1 {
 		return nil, fmt.Errorf(
 			"invalid ERC20 %v call return outputs %v, expected %v",
-			erc20BalanceOfMethod,
+			methodName,
 			len(anyOutput),
 			1,
 		)
