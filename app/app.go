@@ -1138,6 +1138,7 @@ func (app *App) loadBlockedMaccAddrs() map[string]bool {
 		app.accountKeeper.GetModuleAddress(kavadisttypes.FundModuleAccount).String(): true,
 		// community
 		app.accountKeeper.GetModuleAddress(communitytypes.ModuleAccountName).String(): true,
+		// NOTE: if adding evmutil, adjust the cosmos-coins-fully-backed-invariant accordingly.
 	}
 
 	for addr := range modAccAddrs {
