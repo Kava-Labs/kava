@@ -509,3 +509,144 @@ func (suite *MsgServerSuite) TestConvertCosmosCoinToERC20_AlreadyDeployedContrac
 	suite.Len(totalSupply, 1)
 	suite.Equal(amount.MulRaw(2).BigInt(), totalSupply[0].(*big.Int))
 }
+
+func (suite *MsgServerSuite) TestConvertCosmosCoinFromERC20() {
+	denom := "magic"
+	tokenInfo := types.NewAllowedCosmosCoinERC20Token(denom, "Cosmos Coin", "MAGIC", 6)
+	initialPosition := sdk.NewInt64Coin(denom, 1e10)
+	initiator := testutil.RandomInternalEVMAddress()
+
+	var contractAddress types.InternalEVMAddress
+	setup := func() {
+		suite.SetupTest()
+
+		// allow conversion to the denom
+		params := suite.Keeper.GetParams(suite.Ctx)
+		params.AllowedCosmosDenoms = append(params.AllowedCosmosDenoms, tokenInfo)
+		suite.Keeper.SetParams(suite.Ctx, params)
+
+		// setup initial position
+		addr := app.RandomAddress()
+		err := suite.App.FundAccount(suite.Ctx, addr, sdk.NewCoins(initialPosition))
+		suite.NoError(err)
+		err = suite.Keeper.ConvertCosmosCoinToERC20(suite.Ctx, addr, initiator, initialPosition)
+		suite.NoError(err)
+
+		contractAddress, _ = suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
+	}
+
+	testCases := []struct {
+		name            string
+		msg             types.MsgConvertCosmosCoinFromERC20
+		amountConverted sdkmath.Int
+		expectedErr     string
+	}{
+		{
+			name: "valid - full convert",
+			msg: types.NewMsgConvertCosmosCoinFromERC20(
+				initiator.Hex(),
+				app.RandomAddress().String(),
+				initialPosition,
+			),
+			amountConverted: initialPosition.Amount,
+			expectedErr:     "",
+		},
+		{
+			name: "valid - partial convert",
+			msg: types.NewMsgConvertCosmosCoinFromERC20(
+				initiator.Hex(),
+				app.RandomAddress().String(),
+				sdk.NewInt64Coin(denom, 123456),
+			),
+			amountConverted: sdkmath.NewInt(123456),
+			expectedErr:     "",
+		},
+		{
+			name: "invalid - bad initiator",
+			msg: types.NewMsgConvertCosmosCoinFromERC20(
+				"invalid-address",
+				app.RandomAddress().String(),
+				sdk.NewInt64Coin(denom, 123456),
+			),
+			amountConverted: sdkmath.ZeroInt(),
+			expectedErr:     "invalid initiator address",
+		},
+		{
+			name: "invalid - bad receiver",
+			msg: types.NewMsgConvertCosmosCoinFromERC20(
+				testutil.RandomEvmAddress().Hex(),
+				"invalid-address",
+				sdk.NewInt64Coin(denom, 123456),
+			),
+			amountConverted: sdkmath.ZeroInt(),
+			expectedErr:     "invalid receiver address",
+		},
+		{
+			name: "invalid - unsupported asset",
+			msg: types.NewMsgConvertCosmosCoinFromERC20(
+				initiator.Hex(),
+				app.RandomAddress().String(),
+				sdk.NewInt64Coin("not-supported", 123456),
+			),
+			amountConverted: sdkmath.ZeroInt(),
+			expectedErr:     "no erc20 contract found",
+		},
+		{
+			name: "invalid - insufficient funds",
+			msg: types.NewMsgConvertCosmosCoinFromERC20(
+				initiator.Hex(),
+				app.RandomAddress().String(),
+				initialPosition.AddAmount(sdkmath.OneInt()),
+			),
+			amountConverted: sdkmath.ZeroInt(),
+			expectedErr:     "failed to convert to cosmos coins: insufficient funds",
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			setup()
+
+			_, err := suite.msgServer.ConvertCosmosCoinFromERC20(suite.Ctx, &tc.msg)
+
+			if tc.expectedErr != "" {
+				suite.ErrorContains(err, tc.expectedErr)
+				// expect no change in erc20 balance
+				balance, err := suite.Keeper.QueryERC20BalanceOf(suite.Ctx, contractAddress, initiator)
+				suite.NoError(err)
+				suite.BigIntsEqual(initialPosition.Amount.BigInt(), balance, "expected no change in initiator's erc20 balance")
+				// expect no change in module balance
+				suite.Equal(initialPosition.Amount, suite.ModuleBalance(denom), "expected no change in module balance")
+				return
+			}
+
+			suite.NoError(err)
+
+			receiver := sdk.MustAccAddressFromBech32(tc.msg.Receiver)
+			// expect receiver to have the sdk coins
+			sdkBalance := suite.BankKeeper.GetBalance(suite.Ctx, receiver, denom)
+			suite.Equal(tc.amountConverted, sdkBalance.Amount)
+
+			newEvmBalance := initialPosition.SubAmount(tc.amountConverted)
+			// expect initiator to have the balance deducted
+			evmBalance, err := suite.Keeper.QueryERC20BalanceOf(suite.Ctx, contractAddress, initiator)
+			suite.NoError(err)
+			suite.BigIntsEqual(newEvmBalance.Amount.BigInt(), evmBalance, "unexpected initiator final erc20 balance")
+
+			// expect tokens to be deducted from module account
+			suite.True(newEvmBalance.Amount.Equal(suite.ModuleBalance(denom)), "unexpected module balance")
+
+			// expect erc20 total supply to reflect new value
+			caller, key := testutil.RandomEvmAccount()
+			totalSupply, err := suite.QueryContract(
+				types.ERC20KavaWrappedCosmosCoinContract.ABI,
+				caller,
+				key,
+				contractAddress,
+				"totalSupply",
+			)
+			suite.NoError(err)
+			suite.BigIntsEqual(newEvmBalance.Amount.BigInt(), totalSupply[0].(*big.Int), "unexpected total supply")
+		})
+	}
+}
