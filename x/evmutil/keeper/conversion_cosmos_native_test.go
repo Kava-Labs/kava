@@ -15,29 +15,29 @@ import (
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
-type ConversionCosmosNativeSuite struct {
+type convertCosmosCoinToERC20Suite struct {
 	testutil.Suite
 }
 
-func TestConversionCosmosNativeSuite(t *testing.T) {
-	suite.Run(t, new(ConversionCosmosNativeSuite))
+func TestConversionCosmosNativeToEvmSuite(t *testing.T) {
+	suite.Run(t, new(convertCosmosCoinToERC20Suite))
 }
 
 // fail test if contract for denom not registered
-func (suite *ConversionCosmosNativeSuite) denomContractRegistered(denom string) types.InternalEVMAddress {
+func (suite *convertCosmosCoinToERC20Suite) denomContractRegistered(denom string) types.InternalEVMAddress {
 	contractAddress, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
 	suite.True(found)
 	return contractAddress
 }
 
 // fail test if contract for denom IS registered
-func (suite *ConversionCosmosNativeSuite) denomContractNotRegistered(denom string) {
+func (suite *convertCosmosCoinToERC20Suite) denomContractNotRegistered(denom string) {
 	_, found := suite.Keeper.GetDeployedCosmosCoinContract(suite.Ctx, denom)
 	suite.False(found)
 }
 
 // more tests of tests of this method are made to the msg handler, see ./msg_server_test.go
-func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
+func (suite *convertCosmosCoinToERC20Suite) TestConvertCosmosCoinToERC20() {
 	allowedDenom := "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
 	initialFunding := sdk.NewInt64Coin(allowedDenom, int64(1e10))
 	initiator := app.RandomAddress()
@@ -169,5 +169,131 @@ func (suite *ConversionCosmosNativeSuite) TestConvertCosmosCoinToERC20() {
 				sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 			),
 		)
+	})
+}
+
+type convertCosmosCoinFromERC20Suite struct {
+	testutil.Suite
+
+	denom     string
+	initiator types.InternalEVMAddress
+	receiver  sdk.AccAddress
+
+	contractAddress types.InternalEVMAddress
+	initialPosition sdk.Coin
+
+	query func(method string, args ...interface{}) ([]interface{}, error)
+}
+
+func (suite *convertCosmosCoinFromERC20Suite) SetupTest() {
+	var err error
+	suite.Suite.SetupTest()
+
+	suite.denom = "magic"
+	suite.initiator = testutil.RandomInternalEVMAddress()
+	suite.receiver = app.RandomAddress()
+
+	// manually create an initial position - sdk coin locked in module
+	suite.initialPosition = sdk.NewInt64Coin(suite.denom, 1e12)
+	err = suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(suite.initialPosition))
+	suite.NoError(err)
+
+	// deploy erc20 contract for the denom
+	tokenInfo := types.AllowedCosmosCoinERC20Token{
+		CosmosDenom: suite.denom,
+		Name:        "Test Token",
+		Symbol:      "MAGIC",
+		Decimals:    6,
+	}
+	suite.contractAddress, err = suite.Keeper.GetOrDeployCosmosCoinERC20Contract(suite.Ctx, tokenInfo)
+	suite.NoError(err)
+
+	// manually create an initial position - minted tokens
+	err = suite.Keeper.MintERC20(suite.Ctx, suite.contractAddress, suite.initiator, suite.initialPosition.Amount.BigInt())
+	suite.NoError(err)
+
+	caller, key := testutil.RandomEvmAccount()
+	suite.query = func(method string, args ...interface{}) ([]interface{}, error) {
+		return suite.QueryContract(
+			types.ERC20KavaWrappedCosmosCoinContract.ABI,
+			caller,
+			key,
+			suite.contractAddress,
+			method,
+			args...,
+		)
+	}
+}
+
+func (suite *convertCosmosCoinFromERC20Suite) checkTotalSupply(expectedSupply sdkmath.Int) {
+	res, err := suite.query("totalSupply")
+	suite.NoError(err)
+	suite.Len(res, 1)
+	suite.BigIntsEqual(expectedSupply.BigInt(), res[0].(*big.Int), "unexpected total supply")
+}
+
+func (suite *convertCosmosCoinFromERC20Suite) checkBalanceOf(address types.InternalEVMAddress, expectedBalance sdkmath.Int) {
+	res, err := suite.query("balanceOf", address.Address)
+	suite.NoError(err)
+	suite.Len(res, 1)
+	suite.BigIntsEqual(expectedBalance.BigInt(), res[0].(*big.Int), fmt.Sprintf("unexpected balanceOf for %s", address))
+}
+
+func TestConversionCosmosNativeFromEVMSuite(t *testing.T) {
+	suite.Run(t, new(convertCosmosCoinFromERC20Suite))
+}
+
+func (suite *convertCosmosCoinFromERC20Suite) TestConvertCosmosCoinFromERC20_NoContractDeployed() {
+	err := suite.Keeper.ConvertCosmosCoinFromERC20(
+		suite.Ctx,
+		suite.initiator,
+		suite.receiver,
+		sdk.NewInt64Coin("unsupported-denom", 1e6),
+	)
+	suite.ErrorContains(err, "no erc20 contract found for unsupported-denom")
+}
+
+func (suite *convertCosmosCoinFromERC20Suite) TestConvertCosmosCoinFromERC20() {
+	// half the initial position
+	amount := suite.initialPosition.SubAmount(suite.initialPosition.Amount.QuoRaw(2))
+
+	suite.Run("partial withdraw", func() {
+		err := suite.Keeper.ConvertCosmosCoinFromERC20(
+			suite.Ctx,
+			suite.initiator,
+			suite.receiver,
+			amount,
+		)
+		suite.NoError(err)
+
+		suite.checkTotalSupply(amount.Amount)
+		suite.checkBalanceOf(suite.initiator, amount.Amount)
+		suite.App.CheckBalance(suite.T(), suite.Ctx, suite.receiver, sdk.NewCoins(amount))
+	})
+
+	suite.Run("full withdraw", func() {
+		err := suite.Keeper.ConvertCosmosCoinFromERC20(
+			suite.Ctx,
+			suite.initiator,
+			suite.receiver,
+			amount,
+		)
+		suite.NoError(err)
+
+		// expect no remaining erc20 balance
+		suite.checkTotalSupply(sdkmath.ZeroInt())
+		suite.checkBalanceOf(suite.initiator, sdkmath.ZeroInt())
+		// expect full amount withdrawn to receiver
+		suite.App.CheckBalance(suite.T(), suite.Ctx, suite.receiver, sdk.NewCoins(suite.initialPosition))
+	})
+
+	suite.Run("insufficient balance", func() {
+		err := suite.Keeper.ConvertCosmosCoinFromERC20(
+			suite.Ctx,
+			suite.initiator,
+			suite.receiver,
+			amount,
+		)
+		suite.ErrorContains(err, "failed to convert to cosmos coins: insufficient funds")
 	})
 }
