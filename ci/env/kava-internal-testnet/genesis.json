@@ -215,7 +215,233 @@
       ]
     },
     "authz": {
-      "authorization": []
+      "authorization": [
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.bank.v1beta1.MsgMultiSend"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.bank.v1beta1.MsgSend"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgFundCommunityPool"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgSetWithdrawAddress"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgBeginRedelegate"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgCancelUnbondingDelegation"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgDelegate"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/cosmos.staking.v1beta1.MsgUndelegate"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgCreateCDP"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgDeposit"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgDrawDebt"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgRepayDebt"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.cdp.v1beta1.MsgWithdraw"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgBorrow"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgDeposit"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgRepay"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.hard.v1beta1.MsgWithdraw"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.liquid.v1beta1.MsgBurnDerivative"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.liquid.v1beta1.MsgMintDerivative"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgDeposit"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgSwapExactForTokens"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgSwapForExactTokens"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        },
+        {
+          "authorization": {
+            "@type": "/cosmos.authz.v1beta1.GenericAuthorization",
+            "msg": "/kava.swap.v1beta1.MsgWithdraw"
+          },
+          "expiration": null,
+          "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
+          "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
+        }
+      ]
     },
     "bank": {
       "params": {
@@ -1250,7 +1476,10 @@
           "berlin_block": "0",
           "london_block": null,
           "arrow_glacier_block": null,
-          "merge_fork_block": null
+          "gray_glacier_block": null,
+          "merge_netsplit_block": null,
+          "shanghai_block": null,
+          "cancun_block": null
         },
         "eip712_allowed_msgs": [
           {
@@ -1736,12 +1965,14 @@
             ],
             "nested_types": []
           }
-        ]
+        ],
+        "allow_unprotected_txs": false
       }
     },
     "evmutil": {
       "accounts": [],
       "params": {
+        "allowed_cosmos_denoms": [],
         "enabled_conversion_pairs": [
           {
             "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
@@ -1776,7 +2007,9 @@
         "base_fee_change_denominator": 8,
         "elasticity_multiplier": 2,
         "enable_height": "0",
-        "base_fee": "1000000000"
+        "base_fee": "1000000000",
+        "min_gas_price": "0.000000000000000000",
+        "min_gas_multiplier": "0.500000000000000000"
       },
       "block_gas": "0"
     },
@@ -3308,7 +3541,8 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 10000,
-        "bond_denom": "ukava"
+        "bond_denom": "ukava",
+        "min_commission_rate": "0.000000000000000000"
       },
       "last_total_power": "0",
       "last_validator_powers": [],
