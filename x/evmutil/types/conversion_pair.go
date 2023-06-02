@@ -98,6 +98,14 @@ func validateConversionPairs(i interface{}) error {
 // Cosmos SDK -> EVM
 ///////////////
 
+// NewDeployedCosmosCoinContract returns a new DeployedCosmosCoinContract
+func NewDeployedCosmosCoinContract(denom string, address InternalEVMAddress) DeployedCosmosCoinContract {
+	return DeployedCosmosCoinContract{
+		CosmosDenom: denom,
+		Address:     &address,
+	}
+}
+
 // NewAllowedCosmosCoinERC20Token returns an AllowedCosmosCoinERC20Token
 func NewAllowedCosmosCoinERC20Token(
 	cosmosDenom, name, symbol string,
@@ -115,20 +123,20 @@ func NewAllowedCosmosCoinERC20Token(
 func (token AllowedCosmosCoinERC20Token) Validate() error {
 	// disallow empty string fields
 	if err := sdk.ValidateDenom(token.CosmosDenom); err != nil {
-		return fmt.Errorf("allowed cosomos coin erc20 token's sdk denom is invalid: %v", err)
+		return fmt.Errorf("allowed cosmos coin erc20 token's sdk denom is invalid: %v", err)
 	}
 
 	if token.Name == "" {
-		return errors.New("allowed cosomos coin erc20 token's name cannot be empty")
+		return errors.New("allowed cosmos coin erc20 token's name cannot be empty")
 	}
 
 	if token.Symbol == "" {
-		return errors.New("allowed cosomos coin erc20 token's symbol cannot be empty")
+		return errors.New("allowed cosmos coin erc20 token's symbol cannot be empty")
 	}
 
 	// ensure decimals will properly cast to uint8 of erc20 spec
 	if token.Decimals > math.MaxUint8 {
-		return fmt.Errorf("allowed cosomos coin erc20 token's decimals must be less than 256, found %d", token.Decimals)
+		return fmt.Errorf("allowed cosmos coin erc20 token's decimals must be less than 256, found %d", token.Decimals)
 	}
 
 	return nil

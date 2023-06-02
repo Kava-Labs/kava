@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -40,4 +42,34 @@ func NewInternalEVMAddressFromString(addrStr string) (InternalEVMAddress, error)
 	addr := common.HexToAddress(addrStr)
 
 	return NewInternalEVMAddress(addr), nil
+}
+
+// Equal checks if two InternalEVMAddress instances are equal.
+func (addr InternalEVMAddress) Equal(other InternalEVMAddress) bool {
+	return addr.Address == other.Address
+}
+
+// MarshalTo implements the protobuf Marshaler interface.
+func (addr InternalEVMAddress) MarshalTo(data []byte) (int, error) {
+	addressBytes := addr.Address.Bytes()
+	return copy(data, addressBytes[:]), nil
+}
+
+// MarshalJSON allows PrintProto to handle InternalEVMAddress
+func (addr InternalEVMAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(addr.Hex())
+}
+
+// Size implements protobuf Unmarshaler interface.
+func (a InternalEVMAddress) Size() int {
+	return common.AddressLength
+}
+
+// Unmarshal implements the protobuf Unmarshaler interface.
+func (addr *InternalEVMAddress) Unmarshal(data []byte) error {
+	if len(data) != common.AddressLength {
+		return errors.New("invalid data length for InternalEVMAddress")
+	}
+	addr.Address.SetBytes(data)
+	return nil
 }

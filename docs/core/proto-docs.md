@@ -256,6 +256,9 @@
     - [Params](#kava.evmutil.v1beta1.Params)
   
 - [kava/evmutil/v1beta1/query.proto](#kava/evmutil/v1beta1/query.proto)
+    - [DeployedCosmosCoinContract](#kava.evmutil.v1beta1.DeployedCosmosCoinContract)
+    - [QueryDeployedCosmosCoinContractsRequest](#kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsRequest)
+    - [QueryDeployedCosmosCoinContractsResponse](#kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsResponse)
     - [QueryParamsRequest](#kava.evmutil.v1beta1.QueryParamsRequest)
     - [QueryParamsResponse](#kava.evmutil.v1beta1.QueryParamsResponse)
   
@@ -3779,6 +3782,54 @@ Params defines the evmutil module params
 
 
 
+<a name="kava.evmutil.v1beta1.DeployedCosmosCoinContract"></a>
+
+### DeployedCosmosCoinContract
+DeployedCosmosCoinContract defines a deployed token contract to the evm representing a native cosmos-sdk coin
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cosmos_denom` | [string](#string) |  |  |
+| `address` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsRequest"></a>
+
+### QueryDeployedCosmosCoinContractsRequest
+QueryDeployedCosmosCoinContractsRequest defines the request type for Query/DeployedCosmosCoinContracts method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `cosmos_denoms` | [string](#string) | repeated | optional query param to only return specific denoms in the list denoms that do not have deployed contracts will be omitted from the result must request fewer than 100 denoms at a time. |
+| `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  | pagination defines an optional pagination for the request. |
+
+
+
+
+
+
+<a name="kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsResponse"></a>
+
+### QueryDeployedCosmosCoinContractsResponse
+QueryDeployedCosmosCoinContractsResponse defines the response type for the Query/DeployedCosmosCoinContracts method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `deployed_cosmos_coin_contracts` | [DeployedCosmosCoinContract](#kava.evmutil.v1beta1.DeployedCosmosCoinContract) | repeated | deployed_cosmos_coin_contracts is a list of cosmos-sdk coin denom and its deployed contract address |
+| `pagination` | [cosmos.base.query.v1beta1.PageResponse](#cosmos.base.query.v1beta1.PageResponse) |  | pagination defines the pagination in the response. |
+
+
+
+
+
+
 <a name="kava.evmutil.v1beta1.QueryParamsRequest"></a>
 
 ### QueryParamsRequest
@@ -3818,6 +3869,7 @@ Query defines the gRPC querier service for evmutil module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Params` | [QueryParamsRequest](#kava.evmutil.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.evmutil.v1beta1.QueryParamsResponse) | Params queries all parameters of the evmutil module. | GET|/kava/evmutil/v1beta1/params|
+| `DeployedCosmosCoinContracts` | [QueryDeployedCosmosCoinContractsRequest](#kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsRequest) | [QueryDeployedCosmosCoinContractsResponse](#kava.evmutil.v1beta1.QueryDeployedCosmosCoinContractsResponse) | DeployedCosmosCoinContracts queries a list cosmos coin denom and their deployed erc20 address | GET|/kava/evmutil/v1beta1/deployed_cosmos_coin_contracts|
 
  <!-- end services -->
 

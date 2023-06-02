@@ -36,6 +36,11 @@ func DeployedCosmosCoinContractKey(cosmosDenom string) []byte {
 	return append(DeployedCosmosCoinContractKeyPrefix, []byte(cosmosDenom)...)
 }
 
+// DenomFromDeployedCosmosCoinContractKey is the inverse of DeployedCosmosCoinContractKey
+func DenomFromDeployedCosmosCoinContractKey(key []byte) string {
+	return string(key[1:])
+}
+
 // ModuleAddress is the native module address for EVM
 var ModuleEVMAddress common.Address
 

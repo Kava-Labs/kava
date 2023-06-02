@@ -1,19 +1,23 @@
 syntax = "proto3";
 package kava.evmutil.v1beta1;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "kava/evmutil/v1beta1/genesis.proto";
 
 option go_package = "github.com/kava-labs/kava/x/evmutil/types";
-option (gogoproto.equal_all) = true;
-option (gogoproto.verbose_equal_all) = true;
 
 // Query defines the gRPC querier service for evmutil module
 service Query {
   // Params queries all parameters of the evmutil module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/kava/evmutil/v1beta1/params";
+  }
+
+  // DeployedCosmosCoinContracts queries a list cosmos coin denom and their deployed erc20 address
+  rpc DeployedCosmosCoinContracts(QueryDeployedCosmosCoinContractsRequest) returns (QueryDeployedCosmosCoinContractsResponse) {
+    option (google.api.http).get = "/kava/evmutil/v1beta1/deployed_cosmos_coin_contracts";
   }
 }
 
@@ -23,4 +27,33 @@ message QueryParamsRequest {}
 // QueryParamsResponse defines the response type for querying x/evmutil parameters.
 message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDeployedCosmosCoinContractsRequest defines the request type for Query/DeployedCosmosCoinContracts method.
+message QueryDeployedCosmosCoinContractsRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // optional query param to only return specific denoms in the list
+  // denoms that do not have deployed contracts will be omitted from the result
+  // must request fewer than 100 denoms at a time.
+  repeated string cosmos_denoms = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryDeployedCosmosCoinContractsResponse defines the response type for the Query/DeployedCosmosCoinContracts method.
+message QueryDeployedCosmosCoinContractsResponse {
+  // deployed_cosmos_coin_contracts is a list of cosmos-sdk coin denom and its deployed contract address
+  repeated DeployedCosmosCoinContract deployed_cosmos_coin_contracts = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// DeployedCosmosCoinContract defines a deployed token contract to the evm representing a native cosmos-sdk coin
+message DeployedCosmosCoinContract {
+  string cosmos_denom = 1;
+  string address = 2 [(gogoproto.customtype) = "InternalEVMAddress"];
 }
