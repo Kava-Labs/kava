@@ -18,6 +18,8 @@ var (
 
 	_ sdk.Msg            = &MsgConvertCosmosCoinToERC20{}
 	_ legacytx.LegacyMsg = &MsgConvertCosmosCoinToERC20{}
+	_ sdk.Msg            = &MsgConvertCosmosCoinFromERC20{}
+	_ legacytx.LegacyMsg = &MsgConvertCosmosCoinFromERC20{}
 )
 
 // legacy message types
@@ -25,7 +27,8 @@ const (
 	TypeMsgConvertCoinToERC20 = "evmutil_convert_coin_to_erc20"
 	TypeMsgConvertERC20ToCoin = "evmutil_convert_erc20_to_coin"
 
-	TypeMsgConvertCosmosCoinToERC20 = "evmutil_convert_cosmos_coin_to_erc20"
+	TypeMsgConvertCosmosCoinToERC20   = "evmutil_convert_cosmos_coin_to_erc20"
+	TypeMsgConvertCosmosCoinFromERC20 = "evmutil_convert_cosmos_coin_from_erc20"
 )
 
 ////////////////////////////
@@ -210,3 +213,54 @@ func (MsgConvertCosmosCoinToERC20) Route() string { return RouterKey }
 
 // Type implements legacytx.LegacyMsg
 func (MsgConvertCosmosCoinToERC20) Type() string { return TypeMsgConvertCosmosCoinToERC20 }
+
+// NewMsgConvertCosmosCoinToERC20 returns a new MsgConvertCosmosCoinToERC20
+func NewMsgConvertCosmosCoinFromERC20(
+	initiator string,
+	receiver string,
+	amount sdk.Coin,
+) MsgConvertCosmosCoinFromERC20 {
+	return MsgConvertCosmosCoinFromERC20{
+		Initiator: initiator,
+		Receiver:  receiver,
+		Amount:    &amount,
+	}
+}
+
+// GetSigners implements types.Msg
+func (msg MsgConvertCosmosCoinFromERC20) GetSigners() []sdk.AccAddress {
+	sender0x, err := NewInternalEVMAddressFromString(msg.Initiator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{sender0x.Bytes()}
+}
+
+// ValidateBasic implements types.Msg
+func (msg MsgConvertCosmosCoinFromERC20) ValidateBasic() error {
+	if !common.IsHexAddress(msg.Initiator) {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "initiator is not a valid hex address (%s)", msg.Initiator)
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.Receiver)
+	if err != nil {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidAddress, "invalid receiver address (%s): %s", msg.Receiver, err.Error())
+	}
+
+	if msg.Amount.IsNil() || !msg.Amount.IsValid() || msg.Amount.IsZero() {
+		return errorsmod.Wrapf(sdkerrors.ErrInvalidCoins, "'%s'", msg.Amount)
+	}
+
+	return nil
+}
+
+// GetSignBytes implements legacytx.LegacyMsg
+func (msg MsgConvertCosmosCoinFromERC20) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&msg))
+}
+
+// Route implements legacytx.LegacyMsg
+func (MsgConvertCosmosCoinFromERC20) Route() string { return RouterKey }
+
+// Type implements legacytx.LegacyMsg
+func (MsgConvertCosmosCoinFromERC20) Type() string { return TypeMsgConvertCosmosCoinFromERC20 }
