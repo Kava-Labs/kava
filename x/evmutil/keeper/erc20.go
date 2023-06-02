@@ -158,6 +158,27 @@ func (k Keeper) MintERC20(
 	return err
 }
 
+// BurnERC20 burns the token amount from the initiator's balance.
+func (k Keeper) BurnERC20(
+	ctx sdk.Context,
+	contractAddr types.InternalEVMAddress,
+	initiator types.InternalEVMAddress,
+	amount *big.Int,
+) error {
+	_, err := k.CallEVM(
+		ctx,
+		types.ERC20KavaWrappedCosmosCoinContract.ABI,
+		types.ModuleEVMAddress,
+		contractAddr,
+		"burn",
+		// Burn ERC20 args
+		initiator.Address,
+		amount,
+	)
+
+	return err
+}
+
 func (k Keeper) QueryERC20BalanceOf(
 	ctx sdk.Context,
 	contractAddr types.InternalEVMAddress,

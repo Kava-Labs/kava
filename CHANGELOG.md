@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evmutil) [#1603] Add MsgConvertCosmosCoinToERC20 for converting an sdk.Coin to an ERC20 in the EVM
 - (evmutil) [#1604] Emit events for MsgConvertCosmosCoinToERC20: `message` & `convert_cosmos_coin_to_erc20`
 - (evmutil) [#1605] Add query for deployed ERC20 contracts representing Cosmos coins in the EVM
+- (evmutil) [#1609] Add MsgConvertCosmosCoinFromERC20 for converting the ERC20 back to an sdk.Coin
 
 ### Client Breaking
 - (evmutil) [#1603] Renamed error `ErrConversionNotEnabled` to `ErrEVMConversionNotEnabled`
@@ -251,6 +252,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1609]: https://github.com/Kava-Labs/kava/pull/1609
 [#1605]: https://github.com/Kava-Labs/kava/pull/1605
 [#1604]: https://github.com/Kava-Labs/kava/pull/1604
 [#1603]: https://github.com/Kava-Labs/kava/pull/1603

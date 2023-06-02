@@ -57,7 +57,7 @@ message MsgConvertERC20ToCoin {
 // Msg/MsgConvertERC20ToCoin.
 message MsgConvertERC20ToCoinResponse {}
 
-// ConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20 for cosmos-native assets.
+// MsgConvertCosmosCoinToERC20 defines a conversion from cosmos sdk.Coin to ERC20 for cosmos-native assets.
 message MsgConvertCosmosCoinToERC20 {
   // Kava bech32 address initiating the conversion.
   string initiator = 1;
@@ -70,7 +70,7 @@ message MsgConvertCosmosCoinToERC20 {
 // MsgConvertCosmosCoinToERC20Response defines the response value from Msg/MsgConvertCosmosCoinToERC20.
 message MsgConvertCosmosCoinToERC20Response {}
 
-// ConvertCosmosCoinFromERC20 defines a conversion from ERC20 to cosmos coins for cosmos-native assets.
+// MsgConvertCosmosCoinFromERC20 defines a conversion from ERC20 to cosmos coins for cosmos-native assets.
 message MsgConvertCosmosCoinFromERC20 {
   // EVM hex address initiating the conversion.
   string initiator = 1;

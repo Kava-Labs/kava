@@ -31,6 +31,7 @@ func GetTxCmd() *cobra.Command {
 		getCmdMsgConvertCoinToERC20(),
 		getCmdConvertERC20ToCoin(),
 		getCmdMsgConvertCosmosCoinToERC20(),
+		getCmdMsgConvertCosmosCoinFromERC20(),
 	}
 
 	for _, cmd := range cmds {
@@ -151,6 +152,45 @@ func getCmdMsgConvertCosmosCoinToERC20() *cobra.Command {
 
 			signer := clientCtx.GetFromAddress()
 			msg := types.NewMsgConvertCosmosCoinToERC20(signer.String(), receiver, amount)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+}
+
+func getCmdMsgConvertCosmosCoinFromERC20() *cobra.Command {
+	return &cobra.Command{
+		Use:   "convert-cosmos-coin-from-erc20 [receiver_kava_address] [amount] [flags]",
+		Short: "converts asset native to Cosmos Co-chain back from an ERC20 on the EVM co-chain",
+		Example: fmt.Sprintf(
+			`Convert ERC20 representation of 500 ATOM back to a Cosmos coin, sending to kava1q0dkky0505r555etn6u2nz4h4kjcg5y8dg863a:
+  %s tx %s convert-cosmos-coin-from-erc20 kava1q0dkky0505r555etn6u2nz4h4kjcg5y8dg863a 500000000ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2 --from <key> --gas 2000000`,
+			version.AppName, types.ModuleName,
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			receiver, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return fmt.Errorf("receiver '%s' is an invalid kava address", args[0])
+			}
+
+			amount, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
+			signer := clientCtx.GetFromAddress()
+			initiator := common.BytesToAddress(signer.Bytes())
+
+			msg := types.NewMsgConvertCosmosCoinFromERC20(initiator.String(), receiver.String(), amount)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
