@@ -22,6 +22,7 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
 // Chain wraps query clients & accounts for a network
@@ -42,6 +43,7 @@ type Chain struct {
 	Community communitytypes.QueryClient
 	Earn      earntypes.QueryClient
 	Evm       evmtypes.QueryClient
+	Evmutil   evmutiltypes.QueryClient
 	Tm        tmservice.ServiceClient
 	Tx        txtypes.ServiceClient
 }
@@ -75,6 +77,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
+	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
 
@@ -113,4 +116,10 @@ func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 	})
 	require.NoError(chain.t, err)
 	return res.Balances
+}
+
+// GetModuleBalances returns the balance of a requested module account
+func (chain *Chain) GetModuleBalances(moduleName string) sdk.Coins {
+	addr := authtypes.NewModuleAddress(moduleName)
+	return chain.QuerySdkForBalances(addr)
 }

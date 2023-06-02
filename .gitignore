@@ -37,3 +37,7 @@ build/bin
 # Ignore build dirs
 build/darwin
 build/linux
+
+# Go workspace files
+go.work
+go.work.sum
