@@ -16,6 +16,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	legacy.RegisterAminoMsg(cdc, &MsgConvertCoinToERC20{}, "evmutil/MsgConvertCoinToERC20")
 	legacy.RegisterAminoMsg(cdc, &MsgConvertERC20ToCoin{}, "evmutil/MsgConvertERC20ToCoin")
 	legacy.RegisterAminoMsg(cdc, &MsgConvertCosmosCoinToERC20{}, "evmutil/MsgConvertCosmosCoinToERC20")
+	legacy.RegisterAminoMsg(cdc, &MsgConvertCosmosCoinFromERC20{}, "evmutil/MsgConvertCosmosCoinFromERC20")
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -23,6 +24,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgConvertCoinToERC20{},
 		&MsgConvertERC20ToCoin{},
 		&MsgConvertCosmosCoinToERC20{},
+		&MsgConvertCosmosCoinFromERC20{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
