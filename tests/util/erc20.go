@@ -15,6 +15,19 @@ func EvmContractMethodId(signature string) []byte {
 	return hash.Sum(nil)[:4]
 }
 
+func BuildErc20ApproveCallData(spender common.Address, amount *big.Int) []byte {
+	methodId := EvmContractMethodId("approve(address,uint256)")
+	paddedAddress := common.LeftPadBytes(spender.Bytes(), 32)
+	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodId...)
+	data = append(data, paddedAddress...)
+	data = append(data, paddedAmount...)
+
+	return data
+}
+
 func BuildErc20TransferCallData(to common.Address, amount *big.Int) []byte {
 	methodId := EvmContractMethodId("transfer(address,uint256)")
 	paddedAddress := common.LeftPadBytes(to.Bytes(), 32)

@@ -9,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 
-	"github.com/ethereum/go-ethereum"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/kava-labs/kava/tests/e2e/testutil"
@@ -82,7 +81,7 @@ func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 
 	contractAddress = deployedContracts.DeployedCosmosCoinContracts[0].Address
 
-	return denom, user, contractAddress, sdkBalance
+	return user, contractAddress, denom, sdkBalance
 }
 
 func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
@@ -120,12 +119,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	contractAddress := deployedContracts.DeployedCosmosCoinContracts[0].Address
 
 	// check erc20 balance
-	bz, err := suite.Kava.EvmClient.CallContract(context.Background(), ethereum.CallMsg{
-		To:   &contractAddress.Address,
-		Data: util.BuildErc20BalanceOfCallData(user.EvmAddress),
-	}, nil)
-	suite.NoError(err)
-	erc20Balance := new(big.Int).SetBytes(bz)
+	erc20Balance := suite.GetErc20Balance(contractAddress.Address, user.EvmAddress)
 	suite.BigIntsEqual(big.NewInt(convertAmount), erc20Balance, "unexpected erc20 balance post-convert")
 
 	// check cosmos coin is deducted from account
@@ -157,12 +151,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	suite.NoError(res.Err)
 
 	// check erc20 balance
-	bz, err = suite.Kava.EvmClient.CallContract(context.Background(), ethereum.CallMsg{
-		To:   &contractAddress.Address,
-		Data: util.BuildErc20BalanceOfCallData(user.EvmAddress),
-	}, nil)
-	suite.NoError(err)
-	erc20Balance = new(big.Int).SetBytes(bz)
+	erc20Balance = suite.GetErc20Balance(contractAddress.Address, user.EvmAddress)
 	suite.BigIntsEqual(big.NewInt(0), erc20Balance, "expected all erc20 to be converted back")
 
 	// check cosmos coin is added back to account
@@ -223,12 +212,7 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	contractAddress := deployedContracts.DeployedCosmosCoinContracts[0].Address
 
 	// check erc20 balance
-	bz, err := suite.Kava.EvmClient.CallContract(context.Background(), ethereum.CallMsg{
-		To:   &contractAddress.Address,
-		Data: util.BuildErc20BalanceOfCallData(user.EvmAddress),
-	}, nil)
-	suite.NoError(err)
-	erc20Balance := new(big.Int).SetBytes(bz)
+	erc20Balance := suite.GetErc20Balance(contractAddress.Address, user.EvmAddress)
 	suite.BigIntsEqual(big.NewInt(convertAmount), erc20Balance, "unexpected erc20 balance post-convert")
 
 	// check cosmos coin is deducted from account
@@ -272,12 +256,7 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	suite.NoError(err)
 
 	// check erc20 balance
-	bz, err = suite.Kava.EvmClient.CallContract(context.Background(), ethereum.CallMsg{
-		To:   &contractAddress.Address,
-		Data: util.BuildErc20BalanceOfCallData(user.EvmAddress),
-	}, nil)
-	suite.NoError(err)
-	erc20Balance = new(big.Int).SetBytes(bz)
+	erc20Balance = suite.GetErc20Balance(contractAddress.Address, user.EvmAddress)
 	suite.BigIntsEqual(big.NewInt(0), erc20Balance, "expected all erc20 to be converted back")
 
 	// check cosmos coin is added back to account
