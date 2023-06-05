@@ -391,6 +391,49 @@ func (suite *keeperTestSuite) TestDeployedCosmosCoinContractStoreState() {
 	})
 }
 
+func (suite *keeperTestSuite) TestIterateAllDeployedCosmosCoinContracts() {
+	suite.SetupTest()
+	address := testutil.RandomInternalEVMAddress()
+	denoms := []string{}
+	register := func(denom string) {
+		addr := testutil.RandomInternalEVMAddress()
+		if denom == "waldo" {
+			addr = address
+		}
+		err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, denom, addr)
+		suite.NoError(err)
+		denoms = append(denoms, denom)
+	}
+
+	// register some contracts
+	register("magic")
+	register("popcorn")
+	register("waldo")
+	register("zzz")
+	register("ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2")
+
+	suite.Run("stops when told", func() {
+		// test out stopping the iteration
+		// NOTE: don't actually look for a single contract this way. the keys are deterministic by denom.
+		var contract types.DeployedCosmosCoinContract
+		suite.Keeper.IterateAllDeployedCosmosCoinContracts(suite.Ctx, func(c types.DeployedCosmosCoinContract) bool {
+			contract = c
+			return c.CosmosDenom == "waldo"
+		})
+		suite.Equal(types.NewDeployedCosmosCoinContract("waldo", address), contract)
+	})
+
+	suite.Run("iterates all contracts", func() {
+		foundDenoms := make([]string, 0, len(denoms))
+		suite.Keeper.IterateAllDeployedCosmosCoinContracts(suite.Ctx, func(c types.DeployedCosmosCoinContract) bool {
+			foundDenoms = append(foundDenoms, c.CosmosDenom)
+			return false
+		})
+		suite.Len(foundDenoms, len(denoms))
+		suite.ElementsMatch(denoms, foundDenoms)
+	})
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(keeperTestSuite))
 }

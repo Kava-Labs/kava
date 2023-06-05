@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -11,6 +13,7 @@ import (
 func RegisterInvariants(ir sdk.InvariantRegistry, bankK types.BankKeeper, k Keeper) {
 	ir.RegisterRoute(types.ModuleName, "fully-backed", FullyBackedInvariant(bankK, k))
 	ir.RegisterRoute(types.ModuleName, "small-balances", SmallBalancesInvariant(bankK, k))
+	ir.RegisterRoute(types.ModuleName, "cosmos-coins-fully-backed", CosmosCoinsFullyBackedInvariant(bankK, k))
 	// Disable this invariant due to some issues with it requiring some staking params to be set in genesis.
 	// ir.RegisterRoute(types.ModuleName, "backed-conversion-coins", BackedCoinsInvariant(bankK, k))
 }
@@ -22,6 +25,9 @@ func AllInvariants(bankK types.BankKeeper, k Keeper) sdk.Invariant {
 			return res, stop
 		}
 		if res, stop := BackedCoinsInvariant(bankK, k)(ctx); stop {
+			return res, stop
+		}
+		if res, stop := CosmosCoinsFullyBackedInvariant(bankK, k)(ctx); stop {
 			return res, stop
 		}
 		return SmallBalancesInvariant(bankK, k)(ctx)
@@ -102,6 +108,41 @@ func BackedCoinsInvariant(_ types.BankKeeper, k Keeper) sdk.Invariant {
 			}
 		}
 
+		return message, broken
+	}
+}
+
+// CosmosCoinsFullyBackedInvariant ensures the total supply of ERC20 representations of sdk.Coins
+// match the balances in the module account.
+//
+// This invariant depends on the fact that coins can only become part of the balance through
+// conversion to ERC20s.
+// If in the future sdk.Coins can be sent directly to the module account,
+// or the module account balance can be increased in any other way,
+// this invariant should be changed from checking that the balance equals the total supply,
+// to check that the balance is greater than or equal to the total supply.
+func CosmosCoinsFullyBackedInvariant(bankK types.BankKeeper, k Keeper) sdk.Invariant {
+	broken := false
+	message := sdk.FormatInvariant(
+		types.ModuleName,
+		"cosmos coins fully-backed broken",
+		"ERC20 total supply is not equal to module account balance",
+	)
+	maccAddress := authtypes.NewModuleAddress(types.ModuleName)
+
+	return func(ctx sdk.Context) (string, bool) {
+		k.IterateAllDeployedCosmosCoinContracts(ctx, func(c types.DeployedCosmosCoinContract) bool {
+			moduleBalance := bankK.GetBalance(ctx, maccAddress, c.CosmosDenom).Amount
+			totalSupply, err := k.QueryERC20TotalSupply(ctx, *c.Address)
+			if err != nil {
+				panic(fmt.Sprintf("failed to query total supply for %+v", c))
+			}
+			// expect total supply to equal balance in the module
+			if totalSupply.Cmp(moduleBalance.BigInt()) != 0 {
+				broken = true
+			}
+			return broken
+		})
 		return message, broken
 	}
 }

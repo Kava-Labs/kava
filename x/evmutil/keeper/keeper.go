@@ -212,3 +212,21 @@ func (k *Keeper) GetDeployedCosmosCoinContract(ctx sdk.Context, cosmosDenom stri
 	found := len(bz) != 0
 	return types.BytesToInternalEVMAddress(bz), found
 }
+
+// IterateAllDeployedCosmosCoinContracts iterates through all the deployed ERC20 contracts representing
+// cosmos-sdk coins. If true is returned from the callback, iteration is halted.
+func (k Keeper) IterateAllDeployedCosmosCoinContracts(ctx sdk.Context, cb func(types.DeployedCosmosCoinContract) bool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.DeployedCosmosCoinContractKeyPrefix)
+
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		contract := types.NewDeployedCosmosCoinContract(
+			types.DenomFromDeployedCosmosCoinContractKey(iterator.Key()),
+			types.BytesToInternalEVMAddress(iterator.Value()),
+		)
+		if cb(contract) {
+			break
+		}
+	}
+}
