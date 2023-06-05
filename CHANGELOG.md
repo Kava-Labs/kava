@@ -51,6 +51,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evmutil) [#1604] Renamed event types
   - `convert_erc20_to_coin` -> `convert_evm_erc20_to_coin`
   - `convert_coin_to_erc20` -> `convert_evm_erc20_from_coin`
+- (evmutil) [#1614] Renamed CLI commands for converting an EVM-native asset to sdk.Coin
+  NOTE: no changes were made to existing Msg names (`MsgConvertCoinToERC20` & `MsgConvertERC20ToCoin`)
+  - `convert-erc20-to-coin` -> `convert-evm-erc20-to-coin`
+  - `convert-coin-to-erc20` -> `convert-evm-erc20-from-coin`
 
 ## [v0.23.0]
 
@@ -253,6 +257,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1614]: https://github.com/Kava-Labs/kava/pull/1614
 [#1610]: https://github.com/Kava-Labs/kava/pull/1610
 [#1609]: https://github.com/Kava-Labs/kava/pull/1609
 [#1605]: https://github.com/Kava-Labs/kava/pull/1605
