@@ -458,7 +458,7 @@
           "grantee": "kava10d07y265gmmuvt4z0w9aw880jnsr700jxh8cq5",
           "granter": "kava17d2wax0zhjrrecvaszuyxdf5wcu5a0p4qlx3t5"
         }
-      ]      
+      ]
     },
     "bank": {
       "params": {
@@ -543,7 +543,7 @@
               "amount": "1000000000000000"
             },
             {
-              "denom": "erc20/axelar/btc",
+              "denom": "erc20/axelar/wbtc",
               "amount": "1000000000"
             },
             {
@@ -649,7 +649,7 @@
               "amount": "1000000000000000"
             },
             {
-              "denom": "erc20/axelar/btc",
+              "denom": "erc20/axelar/wbtc",
               "amount": "1000000000"
             },
             {
@@ -2016,7 +2016,7 @@
           },
           {
             "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
-            "denom": "erc20/axelar/btc"
+            "denom": "erc20/axelar/wbtc"
           },
           {
             "kava_erc20_address": "0x5d6D67a665C9F169B0f9436E05B11108C1606043",
@@ -2166,7 +2166,7 @@
             "keeper_reward_percentage": "0.020000000000000000"
           },
           {
-            "denom": "erc20/axelar/btc",
+            "denom": "erc20/axelar/wbtc",
             "borrow_limit": {
               "has_max_limit": true,
               "maximum_limit": "0.000000000000000000",
@@ -2484,7 +2484,7 @@
           },
           {
             "active": true,
-            "collateral_type": "erc20/axelar/btc",
+            "collateral_type": "erc20/axelar/wbtc",
             "start": "2022-11-11T15:00:00Z",
             "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [
