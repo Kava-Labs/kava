@@ -543,16 +543,16 @@
               "amount": "1000000000000000"
             },
             {
-              "denom": "erc20/axelar/wbtc",
-              "amount": "1000000000"
-            },
-            {
               "denom": "erc20/axelar/eth",
               "amount": "1000000000000000000"
             },
             {
               "denom": "erc20/axelar/usdc",
               "amount": "10000000000"
+            },
+            {
+              "denom": "erc20/axelar/wbtc",
+              "amount": "1000000000"
             },
             {
               "denom": "hard",
