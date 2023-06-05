@@ -514,16 +514,16 @@
               "amount": "1000000000000000"
             },
             {
-              "denom": "erc20/axelar/btc",
-              "amount": "1000000000"
-            },
-            {
               "denom": "erc20/axelar/eth",
               "amount": "1000000000000000000"
             },
             {
               "denom": "erc20/axelar/usdc",
               "amount": "10000000000"
+            },
+            {
+              "denom": "erc20/axelar/wbtc",
+              "amount": "1000000000"
             },
             {
               "denom": "erc20/multichain/usdc",
@@ -567,16 +567,16 @@
               "amount": "1000000000000000"
             },
             {
-              "denom": "erc20/axelar/btc",
-              "amount": "1000000000"
-            },
-            {
               "denom": "erc20/axelar/eth",
               "amount": "1000000000000000000"
             },
             {
               "denom": "erc20/axelar/usdc",
               "amount": "10000000000"
+            },
+            {
+              "denom": "erc20/axelar/wbtc",
+              "amount": "1000000000"
             },
             {
               "denom": "hard",
@@ -1992,7 +1992,7 @@
           },
           {
             "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
-            "denom": "erc20/axelar/btc"
+            "denom": "erc20/axelar/wbtc"
           },
           {
             "kava_erc20_address": "0x5d6D67a665C9F169B0f9436E05B11108C1606043",
@@ -2191,6 +2191,24 @@
               "loan_to_value": "0.000000000000000000"
             },
             "spot_market_id": "usdc:usd:30",
+            "conversion_factor": "1000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
+          },
+          {
+            "denom": "erc20/axelar/wbtc",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "0.000000000000000000",
+              "loan_to_value": "0.000000000000000000"
+            },
+            "spot_market_id": "btc:usd:30",
             "conversion_factor": "1000000",
             "interest_rate_model": {
               "base_rate_apy": "0.000000000000000000",
@@ -2556,7 +2574,7 @@
           },
           {
             "active": true,
-            "collateral_type": "erc20/axelar/btc",
+            "collateral_type": "erc20/axelar/wbtc",
             "start": "2022-11-11T15:00:00Z",
             "end": "2024-11-11T15:00:00Z",
             "rewards_per_second": [

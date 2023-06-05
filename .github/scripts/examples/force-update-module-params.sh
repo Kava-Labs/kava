@@ -19,7 +19,7 @@ MULTICHAIN_wBTC_CONTRACT_ADDRESS=0x288429bc07B8d030ba418bb30F170327F9fBE502
 MULTICHAIN_USDC_CONTRACT_ADDRESS=0xBb304f44b7EFD865361F2AD973d8ebA433893ABC
 MULTICHAIN_USDT_CONTRACT_ADDRESS=0xA637F4CECbA91Ad19075bA3d330cd95f694B1707
 AXL_USDC_CONTRACT_ADDRESS=0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d
-wBTC_CONTRACT_ADDRESS=0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7
+AXL_WBTC_CONTRACT_ADDRESS=0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7
 wETH_CONTRACT_ADDRESS=0x5d6D67a665C9F169B0f9436E05B11108C1606043
 ######## EXAMPLE VALUES #########
 
@@ -49,7 +49,7 @@ PARAM_CHANGE_PROP_TEMPLATE=$(cat <<'END_HEREDOC'
         {
             "subspace": "evmutil",
             "key": "EnabledConversionPairs",
-            "value": "[{\"kava_erc20_address\":\"MULTICHAIN_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdc\"},{\"kava_erc20_address\":\"MULTICHAIN_USDT_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdt\"},{\"kava_erc20_address\":\"MULTICHAIN_wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/btc\"},{\"kava_erc20_address\":\"AXL_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/usdc\"},{\"kava_erc20_address\":\"wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/btc\"},{\"kava_erc20_address\":\"wETH_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/eth\"}]"
+            "value": "[{\"kava_erc20_address\":\"MULTICHAIN_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdc\"},{\"kava_erc20_address\":\"MULTICHAIN_USDT_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdt\"},{\"kava_erc20_address\":\"MULTICHAIN_wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/btc\"},{\"kava_erc20_address\":\"AXL_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/usdc\"},{\"kava_erc20_address\":\"wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/wbtc\"},{\"kava_erc20_address\":\"wETH_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/eth\"}]"
         }
     ]
 }
@@ -63,7 +63,7 @@ finalProposal="${finalProposal/MULTICHAIN_USDC_CONTRACT_ADDRESS/$MULTICHAIN_USDC
 finalProposal="${finalProposal/MULTICHAIN_USDT_CONTRACT_ADDRESS/$MULTICHAIN_USDT_CONTRACT_ADDRESS}"
 finalProposal="${finalProposal/MULTICHAIN_wBTC_CONTRACT_ADDRESS/$MULTICHAIN_wBTC_CONTRACT_ADDRESS}"
 finalProposal="${finalProposal/AXL_USDC_CONTRACT_ADDRESS/$AXL_USDC_CONTRACT_ADDRESS}"
-finalProposal="${finalProposal/wBTC_CONTRACT_ADDRESS/$wBTC_CONTRACT_ADDRESS}"
+finalProposal="${finalProposal/AXL_WBTC_CONTRACT_ADDRESS/$wBTC_CONTRACT_ADDRESS}"
 finalProposal="${finalProposal/wETH_CONTRACT_ADDRESS/$wETH_CONTRACT_ADDRESS}"
 
 # create unique proposal filename
