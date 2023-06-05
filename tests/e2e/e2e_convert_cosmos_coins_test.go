@@ -317,6 +317,110 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() 
 
 		suite.ErrorAs(res.Err, &util.ErrEvmTxFailed)
 		// TODO: when traceTransactions enabled, read actual error log
-		suite.ErrorContains(err, "transaction was committed but failed. likely an execution revert by contract code")
+		suite.ErrorContains(res.Err, "transaction was committed but failed. likely an execution revert by contract code")
 	})
+}
+
+// - check approval flow of erc20. alice approves bob to move their funds
+// - check complex conversion flow. bob converts funds they receive on evm back to sdk.Coin
+func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
+	fee := sdk.NewCoins(ukava(7500))
+	initialAliceAmount := int64(2e6)
+	alice, contractAddress, denom, _ := suite.setupAccountWithCosmosCoinERC20Balance(
+		"cosmo-coin-converter-complex-alice", initialAliceAmount,
+	)
+
+	gasMoney := sdk.NewCoins(ukava(1e6))
+	bob := suite.Kava.NewFundedAccount("cosmo-coin-converter-complex-bob", gasMoney)
+	amount := big.NewInt(1e6)
+
+	// bob can't move alice's funds
+	nonce, err := bob.NextNonce()
+	suite.NoError(err)
+	transferFromTxData := &ethtypes.LegacyTx{
+		Nonce:    nonce,
+		GasPrice: minEvmGasPrice,
+		Gas:      1e6,
+		To:       &contractAddress.Address,
+		Value:    &big.Int{},
+		Data:     util.BuildErc20TransferFromCallData(alice.EvmAddress, bob.EvmAddress, amount),
+	}
+	transferTx := util.EvmTxRequest{
+		Tx:   ethtypes.NewTx(transferFromTxData),
+		Data: "bob can't move alice's funds, should fail",
+	}
+	res := bob.SignAndBroadcastEvmTx(transferTx)
+	suite.ErrorAs(res.Err, &util.ErrEvmTxFailed)
+	suite.ErrorContains(res.Err, "transaction was committed but failed. likely an execution revert by contract code")
+
+	// approve bob to move alice's funds
+	nonce, err = alice.NextNonce()
+	suite.NoError(err)
+	approveTx := util.EvmTxRequest{
+		Tx: ethtypes.NewTx(&ethtypes.LegacyTx{
+			Nonce:    nonce,
+			GasPrice: minEvmGasPrice,
+			Gas:      1e6,
+			To:       &contractAddress.Address,
+			Value:    &big.Int{},
+			Data:     util.BuildErc20ApproveCallData(bob.EvmAddress, amount),
+		}),
+		Data: "alice approves bob to spend amount",
+	}
+	res = alice.SignAndBroadcastEvmTx(approveTx)
+	suite.NoError(res.Err)
+
+	// bob can't move more than alice allowed
+	transferFromTxData.Data = util.BuildErc20TransferFromCallData(
+		alice.EvmAddress, bob.EvmAddress, new(big.Int).Add(amount, big.NewInt(1)),
+	)
+	transferFromTxData.Nonce, err = bob.NextNonce()
+	suite.NoError(err)
+	transferTooMuchTx := util.EvmTxRequest{
+		Tx:   ethtypes.NewTx(transferFromTxData),
+		Data: "transferring more than approved, should fail",
+	}
+	res = bob.SignAndBroadcastEvmTx(transferTooMuchTx)
+	suite.ErrorAs(res.Err, &util.ErrEvmTxFailed)
+	suite.ErrorContains(res.Err, "transaction was committed but failed. likely an execution revert by contract code")
+
+	// bob can move allowed amount
+	transferFromTxData.Data = util.BuildErc20TransferFromCallData(alice.EvmAddress, bob.EvmAddress, amount)
+	transferFromTxData.Nonce, err = bob.NextNonce()
+	suite.NoError(err)
+	transferJustRightTx := util.EvmTxRequest{
+		Tx:   ethtypes.NewTx(transferFromTxData),
+		Data: "bob transfers alice's funds, allowed because he's approved",
+	}
+	res = bob.SignAndBroadcastEvmTx(transferJustRightTx)
+	suite.NoError(res.Err)
+
+	// alice should have amount deducted
+	erc20Balance := suite.Kava.GetErc20Balance(contractAddress.Address, alice.EvmAddress)
+	suite.BigIntsEqual(big.NewInt(initialAliceAmount-amount.Int64()), erc20Balance, "alice has unexpected erc20 balance")
+	// bob should have amount added
+	erc20Balance = suite.Kava.GetErc20Balance(contractAddress.Address, bob.EvmAddress)
+	suite.BigIntsEqual(amount, erc20Balance, "bob has unexpected erc20 balance")
+
+	// convert bob's new funds back to an sdk.Coin
+	convertMsg := evmutiltypes.NewMsgConvertCosmosCoinFromERC20(
+		bob.EvmAddress.Hex(),
+		bob.SdkAddress.String(),
+		sdk.NewInt64Coin(denom, amount.Int64()),
+	)
+	convertTx := util.KavaMsgRequest{
+		Msgs:      []sdk.Msg{&convertMsg},
+		GasLimit:  2e6,
+		FeeAmount: fee,
+		Data:      "bob converts his new erc20 to an sdk.Coin",
+	}
+	convertRes := bob.SignAndBroadcastKavaTx(convertTx)
+	suite.NoError(convertRes.Err)
+
+	// bob should have no more erc20 balance
+	erc20Balance = suite.Kava.GetErc20Balance(contractAddress.Address, bob.EvmAddress)
+	suite.BigIntsEqual(big.NewInt(0), erc20Balance, "expected no erc20 balance for bob")
+	// bob should have sdk balance
+	balance := suite.Kava.QuerySdkForBalances(bob.SdkAddress).AmountOf(denom)
+	suite.Equal(sdk.NewIntFromBigInt(amount), balance)
 }

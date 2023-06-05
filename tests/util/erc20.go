@@ -41,6 +41,21 @@ func BuildErc20TransferCallData(to common.Address, amount *big.Int) []byte {
 	return data
 }
 
+func BuildErc20TransferFromCallData(from common.Address, to common.Address, amount *big.Int) []byte {
+	methodId := EvmContractMethodId("transferFrom(address,address,uint256)")
+	paddedFrom := common.LeftPadBytes(from.Bytes(), 32)
+	paddedTo := common.LeftPadBytes(to.Bytes(), 32)
+	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
+
+	var data []byte
+	data = append(data, methodId...)
+	data = append(data, paddedFrom...)
+	data = append(data, paddedTo...)
+	data = append(data, paddedAmount...)
+
+	return data
+}
+
 func BuildErc20MintCallData(to common.Address, amount *big.Int) []byte {
 	methodId := EvmContractMethodId("mint(address,uint256)")
 	paddedAddress := common.LeftPadBytes(to.Bytes(), 32)
