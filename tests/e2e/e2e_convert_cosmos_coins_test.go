@@ -41,6 +41,50 @@ func setupConvertToCoinTest(
 	return denom, initialFunds, user
 }
 
+// amount must be less than 1e10
+func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
+	accountName string, amount int64,
+) (user *testutil.SigningAccount, contractAddress *evmutiltypes.InternalEVMAddress, denom string, sdkBalance sdk.Coins) {
+	if amount > 1e10 {
+		panic("test erc20 amount must be less than 1e10")
+	}
+
+	denom, sdkBalance, user = setupConvertToCoinTest(suite, accountName)
+	convertAmount := sdk.NewInt64Coin(denom, amount)
+
+	fee := sdk.NewCoins(ukava(7500))
+
+	// setup user to have erc20 balance
+	msg := evmutiltypes.NewMsgConvertCosmosCoinToERC20(
+		user.SdkAddress.String(),
+		user.EvmAddress.Hex(),
+		convertAmount,
+	)
+	tx := util.KavaMsgRequest{
+		Msgs:      []sdk.Msg{&msg},
+		GasLimit:  2e6,
+		FeeAmount: fee,
+		Data:      "converting sdk coin to erc20",
+	}
+	res := user.SignAndBroadcastKavaTx(tx)
+	suite.NoError(res.Err)
+
+	// adjust sdk balance
+	sdkBalance = sdkBalance.Sub(convertAmount)
+
+	// query for the deployed contract
+	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(
+		context.Background(),
+		&evmutiltypes.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: []string{denom}},
+	)
+	suite.NoError(err)
+	suite.Len(deployedContracts.DeployedCosmosCoinContracts, 1)
+
+	contractAddress = deployedContracts.DeployedCosmosCoinContracts[0].Address
+
+	return denom, user, contractAddress, sdkBalance
+}
+
 func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	denom, initialFunds, user := setupConvertToCoinTest(suite, "cosmo-coin-converter")
 
@@ -247,34 +291,7 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 }
 
 func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() {
-	denom, _, user := setupConvertToCoinTest(suite, "cosmo-coin-converter-unhappy")
-	fee := sdk.NewCoins(ukava(7500))
-	amount := int64(1e6)
-
-	// setup user to have erc20 balance
-	msg := evmutiltypes.NewMsgConvertCosmosCoinToERC20(
-		user.SdkAddress.String(),
-		user.EvmAddress.Hex(),
-		sdk.NewInt64Coin(denom, amount),
-	)
-	tx := util.KavaMsgRequest{
-		Msgs:      []sdk.Msg{&msg},
-		GasLimit:  2e6,
-		FeeAmount: fee,
-		Data:      "converting sdk coin to erc20",
-	}
-	res := user.SignAndBroadcastKavaTx(tx)
-	suite.NoError(res.Err)
-
-	// query for the deployed contract
-	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(
-		context.Background(),
-		&evmutiltypes.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: []string{denom}},
-	)
-	suite.NoError(err)
-	suite.Len(deployedContracts.DeployedCosmosCoinContracts, 1)
-
-	contractAddress := deployedContracts.DeployedCosmosCoinContracts[0].Address
+	user, contractAddress, _, _ := suite.setupAccountWithCosmosCoinERC20Balance("cosmo-coin-converter-unhappy", 1e6)
 
 	suite.Run("users can't mint()", func() {
 		data := util.BuildErc20MintCallData(user.EvmAddress, big.NewInt(1))
