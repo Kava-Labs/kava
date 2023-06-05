@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -214,4 +215,9 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 	whale.l.Printf("successfully funded [%s]\n", name)
 
 	return acc
+}
+
+// GetNonce fetches the next nonce / sequence number for the account.
+func (a *SigningAccount) NextNonce() (uint64, error) {
+	return a.evmSigner.EvmClient.PendingNonceAt(context.Background(), a.EvmAddress)
 }

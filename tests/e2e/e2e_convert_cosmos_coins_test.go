@@ -8,7 +8,10 @@ import (
 	sdkerrors "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
+
 	"github.com/ethereum/go-ethereum"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/kava-labs/kava/tests/e2e/testutil"
 	"github.com/kava-labs/kava/tests/util"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
@@ -241,4 +244,83 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	// check that module account has sdk coins deducted
 	actualModuleBalance = suite.Kava.GetModuleBalances(evmutiltypes.ModuleName).AmountOf(denom)
 	suite.Equal(initialModuleBalance, actualModuleBalance)
+}
+
+func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() {
+	denom, _, user := setupConvertToCoinTest(suite, "cosmo-coin-converter-unhappy")
+	fee := sdk.NewCoins(ukava(7500))
+	amount := int64(1e6)
+
+	// setup user to have erc20 balance
+	msg := evmutiltypes.NewMsgConvertCosmosCoinToERC20(
+		user.SdkAddress.String(),
+		user.EvmAddress.Hex(),
+		sdk.NewInt64Coin(denom, amount),
+	)
+	tx := util.KavaMsgRequest{
+		Msgs:      []sdk.Msg{&msg},
+		GasLimit:  2e6,
+		FeeAmount: fee,
+		Data:      "converting sdk coin to erc20",
+	}
+	res := user.SignAndBroadcastKavaTx(tx)
+	suite.NoError(res.Err)
+
+	// query for the deployed contract
+	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(
+		context.Background(),
+		&evmutiltypes.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: []string{denom}},
+	)
+	suite.NoError(err)
+	suite.Len(deployedContracts.DeployedCosmosCoinContracts, 1)
+
+	contractAddress := deployedContracts.DeployedCosmosCoinContracts[0].Address
+
+	suite.Run("users can't mint()", func() {
+		data := util.BuildErc20MintCallData(user.EvmAddress, big.NewInt(1))
+		nonce, err := user.NextNonce()
+		suite.NoError(err)
+
+		mintTx := util.EvmTxRequest{
+			Tx: ethtypes.NewTx(
+				&ethtypes.LegacyTx{
+					Nonce:    nonce,
+					GasPrice: minEvmGasPrice,
+					Gas:      1e6,
+					To:       &contractAddress.Address,
+					Data:     data,
+				},
+			),
+			Data: "attempting to mint, should fail",
+		}
+		res := user.SignAndBroadcastEvmTx(mintTx)
+
+		suite.ErrorAs(res.Err, &util.ErrEvmTxFailed)
+		// TODO: when traceTransactions enabled, read actual error log
+		suite.ErrorContains(res.Err, "transaction was committed but failed. likely an execution revert by contract code")
+	})
+
+	suite.Run("users can't burn()", func() {
+		data := util.BuildErc20BurnCallData(user.EvmAddress, big.NewInt(1))
+		nonce, err := user.NextNonce()
+		suite.NoError(err)
+
+		burnTx := util.EvmTxRequest{
+			Tx: ethtypes.NewTx(
+				&ethtypes.LegacyTx{
+					Nonce:    nonce,
+					GasPrice: minEvmGasPrice,
+					Gas:      1e6,
+					To:       &contractAddress.Address,
+					Data:     data,
+				},
+			),
+			Data: "attempting to burn, should fail",
+		}
+		res := user.SignAndBroadcastEvmTx(burnTx)
+
+		suite.ErrorAs(res.Err, &util.ErrEvmTxFailed)
+		// TODO: when traceTransactions enabled, read actual error log
+		suite.ErrorContains(err, "transaction was committed but failed. likely an execution revert by contract code")
+	})
 }

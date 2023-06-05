@@ -38,7 +38,7 @@ func (suite *E2eTestSuite) FundKavaErc20Balance(toAddress common.Address, amount
 	// funded account should have erc20 balance
 	whale := suite.Kava.GetAccount(FundedAccountName)
 
-	data := util.BuildErc20TransferCallData(whale.EvmAddress, toAddress, amount)
+	data := util.BuildErc20TransferCallData(toAddress, amount)
 	nonce, err := suite.Kava.EvmClient.PendingNonceAt(context.Background(), whale.EvmAddress)
 	suite.NoError(err)
 
