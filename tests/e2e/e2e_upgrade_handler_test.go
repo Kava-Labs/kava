@@ -21,3 +21,8 @@ func (suite *IntegrationTestSuite) TestUpgradeHandler() {
 // - chain starting from v0.23 template
 //   - no allowed cosmos denoms
 // - EIP712 not allowing cosmos coin conversion messages
+
+// NOTE:
+// e2e_convert_cosmos_coins_test.go test confirm the following:
+// - AllowedCosmosDenom gets initialized
+// - Convert messages can be signed via EIP712
