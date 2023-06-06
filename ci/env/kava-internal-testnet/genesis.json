@@ -1964,6 +1964,44 @@
               }
             ],
             "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20",
+            "msg_value_type_name": "MsgConvertCosmosCoinToERC20",
+            "value_types": [
+              {
+                "name": "initiator",
+                "type": "string"
+              },
+              {
+                "name": "receiver",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertCosmosCoinFromERC20",
+            "msg_value_type_name": "MsgConvertCosmosCoinFromERC20",
+            "value_types": [
+              {
+                "name": "initiator",
+                "type": "string"
+              },
+              {
+                "name": "receiver",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
           }
         ],
         "allow_unprotected_txs": false
@@ -1972,7 +2010,14 @@
     "evmutil": {
       "accounts": [],
       "params": {
-        "allowed_cosmos_denoms": [],
+        "allowed_cosmos_denoms": [
+          {
+            "cosmos_denom": "hard",
+            "name": "HARD",
+            "symbol": "HARD",
+            "decimals": 6
+          }
+        ],
         "enabled_conversion_pairs": [
           {
             "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",

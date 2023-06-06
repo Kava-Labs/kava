@@ -6,22 +6,27 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
+
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/kava-labs/kava/app"
 	kavaparams "github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/tests/e2e/runner"
 	"github.com/kava-labs/kava/tests/util"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
@@ -42,12 +47,14 @@ type Chain struct {
 
 	Auth      authtypes.QueryClient
 	Bank      banktypes.QueryClient
+	Committee committeetypes.QueryClient
 	Community communitytypes.QueryClient
 	Earn      earntypes.QueryClient
 	Evm       evmtypes.QueryClient
 	Evmutil   evmutiltypes.QueryClient
 	Tm        tmservice.ServiceClient
 	Tx        txtypes.ServiceClient
+	Upgrade   upgradetypes.QueryClient
 }
 
 // NewChain creates the query clients & signing account management for a chain run on a set of ports.
@@ -76,12 +83,14 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 
 	chain.Auth = authtypes.NewQueryClient(grpcConn)
 	chain.Bank = banktypes.NewQueryClient(grpcConn)
+	chain.Committee = committeetypes.NewQueryClient(grpcConn)
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
 	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
+	chain.Upgrade = upgradetypes.NewQueryClient(grpcConn)
 
 	// initialize accounts map
 	chain.accounts = make(map[string]*SigningAccount)
@@ -94,7 +103,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	)
 
 	// check that funded account is actually funded.
-	fmt.Printf("account used for funding (%s) address: %s\n", FundedAccountName, whale.SdkAddress)
+	fmt.Printf("[%s] account used for funding (%s) address: %s\n", chain.ChainId, FundedAccountName, whale.SdkAddress)
 	whaleFunds := chain.QuerySdkForBalances(whale.SdkAddress)
 	if whaleFunds.IsZero() {
 		chain.t.Fatal("funded account mnemonic is for account with no funds")
