@@ -12,6 +12,7 @@ func (suite *IntegrationTestSuite) TestUpgradeHandler() {
 	fmt.Println("An upgrade has run!")
 	suite.True(true)
 
+	// Uncomment & use these contexts to compare chain state before & after the upgrade occurs.
 	// beforeUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight - 1)
 	// afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight)
 }
