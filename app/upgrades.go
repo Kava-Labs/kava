@@ -4,12 +4,20 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	evmutilkeeper "github.com/kava-labs/kava/x/evmutil/keeper"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
 const (
 	MainnetUpgradeName = "v0.24.0"
 	TestnetUpgradeName = "v0.24.0-alpha.0"
+)
+
+var (
+	MainnetAtomDenom = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
+	TestnetHardDenom = "hard"
 )
 
 func (app App) RegisterUpgradeHandlers() {
@@ -42,6 +50,18 @@ func MainnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 			return toVM, err
 		}
 
+		app.Logger().Info("initializing allowed_cosmos_denoms param of x/evmutil")
+		allowedDenoms := []evmutiltypes.AllowedCosmosCoinERC20Token{
+			{
+				CosmosDenom: MainnetAtomDenom,
+				// erc20 contract metadata
+				Name:     "ATOM",
+				Symbol:   "ATOM",
+				Decimals: 6,
+			},
+		}
+		InitializeEvmutilAllowedCosmosDenoms(ctx, app.evmutilKeeper, allowedDenoms)
+
 		return toVM, nil
 	}
 }
@@ -55,6 +75,30 @@ func TestnetUpgradeHandler(app App) upgradetypes.UpgradeHandler {
 			return toVM, err
 		}
 
+		// on testnet, IBC is not enabled. we initialize HARD tokens for conversion to EVM.
+		allowedDenoms := []evmutiltypes.AllowedCosmosCoinERC20Token{
+			{
+				CosmosDenom: TestnetHardDenom,
+				// erc20 contract metadata
+				Name:     "HARD",
+				Symbol:   "HARD",
+				Decimals: 6,
+			},
+		}
+		InitializeEvmutilAllowedCosmosDenoms(ctx, app.evmutilKeeper, allowedDenoms)
+
 		return toVM, nil
 	}
+}
+
+// InitializeEvmutilAllowedCosmosDenoms sets the AllowedCosmosDenoms parameter of the x/evmutil module.
+// This new parameter controls what cosmos denoms are allowed to be converted to ERC20 tokens.
+func InitializeEvmutilAllowedCosmosDenoms(
+	ctx sdk.Context,
+	evmutilKeeper evmutilkeeper.Keeper,
+	allowedCoins []evmutiltypes.AllowedCosmosCoinERC20Token,
+) {
+	params := evmutilKeeper.GetParams(ctx)
+	params.AllowedCosmosDenoms = allowedCoins
+	evmutilKeeper.SetParams(ctx, params)
 }
