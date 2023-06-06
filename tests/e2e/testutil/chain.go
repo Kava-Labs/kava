@@ -3,6 +3,7 @@ package testutil
 import (
 	"context"
 	"fmt"
+	"math/big"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -11,6 +12,7 @@ import (
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
@@ -122,4 +124,14 @@ func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 func (chain *Chain) GetModuleBalances(moduleName string) sdk.Coins {
 	addr := authtypes.NewModuleAddress(moduleName)
 	return chain.QuerySdkForBalances(addr)
+}
+
+func (chain *Chain) GetErc20Balance(contract, address common.Address) *big.Int {
+	resData, err := chain.EvmClient.CallContract(context.Background(), ethereum.CallMsg{
+		To:   &contract,
+		Data: util.BuildErc20BalanceOfCallData(address),
+	}, nil)
+	require.NoError(chain.t, err)
+
+	return new(big.Int).SetBytes(resData)
 }

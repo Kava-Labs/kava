@@ -50,14 +50,14 @@ func (suite *IntegrationTestSuite) TestEthCallToErc20() {
 	amount := big.NewInt(1e6)
 
 	// make unauthenticated eth_call query to check balance
-	beforeBalance := suite.GetErc20Balance(randoReceiver)
+	beforeBalance := suite.Kava.GetErc20Balance(suite.DeployedErc20Address, randoReceiver)
 
 	// make authenticate eth_call to transfer tokens
 	res := suite.FundKavaErc20Balance(randoReceiver, amount)
 	suite.NoError(res.Err)
 
 	// make another unauthenticated eth_call query to check new balance
-	afterBalance := suite.GetErc20Balance(randoReceiver)
+	afterBalance := suite.Kava.GetErc20Balance(suite.DeployedErc20Address, randoReceiver)
 
 	suite.BigIntsEqual(big.NewInt(0), beforeBalance, "expected before balance to be zero")
 	suite.BigIntsEqual(amount, afterBalance, "unexpected post-transfer balance")
@@ -161,7 +161,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	suite.NoError(err)
 
 	// check that depositor no longer has erc20 balance
-	balance := suite.GetErc20Balance(depositor.EvmAddress)
+	balance := suite.Kava.GetErc20Balance(suite.DeployedErc20Address, depositor.EvmAddress)
 	suite.BigIntsEqual(big.NewInt(0), balance, "expected no erc20 balance")
 
 	// check that account has an earn deposit position
