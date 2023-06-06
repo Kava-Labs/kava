@@ -16,3 +16,8 @@ func (suite *IntegrationTestSuite) TestUpgradeHandler() {
 	// beforeUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight - 1)
 	// afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight)
 }
+
+// Thorough testing of the upgrade handler for v0.24 depends on:
+// - chain starting from v0.23 template
+//   - no allowed cosmos denoms
+// - EIP712 not allowing cosmos coin conversion messages
