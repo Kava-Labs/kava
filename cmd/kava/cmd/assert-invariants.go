@@ -1,4 +1,4 @@
-package migrate
+package cmd
 
 import (
 	"encoding/json"
@@ -52,11 +52,7 @@ func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 func validateGenDoc(importGenesisFile string) (*tmtypes.GenesisDoc, error) {
 	genDoc, err := tmtypes.GenesisDocFromFile(importGenesisFile)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"%s. Make sure that you have correctly migrated all Tendermint consensus params.",
-			err.Error(),
-		)
+		return nil, fmt.Errorf("failed to validate CometBFT consensus params: %s", err)
 	}
-
 	return genDoc, nil
 }
