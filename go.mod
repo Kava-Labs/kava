@@ -7,7 +7,7 @@ require (
 	cosmossdk.io/math v1.0.0-beta.6.0.20230216172121-959ce49135e4
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.46.11
+	github.com/cosmos/cosmos-sdk v0.46.13
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/ibc-go/v6 v6.1.1
 	github.com/ethereum/go-ethereum v1.10.26
@@ -22,7 +22,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/subosito/gotenv v1.4.2
-	github.com/tendermint/tendermint v0.34.27
+	github.com/tendermint/tendermint v0.34.28
 	github.com/tendermint/tm-db v0.6.7
 	golang.org/x/crypto v0.6.0
 	google.golang.org/genproto v0.0.0-20230202175211-008b39050e57
