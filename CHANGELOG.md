@@ -56,6 +56,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
   - `convert-erc20-to-coin` -> `convert-evm-erc20-to-coin`
   - `convert-coin-to-erc20` -> `convert-evm-erc20-from-coin`
 
+
+## [v0.23.2]
+
+### Bug Fixes
+
+- (deps) [#1622] Bump tm-db to v0.6.7-kava.3 to return rocksdb open error
+
 ## [v0.23.0]
 
 ### Improvements
@@ -257,6 +264,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1622]: https://github.com/Kava-Labs/kava/pull/1622
 [#1614]: https://github.com/Kava-Labs/kava/pull/1614
 [#1610]: https://github.com/Kava-Labs/kava/pull/1610
 [#1609]: https://github.com/Kava-Labs/kava/pull/1609
@@ -294,7 +302,9 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.23.0...HEAD
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.23.2...HEAD
+[v0.23.2]: https://github.com/Kava-Labs/kava/compare/v0.23.1...v0.23.2
+[v0.23.1]: https://github.com/Kava-Labs/kava/compare/v0.23.0...v0.23.1
 [v0.23.0]: https://github.com/Kava-Labs/kava/compare/v0.21.1...v0.23.0
 [v0.16.1]: https://github.com/Kava-Labs/kava/compare/v0.16.0...v0.16.1
 [v0.16.0]: https://github.com/Kava-Labs/kava/compare/v0.15.2...v0.16.0
