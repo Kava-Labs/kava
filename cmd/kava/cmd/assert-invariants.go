@@ -36,7 +36,13 @@ func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("genesis doc did not pass validate genesis: %s: %w", importGenesis, err)
 			}
-			tApp.InitializeFromGenesisStatesWithTimeAndChainID(genDoc.GenesisTime, genDoc.ChainID, app.GenesisState(newAppState))
+			tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
+				genDoc.GenesisTime,
+				genDoc.ChainID,
+				genDoc.InitialHeight,
+				false,
+				app.GenesisState(newAppState),
+			)
 
 			fmt.Printf("successfully asserted all invariants for %s\n", importGenesis)
 			return nil
