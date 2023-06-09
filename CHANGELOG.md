@@ -65,6 +65,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Bug Fixes
 
 - (x/incentive) [#1550] Fix validation on genesis reward accumulation time.
+- (deps) Bump tm-db to v0.6.7-kava.3 to return rocksdb open error
 
 ## [v0.16.1]
 
