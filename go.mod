@@ -216,5 +216,5 @@ replace (
 	// Use cometbft fork of tendermint
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.27
 	// Indirect dependencies still use tendermint/tm-db
-	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.8-0.20230608230646-c817b11b643e
+	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.3
 )
