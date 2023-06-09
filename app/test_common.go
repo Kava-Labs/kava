@@ -275,19 +275,19 @@ func genesisStateWithValSet(
 // InitializeFromGenesisStates calls InitChain on the app using the provided genesis states.
 // If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(emptyTime, testChainID, defaultInitialHeight, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(emptyTime, testChainID, defaultInitialHeight, true, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTime calls InitChain on the app using the provided genesis states and time.
 // If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, testChainID, defaultInitialHeight, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, testChainID, defaultInitialHeight, true, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTimeAndChainID calls InitChain on the app using the provided genesis states, time, and chain id.
 // If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainID(genTime time.Time, chainID string, genesisStates ...GenesisState) TestApp {
-	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, chainID, defaultInitialHeight, genesisStates...)
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(genTime, chainID, defaultInitialHeight, true, genesisStates...)
 }
 
 // InitializeFromGenesisStatesWithTimeAndChainIDAndHeight calls InitChain on the app using the provided genesis states and other parameters.
@@ -296,6 +296,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	genTime time.Time,
 	chainID string,
 	initialHeight int64,
+	addValidator bool,
 	genesisStates ...GenesisState,
 ) TestApp {
 	// Create a default genesis state and overwrite with provided values
@@ -318,10 +319,12 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	}
 
 	// Add default genesis states for at least 1 validator
-	genesisState = GenesisStateWithSingleValidator(
-		&tApp,
-		genesisState,
-	)
+	if addValidator {
+		genesisState = GenesisStateWithSingleValidator(
+			&tApp,
+			genesisState,
+		)
+	}
 
 	// Initialize the chain
 	stateBytes, err := json.Marshal(genesisState)

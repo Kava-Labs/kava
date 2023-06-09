@@ -1,4 +1,4 @@
-package migrate
+package cmd
 
 import (
 	"encoding/json"
@@ -12,46 +12,6 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
 )
-
-// MigrateGenesisCmd returns a command to execute genesis state migration.
-func MigrateGenesisCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:     "migrate [genesis-file]",
-		Short:   "Migrate genesis from v0.17 to v0.18",
-		Long:    "Migrate the source genesis into v0.18 and print to STDOUT.",
-		Example: fmt.Sprintf(`%s migrate /path/to/genesis.json`, version.AppName),
-		Args:    cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// clientCtx := client.GetClientContextFromCmd(cmd)
-			// importGenesis := args[0]
-
-			// oldGenDoc, err := tmtypes.GenesisDocFromFile(importGenesis)
-			// if err != nil {
-			// 	return fmt.Errorf("failed to read genesis document from file %s: %w", importGenesis, err)
-			// }
-
-			// newGenDoc, err := v0_17.Migrate(oldGenDoc, clientCtx)
-			// if err != nil {
-			// 	return fmt.Errorf("failed to run migration: %w", err)
-			// }
-
-			// bz, err := tmjson.Marshal(newGenDoc)
-			// if err != nil {
-			// 	return fmt.Errorf("failed to marshal genesis doc: %w", err)
-			// }
-
-			// sortedBz, err := sdk.SortJSON(bz)
-			// if err != nil {
-			// 	return fmt.Errorf("failed to sort JSON genesis doc: %w", err)
-			// }
-
-			// fmt.Println(string(sortedBz))
-			return nil
-		},
-	}
-
-	return cmd
-}
 
 func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 	cmd := &cobra.Command{
@@ -76,7 +36,13 @@ func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("genesis doc did not pass validate genesis: %s: %w", importGenesis, err)
 			}
-			tApp.InitializeFromGenesisStatesWithTimeAndChainID(genDoc.GenesisTime, genDoc.ChainID, app.GenesisState(newAppState))
+			tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
+				genDoc.GenesisTime,
+				genDoc.ChainID,
+				genDoc.InitialHeight,
+				false,
+				app.GenesisState(newAppState),
+			)
 
 			fmt.Printf("successfully asserted all invariants for %s\n", importGenesis)
 			return nil
@@ -92,11 +58,7 @@ func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 func validateGenDoc(importGenesisFile string) (*tmtypes.GenesisDoc, error) {
 	genDoc, err := tmtypes.GenesisDocFromFile(importGenesisFile)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"%s. Make sure that you have correctly migrated all Tendermint consensus params.",
-			err.Error(),
-		)
+		return nil, fmt.Errorf("failed to validate CometBFT consensus params: %s", err)
 	}
-
 	return genDoc, nil
 }

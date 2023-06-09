@@ -55,6 +55,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
   NOTE: no changes were made to existing Msg names (`MsgConvertCoinToERC20` & `MsgConvertERC20ToCoin`)
   - `convert-erc20-to-coin` -> `convert-evm-erc20-to-coin`
   - `convert-coin-to-erc20` -> `convert-evm-erc20-from-coin`
+- (cli) [#1624] Removes unused, no-op `migrate` CLI command.
+
+### Bug Fixes
+- (cli) [#1624] Fix `assert-invariants` CLI command.
 
 
 ## [v0.23.2]
@@ -264,6 +268,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1624]: https://github.com/Kava-Labs/kava/pull/1624
 [#1622]: https://github.com/Kava-Labs/kava/pull/1622
 [#1614]: https://github.com/Kava-Labs/kava/pull/1614
 [#1610]: https://github.com/Kava-Labs/kava/pull/1610
