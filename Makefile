@@ -242,6 +242,9 @@ format:
 docker-build:
 	DOCKER_BUILDKIT=1 $(DOCKER) build -t kava/kava:local .
 
+docker-build-rocksdb:
+	DOCKER_BUILDKIT=1 $(DOCKER) build -f Dockerfile-rocksdb -t kava/kava:local .
+
 build-docker-local-kava:
 	@$(MAKE) -C networks/local
 
