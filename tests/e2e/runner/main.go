@@ -37,8 +37,7 @@ type NodeRunner interface {
 // - optionally, running an IBC node with a channel opened to the Kava node
 // - optionally, start the Kava node on one version and upgrade to another
 type KavaNodeRunner struct {
-	config    Config
-	kavaChain *ChainDetails
+	config Config
 }
 
 var _ NodeRunner = &KavaNodeRunner{}
@@ -84,19 +83,16 @@ func (k *KavaNodeRunner) StartChains() Chains {
 		panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
 	}
 
-	k.kavaChain = &kavaChain
-
 	// wait for chain to be live.
 	// if an upgrade is defined, this waits for the upgrade to be completed.
-	err := k.waitForChainStart()
-	if err != nil {
+	if err := waitForChainStart(kavaChain); err != nil {
 		k.Shutdown()
 		panic(err)
 	}
 	log.Println("kava is started!")
 
 	chains := NewChains()
-	chains.Register("kava", k.kavaChain)
+	chains.Register("kava", &kavaChain)
 	if k.config.IncludeIBC {
 		chains.Register("ibc", &ibcChain)
 	}
@@ -117,18 +113,18 @@ func (k *KavaNodeRunner) Shutdown() {
 	}
 }
 
-func (k *KavaNodeRunner) waitForChainStart() error {
+func waitForChainStart(chainDetails ChainDetails) error {
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
 	b := backoff.NewExponentialBackOff()
 	b.MaxInterval = 5 * time.Second
 	b.MaxElapsedTime = 30 * time.Second
-	if err := backoff.Retry(func() error { return pingKava(kavaChain.RpcUrl) }, b); err != nil {
+	if err := backoff.Retry(func() error { return pingKava(chainDetails.RpcUrl) }, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
 
 	b.Reset()
 	// the evm takes a bit longer to start up. wait for it to start as well.
-	if err := backoff.Retry(func() error { return pingEvm(kavaChain.EvmRpcUrl) }, b); err != nil {
+	if err := backoff.Retry(func() error { return pingEvm(chainDetails.EvmRpcUrl) }, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
 	return nil
