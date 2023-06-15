@@ -75,16 +75,16 @@ func (k *KvtoolRunner) StartChains() Chains {
 
 	// wait for chain to be live.
 	// if an upgrade is defined, this waits for the upgrade to be completed.
-	if err := waitForChainStart(kavaChain); err != nil {
+	if err := waitForChainStart(kvtoolKavaChain); err != nil {
 		k.Shutdown()
 		panic(err)
 	}
 	log.Println("kava is started!")
 
 	chains := NewChains()
-	chains.Register("kava", &kavaChain)
+	chains.Register("kava", &kvtoolKavaChain)
 	if k.config.IncludeIBC {
-		chains.Register("ibc", &ibcChain)
+		chains.Register("ibc", &kvtoolIbcChain)
 	}
 	return chains
 }

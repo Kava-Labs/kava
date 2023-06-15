@@ -59,7 +59,7 @@ func (c *Chains) Register(name string, chain *ChainDetails) error {
 // the Chain details are all hardcoded because they are currently fixed by kvtool.
 // someday they may be accepted as configurable parameters.
 var (
-	kavaChain = ChainDetails{
+	kvtoolKavaChain = ChainDetails{
 		RpcUrl:    "http://localhost:26657",
 		GrpcUrl:   "http://localhost:9090",
 		EvmRpcUrl: "http://localhost:8545",
@@ -67,7 +67,7 @@ var (
 		ChainId:      "kavalocalnet_8888-1",
 		StakingDenom: "ukava",
 	}
-	ibcChain = ChainDetails{
+	kvtoolIbcChain = ChainDetails{
 		RpcUrl:    "http://localhost:26658",
 		GrpcUrl:   "http://localhost:9092",
 		EvmRpcUrl: "http://localhost:8547",
