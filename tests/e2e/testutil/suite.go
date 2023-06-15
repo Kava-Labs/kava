@@ -23,6 +23,16 @@ const (
 	IbcChannel = "channel-0"
 )
 
+// DeployedErc20 is a type that wraps the details of the pre-deployed erc20 used by the e2e test suite.
+// The Address comes from SuiteConfig.KavaErc20Address
+// The CosmosDenom is fetched from the EnabledConversionPairs param of x/evmutil.
+// The funded account must have a balance & the erc20 must be enabled for conversion to sdk.Coin.
+// These requirements are checked in InitKavaEvmData().
+type DeployedErc20 struct {
+	Address     common.Address
+	CosmosDenom string
+}
+
 type E2eTestSuite struct {
 	suite.Suite
 
@@ -32,8 +42,8 @@ type E2eTestSuite struct {
 	Kava *Chain
 	Ibc  *Chain
 
-	UpgradeHeight        int64
-	DeployedErc20Address common.Address
+	UpgradeHeight int64
+	DeployedErc20 DeployedErc20
 }
 
 func (suite *E2eTestSuite) SetupSuite() {
@@ -43,7 +53,10 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	suiteConfig := ParseSuiteConfig()
 	suite.config = suiteConfig
-	suite.DeployedErc20Address = common.HexToAddress(suiteConfig.KavaErc20Address)
+	suite.DeployedErc20 = DeployedErc20{
+		Address: common.HexToAddress(suiteConfig.KavaErc20Address),
+		// Denom is fetched in InitKavaEvmData()
+	}
 
 	// setup the correct NodeRunner for the given config
 	if suiteConfig.Kvtool != nil {
