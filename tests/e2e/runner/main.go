@@ -122,7 +122,8 @@ func (k *KavaNodeRunner) waitForChainStart() error {
 	b := backoff.NewExponentialBackOff()
 	b.MaxInterval = 5 * time.Second
 	b.MaxElapsedTime = 30 * time.Second
-	if err := backoff.Retry(k.pingKava, b); err != nil {
+	rpcUrl := fmt.Sprintf("http://localhost:%s", k.kavaChain.RpcPort)
+	if err := backoff.Retry(func() error { return pingKava(rpcUrl) }, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
 
@@ -135,10 +136,10 @@ func (k *KavaNodeRunner) waitForChainStart() error {
 	return nil
 }
 
-func (k *KavaNodeRunner) pingKava() error {
+func pingKava(rpcUrl string) error {
 	log.Println("pinging kava chain...")
-	url := fmt.Sprintf("http://localhost:%s/status", k.kavaChain.RpcPort)
-	res, err := http.Get(url)
+	statusUrl := fmt.Sprintf("%s/status", rpcUrl)
+	res, err := http.Get(statusUrl)
 	if err != nil {
 		return err
 	}
