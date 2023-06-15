@@ -61,7 +61,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 			SkipShutdown: suiteConfig.SkipShutdown,
 		}
-		suite.runner = runner.NewKavaNode(runnerConfig)
+		suite.runner = runner.NewKvtoolRunner(runnerConfig)
 	}
 
 	chains := suite.runner.StartChains()

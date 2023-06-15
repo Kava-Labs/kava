@@ -7,24 +7,24 @@ import (
 	"os/exec"
 )
 
-// KavaNodeRunner implements a NodeRunner that spins up local chains with kvtool.
+// KvtoolRunner implements a NodeRunner that spins up local chains with kvtool.
 // It has support for the following:
 // - running a Kava node
 // - optionally, running an IBC node with a channel opened to the Kava node
 // - optionally, start the Kava node on one version and upgrade to another
-type KavaNodeRunner struct {
+type KvtoolRunner struct {
 	config Config
 }
 
-var _ NodeRunner = &KavaNodeRunner{}
+var _ NodeRunner = &KvtoolRunner{}
 
-func NewKavaNode(config Config) *KavaNodeRunner {
-	return &KavaNodeRunner{
+func NewKvtoolRunner(config Config) *KvtoolRunner {
+	return &KvtoolRunner{
 		config: config,
 	}
 }
 
-func (k *KavaNodeRunner) StartChains() Chains {
+func (k *KvtoolRunner) StartChains() Chains {
 	// install kvtool if not already installed
 	installKvtoolCmd := exec.Command("./scripts/install-kvtool.sh")
 	installKvtoolCmd.Stdout = os.Stdout
@@ -75,7 +75,7 @@ func (k *KavaNodeRunner) StartChains() Chains {
 	return chains
 }
 
-func (k *KavaNodeRunner) Shutdown() {
+func (k *KvtoolRunner) Shutdown() {
 	if k.config.SkipShutdown {
 		log.Printf("would shut down but SkipShutdown is true")
 		return
