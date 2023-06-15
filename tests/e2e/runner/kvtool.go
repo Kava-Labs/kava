@@ -7,18 +7,32 @@ import (
 	"os/exec"
 )
 
+type KvtoolRunnerConfig struct {
+	KavaConfigTemplate string
+
+	ImageTag   string
+	IncludeIBC bool
+
+	EnableAutomatedUpgrade  bool
+	KavaUpgradeName         string
+	KavaUpgradeHeight       int64
+	KavaUpgradeBaseImageTag string
+
+	SkipShutdown bool
+}
+
 // KvtoolRunner implements a NodeRunner that spins up local chains with kvtool.
 // It has support for the following:
 // - running a Kava node
 // - optionally, running an IBC node with a channel opened to the Kava node
 // - optionally, start the Kava node on one version and upgrade to another
 type KvtoolRunner struct {
-	config Config
+	config KvtoolRunnerConfig
 }
 
 var _ NodeRunner = &KvtoolRunner{}
 
-func NewKvtoolRunner(config Config) *KvtoolRunner {
+func NewKvtoolRunner(config KvtoolRunnerConfig) *KvtoolRunner {
 	return &KvtoolRunner{
 		config: config,
 	}

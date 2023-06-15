@@ -9,20 +9,6 @@ import (
 	"github.com/cenkalti/backoff/v4"
 )
 
-type Config struct {
-	KavaConfigTemplate string
-
-	ImageTag   string
-	IncludeIBC bool
-
-	EnableAutomatedUpgrade  bool
-	KavaUpgradeName         string
-	KavaUpgradeHeight       int64
-	KavaUpgradeBaseImageTag string
-
-	SkipShutdown bool
-}
-
 // NodeRunner is responsible for starting and managing docker containers to run a node.
 type NodeRunner interface {
 	StartChains() Chains

@@ -48,7 +48,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 	if suiteConfig.Kvtool != nil {
 		suite.UpgradeHeight = suiteConfig.Kvtool.KavaUpgradeHeight
 
-		runnerConfig := runner.Config{
+		runnerConfig := runner.KvtoolRunnerConfig{
 			KavaConfigTemplate: suiteConfig.Kvtool.KavaConfigTemplate,
 
 			IncludeIBC: suiteConfig.IncludeIbcTests,
