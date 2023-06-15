@@ -69,8 +69,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	}
 	chain.EncodingConfig = app.MakeEncodingConfig()
 
-	grpcUrl := fmt.Sprintf("http://localhost:%s", details.GrpcPort)
-	grpcConn, err := util.NewGrpcConnection(grpcUrl)
+	grpcConn, err := details.GrpcConn()
 	if err != nil {
 		return chain, err
 	}
