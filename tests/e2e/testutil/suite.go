@@ -45,35 +45,11 @@ func (suite *E2eTestSuite) SetupSuite() {
 	suite.config = suiteConfig
 	suite.DeployedErc20Address = common.HexToAddress(suiteConfig.KavaErc20Address)
 
+	// setup the correct NodeRunner for the given config
 	if suiteConfig.Kvtool != nil {
-		suite.UpgradeHeight = suiteConfig.Kvtool.KavaUpgradeHeight
-
-		runnerConfig := runner.KvtoolRunnerConfig{
-			KavaConfigTemplate: suiteConfig.Kvtool.KavaConfigTemplate,
-
-			IncludeIBC: suiteConfig.IncludeIbcTests,
-			ImageTag:   "local",
-
-			EnableAutomatedUpgrade:  suiteConfig.Kvtool.IncludeAutomatedUpgrade,
-			KavaUpgradeName:         suiteConfig.Kvtool.KavaUpgradeName,
-			KavaUpgradeHeight:       suiteConfig.Kvtool.KavaUpgradeHeight,
-			KavaUpgradeBaseImageTag: suiteConfig.Kvtool.KavaUpgradeBaseImageTag,
-
-			SkipShutdown: suiteConfig.SkipShutdown,
-		}
-		suite.runner = runner.NewKvtoolRunner(runnerConfig)
+		suite.runner = suite.SetupKvtoolNodeRunner()
 	} else if suiteConfig.LiveNetwork != nil {
-		// live network setup doesn't presently support ibc
-		if suite.config.IncludeIbcTests {
-			panic("ibc tests not supported for live network configuration")
-		}
-
-		runnerConfig := runner.LiveNodeRunnerConfig{
-			KavaRpcUrl:    suiteConfig.LiveNetwork.KavaRpcUrl,
-			KavaGrpcUrl:   suiteConfig.LiveNetwork.KavaGrpcUrl,
-			KavaEvmRpcUrl: suiteConfig.LiveNetwork.KavaEvmRpcUrl,
-		}
-		suite.runner = runner.NewLiveNodeRunner(runnerConfig)
+		suite.runner = suite.SetupLiveNetworkNodeRunner()
 	} else {
 		panic("expected either kvtool or live network configs to be defined")
 	}
@@ -110,6 +86,42 @@ func (suite *E2eTestSuite) TearDownSuite() {
 	}
 	// gracefully shutdown docker container(s)
 	suite.runner.Shutdown()
+}
+
+func (suite *E2eTestSuite) SetupKvtoolNodeRunner() *runner.KvtoolRunner {
+	// upgrade tests are only supported on kvtool networks
+	suite.UpgradeHeight = suite.config.Kvtool.KavaUpgradeHeight
+
+	runnerConfig := runner.KvtoolRunnerConfig{
+		KavaConfigTemplate: suite.config.Kvtool.KavaConfigTemplate,
+
+		IncludeIBC: suite.config.IncludeIbcTests,
+		ImageTag:   "local",
+
+		EnableAutomatedUpgrade:  suite.config.Kvtool.IncludeAutomatedUpgrade,
+		KavaUpgradeName:         suite.config.Kvtool.KavaUpgradeName,
+		KavaUpgradeHeight:       suite.config.Kvtool.KavaUpgradeHeight,
+		KavaUpgradeBaseImageTag: suite.config.Kvtool.KavaUpgradeBaseImageTag,
+
+		SkipShutdown: suite.config.SkipShutdown,
+	}
+
+	return runner.NewKvtoolRunner(runnerConfig)
+}
+
+func (suite *E2eTestSuite) SetupLiveNetworkNodeRunner() *runner.LiveNodeRunner {
+	// live network setup doesn't presently support ibc
+	if suite.config.IncludeIbcTests {
+		panic("ibc tests not supported for live network configuration")
+	}
+
+	runnerConfig := runner.LiveNodeRunnerConfig{
+		KavaRpcUrl:    suite.config.LiveNetwork.KavaRpcUrl,
+		KavaGrpcUrl:   suite.config.LiveNetwork.KavaGrpcUrl,
+		KavaEvmRpcUrl: suite.config.LiveNetwork.KavaEvmRpcUrl,
+	}
+
+	return runner.NewLiveNodeRunner(runnerConfig)
 }
 
 func (suite *E2eTestSuite) SkipIfIbcDisabled() {
