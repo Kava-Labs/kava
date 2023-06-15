@@ -19,6 +19,8 @@ type SuiteConfig struct {
 
 	// A config for using kvtool local networks for the test run
 	Kvtool *KvtoolConfig
+	// A config for connecting to a running network
+	LiveNetwork *LiveNetworkConfig
 
 	// Whether or not to start an IBC chain. Use `suite.SkipIfIbcDisabled()` in IBC tests in IBC tests.
 	IncludeIbcTests bool
@@ -45,6 +47,12 @@ type KvtoolConfig struct {
 	KavaUpgradeBaseImageTag string
 }
 
+type LiveNetworkConfig struct {
+	KavaRpcUrl    string
+	KavaGrpcUrl   string
+	KavaEvmRpcUrl string
+}
+
 func ParseSuiteConfig() SuiteConfig {
 	config := SuiteConfig{
 		// this mnemonic is expected to be a funded account that can seed the funds for all
@@ -63,6 +71,9 @@ func ParseSuiteConfig() SuiteConfig {
 	if useKvtoolNetworks {
 		kvtoolConfig := ParseKvtoolConfig()
 		config.Kvtool = &kvtoolConfig
+	} else {
+		liveNetworkConfig := ParseLiveNetworkConfig()
+		config.LiveNetwork = &liveNetworkConfig
 	}
 
 	return config
@@ -85,6 +96,14 @@ func ParseKvtoolConfig() KvtoolConfig {
 	}
 
 	return config
+}
+
+func ParseLiveNetworkConfig() LiveNetworkConfig {
+	return LiveNetworkConfig{
+		KavaRpcUrl:    nonemptyStringEnv("E2E_KAVA_RPC_URL"),
+		KavaGrpcUrl:   nonemptyStringEnv("E2E_KAVA_GRPC_URL"),
+		KavaEvmRpcUrl: nonemptyStringEnv("E2E_KAVA_EMV_RPC_URL"),
+	}
 }
 
 func mustParseBool(name string) bool {

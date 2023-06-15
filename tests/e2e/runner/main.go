@@ -21,20 +21,20 @@ func waitForChainStart(chainDetails ChainDetails) error {
 	b.MaxInterval = 5 * time.Second
 	b.MaxElapsedTime = 30 * time.Second
 	if err := backoff.Retry(func() error { return pingKava(chainDetails.RpcUrl) }, b); err != nil {
-		return fmt.Errorf("failed to start & connect to chain: %s", err)
+		return fmt.Errorf("failed connect to chain: %s", err)
 	}
 
 	b.Reset()
 	// the evm takes a bit longer to start up. wait for it to start as well.
 	if err := backoff.Retry(func() error { return pingEvm(chainDetails.EvmRpcUrl) }, b); err != nil {
-		return fmt.Errorf("failed to start & connect to chain: %s", err)
+		return fmt.Errorf("failed connect to chain: %s", err)
 	}
 	return nil
 }
 
 func pingKava(rpcUrl string) error {
-	log.Println("pinging kava chain...")
 	statusUrl := fmt.Sprintf("%s/status", rpcUrl)
+	log.Printf("pinging kava chain: %s\n", statusUrl)
 	res, err := http.Get(statusUrl)
 	if err != nil {
 		return err

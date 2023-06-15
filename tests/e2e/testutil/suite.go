@@ -62,6 +62,20 @@ func (suite *E2eTestSuite) SetupSuite() {
 			SkipShutdown: suiteConfig.SkipShutdown,
 		}
 		suite.runner = runner.NewKvtoolRunner(runnerConfig)
+	} else if suiteConfig.LiveNetwork != nil {
+		// live network setup doesn't presently support ibc
+		if suite.config.IncludeIbcTests {
+			panic("ibc tests not supported for live network configuration")
+		}
+
+		runnerConfig := runner.LiveNodeRunnerConfig{
+			KavaRpcUrl:    suiteConfig.LiveNetwork.KavaRpcUrl,
+			KavaGrpcUrl:   suiteConfig.LiveNetwork.KavaGrpcUrl,
+			KavaEvmRpcUrl: suiteConfig.LiveNetwork.KavaEvmRpcUrl,
+		}
+		suite.runner = runner.NewLiveNodeRunner(runnerConfig)
+	} else {
+		panic("expected either kvtool or live network configs to be defined")
 	}
 
 	chains := suite.runner.StartChains()
@@ -86,6 +100,9 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
+
+	// TODO: track asset denoms & then return all funds to initial funding account.
+
 	// close all account request channels
 	suite.Kava.Shutdown()
 	if suite.Ibc != nil {
