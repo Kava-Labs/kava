@@ -14,7 +14,7 @@ var (
 	ErrChainAlreadyExists = errors.New("chain already exists")
 )
 
-// ChainDetails wraps information about the ports exposed to the host that endpoints could be access on.
+// ChainDetails wraps information about the properties & endpoints of a chain.
 type ChainDetails struct {
 	RpcUrl    string
 	GrpcUrl   string
@@ -57,8 +57,7 @@ func (c *Chains) Register(name string, chain *ChainDetails) error {
 }
 
 // the Chain details are all hardcoded because they are currently fixed by kvtool.
-// some day they may be configurable, at which point `runner` can determine the ports
-// and generate these details dynamically
+// someday they may be accepted as configurable parameters.
 var (
 	kavaChain = ChainDetails{
 		RpcUrl:    "http://localhost:26657",
