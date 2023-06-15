@@ -26,7 +26,10 @@ const (
 // DeployedErc20 is a type that wraps the details of the pre-deployed erc20 used by the e2e test suite.
 // The Address comes from SuiteConfig.KavaErc20Address
 // The CosmosDenom is fetched from the EnabledConversionPairs param of x/evmutil.
-// The funded account must have a balance & the erc20 must be enabled for conversion to sdk.Coin.
+// The tests expect the following:
+// - the funded account has a nonzero balance of the erc20
+// - the erc20 is enabled for conversion to sdk.Coin
+// - the corresponding sdk.Coin is enabled as an earn vault denom
 // These requirements are checked in InitKavaEvmData().
 type DeployedErc20 struct {
 	Address     common.Address

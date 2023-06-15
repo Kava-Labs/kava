@@ -10,6 +10,7 @@ import (
 
 	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
 	"github.com/kava-labs/kava/tests/util"
+	"github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
@@ -39,6 +40,15 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 	}
 	if !found {
 		panic(fmt.Sprintf("erc20 %s must be enabled for conversion to cosmos coin", erc20Addr))
+	}
+
+	// expect the erc20's cosmos denom to be a supported earn vault
+	_, err = suite.Kava.Earn.Vault(
+		context.Background(),
+		types.NewQueryVaultRequest(suite.DeployedErc20.CosmosDenom),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed to find earn vault with denom %s: %s", suite.DeployedErc20.CosmosDenom, err))
 	}
 
 	// deploy an example contract
