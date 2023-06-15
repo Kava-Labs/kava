@@ -75,8 +75,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		return chain, err
 	}
 
-	evmRpcUrl := fmt.Sprintf("http://localhost:%s", details.EvmPort)
-	chain.EvmClient, err = ethclient.Dial(evmRpcUrl)
+	chain.EvmClient, err = details.EvmClient()
 	if err != nil {
 		return chain, err
 	}

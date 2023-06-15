@@ -16,18 +16,18 @@ var (
 
 // ChainDetails wraps information about the ports exposed to the host that endpoints could be access on.
 type ChainDetails struct {
+	EvmRpcUrl string
+
 	RpcPort  string
 	GrpcPort string
 	RestPort string
-	EvmPort  string
 
 	ChainId      string
 	StakingDenom string
 }
 
 func (c ChainDetails) EvmClient() (*ethclient.Client, error) {
-	evmRpcUrl := fmt.Sprintf("http://localhost:%s", c.EvmPort)
-	return ethclient.Dial(evmRpcUrl)
+	return ethclient.Dial(c.EvmRpcUrl)
 }
 
 func (c ChainDetails) GrpcConn() (*grpc.ClientConn, error) {
@@ -64,19 +64,21 @@ func (c *Chains) Register(name string, chain *ChainDetails) error {
 // and generate these details dynamically
 var (
 	kavaChain = ChainDetails{
+		EvmRpcUrl: "http://localhost:8545",
+
 		RpcPort:  "26657",
 		RestPort: "1317",
 		GrpcPort: "9090",
-		EvmPort:  "8545",
 
 		ChainId:      "kavalocalnet_8888-1",
 		StakingDenom: "ukava",
 	}
 	ibcChain = ChainDetails{
+		EvmRpcUrl: "http://localhost:8547",
+
 		RpcPort:  "26658",
 		RestPort: "1318",
 		GrpcPort: "9092",
-		EvmPort:  "8547",
 
 		ChainId:      "kavalocalnet_8889-2",
 		StakingDenom: "uatom",

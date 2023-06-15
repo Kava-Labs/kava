@@ -129,8 +129,7 @@ func (k *KavaNodeRunner) waitForChainStart() error {
 
 	b.Reset()
 	// the evm takes a bit longer to start up. wait for it to start as well.
-	evmRpcUrl := fmt.Sprintf("http://localhost:%s", k.kavaChain.EvmPort)
-	if err := backoff.Retry(func() error { return pingEvm(evmRpcUrl) }, b); err != nil {
+	if err := backoff.Retry(func() error { return pingEvm(kavaChain.EvmRpcUrl) }, b); err != nil {
 		return fmt.Errorf("failed to start & connect to chain: %s", err)
 	}
 	return nil
