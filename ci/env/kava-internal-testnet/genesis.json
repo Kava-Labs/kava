@@ -542,6 +542,10 @@
               "amount": "1000000000"
             },
             {
+              "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+              "amount": "10000000000"
+            },
+            {
               "denom": "swp",
               "amount": "5000000000"
             },
