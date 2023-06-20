@@ -66,6 +66,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (x/incentive) [#1550] Fix validation on genesis reward accumulation time.
 - (deps) [#1622] Bump tm-db to v0.6.7-kava.3 to return rocksdb open error
+- (deps) [] Bump cometbft to v0.34.27-kava.0 to avoid goleveldb panic on large
+  genesis files.
 
 ## [v0.16.1]
 
