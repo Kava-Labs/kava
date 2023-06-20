@@ -66,6 +66,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (x/incentive) [#1550] Fix validation on genesis reward accumulation time.
 - (deps) [#1622] Bump tm-db to v0.6.7-kava.3 to return rocksdb open error
+- (deps) [#1631] Bump cometbft to v0.34.27-kava.0 to avoid goleveldb panic on large
+  genesis files.
 
 ## [v0.16.1]
 
@@ -236,6 +238,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1631]: https://github.com/Kava-Labs/kava/pull/1631
 [#1622]: https://github.com/Kava-Labs/kava/pull/1622
 [#1568]: https://github.com/Kava-Labs/kava/pull/1568
 [#1567]: https://github.com/Kava-Labs/kava/pull/1567
