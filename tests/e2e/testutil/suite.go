@@ -43,23 +43,26 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	suiteConfig := ParseSuiteConfig()
 	suite.config = suiteConfig
-	suite.UpgradeHeight = suiteConfig.KavaUpgradeHeight
 	suite.DeployedErc20Address = common.HexToAddress(suiteConfig.KavaErc20Address)
 
-	runnerConfig := runner.Config{
-		KavaConfigTemplate: suiteConfig.KavaConfigTemplate,
+	if suiteConfig.Kvtool != nil {
+		suite.UpgradeHeight = suiteConfig.Kvtool.KavaUpgradeHeight
 
-		IncludeIBC: suiteConfig.IncludeIbcTests,
-		ImageTag:   "local",
+		runnerConfig := runner.KvtoolRunnerConfig{
+			KavaConfigTemplate: suiteConfig.Kvtool.KavaConfigTemplate,
 
-		EnableAutomatedUpgrade:  suiteConfig.IncludeAutomatedUpgrade,
-		KavaUpgradeName:         suiteConfig.KavaUpgradeName,
-		KavaUpgradeHeight:       suiteConfig.KavaUpgradeHeight,
-		KavaUpgradeBaseImageTag: suiteConfig.KavaUpgradeBaseImageTag,
+			IncludeIBC: suiteConfig.IncludeIbcTests,
+			ImageTag:   "local",
 
-		SkipShutdown: suiteConfig.SkipShutdown,
+			EnableAutomatedUpgrade:  suiteConfig.Kvtool.IncludeAutomatedUpgrade,
+			KavaUpgradeName:         suiteConfig.Kvtool.KavaUpgradeName,
+			KavaUpgradeHeight:       suiteConfig.Kvtool.KavaUpgradeHeight,
+			KavaUpgradeBaseImageTag: suiteConfig.Kvtool.KavaUpgradeBaseImageTag,
+
+			SkipShutdown: suiteConfig.SkipShutdown,
+		}
+		suite.runner = runner.NewKvtoolRunner(runnerConfig)
 	}
-	suite.runner = runner.NewKavaNode(runnerConfig)
 
 	chains := suite.runner.StartChains()
 	kavachain := chains.MustGetChain("kava")
@@ -99,7 +102,7 @@ func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 }
 
 func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
-	if !suite.config.IncludeAutomatedUpgrade {
+	if suite.config.Kvtool != nil && suite.config.Kvtool.IncludeAutomatedUpgrade {
 		suite.T().SkipNow()
 	}
 }

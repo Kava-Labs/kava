@@ -14,25 +14,22 @@ var (
 	ErrChainAlreadyExists = errors.New("chain already exists")
 )
 
-// ChainDetails wraps information about the ports exposed to the host that endpoints could be access on.
+// ChainDetails wraps information about the properties & endpoints of a chain.
 type ChainDetails struct {
-	RpcPort  string
-	GrpcPort string
-	RestPort string
-	EvmPort  string
+	RpcUrl    string
+	GrpcUrl   string
+	EvmRpcUrl string
 
 	ChainId      string
 	StakingDenom string
 }
 
 func (c ChainDetails) EvmClient() (*ethclient.Client, error) {
-	evmRpcUrl := fmt.Sprintf("http://localhost:%s", c.EvmPort)
-	return ethclient.Dial(evmRpcUrl)
+	return ethclient.Dial(c.EvmRpcUrl)
 }
 
 func (c ChainDetails) GrpcConn() (*grpc.ClientConn, error) {
-	grpcUrl := fmt.Sprintf("http://localhost:%s", c.GrpcPort)
-	return util.NewGrpcConnection(grpcUrl)
+	return util.NewGrpcConnection(c.GrpcUrl)
 }
 
 type Chains struct {
@@ -60,23 +57,20 @@ func (c *Chains) Register(name string, chain *ChainDetails) error {
 }
 
 // the Chain details are all hardcoded because they are currently fixed by kvtool.
-// some day they may be configurable, at which point `runner` can determine the ports
-// and generate these details dynamically
+// someday they may be accepted as configurable parameters.
 var (
-	kavaChain = ChainDetails{
-		RpcPort:  "26657",
-		RestPort: "1317",
-		GrpcPort: "9090",
-		EvmPort:  "8545",
+	kvtoolKavaChain = ChainDetails{
+		RpcUrl:    "http://localhost:26657",
+		GrpcUrl:   "http://localhost:9090",
+		EvmRpcUrl: "http://localhost:8545",
 
 		ChainId:      "kavalocalnet_8888-1",
 		StakingDenom: "ukava",
 	}
-	ibcChain = ChainDetails{
-		RpcPort:  "26658",
-		RestPort: "1318",
-		GrpcPort: "9092",
-		EvmPort:  "8547",
+	kvtoolIbcChain = ChainDetails{
+		RpcUrl:    "http://localhost:26658",
+		GrpcUrl:   "http://localhost:9092",
+		EvmRpcUrl: "http://localhost:8547",
 
 		ChainId:      "kavalocalnet_8889-2",
 		StakingDenom: "uatom",

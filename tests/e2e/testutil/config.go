@@ -16,11 +16,24 @@ func init() {
 type SuiteConfig struct {
 	// A funded account used to fnd all other accounts.
 	FundedAccountMnemonic string
+
+	// A config for using kvtool local networks for the test run
+	Kvtool *KvtoolConfig
+
+	// Whether or not to start an IBC chain. Use `suite.SkipIfIbcDisabled()` in IBC tests in IBC tests.
+	IncludeIbcTests bool
+
+	// The contract address of a deployed ERC-20 token
+	KavaErc20Address string
+
+	// When true, the chains will remain running after tests complete (pass or fail)
+	SkipShutdown bool
+}
+
+type KvtoolConfig struct {
 	// The kava.configTemplate flag to be passed to kvtool, usually "master".
 	// This allows one to change the base genesis used to start the chain.
 	KavaConfigTemplate string
-	// Whether or not to start an IBC chain. Use `suite.SkipIfIbcDisabled()` in IBC tests in IBC tests.
-	IncludeIbcTests bool
 
 	// Whether or not to run a chain upgrade & run post-upgrade tests. Use `suite.SkipIfUpgradeDisabled()` in post-upgrade tests.
 	IncludeAutomatedUpgrade bool
@@ -30,28 +43,35 @@ type SuiteConfig struct {
 	KavaUpgradeHeight int64
 	// Tag of kava docker image that will be upgraded to the current image before tests are run, if upgrade is enabled.
 	KavaUpgradeBaseImageTag string
-
-	// The contract address of a deployed ERC-20 token
-	KavaErc20Address string
-
-	// When true, the chains will remain running after tests complete (pass or fail)
-	SkipShutdown bool
 }
 
 func ParseSuiteConfig() SuiteConfig {
 	config := SuiteConfig{
 		// this mnemonic is expected to be a funded account that can seed the funds for all
 		// new accounts created during tests. it will be available under Accounts["whale"]
-		FundedAccountMnemonic:   nonemptyStringEnv("E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC"),
-		KavaConfigTemplate:      nonemptyStringEnv("E2E_KVTOOL_KAVA_CONFIG_TEMPLATE"),
-		KavaErc20Address:        nonemptyStringEnv("E2E_KAVA_ERC20_ADDRESS"),
-		IncludeIbcTests:         mustParseBool("E2E_INCLUDE_IBC_TESTS"),
-		IncludeAutomatedUpgrade: mustParseBool("E2E_INCLUDE_AUTOMATED_UPGRADE"),
+		FundedAccountMnemonic: nonemptyStringEnv("E2E_KAVA_FUNDED_ACCOUNT_MNEMONIC"),
+		KavaErc20Address:      nonemptyStringEnv("E2E_KAVA_ERC20_ADDRESS"),
+		IncludeIbcTests:       mustParseBool("E2E_INCLUDE_IBC_TESTS"),
 	}
 
 	skipShutdownEnv := os.Getenv("E2E_SKIP_SHUTDOWN")
 	if skipShutdownEnv != "" {
 		config.SkipShutdown = mustParseBool("E2E_SKIP_SHUTDOWN")
+	}
+
+	useKvtoolNetworks := mustParseBool("E2E_RUN_KVTOOL_NETWORKS")
+	if useKvtoolNetworks {
+		kvtoolConfig := ParseKvtoolConfig()
+		config.Kvtool = &kvtoolConfig
+	}
+
+	return config
+}
+
+func ParseKvtoolConfig() KvtoolConfig {
+	config := KvtoolConfig{
+		KavaConfigTemplate:      nonemptyStringEnv("E2E_KVTOOL_KAVA_CONFIG_TEMPLATE"),
+		IncludeAutomatedUpgrade: mustParseBool("E2E_INCLUDE_AUTOMATED_UPGRADE"),
 	}
 
 	if config.IncludeAutomatedUpgrade {
