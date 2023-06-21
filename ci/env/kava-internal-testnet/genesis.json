@@ -2022,32 +2022,7 @@
             "decimals": 6
           }
         ],
-        "enabled_conversion_pairs": [
-          {
-            "kava_erc20_address": "0xBb304f44b7EFD865361F2AD973d8ebA433893ABC",
-            "denom": "erc20/multichain/usdc"
-          },
-          {
-            "kava_erc20_address": "0xA637F4CECbA91Ad19075bA3d330cd95f694B1707",
-            "denom": "erc20/multichain/usdt"
-          },
-          {
-            "kava_erc20_address": "0x288429bc07B8d030ba418bb30F170327F9fBE502",
-            "denom": "erc20/multichain/wbtc"
-          },
-          {
-            "kava_erc20_address": "0x7a5DBf8e6ac1F6aCCF14f5B4E88b21EAA04c983d",
-            "denom": "erc20/axelar/usdc"
-          },
-          {
-            "kava_erc20_address": "0x7d2Ee2914324d5D4dC33A5c295E720659D5F3fA7",
-            "denom": "erc20/axelar/wbtc"
-          },
-          {
-            "kava_erc20_address": "0x5d6D67a665C9F169B0f9436E05B11108C1606043",
-            "denom": "erc20/axelar/eth"
-          }
-        ]
+        "enabled_conversion_pairs": []
       }
     },
     "feemarket": {
@@ -2465,6 +2440,24 @@
             },
             "reserve_factor": "0.025000000000000000",
             "keeper_reward_percentage": "0.020000000000000000"
+          },
+          {
+            "denom": "erc20/tether/usdt",
+            "borrow_limit": {
+              "has_max_limit": true,
+              "maximum_limit": "0.000000000000000000",
+              "loan_to_value": "0.000000000000000000"
+            },
+            "spot_market_id": "usdt:usd:30",
+            "conversion_factor": "1000000",
+            "interest_rate_model": {
+              "base_rate_apy": "0.000000000000000000",
+              "base_multiplier": "0.050000000000000000",
+              "kink": "0.800000000000000000",
+              "jump_multiplier": "5.000000000000000000"
+            },
+            "reserve_factor": "0.025000000000000000",
+            "keeper_reward_percentage": "0.020000000000000000"
           }
         ],
         "minimum_borrow_usd_value": "10.000000000000000000"
@@ -2662,6 +2655,18 @@
             "collateral_type": "erc20/multichain/wbtc",
             "start": "2022-11-11T15:00:00Z",
             "end": "2024-11-11T15:00:00Z",
+            "rewards_per_second": [
+              {
+                "denom": "ukava",
+                "amount": "787"
+              }
+            ]
+          },
+          {
+            "active": true,
+            "collateral_type": "erc20/tether/usdt",
+            "start": "2023-06-21T15:00:00Z",
+            "end": "2024-06-21T15:00:00Z",
             "rewards_per_second": [
               {
                 "denom": "ukava",
