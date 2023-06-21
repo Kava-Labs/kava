@@ -13,6 +13,7 @@ func init() {
 	gotenv.Load()
 }
 
+// SuiteConfig wraps configuration details for running the end-to-end test suite.
 type SuiteConfig struct {
 	// A funded account used to fnd all other accounts.
 	FundedAccountMnemonic string
@@ -32,6 +33,8 @@ type SuiteConfig struct {
 	SkipShutdown bool
 }
 
+// KvtoolConfig wraps configuration options for running the end-to-end test suite against
+// a locally running chain. This config must be defined if E2E_RUN_KVTOOL_NETWORKS is true.
 type KvtoolConfig struct {
 	// The kava.configTemplate flag to be passed to kvtool, usually "master".
 	// This allows one to change the base genesis used to start the chain.
@@ -47,12 +50,15 @@ type KvtoolConfig struct {
 	KavaUpgradeBaseImageTag string
 }
 
+// LiveNetworkConfig wraps configuration options for running the end-to-end test suite
+// against a live network. It must be defined if E2E_RUN_KVTOOL_NETWORKS is false.
 type LiveNetworkConfig struct {
 	KavaRpcUrl    string
 	KavaGrpcUrl   string
 	KavaEvmRpcUrl string
 }
 
+// ParseSuiteConfig builds a SuiteConfig from environment variables.
 func ParseSuiteConfig() SuiteConfig {
 	config := SuiteConfig{
 		// this mnemonic is expected to be a funded account that can seed the funds for all
@@ -79,6 +85,7 @@ func ParseSuiteConfig() SuiteConfig {
 	return config
 }
 
+// ParseKvtoolConfig builds a KvtoolConfig from environment variables.
 func ParseKvtoolConfig() KvtoolConfig {
 	config := KvtoolConfig{
 		KavaConfigTemplate:      nonemptyStringEnv("E2E_KVTOOL_KAVA_CONFIG_TEMPLATE"),
@@ -98,6 +105,7 @@ func ParseKvtoolConfig() KvtoolConfig {
 	return config
 }
 
+// ParseLiveNetworkConfig builds a LiveNetworkConfig from environment variables.
 func ParseLiveNetworkConfig() LiveNetworkConfig {
 	return LiveNetworkConfig{
 		KavaRpcUrl:    nonemptyStringEnv("E2E_KAVA_RPC_URL"),
@@ -106,6 +114,8 @@ func ParseLiveNetworkConfig() LiveNetworkConfig {
 	}
 }
 
+// mustParseBool is a helper method that panics if the env variable `name`
+// cannot be parsed to a boolean
 func mustParseBool(name string) bool {
 	envValue := os.Getenv(name)
 	if envValue == "" {
@@ -118,6 +128,8 @@ func mustParseBool(name string) bool {
 	return value
 }
 
+// nonemptyStringEnv is a helper method that panics if the env variable `name`
+// is empty or undefined.
 func nonemptyStringEnv(name string) string {
 	value := os.Getenv(name)
 	if value == "" {

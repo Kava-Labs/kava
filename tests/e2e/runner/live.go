@@ -8,6 +8,8 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 )
 
+// LiveNodeRunnerConfig implements NodeRunner.
+// It connects to a running network via the RPC, GRPC, and EVM urls.
 type LiveNodeRunnerConfig struct {
 	KavaRpcUrl    string
 	KavaGrpcUrl   string
@@ -22,6 +24,7 @@ type LiveNodeRunner struct {
 
 var _ NodeRunner = LiveNodeRunner{}
 
+// NewLiveNodeRunner creates a new LiveNodeRunner.
 func NewLiveNodeRunner(config LiveNodeRunnerConfig) *LiveNodeRunner {
 	return &LiveNodeRunner{config}
 }

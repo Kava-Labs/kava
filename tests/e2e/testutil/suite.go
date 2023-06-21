@@ -36,6 +36,7 @@ type DeployedErc20 struct {
 	CosmosDenom string
 }
 
+// E2eTestSuite is a testify test suite for running end-to-end integration tests on Kava.
 type E2eTestSuite struct {
 	suite.Suite
 
@@ -49,6 +50,8 @@ type E2eTestSuite struct {
 	DeployedErc20 DeployedErc20
 }
 
+// SetupSuite is run before all tests. It initializes chain connections and sets up the
+// account used for funding accounts in the tests.
 func (suite *E2eTestSuite) SetupSuite() {
 	var err error
 	fmt.Println("setting up test suite.")
@@ -90,6 +93,8 @@ func (suite *E2eTestSuite) SetupSuite() {
 	suite.InitKavaEvmData()
 }
 
+// TearDownSuite is run after all tests have run.
+// In the event of a panic during the tests, it is run after testify recovers.
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
 
@@ -104,6 +109,7 @@ func (suite *E2eTestSuite) TearDownSuite() {
 	suite.runner.Shutdown()
 }
 
+// SetupKvtoolNodeRunner is a helper method for building a KvtoolRunnerConfig from the suite config.
 func (suite *E2eTestSuite) SetupKvtoolNodeRunner() *runner.KvtoolRunner {
 	// upgrade tests are only supported on kvtool networks
 	suite.UpgradeHeight = suite.config.Kvtool.KavaUpgradeHeight
@@ -125,6 +131,7 @@ func (suite *E2eTestSuite) SetupKvtoolNodeRunner() *runner.KvtoolRunner {
 	return runner.NewKvtoolRunner(runnerConfig)
 }
 
+// SetupLiveNetworkNodeRunner is a helper method for building a LiveNodeRunner from the suite config.
 func (suite *E2eTestSuite) SetupLiveNetworkNodeRunner() *runner.LiveNodeRunner {
 	// live network setup doesn't presently support ibc
 	if suite.config.IncludeIbcTests {
@@ -140,12 +147,17 @@ func (suite *E2eTestSuite) SetupLiveNetworkNodeRunner() *runner.LiveNodeRunner {
 	return runner.NewLiveNodeRunner(runnerConfig)
 }
 
+// SkipIfIbcDisabled should be called at the start of tests that require IBC.
+// It gracefully skips the current test if IBC tests are disabled.
 func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 	if !suite.config.IncludeIbcTests {
 		suite.T().SkipNow()
 	}
 }
 
+// SkipIfUpgradeDisabled should be called at the start of tests that require automated upgrades.
+// It gracefully skips the current test if upgrades are dissabled.
+// Note: automated upgrade tests are currently only enabled for Kvtool suite runs.
 func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
 	if suite.config.Kvtool != nil && suite.config.Kvtool.IncludeAutomatedUpgrade {
 		suite.T().SkipNow()

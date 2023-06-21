@@ -27,6 +27,8 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 )
 
+// SigningAccount wraps details about an account and its private keys.
+// It exposes functionality for signing and broadcasting transactions.
 type SigningAccount struct {
 	name     string
 	mnemonic string
@@ -173,6 +175,8 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	return response
 }
 
+// SignRawEvmData signs raw evm data with the SigningAccount's private key.
+// It does not broadcast the signed data.
 func (a *SigningAccount) SignRawEvmData(msg []byte) ([]byte, types.PubKey, error) {
 	keyringSigner := emtests.NewSigner(a.evmPrivKey)
 	return keyringSigner.SignByAddress(a.SdkAddress, msg)

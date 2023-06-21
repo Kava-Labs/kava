@@ -15,6 +15,8 @@ type NodeRunner interface {
 	Shutdown()
 }
 
+// waitForChainStart sets a timeout and repeatedly pings the chains.
+// If the chain is successfully reached before the timeout, this returns no error.
 func waitForChainStart(chainDetails ChainDetails) error {
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
 	b := backoff.NewExponentialBackOff()

@@ -61,6 +61,7 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 	suite.Kava.ContractAddrs["greeter"] = greeterAddr
 }
 
+// FundKavaErc20Balance sends the pre-deployed ERC20 token to the `toAddress`.
 func (suite *E2eTestSuite) FundKavaErc20Balance(toAddress common.Address, amount *big.Int) EvmTxResponse {
 	// funded account should have erc20 balance
 	whale := suite.Kava.GetAccount(FundedAccountName)

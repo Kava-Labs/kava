@@ -133,6 +133,7 @@ func (chain *Chain) GetModuleBalances(moduleName string) sdk.Coins {
 	return chain.QuerySdkForBalances(addr)
 }
 
+// GetErc20Balance fetches the ERC20 balance of `contract` for `address`.
 func (chain *Chain) GetErc20Balance(contract, address common.Address) *big.Int {
 	resData, err := chain.EvmClient.CallContract(context.Background(), ethereum.CallMsg{
 		To:   &contract,
