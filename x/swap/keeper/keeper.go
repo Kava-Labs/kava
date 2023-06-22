@@ -164,7 +164,7 @@ func (k Keeper) GetDepositorShares(ctx sdk.Context, depositor sdk.AccAddress, po
 }
 
 // SetDepositorShares_Raw saves a share record to the store without validation
-func (k Keeper) SetDepositorShares_Raw(ctx sdk.Context, record types.ShareRecord) {
+func (k Keeper) SetDepositorSharesRaw(ctx sdk.Context, record types.ShareRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
 	bz := k.cdc.MustMarshal(&record)
 	store.Set(types.DepositorPoolSharesKey(record.Depositor, record.PoolID), bz)
@@ -176,7 +176,7 @@ func (k Keeper) SetDepositorShares(ctx sdk.Context, record types.ShareRecord) {
 		panic(fmt.Sprintf("invalid share record: %s", err))
 	}
 
-	k.SetDepositorShares_Raw(ctx, record)
+	k.SetDepositorSharesRaw(ctx, record)
 }
 
 // DeleteDepositorShares deletes a share record from the store

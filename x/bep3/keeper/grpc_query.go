@@ -77,13 +77,13 @@ func (s queryServer) AtomicSwap(ctx context.Context, req *types.QueryAtomicSwapR
 		return nil, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
-	swapId, err := hex.DecodeString(req.SwapId)
+	swapID, err := hex.DecodeString(req.SwapId)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "invalid atomic swap id")
 	}
 
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	atomicSwap, ok := s.keeper.GetAtomicSwap(sdkCtx, swapId)
+	atomicSwap, ok := s.keeper.GetAtomicSwap(sdkCtx, swapID)
 	if !ok {
 		return nil, status.Errorf(codes.NotFound, "invalid atomic swap")
 	}

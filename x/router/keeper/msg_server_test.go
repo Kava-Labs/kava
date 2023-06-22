@@ -159,7 +159,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 
 	// Query the full staked balance and convert it all to derivatives
 	// user technically 333_333_333.333333333333333333 staked tokens without rounding
-	delegation := suite.QueryStaking_Delegation(valAddr, user)
+	delegation := suite.QueryStakingDelegation(valAddr, user)
 	suite.Equal(sdkmath.NewInt(333_333_333), delegation.Balance.Amount)
 
 	msgDeposit := types.NewMsgMintDeposit(
@@ -178,7 +178,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	suite.VaultAccountValueEqual(user, sdk.NewInt64Coin(derivativeDenom, 999_999_998)) // 2 lost in conversion
 
 	// Query the full kava balance of the earn deposit and convert all to a delegation
-	deposit := suite.QueryEarn_VaultValue(user, "bkava")
+	deposit := suite.QueryEarnVaultValue(user, "bkava")
 	suite.Equal(suite.NewBondCoins(sdkmath.NewInt(333_333_332)), deposit.Value) // 1 lost due to lost shares
 
 	msgWithdraw := types.NewMsgWithdrawBurn(
@@ -220,7 +220,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	)
 
 	// Query the full vested balance and convert it all to derivatives
-	balance := suite.QueryBank_SpendableBalance(user)
+	balance := suite.QueryBankSpendableBalance(user)
 	suite.Equal(suite.NewBondCoins(userBalance), balance)
 
 	// When delegation is created it will have 166_666_666.666666666666666666 shares
@@ -243,7 +243,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	suite.VaultAccountValueEqual(user, sdk.NewInt64Coin(derivativeDenom, 166_666_666))
 
 	// Query the full kava balance of the earn deposit and convert all to a delegation
-	deposit := suite.QueryEarn_VaultValue(user, "bkava")
+	deposit := suite.QueryEarnVaultValue(user, "bkava")
 	suite.Equal(suite.NewBondCoins(sdkmath.NewInt(99_999_999)), deposit.Value) // 1 lost due to truncating shares to derivatives
 
 	msgWithdraw := types.NewMsgWithdrawBurnUndelegate(

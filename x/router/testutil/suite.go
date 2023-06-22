@@ -109,7 +109,7 @@ func (suite *Suite) AccountSpendableBalanceEqual(addr sdk.AccAddress, amount sdk
 	suite.Equalf(amount, balance, "expected account spendable balance to equal coins %s, but got %s", amount, balance)
 }
 
-func (suite *Suite) QueryBank_SpendableBalance(user sdk.AccAddress) sdk.Coins {
+func (suite *Suite) QueryBankSpendableBalance(user sdk.AccAddress) sdk.Coins {
 	res, err := suite.BankKeeper.SpendableBalances(
 		sdk.WrapSDKContext(suite.Ctx),
 		&banktypes.QuerySpendableBalancesRequest{
@@ -261,7 +261,7 @@ func (suite *Suite) UnbondingDelegationInDeltaBelow(valAddr sdk.ValAddress, dele
 	return lte && gte
 }
 
-func (suite *Suite) QueryStaking_Delegation(valAddr sdk.ValAddress, delegator sdk.AccAddress) stakingtypes.DelegationResponse {
+func (suite *Suite) QueryStakingDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress) stakingtypes.DelegationResponse {
 	stakingQuery := stakingkeeper.Querier{Keeper: suite.StakingKeeper}
 	res, err := stakingQuery.Delegation(
 		sdk.WrapSDKContext(suite.Ctx),
@@ -347,7 +347,7 @@ func (suite *Suite) VaultAccountSharesEqual(acc sdk.AccAddress, shares earntypes
 	}
 }
 
-func (suite *Suite) QueryEarn_VaultValue(depositor sdk.AccAddress, vaultDenom string) earntypes.DepositResponse {
+func (suite *Suite) QueryEarnVaultValue(depositor sdk.AccAddress, vaultDenom string) earntypes.DepositResponse {
 	earnQuery := earnkeeper.NewQueryServerImpl(suite.EarnKeeper)
 	res, err := earnQuery.Deposits(
 		sdk.WrapSDKContext(suite.Ctx),

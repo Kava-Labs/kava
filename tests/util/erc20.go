@@ -16,12 +16,12 @@ func EvmContractMethodId(signature string) []byte {
 }
 
 func BuildErc20ApproveCallData(spender common.Address, amount *big.Int) []byte {
-	methodId := EvmContractMethodId("approve(address,uint256)")
+	methodID := EvmContractMethodId("approve(address,uint256)")
 	paddedAddress := common.LeftPadBytes(spender.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
 	var data []byte
-	data = append(data, methodId...)
+	data = append(data, methodID...)
 	data = append(data, paddedAddress...)
 	data = append(data, paddedAmount...)
 
@@ -29,12 +29,12 @@ func BuildErc20ApproveCallData(spender common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20TransferCallData(to common.Address, amount *big.Int) []byte {
-	methodId := EvmContractMethodId("transfer(address,uint256)")
+	methodID := EvmContractMethodId("transfer(address,uint256)")
 	paddedAddress := common.LeftPadBytes(to.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
 	var data []byte
-	data = append(data, methodId...)
+	data = append(data, methodID...)
 	data = append(data, paddedAddress...)
 	data = append(data, paddedAmount...)
 
@@ -42,13 +42,13 @@ func BuildErc20TransferCallData(to common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20TransferFromCallData(from common.Address, to common.Address, amount *big.Int) []byte {
-	methodId := EvmContractMethodId("transferFrom(address,address,uint256)")
+	methodID := EvmContractMethodId("transferFrom(address,address,uint256)")
 	paddedFrom := common.LeftPadBytes(from.Bytes(), 32)
 	paddedTo := common.LeftPadBytes(to.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
 	var data []byte
-	data = append(data, methodId...)
+	data = append(data, methodID...)
 	data = append(data, paddedFrom...)
 	data = append(data, paddedTo...)
 	data = append(data, paddedAmount...)

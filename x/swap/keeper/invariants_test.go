@@ -138,7 +138,7 @@ func (suite *invariantTestSuite) TestShareRecordsInvariant() {
 	suite.Equal(false, broken)
 
 	// broken with invalid share record
-	suite.Keeper.SetDepositorShares_Raw(suite.Ctx, types.NewShareRecord(
+	suite.Keeper.SetDepositorSharesRaw(suite.Ctx, types.NewShareRecord(
 		sdk.AccAddress("depositor 1---------"),
 		types.PoolID("ukava", "usdx"),
 		sdkmath.NewInt(-1e6),

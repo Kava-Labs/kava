@@ -22,7 +22,7 @@ linters:
     - nakedret
     # - staticcheck
     # - revive
-    # - stylecheck
+    - stylecheck
     - typecheck
     - unconvert
     - unused

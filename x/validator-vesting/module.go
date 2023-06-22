@@ -1,4 +1,4 @@
-package validator_vesting
+package validatorvesting
 
 import (
 	"encoding/json"

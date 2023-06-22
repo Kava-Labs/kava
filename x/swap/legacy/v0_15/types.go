@@ -1,4 +1,4 @@
-package v0_15
+package v0_15 //nolint:stylecheck // intentionally named with numbers and underscores
 
 import (
 	sdkmath "cosmossdk.io/math"

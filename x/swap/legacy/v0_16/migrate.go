@@ -1,4 +1,4 @@
-package v0_16
+package v0_16 //nolint:stylecheck // intentionally named with numbers and underscores
 
 import (
 	v015swap "github.com/kava-labs/kava/x/swap/legacy/v0_15"
