@@ -286,9 +286,8 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 				}
 				broadcastResponse, err := s.txClient.BroadcastTx(context.Background(), &broadcastRequest)
 
-				// set to determine action at the end of loop
 				// default is OK
-				txResult := txOK
+				txResult := txOK //nolint:ineffassign // set to determine action at the end of loop
 
 				// determine action to take when err (and no response)
 				if err != nil {

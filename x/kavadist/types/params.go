@@ -175,7 +175,6 @@ func validateInfraParams(i interface{}) error {
 		if pr.Start.Before(prevEnd) {
 			return fmt.Errorf("periods must be in chronological order: %s", infraParams.InfrastructurePeriods)
 		}
-		prevEnd = pr.End
 
 		if pr.Start.Unix() <= 0 || pr.End.Unix() <= 0 {
 			return fmt.Errorf("start or end time cannot be zero: %s", pr)
