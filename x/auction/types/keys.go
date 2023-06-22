@@ -45,7 +45,7 @@ func GetAuctionByTimeKey(endTime time.Time, auctionID uint64) []byte {
 // Uint64ToBytes converts a uint64 into fixed length bytes for use in store keys.
 func Uint64ToBytes(id uint64) []byte {
 	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, uint64(id))
+	binary.BigEndian.PutUint64(bz, id)
 	return bz
 }
 

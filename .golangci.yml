@@ -24,11 +24,13 @@ linters:
     # - revive
     # - stylecheck
     - typecheck
-    # - unconvert
+    - unconvert
     # - unused
     - misspell
 
 issues:
+  max-issues-per-linter: 10000
+  max-same-issues: 10000
   exclude-rules:
     - text: 'Use of weak random number generator'
       linters:
