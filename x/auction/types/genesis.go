@@ -32,7 +32,8 @@ func PackGenesisAuctions(ga []GenesisAuction) ([]*types.Any, error) {
 	return gaAny, nil
 }
 
-func mustPackGenesisAuctions(ga []GenesisAuction) []*types.Any {
+// mustPackGenesisAuctions converts a GenesisAuction slice to Any slice
+func mustPackGenesisAuctions(ga []GenesisAuction) []*types.Any { //nolint:unused // used for tests in genesis_test.go
 	anys, err := PackGenesisAuctions(ga)
 	if err != nil {
 		panic(err)

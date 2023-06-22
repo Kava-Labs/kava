@@ -12,10 +12,6 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-const (
-	bech32MainPrefix = "kava"
-)
-
 // Parameter keys
 var (
 	KeyAssetParams = []byte("AssetParams")
