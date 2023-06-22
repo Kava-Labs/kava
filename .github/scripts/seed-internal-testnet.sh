@@ -156,7 +156,11 @@ printf "original evm util module params\n %s" , "$originalEvmUtilParams"
 # make sure to update god committee member permissions for the module
 # and params being updated (see below for example)
 # https://github.com/Kava-Labs/kava/pull/1556/files#diff-0bd6043650c708661f37bbe6fa5b29b52149e0ec0069103c3954168fc9f12612R900-R903
+# committee 1 is the stability committee. on internal testnet, this has only one member.
 kava tx committee submit-proposal 1 "$proposalFileName" --gas 2000000 --gas-prices 0.01ukava --from god -y
+
+# vote on the proposal. this assumes no other committee proposal has ever been submitted (id=1)
+kava tx committee vote 1 yes --gas 2000000 --gas-prices 0.01ukava --from god -y
 
 # fetch current module params
 updatedEvmUtilParams=$(curl https://api.app.internal.testnet.us-east.production.kava.io/kava/evmutil/v1beta1/params)
