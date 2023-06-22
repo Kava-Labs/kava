@@ -8,7 +8,7 @@ import (
 )
 
 // EvmContractMethodId encodes a method signature to the method id used in eth calldata.
-func EvmContractMethodId(signature string) []byte {
+func EvmContractMethodID(signature string) []byte {
 	transferFnSignature := []byte(signature)
 	hash := sha3.NewLegacyKeccak256()
 	hash.Write(transferFnSignature)
@@ -16,7 +16,7 @@ func EvmContractMethodId(signature string) []byte {
 }
 
 func BuildErc20ApproveCallData(spender common.Address, amount *big.Int) []byte {
-	methodID := EvmContractMethodId("approve(address,uint256)")
+	methodID := EvmContractMethodID("approve(address,uint256)")
 	paddedAddress := common.LeftPadBytes(spender.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
@@ -29,7 +29,7 @@ func BuildErc20ApproveCallData(spender common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20TransferCallData(to common.Address, amount *big.Int) []byte {
-	methodID := EvmContractMethodId("transfer(address,uint256)")
+	methodID := EvmContractMethodID("transfer(address,uint256)")
 	paddedAddress := common.LeftPadBytes(to.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
@@ -42,7 +42,7 @@ func BuildErc20TransferCallData(to common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20TransferFromCallData(from common.Address, to common.Address, amount *big.Int) []byte {
-	methodID := EvmContractMethodId("transferFrom(address,address,uint256)")
+	methodID := EvmContractMethodID("transferFrom(address,address,uint256)")
 	paddedFrom := common.LeftPadBytes(from.Bytes(), 32)
 	paddedTo := common.LeftPadBytes(to.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
@@ -57,7 +57,7 @@ func BuildErc20TransferFromCallData(from common.Address, to common.Address, amou
 }
 
 func BuildErc20MintCallData(to common.Address, amount *big.Int) []byte {
-	methodId := EvmContractMethodId("mint(address,uint256)")
+	methodId := EvmContractMethodID("mint(address,uint256)")
 	paddedAddress := common.LeftPadBytes(to.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
@@ -70,7 +70,7 @@ func BuildErc20MintCallData(to common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20BurnCallData(from common.Address, amount *big.Int) []byte {
-	methodId := EvmContractMethodId("burn(address,uint256)")
+	methodId := EvmContractMethodID("burn(address,uint256)")
 	paddedAddress := common.LeftPadBytes(from.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
@@ -83,7 +83,7 @@ func BuildErc20BurnCallData(from common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20BalanceOfCallData(address common.Address) []byte {
-	methodId := EvmContractMethodId("balanceOf(address)")
+	methodId := EvmContractMethodID("balanceOf(address)")
 	paddedAddress := common.LeftPadBytes(address.Bytes(), 32)
 
 	var data []byte
