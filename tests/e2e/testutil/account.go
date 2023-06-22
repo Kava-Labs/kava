@@ -60,7 +60,7 @@ func (chain *Chain) GetAccount(name string) *SigningAccount {
 }
 
 // AddNewSigningAccount sets up a new account with a signer for SDK and EVM transactions.
-func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, chainId, mnemonic string) *SigningAccount {
+func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, chainID, mnemonic string) *SigningAccount {
 	if _, found := chain.accounts[name]; found {
 		chain.t.Fatalf("account with name %s already exists", name)
 	}
@@ -71,7 +71,7 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 	privKey := &ethsecp256k1.PrivKey{Key: privKeyBytes}
 
 	kavaSigner := util.NewKavaSigner(
-		chainId,
+		chainID,
 		chain.EncodingConfig,
 		chain.Auth,
 		chain.Tx,
@@ -84,15 +84,15 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 	require.NoErrorf(chain.t, err, "failed to start signer for account %s: %s", name, err)
 
 	// Kava signing account for EVM side
-	evmChainId, err := emtypes.ParseChainID(chainId)
-	require.NoErrorf(chain.t, err, "unable to parse ethermint-compatible chain id from %s", chainId)
+	evmChainID, err := emtypes.ParseChainID(chainID)
+	require.NoErrorf(chain.t, err, "unable to parse ethermint-compatible chain id from %s", chainID)
 	ecdsaPrivKey, err := crypto.HexToECDSA(hex.EncodeToString(privKeyBytes))
 	require.NoError(chain.t, err, "failed to generate ECDSA private key from bytes")
 
 	evmSigner, err := util.NewEvmSigner(
 		chain.EvmClient,
 		ecdsaPrivKey,
-		evmChainId,
+		evmChainID,
 	)
 	require.NoErrorf(chain.t, err, "failed to create evm signer")
 

@@ -57,9 +57,9 @@ type EvmSigner struct {
 func NewEvmSigner(
 	evmClient *ethclient.Client,
 	privKey *ecdsa.PrivateKey,
-	chainId *big.Int,
+	chainID *big.Int,
 ) (*EvmSigner, error) {
-	auth, err := bind.NewKeyedTransactorWithChainID(privKey, chainId)
+	auth, err := bind.NewKeyedTransactorWithChainID(privKey, chainID)
 	if err != nil {
 		return &EvmSigner{}, err
 	}

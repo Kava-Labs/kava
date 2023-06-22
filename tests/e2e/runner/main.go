@@ -34,8 +34,8 @@ func waitForChainStart(chainDetails ChainDetails) error {
 
 func pingKava(rpcURL string) error {
 	log.Println("pinging kava chain...")
-	statusUrl := fmt.Sprintf("%s/status", rpcURL)
-	res, err := http.Get(statusUrl)
+	statusURL := fmt.Sprintf("%s/status", rpcURL)
+	res, err := http.Get(statusURL)
 	if err != nil {
 		return err
 	}
@@ -47,9 +47,9 @@ func pingKava(rpcURL string) error {
 	return nil
 }
 
-func pingEvm(evmRpcURL string) error {
+func pingEvm(evmRPCURL string) error {
 	log.Println("pinging evm...")
-	res, err := http.Get(evmRpcURL)
+	res, err := http.Get(evmRPCURL)
 	if err != nil {
 		return err
 	}

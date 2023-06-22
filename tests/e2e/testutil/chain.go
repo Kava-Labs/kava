@@ -36,7 +36,7 @@ type Chain struct {
 	t        *testing.T
 
 	StakingDenom string
-	ChainId      string
+	ChainID      string
 
 	EvmClient     *ethclient.Client
 	ContractAddrs map[string]common.Address
@@ -62,7 +62,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain := &Chain{
 		t:             t,
 		StakingDenom:  details.StakingDenom,
-		ChainId:       details.ChainId,
+		ChainID:       details.ChainId,
 		ContractAddrs: make(map[string]common.Address),
 	}
 	chain.EncodingConfig = app.MakeEncodingConfig()
@@ -94,12 +94,12 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	whale := chain.AddNewSigningAccount(
 		FundedAccountName,
 		hd.CreateHDPath(Bip44CoinType, 0, 0),
-		chain.ChainId,
+		chain.ChainID,
 		fundedAccountMnemonic,
 	)
 
 	// check that funded account is actually funded.
-	fmt.Printf("[%s] account used for funding (%s) address: %s\n", chain.ChainId, FundedAccountName, whale.SdkAddress)
+	fmt.Printf("[%s] account used for funding (%s) address: %s\n", chain.ChainID, FundedAccountName, whale.SdkAddress)
 	whaleFunds := chain.QuerySdkForBalances(whale.SdkAddress)
 	if whaleFunds.IsZero() {
 		chain.t.Fatal("funded account mnemonic is for account with no funds")
