@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kava-labs/kava/x/bep3/types"
+
 	errorsmod "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // CreateAtomicSwap creates a new atomic swap.

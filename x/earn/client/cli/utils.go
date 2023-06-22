@@ -3,9 +3,9 @@ package cli
 import (
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-
 	"github.com/kava-labs/kava/x/earn/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 // ParseCommunityPoolDepositProposalJSON reads and parses a CommunityPoolDepositProposalJSON from a file.

@@ -5,15 +5,15 @@ import (
 	"sort"
 	"time"
 
+	"github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // Keeper struct for pricefeed module

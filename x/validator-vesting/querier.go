@@ -3,15 +3,15 @@ package validator_vesting
 import (
 	"time"
 
+	"github.com/kava-labs/kava/x/validator-vesting/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	"github.com/kava-labs/kava/x/validator-vesting/types"
-
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 const SafuFund int64 = 10000000 // 10 million KAVA

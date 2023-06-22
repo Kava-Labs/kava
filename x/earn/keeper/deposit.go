@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/kava-labs/kava/x/earn/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Deposit adds the provided amount from a depositor to a vault. The vault is

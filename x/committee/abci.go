@@ -1,11 +1,10 @@
 package committee
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
+	"github.com/kava-labs/kava/x/committee/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/kava-labs/kava/x/committee/keeper"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeginBlocker runs at the start of every block.

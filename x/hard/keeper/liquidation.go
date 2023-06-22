@@ -3,11 +3,12 @@ package keeper
 import (
 	"sort"
 
+	"github.com/kava-labs/kava/x/hard/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/hard/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // LiqData holds liquidation-related data

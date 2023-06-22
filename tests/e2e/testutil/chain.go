@@ -6,6 +6,18 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/kava-labs/kava/app"
+	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/tests/e2e/runner"
+	"github.com/kava-labs/kava/tests/util"
+	committeetypes "github.com/kava-labs/kava/x/committee/types"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -15,21 +27,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
-
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
-	"github.com/kava-labs/kava/app"
-	kavaparams "github.com/kava-labs/kava/app/params"
-	"github.com/kava-labs/kava/tests/e2e/runner"
-	"github.com/kava-labs/kava/tests/util"
-	committeetypes "github.com/kava-labs/kava/x/committee/types"
-	communitytypes "github.com/kava-labs/kava/x/community/types"
-	earntypes "github.com/kava-labs/kava/x/earn/types"
-	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
 // Chain wraps query clients & accounts for a network

@@ -3,12 +3,11 @@ package cli
 import (
 	"fmt"
 
+	"github.com/kava-labs/kava/x/validator-vesting/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-
-	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
 // GetQueryCmd returns the cli query commands for the kavadist module

@@ -4,16 +4,16 @@ import (
 	"context"
 	"strings"
 
+	"github.com/kava-labs/kava/x/savings/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
-
-	"github.com/kava-labs/kava/x/savings/types"
 )
 
 type queryServer struct {

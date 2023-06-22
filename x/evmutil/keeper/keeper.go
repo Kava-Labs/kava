@@ -3,15 +3,16 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/kava-labs/kava/x/evmutil/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 // Keeper of the evmutil store.

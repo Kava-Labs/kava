@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/kava-labs/kava/app/params"
+	tmmempool "github.com/tendermint/tendermint/mempool"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
+
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +21,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	tmmempool "github.com/tendermint/tendermint/mempool"
 )
 
 var ErrSdkBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")

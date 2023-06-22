@@ -3,11 +3,12 @@ package types
 import (
 	"time"
 
+	earntypes "github.com/kava-labs/kava/x/earn/types"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	earntypes "github.com/kava-labs/kava/x/earn/types"
 )
 
 type StakingKeeper interface {

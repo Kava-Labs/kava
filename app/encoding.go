@@ -2,7 +2,6 @@ package app
 
 import (
 	enccodec "github.com/evmos/ethermint/encoding/codec"
-
 	"github.com/kava-labs/kava/app/params"
 )
 

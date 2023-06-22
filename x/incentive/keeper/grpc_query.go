@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/incentive/types"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/kava-labs/kava/x/incentive/types"
-	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const (

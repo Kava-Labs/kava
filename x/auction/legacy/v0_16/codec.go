@@ -1,8 +1,9 @@
 package types
 
 import (
-	types "github.com/cosmos/cosmos-sdk/codec/types"
 	v017auction "github.com/kava-labs/kava/x/auction/types"
+
+	types "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {

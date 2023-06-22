@@ -3,11 +3,12 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/kava-labs/kava/x/liquid/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/liquid/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // MintDerivative removes a user's staking delegation and mints them equivalent staking derivative coins.

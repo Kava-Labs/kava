@@ -1,8 +1,9 @@
 package issuance
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/issuance/keeper"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeginBlocker iterates over each asset and seizes coins from blocked addresses by returning them to the asset owner

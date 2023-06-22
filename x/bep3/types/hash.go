@@ -5,8 +5,9 @@ import (
 	"encoding/binary"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // GenerateSecureRandomNumber generates cryptographically strong pseudo-random number

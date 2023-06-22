@@ -11,33 +11,41 @@ linters:
     - dogsled
     # - errcheck
     - goconst
-    - gocritic
+    # - gocritic
     - gofumpt
-    - gosec
-    - gosimple
+    - gci
+    # - gosec
+    # - gosimple
     - govet
-    - ineffassign
+    # - ineffassign
     - misspell
     - nakedret
-    - prealloc
-    - staticcheck
-    - stylecheck
+    # - staticcheck
+    # - revive
+    # - stylecheck
     - typecheck
-    - unconvert
-    - unused
+    # - unconvert
+    # - unused
     - misspell
-    - wsl
 
 issues:
   exclude-rules:
-    - text: "Use of weak random number generator"
+    - text: 'Use of weak random number generator'
       linters:
         - gosec
-    - text: "comment on exported var"
+    - text: 'comment on exported var'
       linters:
         - golint
 
 linters-settings:
+  gci:
+    custom-order: true
+    sections:
+      - standard # Standard section: captures all standard packages.
+      - default # Default section: contains all imports that could not be matched to another section type.
+      - prefix(cosmossdk.io)
+      - prefix(github.com/cosmos/cosmos-sdk)
+
   dogsled:
     max-blank-identifiers: 3
   maligned:

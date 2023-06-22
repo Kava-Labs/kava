@@ -1,13 +1,14 @@
 package keeper
 
 import (
+	"github.com/kava-labs/kava/x/committee/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
-
-	"github.com/kava-labs/kava/x/committee/types"
 )
 
 // NewQuerier creates a new gov Querier instance

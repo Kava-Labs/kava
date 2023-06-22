@@ -3,9 +3,9 @@ package cli
 import (
 	"io/ioutil"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-
 	"github.com/kava-labs/kava/x/kavadist/types"
+
+	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 // ParseCommunityPoolMultiSpendProposalJSON reads and parses a CommunityPoolMultiSpendProposalJSON from a file.

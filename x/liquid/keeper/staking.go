@@ -1,12 +1,13 @@
 package keeper
 
 import (
+	"github.com/kava-labs/kava/x/liquid/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 // TransferDelegation moves some delegation shares between addresses, while keeping the same validator.

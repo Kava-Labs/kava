@@ -1,9 +1,9 @@
 package kavadist
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/kava-labs/kava/x/kavadist/keeper"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {

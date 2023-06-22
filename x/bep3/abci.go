@@ -1,8 +1,9 @@
 package bep3
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/bep3/keeper"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeginBlocker on every block expires outdated atomic swaps and removes closed

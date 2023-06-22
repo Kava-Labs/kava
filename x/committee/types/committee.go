@@ -4,12 +4,13 @@ import (
 	fmt "fmt"
 	"time"
 
+	proto "github.com/gogo/protobuf/proto"
+	"sigs.k8s.io/yaml"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-	proto "github.com/gogo/protobuf/proto"
-	"sigs.k8s.io/yaml"
 )
 
 const MaxCommitteeDescriptionLength int = 512

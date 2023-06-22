@@ -3,14 +3,15 @@ package keeper
 import (
 	"time"
 
+	"github.com/kava-labs/kava/x/committee/types"
+
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
-
-	"github.com/kava-labs/kava/x/committee/types"
 )
 
 type Keeper struct {

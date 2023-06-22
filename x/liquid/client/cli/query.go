@@ -1,12 +1,11 @@
 package cli
 
 import (
+	"github.com/kava-labs/kava/x/liquid/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-
-	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

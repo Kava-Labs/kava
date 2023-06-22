@@ -1,15 +1,14 @@
 package testutil
 
 import (
-	"github.com/stretchr/testify/suite"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
-
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community/keeper"
 	"github.com/kava-labs/kava/x/community/types"
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Test suite used for all community tests

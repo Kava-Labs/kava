@@ -1,8 +1,9 @@
 package hard
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/hard/keeper"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // BeginBlocker updates interest rates

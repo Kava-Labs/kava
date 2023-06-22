@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -96,5 +97,5 @@ func RelativePow(x sdkmath.Int, n sdkmath.Int, b sdkmath.Int) (z sdkmath.Int) {
 		}
 		n = n.Quo(sdkmath.NewInt(2))
 	}
-	return
+	return z
 }

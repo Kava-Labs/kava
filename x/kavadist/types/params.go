@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	tmtime "github.com/tendermint/tendermint/types/time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	tmtime "github.com/tendermint/tendermint/types/time"
-	// cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
 // Parameter keys and default values

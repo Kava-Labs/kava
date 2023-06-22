@@ -3,8 +3,9 @@ package types
 import (
 	"fmt"
 
-	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	proto "github.com/gogo/protobuf/proto"
+
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 )
 
 // DefaultNextProposalID is the starting poiint for proposal IDs.

@@ -3,10 +3,11 @@ package keeper
 import (
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/kava-labs/kava/x/kavadist/types"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // MintPeriodInflation mints new tokens according to the inflation schedule specified in the parameters

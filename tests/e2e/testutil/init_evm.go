@@ -7,7 +7,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-
 	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
 	"github.com/kava-labs/kava/tests/util"
 )

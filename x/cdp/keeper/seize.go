@@ -3,11 +3,12 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/kava-labs/kava/x/cdp/types"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/kava-labs/kava/x/cdp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // AttemptKeeperLiquidation liquidates the cdp with the input collateral type and owner if it is below the required collateralization ratio

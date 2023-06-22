@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/kava-labs/kava/x/cdp/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	errorsmod "cosmossdk.io/errors"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // NewQuerier returns a new querier function

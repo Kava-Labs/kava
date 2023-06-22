@@ -3,12 +3,12 @@ package keeper
 import (
 	"time"
 
+	"github.com/kava-labs/kava/x/incentive/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // Keeper keeper for the incentive module

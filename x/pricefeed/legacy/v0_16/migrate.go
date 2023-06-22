@@ -1,9 +1,10 @@
 package v0_16
 
 import (
-	"github.com/cosmos/cosmos-sdk/types"
 	v015pricefeed "github.com/kava-labs/kava/x/pricefeed/legacy/v0_15"
 	v016pricefeed "github.com/kava-labs/kava/x/pricefeed/types"
+
+	"github.com/cosmos/cosmos-sdk/types"
 )
 
 var NewIBCMarkets = []v016pricefeed.Market{

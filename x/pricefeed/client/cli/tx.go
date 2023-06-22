@@ -5,17 +5,15 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/spf13/cobra"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-
-	tmtime "github.com/tendermint/tendermint/types/time"
-
-	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

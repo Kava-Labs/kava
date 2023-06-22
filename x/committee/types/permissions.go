@@ -6,13 +6,14 @@ import (
 	"reflect"
 	"strings"
 
+	proto "github.com/gogo/protobuf/proto"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
+
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	proto "github.com/gogo/protobuf/proto"
-	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
 // Permission is anything with a method that validates whether a proposal is allowed by it or not.
