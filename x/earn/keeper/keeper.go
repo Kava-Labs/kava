@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/earn/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/x/earn/types"
 )
 
 // Keeper keeper for the earn module

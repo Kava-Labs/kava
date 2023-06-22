@@ -3,13 +3,13 @@ package keeper
 import (
 	"time"
 
-	"github.com/kava-labs/kava/x/issuance/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/x/issuance/types"
 )
 
 // Keeper keeper for the issuance module

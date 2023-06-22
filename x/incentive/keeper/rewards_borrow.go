@@ -3,13 +3,13 @@ package keeper
 import (
 	"fmt"
 
-	hardtypes "github.com/kava-labs/kava/x/hard/types"
-	"github.com/kava-labs/kava/x/incentive/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	hardtypes "github.com/kava-labs/kava/x/hard/types"
+	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // AccumulateHardBorrowRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.

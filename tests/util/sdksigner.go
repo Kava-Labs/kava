@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kava-labs/kava/app/params"
 	tmmempool "github.com/tendermint/tendermint/mempool"
 	"google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"
@@ -21,6 +20,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/kava-labs/kava/app/params"
 )
 
 var ErrSdkBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")

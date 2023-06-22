@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/hard/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	errorsmod "cosmossdk.io/errors"
@@ -11,6 +10,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/kava-labs/kava/x/hard/types"
 )
 
 // NewQuerier is the module level router for state queries

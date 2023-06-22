@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kava-labs/kava/x/earn/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/earn/types"
 )
 
 type queryServer struct {

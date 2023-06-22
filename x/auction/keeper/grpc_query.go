@@ -4,7 +4,6 @@ import (
 	"context"
 
 	proto "github.com/gogo/protobuf/proto"
-	"github.com/kava-labs/kava/x/auction/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -12,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
 type queryServer struct {

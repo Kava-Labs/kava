@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/kava-labs/kava/x/bep3/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 type msgServer struct {

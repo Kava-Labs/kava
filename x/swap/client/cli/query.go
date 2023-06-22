@@ -4,11 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 // flags for cli queries

@@ -3,9 +3,9 @@ package keeper
 import (
 	"context"
 
-	"github.com/kava-labs/kava/x/auction/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
 type msgServer struct {

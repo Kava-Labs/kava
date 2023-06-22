@@ -16,8 +16,6 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	emtests "github.com/evmos/ethermint/tests"
 	emtypes "github.com/evmos/ethermint/types"
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/tests/util"
 	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
@@ -26,6 +24,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/tests/util"
 )
 
 type SigningAccount struct {

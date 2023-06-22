@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/kava-labs/kava/x/cdp/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 var scalingFactor = 1e18

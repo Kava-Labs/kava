@@ -1,12 +1,12 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/bep3/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // GetParams returns the total set of bep3 parameters.

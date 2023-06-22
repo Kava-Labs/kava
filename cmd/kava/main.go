@@ -3,11 +3,11 @@ package main
 import (
 	"os"
 
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/cmd/kava/cmd"
-
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/cmd/kava/cmd"
 )
 
 func main() {

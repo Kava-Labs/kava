@@ -3,9 +3,9 @@ package incentive
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/incentive/keeper"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/incentive/keeper"
 )
 
 // BeginBlocker runs at the start of every block

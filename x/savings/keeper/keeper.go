@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/savings/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,6 +10,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/x/savings/types"
 )
 
 // Keeper struct for savings module

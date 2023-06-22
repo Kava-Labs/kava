@@ -3,11 +3,11 @@ package keeper
 import (
 	"bytes"
 
-	"github.com/kava-labs/kava/x/evmutil/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 // GetParams returns the total set of evm parameters.

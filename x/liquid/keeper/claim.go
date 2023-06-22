@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/liquid/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 func (k Keeper) CollectStakingRewards(

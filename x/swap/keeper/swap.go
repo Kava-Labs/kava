@@ -3,11 +3,11 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/swap/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 // SwapExactForTokens swaps an exact coin a input for a coin b output

@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/auction/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {

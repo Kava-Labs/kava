@@ -3,11 +3,11 @@ package keeper
 import (
 	"time"
 
-	"github.com/kava-labs/kava/x/bep3/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // IncrementCurrentAssetSupply increments an asset's supply by the coin

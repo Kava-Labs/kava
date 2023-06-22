@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/kavadist/keeper"
-	"github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -17,6 +14,10 @@ import (
 	accountkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/kavadist/keeper"
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // Suite implements a test suite for the kavadist module integration tests

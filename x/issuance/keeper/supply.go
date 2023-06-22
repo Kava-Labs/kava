@@ -3,11 +3,11 @@ package keeper
 import (
 	"time"
 
-	"github.com/kava-labs/kava/x/issuance/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/issuance/types"
 )
 
 // CreateNewAssetSupply creates a new AssetSupply in the store for the input denom

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kava-labs/kava/x/kavadist/types"
-
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // DecodeStore unmarshals the KVPair's Value to the corresponding cdp type

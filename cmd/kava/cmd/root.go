@@ -7,9 +7,6 @@ import (
 	"github.com/evmos/ethermint/crypto/hd"
 	ethermintserver "github.com/evmos/ethermint/server"
 	servercfg "github.com/evmos/ethermint/server/config"
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/app/params"
-	kavaclient "github.com/kava-labs/kava/client"
 	"github.com/spf13/cobra"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
@@ -22,6 +19,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+
+	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/app/params"
+	kavaclient "github.com/kava-labs/kava/client"
 )
 
 // EnvPrefix is the prefix environment variables must have to configure the app.

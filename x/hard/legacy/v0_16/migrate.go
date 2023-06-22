@@ -1,12 +1,12 @@
 package v0_16
 
 import (
-	v015hard "github.com/kava-labs/kava/x/hard/legacy/v0_15"
-	v016hard "github.com/kava-labs/kava/x/hard/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	v015hard "github.com/kava-labs/kava/x/hard/legacy/v0_15"
+	v016hard "github.com/kava-labs/kava/x/hard/types"
 )
 
 // Denom generated via: echo -n transfer/channel-0/uatom | shasum -a 256 | awk '{printf "ibc/%s",toupper($1)}'

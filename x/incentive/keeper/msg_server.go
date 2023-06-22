@@ -3,12 +3,12 @@ package keeper
 import (
 	"context"
 
-	"github.com/kava-labs/kava/x/incentive/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 type msgServer struct {

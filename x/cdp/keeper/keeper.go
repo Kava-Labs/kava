@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kava-labs/kava/x/cdp/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,6 +11,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 // Keeper keeper for the cdp module

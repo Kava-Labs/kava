@@ -1,12 +1,13 @@
 package cmd
 
 import (
-	"github.com/kava-labs/kava/app"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+
+	"github.com/kava-labs/kava/app"
 )
 
 // newTxCmd creates all commands for submitting blockchain transactions.

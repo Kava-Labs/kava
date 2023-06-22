@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kava-labs/kava/x/savings/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+
+	"github.com/kava-labs/kava/x/savings/types"
 )
 
 // flags for cli queries

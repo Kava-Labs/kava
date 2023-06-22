@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"github.com/kava-labs/kava/app"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+
+	"github.com/kava-labs/kava/app"
 )
 
 // newQueryCmd creates all the commands for querying blockchain state.

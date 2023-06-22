@@ -3,9 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/earn/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/earn/types"
 )
 
 // ConvertToShares converts a given amount of tokens to shares.

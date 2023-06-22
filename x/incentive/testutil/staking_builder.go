@@ -1,10 +1,10 @@
 package testutil
 
 import (
-	"github.com/kava-labs/kava/app"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/kava-labs/kava/app"
 )
 
 // StakingGenesisBuilder is a tool for creating a staking genesis state.

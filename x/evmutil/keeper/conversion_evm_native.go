@@ -3,12 +3,12 @@ package keeper
 import (
 	"math/big"
 
-	"github.com/kava-labs/kava/x/evmutil/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 // MintConversionPairCoin mints the given amount of a ConversionPair denom and

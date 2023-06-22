@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kava-labs/kava/x/bep3/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,6 +11,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/x/bep3/types"
 )
 
 // Keeper of the bep3 store

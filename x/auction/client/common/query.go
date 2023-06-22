@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kava-labs/kava/x/auction/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+
+	"github.com/kava-labs/kava/x/auction/types"
 )
 
 const (

@@ -1,12 +1,12 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/kavadist/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // HandleCommunityPoolMultiSpendProposal is a handler for executing a passed community multi-spend proposal

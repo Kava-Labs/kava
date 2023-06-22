@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kava-labs/kava/x/liquid/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -13,6 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vestingexported "github.com/cosmos/cosmos-sdk/x/auth/vesting/exported"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/kava-labs/kava/x/liquid/types"
 )
 
 type queryServer struct {

@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/incentive/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 // ClaimUSDXMintingReward pays out funds from a claim to a receiver account.

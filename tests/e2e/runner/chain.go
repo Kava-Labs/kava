@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/kava-labs/kava/tests/util"
 	"google.golang.org/grpc"
+
+	"github.com/kava-labs/kava/tests/util"
 )
 
 var ErrChainAlreadyExists = errors.New("chain already exists")

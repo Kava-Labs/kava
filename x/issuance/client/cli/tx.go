@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/issuance/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -11,6 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+
+	"github.com/kava-labs/kava/x/issuance/types"
 )
 
 // GetTxCmd returns the transaction cli commands for the issuance module

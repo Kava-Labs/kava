@@ -3,11 +3,12 @@ package cdp
 import (
 	"errors"
 
-	"github.com/kava-labs/kava/x/cdp/keeper"
-	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/cdp/keeper"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 // BeginBlocker compounds the debt in outstanding cdps and liquidates cdps that are below the required collateralization ratio

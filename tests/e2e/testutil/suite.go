@@ -6,9 +6,10 @@ import (
 	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/e2e/runner"
-	"github.com/stretchr/testify/suite"
 )
 
 const (

@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/kava-labs/kava/x/evmutil/types"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 const (

@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 
-	"github.com/kava-labs/kava/x/hard/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -14,6 +13,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/kava-labs/kava/x/hard/types"
 )
 
 type queryServer struct {

@@ -3,12 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/swap/types"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 // Withdraw removes liquidity from an existing pool from an owners deposit, converting the provided shares for

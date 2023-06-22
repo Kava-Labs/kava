@@ -1,10 +1,10 @@
 package keeper
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/earn/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // HandleCommunityPoolDepositProposal is a handler for executing a passed community pool deposit proposal

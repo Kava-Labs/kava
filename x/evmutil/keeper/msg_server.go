@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kava-labs/kava/x/evmutil/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 type msgServer struct {

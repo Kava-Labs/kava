@@ -3,11 +3,11 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/savings/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/savings/types"
 )
 
 // Withdraw returns some or all of a deposit back to original depositor

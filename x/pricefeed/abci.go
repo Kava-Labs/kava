@@ -3,10 +3,10 @@ package pricefeed
 import (
 	"errors"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // EndBlocker updates the current pricefeed

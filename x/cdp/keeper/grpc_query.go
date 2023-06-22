@@ -4,7 +4,6 @@ import (
 	"context"
 	"sort"
 
-	"github.com/kava-labs/kava/x/cdp/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -13,6 +12,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 type QueryServer struct {

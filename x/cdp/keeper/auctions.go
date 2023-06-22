@@ -1,11 +1,11 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/cdp/types"
-
 	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 const (

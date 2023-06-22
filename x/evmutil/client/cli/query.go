@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kava-labs/kava/x/evmutil/types"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/version"
+
+	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

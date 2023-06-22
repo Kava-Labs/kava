@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"github.com/kava-labs/kava/x/savings/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/savings/types"
 )
 
 // Implements StakingHooks interface

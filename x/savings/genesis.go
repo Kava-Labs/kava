@@ -3,10 +3,10 @@ package savings
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/x/savings/keeper"
 	"github.com/kava-labs/kava/x/savings/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis initializes genesis state

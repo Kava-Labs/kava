@@ -3,13 +3,13 @@ package keeper
 import (
 	"time"
 
-	"github.com/kava-labs/kava/x/incentive/types"
-
 	errorsmod "cosmossdk.io/errors"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+
+	"github.com/kava-labs/kava/x/incentive/types"
 )
 
 const (

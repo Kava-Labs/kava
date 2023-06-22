@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 
-	"github.com/kava-labs/kava/x/router/types"
 	"github.com/spf13/cobra"
 
 	errorsmod "cosmossdk.io/errors"
@@ -14,6 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
+
+	"github.com/kava-labs/kava/x/router/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
