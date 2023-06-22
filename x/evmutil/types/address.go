@@ -52,7 +52,7 @@ func (addr InternalEVMAddress) Equal(other InternalEVMAddress) bool {
 // MarshalTo implements the protobuf Marshaler interface.
 func (addr InternalEVMAddress) MarshalTo(data []byte) (int, error) {
 	addressBytes := addr.Address.Bytes()
-	return copy(data, addressBytes[:]), nil
+	return copy(data, addressBytes), nil
 }
 
 // MarshalJSON allows PrintProto to handle InternalEVMAddress

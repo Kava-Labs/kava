@@ -57,7 +57,7 @@ func QueryAuctionByID(cliCtx client.Context, cdc *codec.Codec, queryRoute string
 
 	// if the auction is closed, query for previous bid transactions
 	// note, will only fetch a maximum of 100 bids, so if an auction had more than that this
-	// query may fail to retreive the final state of the auction
+	// query may fail to retrieve the final state of the auction
 	searchResult, err := authtx.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
 	if err != nil {
 		return nil, 0, err

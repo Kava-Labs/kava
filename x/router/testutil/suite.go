@@ -324,7 +324,6 @@ func (suite *Suite) SetSavingsSupportedDenoms(denoms []string) {
 
 // VaultAccountValueEqual asserts that the vault account value matches the provided coin amount.
 func (suite *Suite) VaultAccountValueEqual(acc sdk.AccAddress, coin sdk.Coin) {
-
 	accVaultBal, err := suite.EarnKeeper.GetVaultAccountValue(suite.Ctx, coin.Denom, acc)
 	suite.Require().NoError(err)
 

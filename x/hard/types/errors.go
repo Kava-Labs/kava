@@ -33,7 +33,7 @@ var (
 	ErrBorrowExceedsAvailableBalance = errorsmod.Register(ModuleName, 14, "exceeds module account balance")
 	// ErrBorrowedCoinsNotFound error for when the total amount of borrowed coins cannot be found
 	ErrBorrowedCoinsNotFound = errorsmod.Register(ModuleName, 15, "no borrowed coins found")
-	// ErrNegativeBorrowedCoins error for when substracting coins from the total borrowed balance results in a negative amount
+	// ErrNegativeBorrowedCoins error for when subtracting coins from the total borrowed balance results in a negative amount
 	ErrNegativeBorrowedCoins = errorsmod.Register(ModuleName, 16, "subtraction results in negative borrow amount")
 	// ErrGreaterThanAssetBorrowLimit error for when a proposed borrow would increase borrowed amount over the asset's global borrow limit
 	ErrGreaterThanAssetBorrowLimit = errorsmod.Register(ModuleName, 17, "fails global asset borrow limit validation")
@@ -53,7 +53,7 @@ var (
 	ErrInsufficientBalanceForBorrow = errorsmod.Register(ModuleName, 24, "insufficient balance")
 	// ErrSuppliedCoinsNotFound error for when the total amount of supplied coins cannot be found
 	ErrSuppliedCoinsNotFound = errorsmod.Register(ModuleName, 25, "no supplied coins found")
-	// ErrNegativeSuppliedCoins error for when substracting coins from the total supplied balance results in a negative amount
+	// ErrNegativeSuppliedCoins error for when subtracting coins from the total supplied balance results in a negative amount
 	ErrNegativeSuppliedCoins = errorsmod.Register(ModuleName, 26, "subtraction results in negative supplied amount")
 	// ErrInvalidWithdrawDenom error for when user attempts to withdraw a non-supplied coin type
 	ErrInvalidWithdrawDenom = errorsmod.Register(ModuleName, 27, "no coins of this type deposited")

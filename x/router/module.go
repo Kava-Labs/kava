@@ -64,7 +64,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return nil
 }
 
-//____________________________________________________________________________
+// ____________________________________________________________________________
 
 // AppModule app module type
 type AppModule struct {

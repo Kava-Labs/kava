@@ -157,7 +157,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-//____________________________________________________________________________
+// ____________________________________________________________________________
 
 // // GenerateGenesisState creates a randomized GenState of the auction module
 // func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {

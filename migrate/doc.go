@@ -24,6 +24,5 @@ The process is:
 On each release we can delete the previous releases migration and old GenesisState type.
 eg kava-3 migrates `auth.GenesisState` from kava-2 to `auth.GenesisState` from kava-3,
 but for kava-4 we don't need to keep around kava-2's `auth.GenesisState` type.
-
 */
 package migrate

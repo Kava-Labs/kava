@@ -34,8 +34,10 @@ func (p ProposalOutcome) String() string {
 }
 
 // ensure proposal types fulfill the PubProposal interface and the gov Content interface.
-var _, _ govv1beta1.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
-var _, _ PubProposal = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
+var (
+	_, _ govv1beta1.Content = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
+	_, _ PubProposal        = &CommitteeChangeProposal{}, &CommitteeDeleteProposal{}
+)
 
 // ensure CommitteeChangeProposal fulfill the codectypes.UnpackInterfacesMessage interface
 var _ codectypes.UnpackInterfacesMessage = &CommitteeChangeProposal{}

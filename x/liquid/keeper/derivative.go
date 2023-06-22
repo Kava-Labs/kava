@@ -68,7 +68,6 @@ func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator s
 //
 // The derivative coins are burned, and an equivalent number of shares in the module's staking delegation are transferred back to the user.
 func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Dec, error) {
-
 	if amount.Denom != k.GetLiquidStakingTokenDenom(valAddr) {
 		return sdk.Dec{}, errorsmod.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
 	}

@@ -17,7 +17,6 @@ func NewKeeper(
 	liquidKeeper types.LiquidKeeper,
 	stakingKeeper types.StakingKeeper,
 ) Keeper {
-
 	return Keeper{
 		earnKeeper:    earnKeeper,
 		liquidKeeper:  liquidKeeper,

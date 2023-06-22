@@ -70,7 +70,6 @@ func (th TallyHandler) Tally(
 	th.gk.IterateVotes(ctx, proposal.Id, func(vote govv1.Vote) bool {
 		// if validator, just record it in the map
 		voter, err := sdk.AccAddressFromBech32(vote.Voter)
-
 		if err != nil {
 			panic(err)
 		}

@@ -133,7 +133,7 @@ func (direction SwapDirection) IsValid() bool {
 type LegacyAugmentedAtomicSwap struct {
 	ID string `json:"id" yaml:"id"`
 
-	// Embed AtomicSwap fields explicity in order to output as top level JSON fields
+	// Embed AtomicSwap fields explicitly in order to output as top level JSON fields
 	// This prevents breaking changes for clients using REST API
 	Amount              sdk.Coins        `json:"amount"  yaml:"amount"`
 	RandomNumberHash    tmbytes.HexBytes `json:"random_number_hash"  yaml:"random_number_hash"`

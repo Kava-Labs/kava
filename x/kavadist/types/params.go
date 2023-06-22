@@ -187,5 +187,7 @@ func validateInfraParams(i interface{}) error {
 	return nil
 }
 
-type CoreRewards []CoreReward
-type PartnerRewards []PartnerReward
+type (
+	CoreRewards    []CoreReward
+	PartnerRewards []PartnerReward
+)

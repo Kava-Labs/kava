@@ -53,7 +53,6 @@ func (cdp *CommunityPoolDepositProposal) ProposalType() string {
 
 // String implements fmt.Stringer
 func (cdp *CommunityPoolDepositProposal) String() string {
-
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Community Pool Deposit Proposal:
   Title:       %s
@@ -97,7 +96,6 @@ func (cdp *CommunityPoolWithdrawProposal) ProposalType() string {
 
 // String implements fmt.Stringer
 func (cdp *CommunityPoolWithdrawProposal) String() string {
-
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`Community Pool Withdraw Proposal:
   Title:       %s

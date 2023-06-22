@@ -22,9 +22,7 @@ import (
 	tmmempool "github.com/tendermint/tendermint/mempool"
 )
 
-var (
-	ErrSdkBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
-)
+var ErrSdkBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
 
 type KavaMsgRequest struct {
 	Msgs      []sdk.Msg
@@ -70,8 +68,8 @@ func NewKavaSigner(
 	authClient authtypes.QueryClient,
 	txClient txtypes.ServiceClient,
 	privKey cryptotypes.PrivKey,
-	inflightTxLimit uint64) *KavaSigner {
-
+	inflightTxLimit uint64,
+) *KavaSigner {
 	return &KavaSigner{
 		chainID:         chainID,
 		encodingConfig:  encodingConfig,
@@ -357,7 +355,7 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 						currentRequest = nil
 					}
 
-					// immediatley response to channel
+					// immediately response to channel
 					responses <- *response
 					// go to next request
 					broadcastTxSeq++

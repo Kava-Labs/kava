@@ -88,7 +88,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd()
 }
 
-//____________________________________________________________________________
+// ____________________________________________________________________________
 
 // AppModule app module type
 type AppModule struct {
@@ -161,7 +161,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-//____________________________________________________________________________
+// ____________________________________________________________________________
 
 // // GenerateGenesisState creates a randomized GenState of the cdp module
 // func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {

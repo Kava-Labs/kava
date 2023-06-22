@@ -158,7 +158,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-//____________________________________________________________________________
+// ____________________________________________________________________________
 
 // // RegisterStoreDecoder registers a decoder for incentive module's types
 // func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {

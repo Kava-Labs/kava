@@ -20,7 +20,6 @@ func HandleCommunityPoolDepositProposal(ctx sdk.Context, k Keeper, p *types.Comm
 	}
 
 	return nil
-
 }
 
 // HandleCommunityPoolWithdrawProposal is a handler for executing a passed community pool withdraw proposal.

@@ -248,8 +248,10 @@ var (
 )
 
 // Verify app interface at compile time
-var _ servertypes.Application = (*App)(nil)
-var _ servertypes.ApplicationQueryService = (*App)(nil)
+var (
+	_ servertypes.Application             = (*App)(nil)
+	_ servertypes.ApplicationQueryService = (*App)(nil)
+)
 
 // Options bundles several configuration params for an App.
 type Options struct {

@@ -10,9 +10,7 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 )
 
-var (
-	ErrChainAlreadyExists = errors.New("chain already exists")
-)
+var ErrChainAlreadyExists = errors.New("chain already exists")
 
 // ChainDetails wraps information about the properties & endpoints of a chain.
 type ChainDetails struct {

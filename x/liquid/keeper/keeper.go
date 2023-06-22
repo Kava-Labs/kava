@@ -28,7 +28,6 @@ func NewKeeper(
 	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, dk types.DistributionKeeper,
 	derivativeDenom string,
 ) Keeper {
-
 	return Keeper{
 		cdc:                cdc,
 		accountKeeper:      ak,
@@ -44,7 +43,6 @@ func NewDefaultKeeper(
 	cdc codec.Codec,
 	ak types.AccountKeeper, bk types.BankKeeper, sk types.StakingKeeper, dk types.DistributionKeeper,
 ) Keeper {
-
 	return NewKeeper(cdc, ak, bk, sk, dk, types.DefaultDerivativeDenom)
 }
 

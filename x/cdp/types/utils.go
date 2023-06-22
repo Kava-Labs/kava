@@ -42,7 +42,7 @@ func SortableDecBytes(dec sdk.Dec) []byte {
 
 // ParseDecBytes parses a []byte encoded using SortableDecBytes back to sdk.Dec
 func ParseDecBytes(db []byte) (sdk.Dec, error) {
-	strFromDecBytes := strings.Trim(string(db[:]), "0")
+	strFromDecBytes := strings.Trim(string(db), "0")
 	if string(strFromDecBytes[0]) == "." {
 		strFromDecBytes = "0" + strFromDecBytes
 	}

@@ -87,7 +87,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 	return cli.GetQueryCmd(types.StoreKey)
 }
 
-//____________________________________________________________________________
+// ____________________________________________________________________________
 
 // AppModule implements the sdk.AppModule interface.
 type AppModule struct {
@@ -160,7 +160,7 @@ func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Valid
 	return []abci.ValidatorUpdate{}
 }
 
-//____________________________________________________________________________
+// ____________________________________________________________________________
 
 // // GenerateGenesisState creates a randomized GenState of the bep3 module
 // func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {

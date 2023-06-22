@@ -12,7 +12,7 @@ var (
 	// ErrAuctionNotFound error for when an auction is not found
 	ErrAuctionNotFound = errorsmod.Register(ModuleName, 4, "auction not found")
 	// ErrAuctionHasNotExpired error for attempting to close an auction that has not passed its end time
-	ErrAuctionHasNotExpired = errorsmod.Register(ModuleName, 5, "auction can't be closed as curent block time has not passed auction end time")
+	ErrAuctionHasNotExpired = errorsmod.Register(ModuleName, 5, "auction can't be closed as current block time has not passed auction end time")
 	// ErrAuctionHasExpired error for when an auction is closed and unavailable for bidding
 	ErrAuctionHasExpired = errorsmod.Register(ModuleName, 6, "auction has closed")
 	// ErrInvalidBidDenom error for when bid denom doesn't match auction bid denom
