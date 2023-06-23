@@ -98,11 +98,10 @@ kava tx issuance issue 6000000000ukava kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfh
 
 # parse space seperated list of validators
 # into bash array
-read -r -a GENESIS_VALIDATOR_ADDRESS_ARRAY <<< "$GENESIS_VALIDATOR_ADDRESSES"
+read -r -a GENESIS_VALIDATOR_ADDRESS_ARRAY <<<"$GENESIS_VALIDATOR_ADDRESSES"
 
 # delegate 300KAVA to each validator
-for validator in "${GENESIS_VALIDATOR_ADDRESS_ARRAY[@]}"
-do
+for validator in "${GENESIS_VALIDATOR_ADDRESS_ARRAY[@]}"; do
   kava tx staking delegate "${validator}" 300000000ukava --from dev-wallet --gas-prices 0.5ukava -y
 done
 
@@ -114,7 +113,8 @@ echo "${KAVA_TESTNET_GOD_MNEMONIC}" | kava keys add --recover god
 
 # create template string for the proposal we want to enact
 # https://kava-labs.atlassian.net/wiki/spaces/ENG/pages/1228537857/Submitting+Governance+Proposals+WIP
-PARAM_CHANGE_PROP_TEMPLATE=$(cat <<'END_HEREDOC'
+PARAM_CHANGE_PROP_TEMPLATE=$(
+  cat <<'END_HEREDOC'
 {
     "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
     "title": "Set Initial ERC-20 Contracts",
@@ -146,7 +146,7 @@ proposalFileName="$(date +%s)-proposal.json"
 touch $proposalFileName
 
 # save proposal as file to disk
-echo "$finalProposal" > $proposalFileName
+echo "$finalProposal" >$proposalFileName
 
 # snapshot original module params
 originalEvmUtilParams=$(curl https://api.app.internal.testnet.us-east.production.kava.io/kava/evmutil/v1beta1/params)
@@ -165,3 +165,10 @@ kava tx committee vote 1 yes --gas 2000000 --gas-prices 0.01ukava --from god -y
 # fetch current module params
 updatedEvmUtilParams=$(curl https://api.app.internal.testnet.us-east.production.kava.io/kava/evmutil/v1beta1/params)
 printf "updated evm util module params\n %s" , "$updatedEvmUtilParams"
+
+# if adding more cosmos coins -> er20s, ensure that the deployment order below remains the same.
+# convert 1 HARD to an erc20. doing this ensures the contract is deployed.
+kava tx evmutil convert-cosmos-coin-to-erc20 \
+  "$DEV_TEST_WALLET_ADDRESS" \
+  1000000hard \
+  --from dev-wallet --gas 2000000 --gas-prices 0.001ukava -y
