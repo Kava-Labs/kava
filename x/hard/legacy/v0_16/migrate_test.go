@@ -136,7 +136,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					KeeperRewardPercentage: sdk.MustNewDecFromStr("0.6"),
 				},
 				{
-					Denom: UATOM_IBC_DENOM,
+					Denom: UatomIBCDenom,
 					BorrowLimit: v016hard.BorrowLimit{
 						HasMaxLimit:  true,
 						MaximumLimit: sdk.NewDec(25000000000),

@@ -31,21 +31,21 @@ type ParamsChangeTestSuite struct {
 	cdpCollateralRequirements []types.SubparamRequirement
 }
 
-func (suite *ParamsChangeTestSuite) SetupTest() {
+func (s *ParamsChangeTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
-	suite.ctx = ctx
-	suite.pk = tApp.GetParamsKeeper()
+	s.ctx = ctx
+	s.pk = tApp.GetParamsKeeper()
 
-	suite.cdpDebtParam = cdptypes.DebtParam{
+	s.cdpDebtParam = cdptypes.DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
 		ConversionFactor: sdkmath.NewInt(6),
 		DebtFloor:        sdkmath.NewInt(1000),
 	}
 
-	suite.cdpCollateralParams = cdptypes.CollateralParams{
+	s.cdpCollateralParams = cdptypes.CollateralParams{
 		{
 			Denom:                            "bnb",
 			Type:                             "bnb-a",
@@ -74,7 +74,7 @@ func (suite *ParamsChangeTestSuite) SetupTest() {
 			KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.12"),
 		},
 	}
-	suite.cdpCollateralRequirements = []types.SubparamRequirement{
+	s.cdpCollateralRequirements = []types.SubparamRequirement{
 		{
 			Key:                        "type",
 			Val:                        "bnb-a",

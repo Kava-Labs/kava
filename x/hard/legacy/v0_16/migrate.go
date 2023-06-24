@@ -10,7 +10,7 @@ import (
 )
 
 // Denom generated via: echo -n transfer/channel-0/uatom | shasum -a 256 | awk '{printf "ibc/%s",toupper($1)}'
-const UATOM_IBC_DENOM = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
+const UatomIBCDenom = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
 
 func migrateParams(params v015hard.Params) v016hard.Params {
 	var moneyMarkets []v016hard.MoneyMarket
@@ -37,7 +37,7 @@ func migrateParams(params v015hard.Params) v016hard.Params {
 	}
 
 	atomMoneyMarket := v016hard.MoneyMarket{
-		Denom: UATOM_IBC_DENOM,
+		Denom: UatomIBCDenom,
 		BorrowLimit: v016hard.BorrowLimit{
 			HasMaxLimit:  true,
 			MaximumLimit: sdk.NewDec(25000000000),

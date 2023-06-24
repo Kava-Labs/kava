@@ -9,6 +9,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const bnb = "bnb"
+
 type AccumulateBorrowRewardsTests struct {
 	unitTester
 }
@@ -36,7 +38,7 @@ func TestAccumulateBorrowRewards(t *testing.T) {
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -88,7 +90,7 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUpdatedWhenBlockTimeHasIncre
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -133,7 +135,7 @@ func (suite *AccumulateBorrowRewardsTests) TestStateUnchangedWhenBlockTimeHasNot
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper() // zero total borrows
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -179,7 +181,7 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenSourceSharesAre
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestStateAddedWhenStateDoesNotExist() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -222,7 +224,7 @@ func (suite *AccumulateBorrowRewardsTests) TestStateAddedWhenStateDoesNotExist()
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestNoPanicWhenStateDoesNotExist() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper()
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -250,7 +252,7 @@ func (suite *AccumulateBorrowRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -296,7 +298,7 @@ func (suite *AccumulateBorrowRewardsTests) TestNoAccumulationWhenBeforeStartTime
 }
 
 func (suite *AccumulateBorrowRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalBorrow(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
