@@ -21,7 +21,7 @@ func Cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func AssertProtoMessageJSON(t *testing.T, cdc codec.Codec, expected proto.Message, actual proto.Message) {
 	expectedJSON, err := cdc.MarshalJSON(expected)
 	assert.NoError(t, err)
-	actualJson, err := cdc.MarshalJSON(actual)
+	actualJSON, err := cdc.MarshalJSON(actual)
 	assert.NoError(t, err)
-	assert.Equal(t, string(expectedJSON), string(actualJson))
+	assert.Equal(t, string(expectedJSON), string(actualJSON))
 }

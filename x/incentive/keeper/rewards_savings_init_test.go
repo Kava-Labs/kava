@@ -11,6 +11,8 @@ import (
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
+const testDenom = "test"
+
 // InitializeSavingsRewardTests runs unit tests for the keeper.InitializeSavingsReward method
 type InitializeSavingsRewardTests struct {
 	unitTester
@@ -28,7 +30,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimAddedWhenClaimDoesNotExistAn
 
 	owner := arbitraryAddress()
 
-	amount := sdk.NewCoin("test", sdk.OneInt())
+	amount := sdk.NewCoin(testDenom, sdk.OneInt())
 	deposit := savingstypes.NewDeposit(owner, sdk.NewCoins(amount))
 
 	suite.keeper.InitializeSavingsReward(suite.ctx, deposit)
@@ -49,7 +51,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimAddedWhenClaimDoesNotExistAn
 	// When a claim doesn't exist, and a user deposits to a rewarded pool;
 	// then a claim is added with no rewards and indexes matching the global indexes
 
-	amount := sdk.NewCoin("test", sdk.OneInt())
+	amount := sdk.NewCoin(testDenom, sdk.OneInt())
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -104,7 +106,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndNoR
 	suite.storeSavingsClaim(claim)
 
 	// no global indexes stored as the new denom is not rewarded
-	newDenom := "test"
+	newDenom := testDenom
 	deposit := savingstypes.NewDeposit(claim.Owner, sdk.NewCoins(sdk.NewCoin(newDenom, sdk.OneInt())))
 	suite.keeper.InitializeSavingsReward(suite.ctx, deposit)
 
@@ -139,7 +141,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndRew
 		},
 	}
 
-	newDenom := "test"
+	newDenom := testDenom
 	newIndexes := types.RewardIndexes{
 		{
 			CollateralType: "otherrewarddenom",

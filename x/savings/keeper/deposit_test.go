@@ -18,6 +18,8 @@ import (
 	"github.com/kava-labs/kava/x/savings/types"
 )
 
+const ukava = "ukava"
+
 func (suite *KeeperTestSuite) TestDeposit() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	valAccAddr, delegator := addrs[0], addrs[1]
@@ -51,7 +53,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"valid",
 			args{
-				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
+				allowedDenoms:             []string{"bnb", "btcb", ukava},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
@@ -68,7 +70,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"valid multi deposit",
 			args{
-				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
+				allowedDenoms:             []string{"bnb", "btcb", ukava},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(100))),
@@ -85,7 +87,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"valid bkava",
 			args{
-				allowedDenoms:             []string{"bnb", "btcb", "ukava", "bkava"},
+				allowedDenoms:             []string{"bnb", "btcb", ukava, "bkava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin(bkavaDenom, sdkmath.NewInt(100))),
@@ -102,7 +104,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"invalid deposit denom",
 			args{
-				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
+				allowedDenoms:             []string{"bnb", "btcb", ukava},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin("fake", sdkmath.NewInt(100))),
@@ -119,7 +121,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"invalid bkava",
 			args{
-				allowedDenoms:             []string{"bnb", "btcb", "ukava", "bkava"},
+				allowedDenoms:             []string{"bnb", "btcb", ukava, "bkava"},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin(invalidBkavaDenom, sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin(invalidBkavaDenom, sdkmath.NewInt(100))),
@@ -136,7 +138,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 		{
 			"insufficient funds",
 			args{
-				allowedDenoms:             []string{"bnb", "btcb", "ukava"},
+				allowedDenoms:             []string{"bnb", "btcb", ukava},
 				depositor:                 sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 				initialDepositorBalance:   sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(1000)), sdk.NewCoin("btcb", sdkmath.NewInt(1000))),
 				depositAmount:             sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(10000))),
@@ -169,7 +171,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			)
 
 			stakingParams := stakingtypes.DefaultParams()
-			stakingParams.BondDenom = "ukava"
+			stakingParams.BondDenom = ukava
 
 			tApp.InitializeFromGenesisStates(authGS,
 				app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&savingsGS)},
@@ -181,8 +183,8 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			suite.keeper = keeper
 
 			// Create validator and delegate for bkava
-			suite.CreateAccountWithAddress(valAccAddr, cs(c("ukava", 100e10)))
-			suite.CreateAccountWithAddress(delegator, cs(c("ukava", 100e10)))
+			suite.CreateAccountWithAddress(valAccAddr, cs(c(ukava, 100e10)))
+			suite.CreateAccountWithAddress(delegator, cs(c(ukava, 100e10)))
 
 			suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 			suite.CreateDelegation(valAddr, delegator, initialBalance)

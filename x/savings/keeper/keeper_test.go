@@ -91,19 +91,9 @@ func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authtypes.AccountI {
-	ak := suite.app.GetAccountKeeper()
-	return ak.GetAccount(ctx, addr)
-}
-
 func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetModuleAccount(suite.ctx, name)
-}
-
-func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) authtypes.ModuleAccountI {
-	ak := suite.app.GetAccountKeeper()
-	return ak.GetModuleAccount(ctx, name)
 }
 
 func TestKeeperTestSuite(t *testing.T) {

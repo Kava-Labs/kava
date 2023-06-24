@@ -152,21 +152,21 @@ func (s *migrateTestSuite) TestMigrate_Supplies() {
 	s.v15genstate.Supplies = v015issuance.AssetSupplies{
 		{
 			CurrentSupply: sdk.NewCoin("ukava", sdkmath.NewInt(100)),
-			TimeElapsed:   time.Duration(1 * time.Hour),
+			TimeElapsed:   1 * time.Hour,
 		},
 		{
 			CurrentSupply: sdk.NewCoin("bnb", sdkmath.NewInt(300)),
-			TimeElapsed:   time.Duration(5 * time.Minute),
+			TimeElapsed:   5 * time.Minute,
 		},
 	}
 	expected := []v016issuance.AssetSupply{
 		{
 			CurrentSupply: sdk.NewCoin("ukava", sdkmath.NewInt(100)),
-			TimeElapsed:   time.Duration(1 * time.Hour),
+			TimeElapsed:   1 * time.Hour,
 		},
 		{
 			CurrentSupply: sdk.NewCoin("bnb", sdkmath.NewInt(300)),
-			TimeElapsed:   time.Duration(5 * time.Minute),
+			TimeElapsed:   5 * time.Minute,
 		},
 	}
 	genState := Migrate(s.v15genstate)

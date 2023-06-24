@@ -236,11 +236,3 @@ func (suite *SynchronizeSavingsRewardTests) TestClaimUpdatedWhenNewRewardDenomAd
 		syncedClaim.Reward,
 	)
 }
-
-func getDenoms(coins sdk.Coins) []string {
-	denoms := []string{}
-	for _, coin := range coins {
-		denoms = append(denoms, coin.Denom)
-	}
-	return denoms
-}

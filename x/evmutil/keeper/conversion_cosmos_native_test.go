@@ -20,6 +20,8 @@ type convertCosmosCoinToERC20Suite struct {
 	testutil.Suite
 }
 
+const magic = "magic"
+
 func TestConversionCosmosNativeToEvmSuite(t *testing.T) {
 	suite.Run(t, new(convertCosmosCoinToERC20Suite))
 }
@@ -190,7 +192,7 @@ func (suite *convertCosmosCoinFromERC20Suite) SetupTest() {
 	var err error
 	suite.Suite.SetupTest()
 
-	suite.denom = "magic"
+	suite.denom = magic
 	suite.initiator = testutil.RandomInternalEVMAddress()
 	suite.receiver = app.RandomAddress()
 

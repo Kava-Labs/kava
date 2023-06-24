@@ -56,11 +56,6 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.modAccount = modAccount
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
-	ak := suite.tApp.GetAccountKeeper()
-	return ak.GetAccount(suite.ctx, addr)
-}
-
 func (suite *KeeperTestSuite) getBalance(addr sdk.AccAddress, denom string) sdk.Coin {
 	bk := suite.tApp.GetBankKeeper()
 	return bk.GetBalance(suite.ctx, addr, denom)

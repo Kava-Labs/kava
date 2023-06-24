@@ -47,9 +47,9 @@ func (msg MsgSubmitProposal) GetPubProposal() PubProposal {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (m MsgSubmitProposal) UnpackInterfaces(unpacker types.AnyUnpacker) error {
+func (msg MsgSubmitProposal) UnpackInterfaces(unpacker types.AnyUnpacker) error {
 	var content PubProposal
-	return unpacker.UnpackAny(m.PubProposal, &content)
+	return unpacker.UnpackAny(msg.PubProposal, &content)
 }
 
 // Route return the message type used for routing the message.

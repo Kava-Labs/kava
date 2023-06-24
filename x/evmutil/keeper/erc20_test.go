@@ -171,7 +171,7 @@ func (suite *ERC20TestSuite) TestDeployKavaWrappedCosmosCoinERC20Contract() {
 func (suite *ERC20TestSuite) TestGetOrDeployCosmosCoinERC20Contract() {
 	suite.Run("finds existing contract address", func() {
 		suite.SetupTest()
-		denom := "magic"
+		denom := magic
 		addr := types.BytesToInternalEVMAddress(app.RandomAddress().Bytes())
 		// pretend like we've registered a contract in a previous life
 		err := suite.Keeper.SetDeployedCosmosCoinContract(suite.Ctx, denom, addr)
@@ -191,7 +191,7 @@ func (suite *ERC20TestSuite) TestGetOrDeployCosmosCoinERC20Contract() {
 
 	suite.Run("deploys & registers contract when one does not exist", func() {
 		suite.SetupTest()
-		denom := "magic"
+		denom := magic
 		tokenInfo := types.NewAllowedCosmosCoinERC20Token(denom, "Magic Coin", "MAGIC", 6)
 
 		// expect it to not be registered

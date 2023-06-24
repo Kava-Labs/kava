@@ -133,16 +133,16 @@ func (suite *genesisTestSuite) Test_LegacyJSONConversion() {
 	cdc := encodingCfg.Marshaler
 	legacyCdc := encodingCfg.Amino
 
-	protoJson, err := cdc.MarshalJSON(&state)
+	protoJSON, err := cdc.MarshalJSON(&state)
 	suite.Require().NoError(err, "expected genesis state to marshal amino json without error")
 
-	aminoJson, err := legacyCdc.MarshalJSON(&state)
+	aminoJSON, err := legacyCdc.MarshalJSON(&state)
 	suite.Require().NoError(err, "expected genesis state to marshal amino json without error")
 
-	suite.JSONEq(string(protoJson), string(aminoJson), "expected json outputs to be equal")
+	suite.JSONEq(string(protoJSON), string(aminoJSON), "expected json outputs to be equal")
 
 	var importedState types.GenesisState
-	err = cdc.UnmarshalJSON(aminoJson, &importedState)
+	err = cdc.UnmarshalJSON(aminoJSON, &importedState)
 	suite.Require().NoError(err, "expected amino json to unmarshall to proto without error")
 
 	suite.Equal(state, importedState, "expected genesis state to be equal")

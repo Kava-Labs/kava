@@ -17,6 +17,8 @@ import (
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
+const ukava = "ukava"
+
 // Avoid cluttering test cases with long function names
 func i(in int64) sdkmath.Int                { return sdkmath.NewInt(in) }
 func d(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
@@ -170,7 +172,7 @@ func NewPricefeedGenStateMultiFromTime(cdc codec.JSONCodec, t time.Time) app.Gen
 }
 
 func NewHardGenStateMulti(genTime time.Time) testutil.HardGenesisBuilder {
-	kavaMM := testutil.NewStandardMoneyMarket("ukava")
+	kavaMM := testutil.NewStandardMoneyMarket(ukava)
 	kavaMM.SpotMarketID = "kava:usd"
 	btcMM := testutil.NewStandardMoneyMarket("btcb")
 	btcMM.SpotMarketID = "btc:usd"
@@ -187,7 +189,7 @@ func NewHardGenStateMulti(genTime time.Time) testutil.HardGenesisBuilder {
 
 func NewStakingGenesisState(cdc codec.JSONCodec) app.GenesisState {
 	genState := stakingtypes.DefaultGenesisState()
-	genState.Params.BondDenom = "ukava"
+	genState.Params.BondDenom = ukava
 	return app.GenesisState{
 		stakingtypes.ModuleName: cdc.MustMarshalJSON(genState),
 	}
@@ -228,7 +230,7 @@ func NewCommitteeGenesisState(cdc codec.Codec, committeeID uint64, members ...sd
 func NewSwapGenesisState(cdc codec.JSONCodec) app.GenesisState {
 	genesis := swaptypes.NewGenesisState(
 		swaptypes.NewParams(
-			swaptypes.NewAllowedPools(swaptypes.NewAllowedPool("busd", "ukava")),
+			swaptypes.NewAllowedPools(swaptypes.NewAllowedPool("busd", ukava)),
 			d("0.0"),
 		),
 		swaptypes.DefaultPoolRecords,

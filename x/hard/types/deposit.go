@@ -22,12 +22,12 @@ func NewDeposit(depositor sdk.AccAddress, amount sdk.Coins, indexes SupplyIntere
 // The normalized deposit is effectively how big the deposit would have been if it had been supplied at time 0 and not touched since.
 //
 // An error is returned if the deposit is in an invalid state.
-func (b Deposit) NormalizedDeposit() (sdk.DecCoins, error) {
+func (d Deposit) NormalizedDeposit() (sdk.DecCoins, error) {
 	normalized := sdk.NewDecCoins()
 
-	for _, coin := range b.Amount {
+	for _, coin := range d.Amount {
 
-		factor, found := b.Index.GetInterestFactor(coin.Denom)
+		factor, found := d.Index.GetInterestFactor(coin.Denom)
 		if !found {
 			return nil, fmt.Errorf("deposited amount '%s' missing interest factor", coin.Denom)
 		}

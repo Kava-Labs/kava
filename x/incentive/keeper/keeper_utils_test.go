@@ -12,12 +12,6 @@ type TestKeeper struct {
 	keeper.Keeper
 }
 
-func (keeper TestKeeper) storeGlobalBorrowIndexes(ctx sdk.Context, indexes types.MultiRewardIndexes) {
-	for _, i := range indexes {
-		keeper.SetHardBorrowRewardIndexes(ctx, i.CollateralType, i.RewardIndexes)
-	}
-}
-
 func (keeper TestKeeper) storeGlobalSupplyIndexes(ctx sdk.Context, indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
 		keeper.SetHardSupplyRewardIndexes(ctx, i.CollateralType, i.RewardIndexes)

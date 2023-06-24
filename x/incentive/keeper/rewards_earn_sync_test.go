@@ -22,6 +22,8 @@ type SynchronizeEarnRewardTests struct {
 	unitTester
 }
 
+const cats = "cats"
+
 func TestSynchronizeEarnReward(t *testing.T) {
 	suite.Run(t, new(SynchronizeEarnRewardTests))
 }
@@ -33,7 +35,7 @@ func (suite *SynchronizeEarnRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 	// The user earns rewards for the time passed, and the claim indexes are updated
 
 	originalReward := arbitraryCoins()
-	vaultDenom := "cats"
+	vaultDenom := cats
 
 	claim := types.EarnClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -84,7 +86,7 @@ func (suite *SynchronizeEarnRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 func (suite *SynchronizeEarnRewardTests) TestClaimUnchangedWhenGlobalIndexesUnchanged() {
 	// It should be safe to call SynchronizeEarnReward multiple times
 
-	vaultDenom := "cats"
+	vaultDenom := cats
 	unchangingIndexes := types.MultiRewardIndexes{
 		{
 			CollateralType: vaultDenom,
@@ -213,7 +215,7 @@ func (suite *SynchronizeEarnRewardTests) TestClaimUpdatedWhenNewRewardDenomAdded
 	// Then the user earns rewards for the time since the reward was added, and the new indexes are added.
 
 	originalReward := arbitraryCoins()
-	vaultDenom := "cats"
+	vaultDenom := cats
 
 	claim := types.EarnClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -273,7 +275,7 @@ func (suite *SynchronizeEarnRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 	// When the claim is synced, but the user has no shares
 	// The user earns no rewards for the time passed, but the claim indexes are updated
 
-	vaultDenom := "cats"
+	vaultDenom := cats
 
 	claim := types.EarnClaim{
 		BaseMultiClaim: types.BaseMultiClaim{

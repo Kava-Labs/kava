@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/kava-labs/kava/app"
@@ -23,11 +22,6 @@ func getProposalVoteMap(k keeper.Keeper, ctx sdk.Context) map[uint64]([]types.Vo
 		return false
 	})
 	return proposalVoteMap
-}
-
-func (suite *keeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
-	ak := suite.App.GetAccountKeeper()
-	return ak.GetAccount(suite.Ctx, addr)
 }
 
 func mustNewTestMemberCommittee(addresses []sdk.AccAddress) *types.MemberCommittee {
