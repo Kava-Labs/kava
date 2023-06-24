@@ -16,8 +16,8 @@ type genesisTestSuite struct {
 	testutil.Suite
 }
 
-func (suite *genesisTestSuite) SetupTest() {
-	suite.Suite.SetupTest()
+func (s *genesisTestSuite) SetupTest() {
+	s.Suite.SetupTest()
 }
 
 func (s *genesisTestSuite) TestInitGenesis_SetAccounts() {

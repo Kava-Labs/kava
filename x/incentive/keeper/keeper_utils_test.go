@@ -12,18 +12,6 @@ type TestKeeper struct {
 	keeper.Keeper
 }
 
-func (keeper TestKeeper) storeGlobalSwapIndexes(ctx sdk.Context, indexes types.MultiRewardIndexes) {
-	for _, i := range indexes {
-		keeper.SetSwapRewardIndexes(ctx, i.CollateralType, i.RewardIndexes)
-	}
-}
-
-func (keeper TestKeeper) storeGlobalSavingsIndexes(ctx sdk.Context, indexes types.MultiRewardIndexes) {
-	for _, i := range indexes {
-		keeper.SetSavingsRewardIndexes(ctx, i.CollateralType, i.RewardIndexes)
-	}
-}
-
 func (keeper TestKeeper) storeGlobalEarnIndexes(ctx sdk.Context, indexes types.MultiRewardIndexes) {
 	for _, i := range indexes {
 		keeper.SetEarnRewardIndexes(ctx, i.CollateralType, i.RewardIndexes)

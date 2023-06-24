@@ -45,8 +45,8 @@ func NewInternalEVMAddressFromString(addrStr string) (InternalEVMAddress, error)
 }
 
 // Equal checks if two InternalEVMAddress instances are equal.
-func (addr InternalEVMAddress) Equal(other InternalEVMAddress) bool {
-	return addr.Address == other.Address
+func (a InternalEVMAddress) Equal(other InternalEVMAddress) bool {
+	return a.Address == other.Address
 }
 
 // MarshalTo implements the protobuf Marshaler interface.

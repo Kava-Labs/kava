@@ -35,7 +35,7 @@ func TestAccumulateSupplyRewards(t *testing.T) {
 }
 
 func (suite *AccumulateSupplyRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalSupply(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -87,7 +87,7 @@ func (suite *AccumulateSupplyRewardsTests) TestStateUpdatedWhenBlockTimeHasIncre
 }
 
 func (suite *AccumulateSupplyRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalSupply(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -132,7 +132,7 @@ func (suite *AccumulateSupplyRewardsTests) TestStateUnchangedWhenBlockTimeHasNot
 }
 
 func (suite *AccumulateSupplyRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper() // zero total supplys
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -178,7 +178,7 @@ func (suite *AccumulateSupplyRewardsTests) TestNoAccumulationWhenSourceSharesAre
 }
 
 func (suite *AccumulateSupplyRewardsTests) TestStateAddedWhenStateDoesNotExist() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalSupply(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -221,7 +221,7 @@ func (suite *AccumulateSupplyRewardsTests) TestStateAddedWhenStateDoesNotExist()
 }
 
 func (suite *AccumulateSupplyRewardsTests) TestNoPanicWhenStateDoesNotExist() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper()
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -249,7 +249,7 @@ func (suite *AccumulateSupplyRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 }
 
 func (suite *AccumulateSupplyRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalSupply(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)
@@ -295,7 +295,7 @@ func (suite *AccumulateSupplyRewardsTests) TestNoAccumulationWhenBeforeStartTime
 }
 
 func (suite *AccumulateSupplyRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
-	denom := "bnb"
+	denom := bnb
 
 	hardKeeper := newFakeHardKeeper().addTotalSupply(c(denom, 1e6), d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, hardKeeper, nil, nil, nil, nil, nil, nil)

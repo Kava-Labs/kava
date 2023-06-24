@@ -10,7 +10,10 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
-const preexistingVaultDenom = "preexisting"
+const (
+	preexistingVaultDenom = "preexisting"
+	newVaultDenom
+)
 
 // InitializeEarnRewardTests runs unit tests for the keeper.InitializeEarnReward method
 //
@@ -32,7 +35,7 @@ func (suite *InitializeEarnRewardTests) TestClaimAddedWhenClaimDoesNotExistAndNo
 	// When a claim doesn't exist, and a user deposits to a non-rewarded pool;
 	// then a claim is added with no rewards and no indexes
 
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	// no global indexes stored as this pool is not rewarded
 
@@ -56,7 +59,7 @@ func (suite *InitializeEarnRewardTests) TestClaimAddedWhenClaimDoesNotExistAndRe
 	// When a claim doesn't exist, and a user deposits to a rewarded pool;
 	// then a claim is added with no rewards and indexes matching the global indexes
 
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	globalIndexes := types.MultiRewardIndexes{
 		{

@@ -86,7 +86,6 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndNoR
 	// When a claim exists, and a user deposits to a new non-rewarded denom;
 	// then the claim's rewards don't change
 
-	preexistingDenom := "preexisting"
 	preexistingIndexes := types.RewardIndexes{
 		{
 			CollateralType: "rewarddenom",
@@ -136,7 +135,6 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndRew
 	// When a claim exists, and a user deposits to a new rewarded denom;
 	// then the claim's rewards don't change and the indexes are updated to match the global indexes
 
-	preexistingDenom := "preexisting"
 	preexistingIndexes := types.RewardIndexes{
 		{
 			CollateralType: "rewarddenom",

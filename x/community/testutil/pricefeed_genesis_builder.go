@@ -32,13 +32,13 @@ func (b lendGenesisBuilder) Build() (hardtypes.GenesisState, pricefeedtypes.Gene
 	return hardGS, pricefeedGS
 }
 
-func (b lendGenesisBuilder) WithMarket(denom, spotMarketId string, price sdk.Dec) lendGenesisBuilder {
+func (b lendGenesisBuilder) WithMarket(denom, spotMarketID string, price sdk.Dec) lendGenesisBuilder {
 	// add hard money market
 	b.hardMarkets = append(b.hardMarkets,
 		hardtypes.NewMoneyMarket(
 			denom,
 			hardtypes.NewBorrowLimit(false, sdk.NewDec(1e15), sdk.MustNewDecFromStr("0.6")),
-			spotMarketId,
+			spotMarketID,
 			sdkmath.NewInt(1e6),
 			hardtypes.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")),
 			sdk.MustNewDecFromStr("0.05"),
@@ -48,11 +48,11 @@ func (b lendGenesisBuilder) WithMarket(denom, spotMarketId string, price sdk.Dec
 
 	// add pricefeed
 	b.pfMarkets = append(b.pfMarkets,
-		pricefeedtypes.Market{MarketID: spotMarketId, BaseAsset: denom, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		pricefeedtypes.Market{MarketID: spotMarketID, BaseAsset: denom, QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 	)
 	b.prices = append(b.prices,
 		pricefeedtypes.PostedPrice{
-			MarketID:      spotMarketId,
+			MarketID:      spotMarketID,
 			OracleAddress: sdk.AccAddress{},
 			Price:         price,
 			Expiry:        time.Now().Add(100 * time.Hour),
