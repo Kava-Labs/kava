@@ -4,15 +4,17 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/stretchr/testify/suite"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type QuerierTestSuite struct {

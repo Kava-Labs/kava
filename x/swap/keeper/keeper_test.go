@@ -4,14 +4,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/swap/testutil"
 	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/kava-labs/kava/x/swap/types/mocks"
-
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
 )
 
 func TestMain(m *testing.M) {
@@ -56,7 +58,7 @@ func (suite *keeperTestSuite) setupPool(reserves sdk.Coins, totalShares sdkmath.
 	return poolID
 }
 
-func (suite keeperTestSuite) TestParams_Persistance() {
+func (suite keeperTestSuite) TestParams_Persistence() {
 	keeper := suite.Keeper
 
 	params := types.Params{
@@ -91,7 +93,7 @@ func (suite keeperTestSuite) TestParams_GetSwapFee() {
 	suite.Equal(keeper.GetSwapFee(suite.Ctx), params.SwapFee)
 }
 
-func (suite *keeperTestSuite) TestPool_Persistance() {
+func (suite *keeperTestSuite) TestPool_Persistence() {
 	reserves := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdkmath.NewInt(10e6)),
 		sdk.NewCoin("usdx", sdkmath.NewInt(50e6)),
@@ -128,7 +130,7 @@ func (suite *keeperTestSuite) TestPool_PanicsWhenInvalid() {
 	}, "expected set pool to panic with invalid record")
 }
 
-func (suite *keeperTestSuite) TestShare_Persistance() {
+func (suite *keeperTestSuite) TestShare_Persistence() {
 	poolID := types.PoolID("ukava", "usdx")
 	depositor, err := sdk.AccAddressFromBech32("kava1skpsgk5cnrarn69ql2tfun47fyjssataz0g07l")
 	suite.NoError(err)

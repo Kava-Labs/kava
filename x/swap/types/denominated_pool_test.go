@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"testing"
 
-	types "github.com/kava-labs/kava/x/swap/types"
-
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	types "github.com/kava-labs/kava/x/swap/types"
 )
 
 // create a new ukava coin from int64

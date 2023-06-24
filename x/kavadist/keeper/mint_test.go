@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
@@ -175,11 +176,9 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 		)
 
 	}
-
 }
 
 func (suite *keeperTestSuite) TestInfraPayoutCore() {
-
 	type args struct {
 		startTime               time.Time
 		endTime                 time.Time
@@ -246,11 +245,9 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
 
 	}
-
 }
 
 func (suite *keeperTestSuite) TestInfraPayoutPartner() {
-
 	type args struct {
 		startTime               time.Time
 		endTime                 time.Time
@@ -317,11 +314,9 @@ func (suite *keeperTestSuite) TestInfraPayoutPartner() {
 		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
 
 	}
-
 }
 
 func (suite *keeperTestSuite) TestInfraPayoutE2E() {
-
 	type balance struct {
 		address sdk.AccAddress
 		amount  sdk.Coins

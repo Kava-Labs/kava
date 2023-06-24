@@ -6,15 +6,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
+	"github.com/tendermint/tendermint/crypto"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	"github.com/tendermint/tendermint/crypto"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/issuance/keeper"

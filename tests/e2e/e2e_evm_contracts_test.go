@@ -6,16 +6,16 @@ import (
 	"time"
 
 	sdkerrors "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/kava-labs/kava/app"
-	earntypes "github.com/kava-labs/kava/x/earn/types"
-	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
-
 	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
 	"github.com/kava-labs/kava/tests/util"
+	earntypes "github.com/kava-labs/kava/x/earn/types"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
 func (suite *IntegrationTestSuite) TestEthCallToGreeterContract() {

@@ -4,13 +4,15 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/kava-labs/kava/x/swap/types"
-
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 func (suite *keeperTestSuite) TestDeposit_CreatePool_PoolNotAllowed() {

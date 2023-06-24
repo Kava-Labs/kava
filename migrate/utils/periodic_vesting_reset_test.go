@@ -4,12 +4,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	"github.com/stretchr/testify/assert"
 )
 
 func createVestingAccount(balance sdk.Coins, vestingStart time.Time, vestingPeriods vestingtypes.Periods) *vestingtypes.PeriodicVestingAccount {

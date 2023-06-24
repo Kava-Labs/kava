@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"testing"
 
-	types "github.com/kava-labs/kava/x/swap/types"
-
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	types "github.com/kava-labs/kava/x/swap/types"
 )
 
 func TestState_PoolID(t *testing.T) {

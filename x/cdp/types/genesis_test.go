@@ -3,10 +3,12 @@ package types_test
 import (
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	"github.com/kava-labs/kava/x/cdp/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
+	"github.com/kava-labs/kava/x/cdp/types"
 )
 
 func TestGenesis_Default(t *testing.T) {

@@ -3,6 +3,7 @@ package pricefeed_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -11,8 +12,6 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/pricefeed"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
-
-	"github.com/stretchr/testify/suite"
 )
 
 type GenesisTestSuite struct {

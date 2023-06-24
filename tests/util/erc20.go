@@ -57,12 +57,12 @@ func BuildErc20TransferFromCallData(from common.Address, to common.Address, amou
 }
 
 func BuildErc20MintCallData(to common.Address, amount *big.Int) []byte {
-	methodId := EvmContractMethodID("mint(address,uint256)")
+	methodID := EvmContractMethodID("mint(address,uint256)")
 	paddedAddress := common.LeftPadBytes(to.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
 	var data []byte
-	data = append(data, methodId...)
+	data = append(data, methodID...)
 	data = append(data, paddedAddress...)
 	data = append(data, paddedAmount...)
 

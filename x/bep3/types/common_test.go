@@ -3,10 +3,11 @@ package types_test
 import (
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/bep3/types"
 )

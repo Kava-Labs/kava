@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/suite"
-
 	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

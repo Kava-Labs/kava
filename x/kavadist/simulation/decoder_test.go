@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/kava-labs/kava/x/kavadist/types"
-
 	"github.com/cosmos/cosmos-sdk/types/kv"
+
+	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
 func TestDecodeDistributionStore(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community/types"
 )

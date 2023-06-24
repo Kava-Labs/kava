@@ -4,10 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kava-labs/kava/x/earn/types"
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/kava-labs/kava/x/earn/types"
 )
 
 var (

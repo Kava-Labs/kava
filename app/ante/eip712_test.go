@@ -5,21 +5,9 @@ import (
 	"testing"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/client"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/tests"
@@ -32,6 +20,19 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmversion "github.com/tendermint/tendermint/proto/tendermint/version"
 	"github.com/tendermint/tendermint/version"
+
+	sdkmath "cosmossdk.io/math"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -336,14 +337,13 @@ func (suite *EIP712TestSuite) SetupTest() {
 
 	// Add a contract to evmutil conversion pair
 	evmutilParams := suite.evmutilKeeper.GetParams(suite.ctx)
-	evmutilParams.EnabledConversionPairs =
-		evmutiltypes.NewConversionPairs(
-			evmutiltypes.NewConversionPair(
-				// First contract evmutil module deploys
-				evmutiltestutil.MustNewInternalEVMAddressFromString("0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3"),
-				"erc20/usdc",
-			),
-		)
+	evmutilParams.EnabledConversionPairs = evmutiltypes.NewConversionPairs(
+		evmutiltypes.NewConversionPair(
+			// First contract evmutil module deploys
+			evmutiltestutil.MustNewInternalEVMAddressFromString("0x15932E26f5BD4923d46a2b205191C4b5d5f43FE3"),
+			"erc20/usdc",
+		),
+	)
 	suite.evmutilKeeper.SetParams(suite.ctx, evmutilParams)
 
 	// allow msgs through evm eip712
@@ -422,14 +422,14 @@ func (suite *EIP712TestSuite) SetupTest() {
 	err = suite.evmutilKeeper.MintERC20(
 		ctx,
 		pair.GetAddress(), // contractAddr
-		suite.testEVMAddr, //receiver
+		suite.testEVMAddr, // receiver
 		initBal.BigInt(),
 	)
 	suite.Require().NoError(err)
 	err = suite.evmutilKeeper.MintERC20(
 		ctx,
 		pair.GetAddress(),  // contractAddr
-		suite.testEVMAddr2, //receiver
+		suite.testEVMAddr2, // receiver
 		initBal.BigInt(),
 	)
 	suite.Require().NoError(err)
@@ -487,7 +487,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  99,
 		},
 		{
-			name:           "fails when convertion more erc20 usdc than balance",
+			name:           "fails when conversion more erc20 usdc than balance",
 			usdcDepositAmt: 51_000,
 			usdxToMintAmt:  100,
 			errMsg:         "transfer amount exceeds balance",

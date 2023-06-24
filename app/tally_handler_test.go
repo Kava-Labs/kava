@@ -4,7 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -14,8 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
@@ -211,7 +213,6 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
 		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
 	})
-
 }
 
 func (suite *tallyHandlerSuite) setTallyParams(quorum, threshold, veto sdk.Dec) {

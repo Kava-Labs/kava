@@ -3,20 +3,16 @@ package keeper_test
 import (
 	"time"
 
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
 	"github.com/kava-labs/kava/app"
-	// bep3types "github.com/kava-labs/kava/x/bep3/types"
-	// cdptypes "github.com/kava-labs/kava/x/cdp/types"
-
 	"github.com/kava-labs/kava/x/committee/testutil"
 	"github.com/kava-labs/kava/x/committee/types"
-	// "github.com/kava-labs/kava/x/pricefeed"
 )
 
 // func newCDPGenesisState(params cdptypes.Params) app.GenesisState {

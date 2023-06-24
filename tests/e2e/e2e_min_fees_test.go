@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/pelletier/go-toml/v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/util"

@@ -1,12 +1,14 @@
 package keeper_test
 
 import (
-	"github.com/kava-labs/kava/x/swap/types"
-	"github.com/kava-labs/kava/x/swap/types/mocks"
+	"github.com/stretchr/testify/mock"
+
+	sdkmath "cosmossdk.io/math"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkmath "cosmossdk.io/math"
-	"github.com/stretchr/testify/mock"
+
+	"github.com/kava-labs/kava/x/swap/types"
+	"github.com/kava-labs/kava/x/swap/types/mocks"
 )
 
 func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {

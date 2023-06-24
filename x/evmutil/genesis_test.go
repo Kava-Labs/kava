@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/kava-labs/kava/x/evmutil"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -77,7 +78,8 @@ func (s *genesisTestSuite) TestExportGenesis() {
 	params.EnabledConversionPairs = []types.ConversionPair{
 		{
 			KavaERC20Address: testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2").Bytes(),
-			Denom:            "weth"},
+			Denom:            "weth",
+		},
 	}
 	params.AllowedCosmosDenoms = []types.AllowedCosmosCoinERC20Token{
 		{

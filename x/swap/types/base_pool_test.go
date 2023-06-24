@@ -5,12 +5,14 @@ import (
 	"math/big"
 	"testing"
 
-	types "github.com/kava-labs/kava/x/swap/types"
-
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	types "github.com/kava-labs/kava/x/swap/types"
 )
 
 // i creates a new sdkmath.Int from int64
@@ -203,7 +205,7 @@ func TestBasePool_AddLiquidity(t *testing.T) {
 		{i(10e6), i(11e6), i(5e6), i(5e6), i(4545454), i(5e6), i(4767312)},
 		{i(11e6), i(10e6), i(5e6), i(5e6), i(5e6), i(4545454), i(4767312)},
 
-		// pool size near max of sdkmath.Int, ensure intermidiate calculations do not overflow
+		// pool size near max of sdkmath.Int, ensure intermediate calculations do not overflow
 		{exp(i(10), 70), exp(i(10), 70), i(1e18), i(1e18), i(1e18), i(1e18), i(1e18)},
 	}
 

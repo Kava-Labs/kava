@@ -3,11 +3,12 @@ package swap_test
 import (
 	"testing"
 
-	"github.com/kava-labs/kava/x/swap/testutil"
-	"github.com/kava-labs/kava/x/swap/types"
+	"github.com/stretchr/testify/suite"
 
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
-	"github.com/stretchr/testify/suite"
+
+	"github.com/kava-labs/kava/x/swap/testutil"
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 type moduleTestSuite struct {

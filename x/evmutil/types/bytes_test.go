@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kava-labs/kava/x/evmutil/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
 func TestHexBytes(t *testing.T) {

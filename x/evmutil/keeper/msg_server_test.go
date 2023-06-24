@@ -4,13 +4,13 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
@@ -52,7 +52,7 @@ func (suite *MsgServerSuite) TestConvertCoinToERC20() {
 	err = suite.Keeper.MintERC20(
 		suite.Ctx,
 		pair.GetAddress(), // contractAddr
-		types.NewInternalEVMAddress(types.ModuleEVMAddress), //receiver
+		types.NewInternalEVMAddress(types.ModuleEVMAddress), // receiver
 		pairStartingBal,
 	)
 	suite.Require().NoError(err)
@@ -146,7 +146,7 @@ func (suite *MsgServerSuite) TestConvertERC20ToCoin() {
 	err := suite.Keeper.MintERC20(
 		suite.Ctx,
 		pair.GetAddress(), // contractAddr
-		invoker,           //receiver
+		invoker,           // receiver
 		pairStartingBal,
 	)
 	suite.Require().NoError(err)

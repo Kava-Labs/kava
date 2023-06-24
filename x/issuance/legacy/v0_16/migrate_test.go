@@ -4,10 +4,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
 
 	app "github.com/kava-labs/kava/app"
 	v015issuance "github.com/kava-labs/kava/x/issuance/legacy/v0_15"

@@ -2,12 +2,13 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/liquid/types"
-
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
 func (suite *KeeperTestSuite) TestCollectStakingRewards() {

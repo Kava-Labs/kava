@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/require"
+
+	sdkmath "cosmossdk.io/math"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/evmutil/types"

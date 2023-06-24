@@ -4,15 +4,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	hardtypes "github.com/kava-labs/kava/x/hard/types"
 	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
-	"github.com/stretchr/testify/suite"
-	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 const (

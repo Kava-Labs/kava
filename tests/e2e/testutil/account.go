@@ -190,7 +190,7 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 	acc := chain.AddNewSigningAccount(
 		name,
 		hd.CreateHDPath(app.Bip44CoinType, 0, 0),
-		chain.ChainId,
+		chain.ChainID,
 		mnemonic,
 	)
 

@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/testutil"
 )

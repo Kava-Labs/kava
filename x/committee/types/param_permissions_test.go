@@ -4,13 +4,15 @@ import (
 	fmt "fmt"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
 	"github.com/kava-labs/kava/app"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -668,7 +670,7 @@ func (s *ParamsChangeTestSuite) TestParamsChangePermission_PassWhenOneAllowed() 
 	s.Require().True(permission.Allows(s.ctx, s.pk, proposal))
 }
 
-// Test subparam value with slice data unchanged comparision
+// Test subparam value with slice data unchanged comparison
 func (s *ParamsChangeTestSuite) TestParamsChangePermission_SliceSubparamComparision() {
 	permission := types.ParamsChangePermission{
 		AllowedParamsChanges: types.AllowedParamsChanges{{

@@ -5,11 +5,12 @@ import (
 	"math/big"
 	"time"
 
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
 	sdkerrors "cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
-
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/kava-labs/kava/tests/e2e/testutil"
 	"github.com/kava-labs/kava/tests/util"

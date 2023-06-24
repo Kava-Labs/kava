@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/community/types"
 )
@@ -88,22 +89,22 @@ func TestLendProposals_ValidateBasic(t *testing.T) {
 			})
 
 			t.Run("CommunityPoolLendWithdrawProposal", func(t *testing.T) {
-				withdrawl := types.NewCommunityPoolLendWithdrawProposal(
+				withdrawal := types.NewCommunityPoolLendWithdrawProposal(
 					tc.proposal.Title,
 					tc.proposal.Description,
 					tc.proposal.Amount,
 				)
-				err := withdrawl.ValidateBasic()
+				err := withdrawal.ValidateBasic()
 				if tc.expectedErr != "" {
 					require.ErrorContains(t, err, tc.expectedErr)
 					return
 				}
 
 				require.NoError(t, err)
-				require.Equal(t, withdrawl.Title, withdrawl.GetTitle())
-				require.Equal(t, withdrawl.Description, withdrawl.GetDescription())
-				require.Equal(t, types.ModuleName, withdrawl.ProposalRoute())
-				require.Equal(t, types.ProposalTypeCommunityPoolLendWithdraw, withdrawl.ProposalType())
+				require.Equal(t, withdrawal.Title, withdrawal.GetTitle())
+				require.Equal(t, withdrawal.Description, withdrawal.GetDescription())
+				require.Equal(t, types.ModuleName, withdrawal.ProposalRoute())
+				require.Equal(t, types.ProposalTypeCommunityPoolLendWithdraw, withdrawal.ProposalType())
 			})
 		})
 	}

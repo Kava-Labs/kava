@@ -4,12 +4,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
-	"github.com/stretchr/testify/suite"
-	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 type grpcQueryTestSuite struct {

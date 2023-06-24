@@ -8,13 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kava-labs/kava/x/swap/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/yaml"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/kava-labs/kava/x/swap/types"
 )
 
 func TestParams_UnmarshalJSON(t *testing.T) {

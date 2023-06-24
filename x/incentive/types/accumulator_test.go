@@ -4,8 +4,9 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestAccumulator(t *testing.T) {
@@ -297,7 +298,7 @@ func TestAccumulator(t *testing.T) {
 			},
 			{
 				name: "accumulation duration is capped at param start when previous stored time is in the distant past",
-				// This could happend in the default time value time.Time{} was accidentally stored, or if a reward period was
+				// This could happened in the default time value time.Time{} was accidentally stored, or if a reward period was
 				// removed from the params, then added back a long time later.
 				args: args{
 					accumulator: Accumulator{

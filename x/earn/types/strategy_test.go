@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/kava-labs/kava/x/earn/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/kava-labs/kava/x/earn/types"
 )
 
 func TestNewStrategyTypeFromString(t *testing.T) {

@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"

@@ -4,10 +4,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	tmtime "github.com/tendermint/tendermint/types/time"
 )
 
 func TestMsgPlaceBid_ValidateBasic(t *testing.T) {

@@ -3,12 +3,13 @@ package keeper_test
 import (
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdkmath "cosmossdk.io/math"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/cdp/keeper"
@@ -16,8 +17,10 @@ import (
 )
 
 // saving the result to a module level variable ensures the compiler doesn't optimize the test away
-var coinsResult sdk.Coins
-var coinResult sdk.Coin
+var (
+	coinsResult sdk.Coins
+	coinResult  sdk.Coin
+)
 
 // Note - the iteration benchmarks take a long time to stabilize, to get stable results use:
 // go test -benchmem -bench ^(BenchmarkAccountIteration)$ -benchtime 60s  -timeout 2h

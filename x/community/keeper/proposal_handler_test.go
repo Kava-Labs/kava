@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
@@ -27,9 +28,11 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func ukava(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("ukava", amt))
 }
+
 func usdx(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("usdx", amt))
 }
+
 func otherdenom(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("other-denom", amt))
 }

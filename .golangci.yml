@@ -1,13 +1,12 @@
 run:
-  tests: false
-#   # timeout for analysis, e.g. 30s, 5m, default is 1m
-#   timeout: 5m
+  tests: true
+  timeout: 5m
+  allow-parallel-runners: true
 
 linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
     - dogsled
     # - errcheck
     - goconst
@@ -32,6 +31,9 @@ issues:
   max-issues-per-linter: 10000
   max-same-issues: 10000
   exclude-rules:
+    - text: 'ST1003: should not use underscores in package names'
+      linters:
+        - stylecheck
     - text: 'Use of weak random number generator'
       linters:
         - gosec
