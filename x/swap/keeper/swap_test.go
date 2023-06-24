@@ -272,7 +272,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
 	suite.Require().True(found, "expected pool record to exist")
 
 	poolRecord.TotalShares = sdk.ZeroInt()
-	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
+	suite.Keeper.SetPoolRaw(suite.Ctx, poolRecord)
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdkmath.NewInt(10e6)),
@@ -583,7 +583,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
 	suite.Require().True(found, "expected pool record to exist")
 
 	poolRecord.TotalShares = sdk.ZeroInt()
-	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
+	suite.Keeper.SetPoolRaw(suite.Ctx, poolRecord)
 
 	balance := sdk.NewCoins(
 		sdk.NewCoin("ukava", sdkmath.NewInt(10e6)),

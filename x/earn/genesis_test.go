@@ -44,9 +44,9 @@ func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 }
 
 func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
-	depositor_1, err := sdk.AccAddressFromBech32("kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea")
+	depositor1, err := sdk.AccAddressFromBech32("kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea")
 	suite.Require().NoError(err)
-	depositor_2, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
+	depositor2, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
 	suite.Require().NoError(err)
 
 	// slices are sorted by key as stored in the data store, so init and export can be compared with equal
@@ -77,14 +77,14 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
-				Depositor: depositor_1,
+				Depositor: depositor1,
 				Shares: types.NewVaultShares(
 					types.NewVaultShare("usdx", sdk.NewDec(500000)),
 					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
 				),
 			},
 			types.VaultShareRecord{
-				Depositor: depositor_2,
+				Depositor: depositor2,
 				Shares: types.NewVaultShares(
 					types.NewVaultShare("usdx", sdk.NewDec(500000)),
 					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
@@ -101,8 +101,8 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 	suite.Equal(state.VaultRecords[0], vaultRecord1)
 	suite.Equal(state.VaultRecords[1], vaultRecord2)
 
-	shareRecord1, _ := suite.Keeper.GetVaultShareRecord(suite.Ctx, depositor_1)
-	shareRecord2, _ := suite.Keeper.GetVaultShareRecord(suite.Ctx, depositor_2)
+	shareRecord1, _ := suite.Keeper.GetVaultShareRecord(suite.Ctx, depositor1)
+	shareRecord2, _ := suite.Keeper.GetVaultShareRecord(suite.Ctx, depositor2)
 
 	suite.Equal(state.VaultShareRecords[0], shareRecord1)
 	suite.Equal(state.VaultShareRecords[1], shareRecord2)
@@ -112,9 +112,9 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 }
 
 func (suite *genesisTestSuite) Test_Marshall() {
-	depositor_1, err := sdk.AccAddressFromBech32("kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea")
+	depositor1, err := sdk.AccAddressFromBech32("kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea")
 	suite.Require().NoError(err)
-	depositor_2, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
+	depositor2, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
 	suite.Require().NoError(err)
 
 	// slices are sorted by key as stored in the data store, so init and export can be compared with equal
@@ -145,14 +145,14 @@ func (suite *genesisTestSuite) Test_Marshall() {
 		},
 		types.VaultShareRecords{
 			types.VaultShareRecord{
-				Depositor: depositor_1,
+				Depositor: depositor1,
 				Shares: types.NewVaultShares(
 					types.NewVaultShare("usdx", sdk.NewDec(500000)),
 					types.NewVaultShare("ukava", sdk.NewDec(1900000)),
 				),
 			},
 			types.VaultShareRecord{
-				Depositor: depositor_2,
+				Depositor: depositor2,
 				Shares: types.NewVaultShares(
 					types.NewVaultShare("usdx", sdk.NewDec(500000)),
 					types.NewVaultShare("ukava", sdk.NewDec(1900000)),

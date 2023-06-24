@@ -279,12 +279,12 @@ func TestState_PoolRecord_OrderedReserves(t *testing.T) {
 	)
 	assert.NoError(t, validOrder.Validate())
 
-	record_1 := types.NewPoolRecord(sdk.NewCoins(usdx(500e6), ukava(100e6)), i(300e6))
-	record_2 := types.NewPoolRecord(sdk.NewCoins(ukava(100e6), usdx(500e6)), i(300e6))
+	record1 := types.NewPoolRecord(sdk.NewCoins(usdx(500e6), ukava(100e6)), i(300e6))
+	record2 := types.NewPoolRecord(sdk.NewCoins(ukava(100e6), usdx(500e6)), i(300e6))
 	// ensure no regresssions in NewCoins ordering
-	assert.Equal(t, record_1, record_2)
-	assert.Equal(t, types.PoolID("ukava", "usdx"), record_1.PoolID)
-	assert.Equal(t, types.PoolID("ukava", "usdx"), record_2.PoolID)
+	assert.Equal(t, record1, record2)
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record1.PoolID)
+	assert.Equal(t, types.PoolID("ukava", "usdx"), record2.PoolID)
 }
 
 func TestState_PoolRecords_Validation(t *testing.T) {
@@ -310,25 +310,25 @@ func TestState_PoolRecords_Validation(t *testing.T) {
 }
 
 func TestState_PoolRecords_ValidateUniquePools(t *testing.T) {
-	record_1 := types.NewPoolRecord(
+	record1 := types.NewPoolRecord(
 		sdk.NewCoins(usdx(500e6), ukava(100e6)),
 		i(300e6),
 	)
 
-	record_2 := types.NewPoolRecord(
+	record2 := types.NewPoolRecord(
 		sdk.NewCoins(usdx(5000e6), ukava(1000e6)),
 		i(3000e6),
 	)
 
-	record_3 := types.NewPoolRecord(
+	record3 := types.NewPoolRecord(
 		sdk.NewCoins(usdx(5000e6), hard(1000e6)),
 		i(3000e6),
 	)
 
-	validRecords := types.PoolRecords{record_1, record_3}
+	validRecords := types.PoolRecords{record1, record3}
 	assert.NoError(t, validRecords.Validate())
 
-	invalidRecords := types.PoolRecords{record_1, record_2}
+	invalidRecords := types.PoolRecords{record1, record2}
 	assert.EqualError(t, invalidRecords.Validate(), "duplicate poolID 'ukava:usdx'")
 }
 
@@ -514,20 +514,20 @@ func TestState_ShareRecords_Validation(t *testing.T) {
 }
 
 func TestState_ShareRecords_ValidateUniqueShareRecords(t *testing.T) {
-	depositor_1, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
+	depositor1, err := sdk.AccAddressFromBech32("kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w")
 	require.NoError(t, err)
 
-	depositor_2, err := sdk.AccAddressFromBech32("kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea")
+	depositor2, err := sdk.AccAddressFromBech32("kava1esagqd83rhqdtpy5sxhklaxgn58k2m3s3mnpea")
 	require.NoError(t, err)
 
-	record_1 := types.NewShareRecord(depositor_1, "ukava:usdx", i(20e6))
-	record_2 := types.NewShareRecord(depositor_1, "ukava:usdx", i(10e6))
-	record_3 := types.NewShareRecord(depositor_1, "hard:usdx", i(20e6))
-	record_4 := types.NewShareRecord(depositor_2, "ukava:usdx", i(20e6))
+	record1 := types.NewShareRecord(depositor1, "ukava:usdx", i(20e6))
+	record2 := types.NewShareRecord(depositor1, "ukava:usdx", i(10e6))
+	record3 := types.NewShareRecord(depositor1, "hard:usdx", i(20e6))
+	record4 := types.NewShareRecord(depositor2, "ukava:usdx", i(20e6))
 
-	validRecords := types.ShareRecords{record_1, record_3, record_4}
+	validRecords := types.ShareRecords{record1, record3, record4}
 	assert.NoError(t, validRecords.Validate())
 
-	invalidRecords := types.ShareRecords{record_1, record_3, record_2, record_4}
+	invalidRecords := types.ShareRecords{record1, record3, record2, record4}
 	assert.EqualError(t, invalidRecords.Validate(), "duplicate depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and poolID 'ukava:usdx'")
 }

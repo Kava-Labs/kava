@@ -98,7 +98,7 @@ func (k Keeper) GetPool(ctx sdk.Context, poolID string) (types.PoolRecord, bool)
 }
 
 // SetPool_Raw saves a pool record to the store without any validation
-func (k Keeper) SetPool_Raw(ctx sdk.Context, record types.PoolRecord) {
+func (k Keeper) SetPoolRaw(ctx sdk.Context, record types.PoolRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
 	bz := k.cdc.MustMarshal(&record)
 	store.Set(types.PoolKey(record.PoolID), bz)
@@ -110,7 +110,7 @@ func (k Keeper) SetPool(ctx sdk.Context, record types.PoolRecord) {
 		panic(fmt.Sprintf("invalid pool record: %s", err))
 	}
 
-	k.SetPool_Raw(ctx, record)
+	k.SetPoolRaw(ctx, record)
 }
 
 // DeletePool deletes a pool record from the store

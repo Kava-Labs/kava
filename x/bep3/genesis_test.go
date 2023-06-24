@@ -26,6 +26,8 @@ type GenesisTestSuite struct {
 	addrs  []sdk.AccAddress
 }
 
+const bnb = "bnb"
+
 func (suite *GenesisTestSuite) SetupTest() {
 	config := sdk.GetConfig()
 	app.SetBech32AddressPrefixes(config)
@@ -141,16 +143,16 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				gs := baseGenState(suite.addrs[0])
 				bnbSupplyLimit := math.ZeroInt()
 				for _, ap := range gs.Params.AssetParams {
-					if ap.Denom == "bnb" {
+					if ap.Denom == bnb {
 						bnbSupplyLimit = ap.SupplyLimit.Limit
 					}
 				}
 				gs.Supplies = types.AssetSupplies{
 					types.NewAssetSupply(
-						c("bnb", 0),
-						c("bnb", 0),
-						sdk.NewCoin("bnb", bnbSupplyLimit.Add(i(1))),
-						c("bnb", 0),
+						c(bnb, 0),
+						c(bnb, 0),
+						sdk.NewCoin(bnb, bnbSupplyLimit.Add(i(1))),
+						c(bnb, 0),
 						0,
 					),
 				}
@@ -166,7 +168,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up overlimit amount
 				bnbSupplyLimit := math.ZeroInt()
 				for _, ap := range gs.Params.AssetParams {
-					if ap.Denom == "bnb" {
+					if ap.Denom == bnb {
 						bnbSupplyLimit = ap.SupplyLimit.Limit
 					}
 				}
@@ -204,7 +206,7 @@ func (suite *GenesisTestSuite) TestGenesisState() {
 				// Set up overlimit amount
 				bnbSupplyLimit := math.ZeroInt()
 				for _, ap := range gs.Params.AssetParams {
-					if ap.Denom == "bnb" {
+					if ap.Denom == bnb {
 						bnbSupplyLimit = ap.SupplyLimit.Limit
 					}
 				}

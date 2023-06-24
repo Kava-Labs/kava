@@ -24,7 +24,7 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 		sdk.NewCoin(pool.TokenA, sdkmath.NewInt(1000e6)),
 		sdk.NewCoin(pool.TokenB, sdkmath.NewInt(1000e6)),
 	)
-	depositor_1 := suite.CreateAccount(balance)
+	depositor1 := suite.CreateAccount(balance)
 
 	depositA := sdk.NewCoin(pool.TokenA, sdkmath.NewInt(10e6))
 	depositB := sdk.NewCoin(pool.TokenB, sdkmath.NewInt(50e6))
@@ -34,24 +34,24 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 	expectedShares := sdkmath.NewInt(22360679)
 
 	// first deposit creates pool - calls AfterPoolDepositCreated with initial shares
-	swapHooks.On("AfterPoolDepositCreated", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), expectedShares).Once()
-	err := suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
+	swapHooks.On("AfterPoolDepositCreated", suite.Ctx, types.PoolIDFromCoins(deposit), depositor1.GetAddress(), expectedShares).Once()
+	err := suite.Keeper.Deposit(suite.Ctx, depositor1.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// second deposit adds to pool - calls BeforePoolDepositModified
 	// shares given are the initial shares, not the shares added to the pool
-	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), expectedShares).Once()
-	err = suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(25e6)), sdk.MustNewDecFromStr("0.0015"))
+	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor1.GetAddress(), expectedShares).Once()
+	err = suite.Keeper.Deposit(suite.Ctx, depositor1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(25e6)), sdk.MustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// get the shares from the store from the last deposit
-	shareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor_1.GetAddress(), types.PoolIDFromCoins(deposit))
+	shareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor1.GetAddress(), types.PoolIDFromCoins(deposit))
 	suite.Require().True(found)
 
 	// third deposit adds to pool - calls BeforePoolDepositModified
 	// shares given are the shares added in previous deposit, not the shares added to the pool now
-	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), shareRecord.SharesOwned).Once()
-	err = suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.MustNewDecFromStr("0.0015"))
+	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor1.GetAddress(), shareRecord.SharesOwned).Once()
+	err = suite.Keeper.Deposit(suite.Ctx, depositor1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.MustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	depositor_2 := suite.NewAccountFromAddr(
@@ -83,11 +83,11 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 	suite.Require().NoError(err)
 
 	// test hooks with a full withdraw of all shares
-	shareRecord, found = suite.Keeper.GetDepositorShares(suite.Ctx, depositor_1.GetAddress(), types.PoolIDFromCoins(deposit))
+	shareRecord, found = suite.Keeper.GetDepositorShares(suite.Ctx, depositor1.GetAddress(), types.PoolIDFromCoins(deposit))
 	suite.Require().True(found)
 	// all shares given to BeforePoolDepositModified
-	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), shareRecord.SharesOwned).Once()
-	err = suite.Keeper.Withdraw(suite.Ctx, depositor_1.GetAddress(), shareRecord.SharesOwned, sdk.NewCoin("ukava", sdkmath.NewInt(1)), sdk.NewCoin("usdx", sdkmath.NewInt(1)))
+	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor1.GetAddress(), shareRecord.SharesOwned).Once()
+	err = suite.Keeper.Withdraw(suite.Ctx, depositor1.GetAddress(), shareRecord.SharesOwned, sdk.NewCoin("ukava", sdkmath.NewInt(1)), sdk.NewCoin("usdx", sdkmath.NewInt(1)))
 	suite.Require().NoError(err)
 
 	// test hooks on partial withdraw

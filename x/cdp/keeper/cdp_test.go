@@ -327,12 +327,12 @@ func (suite *CdpTestSuite) TestMintBurnDebtCoins() {
 func (suite *CdpTestSuite) TestCdpOwnerIndex() {
 	cdps := cdps()
 
-	owner_1 := cdps[0].Owner
-	owner_2 := cdps[1].Owner
+	owner1 := cdps[0].Owner
+	owner2 := cdps[1].Owner
 
-	cdpIds_1, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_1)
+	cdpIds_1, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner1)
 	suite.Require().False(found)
-	cdpIds_2, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	cdpIds_2, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner2)
 	suite.Require().False(found)
 
 	suite.Require().Equal(0, len(cdpIds_1))
@@ -342,26 +342,26 @@ func (suite *CdpTestSuite) TestCdpOwnerIndex() {
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdps[1])
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdps[0])
 
-	expectedCdpIds, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_1)
+	expectedCdpIds, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner1)
 	suite.Require().True(found)
 	suite.Require().Equal([]uint64{cdps[0].ID}, expectedCdpIds)
 
-	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner2)
 	suite.Require().True(found)
 	suite.Require().Equal([]uint64{cdps[1].ID, cdps[2].ID}, expectedCdpIds)
 
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
-	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_1)
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner1)
 	suite.Require().False(found)
 	suite.Require().Equal([]uint64{}, expectedCdpIds)
 
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[1])
-	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner2)
 	suite.Require().True(found)
 	suite.Require().Equal([]uint64{cdps[2].ID}, expectedCdpIds)
 
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[2])
-	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner_2)
+	expectedCdpIds, found = suite.keeper.GetCdpIdsByOwner(suite.ctx, owner2)
 	suite.Require().False(found)
 	suite.Require().Equal([]uint64{}, expectedCdpIds)
 }

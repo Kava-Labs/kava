@@ -70,12 +70,12 @@ func BuildErc20MintCallData(to common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20BurnCallData(from common.Address, amount *big.Int) []byte {
-	methodId := EvmContractMethodID("burn(address,uint256)")
+	methodID := EvmContractMethodID("burn(address,uint256)")
 	paddedAddress := common.LeftPadBytes(from.Bytes(), 32)
 	paddedAmount := common.LeftPadBytes(amount.Bytes(), 32)
 
 	var data []byte
-	data = append(data, methodId...)
+	data = append(data, methodID...)
 	data = append(data, paddedAddress...)
 	data = append(data, paddedAmount...)
 
@@ -83,11 +83,11 @@ func BuildErc20BurnCallData(from common.Address, amount *big.Int) []byte {
 }
 
 func BuildErc20BalanceOfCallData(address common.Address) []byte {
-	methodId := EvmContractMethodID("balanceOf(address)")
+	methodID := EvmContractMethodID("balanceOf(address)")
 	paddedAddress := common.LeftPadBytes(address.Bytes(), 32)
 
 	var data []byte
-	data = append(data, methodId...)
+	data = append(data, methodID...)
 	data = append(data, paddedAddress...)
 
 	return data

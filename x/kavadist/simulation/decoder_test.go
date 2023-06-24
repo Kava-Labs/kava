@@ -21,7 +21,7 @@ func TestDecodeDistributionStore(t *testing.T) {
 	kvPairs := kv.Pairs{
 		Pairs: []kv.Pair{
 			{
-				Key:   []byte(types.PreviousBlockTimeKey),
+				Key:   types.PreviousBlockTimeKey,
 				Value: bPrevBlockTime,
 			},
 			{

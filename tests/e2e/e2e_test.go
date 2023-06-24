@@ -40,13 +40,13 @@ func TestIntegrationTestSuite(t *testing.T) {
 
 // example test that queries kava via SDK and EVM
 func (suite *IntegrationTestSuite) TestChainID() {
-	expectedEvmNetworkId, err := emtypes.ParseChainID(suite.Kava.ChainID)
+	expectedEvmNetworkID, err := emtypes.ParseChainID(suite.Kava.ChainID)
 	suite.NoError(err)
 
 	// EVM query
-	evmNetworkId, err := suite.Kava.EvmClient.NetworkID(context.Background())
+	evmNetworkID, err := suite.Kava.EvmClient.NetworkID(context.Background())
 	suite.NoError(err)
-	suite.Equal(expectedEvmNetworkId, evmNetworkId)
+	suite.Equal(expectedEvmNetworkID, evmNetworkID)
 
 	// SDK query
 	nodeInfo, err := suite.Kava.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})

@@ -72,23 +72,23 @@ func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdkmath.Int {
 }
 
 func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
-	from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins, msgs []sdk.Msg,
+	from sdk.AccAddress, priv cryptotypes.PrivKey, chainID string, gas uint64, gasAmount sdk.Coins, msgs []sdk.Msg,
 ) client.TxBuilder {
 	var err error
 
 	nonce, err := suite.tApp.GetAccountKeeper().GetSequence(suite.ctx, from)
 	suite.Require().NoError(err)
 
-	pc, err := etherminttypes.ParseChainID(chainId)
+	pc, err := etherminttypes.ParseChainID(chainID)
 	suite.Require().NoError(err)
-	ethChainId := pc.Uint64()
+	ethChainID := pc.Uint64()
 
 	// GenerateTypedData TypedData
 	fee := legacytx.NewStdFee(gas, gasAmount)
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
-	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "", nil)
-	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, data, &eip712.FeeDelegationOptions{
+	data := eip712.ConstructUntypedEIP712Data(chainID, accNumber, nonce, 0, fee, msgs, "", nil)
+	typedData, err := eip712.WrapTxToTypedData(ethChainID, msgs, data, &eip712.FeeDelegationOptions{
 		FeePayer: from,
 	}, suite.tApp.GetEvmKeeper().GetParams(suite.ctx))
 	suite.Require().NoError(err)
@@ -105,7 +105,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	var option *codectypes.Any
 	option, err = codectypes.NewAnyWithValue(&etherminttypes.ExtensionOptionsWeb3Tx{
 		FeePayer:         from.String(),
-		TypedDataChainID: ethChainId,
+		TypedDataChainID: ethChainID,
 		FeePayerSig:      signature,
 	})
 	suite.Require().NoError(err)

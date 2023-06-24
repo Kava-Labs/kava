@@ -199,7 +199,7 @@ func (suite *keeperTestSuite) TestWithdraw_PanicOnInvalidPool() {
 	suite.Require().True(found, "expected pool record to exist")
 
 	poolRecord.TotalShares = sdk.ZeroInt()
-	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
+	suite.Keeper.SetPoolRaw(suite.Ctx, poolRecord)
 
 	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
 		_ = suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), totalShares, reserves[0], reserves[1])

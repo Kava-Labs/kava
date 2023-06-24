@@ -117,7 +117,7 @@ func (suite *invariantTestSuite) TestPoolRecordsInvariant() {
 	suite.Equal(false, broken)
 
 	// broken with invalid pool record
-	suite.Keeper.SetPool_Raw(suite.Ctx, types.NewPoolRecord(
+	suite.Keeper.SetPoolRaw(suite.Ctx, types.NewPoolRecord(
 		sdk.NewCoins(
 			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
 			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),

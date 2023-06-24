@@ -32,7 +32,6 @@ func init() {
 
 func d(amount string) sdk.Dec               { return sdk.MustNewDecFromStr(amount) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
-func i(n int64) sdkmath.Int                 { return sdkmath.NewInt(n) }
 func is(ns ...int64) (is []sdkmath.Int) {
 	for _, n := range ns {
 		is = append(is, sdkmath.NewInt(n))

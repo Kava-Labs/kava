@@ -36,7 +36,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	// get chain id
 	pc, err := emtypes.ParseChainID(chain.ChainID)
 	suite.NoError(err)
-	ethChainId := pc.Uint64()
+	ethChainID := pc.Uint64()
 
 	evmParams, err := chain.Evm.Params(context.Background(), &evmtypes.QueryParamsRequest{})
 	suite.NoError(err)
@@ -56,7 +56,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 		nil,
 	)
 	// -- typed data
-	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, untypedData, &eip712.FeeDelegationOptions{
+	typedData, err := eip712.WrapTxToTypedData(ethChainID, msgs, untypedData, &eip712.FeeDelegationOptions{
 		FeePayer: acc.SdkAddress,
 	}, evmParams.Params)
 	suite.NoError(err)
@@ -74,7 +74,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	var option *codectypes.Any
 	option, err = codectypes.NewAnyWithValue(&emtypes.ExtensionOptionsWeb3Tx{
 		FeePayer:         acc.SdkAddress.String(),
-		TypedDataChainID: ethChainId,
+		TypedDataChainID: ethChainID,
 		FeePayerSig:      signature,
 	})
 	suite.NoError(err)
