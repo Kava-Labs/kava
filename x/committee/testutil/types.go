@@ -19,9 +19,9 @@ func C(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func Cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 
 func AssertProtoMessageJSON(t *testing.T, cdc codec.Codec, expected proto.Message, actual proto.Message) {
-	expectedJson, err := cdc.MarshalJSON(expected)
+	expectedJSON, err := cdc.MarshalJSON(expected)
 	assert.NoError(t, err)
 	actualJson, err := cdc.MarshalJSON(actual)
 	assert.NoError(t, err)
-	assert.Equal(t, string(expectedJson), string(actualJson))
+	assert.Equal(t, string(expectedJSON), string(actualJson))
 }

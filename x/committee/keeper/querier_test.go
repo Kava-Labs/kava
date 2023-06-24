@@ -72,9 +72,9 @@ func (suite *QuerierTestSuite) SetupTest() {
 }
 
 func (suite *QuerierTestSuite) assertQuerierResponse(expected interface{}, actual []byte) {
-	expectedJson, err := suite.legacyAmino.MarshalJSONIndent(expected, "", "  ")
+	expectedJSON, err := suite.legacyAmino.MarshalJSONIndent(expected, "", "  ")
 	suite.Require().NoError(err)
-	suite.Require().Equal(string(expectedJson), string(actual))
+	suite.Require().Equal(string(expectedJSON), string(actual))
 }
 
 func (suite *QuerierTestSuite) TestQueryCommittees() {

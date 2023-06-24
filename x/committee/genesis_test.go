@@ -149,10 +149,11 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 
 			// Check
 			if tc.expectPass {
-				expectedJson, err := suite.app.AppCodec().MarshalJSON(tc.genState)
+				expectedJSON, err := suite.app.AppCodec().MarshalJSON(tc.genState)
 				suite.Require().NoError(err)
-				actualJson, err := suite.app.AppCodec().MarshalJSON(exportedGenState)
-				suite.Equal(expectedJson, actualJson)
+				actualJSON, err := suite.app.AppCodec().MarshalJSON(exportedGenState)
+				suite.Require().NoError(err)
+				suite.Equal(expectedJSON, actualJSON)
 			}
 		})
 	}

@@ -31,6 +31,10 @@ type grpcQueryTestSuite struct {
 	queryClient types.QueryClient
 }
 
+const (
+	busd = "busd"
+)
+
 func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
 	suite.Keeper.SetParams(suite.Ctx, types.DefaultParams())
@@ -46,7 +50,7 @@ func TestGrpcQueryTestSuite(t *testing.T) {
 }
 
 func (suite *grpcQueryTestSuite) TestQueryParams() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	res, err := suite.queryClient.Params(context.Background(), types.NewQueryParamsRequest())
 	suite.Require().NoError(err)
@@ -69,15 +73,15 @@ func (suite *grpcQueryTestSuite) TestQueryParams() {
 
 func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 	// Add vaults
-	suite.CreateVault("usdx", types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
-	suite.CreateVault("busd", types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault(usdx, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+	suite.CreateVault(busd, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
 	suite.Run("single", func() {
-		res, err := suite.queryClient.Vault(context.Background(), types.NewQueryVaultRequest("usdx"))
+		res, err := suite.queryClient.Vault(context.Background(), types.NewQueryVaultRequest(usdx))
 		suite.Require().NoError(err)
 		suite.Require().Equal(
 			types.VaultResponse{
-				Denom:             "usdx",
+				Denom:             usdx,
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
@@ -93,7 +97,7 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 		suite.Require().NoError(err)
 		suite.Require().ElementsMatch([]types.VaultResponse{
 			{
-				Denom:             "usdx",
+				Denom:             usdx,
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
@@ -101,7 +105,7 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 				TotalValue:        sdk.ZeroInt(),
 			},
 			{
-				Denom:             "busd",
+				Denom:             busd,
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
@@ -115,14 +119,14 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 }
 
 func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	vault2Denom := testutil.TestBkavaDenoms[0]
 
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 100)
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
-	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+	suite.CreateVault(bkava, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 
 	acc := suite.CreateAccount(sdk.NewCoins(
 		sdk.NewInt64Coin(vaultDenom, 1000),
@@ -162,15 +166,15 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 }
 
 func (suite *grpcQueryTestSuite) TestVaults_MixedSupply() {
-	vaultDenom := "usdx"
-	vault2Denom := "busd"
+	vaultDenom := usdx
+	vault2Denom := busd
 	vault3Denom := testutil.TestBkavaDenoms[0]
 
 	depositAmount := sdk.NewInt64Coin(vault3Denom, 100)
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
-	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+	suite.CreateVault(bkava, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 
 	acc := suite.CreateAccount(sdk.NewCoins(
 		sdk.NewInt64Coin(vaultDenom, 1000),
@@ -216,7 +220,7 @@ func (suite *grpcQueryTestSuite) TestVaults_MixedSupply() {
 }
 
 func (suite *grpcQueryTestSuite) TestVault_NotFound() {
-	_, err := suite.queryClient.Vault(context.Background(), types.NewQueryVaultRequest("usdx"))
+	_, err := suite.queryClient.Vault(context.Background(), types.NewQueryVaultRequest(usdx))
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Errorf(codes.NotFound, "vault not found with specified denom"))
 }
@@ -228,8 +232,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	valAddr1 := sdk.ValAddress(valAccAddr1)
 	valAddr2 := sdk.ValAddress(valAccAddr2)
 
-	vault1Denom := "usdx"
-	vault2Denom := "busd"
+	vault1Denom := usdx
+	vault2Denom := busd
 	vault3Denom := fmt.Sprintf("bkava-%s", valAddr1.String())
 	vault4Denom := fmt.Sprintf("bkava-%s", valAddr2.String())
 
@@ -257,13 +261,13 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
 
 	savingsParams := suite.SavingsKeeper.GetParams(suite.Ctx)
-	savingsParams.SupportedDenoms = append(savingsParams.SupportedDenoms, "bkava")
+	savingsParams.SupportedDenoms = append(savingsParams.SupportedDenoms, bkava)
 	suite.SavingsKeeper.SetParams(suite.Ctx, savingsParams)
 
 	// Add vaults
 	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
-	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+	suite.CreateVault(bkava, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 
 	deposit1Amount := sdk.NewInt64Coin(vault1Denom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vault2Denom, 200)
@@ -430,13 +434,13 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 }
 
 func (suite *grpcQueryTestSuite) TestDeposits_NoDeposits() {
-	vault1Denom := "usdx"
-	vault2Denom := "busd"
+	vault1Denom := usdx
+	vault2Denom := busd
 
 	// Add vaults
 	suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 	suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
-	suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+	suite.CreateVault(bkava, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 
 	// Accounts
 	acc1 := suite.CreateAccount(sdk.NewCoins(), 0).GetAddress()
@@ -478,7 +482,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_NoDeposits() {
 func (suite *grpcQueryTestSuite) TestDeposits_NoDepositor() {
 	_, err := suite.queryClient.Deposits(
 		context.Background(),
-		types.NewQueryDepositsRequest("", "usdx", false, nil),
+		types.NewQueryDepositsRequest("", usdx, false, nil),
 	)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "depositor is required"))
@@ -487,7 +491,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_NoDepositor() {
 func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
 	_, err := suite.queryClient.Deposits(
 		context.Background(),
-		types.NewQueryDepositsRequest("asdf", "usdx", false, nil),
+		types.NewQueryDepositsRequest("asdf", usdx, false, nil),
 	)
 	suite.Require().Error(err)
 	suite.Require().ErrorIs(err, status.Error(codes.InvalidArgument, "Invalid address"))
@@ -501,9 +505,9 @@ func (suite *grpcQueryTestSuite) TestDeposits_InvalidAddress() {
 }
 
 func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
-	// vault denom is only "bkava" which has it's own special handler
+	// vault denom is only bkava which has it's own special handler
 	suite.CreateVault(
-		"bkava",
+		bkava,
 		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
 		false,
 		[]sdk.AccAddress{},
@@ -532,7 +536,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(address1.String(), "bkava", false, nil),
+			types.NewQueryDepositsRequest(address1.String(), bkava, false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
@@ -540,7 +544,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 			[]types.DepositResponse{
 				{
 					Depositor: address1.String(),
-					// Zero shares for "bkava" aggregate
+					// Zero shares for bkava aggregate
 					Shares: nil,
 					// Only the specified vault denom value
 					Value: nil,
@@ -567,7 +571,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 		// Query all deposits for account 1
 		res, err := suite.queryClient.Deposits(
 			context.Background(),
-			types.NewQueryDepositsRequest(address1.String(), "bkava", false, nil),
+			types.NewQueryDepositsRequest(address1.String(), bkava, false, nil),
 		)
 		suite.Require().NoError(err)
 		suite.Require().Len(res.Deposits, 1)
@@ -579,7 +583,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 			[]types.DepositResponse{
 				{
 					Depositor: address1.String(),
-					// Zero shares for "bkava" aggregate
+					// Zero shares for bkava aggregate
 					Shares: nil,
 					// Value returned in units of staked token
 					Value: sdk.NewCoins(
@@ -595,7 +599,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 }
 
 func (suite *grpcQueryTestSuite) TestVault_bKava_Single() {
-	vaultDenom := "bkava"
+	vaultDenom := bkava
 	coinDenom := testutil.TestBkavaDenoms[0]
 
 	startBalance := sdk.NewInt64Coin(coinDenom, 1000)
@@ -603,7 +607,7 @@ func (suite *grpcQueryTestSuite) TestVault_bKava_Single() {
 
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	// vault denom is only "bkava" which has it's own special handler
+	// vault denom is only bkava which has it's own special handler
 	suite.CreateVault(
 		vaultDenom,
 		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
@@ -638,7 +642,7 @@ func (suite *grpcQueryTestSuite) TestVault_bKava_Single() {
 }
 
 func (suite *grpcQueryTestSuite) TestVault_bKava_Aggregate() {
-	vaultDenom := "bkava"
+	vaultDenom := bkava
 
 	address1, derivatives1, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[0], sdkmath.NewInt(1e9))
 	address2, derivatives2, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[1], sdkmath.NewInt(1e9))
@@ -649,7 +653,7 @@ func (suite *grpcQueryTestSuite) TestVault_bKava_Aggregate() {
 	err := suite.slashValidator(sdk.ValAddress(address3), sdk.MustNewDecFromStr("0.5"))
 	suite.Require().NoError(err)
 
-	// vault denom is only "bkava" which has it's own special handler
+	// vault denom is only bkava which has it's own special handler
 	suite.CreateVault(
 		vaultDenom,
 		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
@@ -666,7 +670,7 @@ func (suite *grpcQueryTestSuite) TestVault_bKava_Aggregate() {
 	err = suite.Keeper.Deposit(suite.Ctx, address3, derivatives3, types.STRATEGY_TYPE_SAVINGS)
 	suite.Require().NoError(err)
 
-	// Query "bkava" to get aggregate amount
+	// Query bkava to get aggregate amount
 	res, err := suite.queryClient.Vault(
 		context.Background(),
 		types.NewQueryVaultRequest(vaultDenom),
@@ -715,24 +719,24 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 		{
 			name: "no savings vaults mean no supply",
 			setup: func() {
-				suite.CreateVault("usdx", types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
-				suite.CreateVault("busd", types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+				suite.CreateVault(usdx, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
+				suite.CreateVault(busd, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 			},
 			expectedSupply: nil,
 		},
 		{
 			name: "empty savings vaults mean no supply",
 			setup: func() {
-				suite.CreateVault("usdx", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
-				suite.CreateVault("busd", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+				suite.CreateVault(usdx, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
+				suite.CreateVault(busd, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 			},
 			expectedSupply: nil,
 		},
 		{
 			name: "calculates supply of savings vaults",
 			setup: func() {
-				vault1Denom := "usdx"
-				vault2Denom := "busd"
+				vault1Denom := usdx
+				vault2Denom := busd
 				suite.CreateVault(vault1Denom, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 				suite.CreateVault(vault2Denom, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, nil)
 
@@ -750,15 +754,15 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 				deposit(acc2.GetAddress(), vault2Denom, 2e5)
 			},
 			expectedSupply: sdk.NewCoins(
-				sdk.NewInt64Coin("usdx", 3e5),
-				sdk.NewInt64Coin("busd", 3e5),
+				sdk.NewInt64Coin(usdx, 3e5),
+				sdk.NewInt64Coin(busd, 3e5),
 			),
 		},
 		{
 			name: "calculates supply of savings vaults, even when private",
 			setup: func() {
 				vault1Denom := "ukava"
-				vault2Denom := "busd"
+				vault2Denom := busd
 
 				acc1 := suite.CreateAccount(sdk.NewCoins(
 					sdk.NewInt64Coin(vault1Denom, 1e6),
@@ -775,7 +779,7 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 					true,                                // private!
 					[]sdk.AccAddress{acc1.GetAddress()}, // only acc1 can deposit.
 				)
-				suite.CreateVault("busd",
+				suite.CreateVault(busd,
 					types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},
 					false,
 					nil,
@@ -787,7 +791,7 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 			},
 			expectedSupply: sdk.NewCoins(
 				sdk.NewInt64Coin("ukava", 1e5),
-				sdk.NewInt64Coin("busd", 3e5),
+				sdk.NewInt64Coin(busd, 3e5),
 			),
 		},
 		{
@@ -802,8 +806,8 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 				err := suite.slashValidator(sdk.ValAddress(address2), sdk.MustNewDecFromStr("0.2"))
 				suite.Require().NoError(err)
 
-				// create "bkava" vault. it holds all bkava denoms
-				suite.CreateVault("bkava", types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, []sdk.AccAddress{})
+				// create bkava vault. it holds all bkava denoms
+				suite.CreateVault(bkava, types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS}, false, []sdk.AccAddress{})
 
 				// deposit bkava
 				deposit(address1, testutil.TestBkavaDenoms[0], derivatives1.Amount.Int64())
@@ -811,7 +815,7 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 			},
 			expectedSupply: sdk.NewCoins(
 				sdk.NewCoin(
-					"bkava",
+					bkava,
 					sdkmath.NewIntFromUint64(1e9). // derivative 1
 									Add(sdkmath.NewInt(1e9).MulRaw(80).QuoRaw(100))), // derivative 2: original value * 80%
 			),

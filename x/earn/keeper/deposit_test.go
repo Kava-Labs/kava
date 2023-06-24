@@ -21,6 +21,11 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+const (
+	usdx  = "usdx"
+	bkava = "bkava"
+)
+
 type depositTestSuite struct {
 	testutil.Suite
 }
@@ -35,7 +40,7 @@ func TestDepositTestSuite(t *testing.T) {
 }
 
 func (suite *depositTestSuite) TestDeposit_Balances() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -58,7 +63,7 @@ func (suite *depositTestSuite) TestDeposit_Balances() {
 }
 
 func (suite *depositTestSuite) TestDeposit_Exceed() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
@@ -83,7 +88,7 @@ func (suite *depositTestSuite) TestDeposit_Exceed() {
 }
 
 func (suite *depositTestSuite) TestDeposit_Zero() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 0)
 
@@ -108,7 +113,7 @@ func (suite *depositTestSuite) TestDeposit_Zero() {
 }
 
 func (suite *depositTestSuite) TestDeposit_InvalidVault() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
@@ -133,7 +138,7 @@ func (suite *depositTestSuite) TestDeposit_InvalidVault() {
 }
 
 func (suite *depositTestSuite) TestDeposit_InvalidStrategy() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
@@ -147,7 +152,7 @@ func (suite *depositTestSuite) TestDeposit_InvalidStrategy() {
 }
 
 func (suite *depositTestSuite) TestDeposit_PrivateVault() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -170,7 +175,7 @@ func (suite *depositTestSuite) TestDeposit_PrivateVault() {
 }
 
 func (suite *depositTestSuite) TestDeposit_bKava() {
-	vaultDenom := "bkava"
+	vaultDenom := bkava
 	coinDenom := testutil.TestBkavaDenoms[0]
 
 	startBalance := sdk.NewInt64Coin(coinDenom, 1000)
@@ -178,7 +183,7 @@ func (suite *depositTestSuite) TestDeposit_bKava() {
 
 	acc1 := suite.CreateAccount(sdk.NewCoins(startBalance), 0)
 
-	// vault denom is only "bkava" which has it's own special handler
+	// vault denom is only bkava which has it's own special handler
 	suite.CreateVault(
 		vaultDenom,
 		types.StrategyTypes{types.STRATEGY_TYPE_SAVINGS},

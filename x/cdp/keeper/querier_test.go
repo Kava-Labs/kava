@@ -26,6 +26,7 @@ import (
 
 const (
 	custom = "custom"
+	xrp    = "xrp"
 )
 
 type QuerierTestSuite struct {
@@ -90,7 +91,7 @@ func (suite *QuerierTestSuite) SetupTest() {
 	suite.Nil(err)
 
 	for j := 0; j < 100; j++ {
-		collateral := "xrp"
+		collateral := xrp
 		amount := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 2500000000, 9000000000)
 		debt := simulation.RandIntBetween(rand.New(rand.NewSource(int64(j))), 50000000, 250000000)
 		if j%2 == 0 {

@@ -32,11 +32,11 @@ func (suite *keeperTestSuite) TestGetSetDeleteCommittee() {
 
 	// check before and after match
 	suite.Require().True(found)
-	expectedJson, err := cdc.MarshalJSON(com)
+	expectedJSON, err := cdc.MarshalJSON(com)
 	suite.Require().NoError(err)
-	actualJson, err := cdc.MarshalJSON(readCommittee)
+	actualJSON, err := cdc.MarshalJSON(readCommittee)
 	suite.Require().NoError(err)
-	suite.Equal(expectedJson, actualJson)
+	suite.Equal(expectedJSON, actualJSON)
 	suite.Require().Equal(com.GetPermissions(), readCommittee.GetPermissions())
 
 	// delete from store
