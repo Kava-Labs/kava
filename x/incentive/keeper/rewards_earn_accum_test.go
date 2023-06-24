@@ -12,6 +12,11 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const (
+	bkavameow = "bkava-meow"
+	bkavawoof = "bkava-woof"
+)
+
 type AccumulateEarnRewardsTests struct {
 	unitTester
 }
@@ -93,8 +98,8 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 }
 
 func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased_bkava() {
-	vaultDenom1 := "bkava-meow"
-	vaultDenom2 := "bkava-woof"
+	vaultDenom1 := bkavameow
+	vaultDenom2 := bkavawoof
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(previousAccrualTime)
@@ -178,8 +183,8 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 }
 
 func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased_bkava_partialDeposit() {
-	vaultDenom1 := "bkava-meow"
-	vaultDenom2 := "bkava-woof"
+	vaultDenom1 := bkavameow
+	vaultDenom2 := bkavawoof
 
 	vaultDenom1Supply := i(800000)
 	vaultDenom2Supply := i(200000)
@@ -349,8 +354,8 @@ func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 }
 
 func (suite *AccumulateEarnRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased_bkava() {
-	vaultDenom1 := "bkava-meow"
-	vaultDenom2 := "bkava-woof"
+	vaultDenom1 := bkavameow
+	vaultDenom2 := bkavawoof
 
 	previousAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(previousAccrualTime)
@@ -471,8 +476,8 @@ func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 }
 
 func (suite *AccumulateEarnRewardsTests) TestNoAccumulationWhenSourceSharesAreZero_bkava() {
-	vaultDenom1 := "bkava-meow"
-	vaultDenom2 := "bkava-woof"
+	vaultDenom1 := bkavameow
+	vaultDenom2 := bkavawoof
 
 	earnKeeper := newFakeEarnKeeper() // no vault, so no source shares
 	liquidKeeper := newFakeLiquidKeeper()
@@ -585,8 +590,8 @@ func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 }
 
 func (suite *AccumulateEarnRewardsTests) TestStateAddedWhenStateDoesNotExist_bkava() {
-	vaultDenom1 := "bkava-meow"
-	vaultDenom2 := "bkava-woof"
+	vaultDenom1 := bkavameow
+	vaultDenom2 := bkavawoof
 
 	firstAccrualTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.ctx = suite.ctx.WithBlockTime(firstAccrualTime)
@@ -674,8 +679,8 @@ func (suite *AccumulateEarnRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 }
 
 func (suite *AccumulateEarnRewardsTests) TestNoPanicWhenStateDoesNotExist_bkava() {
-	vaultDenom1 := "bkava-meow"
-	vaultDenom2 := "bkava-woof"
+	vaultDenom1 := bkavameow
+	vaultDenom2 := bkavawoof
 
 	earnKeeper := newFakeEarnKeeper()
 	liquidKeeper := newFakeLiquidKeeper()
