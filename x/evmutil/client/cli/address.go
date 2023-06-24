@@ -47,7 +47,7 @@ func ParseOrQueryConversionPairAddress(
 
 	if err := sdk.ValidateDenom(addrOrDenom); err != nil {
 		return common.Address{}, fmt.Errorf(
-			"Kava ERC20 '%s' is not a valid hex address or denom",
+			"kava ERC20 '%s' is not a valid hex address or denom",
 			addrOrDenom,
 		)
 	}
@@ -68,7 +68,7 @@ func ParseOrQueryConversionPairAddress(
 	}
 
 	return common.Address{}, fmt.Errorf(
-		"Kava ERC20 '%s' is not a valid hex address or denom (did not match any denoms in queried enabled conversion pairs)",
+		"kava ERC20 '%s' is not a valid hex address or denom (did not match any denoms in queried enabled conversion pairs)",
 		addrOrDenom,
 	)
 }

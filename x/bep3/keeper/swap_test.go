@@ -32,10 +32,10 @@ type AtomicSwapTestSuite struct {
 }
 
 const (
-	STARING_BNB_BALANCE   = int64(3000000000000)
-	BNB_DENOM             = "bnb"
-	OTHER_DENOM           = "inc"
-	STARING_OTHER_BALANCE = int64(3000000000000)
+	StartingBnbBalance   = int64(3000000000000)
+	BnbDenom             = "bnb"
+	OtherDenom           = "inc"
+	StartingOtherBalance = int64(3000000000000)
 )
 
 func (suite *AtomicSwapTestSuite) SetupTest() {
@@ -48,7 +48,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 	cdc := tApp.AppCodec()
 
 	// Create and load 20 accounts with bnb tokens
-	coins := sdk.NewCoins(c(BNB_DENOM, STARING_BNB_BALANCE), c(OTHER_DENOM, STARING_OTHER_BALANCE))
+	coins := sdk.NewCoins(c(BnbDenom, StartingBnbBalance), c(OtherDenom, StartingOtherBalance))
 	_, addrs := app.GeneratePrivKeyAddressPairs(20)
 	deputy := addrs[0]
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
@@ -134,7 +134,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 50000)),
+				coins:               cs(c(BnbDenom, 50000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -188,7 +188,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 50000)),
+				coins:               cs(c(BnbDenom, 50000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_OUTGOING,
 			},
@@ -206,7 +206,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[2],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 1000)),
+				coins:               cs(c(BnbDenom, 1000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_OUTGOING,
 			},
@@ -242,7 +242,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[3],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 50000)),
+				coins:               cs(c(BnbDenom, 50000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -260,7 +260,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[4],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 50000)),
+				coins:               cs(c(BnbDenom, 50000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -278,7 +278,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 50000)),
+				coins:               cs(c(BnbDenom, 50000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_OUTGOING,
 			},
@@ -296,7 +296,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.deputy,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 50000)),
+				coins:               cs(c(BnbDenom, 50000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_OUTGOING,
 			},
@@ -314,7 +314,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[7],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 0)),
+				coins:               cs(c(BnbDenom, 0)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -332,7 +332,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[1],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 50000)),
+				coins:               cs(c(BnbDenom, 50000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -350,7 +350,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.randMacc,
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 5000)),
+				coins:               cs(c(BnbDenom, 5000)),
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -368,7 +368,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[4],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 1000000000000)), // 10,000 BNB
+				coins:               cs(c(BnbDenom, 1000000000000)), // 10,000 BNB
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -386,7 +386,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 				recipient:           suite.addrs[5],
 				senderOtherChain:    TestSenderOtherChain,
 				recipientOtherChain: TestRecipientOtherChain,
-				coins:               cs(c(BNB_DENOM, 1000000000001)), // 10,001 BNB
+				coins:               cs(c(BnbDenom, 1000000000001)), // 10,001 BNB
 				crossChain:          true,
 				direction:           types.SWAP_DIRECTION_INCOMING,
 			},
@@ -409,7 +409,7 @@ func (suite *AtomicSwapTestSuite) TestCreateAtomicSwap() {
 			if len(tc.args.coins) == 1 {
 				swapAssetDenom = tc.args.coins[0].Denom
 			} else {
-				swapAssetDenom = BNB_DENOM
+				swapAssetDenom = BnbDenom
 			}
 
 			// Load sender's account prior to swap creation
@@ -513,7 +513,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			"normal incoming swap",
 			suite.ctx,
 			args{
-				coins:        cs(c(BNB_DENOM, 50000)),
+				coins:        cs(c(BnbDenom, 50000)),
 				swapID:       []byte{},
 				randomNumber: []byte{},
 				direction:    types.SWAP_DIRECTION_INCOMING,
@@ -524,7 +524,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			"normal incoming swap rate-limited",
 			suite.ctx.WithBlockTime(currentTmTime.Add(time.Minute * 10)),
 			args{
-				coins:        cs(c(OTHER_DENOM, 50000)),
+				coins:        cs(c(OtherDenom, 50000)),
 				swapID:       []byte{},
 				randomNumber: []byte{},
 				direction:    types.SWAP_DIRECTION_INCOMING,
@@ -535,7 +535,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			"normal outgoing swap",
 			suite.ctx,
 			args{
-				coins:        cs(c(BNB_DENOM, 50000)),
+				coins:        cs(c(BnbDenom, 50000)),
 				swapID:       []byte{},
 				randomNumber: []byte{},
 				direction:    types.SWAP_DIRECTION_OUTGOING,
@@ -546,7 +546,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			"invalid random number",
 			suite.ctx,
 			args{
-				coins:        cs(c(BNB_DENOM, 50000)),
+				coins:        cs(c(BnbDenom, 50000)),
 				swapID:       []byte{},
 				randomNumber: invalidRandomNumber[:],
 				direction:    types.SWAP_DIRECTION_INCOMING,
@@ -557,7 +557,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			"wrong swap ID",
 			suite.ctx,
 			args{
-				coins:        cs(c(BNB_DENOM, 50000)),
+				coins:        cs(c(BnbDenom, 50000)),
 				swapID:       types.CalculateSwapID(suite.randomNumberHashes[3], suite.addrs[6], TestRecipientOtherChain),
 				randomNumber: []byte{},
 				direction:    types.SWAP_DIRECTION_OUTGOING,
@@ -568,7 +568,7 @@ func (suite *AtomicSwapTestSuite) TestClaimAtomicSwap() {
 			"past expiration",
 			suite.ctx.WithBlockHeight(suite.ctx.BlockHeight() + 2000),
 			args{
-				coins:        cs(c(BNB_DENOM, 50000)),
+				coins:        cs(c(BnbDenom, 50000)),
 				swapID:       []byte{},
 				randomNumber: []byte{},
 				direction:    types.SWAP_DIRECTION_INCOMING,
@@ -734,7 +734,7 @@ func (suite *AtomicSwapTestSuite) TestRefundAtomicSwap() {
 		suite.GenerateSwapDetails()
 		suite.Run(tc.name, func() {
 			// Create atomic swap
-			expectedRefundAmount := cs(c(BNB_DENOM, 50000))
+			expectedRefundAmount := cs(c(BnbDenom, 50000))
 			sender := suite.deputy
 			expectedRecipient := suite.addrs[9]
 

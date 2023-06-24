@@ -7,7 +7,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
 	"github.com/kava-labs/kava/app"
@@ -841,12 +840,6 @@ func committeeGenState(cdc codec.Codec, committees []types.Committee, proposals 
 		votes,
 	)
 	return app.GenesisState{types.ModuleName: cdc.MustMarshalJSON(gs)}
-}
-
-func bankGenState(cdc codec.Codec, coins sdk.Coins) app.GenesisState {
-	gs := banktypes.DefaultGenesisState()
-	gs.Supply = coins
-	return app.GenesisState{banktypes.ModuleName: cdc.MustMarshalJSON(gs)}
 }
 
 type UnregisteredPubProposal struct {

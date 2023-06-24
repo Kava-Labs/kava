@@ -37,7 +37,7 @@ func TestKeeper_PostPrice(t *testing.T) {
 	tests := []struct {
 		giveMsg      string
 		giveOracle   sdk.AccAddress
-		giveMarketId string
+		giveMarketID string
 		giveExpiry   time.Time
 		wantAccepted bool
 		errorKind    error
@@ -51,7 +51,7 @@ func TestKeeper_PostPrice(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.giveMsg, func(t *testing.T) {
 			// Use MsgServer over keeper methods directly to tests against valid oracles
-			msg := types.NewMsgPostPrice(tt.giveOracle.String(), tt.giveMarketId, sdk.MustNewDecFromStr("0.5"), tt.giveExpiry)
+			msg := types.NewMsgPostPrice(tt.giveOracle.String(), tt.giveMarketID, sdk.MustNewDecFromStr("0.5"), tt.giveExpiry)
 			_, err := msgSrv.PostPrice(sdk.WrapSDKContext(ctx), msg)
 
 			if tt.wantAccepted {

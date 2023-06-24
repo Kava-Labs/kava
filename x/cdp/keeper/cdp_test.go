@@ -330,13 +330,13 @@ func (suite *CdpTestSuite) TestCdpOwnerIndex() {
 	owner1 := cdps[0].Owner
 	owner2 := cdps[1].Owner
 
-	cdpIds_1, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner1)
+	cdpIds1, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner1)
 	suite.Require().False(found)
-	cdpIds_2, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner2)
+	cdpIds2, found := suite.keeper.GetCdpIdsByOwner(suite.ctx, owner2)
 	suite.Require().False(found)
 
-	suite.Require().Equal(0, len(cdpIds_1))
-	suite.Require().Equal(0, len(cdpIds_2))
+	suite.Require().Equal(0, len(cdpIds1))
+	suite.Require().Equal(0, len(cdpIds2))
 
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdps[2])
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdps[1])

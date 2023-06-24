@@ -924,9 +924,6 @@ func TestAllowedParamsChanges_Set(t *testing.T) {
 		},
 	}
 
-	type args struct {
-		subspace, key string
-	}
 	testCases := []struct {
 		name string
 		apcs types.AllowedParamsChanges
