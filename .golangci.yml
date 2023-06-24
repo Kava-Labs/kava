@@ -31,7 +31,7 @@ issues:
   max-issues-per-linter: 10000
   max-same-issues: 10000
   exclude-rules:
-    - text: 'ST1003: should not use underscores in package names'
+    - text: 'ST1003: should not use underscores'
       linters:
         - stylecheck
     - text: 'Use of weak random number generator'

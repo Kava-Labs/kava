@@ -27,7 +27,7 @@ func TestWithdrawTestSuite(t *testing.T) {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_NoVaultRecord() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -52,7 +52,7 @@ func (suite *withdrawTestSuite) TestWithdraw_NoVaultRecord() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_NoVaultShareRecord() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 
 	acc1DepositAmount := sdk.NewCoin(vaultDenom, sdkmath.NewInt(100))
@@ -85,7 +85,7 @@ func (suite *withdrawTestSuite) TestWithdraw_NoVaultShareRecord() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 200)
@@ -114,7 +114,7 @@ func (suite *withdrawTestSuite) TestWithdraw_ExceedBalance() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_Zero() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 0)
 
@@ -139,7 +139,7 @@ func (suite *withdrawTestSuite) TestWithdraw_Zero() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_InvalidVault() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
@@ -164,7 +164,7 @@ func (suite *withdrawTestSuite) TestWithdraw_InvalidVault() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_InvalidStrategy() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 1001)
 
@@ -178,7 +178,7 @@ func (suite *withdrawTestSuite) TestWithdraw_InvalidStrategy() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_FullBalance() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	withdrawAmount := sdk.NewInt64Coin(vaultDenom, 100)
@@ -205,7 +205,7 @@ func (suite *withdrawTestSuite) TestWithdraw_FullBalance() {
 }
 
 func (suite *withdrawTestSuite) TestWithdraw_Partial() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	partialWithdrawAmount := sdk.NewInt64Coin(vaultDenom, 50)

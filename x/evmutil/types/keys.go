@@ -42,7 +42,7 @@ func DenomFromDeployedCosmosCoinContractKey(key []byte) string {
 	return string(key[1:])
 }
 
-// ModuleAddress is the native module address for EVM
+// ModuleEVMAddress is the native module address for EVM
 var ModuleEVMAddress common.Address
 
 func init() {

@@ -25,10 +25,10 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	valAddr2 := sdk.ValAddress(validatorAddr2)
 
 	authBuilder := suite.authBuilder().
-		WithSimpleAccount(userAddr1, cs(c("ukava", 1e12))).
-		WithSimpleAccount(userAddr2, cs(c("ukava", 1e12))).
-		WithSimpleAccount(validatorAddr1, cs(c("ukava", 1e12))).
-		WithSimpleAccount(validatorAddr2, cs(c("ukava", 1e12)))
+		WithSimpleAccount(userAddr1, cs(c(ukava, 1e12))).
+		WithSimpleAccount(userAddr2, cs(c(ukava, 1e12))).
+		WithSimpleAccount(validatorAddr1, cs(c(ukava, 1e12))).
+		WithSimpleAccount(validatorAddr2, cs(c(ukava, 1e12)))
 
 	incentBuilder := suite.incentiveBuilder().
 		WithSimpleEarnRewardPeriod("bkava", cs())
@@ -66,20 +66,20 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 
 	// Use ukava for mint denom
 	mParams := mk.GetParams(suite.Ctx)
-	mParams.MintDenom = "ukava"
+	mParams.MintDenom = ukava
 	mk.SetParams(suite.Ctx, mParams)
 
 	bkavaDenom1 := lq.GetLiquidStakingTokenDenom(valAddr1)
 	bkavaDenom2 := lq.GetLiquidStakingTokenDenom(valAddr2)
 
-	err := suite.App.FundModuleAccount(suite.Ctx, distrtypes.ModuleName, cs(c("ukava", 1e12)))
+	err := suite.App.FundModuleAccount(suite.Ctx, distrtypes.ModuleName, cs(c(ukava, 1e12)))
 	suite.NoError(err)
 
 	// Create validators
-	err = suite.DeliverMsgCreateValidator(valAddr1, c("ukava", 1e9))
+	err = suite.DeliverMsgCreateValidator(valAddr1, c(ukava, 1e9))
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgCreateValidator(valAddr2, c("ukava", 1e9))
+	err = suite.DeliverMsgCreateValidator(valAddr2, c(ukava, 1e9))
 	suite.Require().NoError(err)
 
 	// new block required to bond validator
@@ -90,23 +90,23 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// Create delegations from users
 	// User 1: 1e9 ukava to validator 1
 	// User 2: 99e9 ukava to validator 1 AND 2
-	err = suite.DeliverMsgDelegate(userAddr1, valAddr1, c("ukava", 1e9))
+	err = suite.DeliverMsgDelegate(userAddr1, valAddr1, c(ukava, 1e9))
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgDelegate(userAddr2, valAddr1, c("ukava", 99e9))
+	err = suite.DeliverMsgDelegate(userAddr2, valAddr1, c(ukava, 99e9))
 	suite.Require().NoError(err)
 
-	err = suite.DeliverMsgDelegate(userAddr2, valAddr2, c("ukava", 99e9))
+	err = suite.DeliverMsgDelegate(userAddr2, valAddr2, c(ukava, 99e9))
 	suite.Require().NoError(err)
 
 	// Mint liquid tokens
-	_, err = suite.DeliverMsgMintDerivative(userAddr1, valAddr1, c("ukava", 1e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr1, valAddr1, c(ukava, 1e9))
 	suite.Require().NoError(err)
 
-	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr1, c("ukava", 99e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr1, c(ukava, 99e9))
 	suite.Require().NoError(err)
 
-	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr2, c("ukava", 99e9))
+	_, err = suite.DeliverMsgMintDerivative(userAddr2, valAddr2, c(ukava, 99e9))
 	suite.Require().NoError(err)
 
 	// Deposit liquid tokens to earn
@@ -189,7 +189,7 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	preClaimBal2 := suite.GetBalance(userAddr2)
 
 	// Claim ukava staking rewards
-	denomsToClaim := map[string]string{"ukava": "large"}
+	denomsToClaim := map[string]string{ukava: "large"}
 	selections := types.NewSelectionsFromMap(denomsToClaim)
 
 	msg1 := types.NewMsgClaimEarnReward(userAddr1.String(), selections)
@@ -205,32 +205,32 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// User 1 gets 1% of rewards
 	// User 2 gets 99% of rewards
 	stakingRewards1 := delegationRewards.
-		AmountOf("ukava").
+		AmountOf(ukava).
 		Quo(sdk.NewDec(100)).
 		RoundInt()
-	suite.BalanceEquals(userAddr1, preClaimBal1.Add(sdk.NewCoin("ukava", stakingRewards1)))
+	suite.BalanceEquals(userAddr1, preClaimBal1.Add(sdk.NewCoin(ukava, stakingRewards1)))
 
 	// Total * 99 / 100
 	stakingRewards2 := delegationRewards.
-		AmountOf("ukava").
+		AmountOf(ukava).
 		Mul(sdk.NewDec(99)).
 		Quo(sdk.NewDec(100)).
 		RoundInt()
 
 	suite.BalanceInEpsilon(
 		userAddr2,
-		preClaimBal2.Add(sdk.NewCoin("ukava", stakingRewards2)),
+		preClaimBal2.Add(sdk.NewCoin(ukava, stakingRewards2)),
 		// Highest precision to allow 1ukava margin of error
 		// 820778117815 vs 820778117814
 		1e-11,
 	)
 
 	suite.InEpsilonf(
-		delegationRewards.AmountOf("ukava").RoundInt().Int64(),
+		delegationRewards.AmountOf(ukava).RoundInt().Int64(),
 		stakingRewards1.Add(stakingRewards2).Int64(),
 		1e-11,
 		"expected rewards should add up to staking rewards within a margin of error (%v vs %v)",
-		delegationRewards.AmountOf("ukava").RoundInt().Int64(),
+		delegationRewards.AmountOf(ukava).RoundInt().Int64(),
 		stakingRewards1.Add(stakingRewards2).Int64(),
 	)
 

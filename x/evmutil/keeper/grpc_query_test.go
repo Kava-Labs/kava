@@ -18,6 +18,8 @@ import (
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
+const ibcDenom = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
+
 type grpcQueryTestSuite struct {
 	suite.Suite
 
@@ -74,7 +76,6 @@ func (suite *grpcQueryTestSuite) TestQueryDeployedCosmosCoinContracts() {
 	})
 
 	// setup some deployed contracts
-	ibcDenom := "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
 	contracts := []types.DeployedCosmosCoinContract{
 		types.NewDeployedCosmosCoinContract("magic", testutil.RandomInternalEVMAddress()),
 		types.NewDeployedCosmosCoinContract("hard", testutil.RandomInternalEVMAddress()),

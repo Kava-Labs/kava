@@ -10,6 +10,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const preexistingVaultDenom = "preexisting"
+
 // InitializeEarnRewardTests runs unit tests for the keeper.InitializeEarnReward method
 //
 // inputs
@@ -85,7 +87,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 	// When a claim exists, and a user deposits to a new non-rewarded pool;
 	// then the claim's rewards don't change
 
-	preexistingvaultDenom := "preexisting"
+	preexistingVaultDenom := preexistingVaultDenom
 	preexistingIndexes := types.RewardIndexes{
 		{
 			CollateralType: "rewarddenom",
@@ -102,7 +104,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
-				CollateralType: preexistingvaultDenom,
+				CollateralType: preexistingVaultDenom,
 				RewardIndexes:  preexistingIndexes,
 			},
 		},
@@ -117,7 +119,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 	// The preexisting indexes shouldn't be changed. It doesn't strictly need the new vaultDenom either.
 	expectedIndexes := types.MultiRewardIndexes{
 		{
-			CollateralType: preexistingvaultDenom,
+			CollateralType: preexistingVaultDenom,
 			RewardIndexes:  preexistingIndexes,
 		},
 		{
@@ -134,7 +136,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 	// When a claim exists, and a user deposits to a new rewarded pool;
 	// then the claim's rewards don't change and the indexes are updated to match the global indexes
 
-	preexistingvaultDenom := "preexisting"
+	preexistingVaultDenom := preexistingVaultDenom
 	preexistingIndexes := types.RewardIndexes{
 		{
 			CollateralType: "rewarddenom",
@@ -157,7 +159,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 		},
 		RewardIndexes: types.MultiRewardIndexes{
 			{
-				CollateralType: preexistingvaultDenom,
+				CollateralType: preexistingVaultDenom,
 				RewardIndexes:  preexistingIndexes,
 			},
 		},
@@ -166,7 +168,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
-			CollateralType: preexistingvaultDenom,
+			CollateralType: preexistingVaultDenom,
 			RewardIndexes:  increaseRewardFactors(preexistingIndexes),
 		},
 		{
@@ -182,7 +184,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 	// only the indexes for the new pool should be updated
 	expectedIndexes := types.MultiRewardIndexes{
 		{
-			CollateralType: preexistingvaultDenom,
+			CollateralType: preexistingVaultDenom,
 			RewardIndexes:  preexistingIndexes,
 		},
 		{

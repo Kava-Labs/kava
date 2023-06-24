@@ -27,7 +27,7 @@ func TestVaultTestSuite(t *testing.T) {
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalShares() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -45,14 +45,14 @@ func (suite *vaultTestSuite) TestGetVaultTotalShares() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalShares_NotFound() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	_, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
 	suite.Require().False(found)
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalValue() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
@@ -62,7 +62,7 @@ func (suite *vaultTestSuite) TestGetVaultTotalValue() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultTotalValue_NotFound() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	_, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
 	suite.Require().Error(err)
@@ -70,7 +70,7 @@ func (suite *vaultTestSuite) TestGetVaultTotalValue_NotFound() {
 }
 
 func (suite *vaultTestSuite) TestInvalidVaultStrategy() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	suite.PanicsWithValue("value from ParamSetPair is invalid: invalid strategy 99999", func() {
 		suite.CreateVault(vaultDenom, types.StrategyTypes{99999}, false, nil) // not valid strategy type
@@ -78,7 +78,7 @@ func (suite *vaultTestSuite) TestInvalidVaultStrategy() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	deposit1Amount := sdk.NewInt64Coin(vaultDenom, 100)
 	deposit2Amount := sdk.NewInt64Coin(vaultDenom, 100)
@@ -117,7 +117,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountSupplied() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -134,7 +134,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue_VaultNotFound() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	acc := suite.CreateAccount(sdk.NewCoins(), 0)
 
 	_, err := suite.Keeper.GetVaultAccountValue(suite.Ctx, vaultDenom, acc.GetAddress())
@@ -143,7 +143,7 @@ func (suite *vaultTestSuite) TestGetVaultAccountValue_VaultNotFound() {
 }
 
 func (suite *vaultTestSuite) TestGetVaultAccountValue_ShareNotFound() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 

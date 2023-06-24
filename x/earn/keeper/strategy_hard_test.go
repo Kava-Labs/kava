@@ -34,7 +34,7 @@ func (suite *strategyHardTestSuite) TestGetStrategyType() {
 }
 
 func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -59,7 +59,7 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
 }
 
 func (suite *strategyHardTestSuite) TestDeposit_SingleAcc_MultipleDeposits() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -89,7 +89,7 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc_MultipleDeposits() {
 }
 
 func (suite *strategyHardTestSuite) TestDeposit_MultipleAcc_MultipleDeposits() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -125,7 +125,7 @@ func (suite *strategyHardTestSuite) TestDeposit_MultipleAcc_MultipleDeposits() {
 }
 
 func (suite *strategyHardTestSuite) TestGetVaultTotalValue_Empty() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
 
@@ -140,7 +140,7 @@ func (suite *strategyHardTestSuite) TestGetVaultTotalValue_NoDenomDeposit() {
 	// 2 Vaults usdx, busd
 	// 1st vault has deposits
 	// 2nd vault has no deposits
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	vaultDenomBusd := "busd"
 
 	suite.CreateVault(vaultDenom, types.StrategyTypes{types.STRATEGY_TYPE_HARD}, false, nil)
@@ -168,7 +168,7 @@ func (suite *strategyHardTestSuite) TestGetVaultTotalValue_NoDenomDeposit() {
 // Withdraw
 
 func (suite *strategyHardTestSuite) TestWithdraw() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -204,7 +204,7 @@ func (suite *strategyHardTestSuite) TestWithdraw() {
 }
 
 func (suite *strategyHardTestSuite) TestWithdraw_OnlyWithdrawOwnSupply() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -234,7 +234,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_OnlyWithdrawOwnSupply() {
 }
 
 func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 
@@ -295,7 +295,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_WithAccumulatedHard() {
 }
 
 func (suite *strategyHardTestSuite) TestAccountShares() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
@@ -372,7 +372,7 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 }
 
 func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedAmount() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
@@ -411,7 +411,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedAmount() {
 }
 
 func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 1000)))
@@ -457,7 +457,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
 }
 
 func (suite *strategyHardTestSuite) TestWithdraw_ExpensiveShares() {
-	vaultDenom := "usdx"
+	vaultDenom := usdx
 	startBalance := sdk.NewInt64Coin(vaultDenom, 1000)
 	depositAmount := sdk.NewInt64Coin(vaultDenom, 100)
 	err := suite.App.FundModuleAccount(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin(vaultDenom, 2000)))

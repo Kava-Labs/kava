@@ -24,7 +24,7 @@ import (
 	"github.com/kava-labs/kava/x/committee/types"
 )
 
-const PARAMS_CHANGE_PROPOSAL_EXAMPLE = `
+const ParamsChangeProposal = `
 {
 	"@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
   "title": "title",
@@ -33,7 +33,7 @@ const PARAMS_CHANGE_PROPOSAL_EXAMPLE = `
 }
 `
 
-const COMMITTEE_CHANGE_PROPOSAL_EXAMPLE = `
+const CommitteeChangeProposal = `
 {
 	"@type": "/kava.committee.v1beta1.CommitteeChangeProposal",
   "title": "A Title",
@@ -53,7 +53,7 @@ const COMMITTEE_CHANGE_PROPOSAL_EXAMPLE = `
 }
 `
 
-const COMMITTEE_DELETE_PROPOSAL_EXAMPLE = `
+const CommitteeDeleteProposal = `
 {
 	"@type": "/kava.committee.v1beta1.CommitteeDeleteProposal",
   "title": "A Title",
@@ -95,7 +95,7 @@ func getCmdSubmitProposal() *cobra.Command {
 The proposal file must be the json encoded forms of the proposal type you want to submit.
 For example:
 %s
-`, PARAMS_CHANGE_PROPOSAL_EXAMPLE),
+`, ParamsChangeProposal),
 		Args:    cobra.ExactArgs(2),
 		Example: fmt.Sprintf("%s tx %s submit-proposal 1 your-proposal.json", version.AppName, types.ModuleName),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -209,7 +209,7 @@ For example, to create or update a committee:
 
 and to delete a committee:
 %s
-`, COMMITTEE_CHANGE_PROPOSAL_EXAMPLE, COMMITTEE_DELETE_PROPOSAL_EXAMPLE),
+`, CommitteeChangeProposal, CommitteeDeleteProposal),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

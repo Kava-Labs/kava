@@ -13,6 +13,8 @@ import (
 var ErrChainAlreadyExists = errors.New("chain already exists")
 
 // ChainDetails wraps information about the properties & endpoints of a chain.
+//
+//nolint:stylecheck // this doesn't seem highly relevant
 type ChainDetails struct {
 	RpcUrl    string
 	GrpcUrl   string

@@ -73,7 +73,7 @@ func (suite *evmKeeperTestSuite) TestEvmKeeper_SetAccount() {
 		{
 			"existing base account, non-contract account",
 			baseAddr,
-			statedb.Account{10, big.NewInt(10), types.EmptyCodeHash},
+			statedb.Account{Nonce: 10, Balance: big.NewInt(10), CodeHash: types.EmptyCodeHash},
 			nil,
 		},
 		{

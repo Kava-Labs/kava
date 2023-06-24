@@ -18,6 +18,7 @@ import (
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
+//nolint:stylecheck // these are more readable with allcaps and the underscore
 const (
 	USDX_CF = 1000000
 	KAVA_CF = 1000000

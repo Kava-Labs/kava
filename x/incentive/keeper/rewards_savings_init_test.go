@@ -11,7 +11,10 @@ import (
 	savingstypes "github.com/kava-labs/kava/x/savings/types"
 )
 
-const testDenom = "test"
+const (
+	testDenom        = "test"
+	preexistingDenom = "preexisting"
+)
 
 // InitializeSavingsRewardTests runs unit tests for the keeper.InitializeSavingsReward method
 type InitializeSavingsRewardTests struct {

@@ -20,7 +20,10 @@ type convertCosmosCoinToERC20Suite struct {
 	testutil.Suite
 }
 
-const magic = "magic"
+const (
+	magic        = "magic"
+	allowedDenom = "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
+)
 
 func TestConversionCosmosNativeToEvmSuite(t *testing.T) {
 	suite.Run(t, new(convertCosmosCoinToERC20Suite))
@@ -41,7 +44,6 @@ func (suite *convertCosmosCoinToERC20Suite) denomContractNotRegistered(denom str
 
 // more tests of tests of this method are made to the msg handler, see ./msg_server_test.go
 func (suite *convertCosmosCoinToERC20Suite) TestConvertCosmosCoinToERC20() {
-	allowedDenom := "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2"
 	initialFunding := sdk.NewInt64Coin(allowedDenom, int64(1e10))
 	initiator := app.RandomAddress()
 

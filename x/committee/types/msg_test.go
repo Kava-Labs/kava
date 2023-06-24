@@ -11,8 +11,8 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
-func MustNewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeId uint64) *MsgSubmitProposal {
-	proposal, err := NewMsgSubmitProposal(pubProposal, proposer, committeeId)
+func MustNewMsgSubmitProposal(pubProposal PubProposal, proposer sdk.AccAddress, committeeID uint64) *MsgSubmitProposal {
+	proposal, err := NewMsgSubmitProposal(pubProposal, proposer, committeeID)
 	if err != nil {
 		panic(err)
 	}

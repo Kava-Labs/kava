@@ -14,6 +14,7 @@ import (
 	"github.com/kava-labs/kava/x/hard/types"
 )
 
+//nolint:stylecheck // this is more readable with allcaps and underscores
 const (
 	USDX_CF = 1000000
 	KAVA_CF = 1000000
