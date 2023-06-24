@@ -50,14 +50,14 @@ func (a InternalEVMAddress) Equal(other InternalEVMAddress) bool {
 }
 
 // MarshalTo implements the protobuf Marshaler interface.
-func (addr InternalEVMAddress) MarshalTo(data []byte) (int, error) {
-	addressBytes := addr.Address.Bytes()
+func (a InternalEVMAddress) MarshalTo(data []byte) (int, error) {
+	addressBytes := a.Address.Bytes()
 	return copy(data, addressBytes), nil
 }
 
 // MarshalJSON allows PrintProto to handle InternalEVMAddress
-func (addr InternalEVMAddress) MarshalJSON() ([]byte, error) {
-	return json.Marshal(addr.Hex())
+func (a InternalEVMAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.Hex())
 }
 
 // Size implements protobuf Unmarshaler interface.
@@ -66,10 +66,10 @@ func (a InternalEVMAddress) Size() int {
 }
 
 // Unmarshal implements the protobuf Unmarshaler interface.
-func (addr *InternalEVMAddress) Unmarshal(data []byte) error {
+func (a *InternalEVMAddress) Unmarshal(data []byte) error {
 	if len(data) != common.AddressLength {
 		return errors.New("invalid data length for InternalEVMAddress")
 	}
-	addr.Address.SetBytes(data)
+	a.Address.SetBytes(data)
 	return nil
 }

@@ -33,8 +33,10 @@ func TestAccumulateSwapRewards(t *testing.T) {
 	suite.Run(t, new(AccumulateSwapRewardsTests))
 }
 
+const BTC_USDX = "btc:usdx" //nolint:stylecheck // this is easier to read with allcaps and an underscore
+
 func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-	pool := "btc:usdx"
+	pool := BTC_USDX
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
@@ -86,7 +88,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 }
 
 func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
-	pool := "btc:usdx"
+	pool := BTC_USDX
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
@@ -131,7 +133,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 }
 
 func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
-	pool := "btc:usdx"
+	pool := BTC_USDX
 
 	swapKeeper := newFakeSwapKeeper() // no pools, so no source shares
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
@@ -177,7 +179,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 }
 
 func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
-	pool := "btc:usdx"
+	pool := BTC_USDX
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
@@ -220,7 +222,7 @@ func (suite *AccumulateSwapRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 }
 
 func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
-	pool := "btc:usdx"
+	pool := BTC_USDX
 
 	swapKeeper := newFakeSwapKeeper()
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
@@ -248,7 +250,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoPanicWhenStateDoesNotExist() {
 }
 
 func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
-	pool := "btc:usdx"
+	pool := BTC_USDX
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)
@@ -294,7 +296,7 @@ func (suite *AccumulateSwapRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 }
 
 func (suite *AccumulateSwapRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
-	pool := "btc:usdx"
+	pool := BTC_USDX
 
 	swapKeeper := newFakeSwapKeeper().addPool(pool, i(1e6))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, nil, swapKeeper, nil, nil, nil)

@@ -12,7 +12,7 @@ import (
 
 const (
 	preexistingVaultDenom = "preexisting"
-	newVaultDenom
+	BTCB_USDX             = "btcb:usdx" //nolint:stylecheck // this is more readable with allcaps and underscores
 )
 
 // InitializeEarnRewardTests runs unit tests for the keeper.InitializeEarnReward method
@@ -98,7 +98,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 		},
 	}
 
-	newVaultDenom := "btcb:usdx"
+	newVaultDenom := BTCB_USDX
 
 	claim := types.EarnClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -147,7 +147,7 @@ func (suite *InitializeEarnRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 		},
 	}
 
-	newVaultDenom := "btcb:usdx"
+	newVaultDenom := BTCB_USDX
 	newIndexes := types.RewardIndexes{
 		{
 			CollateralType: "otherrewarddenom",

@@ -11,6 +11,8 @@ import (
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
+const bnba = "bnb-a"
+
 type AccumulateUSDXRewardsTests struct {
 	usdxRewardsUnitTester
 }
@@ -32,7 +34,7 @@ func TestAccumulateUSDXRewards(t *testing.T) {
 }
 
 func (suite *AccumulateUSDXRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreased() {
-	cType := "bnb-a"
+	cType := bnba
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil, nil, nil)
@@ -66,7 +68,7 @@ func (suite *AccumulateUSDXRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 }
 
 func (suite *AccumulateUSDXRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIncreased() {
-	cType := "bnb-a"
+	cType := bnba
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil, nil, nil)
@@ -102,7 +104,7 @@ func (suite *AccumulateUSDXRewardsTests) TestStateUnchangedWhenBlockTimeHasNotIn
 }
 
 func (suite *AccumulateUSDXRewardsTests) TestNoAccumulationWhenSourceSharesAreZero() {
-	cType := "bnb-a"
+	cType := bnba
 
 	cdpKeeper := newFakeCDPKeeper() // zero total borrows
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil, nil, nil)
@@ -139,7 +141,7 @@ func (suite *AccumulateUSDXRewardsTests) TestNoAccumulationWhenSourceSharesAreZe
 }
 
 func (suite *AccumulateUSDXRewardsTests) TestStateAddedWhenStateDoesNotExist() {
-	cType := "bnb-a"
+	cType := bnba
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil, nil, nil)
@@ -172,7 +174,7 @@ func (suite *AccumulateUSDXRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 }
 
 func (suite *AccumulateUSDXRewardsTests) TestNoAccumulationWhenBeforeStartTime() {
-	cType := "bnb-a"
+	cType := bnba
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil, nil, nil)
@@ -209,7 +211,7 @@ func (suite *AccumulateUSDXRewardsTests) TestNoAccumulationWhenBeforeStartTime()
 }
 
 func (suite *AccumulateUSDXRewardsTests) TestPanicWhenCurrentTimeLessThanPrevious() {
-	cType := "bnb-a"
+	cType := bnba
 
 	cdpKeeper := newFakeCDPKeeper().addTotalPrincipal(i(1e6)).addInterestFactor(d("1"))
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, cdpKeeper, nil, nil, nil, nil, nil, nil, nil)

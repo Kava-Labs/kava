@@ -37,7 +37,7 @@ func TestInitializeUSDXMintingClaims(t *testing.T) {
 }
 
 func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimDoesNotExist() {
-	collateralType := "bnb-a"
+	collateralType := bnba
 
 	cdp := NewCDPBuilder(arbitraryAddress(), collateralType).Build()
 
@@ -55,7 +55,7 @@ func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimDoesNo
 }
 
 func (suite *InitializeUSDXMintingClaimTests) TestClaimIndexIsSetWhenClaimExists() {
-	collateralType := "bnb-a"
+	collateralType := bnba
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
@@ -114,7 +114,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestRewardUnchangedWhenGlobalInd
 }
 
 func (suite *SynchronizeUSDXMintingRewardTests) TestRewardIsIncrementedWhenGlobalIndexIncreased() {
-	collateralType := "bnb-a"
+	collateralType := bnba
 
 	claim := types.USDXMintingClaim{
 		BaseClaim: types.BaseClaim{
@@ -178,7 +178,7 @@ func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenGloba
 func (suite *SynchronizeUSDXMintingRewardTests) TestClaimIndexIsUpdatedWhenNewRewardAddedAndClaimAlreadyExists() {
 	claimsRewardIndexes := types.RewardIndexes{
 		{
-			CollateralType: "bnb-a",
+			CollateralType: bnba,
 			RewardFactor:   d("0.1"),
 		},
 		{
@@ -287,7 +287,7 @@ func (builder CDPBuilder) WithPrincipal(principal sdkmath.Int) CDPBuilder {
 
 var nonEmptyRewardIndexes = types.RewardIndexes{
 	{
-		CollateralType: "bnb-a",
+		CollateralType: bnba,
 		RewardFactor:   d("0.1"),
 	},
 	{

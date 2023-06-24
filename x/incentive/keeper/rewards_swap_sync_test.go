@@ -32,7 +32,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 	// The user earns rewards for the time passed, and the claim indexes are updated
 
 	originalReward := arbitraryCoins()
-	poolID := "base:quote"
+	poolID := basequote
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -83,7 +83,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesHaveIn
 func (suite *SynchronizeSwapRewardTests) TestClaimUnchangedWhenGlobalIndexesUnchanged() {
 	// It should be safe to call SynchronizeSwapReward multiple times
 
-	poolID := "base:quote"
+	poolID := basequote
 	unchangingIndexes := types.MultiRewardIndexes{
 		{
 			CollateralType: poolID,
@@ -212,7 +212,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenNewRewardDenomAdded
 	// Then the user earns rewards for the time since the reward was added, and the new indexes are added.
 
 	originalReward := arbitraryCoins()
-	poolID := "base:quote"
+	poolID := basequote
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -272,7 +272,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 	// When the claim is synced, but the user has no shares
 	// The user earns no rewards for the time passed, but the claim indexes are updated
 
-	poolID := "base:quote"
+	poolID := basequote
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -318,7 +318,7 @@ func (suite *SynchronizeSwapRewardTests) TestClaimUpdatedWhenGlobalIndexesIncrea
 }
 
 func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUnchangedWhenNoGlobalIndexes() {
-	poolID_1 := "btcb:usdx"
+	poolID_1 := BTCB_USDX
 	owner := arbitraryAddress()
 
 	swapKeeper := newFakeSwapKeeper().
@@ -351,7 +351,7 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUnchangedWhenNo
 }
 
 func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMissingIndexAndHasNoSourceShares() {
-	poolID_1 := "btcb:usdx"
+	poolID_1 := BTCB_USDX
 	poolID_2 := "ukava:usdx"
 	owner := arbitraryAddress()
 
@@ -409,7 +409,7 @@ func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMiss
 }
 
 func (suite *SynchronizeSwapRewardTests) TestGetSyncedClaim_ClaimUpdatedWhenMissingIndexButHasSourceShares() {
-	poolID_1 := "btcb:usdx"
+	poolID_1 := BTCB_USDX
 	poolID_2 := "ukava:usdx"
 	owner := arbitraryAddress()
 

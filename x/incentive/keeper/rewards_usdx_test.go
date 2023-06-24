@@ -61,7 +61,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 			Denom:       types.USDXMintingRewardDenom,
 			Multipliers: types.Multipliers{types.NewMultiplier("large", 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
-		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
+		WithSimpleUSDXRewardPeriod(bnba, c(types.USDXMintingRewardDenom, 1e6))
 
 	suite.SetApp()
 	suite.WithGenesisTime(suite.genesisTime)
@@ -74,7 +74,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 
 	// User creates a CDP to begin earning rewards.
 	suite.NoError(
-		suite.DeliverMsgCreateCDP(userA, c("bnb", 1e10), c(cdptypes.DefaultStableDenom, 1e9), "bnb-a"),
+		suite.DeliverMsgCreateCDP(userA, c("bnb", 1e10), c(cdptypes.DefaultStableDenom, 1e9), bnba),
 	)
 
 	// Let time pass to accumulate interest on the deposit
@@ -83,10 +83,10 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 
 	// User repays and borrows just to sync their CDP
 	suite.NoError(
-		suite.DeliverCDPMsgRepay(userA, "bnb-a", c(cdptypes.DefaultStableDenom, 1)),
+		suite.DeliverCDPMsgRepay(userA, bnba, c(cdptypes.DefaultStableDenom, 1)),
 	)
 	suite.NoError(
-		suite.DeliverCDPMsgBorrow(userA, "bnb-a", c(cdptypes.DefaultStableDenom, 1)),
+		suite.DeliverCDPMsgBorrow(userA, bnba, c(cdptypes.DefaultStableDenom, 1)),
 	)
 
 	// Accumulate more rewards.
@@ -111,7 +111,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 		WithSimpleModuleAccount(kavadisttypes.ModuleName, cs(c(types.USDXMintingRewardDenom, 1e18))). // Fill kavadist with enough coins to pay out any reward
 		WithSimpleAccount(user, cs(initialCollateral))
 
-	collateralType := "bnb-a"
+	collateralType := bnba
 
 	incentBuilder := testutil.NewIncentiveGenesisBuilder().
 		WithGenesisTime(suite.genesisTime).
@@ -165,7 +165,7 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 			Denom:       types.USDXMintingRewardDenom,
 			Multipliers: types.Multipliers{types.NewMultiplier("large", 12, d("1.0"))}, // keep payout at 1.0 to make maths easier
 		}}).
-		WithSimpleUSDXRewardPeriod("bnb-a", c(types.USDXMintingRewardDenom, 1e6))
+		WithSimpleUSDXRewardPeriod(bnba, c(types.USDXMintingRewardDenom, 1e6))
 
 	suite.SetApp()
 	suite.WithGenesisTime(suite.genesisTime)
@@ -179,7 +179,7 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 
 	// Accumulate some CDP rewards, requires creating a cdp so the total borrowed isn't 0.
 	suite.NoError(
-		suite.DeliverMsgCreateCDP(userA, c("bnb", 1e10), c("usdx", 1e9), "bnb-a"),
+		suite.DeliverMsgCreateCDP(userA, c("bnb", 1e10), c("usdx", 1e9), bnba),
 	)
 	suite.NextBlockAfter(1e6 * time.Second)
 
@@ -190,18 +190,18 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 
 	// Create a CDP when there is no reward periods. In a previous version the claim object would not be created, leading to the bug.
 	// Withdraw the same amount of usdx as the first cdp currently has. This make the reward maths easier, as rewards will be split 50:50 between each cdp.
-	firstCDP, f := suite.App.GetCDPKeeper().GetCdpByOwnerAndCollateralType(suite.Ctx, userA, "bnb-a")
+	firstCDP, f := suite.App.GetCDPKeeper().GetCdpByOwnerAndCollateralType(suite.Ctx, userA, bnba)
 	suite.True(f)
 	firstCDPTotalPrincipal := firstCDP.GetTotalPrincipal()
 	suite.NoError(
-		suite.DeliverMsgCreateCDP(userB, c("bnb", 1e10), firstCDPTotalPrincipal, "bnb-a"),
+		suite.DeliverMsgCreateCDP(userB, c("bnb", 1e10), firstCDPTotalPrincipal, bnba),
 	)
 
 	// Add back the reward period
 	suite.ProposeAndVoteOnNewRewardPeriods(0, userA,
 		types.RewardPeriods{types.NewRewardPeriod(
 			true,
-			"bnb-a",
+			bnba,
 			suite.Ctx.BlockTime(), // start accumulating again from this block
 			suite.genesisTime.Add(365*24*time.Hour),
 			c(types.USDXMintingRewardDenom, 1e6),
@@ -213,7 +213,7 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 	// Sync the cdp and claim by borrowing a bit
 	// In a previous version this would create the cdp with incorrect indexes, leading to overpayment.
 	suite.NoError(
-		suite.DeliverCDPMsgBorrow(userB, "bnb-a", c(cdptypes.DefaultStableDenom, 1)),
+		suite.DeliverCDPMsgBorrow(userB, bnba, c(cdptypes.DefaultStableDenom, 1)),
 	)
 
 	// Claim rewards
@@ -289,7 +289,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 		{
 			"7 seconds",
 			args{
-				ctype:                 "bnb-a",
+				ctype:                 bnba,
 				rewardsPerSecond:      c("ukava", 122354),
 				initialTotalPrincipal: c("usdx", 1000000000000),
 				timeElapsed:           7,
@@ -299,7 +299,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 		{
 			"1 day",
 			args{
-				ctype:                 "bnb-a",
+				ctype:                 bnba,
 				rewardsPerSecond:      c("ukava", 122354),
 				initialTotalPrincipal: c("usdx", 1000000000000),
 				timeElapsed:           86400,
@@ -309,7 +309,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 		{
 			"0 seconds",
 			args{
-				ctype:                 "bnb-a",
+				ctype:                 bnba,
 				rewardsPerSecond:      c("ukava", 122354),
 				initialTotalPrincipal: c("usdx", 1000000000000),
 				timeElapsed:           0,
@@ -357,7 +357,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 		{
 			"10 blocks",
 			args{
-				ctype:                "bnb-a",
+				ctype:                bnba,
 				rewardsPerSecond:     c("ukava", 122354),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),
@@ -369,7 +369,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 		{
 			"10 blocks - long block time",
 			args{
-				ctype:                "bnb-a",
+				ctype:                bnba,
 				rewardsPerSecond:     c("ukava", 122354),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),
@@ -443,7 +443,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 		{
 			"10 blocks",
 			args{
-				ctype:                "bnb-a",
+				ctype:                bnba,
 				rewardsPerSecond:     c("ukava", 122354),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),
@@ -455,7 +455,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 		{
 			"10 blocks - long block time",
 			args{
-				ctype:                "bnb-a",
+				ctype:                bnba,
 				rewardsPerSecond:     c("ukava", 122354),
 				initialCollateral:    c("bnb", 1000000000000),
 				initialPrincipal:     c("usdx", 10000000000),

@@ -95,7 +95,7 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndNoRewa
 		},
 	}
 
-	newPoolID := "btcb:usdx"
+	newPoolID := BTCB_USDX
 
 	claim := types.SwapClaim{
 		BaseMultiClaim: types.BaseMultiClaim{
@@ -144,7 +144,7 @@ func (suite *InitializeSwapRewardTests) TestClaimUpdatedWhenClaimExistsAndReward
 		},
 	}
 
-	newPoolID := "btcb:usdx"
+	newPoolID := BTCB_USDX
 	newIndexes := types.RewardIndexes{
 		{
 			CollateralType: "otherrewarddenom",
