@@ -28,6 +28,9 @@ import (
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 	"github.com/gorilla/mux"
+	pfm "github.com/strangelove-ventures/packet-forward-middleware/v6/router"
+	pfmkeeper "github.com/strangelove-ventures/packet-forward-middleware/v6/router/keeper"
+	pfmtypes "github.com/strangelove-ventures/packet-forward-middleware/v6/router/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmjson "github.com/tendermint/tendermint/libs/json"
 	tmlog "github.com/tendermint/tendermint/libs/log"
@@ -191,6 +194,7 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
+		pfm.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
@@ -245,6 +249,7 @@ var (
 		kavadisttypes.FundModuleAccount: nil,
 		minttypes.ModuleName:            {authtypes.Minter},
 		communitytypes.ModuleName:       nil,
+		pfmtypes.ModuleName:             nil,
 	}
 )
 
@@ -297,6 +302,7 @@ type App struct {
 	authzKeeper      authzkeeper.Keeper
 	crisisKeeper     crisiskeeper.Keeper
 	slashingKeeper   slashingkeeper.Keeper
+	pfmkeeper        *pfmkeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	evmKeeper        *evmkeeper.Keeper
 	evmutilKeeper    evmutilkeeper.Keeper
@@ -320,6 +326,9 @@ type App struct {
 	routerKeeper     routerkeeper.Keeper
 	mintKeeper       mintkeeper.Keeper
 	communityKeeper  communitykeeper.Keeper
+
+	// modules
+	RouterModule router.AppModule
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -374,6 +383,7 @@ func NewApp(
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, minttypes.StoreKey,
+		pfmtypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -419,6 +429,7 @@ func NewApp(
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 	mintSubspace := app.paramsKeeper.Subspace(minttypes.ModuleName)
+	pfmSubspace := app.paramsKeeper.Subspace(pfmtypes.ModuleName)
 
 	bApp.SetParamStore(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
@@ -534,6 +545,18 @@ func NewApp(
 	)
 
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
+
+	// RouterKeeper must be created before TransferKeeper
+	app.pfmkeeper = pfmkeeper.NewKeeper(
+		appCodec,
+		app.keys[pfmtypes.StoreKey],
+		pfmSubspace,
+		app.transferKeeper,
+		app.ibcKeeper.ChannelKeeper,
+		app.distrKeeper,
+		app.bankKeeper,
+		app.ibcKeeper.ChannelKeeper,
+	)
 
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
