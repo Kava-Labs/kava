@@ -328,7 +328,7 @@ type App struct {
 	communityKeeper  communitykeeper.Keeper
 
 	// modules
-	RouterModule pfm.AppModule
+	PFMModule pfm.AppModule
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
