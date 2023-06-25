@@ -194,7 +194,6 @@ var (
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
-		pfm.AppModuleBasic{},
 		ibc.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
@@ -221,6 +220,7 @@ var (
 		router.AppModuleBasic{},
 		mint.AppModuleBasic{},
 		community.AppModuleBasic{},
+		pfm.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -249,7 +249,6 @@ var (
 		kavadisttypes.FundModuleAccount: nil,
 		minttypes.ModuleName:            {authtypes.Minter},
 		communitytypes.ModuleName:       nil,
-		pfmtypes.ModuleName:             nil,
 	}
 )
 
@@ -302,7 +301,7 @@ type App struct {
 	authzKeeper      authzkeeper.Keeper
 	crisisKeeper     crisiskeeper.Keeper
 	slashingKeeper   slashingkeeper.Keeper
-	pfmkeeper        *pfmkeeper.Keeper
+	pfmkeeper        pfmkeeper.Keeper
 	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
 	evmKeeper        *evmkeeper.Keeper
 	evmutilKeeper    evmutilkeeper.Keeper
@@ -547,7 +546,7 @@ func NewApp(
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
 
 	// RouterKeeper must be created before TransferKeeper
-	app.pfmkeeper = pfmkeeper.NewKeeper(
+	app.pfmkeeper = *pfmkeeper.NewKeeper(
 		appCodec,
 		app.keys[pfmtypes.StoreKey],
 		pfmSubspace,
@@ -816,7 +815,7 @@ func NewApp(
 		// nil InflationCalculationFn, use SDK's default inflation function
 		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil),
 		community.NewAppModule(app.communityKeeper, app.accountKeeper),
-		app.PFMModule,
+		pfm.NewAppModule(&app.pfmkeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -926,6 +925,7 @@ func NewApp(
 		ibchost.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
+		pfmtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
@@ -952,7 +952,6 @@ func NewApp(
 		validatorvestingtypes.ModuleName,
 		liquidtypes.ModuleName,
 		routertypes.ModuleName,
-		pfmtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
