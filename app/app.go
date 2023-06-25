@@ -927,7 +927,6 @@ func NewApp(
 		evidencetypes.ModuleName,
 		authz.ModuleName,
 		ibctransfertypes.ModuleName,
-		pfmtypes.ModuleName,
 		evmtypes.ModuleName,
 		feemarkettypes.ModuleName,
 		kavadisttypes.ModuleName,
@@ -953,6 +952,7 @@ func NewApp(
 		validatorvestingtypes.ModuleName,
 		liquidtypes.ModuleName,
 		routertypes.ModuleName,
+		pfmtypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
