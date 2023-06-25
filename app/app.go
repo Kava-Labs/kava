@@ -789,7 +789,6 @@ func NewApp(
 		params.NewAppModule(app.paramsKeeper),
 		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		pfm.NewAppModule(app.pfmkeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		feemarket.NewAppModule(app.feeMarketKeeper, feemarketSubspace),
@@ -817,6 +816,7 @@ func NewApp(
 		// nil InflationCalculationFn, use SDK's default inflation function
 		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil),
 		community.NewAppModule(app.communityKeeper, app.accountKeeper),
+		app.PFMModule,
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
