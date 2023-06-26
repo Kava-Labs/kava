@@ -32,7 +32,7 @@ func setupConvertToCoinTest(
 	denom = tokenInfo.CosmosDenom
 	initialFunds = sdk.NewCoins(
 		sdk.NewInt64Coin(suite.Kava.StakingDenom, 1e6), // gas money
-		sdk.NewInt64Coin(denom, 1e10),                  // conversion-enabled cosmos coin
+		sdk.NewInt64Coin(denom, 1e6),                   // conversion-enabled cosmos coin
 	)
 
 	user = suite.Kava.NewFundedAccount(accountName, initialFunds)
@@ -40,12 +40,12 @@ func setupConvertToCoinTest(
 	return denom, initialFunds, user
 }
 
-// amount must be less than 1e10
+// amount must be less than initial funds (1e6)
 func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 	accountName string, amount int64,
 ) (user *testutil.SigningAccount, contractAddress *evmutiltypes.InternalEVMAddress, denom string, sdkBalance sdk.Coins) {
-	if amount > 1e10 {
-		panic("test erc20 amount must be less than 1e10")
+	if amount > 1e6 {
+		panic("test erc20 amount must be less than 1e6")
 	}
 
 	denom, sdkBalance, user = setupConvertToCoinTest(suite, accountName)
@@ -88,7 +88,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	denom, initialFunds, user := setupConvertToCoinTest(suite, "cosmo-coin-converter")
 
 	fee := sdk.NewCoins(ukava(7500))
-	convertAmount := int64(5e9)
+	convertAmount := int64(5e5)
 	initialModuleBalance := suite.Kava.GetModuleBalances(evmutiltypes.ModuleName).AmountOf(denom)
 
 	///////////////////////////////
@@ -168,7 +168,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	denom, initialFunds, user := setupConvertToCoinTest(suite, "cosmo-coin-converter-eip712")
 
-	convertAmount := int64(5e9)
+	convertAmount := int64(5e5)
 	initialModuleBalance := suite.Kava.GetModuleBalances(evmutiltypes.ModuleName).AmountOf(denom)
 
 	///////////////////////////////
@@ -325,14 +325,14 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() 
 // - check complex conversion flow. bob converts funds they receive on evm back to sdk.Coin
 func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 	fee := sdk.NewCoins(ukava(7500))
-	initialAliceAmount := int64(2e6)
+	initialAliceAmount := int64(2e5)
 	alice, contractAddress, denom, _ := suite.setupAccountWithCosmosCoinERC20Balance(
 		"cosmo-coin-converter-complex-alice", initialAliceAmount,
 	)
 
 	gasMoney := sdk.NewCoins(ukava(1e6))
 	bob := suite.Kava.NewFundedAccount("cosmo-coin-converter-complex-bob", gasMoney)
-	amount := big.NewInt(1e6)
+	amount := big.NewInt(1e5)
 
 	// bob can't move alice's funds
 	nonce, err := bob.NextNonce()

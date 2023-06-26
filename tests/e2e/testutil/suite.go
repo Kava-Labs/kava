@@ -23,6 +23,20 @@ const (
 	IbcChannel = "channel-0"
 )
 
+// DeployedErc20 is a type that wraps the details of the pre-deployed erc20 used by the e2e test suite.
+// The Address comes from SuiteConfig.KavaErc20Address
+// The CosmosDenom is fetched from the EnabledConversionPairs param of x/evmutil.
+// The tests expect the following:
+// - the funded account has a nonzero balance of the erc20
+// - the erc20 is enabled for conversion to sdk.Coin
+// - the corresponding sdk.Coin is enabled as an earn vault denom
+// These requirements are checked in InitKavaEvmData().
+type DeployedErc20 struct {
+	Address     common.Address
+	CosmosDenom string
+}
+
+// E2eTestSuite is a testify test suite for running end-to-end integration tests on Kava.
 type E2eTestSuite struct {
 	suite.Suite
 
@@ -32,10 +46,12 @@ type E2eTestSuite struct {
 	Kava *Chain
 	Ibc  *Chain
 
-	UpgradeHeight        int64
-	DeployedErc20Address common.Address
+	UpgradeHeight int64
+	DeployedErc20 DeployedErc20
 }
 
+// SetupSuite is run before all tests. It initializes chain connections and sets up the
+// account used for funding accounts in the tests.
 func (suite *E2eTestSuite) SetupSuite() {
 	var err error
 	fmt.Println("setting up test suite.")
@@ -43,25 +59,18 @@ func (suite *E2eTestSuite) SetupSuite() {
 
 	suiteConfig := ParseSuiteConfig()
 	suite.config = suiteConfig
-	suite.DeployedErc20Address = common.HexToAddress(suiteConfig.KavaErc20Address)
+	suite.DeployedErc20 = DeployedErc20{
+		Address: common.HexToAddress(suiteConfig.KavaErc20Address),
+		// Denom is fetched in InitKavaEvmData()
+	}
 
+	// setup the correct NodeRunner for the given config
 	if suiteConfig.Kvtool != nil {
-		suite.UpgradeHeight = suiteConfig.Kvtool.KavaUpgradeHeight
-
-		runnerConfig := runner.KvtoolRunnerConfig{
-			KavaConfigTemplate: suiteConfig.Kvtool.KavaConfigTemplate,
-
-			IncludeIBC: suiteConfig.IncludeIbcTests,
-			ImageTag:   "local",
-
-			EnableAutomatedUpgrade:  suiteConfig.Kvtool.IncludeAutomatedUpgrade,
-			KavaUpgradeName:         suiteConfig.Kvtool.KavaUpgradeName,
-			KavaUpgradeHeight:       suiteConfig.Kvtool.KavaUpgradeHeight,
-			KavaUpgradeBaseImageTag: suiteConfig.Kvtool.KavaUpgradeBaseImageTag,
-
-			SkipShutdown: suiteConfig.SkipShutdown,
-		}
-		suite.runner = runner.NewKvtoolRunner(runnerConfig)
+		suite.runner = suite.SetupKvtoolNodeRunner()
+	} else if suiteConfig.LiveNetwork != nil {
+		suite.runner = suite.SetupLiveNetworkNodeRunner()
+	} else {
+		panic("expected either kvtool or live network configs to be defined")
 	}
 
 	chains := suite.runner.StartChains()
@@ -84,8 +93,13 @@ func (suite *E2eTestSuite) SetupSuite() {
 	suite.InitKavaEvmData()
 }
 
+// TearDownSuite is run after all tests have run.
+// In the event of a panic during the tests, it is run after testify recovers.
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
+
+	// TODO: track asset denoms & then return all funds to initial funding account.
+
 	// close all account request channels
 	suite.Kava.Shutdown()
 	if suite.Ibc != nil {
@@ -95,12 +109,55 @@ func (suite *E2eTestSuite) TearDownSuite() {
 	suite.runner.Shutdown()
 }
 
+// SetupKvtoolNodeRunner is a helper method for building a KvtoolRunnerConfig from the suite config.
+func (suite *E2eTestSuite) SetupKvtoolNodeRunner() *runner.KvtoolRunner {
+	// upgrade tests are only supported on kvtool networks
+	suite.UpgradeHeight = suite.config.Kvtool.KavaUpgradeHeight
+
+	runnerConfig := runner.KvtoolRunnerConfig{
+		KavaConfigTemplate: suite.config.Kvtool.KavaConfigTemplate,
+
+		IncludeIBC: suite.config.IncludeIbcTests,
+		ImageTag:   "local",
+
+		EnableAutomatedUpgrade:  suite.config.Kvtool.IncludeAutomatedUpgrade,
+		KavaUpgradeName:         suite.config.Kvtool.KavaUpgradeName,
+		KavaUpgradeHeight:       suite.config.Kvtool.KavaUpgradeHeight,
+		KavaUpgradeBaseImageTag: suite.config.Kvtool.KavaUpgradeBaseImageTag,
+
+		SkipShutdown: suite.config.SkipShutdown,
+	}
+
+	return runner.NewKvtoolRunner(runnerConfig)
+}
+
+// SetupLiveNetworkNodeRunner is a helper method for building a LiveNodeRunner from the suite config.
+func (suite *E2eTestSuite) SetupLiveNetworkNodeRunner() *runner.LiveNodeRunner {
+	// live network setup doesn't presently support ibc
+	if suite.config.IncludeIbcTests {
+		panic("ibc tests not supported for live network configuration")
+	}
+
+	runnerConfig := runner.LiveNodeRunnerConfig{
+		KavaRpcUrl:    suite.config.LiveNetwork.KavaRpcUrl,
+		KavaGrpcUrl:   suite.config.LiveNetwork.KavaGrpcUrl,
+		KavaEvmRpcUrl: suite.config.LiveNetwork.KavaEvmRpcUrl,
+	}
+
+	return runner.NewLiveNodeRunner(runnerConfig)
+}
+
+// SkipIfIbcDisabled should be called at the start of tests that require IBC.
+// It gracefully skips the current test if IBC tests are disabled.
 func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 	if !suite.config.IncludeIbcTests {
 		suite.T().SkipNow()
 	}
 }
 
+// SkipIfUpgradeDisabled should be called at the start of tests that require automated upgrades.
+// It gracefully skips the current test if upgrades are dissabled.
+// Note: automated upgrade tests are currently only enabled for Kvtool suite runs.
 func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
 	if suite.config.Kvtool != nil && suite.config.Kvtool.IncludeAutomatedUpgrade {
 		suite.T().SkipNow()

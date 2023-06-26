@@ -22,7 +22,7 @@ func (suite *IntegrationTestSuite) TestEthCallToGreeterContract() {
 	// this test manipulates state of the Greeter contract which means other tests shouldn't use it.
 
 	// setup funded account to interact with contract
-	user := suite.Kava.NewFundedAccount("greeter-contract-user", sdk.NewCoins(ukava(10e6)))
+	user := suite.Kava.NewFundedAccount("greeter-contract-user", sdk.NewCoins(ukava(1e6)))
 
 	greeterAddr := suite.Kava.ContractAddrs["greeter"]
 	contract, err := greeter.NewGreeter(greeterAddr, suite.Kava.EvmClient)
@@ -47,17 +47,17 @@ func (suite *IntegrationTestSuite) TestEthCallToGreeterContract() {
 
 func (suite *IntegrationTestSuite) TestEthCallToErc20() {
 	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
-	amount := big.NewInt(1e6)
+	amount := big.NewInt(1e3)
 
 	// make unauthenticated eth_call query to check balance
-	beforeBalance := suite.Kava.GetErc20Balance(suite.DeployedErc20Address, randoReceiver)
+	beforeBalance := suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, randoReceiver)
 
 	// make authenticate eth_call to transfer tokens
 	res := suite.FundKavaErc20Balance(randoReceiver, amount)
 	suite.NoError(res.Err)
 
 	// make another unauthenticated eth_call query to check new balance
-	afterBalance := suite.Kava.GetErc20Balance(suite.DeployedErc20Address, randoReceiver)
+	afterBalance := suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, randoReceiver)
 
 	suite.BigIntsEqual(big.NewInt(0), beforeBalance, "expected before balance to be zero")
 	suite.BigIntsEqual(amount, afterBalance, "unexpected post-transfer balance")
@@ -65,12 +65,12 @@ func (suite *IntegrationTestSuite) TestEthCallToErc20() {
 
 func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 	// create new funded account
-	sender := suite.Kava.NewFundedAccount("eip712-msgSend", sdk.NewCoins(ukava(10e6)))
+	sender := suite.Kava.NewFundedAccount("eip712-msgSend", sdk.NewCoins(ukava(2e4)))
 	receiver := app.RandomAddress()
 
-	// setup message for sending 1KAVA to random receiver
+	// setup message for sending some kava to random receiver
 	msgs := []sdk.Msg{
-		banktypes.NewMsgSend(sender.SdkAddress, receiver, sdk.NewCoins(ukava(1e6))),
+		banktypes.NewMsgSend(sender.SdkAddress, receiver, sdk.NewCoins(ukava(1e3))),
 	}
 
 	// create tx
@@ -103,16 +103,16 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 		Denom:   "ukava",
 	})
 	suite.NoError(err)
-	suite.Equal(sdk.NewInt(1e6), balRes.Balance.Amount)
+	suite.Equal(sdk.NewInt(1e3), balRes.Balance.Amount)
 }
 
 // Note that this test works because the deployed erc20 is configured in evmutil & earn params.
 func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
-	amount := sdk.NewInt(10e6) // 10 USDC
-	sdkDenom := "erc20/multichain/usdc"
+	amount := sdk.NewInt(1e4) // .04 USDC
+	sdkDenom := suite.DeployedErc20.CosmosDenom
 
 	// create new funded account
-	depositor := suite.Kava.NewFundedAccount("eip712-earn-depositor", sdk.NewCoins(ukava(1e6)))
+	depositor := suite.Kava.NewFundedAccount("eip712-earn-depositor", sdk.NewCoins(ukava(1e5)))
 	// give them erc20 balance to deposit
 	fundRes := suite.FundKavaErc20Balance(depositor.EvmAddress, amount.BigInt())
 	suite.NoError(fundRes.Err)
@@ -121,7 +121,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	convertMsg := evmutiltypes.NewMsgConvertERC20ToCoin(
 		evmutiltypes.NewInternalEVMAddress(depositor.EvmAddress),
 		depositor.SdkAddress,
-		evmutiltypes.NewInternalEVMAddress(suite.DeployedErc20Address),
+		evmutiltypes.NewInternalEVMAddress(suite.DeployedErc20.Address),
 		amount,
 	)
 	depositMsg := earntypes.NewMsgDeposit(
@@ -161,7 +161,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	suite.NoError(err)
 
 	// check that depositor no longer has erc20 balance
-	balance := suite.Kava.GetErc20Balance(suite.DeployedErc20Address, depositor.EvmAddress)
+	balance := suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, depositor.EvmAddress)
 	suite.BigIntsEqual(big.NewInt(0), balance, "expected no erc20 balance")
 
 	// check that account has an earn deposit position
