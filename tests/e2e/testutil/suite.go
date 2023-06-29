@@ -16,9 +16,6 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 )
 
-// TODO: make me a config value
-const ENABLE_REFUNDS = true
-
 const (
 	FundedAccountName = "whale"
 	// use coin type 60 so we are compatible with accounts from `kava add keys --eth <name>`
@@ -56,7 +53,8 @@ type E2eTestSuite struct {
 	UpgradeHeight int64
 	DeployedErc20 DeployedErc20
 
-	cost costSummary
+	cost          costSummary
+	enableRefunds bool
 }
 
 // costSummary wraps info about what funds get irrecoverably spent by the test suite run
@@ -137,7 +135,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
 
-	if ENABLE_REFUNDS {
+	if suite.enableRefunds {
 		fmt.Println("attempting to return all unused funds")
 		suite.Kava.ReturnAllFunds()
 	}
@@ -163,6 +161,7 @@ func (suite *E2eTestSuite) TearDownSuite() {
 func (suite *E2eTestSuite) SetupKvtoolNodeRunner() *runner.KvtoolRunner {
 	// upgrade tests are only supported on kvtool networks
 	suite.UpgradeHeight = suite.config.Kvtool.KavaUpgradeHeight
+	suite.enableRefunds = false
 
 	runnerConfig := runner.KvtoolRunnerConfig{
 		KavaConfigTemplate: suite.config.Kvtool.KavaConfigTemplate,
@@ -187,6 +186,7 @@ func (suite *E2eTestSuite) SetupLiveNetworkNodeRunner() *runner.LiveNodeRunner {
 	if suite.config.IncludeIbcTests {
 		panic("ibc tests not supported for live network configuration")
 	}
+	suite.enableRefunds = true
 
 	runnerConfig := runner.LiveNodeRunnerConfig{
 		KavaRpcUrl:    suite.config.LiveNetwork.KavaRpcUrl,
