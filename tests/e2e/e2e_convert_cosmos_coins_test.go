@@ -62,8 +62,8 @@ func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 	)
 	tx := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&msg},
-		GasLimit:  2e6,
-		FeeAmount: sdk.NewCoins(ukava(2000)),
+		GasLimit:  4e5,
+		FeeAmount: sdk.NewCoins(ukava(400)),
 		Data:      "converting sdk coin to erc20",
 	}
 	res := user.SignAndBroadcastKavaTx(tx)
@@ -144,7 +144,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	tx = util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&convertFromErc20Msg},
 		GasLimit:  2e5,
-		FeeAmount: sdk.NewCoins(ukava(250)),
+		FeeAmount: sdk.NewCoins(ukava(200)),
 		Data:      "converting erc20 to cosmos coin",
 	}
 	res = user.SignAndBroadcastKavaTx(tx)
@@ -411,8 +411,8 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 	)
 	convertTx := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&convertMsg},
-		GasLimit:  2e6,
-		FeeAmount: sdk.NewCoins(ukava(2000)),
+		GasLimit:  2e5,
+		FeeAmount: sdk.NewCoins(ukava(200)),
 		Data:      "bob converts his new erc20 to an sdk.Coin",
 	}
 	convertRes := bob.SignAndBroadcastKavaTx(convertTx)

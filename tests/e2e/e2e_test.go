@@ -125,7 +125,7 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 	ibcAcc := suite.Ibc.NewFundedAccount("ibc-transfer-ibc-side", sdk.NewCoins())
 
 	gasLimit := int64(2e5)
-	fee := ukava(7500)
+	fee := ukava(200)
 
 	fundsToSend := ukava(5e4) // .005 KAVA
 	transferMsg := ibctypes.NewMsgTransfer(
