@@ -8,8 +8,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/e2e/runner"
+	"github.com/kava-labs/kava/tests/util"
 )
 
 const (
@@ -48,6 +52,30 @@ type E2eTestSuite struct {
 
 	UpgradeHeight int64
 	DeployedErc20 DeployedErc20
+
+	cost costSummary
+}
+
+// costSummary wraps info about what funds get irrecoverably spent by the test suite run
+type costSummary struct {
+	sdkAddress string
+	evmAddress string
+
+	erc20BalanceBefore *big.Int
+	erc20BalanceAfter  *big.Int
+
+	sdkBalanceBefore sdk.Coins
+	sdkBalanceAfter  sdk.Coins
+}
+
+// String implements fmt.Stringer
+func (s costSummary) String() string {
+	before := sdk.NewCoins(s.sdkBalanceBefore...).Add(sdk.NewCoin("erc20", sdkmath.NewIntFromBigInt(s.erc20BalanceBefore)))
+	after := sdk.NewCoins(s.sdkBalanceAfter...).Add(sdk.NewCoin("erc20", sdkmath.NewIntFromBigInt(s.erc20BalanceAfter)))
+	cost, _ := before.SafeSub(after...)
+	return fmt.Sprintf("Cost Summary for %s (%s):\nbefore:\n%s\nafter:\n%s\ncost:\n%s\n",
+		s.sdkAddress, s.evmAddress, util.PrettyPrintCoins(before), util.PrettyPrintCoins(after), util.PrettyPrintCoins(cost),
+	)
 }
 
 // SetupSuite is run before all tests. It initializes chain connections and sets up the
@@ -91,12 +119,26 @@ func (suite *E2eTestSuite) SetupSuite() {
 	}
 
 	suite.InitKavaEvmData()
+
+	whale := suite.Kava.GetAccount(FundedAccountName)
+	suite.cost = costSummary{
+		sdkAddress:         whale.SdkAddress.String(),
+		evmAddress:         whale.EvmAddress.Hex(),
+		sdkBalanceBefore:   suite.Kava.QuerySdkForBalances(whale.SdkAddress),
+		erc20BalanceBefore: suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, whale.EvmAddress),
+	}
 }
 
 // TearDownSuite is run after all tests have run.
 // In the event of a panic during the tests, it is run after testify recovers.
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
+
+	// calculate & output cost summary for funded account
+	whale := suite.Kava.GetAccount(FundedAccountName)
+	suite.cost.sdkBalanceAfter = suite.Kava.QuerySdkForBalances(whale.SdkAddress)
+	suite.cost.erc20BalanceAfter = suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, whale.EvmAddress)
+	fmt.Println(suite.cost)
 
 	// TODO: track asset denoms & then return all funds to initial funding account.
 
