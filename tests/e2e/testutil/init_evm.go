@@ -41,6 +41,7 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 	if !found {
 		panic(fmt.Sprintf("erc20 %s must be enabled for conversion to cosmos coin", erc20Addr))
 	}
+	suite.Kava.RegisterErc20(suite.DeployedErc20.Address)
 
 	// expect the erc20's cosmos denom to be a supported earn vault
 	_, err = suite.Kava.Earn.Vault(

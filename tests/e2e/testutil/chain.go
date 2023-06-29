@@ -42,6 +42,7 @@ type Chain struct {
 
 	EvmClient     *ethclient.Client
 	ContractAddrs map[string]common.Address
+	erc20s        map[common.Address]struct{}
 
 	EncodingConfig kavaparams.EncodingConfig
 
@@ -66,6 +67,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		StakingDenom:  details.StakingDenom,
 		ChainId:       details.ChainId,
 		ContractAddrs: make(map[string]common.Address),
+		erc20s:        make(map[common.Address]struct{}),
 	}
 	chain.EncodingConfig = app.MakeEncodingConfig()
 
@@ -145,6 +147,13 @@ func (chain *Chain) ReturnAllFunds() {
 			}
 		}
 	}
+}
+
+// RegisterErc20 is a method to record the address of erc20s on this chain.
+// The full balances of each registered erc20 will be returned to the funded
+// account when ReturnAllFunds is called.
+func (chain *Chain) RegisterErc20(address common.Address) {
+	chain.erc20s[address] = struct{}{}
 }
 
 // QuerySdkForBalances gets the balance of a particular address on this Chain.
