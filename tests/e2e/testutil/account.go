@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
 	"time"
 
@@ -233,4 +234,21 @@ func (a *SigningAccount) BankSend(to sdk.AccAddress, amount sdk.Coins) util.Kava
 			Data:      fmt.Sprintf("sending %s to %s", amount, to),
 		},
 	)
+}
+
+// TransferErc20 is a helper method for sending an erc20 token
+func (a *SigningAccount) TransferErc20(contract, to common.Address, amount *big.Int) (EvmTxResponse, error) {
+	data := util.BuildErc20TransferCallData(to, amount)
+	nonce, err := a.NextNonce()
+	if err != nil {
+		return EvmTxResponse{}, err
+	}
+
+	req := util.EvmTxRequest{
+		Tx:   ethtypes.NewTransaction(nonce, contract, big.NewInt(0), 1e5, big.NewInt(1e10), data),
+		Data: fmt.Sprintf("fund %s with ERC20 balance (%s)", to.Hex(), amount.String()),
+	}
+
+	res := a.SignAndBroadcastEvmTx(req)
+	return res, res.Err
 }
