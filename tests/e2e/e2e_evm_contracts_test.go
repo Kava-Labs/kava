@@ -108,7 +108,7 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 
 // Note that this test works because the deployed erc20 is configured in evmutil & earn params.
 func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
-	amount := sdk.NewInt(1e4) // .04 USDC
+	amount := sdk.NewInt(1e2) // 0.0002 USDC
 	sdkDenom := suite.DeployedErc20.CosmosDenom
 
 	// create new funded account
