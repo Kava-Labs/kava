@@ -124,6 +124,7 @@ func (chain *Chain) ReturnAllFunds() {
 	whale := chain.GetAccount(FundedAccountName)
 	for _, a := range chain.accounts {
 		if a.SdkAddress.String() != whale.SdkAddress.String() {
+			// NOTE: assumes all cosmos coin conversion funds have been converted back to sdk.
 			// TODO: return erc20 before sending sdk balance
 
 			// get sdk balance of account
