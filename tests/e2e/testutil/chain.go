@@ -124,9 +124,25 @@ func (chain *Chain) Shutdown() {
 // initially funded account.
 func (chain *Chain) ReturnAllFunds() {
 	whale := chain.GetAccount(FundedAccountName)
+	fmt.Println(chain.erc20s)
 	for _, a := range chain.accounts {
 		if a.SdkAddress.String() != whale.SdkAddress.String() {
 			// NOTE: assumes all cosmos coin conversion funds have been converted back to sdk.
+
+			// return all erc20 balance
+			for erc20Addr := range chain.erc20s {
+				erc20Bal := chain.GetErc20Balance(erc20Addr, a.EvmAddress)
+				// if account has no balance, do nothing
+				if erc20Bal.Cmp(big.NewInt(0)) == 0 {
+					continue
+				}
+				_, err := a.TransferErc20(erc20Addr, whale.EvmAddress, erc20Bal)
+				if err != nil {
+					a.l.Printf("FAILED TO RETURN ERC20 FUNDS (contract: %s, balance: %d): %s\n",
+						erc20Addr, erc20Bal, err,
+					)
+				}
+			}
 
 			// get sdk balance of account
 			balance := chain.QuerySdkForBalances(a.SdkAddress)
