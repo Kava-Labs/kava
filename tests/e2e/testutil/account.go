@@ -47,6 +47,8 @@ type SigningAccount struct {
 	EvmAddress common.Address
 	SdkAddress sdk.AccAddress
 
+	gasDenom string
+
 	l *log.Logger
 }
 
@@ -105,6 +107,8 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 		name:     name,
 		mnemonic: mnemonic,
 		l:        logger,
+
+		gasDenom: chain.StakingDenom,
 
 		evmPrivKey: privKey,
 		evmSigner:  evmSigner,
@@ -201,18 +205,11 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 		return acc
 	}
 
+	// TODO: verify whale has funds.
+
 	whale := chain.GetAccount(FundedAccountName)
 	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
-	res := whale.SignAndBroadcastKavaTx(
-		util.KavaMsgRequest{
-			Msgs: []sdk.Msg{
-				banktypes.NewMsgSend(whale.SdkAddress, acc.SdkAddress, funds),
-			},
-			GasLimit:  2e5,
-			FeeAmount: sdk.NewCoins(sdk.NewCoin(chain.StakingDenom, sdkmath.NewInt(75000))),
-			Data:      fmt.Sprintf("initial funding of account %s", name),
-		},
-	)
+	res := whale.BankSend(acc.SdkAddress, funds)
 
 	require.NoErrorf(chain.t, res.Err, "failed to fund new account %s: %s", name, res.Err)
 
@@ -224,4 +221,16 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 // GetNonce fetches the next nonce / sequence number for the account.
 func (a *SigningAccount) NextNonce() (uint64, error) {
 	return a.evmSigner.EvmClient.PendingNonceAt(context.Background(), a.EvmAddress)
+}
+
+// BankSend is a helper method for sending funds via x/bank's MsgSend
+func (a *SigningAccount) BankSend(to sdk.AccAddress, amount sdk.Coins) util.KavaMsgResponse {
+	return a.SignAndBroadcastKavaTx(
+		util.KavaMsgRequest{
+			Msgs:      []sdk.Msg{banktypes.NewMsgSend(a.SdkAddress, to, amount)},
+			GasLimit:  2e5,                                                          // 200,000 gas
+			FeeAmount: sdk.NewCoins(sdk.NewCoin(a.gasDenom, sdkmath.NewInt(75000))), // TODO: how low can this go?
+			Data:      fmt.Sprintf("sending %s to %s", amount, to),
+		},
+	)
 }
