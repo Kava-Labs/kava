@@ -16,6 +16,9 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 )
 
+// TODO: make me a config value
+const ENABLE_REFUNDS = true
+
 const (
 	FundedAccountName = "whale"
 	// use coin type 60 so we are compatible with accounts from `kava add keys --eth <name>`
@@ -133,6 +136,11 @@ func (suite *E2eTestSuite) SetupSuite() {
 // In the event of a panic during the tests, it is run after testify recovers.
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
+
+	if ENABLE_REFUNDS {
+		fmt.Println("attempting to return all unused funds")
+		suite.Kava.ReturnAllFunds()
+	}
 
 	// calculate & output cost summary for funded account
 	whale := suite.Kava.GetAccount(FundedAccountName)

@@ -118,6 +118,34 @@ func (chain *Chain) Shutdown() {
 	}
 }
 
+// ReturnAllFunds loops through all SigningAccounts and sends all their funds back to the
+// initially funded account.
+func (chain *Chain) ReturnAllFunds() {
+	whale := chain.GetAccount(FundedAccountName)
+	for _, a := range chain.accounts {
+		if a.SdkAddress.String() != whale.SdkAddress.String() {
+			// TODO: return erc20 before sending sdk balance
+
+			// get sdk balance of account
+			balance := chain.QuerySdkForBalances(a.SdkAddress)
+			// assumes 200,000 gas w/ min fee of .001
+			gas := sdk.NewInt64Coin(chain.StakingDenom, 200)
+
+			// ensure they have enough gas to return funds
+			if balance.AmountOf(chain.StakingDenom).LT(gas.Amount) {
+				a.l.Printf("ACCOUNT LACKS GAS MONEY TO RETURN FUNDS: %s\n", balance)
+				continue
+			}
+
+			// send it all back (minus gas) to the whale!
+			res := a.BankSend(whale.SdkAddress, balance.Sub(gas))
+			if res.Err != nil {
+				a.l.Printf("failed to return funds: %s\n", res.Err)
+			}
+		}
+	}
+}
+
 // QuerySdkForBalances gets the balance of a particular address on this Chain.
 func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 	res, err := chain.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{

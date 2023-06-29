@@ -57,7 +57,7 @@ func (suite *IntegrationTestSuite) TestChainID() {
 
 // example test that funds a new account & queries its balance
 func (suite *IntegrationTestSuite) TestFundedAccount() {
-	funds := ukava(1e2)
+	funds := ukava(1e3)
 	acc := suite.Kava.NewFundedAccount("example-acc", sdk.NewCoins(funds))
 
 	// check that the sdk & evm signers are for the same account
