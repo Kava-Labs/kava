@@ -33,7 +33,7 @@ func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
 
 func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
 	// setup sender & receiver
-	sender := suite.Kava.NewFundedAccount("evm-min-fee-test-sender", sdk.NewCoins(ukava(2e6)))
+	sender := suite.Kava.NewFundedAccount("evm-min-fee-test-sender", sdk.NewCoins(ukava(1e3)))
 	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
 
 	// get min gas price for evm (from app.toml)
@@ -44,7 +44,7 @@ func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
 	// attempt tx with less than min gas price (min fee - 1)
 	tooLowGasPrice := minGasPrice.Sub(sdk.OneInt()).BigInt()
 	req := util.EvmTxRequest{
-		Tx:   ethtypes.NewTransaction(0, randoReceiver, big.NewInt(1e6), 1e5, tooLowGasPrice, nil),
+		Tx:   ethtypes.NewTransaction(0, randoReceiver, big.NewInt(5e2), 1e5, tooLowGasPrice, nil),
 		Data: "this tx should fail because it's gas price is too low",
 	}
 	res := sender.SignAndBroadcastEvmTx(req)
