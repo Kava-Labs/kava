@@ -40,6 +40,7 @@ type Chain struct {
 
 	EvmClient     *ethclient.Client
 	ContractAddrs map[string]common.Address
+	erc20s        map[common.Address]struct{}
 
 	EncodingConfig kavaparams.EncodingConfig
 
@@ -64,6 +65,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		StakingDenom:  details.StakingDenom,
 		ChainId:       details.ChainId,
 		ContractAddrs: make(map[string]common.Address),
+		erc20s:        make(map[common.Address]struct{}),
 	}
 	chain.EncodingConfig = app.MakeEncodingConfig()
 
@@ -116,6 +118,57 @@ func (chain *Chain) Shutdown() {
 	}
 }
 
+// ReturnAllFunds loops through all SigningAccounts and sends all their funds back to the
+// initially funded account.
+func (chain *Chain) ReturnAllFunds() {
+	whale := chain.GetAccount(FundedAccountName)
+	fmt.Println(chain.erc20s)
+	for _, a := range chain.accounts {
+		if a.SdkAddress.String() != whale.SdkAddress.String() {
+			// NOTE: assumes all cosmos coin conversion funds have been converted back to sdk.
+
+			// return all erc20 balance
+			for erc20Addr := range chain.erc20s {
+				erc20Bal := chain.GetErc20Balance(erc20Addr, a.EvmAddress)
+				// if account has no balance, do nothing
+				if erc20Bal.Cmp(big.NewInt(0)) == 0 {
+					continue
+				}
+				_, err := a.TransferErc20(erc20Addr, whale.EvmAddress, erc20Bal)
+				if err != nil {
+					a.l.Printf("FAILED TO RETURN ERC20 FUNDS (contract: %s, balance: %d): %s\n",
+						erc20Addr, erc20Bal, err,
+					)
+				}
+			}
+
+			// get sdk balance of account
+			balance := chain.QuerySdkForBalances(a.SdkAddress)
+			// assumes 200,000 gas w/ min fee of .001
+			gas := sdk.NewInt64Coin(chain.StakingDenom, 200)
+
+			// ensure they have enough gas to return funds
+			if balance.AmountOf(chain.StakingDenom).LT(gas.Amount) {
+				a.l.Printf("ACCOUNT LACKS GAS MONEY TO RETURN FUNDS: %s\n", balance)
+				continue
+			}
+
+			// send it all back (minus gas) to the whale!
+			res := a.BankSend(whale.SdkAddress, balance.Sub(gas))
+			if res.Err != nil {
+				a.l.Printf("failed to return funds: %s\n", res.Err)
+			}
+		}
+	}
+}
+
+// RegisterErc20 is a method to record the address of erc20s on this chain.
+// The full balances of each registered erc20 will be returned to the funded
+// account when ReturnAllFunds is called.
+func (chain *Chain) RegisterErc20(address common.Address) {
+	chain.erc20s[address] = struct{}{}
+}
+
 // QuerySdkForBalances gets the balance of a particular address on this Chain.
 func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 	res, err := chain.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
@@ -131,6 +184,7 @@ func (chain *Chain) GetModuleBalances(moduleName string) sdk.Coins {
 	return chain.QuerySdkForBalances(addr)
 }
 
+// GetErc20Balance fetches the ERC20 balance of `contract` for `address`.
 func (chain *Chain) GetErc20Balance(contract, address common.Address) *big.Int {
 	resData, err := chain.EvmClient.CallContract(context.Background(), ethereum.CallMsg{
 		To:   &contract,

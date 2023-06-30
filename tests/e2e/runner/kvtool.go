@@ -32,12 +32,15 @@ type KvtoolRunner struct {
 
 var _ NodeRunner = &KvtoolRunner{}
 
+// NewKvtoolRunner creates a new KvtoolRunner.
 func NewKvtoolRunner(config KvtoolRunnerConfig) *KvtoolRunner {
 	return &KvtoolRunner{
 		config: config,
 	}
 }
 
+// StartChains implements NodeRunner.
+// For KvtoolRunner, it sets up, runs, and connects to a local chain via kvtool.
 func (k *KvtoolRunner) StartChains() Chains {
 	// install kvtool if not already installed
 	installKvtoolCmd := exec.Command("./scripts/install-kvtool.sh")
@@ -89,6 +92,10 @@ func (k *KvtoolRunner) StartChains() Chains {
 	return chains
 }
 
+// Shutdown implements NodeRunner.
+// For KvtoolRunner, it shuts down the local kvtool network.
+// To prevent shutting down the chain (eg. to preserve logs or examine post-test state)
+// use the `SkipShutdown` option on the config.
 func (k *KvtoolRunner) Shutdown() {
 	if k.config.SkipShutdown {
 		log.Printf("would shut down but SkipShutdown is true")
