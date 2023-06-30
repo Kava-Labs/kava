@@ -135,13 +135,21 @@ func (suite *E2eTestSuite) SetupSuite() {
 func (suite *E2eTestSuite) TearDownSuite() {
 	fmt.Println("tearing down test suite.")
 
+	whale := suite.Kava.GetAccount(FundedAccountName)
+
 	if suite.enableRefunds {
+		suite.cost.sdkBalanceAfter = suite.Kava.QuerySdkForBalances(whale.SdkAddress)
+		suite.cost.erc20BalanceAfter = suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, whale.EvmAddress)
+		fmt.Println("==BEFORE REFUNDS==")
+		fmt.Println(suite.cost)
+
 		fmt.Println("attempting to return all unused funds")
 		suite.Kava.ReturnAllFunds()
+
+		fmt.Println("==AFTER REFUNDS==")
 	}
 
 	// calculate & output cost summary for funded account
-	whale := suite.Kava.GetAccount(FundedAccountName)
 	suite.cost.sdkBalanceAfter = suite.Kava.QuerySdkForBalances(whale.SdkAddress)
 	suite.cost.erc20BalanceAfter = suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, whale.EvmAddress)
 	fmt.Println(suite.cost)

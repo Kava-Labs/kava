@@ -175,6 +175,7 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 	}
 
 	// if we don't have a tx receipt within a given timeout, fail the request
+	a.l.Printf("awaiting evm tx receipt for tx %s\n", res.TxHash)
 	response.Receipt, response.Err = util.WaitForEvmTxReceipt(a.evmSigner.EvmClient, res.TxHash, 10*time.Second)
 
 	return response
