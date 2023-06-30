@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/kava-labs/kava/tests/util"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
+
+const initialCosmosCoinConversionDenomFunds = int64(1e4)
 
 func setupConvertToCoinTest(
 	suite *IntegrationTestSuite, accountName string,
@@ -31,8 +34,8 @@ func setupConvertToCoinTest(
 	tokenInfo := params.Params.AllowedCosmosDenoms[0]
 	denom = tokenInfo.CosmosDenom
 	initialFunds = sdk.NewCoins(
-		sdk.NewInt64Coin(suite.Kava.StakingDenom, 1e6), // gas money
-		sdk.NewInt64Coin(denom, 1e6),                   // conversion-enabled cosmos coin
+		sdk.NewInt64Coin(suite.Kava.StakingDenom, 1e5),                 // gas money
+		sdk.NewInt64Coin(denom, initialCosmosCoinConversionDenomFunds), // conversion-enabled cosmos coin
 	)
 
 	user = suite.Kava.NewFundedAccount(accountName, initialFunds)
@@ -40,18 +43,16 @@ func setupConvertToCoinTest(
 	return denom, initialFunds, user
 }
 
-// amount must be less than initial funds (1e6)
+// amount must be less than initial funds (initialCosmosCoinConversionDenomFunds)
 func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 	accountName string, amount int64,
 ) (user *testutil.SigningAccount, contractAddress *evmutiltypes.InternalEVMAddress, denom string, sdkBalance sdk.Coins) {
-	if amount > 1e6 {
-		panic("test erc20 amount must be less than 1e6")
+	if amount > initialCosmosCoinConversionDenomFunds {
+		panic(fmt.Sprintf("test erc20 amount must be less than %d", initialCosmosCoinConversionDenomFunds))
 	}
 
 	denom, sdkBalance, user = setupConvertToCoinTest(suite, accountName)
 	convertAmount := sdk.NewInt64Coin(denom, amount)
-
-	fee := sdk.NewCoins(ukava(7500))
 
 	// setup user to have erc20 balance
 	msg := evmutiltypes.NewMsgConvertCosmosCoinToERC20(
@@ -61,8 +62,8 @@ func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 	)
 	tx := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&msg},
-		GasLimit:  2e6,
-		FeeAmount: fee,
+		GasLimit:  4e5,
+		FeeAmount: sdk.NewCoins(ukava(400)),
 		Data:      "converting sdk coin to erc20",
 	}
 	res := user.SignAndBroadcastKavaTx(tx)
@@ -87,8 +88,7 @@ func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	denom, initialFunds, user := setupConvertToCoinTest(suite, "cosmo-coin-converter")
 
-	fee := sdk.NewCoins(ukava(7500))
-	convertAmount := int64(5e5)
+	convertAmount := int64(5e3)
 	initialModuleBalance := suite.Kava.GetModuleBalances(evmutiltypes.ModuleName).AmountOf(denom)
 
 	///////////////////////////////
@@ -102,7 +102,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	tx := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&convertToErc20Msg},
 		GasLimit:  2e6,
-		FeeAmount: fee,
+		FeeAmount: sdk.NewCoins(ukava(2000)),
 		Data:      "converting sdk coin to erc20",
 	}
 	res := user.SignAndBroadcastKavaTx(tx)
@@ -144,7 +144,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	tx = util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&convertFromErc20Msg},
 		GasLimit:  2e5,
-		FeeAmount: fee,
+		FeeAmount: sdk.NewCoins(ukava(200)),
 		Data:      "converting erc20 to cosmos coin",
 	}
 	res = user.SignAndBroadcastKavaTx(tx)
@@ -168,7 +168,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	denom, initialFunds, user := setupConvertToCoinTest(suite, "cosmo-coin-converter-eip712")
 
-	convertAmount := int64(5e5)
+	convertAmount := int64(5e3)
 	initialModuleBalance := suite.Kava.GetModuleBalances(evmutiltypes.ModuleName).AmountOf(denom)
 
 	///////////////////////////////
@@ -237,7 +237,7 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 		user,
 		suite.Kava,
 		2e5,
-		sdk.NewCoins(ukava(1e4)),
+		sdk.NewCoins(ukava(200)),
 		[]sdk.Msg{&convertFromErc20Msg},
 		"",
 	).GetTx()
@@ -270,7 +270,9 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 }
 
 func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() {
-	user, contractAddress, _, _ := suite.setupAccountWithCosmosCoinERC20Balance("cosmo-coin-converter-unhappy", 1e6)
+	// give them erc20 balance so we know that's not preventing these method calls
+	// this test sacrifices the 1 coin by never returning it to the sdk.
+	user, contractAddress, _, _ := suite.setupAccountWithCosmosCoinERC20Balance("cosmo-coin-converter-unhappy", 1)
 
 	suite.Run("users can't mint()", func() {
 		data := util.BuildErc20MintCallData(user.EvmAddress, big.NewInt(1))
@@ -282,7 +284,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() 
 				&ethtypes.LegacyTx{
 					Nonce:    nonce,
 					GasPrice: minEvmGasPrice,
-					Gas:      1e6,
+					Gas:      1e5,
 					To:       &contractAddress.Address,
 					Data:     data,
 				},
@@ -306,7 +308,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() 
 				&ethtypes.LegacyTx{
 					Nonce:    nonce,
 					GasPrice: minEvmGasPrice,
-					Gas:      1e6,
+					Gas:      1e5,
 					To:       &contractAddress.Address,
 					Data:     data,
 				},
@@ -324,15 +326,14 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ForbiddenERC20Calls() 
 // - check approval flow of erc20. alice approves bob to move their funds
 // - check complex conversion flow. bob converts funds they receive on evm back to sdk.Coin
 func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
-	fee := sdk.NewCoins(ukava(7500))
-	initialAliceAmount := int64(2e5)
+	initialAliceAmount := int64(2e3)
 	alice, contractAddress, denom, _ := suite.setupAccountWithCosmosCoinERC20Balance(
 		"cosmo-coin-converter-complex-alice", initialAliceAmount,
 	)
 
-	gasMoney := sdk.NewCoins(ukava(1e6))
+	gasMoney := sdk.NewCoins(ukava(1e5))
 	bob := suite.Kava.NewFundedAccount("cosmo-coin-converter-complex-bob", gasMoney)
-	amount := big.NewInt(1e5)
+	amount := big.NewInt(1e3) // test assumes this is half of alice's balance.
 
 	// bob can't move alice's funds
 	nonce, err := bob.NextNonce()
@@ -340,7 +341,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 	transferFromTxData := &ethtypes.LegacyTx{
 		Nonce:    nonce,
 		GasPrice: minEvmGasPrice,
-		Gas:      1e6,
+		Gas:      1e5,
 		To:       &contractAddress.Address,
 		Value:    &big.Int{},
 		Data:     util.BuildErc20TransferFromCallData(alice.EvmAddress, bob.EvmAddress, amount),
@@ -360,7 +361,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 		Tx: ethtypes.NewTx(&ethtypes.LegacyTx{
 			Nonce:    nonce,
 			GasPrice: minEvmGasPrice,
-			Gas:      1e6,
+			Gas:      1e5,
 			To:       &contractAddress.Address,
 			Value:    &big.Int{},
 			Data:     util.BuildErc20ApproveCallData(bob.EvmAddress, amount),
@@ -410,8 +411,8 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 	)
 	convertTx := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&convertMsg},
-		GasLimit:  2e6,
-		FeeAmount: fee,
+		GasLimit:  2e5,
+		FeeAmount: sdk.NewCoins(ukava(200)),
 		Data:      "bob converts his new erc20 to an sdk.Coin",
 	}
 	convertRes := bob.SignAndBroadcastKavaTx(convertTx)
@@ -423,4 +424,17 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 	// bob should have sdk balance
 	balance := suite.Kava.QuerySdkForBalances(bob.SdkAddress).AmountOf(denom)
 	suite.Equal(sdk.NewIntFromBigInt(amount), balance)
+
+	// alice should have the remaining balance
+	erc20Balance = suite.Kava.GetErc20Balance(contractAddress.Address, alice.EvmAddress)
+	suite.BigIntsEqual(amount, erc20Balance, "expected alice to have half initial funds remaining")
+
+	// convert alice's remaining balance back to sdk coins
+	convertMsg = evmutiltypes.NewMsgConvertCosmosCoinFromERC20(
+		alice.EvmAddress.Hex(),
+		alice.SdkAddress.String(),
+		sdk.NewInt64Coin(denom, amount.Int64()),
+	)
+	convertRes = alice.SignAndBroadcastKavaTx(convertTx)
+	suite.NoError(convertRes.Err)
 }

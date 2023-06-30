@@ -47,7 +47,7 @@ func (suite *IntegrationTestSuite) TestEthCallToGreeterContract() {
 
 func (suite *IntegrationTestSuite) TestEthCallToErc20() {
 	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
-	amount := big.NewInt(1e3)
+	amount := big.NewInt(1)
 
 	// make unauthenticated eth_call query to check balance
 	beforeBalance := suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, randoReceiver)
@@ -108,7 +108,7 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 
 // Note that this test works because the deployed erc20 is configured in evmutil & earn params.
 func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
-	amount := sdk.NewInt(1e4) // .04 USDC
+	amount := sdk.NewInt(1e2) // 0.0002 USDC
 	sdkDenom := suite.DeployedErc20.CosmosDenom
 
 	// create new funded account
@@ -172,4 +172,24 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToEarn() {
 	suite.NoError(err)
 	suite.Len(earnRes.Deposits, 1)
 	suite.Equal(sdk.NewDecFromInt(amount), earnRes.Deposits[0].Shares.AmountOf(sdkDenom))
+
+	// withdraw deposit & convert back to erc20 (this allows refund to recover erc20s used in test)
+	withdraw := earntypes.NewMsgWithdraw(
+		depositor.SdkAddress.String(),
+		sdk.NewCoin(sdkDenom, amount),
+		earntypes.STRATEGY_TYPE_SAVINGS,
+	)
+	convertBack := evmutiltypes.NewMsgConvertCoinToERC20(
+		depositor.SdkAddress.String(),
+		depositor.EvmAddress.Hex(),
+		sdk.NewCoin(sdkDenom, amount),
+	)
+	withdrawAndConvertBack := util.KavaMsgRequest{
+		Msgs:      []sdk.Msg{withdraw, &convertBack},
+		GasLimit:  3e5,
+		FeeAmount: sdk.NewCoins(ukava(300)),
+		Data:      "withdrawing from earn & converting back to erc20",
+	}
+	lastRes := depositor.SignAndBroadcastKavaTx(withdrawAndConvertBack)
+	suite.NoError(lastRes.Err)
 }

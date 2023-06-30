@@ -6,10 +6,8 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/kava-labs/kava/tests/e2e/contracts/greeter"
-	"github.com/kava-labs/kava/tests/util"
 	"github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
@@ -41,6 +39,7 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 	if !found {
 		panic(fmt.Sprintf("erc20 %s must be enabled for conversion to cosmos coin", erc20Addr))
 	}
+	suite.Kava.RegisterErc20(suite.DeployedErc20.Address)
 
 	// expect the erc20's cosmos denom to be a supported earn vault
 	_, err = suite.Kava.Earn.Vault(
@@ -65,15 +64,7 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 func (suite *E2eTestSuite) FundKavaErc20Balance(toAddress common.Address, amount *big.Int) EvmTxResponse {
 	// funded account should have erc20 balance
 	whale := suite.Kava.GetAccount(FundedAccountName)
-
-	data := util.BuildErc20TransferCallData(toAddress, amount)
-	nonce, err := suite.Kava.EvmClient.PendingNonceAt(context.Background(), whale.EvmAddress)
+	res, err := whale.TransferErc20(suite.DeployedErc20.Address, toAddress, amount)
 	suite.NoError(err)
-
-	req := util.EvmTxRequest{
-		Tx:   ethtypes.NewTransaction(nonce, suite.DeployedErc20.Address, big.NewInt(0), 1e5, big.NewInt(1e10), data),
-		Data: fmt.Sprintf("fund %s with ERC20 balance (%s)", toAddress.Hex(), amount.String()),
-	}
-
-	return whale.SignAndBroadcastEvmTx(req)
+	return res
 }

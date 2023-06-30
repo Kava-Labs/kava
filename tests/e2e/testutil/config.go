@@ -110,7 +110,7 @@ func ParseLiveNetworkConfig() LiveNetworkConfig {
 	return LiveNetworkConfig{
 		KavaRpcUrl:    nonemptyStringEnv("E2E_KAVA_RPC_URL"),
 		KavaGrpcUrl:   nonemptyStringEnv("E2E_KAVA_GRPC_URL"),
-		KavaEvmRpcUrl: nonemptyStringEnv("E2E_KAVA_EMV_RPC_URL"),
+		KavaEvmRpcUrl: nonemptyStringEnv("E2E_KAVA_EVM_RPC_URL"),
 	}
 }
 

@@ -57,7 +57,7 @@ func (suite *IntegrationTestSuite) TestChainID() {
 
 // example test that funds a new account & queries its balance
 func (suite *IntegrationTestSuite) TestFundedAccount() {
-	funds := ukava(1e7)
+	funds := ukava(1e3)
 	acc := suite.Kava.NewFundedAccount("example-acc", sdk.NewCoins(funds))
 
 	// check that the sdk & evm signers are for the same account
@@ -125,7 +125,7 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 	ibcAcc := suite.Ibc.NewFundedAccount("ibc-transfer-ibc-side", sdk.NewCoins())
 
 	gasLimit := int64(2e5)
-	fee := ukava(7500)
+	fee := ukava(200)
 
 	fundsToSend := ukava(5e4) // .005 KAVA
 	transferMsg := ibctypes.NewMsgTransfer(
