@@ -70,10 +70,10 @@ func RelativePow(x sdkmath.Int, n sdkmath.Int, b sdkmath.Int) (z sdkmath.Int) {
 	if x.IsZero() {
 		if n.IsZero() {
 			z = b // 0^0 = 1
-			return
+			return z
 		}
 		z = sdk.ZeroInt() // otherwise 0^a = 0
-		return
+		return z
 	}
 
 	z = x
