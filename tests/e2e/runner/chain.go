@@ -24,22 +24,30 @@ type ChainDetails struct {
 	StakingDenom string
 }
 
+// EvmClient dials the underlying EVM RPC url and returns an ethclient.
 func (c ChainDetails) EvmClient() (*ethclient.Client, error) {
 	return ethclient.Dial(c.EvmRpcUrl)
 }
 
+// GrpcConn creates a new connection to the underlying Grpc url.
 func (c ChainDetails) GrpcConn() (*grpc.ClientConn, error) {
 	return util.NewGrpcConnection(c.GrpcUrl)
 }
 
+// Chains wraps a map of name -> details about how to connect to a chain.
+// It prevents registering multiple chains with the same name & encapsulates
+// panicking if attempting to access a chain that does not exist.
 type Chains struct {
 	byName map[string]*ChainDetails
 }
 
+// NewChains creates an empty Chains map.
 func NewChains() Chains {
 	return Chains{byName: make(map[string]*ChainDetails, 0)}
 }
 
+// MustGetChain returns the chain of a given name,
+// or panics if a chain with that name has not been registered.
 func (c Chains) MustGetChain(name string) *ChainDetails {
 	chain, found := c.byName[name]
 	if !found {
@@ -48,6 +56,8 @@ func (c Chains) MustGetChain(name string) *ChainDetails {
 	return chain
 }
 
+// Register adds a chain to the map.
+// It returns an error if a ChainDetails with that name has already been registered.
 func (c *Chains) Register(name string, chain *ChainDetails) error {
 	if _, found := c.byName[name]; found {
 		return ErrChainAlreadyExists

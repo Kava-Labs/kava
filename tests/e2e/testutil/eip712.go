@@ -16,6 +16,8 @@ import (
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
+// NewEip712TxBuilder is a helper method for creating an EIP712 signed tx
+// A tx like this is what a user signing cosmos messages with Metamask would broadcast.
 func (suite *E2eTestSuite) NewEip712TxBuilder(
 	acc *SigningAccount, chain *Chain, gas uint64, gasAmount sdk.Coins, msgs []sdk.Msg, memo string,
 ) client.TxBuilder {
