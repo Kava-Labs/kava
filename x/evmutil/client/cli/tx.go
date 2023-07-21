@@ -100,6 +100,7 @@ func getCmdConvertEvmERC20ToCoin() *cobra.Command {
 			}
 
 			signer := clientCtx.GetFromAddress()
+			fmt.Println("signer: ", signer.String())
 			initiator, err := ParseAddrFromHexOrBech32(signer.String())
 			if err != nil {
 				return err
@@ -118,6 +119,8 @@ func getCmdConvertEvmERC20ToCoin() *cobra.Command {
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
+
+			fmt.Printf("%+v\n", msg)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
 		},
