@@ -236,6 +236,10 @@ func unpackERC20ResToBigInt(res *evmtypes.MsgEthereumTxResponse, methodName stri
 		return nil, status.Error(codes.Internal, res.VmError)
 	}
 
+	if len(res.Ret) == 0 {
+		return nil, fmt.Errorf("failed to unpack method %s: expected response to be big.Int but found nil", methodName)
+	}
+
 	anyOutput, err := types.ERC20MintableBurnableContract.ABI.Unpack(methodName, res.Ret)
 	if err != nil {
 		return nil, fmt.Errorf(

@@ -345,7 +345,7 @@ func (suite *ConversionTestSuite) TestConvertERC20ToCoin_EmptyContract() {
 		convertAmt,
 	)
 	suite.Require().Error(err)
-	suite.Require().ErrorContains(err, "contract call failed: method 'balanceOf'")
+	suite.Require().ErrorContains(err, "failed to retrieve balance: failed to unpack method balanceOf")
 
 	// bank balance should not change
 	bal := suite.App.GetBankKeeper().GetBalance(suite.Ctx, userAddr, pair.Denom)

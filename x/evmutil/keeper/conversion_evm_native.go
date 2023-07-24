@@ -184,7 +184,7 @@ func (k Keeper) LockERC20Tokens(
 	contractAddr := pair.GetAddress()
 	initiatorStartBal, err := k.QueryERC20BalanceOf(ctx, contractAddr, initiator)
 	if err != nil {
-		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance %s", err.Error())
+		return errorsmod.Wrapf(types.ErrEVMCall, "failed to retrieve balance: %s", err.Error())
 	}
 
 	res, err := k.CallEVM(
