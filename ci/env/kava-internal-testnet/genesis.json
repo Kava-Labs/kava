@@ -1000,7 +1000,7 @@
           "reference_asset": "usd"
         },
         "global_debt_limit": {
-          "amount": "56000000000000",
+          "amount": "181200010000000",
           "denom": "usdx"
         },
         "surplus_auction_lot": "10000000000",
