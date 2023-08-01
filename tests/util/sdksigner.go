@@ -24,6 +24,7 @@ import (
 
 var (
 	ErrSdkBroadcastTimeout = errors.New("timed out waiting for tx to be committed to block")
+	ErrUnsuccessfulTx      = errors.New("tx committed but returned nonzero code")
 )
 
 type KavaMsgRequest struct {
@@ -454,6 +455,9 @@ func WaitForSdkTxCommit(txClient txtypes.ServiceClient, txHash string, timeout t
 				break
 			}
 			txRes = res.TxResponse
+			if err == nil && txRes.Code != uint32(codes.OK) {
+				err = errorsmod.Wrapf(ErrUnsuccessfulTx, "code = %d; %s", txRes.Code, txRes.RawLog)
+			}
 		}
 		break
 	}
