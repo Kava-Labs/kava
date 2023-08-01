@@ -207,9 +207,15 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 		return acc
 	}
 
-	// TODO: verify whale has funds.
-
 	whale := chain.GetAccount(FundedAccountName)
+
+	// check that the whale has the necessary balance to fund account
+	bal := chain.QuerySdkForBalances(whale.SdkAddress)
+	require.Truef(chain.t,
+		bal.IsAllGT(funds),
+		"funded account lacks funds for account %s\nneeds: %s\nhas: %s", name, funds, bal,
+	)
+
 	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
 	res := whale.BankSend(acc.SdkAddress, funds)
 
