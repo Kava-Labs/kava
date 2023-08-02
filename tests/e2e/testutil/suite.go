@@ -33,11 +33,13 @@ const (
 // The tests expect the following:
 // - the funded account has a nonzero balance of the erc20
 // - the erc20 is enabled for conversion to sdk.Coin
-// - the corresponding sdk.Coin is enabled as an earn vault denom
+// - the corresponding sdk.Coin is enabled as a cdp collateral type
 // These requirements are checked in InitKavaEvmData().
 type DeployedErc20 struct {
 	Address     common.Address
 	CosmosDenom string
+
+	CdpCollateralType string
 }
 
 // E2eTestSuite is a testify test suite for running end-to-end integration tests on Kava.
@@ -90,7 +92,7 @@ func (suite *E2eTestSuite) SetupSuite() {
 	suite.config = suiteConfig
 	suite.DeployedErc20 = DeployedErc20{
 		Address: common.HexToAddress(suiteConfig.KavaErc20Address),
-		// Denom is fetched in InitKavaEvmData()
+		// Denom & CdpCollateralType are fetched in InitKavaEvmData()
 	}
 
 	// setup the correct NodeRunner for the given config
@@ -153,8 +155,6 @@ func (suite *E2eTestSuite) TearDownSuite() {
 	suite.cost.sdkBalanceAfter = suite.Kava.QuerySdkForBalances(whale.SdkAddress)
 	suite.cost.erc20BalanceAfter = suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, whale.EvmAddress)
 	fmt.Println(suite.cost)
-
-	// TODO: track asset denoms & then return all funds to initial funding account.
 
 	// close all account request channels
 	suite.Kava.Shutdown()

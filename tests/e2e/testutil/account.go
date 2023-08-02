@@ -9,20 +9,23 @@ import (
 	"os"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	emtests "github.com/evmos/ethermint/tests"
 	emtypes "github.com/evmos/ethermint/types"
-	"github.com/stretchr/testify/require"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/tests/util"
@@ -207,9 +210,15 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 		return acc
 	}
 
-	// TODO: verify whale has funds.
-
 	whale := chain.GetAccount(FundedAccountName)
+
+	// check that the whale has the necessary balance to fund account
+	bal := chain.QuerySdkForBalances(whale.SdkAddress)
+	require.Truef(chain.t,
+		bal.IsAllGT(funds),
+		"funded account lacks funds for account %s\nneeds: %s\nhas: %s", name, funds, bal,
+	)
+
 	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
 	res := whale.BankSend(acc.SdkAddress, funds)
 
