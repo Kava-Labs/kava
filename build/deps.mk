@@ -27,10 +27,11 @@ DIRS := $(BUILD_CACHE_DIR) $(BIN_DIR)
 ################################################################################
 ###                             Tool Versions                                ###
 ################################################################################
+GO_BIN ?= go
 PROTOC_VERSION ?= v21.9
 BUF_VERSION ?= v1.9.0
 PROTOC_GEN_GOCOSMOS_VERSION ?= v0.3.1
-PROTOC_GEN_GRPC_GATEWAY_VERSION ?= $(shell go list -m github.com/grpc-ecosystem/grpc-gateway| sed 's:.* ::')
+PROTOC_GEN_GRPC_GATEWAY_VERSION ?= $(shell $(GO_BIN) list -m github.com/grpc-ecosystem/grpc-gateway| sed 's:.* ::')
 PROTOC_GEN_DOC_VERSION ?= v1.5.1
 SWAGGER_COMBINE_VERSION ?= v1.4.0
 
@@ -115,7 +116,7 @@ $(PROTOC_GEN_GOCOSMOS_VERSION_FILE):
 	git clone -q https://github.com/regen-network/cosmos-proto.git; \
 	cd cosmos-proto; \
 	git checkout -q $(PROTOC_GEN_GOCOSMOS_VERSION); \
-	GOBIN=$(ROOT_DIR)/$(BIN_DIR) go install ./protoc-gen-gocosmos
+	GOBIN=$(ROOT_DIR)/$(BIN_DIR) $(GO_BIN) install ./protoc-gen-gocosmos
 	@rm -rf $(BUILD_CACHE_DIR)/protoc-gen-gocosmos
 
 PROTOC_GEN_GOCOSMOS := $(BIN_DIR)/protoc-gen-gocosmos
@@ -138,8 +139,8 @@ $(PROTOC_GEN_GRPC_GATEWAY_VERSION_FILE):
 	git clone -q https://github.com/grpc-ecosystem/grpc-gateway.git; \
 	cd grpc-gateway; \
 	git checkout -q $(PROTOC_GEN_GRPC_GATEWAY_VERSION); \
-	GOBIN=$(ROOT_DIR)/$(BIN_DIR) go install ./protoc-gen-grpc-gateway; \
-	GOBIN=$(ROOT_DIR)/$(BIN_DIR) go install ./protoc-gen-swagger
+	GOBIN=$(ROOT_DIR)/$(BIN_DIR) $(GO_BIN) install ./protoc-gen-grpc-gateway; \
+	GOBIN=$(ROOT_DIR)/$(BIN_DIR) $(GO_BIN) install ./protoc-gen-swagger
 	@rm -rf $(BUILD_CACHE_DIR)/protoc-gen-grpc-gateway
 
 PROTOC_GEN_GRPC_GATEWAY := $(BIN_DIR)/protoc-gen-grpc-gateway
