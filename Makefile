@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+GO_BIN ?= go
+
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 TM_PKG_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
 COSMOS_PKG_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
@@ -99,16 +101,16 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava.exe ./cmd/kava
+	$(GO_BIN) build -mod=readonly $(BUILD_FLAGS) -o build/$(shell $(GO_BIN) env GOOS)/kava.exe ./cmd/kava
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/$(shell go env GOOS)/kava ./cmd/kava
+	$(GO_BIN) build -mod=readonly $(BUILD_FLAGS) -o build/$(shell $(GO_BIN) env GOOS)/kava ./cmd/kava
 endif
 
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
+	$(GO_BIN) install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
 
 ########################################
 ### Tools & dependencies
