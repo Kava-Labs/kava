@@ -3,6 +3,8 @@
 ################################################################################
 PROJECT_NAME := kava# unique namespace for project
 
+GO_BIN ?= go
+
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT := $(shell git rev-parse HEAD)
 GIT_COMMIT_SHORT := $(shell git rev-parse --short HEAD)
@@ -26,8 +28,8 @@ VERSION := $(GIT_COMMIT_SHORT)
 VERSION_NUMBER := $(VERSION)
 endif
 
-TENDERMINT_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
-COSMOS_SDK_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
+TENDERMINT_VERSION := $(shell $(GO_BIN) list -m github.com/tendermint/tendermint | sed 's:.* ::')
+COSMOS_SDK_VERSION := $(shell $(GO_BIN) list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
 
 .PHONY: print-git-info
 print-git-info:
@@ -186,28 +188,28 @@ all: install
 
 build: go.sum
 ifeq ($(OS), Windows_NT)
-	go build -mod=readonly $(BUILD_FLAGS) -o out/$(shell go env GOOS)/kava.exe ./cmd/kava
+	$(GO_BIN) build -mod=readonly $(BUILD_FLAGS) -o out/$(shell $(GO_BIN) env GOOS)/kava.exe ./cmd/kava
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o out/$(shell go env GOOS)/kava ./cmd/kava
+	$(GO_BIN) build -mod=readonly $(BUILD_FLAGS) -o out/$(shell $(GO_BIN) env GOOS)/kava ./cmd/kava
 endif
 
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
+	$(GO_BIN) install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
 
 ########################################
 ### Tools & dependencies
 
 go-mod-cache: go.sum
-	@echo "--> Download go modules to local cache"
-	@go mod download
+	@echo "--> Download $(GO_BIN) modules to local cache"
+	@$(GO_BIN) mod download
 PHONY: go-mod-cache
 
 go.sum: go.mod
 	@echo "--> Ensuring dependencies have not been modified"
-	@go mod verify
+	@$(GO_BIN) mod verify
 
 ########################################
 ### Linting
@@ -216,14 +218,14 @@ go.sum: go.mod
 # This tool checks local markdown links as well.
 # Set to exclude riot links as they trigger false positives
 link-check:
-	@go get -u github.com/raviqqe/liche@f57a5d1c5be4856454cb26de155a65a4fd856ee3
+	@$(GO_BIN) get -u github.com/raviqqe/liche@f57a5d1c5be4856454cb26de155a65a4fd856ee3
 	liche -r . --exclude "^http://127.*|^https://riot.im/app*|^http://kava-testnet*|^https://testnet-dex*|^https://kava3.data.kava.io*|^https://ipfs.io*|^https://apps.apple.com*|^https://kava.quicksync.io*"
 
 
 lint:
 	golangci-lint run
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
-	go mod verify
+	$(GO_BIN) mod verify
 .PHONY: lint
 
 format:
@@ -274,40 +276,40 @@ start:
 # build dependency needed for cli tests
 test-all: build
 	# basic app tests
-	@go test ./app -v
+	@$(GO_BIN) test ./app -v
 	# basic simulation (seed "4" happens to not unbond all validators before reaching 100 blocks)
-	#@go test ./app -run TestFullAppSimulation        -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
+	#@$(GO_BIN) test ./app -run TestFullAppSimulation        -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
 	# other sim tests
-	#@go test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
-	#@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
+	#@$(GO_BIN) test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
+	#@$(GO_BIN) test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
 	# AppStateDeterminism does not use Seed flag
-	#@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
+	#@$(GO_BIN) test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=100 -BlockSize=200 -Seed 4 -v -timeout 24h
 
 # run module tests and short simulations
 test-basic: test
-	@go test ./app -run TestFullAppSimulation        -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
+	@$(GO_BIN) test ./app -run TestFullAppSimulation        -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 	# other sim tests
-	@go test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
-	@go test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
+	@$(GO_BIN) test ./app -run TestAppImportExport          -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
+	@$(GO_BIN) test ./app -run TestAppSimulationAfterImport -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 	@# AppStateDeterminism does not use Seed flag
-	@go test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
+	@$(GO_BIN) test ./app -run TestAppStateDeterminism      -Enabled -Commit -NumBlocks=5 -BlockSize=200 -Seed 4 -v -timeout 2m
 
 # run end-to-end tests (local docker container must be built, see docker-build)
 test-e2e: docker-build
-	go test -failfast -count=1 -v ./tests/e2e/...
+	$(GO_BIN) test -failfast -count=1 -v ./tests/e2e/...
 
 test:
-	@go test $$(go list ./... | grep -v 'contrib' | grep -v 'tests/e2e')
+	@$(GO_BIN) test $$($(GO_BIN) list ./... | grep -v 'contrib' | grep -v 'tests/e2e')
 
 # Run cli integration tests
-# `-p 4` to use 4 cores, `-tags cli_test` to tell go not to ignore the cli package
+# `-p 4` to use 4 cores, `-tags cli_test` to tell $(GO_BIN) not to ignore the cli package
 # These tests use the `kvd` or `kvcli` binaries in the build dir, or in `$BUILDDIR` if that env var is set.
 test-cli: build
-	@go test ./cli_test -tags cli_test -v -p 4
+	@$(GO_BIN) test ./cli_test -tags cli_test -v -p 4
 
 # Run tests for migration cli command
 test-migrate:
-	@go test -v -count=1 ./migrate/...
+	@$(GO_BIN) test -v -count=1 ./migrate/...
 
 # Kick start lots of sims on an AWS cluster.
 # This submits an AWS Batch job to run a lot of sims, each within a docker image. Results are uploaded to S3
