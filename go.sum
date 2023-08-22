@@ -808,8 +808,8 @@ github.com/kava-labs/cosmos-sdk v0.46.11-kava.1 h1:3VRpm4zf/gQgmpRVd1p99/2P8ZecA
 github.com/kava-labs/cosmos-sdk v0.46.11-kava.1/go.mod h1:bG4AkW9bqc8ycrryyKGQEl3YV9BY2wr6HggGq8kvcgM=
 github.com/kava-labs/ethermint v0.21.0-kava-v23-1 h1:5TSyCtPvFdMuSe8p2iMVqXmFBlK3lHyjaT9EqN752aI=
 github.com/kava-labs/ethermint v0.21.0-kava-v23-1/go.mod h1:rdm6AinxZ4dzPEv/cjH+/AGyTbKufJ3RE7M2MDyklH0=
-github.com/kava-labs/tm-db v0.6.8-0.20230803132953-7fb308e76593 h1:+RUiQ+egR/fIBEIUwOaKd1XiXhG2O/dXSKPkdUGtNA0=
-github.com/kava-labs/tm-db v0.6.8-0.20230803132953-7fb308e76593/go.mod h1:70tpLhNfwCP64nAlq+bU+rOiVfWr3Nnju1D1nhGDGKs=
+github.com/kava-labs/tm-db v0.6.7-kava.4 h1:M2RibOKmbi+k2OhAFry8z9+RJF0CYuDETB7/PrSdoro=
+github.com/kava-labs/tm-db v0.6.7-kava.4/go.mod h1:70tpLhNfwCP64nAlq+bU+rOiVfWr3Nnju1D1nhGDGKs=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kkdai/bstream v0.0.0-20161212061736-f391b8402d23/go.mod h1:J+Gs4SYgM6CZQHDETBtE9HaSEkGmuNXF86RwHhHUvq4=
