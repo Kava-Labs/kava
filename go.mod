@@ -13,11 +13,22 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+<<<<<<< HEAD
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.6.0
 	github.com/stretchr/testify v1.8.0
 	github.com/tendermint/tendermint v0.34.24
+=======
+	github.com/linxGnu/grocksdb v1.8.0
+	github.com/pelletier/go-toml/v2 v2.0.6
+	github.com/spf13/cast v1.5.0
+	github.com/spf13/cobra v1.6.1
+	github.com/spf13/viper v1.15.0
+	github.com/stretchr/testify v1.8.3
+	github.com/subosito/gotenv v1.4.2
+	github.com/tendermint/tendermint v0.34.27
+>>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
 	github.com/tendermint/tm-db v0.6.7
 	github.com/tharsis/ethermint v0.14.0
 	google.golang.org/genproto v0.0.0-20221014213838-99cd37c6964a
@@ -97,8 +108,13 @@ require (
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/lib/pq v1.10.6 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
+<<<<<<< HEAD
 	github.com/linxGnu/grocksdb v1.7.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
+=======
+	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/manifoldco/promptui v0.9.0 // indirect
+>>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
@@ -168,10 +184,19 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// Use the cosmos modified protobufs
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+<<<<<<< HEAD
 	// Use rocksdb 7.1.2
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.1
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
 	github.com/tharsis/ethermint => github.com/kava-labs/ethermint v0.14.0-kava-v19.4
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
+=======
+	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
+	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	// Use cometbft fork of tendermint
+	github.com/tendermint/tendermint => github.com/kava-labs/cometbft v0.34.27-kava.0
+	// Indirect dependencies still use tendermint/tm-db
+	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.4
+>>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
 )
