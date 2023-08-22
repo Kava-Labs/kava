@@ -31,7 +31,7 @@ jobs:
       - name: build rocksdb dependency
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
         env:
-          ROCKSDB_VERSION: v7.10.2
+          ROCKSDB_VERSION: v8.1.1
       - name: Build and upload release artifacts
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/publish-internal-release-artifacts.sh
         env:
