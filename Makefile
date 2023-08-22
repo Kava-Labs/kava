@@ -301,6 +301,9 @@ test-e2e: docker-build
 test:
 	@$(GO_BIN) test $$($(GO_BIN) list ./... | grep -v 'contrib' | grep -v 'tests/e2e')
 
+test-rocksdb:
+	@go test -tags=rocksdb ./cmd/kava/opendb
+
 # Run cli integration tests
 # `-p 4` to use 4 cores, `-tags cli_test` to tell $(GO_BIN) not to ignore the cli package
 # These tests use the `kvd` or `kvcli` binaries in the build dir, or in `$BUILDDIR` if that env var is set.
