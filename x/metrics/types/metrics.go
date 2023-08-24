@@ -28,12 +28,20 @@ func TelemetryOptionsFromAppOpts(appOpts servertypes.AppOptions) TelemetryOption
 			GlobalLabelsAndValues: []string{},
 		}
 	}
+
+	// parse the app.toml global-labels into a slice of alternating label & value strings
+	// the value is expected to be a list of [label, value] tuples.
+	rawLabels := cast.ToSlice(appOpts.Get("telemetry.global-labels"))
+	globalLabelsAndValues := make([]string, 0, len(rawLabels)*2)
+	for _, gl := range rawLabels {
+		l := cast.ToStringSlice(gl)
+		globalLabelsAndValues = append(globalLabelsAndValues, l[0], l[1])
+	}
+
 	return TelemetryOptions{
 		PrometheusEnabled:        true,
 		CometBFTMetricsNamespace: cast.ToString(appOpts.Get("instrumentation.namespace")),
-		GlobalLabelsAndValues:    []string{
-			// TODO: can i get the chain id in this context?
-		},
+		GlobalLabelsAndValues:    globalLabelsAndValues,
 	}
 }
 
