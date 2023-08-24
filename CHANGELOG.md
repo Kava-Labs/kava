@@ -36,6 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+
 ### Bug Fixes
 - (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
 
@@ -276,6 +279,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1655]: https://github.com/Kava-Labs/kava/pull/1655
 [#1624]: https://github.com/Kava-Labs/kava/pull/1624
 [#1631]: https://github.com/Kava-Labs/kava/pull/1631
