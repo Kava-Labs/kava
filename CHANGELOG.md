@@ -36,6 +36,16 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+
+## [v0.17.3](https://github.com/Kava-Labs/kava/releases/tag/v0.17.3)
+
+Release of Kava EVM & the first binary with chain id `kava_2222-10`.
+
+See Release for full details:
+* [v0.17.3](https://github.com/Kava-Labs/kava/releases/tag/v0.17.3)
+* [v0.17.1](https://github.com/Kava-Labs/kava/releases/tag/v0.17.1)
+
 ### State Machine Breaking
 [\#1158](https://github.com/Kava-Labs/kava/pull/1158) Split existing auction `bid_duration` parameter into `forward_bid_duration` and `reverse_bid_duration`
 
@@ -43,12 +53,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### State Machine Breaking
 
-[\#1152](https://github.com/Kava-Labs/kava/pull/1152) Fix MultiSpend Proposal With Async Upgrade Time 
+[\#1152](https://github.com/Kava-Labs/kava/pull/1152) Fix MultiSpend Proposal With Async Upgrade Time
 
 ## [v0.16.0](https://github.com/Kava-Labs/kava/releases/tag/v0.16.0)
 
 ### State Machine Breaking
-[\#1106](https://github.com/Kava-Labs/kava/pull/1106) Upgrades app to cosmos-sdk v0.44.x and adds IBC and ICS-20 modules. 
+[\#1106](https://github.com/Kava-Labs/kava/pull/1106) Upgrades app to cosmos-sdk v0.44.x and adds IBC and ICS-20 modules.
 
 ## [v0.13.0]
 
@@ -154,3 +164,5 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 ### Improvements
 
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
+
+[#1668]: https://github.com/Kava-Labs/kava/pull/1668

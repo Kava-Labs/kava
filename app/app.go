@@ -126,6 +126,8 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+	metrics "github.com/kava-labs/kava/x/metrics"
+	metricstypes "github.com/kava-labs/kava/x/metrics/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -198,6 +200,7 @@ var (
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
 		bridge.AppModuleBasic{},
+		metrics.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -240,6 +243,7 @@ type Options struct {
 	MempoolAuthAddresses  []sdk.AccAddress
 	EVMTrace              string
 	EVMMaxGasWanted       uint64
+	TelemetryOptions      metricstypes.TelemetryOptions
 }
 
 // DefaultOptions is a sensible default Options value.
@@ -701,10 +705,12 @@ func NewApp(
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
+		metrics.NewAppModule(options.TelemetryOptions),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
+		metricstypes.ModuleName,
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
 		// Capability begin blocker runs non state changing initialization.
@@ -787,6 +793,7 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
+		metricstypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -825,6 +832,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+		metricstypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
