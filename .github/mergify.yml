@@ -1,0 +1,81 @@
+# Mergify is a Github app that automates workflows.
+# It is used by kava-lab/kava to help automate backporting to previous releases.
+
+# For details on this file, see https://docs.mergify.com/getting-started/#configuration
+# For backport-specific details, see https://docs.mergify.com/actions/backport/#backport
+
+defaults:
+  actions:
+    backport:
+      assignees:
+        - "{{ author }}"
+
+pull_request_rules:
+  # one PR label to rule them all
+  - name: Backport patches to all kava_2222-10 release/* branches
+    conditions:
+      - base=master
+      - label=A:backport/kava_2222-10
+    actions:
+      backport:
+        branches:
+          - release/v0.17.x
+          - release/v0.18.x
+          - release/v0.19.x
+          - release/v0.21.x
+          - release/v0.23.x
+          - release/v0.24.x
+
+  - name: Backport patches to the release/v0.17.x branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.17.x
+    actions:
+      backport:
+        branches:
+          - release/v0.17.x
+
+  - name: Backport patches to the release/v0.18.x branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.18.x
+    actions:
+      backport:
+        branches:
+          - release/v0.18.x
+
+  - name: Backport patches to the release/v0.19.x branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.19.x
+    actions:
+      backport:
+        branches:
+          - release/v0.19.x
+
+  - name: Backport patches to the release/v0.21.x branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.21.x
+    actions:
+      backport:
+        branches:
+          - release/v0.21.x
+
+  - name: Backport patches to the release/v0.23.x branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.23.x
+    actions:
+      backport:
+        branches:
+          - release/v0.23.x
+
+  - name: Backport patches to the release/v0.24.x branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.24.x
+    actions:
+      backport:
+        branches:
+          - release/v0.24.x
