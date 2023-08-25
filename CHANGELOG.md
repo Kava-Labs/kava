@@ -36,6 +36,50 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+<<<<<<< HEAD
+=======
+### Features
+- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+
+### Bug Fixes
+- (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
+
+## [v0.24.0]
+
+### Features
+- (evmutil) [#1590] & [#1596] Add allow list param of sdk native denoms that can be transferred to evm
+- (evmutil) [#1591] & [#1596] Configure module to support deploying ERC20KavaWrappedCosmosCoin contracts
+- (evmutil) [#1598] Track deployed ERC20 contract addresses for representing cosmos coins in module state
+- (evmutil) [#1603] Add MsgConvertCosmosCoinToERC20 for converting an sdk.Coin to an ERC20 in the EVM
+- (evmutil) [#1604] Emit events for MsgConvertCosmosCoinToERC20: `message` & `convert_cosmos_coin_to_erc20`
+- (evmutil) [#1605] Add query for deployed ERC20 contracts representing Cosmos coins in the EVM
+- (evmutil) [#1609] Add MsgConvertCosmosCoinFromERC20 for converting the ERC20 back to an sdk.Coin
+- (evmutil) [#1610] Add new invariant checking that ERC20s are fully backed by sdk.Coins
+
+### Client Breaking
+- (evmutil) [#1603] Renamed error `ErrConversionNotEnabled` to `ErrEVMConversionNotEnabled`
+- (evmutil) [#1604] Renamed event types
+  - `convert_erc20_to_coin` -> `convert_evm_erc20_to_coin`
+  - `convert_coin_to_erc20` -> `convert_evm_erc20_from_coin`
+- (evmutil) [#1614] Renamed CLI commands for converting an EVM-native asset to sdk.Coin
+  NOTE: no changes were made to existing Msg names (`MsgConvertCoinToERC20` & `MsgConvertERC20ToCoin`)
+  - `convert-erc20-to-coin` -> `convert-evm-erc20-to-coin`
+  - `convert-coin-to-erc20` -> `convert-evm-erc20-from-coin`
+- (cli) [#1624] Removes unused, no-op `migrate` CLI command.
+
+### Bug Fixes
+- (cli) [#1624] Fix `assert-invariants` CLI command.
+
+
+## [v0.23.2]
+
+### Bug Fixes
+
+- (deps) [#1622] Bump tm-db to v0.6.7-kava.3 to return rocksdb open error
+
+## [v0.23.0]
+
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 ### Improvements
 
 - (deps) [#1477] Bump Cosmos SDK to v0.46.10.
@@ -238,6 +282,12 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+<<<<<<< HEAD
+=======
+[#1668]: https://github.com/Kava-Labs/kava/pull/1668
+[#1655]: https://github.com/Kava-Labs/kava/pull/1655
+[#1624]: https://github.com/Kava-Labs/kava/pull/1624
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 [#1631]: https://github.com/Kava-Labs/kava/pull/1631
 [#1622]: https://github.com/Kava-Labs/kava/pull/1622
 [#1568]: https://github.com/Kava-Labs/kava/pull/1568
