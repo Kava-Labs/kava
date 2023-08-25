@@ -36,19 +36,44 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-### State Machine Breaking
-[\#1158](https://github.com/Kava-Labs/kava/pull/1158) Split existing auction `bid_duration` parameter into `forward_bid_duration` and `reverse_bid_duration`
+- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+
+## [v0.18.2](https://github.com/Kava-Labs/kava/releases/tag/v0.18.2)
+
+* Update to go 1.18, cosmos v0.45.9, and tendermint v0.34.21
+* Update ci & docker to go 1.18
+* Config updates for iavl changes and broadcast mode flag
+* Ensure fast node is disable if config value is not set in order to
+  avoid fast node upgrade for nodes that do not update their app.toml
+* Update to new circle ci image instead of using legacy image
+* Remove previous ics23 package -- now used directly from cosmos-sdk repo
+
+## [v0.18.1](https://github.com/Kava-Labs/kava/releases/tag/v0.18.1)
+
+Patch for IBC Security Advisory Dragonberry: https://forum.cosmos.network/t/ibc-security-advisory-dragonberry/7702
+
+## [v0.18.0](https://github.com/Kava-Labs/kava/releases/tag/v0.18.0)
+
+Security upgrade patch release for kava 10.
+
+## [v0.17.3](https://github.com/Kava-Labs/kava/releases/tag/v0.17.3)
+
+Release of Kava EVM & the first binary with chain id `kava_2222-10`.
+
+See Release for full details:
+* [v0.17.3](https://github.com/Kava-Labs/kava/releases/tag/v0.17.3)
+* [v0.17.1](https://github.com/Kava-Labs/kava/releases/tag/v0.17.1)
 
 ## [v0.16.1](https://github.com/Kava-Labs/kava/releases/tag/v0.16.1)
 
 ### State Machine Breaking
 
-[\#1152](https://github.com/Kava-Labs/kava/pull/1152) Fix MultiSpend Proposal With Async Upgrade Time 
+[\#1152](https://github.com/Kava-Labs/kava/pull/1152) Fix MultiSpend Proposal With Async Upgrade Time
 
 ## [v0.16.0](https://github.com/Kava-Labs/kava/releases/tag/v0.16.0)
 
 ### State Machine Breaking
-[\#1106](https://github.com/Kava-Labs/kava/pull/1106) Upgrades app to cosmos-sdk v0.44.x and adds IBC and ICS-20 modules. 
+[\#1106](https://github.com/Kava-Labs/kava/pull/1106) Upgrades app to cosmos-sdk v0.44.x and adds IBC and ICS-20 modules.
 
 ## [v0.13.0]
 
@@ -154,3 +179,5 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 ### Improvements
 
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
+
+[#1668]: https://github.com/Kava-Labs/kava/pull/1668
