@@ -1,13 +1,9 @@
 package incentive
 
 import (
-<<<<<<< HEAD
-=======
-	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
->>>>>>> 8b6bbd36 (feat(metrics): add timing metrics to abci methods (#1669))
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/keeper"
