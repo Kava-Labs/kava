@@ -274,12 +274,8 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
-[#1668]: https://github.com/Kava-Labs/kava/pull/1668
-<<<<<<< HEAD
-=======
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
-[#1655]: https://github.com/Kava-Labs/kava/pull/1655
->>>>>>> 8b6bbd36 (feat(metrics): add timing metrics to abci methods (#1669))
+[#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1624]: https://github.com/Kava-Labs/kava/pull/1624
 [#1622]: https://github.com/Kava-Labs/kava/pull/1622
 [#1614]: https://github.com/Kava-Labs/kava/pull/1614
