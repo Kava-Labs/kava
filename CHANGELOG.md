@@ -37,6 +37,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+- (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 
 ## [v0.19.2](https://github.com/Kava-Labs/kava/releases/tag/v0.19.2)
 - Adds ethermint patch for finalized json rpc support & historical eth_call queries
@@ -198,5 +199,6 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
 
+[#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1384]: https://github.com/Kava-Labs/kava/pull/1384
