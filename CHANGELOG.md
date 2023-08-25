@@ -36,16 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-<<<<<<< HEAD
 ### State Machine Breaking
 [\#1158](https://github.com/Kava-Labs/kava/pull/1158) Split existing auction `bid_duration` parameter into `forward_bid_duration` and `reverse_bid_duration`
-=======
-### Features
-- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
-
-### Bug Fixes
-- (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
->>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 
 ## [v0.16.1](https://github.com/Kava-Labs/kava/releases/tag/v0.16.1)
 
@@ -161,68 +153,4 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 
 ### Improvements
 
-<<<<<<< HEAD
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
-=======
-- [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
-  large-scale simulations remotely using aws-batch
-
-[#1668]: https://github.com/Kava-Labs/kava/pull/1668
-[#1655]: https://github.com/Kava-Labs/kava/pull/1655
-[#1624]: https://github.com/Kava-Labs/kava/pull/1624
-[#1631]: https://github.com/Kava-Labs/kava/pull/1631
-[#1622]: https://github.com/Kava-Labs/kava/pull/1622
-[#1614]: https://github.com/Kava-Labs/kava/pull/1614
-[#1610]: https://github.com/Kava-Labs/kava/pull/1610
-[#1609]: https://github.com/Kava-Labs/kava/pull/1609
-[#1605]: https://github.com/Kava-Labs/kava/pull/1605
-[#1604]: https://github.com/Kava-Labs/kava/pull/1604
-[#1603]: https://github.com/Kava-Labs/kava/pull/1603
-[#1598]: https://github.com/Kava-Labs/kava/pull/1598
-[#1596]: https://github.com/Kava-Labs/kava/pull/1596
-[#1591]: https://github.com/Kava-Labs/kava/pull/1591
-[#1590]: https://github.com/Kava-Labs/kava/pull/1590
-[#1568]: https://github.com/Kava-Labs/kava/pull/1568
-[#1567]: https://github.com/Kava-Labs/kava/pull/1567
-[#1566]: https://github.com/Kava-Labs/kava/pull/1566
-[#1565]: https://github.com/Kava-Labs/kava/pull/1565
-[#1563]: https://github.com/Kava-Labs/kava/pull/1563
-[#1562]: https://github.com/Kava-Labs/kava/pull/1562
-[#1550]: https://github.com/Kava-Labs/kava/pull/1550
-[#1544]: https://github.com/Kava-Labs/kava/pull/1544
-[#1477]: https://github.com/Kava-Labs/kava/pull/1477
-[#1512]: https://github.com/Kava-Labs/kava/pull/1512
-[#1519]: https://github.com/Kava-Labs/kava/pull/1519
-[#1106]: https://github.com/Kava-Labs/kava/pull/1106
-[#1152]: https://github.com/Kava-Labs/kava/pull/1152
-[#1542]: https://github.com/Kava-Labs/kava/pull/1542
-[#253]: https://github.com/Kava-Labs/kava/pull/253
-[#260]: https://github.com/Kava-Labs/kava/pull/260
-[#266]: https://github.com/Kava-Labs/kava/pull/266
-[#364]: https://github.com/Kava-Labs/kava/pull/364
-[#590]: https://github.com/Kava-Labs/kava/pull/590
-[#591]: https://github.com/Kava-Labs/kava/pull/591
-[#596]: https://github.com/Kava-Labs/kava/pull/596
-[#598]: https://github.com/Kava-Labs/kava/pull/598
-[#625]: https://github.com/Kava-Labs/kava/pull/625
-[#701]: https://github.com/Kava-Labs/kava/pull/701
-[#750]: https://github.com/Kava-Labs/kava/pull/750
-[#751]: https://github.com/Kava-Labs/kava/pull/751
-[#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.24.0...HEAD
-[v0.24.0]: https://github.com/Kava-Labs/kava/compare/v0.24.0...v0.23.2
-[v0.23.2]: https://github.com/Kava-Labs/kava/compare/v0.23.1...v0.23.2
-[v0.23.1]: https://github.com/Kava-Labs/kava/compare/v0.23.0...v0.23.1
-[v0.23.0]: https://github.com/Kava-Labs/kava/compare/v0.21.1...v0.23.0
-[v0.16.1]: https://github.com/Kava-Labs/kava/compare/v0.16.0...v0.16.1
-[v0.16.0]: https://github.com/Kava-Labs/kava/compare/v0.15.2...v0.16.0
-[v0.13.0]: https://github.com/Kava-Labs/kava/compare/v0.12.4...v0.13.0
-[v0.12.0]: https://github.com/Kava-Labs/kava/compare/v0.11.1...v0.12.0
-[v0.11.0]: https://github.com/Kava-Labs/kava/compare/v0.10.0...v0.11.0
-[v0.8.1]: https://github.com/Kava-Labs/kava/compare/v0.8.0...v0.8.1
-[v0.8.0]: https://github.com/Kava-Labs/kava/compare/v0.7.0...v0.8.0
-[v0.3.5]: https://github.com/Kava-Labs/kava/compare/v0.3.4...v0.3.5
-[v0.3.2]: https://github.com/Kava-Labs/kava/compare/v0.3.1...v0.3.2
-[v0.3.1]: https://github.com/Kava-Labs/kava/compare/v0.3.0...v0.3.1
-[v0.3.0]: https://github.com/Kava-Labs/kava/compare/v0.2.0...v0.3.0
->>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
