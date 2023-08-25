@@ -240,6 +240,9 @@ format:
 ###                                Localnet                                 ###
 ###############################################################################
 
+docker-build:
+	DOCKER_BUILDKIT=1 $(DOCKER) build -t kava/kava:local .
+
 build-docker-local-kava:
 	@$(MAKE) -C networks/local
 
