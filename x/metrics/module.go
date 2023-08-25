@@ -3,6 +3,7 @@ package metrics
 import (
 	"encoding/json"
 
+	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -24,6 +25,9 @@ var (
 
 // AppModuleBasic app module basics object
 type AppModuleBasic struct{}
+
+// RegisterRESTRoutes implements module.AppModuleBasic.
+func (AppModuleBasic) RegisterRESTRoutes(client.Context, *mux.Router) {}
 
 // Name returns the module name
 func (AppModuleBasic) Name() string {
@@ -67,6 +71,9 @@ type AppModule struct {
 	AppModuleBasic
 	metrics *types.Metrics
 }
+
+// RegisterRESTRoutes implements module.AppModule.
+func (AppModule) RegisterRESTRoutes(client.Context, *mux.Router) {}
 
 // NewAppModule creates a new AppModule object
 func NewAppModule(telemetryOpts types.TelemetryOptions) AppModule {
