@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+- (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 
 ## [v0.24.0](https://github.com/Kava-Labs/kava/releases/tag/v0.24.0)
 
@@ -273,6 +274,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1624]: https://github.com/Kava-Labs/kava/pull/1624
 [#1622]: https://github.com/Kava-Labs/kava/pull/1622
