@@ -36,6 +36,22 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+
+- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+
+## [v0.23.2]
+
+### Bug Fixes
+
+- (deps) [#1622] Bump tm-db to v0.6.7-kava.3 to return rocksdb open error
+
+## [v0.23.1](https://github.com/Kava-Labs/kava/releases/tag/v0.23.1)
+
+This upgrade follows https://forum.cosmos.network/t/ibc-security-advisory-huckleberry/10731 and updates IBC from v6.1.0 to v6.1.1.
+
+## [v0.23.0]
+
 ### Improvements
 
 - (deps) [#1477] Bump Cosmos SDK to v0.46.10.
@@ -238,6 +254,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1631]: https://github.com/Kava-Labs/kava/pull/1631
 [#1622]: https://github.com/Kava-Labs/kava/pull/1622
 [#1568]: https://github.com/Kava-Labs/kava/pull/1568

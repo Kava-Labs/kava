@@ -24,6 +24,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
+	metricstypes "github.com/kava-labs/kava/x/metrics/types"
 )
 
 const (
@@ -99,6 +100,7 @@ func (ac appCreator) newApp(
 			MempoolAuthAddresses:  mempoolAuthAddresses,
 			EVMTrace:              cast.ToString(appOpts.Get(ethermintflags.EVMTracer)),
 			EVMMaxGasWanted:       cast.ToUint64(appOpts.Get(ethermintflags.EVMMaxTxGasWanted)),
+			TelemetryOptions:      metricstypes.TelemetryOptionsFromAppOpts(appOpts),
 		},
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(strings.Replace(cast.ToString(appOpts.Get(server.FlagMinGasPrices)), ";", ",", -1)),
