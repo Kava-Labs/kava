@@ -36,17 +36,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-<<<<<<< HEAD
-=======
 ### Features
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 
-### Bug Fixes
-- (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
+## [v0.24.0](https://github.com/Kava-Labs/kava/releases/tag/v0.24.0)
 
-## [v0.24.0]
-
->>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 ### Features
 - (evmutil) [#1590] & [#1596] Add allow list param of sdk native denoms that can be transferred to evm
 - (evmutil) [#1591] & [#1596] Configure module to support deploying ERC20KavaWrappedCosmosCoin contracts
@@ -279,11 +273,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
-<<<<<<< HEAD
-=======
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
-[#1655]: https://github.com/Kava-Labs/kava/pull/1655
->>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 [#1624]: https://github.com/Kava-Labs/kava/pull/1624
 [#1622]: https://github.com/Kava-Labs/kava/pull/1622
 [#1614]: https://github.com/Kava-Labs/kava/pull/1614
