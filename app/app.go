@@ -126,6 +126,14 @@ import (
 	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
+<<<<<<< HEAD
+=======
+	"github.com/kava-labs/kava/x/liquid"
+	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
+	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
+	metrics "github.com/kava-labs/kava/x/metrics"
+	metricstypes "github.com/kava-labs/kava/x/metrics/types"
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -197,7 +205,16 @@ var (
 		savings.AppModuleBasic{},
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
+<<<<<<< HEAD
 		bridge.AppModuleBasic{},
+=======
+		liquid.AppModuleBasic{},
+		earn.AppModuleBasic{},
+		router.AppModuleBasic{},
+		mint.AppModuleBasic{},
+		community.AppModuleBasic{},
+		metrics.AppModuleBasic{},
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	)
 
 	// module account permissions
@@ -240,6 +257,7 @@ type Options struct {
 	MempoolAuthAddresses  []sdk.AccAddress
 	EVMTrace              string
 	EVMMaxGasWanted       uint64
+	TelemetryOptions      metricstypes.TelemetryOptions
 }
 
 // DefaultOptions is a sensible default Options value.
@@ -700,11 +718,22 @@ func NewApp(
 		incentive.NewAppModule(app.incentiveKeeper, app.accountKeeper, app.bankKeeper, app.cdpKeeper),
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
+<<<<<<< HEAD
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
+=======
+		liquid.NewAppModule(app.liquidKeeper),
+		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
+		router.NewAppModule(app.routerKeeper),
+		// nil InflationCalculationFn, use SDK's default inflation function
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil),
+		community.NewAppModule(app.communityKeeper, app.accountKeeper),
+		metrics.NewAppModule(options.TelemetryOptions),
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
+		metricstypes.ModuleName,
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
 		// Capability begin blocker runs non state changing initialization.
@@ -786,7 +815,16 @@ func NewApp(
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
+<<<<<<< HEAD
 		bridgetypes.ModuleName,
+=======
+		liquidtypes.ModuleName,
+		earntypes.ModuleName,
+		routertypes.ModuleName,
+		minttypes.ModuleName,
+		communitytypes.ModuleName,
+		metricstypes.ModuleName,
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -825,6 +863,12 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
+<<<<<<< HEAD
+=======
+		liquidtypes.ModuleName,
+		routertypes.ModuleName,
+		metricstypes.ModuleName,
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
