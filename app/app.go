@@ -129,6 +129,8 @@ import (
 	"github.com/kava-labs/kava/x/liquid"
 	liquidkeeper "github.com/kava-labs/kava/x/liquid/keeper"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
+	metrics "github.com/kava-labs/kava/x/metrics"
+	metricstypes "github.com/kava-labs/kava/x/metrics/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -202,6 +204,12 @@ var (
 		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
 		router.AppModuleBasic{},
+<<<<<<< HEAD
+=======
+		mint.AppModuleBasic{},
+		community.AppModuleBasic{},
+		metrics.AppModuleBasic{},
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	)
 
 	// module account permissions
@@ -245,6 +253,7 @@ type Options struct {
 	MempoolAuthAddresses  []sdk.AccAddress
 	EVMTrace              string
 	EVMMaxGasWanted       uint64
+	TelemetryOptions      metricstypes.TelemetryOptions
 }
 
 // DefaultOptions is a sensible default Options value.
@@ -739,10 +748,18 @@ func NewApp(
 		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
+<<<<<<< HEAD
+=======
+		// nil InflationCalculationFn, use SDK's default inflation function
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil),
+		community.NewAppModule(app.communityKeeper, app.accountKeeper),
+		metrics.NewAppModule(options.TelemetryOptions),
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
+		metricstypes.ModuleName,
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
 		// Capability begin blocker runs non state changing initialization.
@@ -829,6 +846,12 @@ func NewApp(
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 		routertypes.ModuleName,
+<<<<<<< HEAD
+=======
+		minttypes.ModuleName,
+		communitytypes.ModuleName,
+		metricstypes.ModuleName,
+>>>>>>> 9a0aed76 (feat(x/metrics): add module for emiting custom chain metrics (#1668))
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -869,6 +892,7 @@ func NewApp(
 		validatorvestingtypes.ModuleName,
 		liquidtypes.ModuleName,
 		routertypes.ModuleName,
+		metricstypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
