@@ -200,7 +200,6 @@ var (
 		validatorvesting.AppModuleBasic{},
 		evmutil.AppModuleBasic{},
 		bridge.AppModuleBasic{},
-		metrics.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -311,6 +310,12 @@ type App struct {
 
 	// configurator
 	configurator module.Configurator
+
+	// backported x/metrics Metrics
+	// to prevent AppHash mismatch, the module is not registered to the module manager.
+	// instead, the module's BeginBlocker is called directly.
+	// this way, its consensus version has no bearing on the ModuleVersionMap included in the AppHash.
+	metrics *metricstypes.Metrics
 }
 
 func init() {
@@ -364,6 +369,7 @@ func NewApp(
 		keys:              keys,
 		tkeys:             tkeys,
 		memKeys:           memKeys,
+		metrics:           metricstypes.NewMetrics(options.TelemetryOptions),
 	}
 
 	// init params keeper and subspaces
@@ -705,12 +711,10 @@ func NewApp(
 		evmutil.NewAppModule(app.evmutilKeeper, app.bankKeeper),
 		savings.NewAppModule(app.savingsKeeper, app.accountKeeper, app.bankKeeper),
 		bridge.NewAppModule(app.bridgeKeeper, app.accountKeeper),
-		metrics.NewAppModule(options.TelemetryOptions),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
-		metricstypes.ModuleName,
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
 		// Capability begin blocker runs non state changing initialization.
@@ -793,7 +797,6 @@ func NewApp(
 		evmutiltypes.ModuleName,
 		savingstypes.ModuleName,
 		bridgetypes.ModuleName,
-		metricstypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -832,7 +835,6 @@ func NewApp(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		validatorvestingtypes.ModuleName,
-		metricstypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -927,6 +929,10 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 			)
 		}
 	}
+	// call the metrics BeginBlocker directly instead of registering the module to the module manager.
+	// all consensus versions of modules registrered to the moduel manager contribute to the AppHash.
+	// to prevent the backport of x/metrics from being consensus breaking, it is called directly.
+	metrics.BeginBlocker(ctx, app.metrics)
 	return app.mm.BeginBlock(ctx, req)
 }
 
