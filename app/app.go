@@ -204,7 +204,6 @@ var (
 		liquid.AppModuleBasic{},
 		earn.AppModuleBasic{},
 		router.AppModuleBasic{},
-		metrics.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -317,6 +316,12 @@ type App struct {
 
 	// configurator
 	configurator module.Configurator
+
+	// backported x/metrics Metrics
+	// to prevent AppHash mismatch, the module is not registered to the module manager.
+	// instead, the module's BeginBlocker is called directly.
+	// this way, its consensus version has no bearing on the ModuleVersionMap included in the AppHash.
+	metrics *metricstypes.Metrics
 }
 
 func init() {
@@ -370,6 +375,7 @@ func NewApp(
 		keys:              keys,
 		tkeys:             tkeys,
 		memKeys:           memKeys,
+		metrics:           metricstypes.NewMetrics(options.TelemetryOptions),
 	}
 
 	// init params keeper and subspaces
@@ -743,12 +749,10 @@ func NewApp(
 		liquid.NewAppModule(app.liquidKeeper),
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
-		metrics.NewAppModule(options.TelemetryOptions),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
 	app.mm.SetOrderBeginBlockers(
-		metricstypes.ModuleName,
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,
 		// Capability begin blocker runs non state changing initialization.
@@ -835,7 +839,6 @@ func NewApp(
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 		routertypes.ModuleName,
-		metricstypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -876,7 +879,6 @@ func NewApp(
 		validatorvestingtypes.ModuleName,
 		liquidtypes.ModuleName,
 		routertypes.ModuleName,
-		metricstypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -958,6 +960,10 @@ func NewApp(
 
 // BeginBlocker contains app specific logic for the BeginBlock abci call.
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	// call the metrics BeginBlocker directly instead of registering the module to the module manager.
+	// all consensus versions of modules registrered to the moduel manager contribute to the AppHash.
+	// to prevent the backport of x/metrics from being consensus breaking, it is called directly.
+	metrics.BeginBlocker(ctx, app.metrics)
 	return app.mm.BeginBlock(ctx, req)
 }
 
