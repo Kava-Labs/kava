@@ -245,7 +245,11 @@
         }
       },
       "paths": {
-        "exclude": ["^/cosmos/authz/.*", "^/cosmos/feegrant/.*"]
+        "exclude": [
+          "^/cosmos/feegrant/.*",
+          "^/cosmos/nft/.*",
+          "^/cosmos/group/.*"
+        ]
       }
     },
     {
@@ -265,6 +269,12 @@
             "from": "(.*)",
             "to": "Ibc$1"
           }
+        ]
+      },
+      "paths": {
+        "exclude": [
+          "^/ibc/apps/interchain_accounts/.*",
+          "^/ibc/apps/fee/.*"
         ]
       }
     },
