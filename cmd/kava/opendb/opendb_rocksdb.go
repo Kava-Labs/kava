@@ -43,15 +43,15 @@ const (
 
 	defaultColumnFamilyName = "default"
 
-	enableMetricsOptName             = "enable_rocksdb_metrics"
-	reportMetricsIntervalSecsOptName = "report_rocksdb_metrics_interval_secs"
+	enableMetricsOptName             = "rocksdb.enable_metrics"
+	reportMetricsIntervalSecsOptName = "rocksdb.report_metrics_interval_secs"
 	defaultReportMetricsIntervalSecs = 15
 
-	maxOpenFilesDBOptName          = "max_open_files"
-	maxFileOpeningThreadsDBOptName = "max_file_opening_threads"
+	maxOpenFilesDBOptName          = "rocksdb.max_open_files"
+	maxFileOpeningThreadsDBOptName = "rocksdb.max_file_opening_threads"
 
-	writeBufferSizeCFOptName = "write_buffer_size"
-	numLevelsCFOptName       = "num_levels"
+	writeBufferSizeCFOptName = "rocksdb.write_buffer_size"
+	numLevelsCFOptName       = "rocksdb.num_levels"
 )
 
 func OpenDB(appOpts types.AppOptions, home string, backendType dbm.BackendType) (dbm.DB, error) {
