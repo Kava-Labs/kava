@@ -69,7 +69,7 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "key",
 			Name:      "estimate_num_keys",
-			Help:      "",
+			Help:      "estimated number of total keys in the active and unflushed immutable memtables and storage",
 		}, labels),
 
 		// Files
@@ -91,25 +91,25 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "memory",
 			Name:      "block_cache_usage",
-			Help:      "",
+			Help:      "memory size for the entries residing in block cache",
 		}, labels),
 		EstimateTableReadersMem: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "memory",
 			Name:      "estimate_table_readers_mem",
-			Help:      "",
+			Help:      "estimated memory used for reading SST tables, excluding memory used in block cache (e.g., filter and index blocks)",
 		}, labels),
 		CurSizeAllMemTables: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "memory",
 			Name:      "cur_size_all_mem_tables",
-			Help:      "",
+			Help:      "approximate size of active and unflushed immutable memtables (bytes)",
 		}, labels),
 		BlockCachePinnedUsage: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "memory",
 			Name:      "block_cache_pinned_usage",
-			Help:      "",
+			Help:      "returns the memory size for the entries being pinned",
 		}, labels),
 
 		// Cache
@@ -117,25 +117,25 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "cache",
 			Name:      "block_cache_miss",
-			Help:      "",
+			Help:      "block_cache_miss == block_cache_index_miss + block_cache_filter_miss + block_cache_data_miss",
 		}, labels),
 		BlockCacheHit: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "cache",
 			Name:      "block_cache_hit",
-			Help:      "",
+			Help:      "block_cache_hit == block_cache_index_hit + block_cache_filter_hit + block_cache_data_hit",
 		}, labels),
 		BlockCacheAdd: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "cache",
 			Name:      "block_cache_add",
-			Help:      "",
+			Help:      "number of blocks added to block cache",
 		}, labels),
 		BlockCacheAddFailures: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "cache",
 			Name:      "block_cache_add_failures",
-			Help:      "",
+			Help:      "number of failures when adding blocks to block cache",
 		}, labels),
 	}
 }
