@@ -4,9 +4,10 @@
 package opendb
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // stat represents one line from rocksdb statistics data, stat may have one or more properties
@@ -51,7 +52,7 @@ func parseSerializedStat(serializedStat string) (*stat, error) {
 	tokens := strings.Split(serializedStat, " ")
 	tokensNum := len(tokens)
 	if err := validateTokens(tokens); err != nil {
-		return nil, errors.Wrap(err, "tokens are invalid")
+		return nil, fmt.Errorf("tokens are invalid: %v", err)
 	}
 
 	props := make(map[string]string)
@@ -66,7 +67,7 @@ func parseSerializedStat(serializedStat string) (*stat, error) {
 		value := tokens[idx+2]
 
 		if err := validateStatProperty(key, value, sep); err != nil {
-			return nil, errors.Wrap(err, "invalid stat property")
+			return nil, fmt.Errorf("invalid stat property: %v", err)
 		}
 
 		props[key] = value
@@ -82,13 +83,13 @@ func parseSerializedStat(serializedStat string) (*stat, error) {
 func validateTokens(tokens []string) error {
 	tokensNum := len(tokens)
 	if tokensNum < 4 {
-		return errors.Errorf("invalid number of tokens: %v, tokens: %v", tokensNum, tokens)
+		return fmt.Errorf("invalid number of tokens: %v, tokens: %v", tokensNum, tokens)
 	}
 	if (tokensNum-1)%3 != 0 {
-		return errors.Errorf("invalid number of tokens: %v, tokens: %v", tokensNum, tokens)
+		return fmt.Errorf("invalid number of tokens: %v, tokens: %v", tokensNum, tokens)
 	}
 	if tokens[0] == "" {
-		return errors.Errorf("stat name shouldn't be empty")
+		return fmt.Errorf("stat name shouldn't be empty")
 	}
 
 	return nil
@@ -97,13 +98,13 @@ func validateTokens(tokens []string) error {
 // validateStatProperty validates that key and value are divided by separator and aren't empty
 func validateStatProperty(key, value, sep string) error {
 	if key == "" {
-		return errors.Errorf("key shouldn't be empty")
+		return fmt.Errorf("key shouldn't be empty")
 	}
 	if sep != ":" {
-		return errors.Errorf("separator should be :")
+		return fmt.Errorf("separator should be :")
 	}
 	if value == "" {
-		return errors.Errorf("value shouldn't be empty")
+		return fmt.Errorf("value shouldn't be empty")
 	}
 
 	return nil

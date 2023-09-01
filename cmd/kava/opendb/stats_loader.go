@@ -4,9 +4,8 @@
 package opendb
 
 import (
+	"fmt"
 	"strconv"
-
-	"github.com/pkg/errors"
 )
 
 const (
@@ -146,7 +145,7 @@ type float64Histogram struct {
 
 func (l *statLoader) error() error {
 	if len(l.errors) != 0 {
-		return errors.Errorf("%v", l.errors)
+		return fmt.Errorf("%v", l.errors)
 	}
 
 	return nil
@@ -217,13 +216,13 @@ func (l *statLoader) getFloat64HistogramStatValue(statName string) *float64Histo
 func (l *statLoader) getInt64StatValue(statName, propName string) int64 {
 	stringVal := l.getStatValue(statName, propName)
 	if stringVal == "" {
-		l.errors = append(l.errors, errors.Errorf("can't get stat by name: %v", statName))
+		l.errors = append(l.errors, fmt.Errorf("can't get stat by name: %v", statName))
 		return 0
 	}
 
 	intVal, err := strconv.ParseInt(stringVal, 10, 64)
 	if err != nil {
-		l.errors = append(l.errors, errors.Wrap(err, "can't parse int"))
+		l.errors = append(l.errors, fmt.Errorf("can't parse int: %v", err))
 		return 0
 	}
 
@@ -234,13 +233,13 @@ func (l *statLoader) getInt64StatValue(statName, propName string) int64 {
 func (l *statLoader) getFloat64StatValue(statName, propName string) float64 {
 	stringVal := l.getStatValue(statName, propName)
 	if stringVal == "" {
-		l.errors = append(l.errors, errors.Errorf("can't get stat by name: %v", statName))
+		l.errors = append(l.errors, fmt.Errorf("can't get stat by name: %v", statName))
 		return 0
 	}
 
 	floatVal, err := strconv.ParseFloat(stringVal, 64)
 	if err != nil {
-		l.errors = append(l.errors, errors.Wrap(err, "can't parse float"))
+		l.errors = append(l.errors, fmt.Errorf("can't parse float: %v", err))
 		return 0
 	}
 
@@ -251,12 +250,12 @@ func (l *statLoader) getFloat64StatValue(statName, propName string) float64 {
 func (l *statLoader) getStatValue(statName, propName string) string {
 	stat, ok := l.statMap[statName]
 	if !ok {
-		l.errors = append(l.errors, errors.Errorf("stat %v doesn't exist", statName))
+		l.errors = append(l.errors, fmt.Errorf("stat %v doesn't exist", statName))
 		return ""
 	}
 	prop, ok := stat.props[propName]
 	if !ok {
-		l.errors = append(l.errors, errors.Errorf("stat %v doesn't have %v property", statName, propName))
+		l.errors = append(l.errors, fmt.Errorf("stat %v doesn't have %v property", statName, propName))
 		return ""
 	}
 
