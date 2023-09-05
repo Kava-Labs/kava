@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/linxGnu/grocksdb"
@@ -42,11 +43,15 @@ const (
 
 	defaultColumnFamilyName = "default"
 
-	maxOpenFilesDBOptName          = "max_open_files"
-	maxFileOpeningThreadsDBOptName = "max_file_opening_threads"
+	enableMetricsOptName             = "rocksdb.enable-metrics"
+	reportMetricsIntervalSecsOptName = "rocksdb.report-metrics-interval-secs"
+	defaultReportMetricsIntervalSecs = 15
 
-	writeBufferSizeCFOptName = "write_buffer_size"
-	numLevelsCFOptName       = "num_levels"
+	maxOpenFilesDBOptName          = "rocksdb.max-open-files"
+	maxFileOpeningThreadsDBOptName = "rocksdb.max-file-opening-threads"
+
+	writeBufferSizeCFOptName = "rocksdb.write-buffer-size"
+	numLevelsCFOptName       = "rocksdb.num-levels"
 )
 
 func OpenDB(appOpts types.AppOptions, home string, backendType dbm.BackendType) (dbm.DB, error) {
@@ -69,7 +74,13 @@ func openRocksdb(dir string, appOpts types.AppOptions) (dbm.DB, error) {
 	dbOpts = overrideDBOpts(dbOpts, appOpts)
 	cfOpts = overrideCFOpts(cfOpts, appOpts)
 
-	return newRocksDBWithOptions("application", dir, dbOpts, cfOpts)
+	enableMetrics := cast.ToBool(appOpts.Get(enableMetricsOptName))
+	reportMetricsIntervalSecs := cast.ToInt64(appOpts.Get(reportMetricsIntervalSecsOptName))
+	if reportMetricsIntervalSecs == 0 {
+		reportMetricsIntervalSecs = defaultReportMetricsIntervalSecs
+	}
+
+	return newRocksDBWithOptions("application", dir, dbOpts, cfOpts, enableMetrics, reportMetricsIntervalSecs)
 }
 
 // loadLatestOptions loads and returns database and column family options
@@ -128,7 +139,14 @@ func overrideCFOpts(cfOpts *grocksdb.Options, appOpts types.AppOptions) *grocksd
 
 // newRocksDBWithOptions opens rocksdb with provided database and column family options
 // newRocksDBWithOptions expects that db has only one column family named default
-func newRocksDBWithOptions(name string, dir string, dbOpts, cfOpts *grocksdb.Options) (*dbm.RocksDB, error) {
+func newRocksDBWithOptions(
+	name string,
+	dir string,
+	dbOpts *grocksdb.Options,
+	cfOpts *grocksdb.Options,
+	enableMetrics bool,
+	reportMetricsIntervalSecs int64,
+) (*dbm.RocksDB, error) {
 	dbPath := filepath.Join(dir, name+".db")
 
 	// Ensure path exists
@@ -136,10 +154,21 @@ func newRocksDBWithOptions(name string, dir string, dbOpts, cfOpts *grocksdb.Opt
 		return nil, fmt.Errorf("failed to create db path: %w", err)
 	}
 
+	// EnableStatistics adds overhead so shouldn't be enabled in production
+	if enableMetrics {
+		dbOpts.EnableStatistics()
+	}
+
 	db, _, err := grocksdb.OpenDbColumnFamilies(dbOpts, dbPath, []string{defaultColumnFamilyName}, []*grocksdb.Options{cfOpts})
 	if err != nil {
 		return nil, err
 	}
+
+	if enableMetrics {
+		registerMetrics()
+		go reportMetrics(db, time.Second*time.Duration(reportMetricsIntervalSecs))
+	}
+
 	ro := grocksdb.NewDefaultReadOptions()
 	wo := grocksdb.NewDefaultWriteOptions()
 	woSync := grocksdb.NewDefaultWriteOptions()
@@ -167,4 +196,43 @@ func newDefaultOptions() *grocksdb.Options {
 	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
 
 	return opts
+}
+
+// reportMetrics periodically requests stats from rocksdb and reports to prometheus
+// NOTE: should be launched as a goroutine
+func reportMetrics(db *grocksdb.DB, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	for {
+		select {
+		case <-ticker.C:
+			props, stats, err := getPropsAndStats(db)
+			if err != nil {
+				continue
+			}
+
+			rocksdbMetrics.report(props, stats)
+		}
+	}
+}
+
+// getPropsAndStats gets statistics from rocksdb
+func getPropsAndStats(db *grocksdb.DB) (*properties, *stats, error) {
+	propsLoader := newPropsLoader(db)
+	props, err := propsLoader.load()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	statMap, err := parseSerializedStats(props.OptionsStatistics)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	statLoader := newStatLoader(statMap)
+	stats, err := statLoader.load()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return props, stats, nil
 }
