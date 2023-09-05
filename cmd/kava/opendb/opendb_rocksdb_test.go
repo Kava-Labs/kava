@@ -186,7 +186,7 @@ func TestLoadLatestOptions(t *testing.T) {
 					require.NoError(t, err)
 				}()
 
-				db, err := newRocksDBWithOptions(name, dir, tc.dbOpts, tc.cfOpts)
+				db, err := newRocksDBWithOptions(name, dir, tc.dbOpts, tc.cfOpts, true, defaultReportMetricsIntervalSecs)
 				require.NoError(t, err)
 				require.NoError(t, db.Close())
 
@@ -337,7 +337,7 @@ func TestNewRocksDBWithOptions(t *testing.T) {
 	cfOpts := newDefaultOptions()
 	cfOpts.SetWriteBufferSize(999_999)
 
-	db, err := newRocksDBWithOptions(name, dir, dbOpts, cfOpts)
+	db, err := newRocksDBWithOptions(name, dir, dbOpts, cfOpts, true, defaultReportMetricsIntervalSecs)
 	require.NoError(t, err)
 	require.NoError(t, db.Close())
 
