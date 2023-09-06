@@ -22,11 +22,8 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
 	kavaclient "github.com/kava-labs/kava/client"
-<<<<<<< HEAD
-	"github.com/kava-labs/kava/migrate"
-=======
 	"github.com/kava-labs/kava/cmd/kava/opendb"
->>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
+	"github.com/kava-labs/kava/migrate"
 )
 
 // EnvPrefix is the prefix environment variables must have to configure the app.
@@ -110,16 +107,12 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		DBOpener:        opendb.OpenDB,
 	}
 	// ethermintserver adds additional flags to start the JSON-RPC server for evm support
-<<<<<<< HEAD
-	ethermintserver.AddCommands(rootCmd, defaultNodeHome, ac.newApp, ac.appExport, ac.addStartCmdFlags)
-=======
 	ethermintserver.AddCommands(
 		rootCmd,
 		opts,
 		ac.appExport,
 		ac.addStartCmdFlags,
 	)
->>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
