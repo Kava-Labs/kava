@@ -565,27 +565,14 @@ github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5/go.mod h1:7Id9E
 github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef/go.mod h1:Ct9fl0F6iIOGgxJ5npU/IUOhOhqlVrGjyIZc8/MagT0=
 github.com/karalabe/usb v0.0.0-20190919080040-51dc0efba356/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
-<<<<<<< HEAD
 github.com/kava-labs/cosmos-sdk v0.45.9-kava.4 h1:nOsUMvY9qWvPyORBSV3k7G7D7Lc5JjzYqZE8ohuxskQ=
 github.com/kava-labs/cosmos-sdk v0.45.9-kava.4/go.mod h1:Z5M4TX7PsHNHlF/1XanI2DIpORQ+Q/st7oaeufEjnvU=
-github.com/kava-labs/ethermint v0.14.0-kava-v20.1 h1:4ZM/SFPU7RLmioHICs9j+c4hzDZ9Rxb/b+Hs/guAyN4=
-github.com/kava-labs/ethermint v0.14.0-kava-v20.1/go.mod h1:+/TXGhi6XwF9B8h2NrYZCKrrv0+pC3RkpM0950lYyJg=
-github.com/kava-labs/tm-db v0.6.7-kava.1 h1:7cVYlvWx1yP+gGdaAWcfm6NwMLzf4z6DxXguWn3+O3w=
-github.com/kava-labs/tm-db v0.6.7-kava.1/go.mod h1:HVZfZzWXuqWseXQVplxsWXK6kLHLkk3kQB6c+nuSZvk=
-github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d h1:Z+RDyXzjKE0i2sTjZ/b1uxiGtPhFy34Ou/Tk0qwN0kM=
-github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d/go.mod h1:JJNrCn9otv/2QP4D7SMJBgaleKpOf66PnW6F5WGNRIc=
-=======
-github.com/kava-labs/cometbft v0.34.27-kava.0 h1:FUEGRkF3xtrJH+h9A5G4eA2skf7QaNoOCPaoVqHkh8k=
-github.com/kava-labs/cometbft v0.34.27-kava.0/go.mod h1:BcCbhKv7ieM0KEddnYXvQZR+pZykTKReJJYf7YC7qhw=
-github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1 h1:EZnZAkZ+dqK+1OM4AK+e6wYH8a5xuyg4yFTR4Ez3AXk=
-github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1/go.mod h1:mI/4J4IxRzPrXvMiwefrt0fucGwaQ5Hm9IKS7HnoJeI=
-github.com/kava-labs/cosmos-sdk v0.46.11-kava.1 h1:3VRpm4zf/gQgmpRVd1p99/2P8ZecAu2FVAXHru5caIo=
-github.com/kava-labs/cosmos-sdk v0.46.11-kava.1/go.mod h1:bG4AkW9bqc8ycrryyKGQEl3YV9BY2wr6HggGq8kvcgM=
-github.com/kava-labs/ethermint v0.21.0-kava-v23-1 h1:5TSyCtPvFdMuSe8p2iMVqXmFBlK3lHyjaT9EqN752aI=
-github.com/kava-labs/ethermint v0.21.0-kava-v23-1/go.mod h1:rdm6AinxZ4dzPEv/cjH+/AGyTbKufJ3RE7M2MDyklH0=
+github.com/kava-labs/ethermint v0.14.1-0.20230907180032-f60a060c01cd h1:TncXSVZw2DRuiZwCqvXsfWcwVpBqwcGSc8jJY23hGk0=
+github.com/kava-labs/ethermint v0.14.1-0.20230907180032-f60a060c01cd/go.mod h1:+/TXGhi6XwF9B8h2NrYZCKrrv0+pC3RkpM0950lYyJg=
 github.com/kava-labs/tm-db v0.6.7-kava.4 h1:M2RibOKmbi+k2OhAFry8z9+RJF0CYuDETB7/PrSdoro=
 github.com/kava-labs/tm-db v0.6.7-kava.4/go.mod h1:70tpLhNfwCP64nAlq+bU+rOiVfWr3Nnju1D1nhGDGKs=
->>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
+github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d h1:Z+RDyXzjKE0i2sTjZ/b1uxiGtPhFy34Ou/Tk0qwN0kM=
+github.com/keybase/go-keychain v0.0.0-20190712205309-48d3d31d256d/go.mod h1:JJNrCn9otv/2QP4D7SMJBgaleKpOf66PnW6F5WGNRIc=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kkdai/bstream v0.0.0-20161212061736-f391b8402d23/go.mod h1:J+Gs4SYgM6CZQHDETBtE9HaSEkGmuNXF86RwHhHUvq4=
@@ -623,13 +610,8 @@ github.com/libp2p/go-buffer-pool v0.1.0 h1:oK4mSFcQz7cTQIfqbe4MIj9gLW+mnanjyFtc6
 github.com/libp2p/go-buffer-pool v0.1.0/go.mod h1:N+vh8gMqimBzdKkSMVuydVDq+UV5QTWy5HSiZacSbPg=
 github.com/lightstep/lightstep-tracer-common/golang/gogo v0.0.0-20190605223551-bc2310a04743/go.mod h1:qklhhLq1aX+mtWk9cPHPzaBjWImj5ULL6C7HFJtXQMM=
 github.com/lightstep/lightstep-tracer-go v0.18.1/go.mod h1:jlF1pusYV4pidLvZ+XD0UBX0ZE6WURAspgAczcDHrL4=
-<<<<<<< HEAD
-github.com/linxGnu/grocksdb v1.7.1 h1:KBdzX2OQ6tZcZglsRdBwZmGpwHTEb+VqXR5iLuh72+Q=
-github.com/linxGnu/grocksdb v1.7.1/go.mod h1:Puj0cSlfTWTp9UdIBijNtNrudkMXXu4er2g+p+CvlJo=
-=======
 github.com/linxGnu/grocksdb v1.8.0 h1:H4L/LhP7GOMf1j17oQAElHgVlbEje2h14A8Tz9cM2BE=
 github.com/linxGnu/grocksdb v1.8.0/go.mod h1:09CeBborffXhXdNpEcOeZrLKEnRtrZFEpFdPNI9Zjjg=
->>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
 github.com/lucasjones/reggen v0.0.0-20180717132126-cdb49ff09d77/go.mod h1:5ELEyG+X8f+meRWHuqUOewBOhvHkl7M76pdGEansxW4=
 github.com/magiconair/properties v1.8.0/go.mod h1:PppfXfuXeibc/6YijjN8zIbojt8czPbwD3XqdrwzmxQ=
 github.com/magiconair/properties v1.8.6 h1:5ibWZ6iY0NctNGWo87LalDlEZ6R41TqbbDamhfG/Qzo=
@@ -902,8 +884,9 @@ github.com/streadway/handy v0.0.0-20190108123426-d5acb3125c2a/go.mod h1:qNTQ5P5J
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.2.0/go.mod h1:qt09Ya8vawLte6SNmTgCsAVtYtaKzEcn8ATUoHMkEqE=
-github.com/stretchr/objx v0.4.0 h1:M2gUjqZET1qApGOWNSnZ49BAIMX4F/1plDv3+l31EJ4=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
+github.com/stretchr/objx v0.5.0 h1:1zr/of2m5FGMsad5YfcqgdqdWrIhu+EBEJRhR1U7z/c=
+github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
 github.com/stretchr/testify v1.2.0/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
@@ -912,19 +895,12 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
-<<<<<<< HEAD
+github.com/stretchr/testify v1.8.3 h1:RP3t2pwF7cMEbC1dqtB6poj3niw/9gnV4Cjg5oW5gtY=
+github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/subosito/gotenv v1.4.1 h1:jyEFiXpy21Wm81FBN71l9VoMMV8H8jG+qIK3GCpY6Qs=
 github.com/subosito/gotenv v1.4.1/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
 github.com/syndtr/goleveldb v1.0.1-0.20200815110645-5c35d600f0ca/go.mod h1:u2MKkTVTVJWe5D1rCvame8WqhBd88EuIwODJZ1VHCPM=
-=======
-github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
-github.com/stretchr/testify v1.8.3 h1:RP3t2pwF7cMEbC1dqtB6poj3niw/9gnV4Cjg5oW5gtY=
-github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
-github.com/subosito/gotenv v1.4.2 h1:X1TuBLAMDFbaTAChgCBLu3DU3UPyELpnF2jjJ2cz/S8=
-github.com/subosito/gotenv v1.4.2/go.mod h1:ayKnFf/c6rvx/2iiLrJUk1e6plDbT3edrFNGqEflhK0=
->>>>>>> 90fbe1aa (Make rocksdb configurable (#1658))
 github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 h1:epCh84lMvA70Z7CTTCmYQn2CKbY8j86K7/FAIr141uY=
 github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7/go.mod h1:q4W45IWZaF22tdD+VEXcAWRA037jwmWEB5VWYORlTpc=
 github.com/tendermint/btcd v0.1.1 h1:0VcxPfflS2zZ3RiOAHkBiFUcPvbtRj5O7zHmcJWHV7s=
