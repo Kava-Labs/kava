@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -63,5 +64,34 @@ func (suite *KeeperTestSuite) TestCommunityPool() {
 		suite.Equal(sdk.NewCoins(), suite.Keeper.GetModuleAccountBalance(suite.Ctx))
 		err := suite.Keeper.DistributeFromCommunityPool(suite.Ctx, sender, funds)
 		suite.Require().ErrorContains(err, "insufficient funds")
+	})
+}
+
+func (suite *KeeperTestSuite) TestGetSetParams() {
+	suite.Run("get params returns not found when store empty", func() {
+		_, found := suite.Keeper.GetParams(suite.Ctx)
+		suite.Require().False(found)
+	})
+
+	suite.Run("get params returns stored params", func() {
+		err := suite.Keeper.SetParams(suite.Ctx, types.DefaultParams())
+		suite.Require().NoError(err)
+
+		readParams, found := suite.Keeper.GetParams(suite.Ctx)
+		suite.True(found)
+		suite.Equal(types.DefaultParams(), readParams)
+	})
+
+	suite.Run("set overwrite previous value", func() {
+		err := suite.Keeper.SetParams(suite.Ctx, types.DefaultParams())
+		suite.Require().NoError(err)
+		params := types.NewParams(time.Date(1998, 0, 0, 0, 0, 0, 0, time.UTC))
+		err = suite.Keeper.SetParams(suite.Ctx, params)
+		suite.Require().NoError(err)
+
+		readParams, found := suite.Keeper.GetParams(suite.Ctx)
+		suite.True(found)
+		suite.NotEqual(params, types.DefaultParams())
+		suite.Equal(params, readParams)
 	})
 }
