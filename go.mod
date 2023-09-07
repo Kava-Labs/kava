@@ -14,10 +14,11 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/kava-labs/kava-bridge v0.2.0
+	github.com/linxGnu/grocksdb v1.8.0
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.3
 	github.com/tendermint/tendermint v0.34.21
 	github.com/tendermint/tm-db v0.6.7
 	github.com/tharsis/ethermint v0.14.0
@@ -98,7 +99,6 @@ require (
 	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/lib/pq v1.10.6 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect
-	github.com/linxGnu/grocksdb v1.7.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
@@ -131,7 +131,7 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.12.0 // indirect
 	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	github.com/subosito/gotenv v1.4.0 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
 	github.com/tendermint/btcd v0.1.1 // indirect
@@ -170,9 +170,9 @@ replace (
 	// Use the cosmos modified protobufs
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	// Use rocksdb 7.1.2
-	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.1
+	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.4
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, newProto w/ height parameter
-	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.0-kava-v18.2
+	github.com/tharsis/ethermint => github.com/Kava-Labs/ethermint v0.14.0-kava-v18.3
 	// Make sure that we use grpc compatible with cosmos
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
 )
