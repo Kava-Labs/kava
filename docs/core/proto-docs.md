@@ -184,6 +184,9 @@
 - [kava/community/v1beta1/params.proto](#kava/community/v1beta1/params.proto)
     - [Params](#kava.community.v1beta1.Params)
   
+- [kava/community/v1beta1/genesis.proto](#kava/community/v1beta1/genesis.proto)
+    - [GenesisState](#kava.community.v1beta1.GenesisState)
+  
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
     - [CommunityCDPRepayDebtProposal](#kava.community.v1beta1.CommunityCDPRepayDebtProposal)
     - [CommunityCDPWithdrawCollateralProposal](#kava.community.v1beta1.CommunityCDPWithdrawCollateralProposal)
@@ -2901,6 +2904,37 @@ Params defines the parameters of the community module.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `upgrade_time_disable_inflation` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/community/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/genesis.proto
+
+
+
+<a name="kava.community.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the community module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the paramaters related to commmunity |
 
 
 

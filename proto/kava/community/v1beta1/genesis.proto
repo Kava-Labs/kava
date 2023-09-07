@@ -1,0 +1,13 @@
+syntax = "proto3";
+package kava.community.v1beta1;
+
+import "gogoproto/gogo.proto";
+import "kava/community/v1beta1/params.proto";
+
+option go_package = "github.com/kava-labs/kava/x/community/types";
+
+// GenesisState defines the community module's genesis state.
+message GenesisState {
+  // params defines all the paramaters related to commmunity
+  Params params = 1 [(gogoproto.nullable) = false];
+}
