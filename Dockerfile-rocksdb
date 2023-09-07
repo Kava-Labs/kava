@@ -1,0 +1,47 @@
+FROM golang:1.20-bullseye AS kava-builder
+
+# Set up dependencies
+RUN apt-get update \
+    && apt-get install -y git make gcc libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory for the build
+WORKDIR /root
+# default home directory is /root
+
+# install rocksdb
+ARG rocksdb_version=v8.1.1
+ENV ROCKSDB_VERSION=$rocksdb_version
+
+RUN git clone https://github.com/facebook/rocksdb.git \
+    && cd rocksdb \
+    && git checkout $ROCKSDB_VERSION \
+    && make -j$(nproc) install-shared \
+    && ldconfig
+
+# Add source files for kava
+COPY . kava
+
+ARG kava_database_backend=rocksdb
+ENV KAVA_DATABASE_BACKEND=$kava_database_backend
+
+# Mount go build and mod caches as container caches, persisted between builder invocations
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    cd kava && make install COSMOS_BUILD_OPTIONS=$KAVA_DATABASE_BACKEND
+
+
+FROM ubuntu:22.04
+
+RUN apt-get update \
+    && apt-get install -y libsnappy1v5 libgflags2.2 zlib1g libbz2-1.0 curl jq \
+    && rm -rf /var/lib/apt/lists/*
+
+# copy rocksdb shared objects
+COPY --from=kava-builder /usr/local/lib/ /usr/local/lib/
+RUN ldconfig
+
+# copy kava binary
+COPY --from=kava-builder /go/bin/kava /bin/kava
+
+CMD ["kava"]
