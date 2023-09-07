@@ -40,13 +40,19 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 // DefaultGenesis default genesis state
-func (AppModuleBasic) DefaultGenesis(_ codec.JSONCodec) json.RawMessage {
-	return []byte("{}")
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	gs := types.DefaultGenesisState()
+	return cdc.MustMarshalJSON(&gs)
 }
 
 // ValidateGenesis module validate genesis
-func (AppModuleBasic) ValidateGenesis(_ codec.JSONCodec, _ client.TxEncodingConfig, _ json.RawMessage) error {
-	return nil
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+	var gs types.GenesisState
+	err := cdc.UnmarshalJSON(bz, &gs)
+	if err != nil {
+		return err
+	}
+	return gs.Validate()
 }
 
 // RegisterInterfaces implements InterfaceModule.RegisterInterfaces
@@ -122,14 +128,18 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 }
 
 // InitGenesis module init-genesis
-func (am AppModule) InitGenesis(ctx sdk.Context, _ codec.JSONCodec, _ json.RawMessage) []abci.ValidatorUpdate {
-	InitGenesis(ctx, am.keeper, am.accountKeeper)
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.RawMessage) []abci.ValidatorUpdate {
+	var genState types.GenesisState
+	cdc.MustUnmarshalJSON(gs, &genState)
+
+	InitGenesis(ctx, am.keeper, am.accountKeeper, genState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis module export genesis
-func (am AppModule) ExportGenesis(_ sdk.Context, cdc codec.JSONCodec) json.RawMessage {
-	return am.DefaultGenesis(cdc)
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
+	gs := ExportGenesis(ctx, am.keeper)
+	return cdc.MustMarshalJSON(&gs)
 }
 
 // BeginBlock module begin-block

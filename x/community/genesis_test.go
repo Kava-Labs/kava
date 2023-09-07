@@ -2,12 +2,15 @@ package community_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/suite"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/testutil"
+	"github.com/kava-labs/kava/x/community/types"
 )
 
 type genesisTestSuite struct {
@@ -23,12 +26,15 @@ func TestGenesisTestSuite(t *testing.T) {
 }
 
 func (suite *genesisTestSuite) TestInitGenesis() {
-	suite.SetupTest()
 
 	accountKeeper := suite.App.GetAccountKeeper()
 
+	genesisState := types.NewGenesisState(
+		types.NewParams(time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)),
+	)
+
 	suite.NotPanics(func() {
-		community.InitGenesis(suite.Ctx, suite.Keeper, accountKeeper)
+		community.InitGenesis(suite.Ctx, suite.Keeper, accountKeeper, genesisState)
 	})
 
 	// check for module account this way b/c GetModuleAccount creates if not existing.
@@ -36,4 +42,29 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 	suite.NotNil(acc)
 	_, ok := acc.(authtypes.ModuleAccountI)
 	suite.True(ok)
+
+	storedParams, found := suite.App.GetCommunityKeeper().GetParams(suite.Ctx)
+	suite.True(found)
+	suite.Equal(genesisState.Params, storedParams)
+}
+
+func (suite *genesisTestSuite) TestExportGenesis() {
+
+	params := types.NewParams(time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC))
+	suite.Keeper.SetParams(suite.Ctx, params)
+
+	genesisState := community.ExportGenesis(suite.Ctx, suite.Keeper)
+
+	suite.Equal(params, genesisState.Params)
+}
+
+func (suite *genesisTestSuite) TestInitExportIsLossless() {
+	genesisState := types.NewGenesisState(
+		types.NewParams(time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)),
+	)
+
+	community.InitGenesis(suite.Ctx, suite.Keeper, suite.App.GetAccountKeeper(), genesisState)
+	exportedState := community.ExportGenesis(suite.Ctx, suite.Keeper)
+
+	suite.Equal(genesisState, exportedState)
 }

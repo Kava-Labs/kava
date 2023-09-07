@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/community/types"
@@ -22,17 +24,13 @@ func (k Keeper) GetParams(ctx sdk.Context) (types.Params, bool) {
 }
 
 // SetParams sets params on the store
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	if err := params.Validate(); err != nil {
-		return err
+		panic(fmt.Sprintf("invalid params: %s", err))
 	}
 
 	store := ctx.KVStore(k.key)
-	bz, err := k.cdc.Marshal(&params)
-	if err != nil {
-		return err
-	}
+	bz := k.cdc.MustMarshal(&params)
 
 	store.Set(types.ParamsKey, bz)
-	return nil
 }
