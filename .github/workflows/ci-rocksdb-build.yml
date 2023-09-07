@@ -1,5 +1,8 @@
 name: Continuous Integration (Rocksdb Build)
 
+env:
+  ROCKSDB_VERSION: v8.1.1
+
 on:
   workflow_call:
 jobs:
@@ -16,7 +19,29 @@ jobs:
           cache: true
       - name: build rocksdb dependency
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
-        env:
-          ROCKSDB_VERSION: v7.10.2
       - name: build application
         run: make build COSMOS_BUILD_OPTIONS=rocksdb
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install RocksDB dependencies
+        run: sudo apt-get update
+          && sudo apt-get install -y git make gcc libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
+      - name: install RocksDB as shared library
+        run: git clone https://github.com/facebook/rocksdb.git
+          && cd rocksdb
+          && git checkout $ROCKSDB_VERSION
+          && sudo make -j$(nproc) install-shared
+          && sudo ldconfig
+      - name: checkout repo from current commit
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "1.20"
+          check-latest: true
+          cache: true
+      - name: run unit tests
+        run: make test-rocksdb
