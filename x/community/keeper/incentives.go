@@ -4,22 +4,21 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// PayRewards pays the rewards to the community pool
+// PayCommunityRewards pays rewards to the fee collector account
 func (k Keeper) PayCommunityRewards(ctx sdk.Context) error {
 	return nil
 }
 
-// DisableInflationAfterUpgrade disables inflation after the upgrade time
+// DisableInflationAfterUpgrade disables inflation on or after the upgrade time
 func (k Keeper) DisableInflationAfterUpgrade(ctx sdk.Context) {
 	logger := k.Logger(ctx)
 
-	// check if the upgrade time has passed
 	params, found := k.GetParams(ctx)
 	if !found {
 		return
 	}
 
-	// skip if we have already upgraded - previousBlockTime is only set on upgrade.
+	// skip if we have already upgraded - previousBlockTime is first set on upgrade
 	_, found = k.GetPreviousBlockTime(ctx)
 	if found {
 		return
@@ -28,9 +27,9 @@ func (k Keeper) DisableInflationAfterUpgrade(ctx sdk.Context) {
 	blockTime := ctx.BlockTime()
 	upgradeTime := params.UpgradeTimeDisableInflation
 
-	// note: a vanilla kava chain should disable inflation after the first block, so we
-	// only skip upgrade here if the upgradeTime both set and in the future.
-	if blockTime.Before(upgradeTime) && !upgradeTime.IsZero() {
+	// a vanilla kava chain should disable inflation on the first block if `upgradeTime` is not set.
+	// thus, we only skip upgrade here if `upgradeTime` is set and `blockTime` is before `upgradeTime`.
+	if !upgradeTime.IsZero() && blockTime.Before(upgradeTime) {
 		return
 	}
 
