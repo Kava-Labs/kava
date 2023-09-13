@@ -3,6 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // AccountKeeper defines the contract required for account APIs.
@@ -36,4 +38,14 @@ type DistributionKeeper interface {
 	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
+}
+
+type MintKeeper interface {
+	GetParams(ctx sdk.Context) (params minttypes.Params)
+	SetParams(ctx sdk.Context, params minttypes.Params)
+}
+
+type KavadistKeeper interface {
+	GetParams(ctx sdk.Context) (params kavadisttypes.Params)
+	SetParams(ctx sdk.Context, params kavadisttypes.Params)
 }
