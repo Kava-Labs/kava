@@ -1,6 +1,7 @@
 syntax = "proto3";
 package kava.community.v1beta1;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -12,4 +13,6 @@ message Params {
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false
   ];
+
+  cosmos.base.v1beta1.Coin rewards_per_second = 2 [(gogoproto.nullable) = false];
 }
