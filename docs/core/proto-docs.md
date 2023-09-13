@@ -196,6 +196,8 @@
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
+    - [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse)
     - [QueryTotalBalanceRequest](#kava.community.v1beta1.QueryTotalBalanceRequest)
     - [QueryTotalBalanceResponse](#kava.community.v1beta1.QueryTotalBalanceResponse)
   
@@ -3070,6 +3072,31 @@ QueryBalanceResponse defines the response type for querying x/community balance.
 
 
 
+<a name="kava.community.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParams defines the request type for querying x/community params.
+
+
+
+
+
+
+<a name="kava.community.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/community params.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params represents the community module parameters |
+
+
+
+
+
+
 <a name="kava.community.v1beta1.QueryTotalBalanceRequest"></a>
 
 ### QueryTotalBalanceRequest
@@ -3109,6 +3136,7 @@ Query defines the gRPC querier service for x/community.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse) | Params queires the module params. | GET|/kava/community/v1beta1/params|
 | `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
 | `TotalBalance` | [QueryTotalBalanceRequest](#kava.community.v1beta1.QueryTotalBalanceRequest) | [QueryTotalBalanceResponse](#kava.community.v1beta1.QueryTotalBalanceResponse) | TotalBalance queries the balance of all coins, including x/distribution, x/community, and supplied balances. | GET|/kava/community/v1beta1/total_balance|
 
