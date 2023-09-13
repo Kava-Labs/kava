@@ -635,16 +635,6 @@ func NewApp(
 		&app.distrKeeper,
 	)
 
-	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
-	app.communityKeeper = communitykeeper.NewKeeper(
-		appCodec,
-		keys[communitytypes.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
-		&cdpKeeper,
-		app.distrKeeper,
-		&hardKeeper,
-	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -663,6 +653,19 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
+	)
+
+	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
+	app.communityKeeper = communitykeeper.NewKeeper(
+		appCodec,
+		keys[communitytypes.StoreKey],
+		app.accountKeeper,
+		app.bankKeeper,
+		&cdpKeeper,
+		app.distrKeeper,
+		&hardKeeper,
+		&app.mintKeeper,
+		&app.kavadistKeeper,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
@@ -809,6 +812,9 @@ func NewApp(
 		// Committee begin blocker changes module params by enacting proposals.
 		// Run before to ensure params are updated together before state changes.
 		committeetypes.ModuleName,
+		// Community begin blocker should run before x/mint and x/kavadist since
+		// the disable inflation upgrade will update those modules' params.
+		communitytypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		// During begin block slashing happens after distr.BeginBlocker so that
@@ -820,7 +826,6 @@ func NewApp(
 		feemarkettypes.ModuleName,
 		evmtypes.ModuleName,
 		kavadisttypes.ModuleName,
-		communitytypes.ModuleName,
 		// Auction begin blocker will close out expired auctions and pay debt back to cdp.
 		// It should be run before cdp begin blocker which cancels out debt with stable and starts more auctions.
 		auctiontypes.ModuleName,
