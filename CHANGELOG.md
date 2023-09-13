@@ -39,9 +39,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
+- (community) [#1704] Add module params
 
 ### Bug Fixes
 - (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
+
+## State Machine Breaking
+- (community) [#1704] Add param to control when inflation will be disabled
 
 ## [v0.24.0]
 
