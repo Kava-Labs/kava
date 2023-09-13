@@ -1315,7 +1315,9 @@
       "votes": []
     },
     "community": {
-      "params": {}
+      "params": {
+        "upgrade_time_disable_inflation": "2023-11-01T00:00:00Z"
+      }
     },
     "crisis": {
       "constant_fee": {
