@@ -4,11 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// PayCommunityRewards pays rewards to the fee collector account
-func (k Keeper) PayCommunityRewards(ctx sdk.Context) error {
-	return nil
-}
-
 // ShouldStartDisableInflationUpgrade returns true if the disable inflation upgrade should be started
 func (k Keeper) ShouldStartDisableInflationUpgrade(ctx sdk.Context) bool {
 	params, found := k.GetParams(ctx)
