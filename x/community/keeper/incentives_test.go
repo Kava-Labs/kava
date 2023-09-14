@@ -55,13 +55,6 @@ func (suite *IncentivesTestSuite) TestShouldStartDisableInflationUpgrade() {
 		return suite.Keeper.ShouldStartDisableInflationUpgrade(suite.Ctx)
 	}
 
-	setUpgradeTimeFromNow := func(t time.Duration) {
-		suite.Keeper.SetParams(
-			suite.Ctx,
-			types.Params{UpgradeTimeDisableInflation: suite.Ctx.BlockTime().Add(t)},
-		)
-	}
-
 	suite.Run("skips upgrade if community params does not exist", func() {
 		suite.SetupTest()
 
@@ -77,7 +70,7 @@ func (suite *IncentivesTestSuite) TestShouldStartDisableInflationUpgrade() {
 	suite.Run("skips upgrade if upgrade time is set in the future", func() {
 		suite.SetupTest()
 
-		setUpgradeTimeFromNow(1 * time.Hour)
+		suite.setUpgradeTimeFromNow(1 * time.Hour)
 		suite.False(shouldUpgrade())
 	})
 
@@ -94,16 +87,16 @@ func (suite *IncentivesTestSuite) TestShouldStartDisableInflationUpgrade() {
 	suite.Run("upgrades if blockTime is at or after upgrade time", func() {
 		suite.SetupTest()
 
-		setUpgradeTimeFromNow(0)
+		suite.setUpgradeTimeFromNow(0)
 		suite.True(shouldUpgrade())
-		setUpgradeTimeFromNow(-2 * time.Minute)
+		suite.setUpgradeTimeFromNow(-2 * time.Minute)
 		suite.True(shouldUpgrade())
 	})
 
 	suite.Run("skips upgrade if already upgraded", func() {
 		suite.SetupTest()
 
-		setUpgradeTimeFromNow(-2 * time.Minute)
+		suite.setUpgradeTimeFromNow(-2 * time.Minute)
 		suite.True(shouldUpgrade())
 		suite.Keeper.StartDisableInflationUpgrade(suite.Ctx)
 		suite.False(shouldUpgrade())
@@ -111,17 +104,6 @@ func (suite *IncentivesTestSuite) TestShouldStartDisableInflationUpgrade() {
 }
 
 func (suite *IncentivesTestSuite) TestStartDisableInflationUpgrade() {
-	isUpgraded := func() bool {
-		_, found := suite.Keeper.GetPreviousBlockTime(suite.Ctx)
-		return found
-	}
-	setUpgradeTimeFromNow := func(t time.Duration) {
-		suite.Keeper.SetParams(
-			suite.Ctx,
-			types.Params{UpgradeTimeDisableInflation: suite.Ctx.BlockTime().Add(t)},
-		)
-	}
-
 	suite.Run("upgrade should set mint and kavadist inflation to 0", func() {
 		suite.SetupTest()
 
@@ -130,9 +112,8 @@ func (suite *IncentivesTestSuite) TestStartDisableInflationUpgrade() {
 		kavadistParams := suite.App.GetKavadistKeeper().GetParams(suite.Ctx)
 		suite.True(kavadistParams.Active)
 
-		setUpgradeTimeFromNow(-2 * time.Minute)
+		suite.setUpgradeTimeFromNow(-2 * time.Minute)
 		suite.Keeper.StartDisableInflationUpgrade(suite.Ctx)
-		suite.True(isUpgraded())
 
 		mintParams = suite.App.GetMintKeeper().GetParams(suite.Ctx)
 		suite.Equal(sdk.ZeroDec(), mintParams.InflationMax)
@@ -145,11 +126,17 @@ func (suite *IncentivesTestSuite) TestStartDisableInflationUpgrade() {
 	suite.Run("upgrade should set previous block time", func() {
 		suite.SetupTest()
 
-		setUpgradeTimeFromNow(-2 * time.Minute)
+		suite.setUpgradeTimeFromNow(-2 * time.Minute)
 		suite.Keeper.StartDisableInflationUpgrade(suite.Ctx)
-		suite.True(isUpgraded())
 		prevBlockTime, found := suite.Keeper.GetPreviousBlockTime(suite.Ctx)
 		suite.True(found)
 		suite.Equal(suite.Ctx.BlockTime(), prevBlockTime)
 	})
+}
+
+func (suite *IncentivesTestSuite) setUpgradeTimeFromNow(t time.Duration) {
+	suite.Keeper.SetParams(
+		suite.Ctx,
+		types.Params{UpgradeTimeDisableInflation: suite.Ctx.BlockTime().Add(t)},
+	)
 }
