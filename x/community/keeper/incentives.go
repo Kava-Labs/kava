@@ -9,29 +9,36 @@ func (k Keeper) PayCommunityRewards(ctx sdk.Context) error {
 	return nil
 }
 
-// DisableInflationAfterUpgrade disables inflation on or after the upgrade time
-func (k Keeper) DisableInflationAfterUpgrade(ctx sdk.Context) {
-	logger := k.Logger(ctx)
-
+// ShouldStartDisableInflationUpgrade returns true if the disable inflation upgrade should be started
+func (k Keeper) ShouldStartDisableInflationUpgrade(ctx sdk.Context) bool {
 	params, found := k.GetParams(ctx)
 	if !found {
-		return
+		return false
 	}
 
 	// skip if we have already upgraded - previousBlockTime is first set on upgrade
 	_, found = k.GetPreviousBlockTime(ctx)
 	if found {
-		return
+		return false
 	}
 
 	blockTime := ctx.BlockTime()
 	upgradeTime := params.UpgradeTimeDisableInflation
 
 	// a vanilla kava chain should disable inflation on the first block if `upgradeTime` is not set.
-	// thus, we only skip upgrade here if `upgradeTime` is set and `blockTime` is before `upgradeTime`.
+	// thus, we don't upgrade if `upgradeTime` is set and `blockTime` is before `upgradeTime`.
 	if !upgradeTime.IsZero() && blockTime.Before(upgradeTime) {
-		return
+		return false
 	}
+
+	return true
+}
+
+// StartDisableInflationUpgrade disables x/mint and x/kavadist inflation
+func (k Keeper) StartDisableInflationUpgrade(ctx sdk.Context) {
+	logger := k.Logger(ctx)
+
+	blockTime := ctx.BlockTime()
 
 	logger.Info("disable inflation upgrade started")
 	k.SetPreviousBlockTime(ctx, blockTime)
@@ -53,6 +60,4 @@ func (k Keeper) DisableInflationAfterUpgrade(ctx sdk.Context) {
 	// todo: consolidate community funds (transfer from kavadist and community pool)
 
 	logger.Info("disable inflation upgrade finished successfully!")
-
-	return
 }
