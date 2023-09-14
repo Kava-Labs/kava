@@ -1,20 +1,19 @@
 package types
 
 import (
-	fmt "fmt"
+	"errors"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
 	DefaultUpgradeTimeDisableInflation = time.Time{}
-	DefaultRewardsPerSecond            = sdk.NewCoin("ukava", sdkmath.ZeroInt())
+	DefaultRewardsPerSecond            = sdkmath.ZeroInt()
 )
 
 // NewParams returns a new params object
-func NewParams(upgradeTime time.Time, rewardsPerSecond sdk.Coin) Params {
+func NewParams(upgradeTime time.Time, rewardsPerSecond sdkmath.Int) Params {
 	return Params{
 		UpgradeTimeDisableInflation: upgradeTime,
 		RewardsPerSecond:            rewardsPerSecond,
@@ -31,8 +30,12 @@ func DefaultParams() Params {
 
 // Validate checks the params are valid
 func (p Params) Validate() error {
-	if err := p.RewardsPerSecond.Validate(); err != nil {
-		return fmt.Errorf("invalid rewards per second: %w", err)
+	if p.RewardsPerSecond.IsNil() {
+		return errors.New("rewards per second should not be nil")
+	}
+
+	if p.RewardsPerSecond.IsNegative() {
+		return errors.New("rewards per second should not be negative")
 	}
 
 	return nil

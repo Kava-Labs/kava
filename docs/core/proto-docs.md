@@ -2906,7 +2906,7 @@ Params defines the parameters of the community module.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `upgrade_time_disable_inflation` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
-| `rewards_per_second` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  |  |
+| `rewards_per_second` | [string](#string) |  |  |
 
 
 

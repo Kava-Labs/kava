@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/x/community"
@@ -34,7 +33,7 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 	genesisState := types.NewGenesisState(
 		types.NewParams(
 			time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-			sdk.NewCoin("ukava", sdkmath.NewInt(1000)),
+			sdkmath.NewInt(1000),
 		),
 	)
 
@@ -56,7 +55,7 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 func (suite *genesisTestSuite) TestExportGenesis() {
 	params := types.NewParams(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-		sdk.NewCoin("ukava", sdkmath.NewInt(1000)),
+		sdkmath.NewInt(1000),
 	)
 	suite.Keeper.SetParams(suite.Ctx, params)
 
@@ -69,7 +68,7 @@ func (suite *genesisTestSuite) TestInitExportIsLossless() {
 	genesisState := types.NewGenesisState(
 		types.NewParams(
 			time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-			sdk.NewCoin("ukava", sdkmath.NewInt(1000)),
+			sdkmath.NewInt(1000),
 		),
 	)
 

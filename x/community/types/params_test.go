@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/community/types"
 )
 
@@ -21,23 +20,25 @@ func TestParamsValidate(t *testing.T) {
 			name: "valid parms",
 			params: types.Params{
 				UpgradeTimeDisableInflation: time.Time{},
-				RewardsPerSecond: sdk.NewCoin(
-					"ukava",
-					sdkmath.NewInt(1000),
-				),
+				RewardsPerSecond:            sdkmath.NewInt(1000),
 			},
 			expectedErr: "",
 		},
 		{
-			name: "invalid rewards per second",
+			name: "nil rewards per second",
 			params: types.Params{
 				UpgradeTimeDisableInflation: time.Time{},
-				RewardsPerSecond: sdk.Coin{
-					Denom:  "ukava",
-					Amount: sdkmath.NewInt(-1),
-				},
+				RewardsPerSecond:            sdkmath.Int{},
 			},
-			expectedErr: "invalid rewards per second: negative coin amount: -1",
+			expectedErr: "rewards per second should not be nil",
+		},
+		{
+			name: "negative rewards per second",
+			params: types.Params{
+				UpgradeTimeDisableInflation: time.Time{},
+				RewardsPerSecond:            sdkmath.NewInt(-5),
+			},
+			expectedErr: "rewards per second should not be negative",
 		},
 	}
 
