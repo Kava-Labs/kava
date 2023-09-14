@@ -46,6 +46,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## State Machine Breaking
 - (community) [#1704] Add param to control when inflation will be disabled
+- (community) [#1707] Default staking rewards per second set to `744191`
 
 ## [v0.24.0]
 
@@ -284,6 +285,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1707]: https://github.com/Kava-Labs/kava/pull/1707
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1655]: https://github.com/Kava-Labs/kava/pull/1655
