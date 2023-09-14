@@ -20,7 +20,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "valid parms",
 			params: types.Params{
 				UpgradeTimeDisableInflation: time.Time{},
-				RewardsPerSecond:            sdkmath.NewInt(1000),
+				StakingRewardsPerSecond:     sdkmath.NewInt(1000),
 			},
 			expectedErr: "",
 		},
@@ -28,17 +28,17 @@ func TestParamsValidate(t *testing.T) {
 			name: "nil rewards per second",
 			params: types.Params{
 				UpgradeTimeDisableInflation: time.Time{},
-				RewardsPerSecond:            sdkmath.Int{},
+				StakingRewardsPerSecond:     sdkmath.Int{},
 			},
-			expectedErr: "rewards per second should not be nil",
+			expectedErr: "StakingRewardsPerSecond should not be nil",
 		},
 		{
 			name: "negative rewards per second",
 			params: types.Params{
 				UpgradeTimeDisableInflation: time.Time{},
-				RewardsPerSecond:            sdkmath.NewInt(-5),
+				StakingRewardsPerSecond:     sdkmath.NewInt(-5),
 			},
-			expectedErr: "rewards per second should not be negative",
+			expectedErr: "StakingRewardsPerSecond should not be negative",
 		},
 	}
 

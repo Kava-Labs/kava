@@ -14,7 +14,7 @@ message Params {
     (gogoproto.nullable) = false
   ];
 
-  string rewards_per_second = 2 [
+  string staking_rewards_per_second = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

@@ -10,15 +10,18 @@ import (
 
 var (
 	DefaultUpgradeTimeDisableInflation = time.Time{}
-	// DefaultRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
-	DefaultRewardsPerSecond = sdkmath.NewInt(744191)
+	// DefaultStakingRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
+	DefaultStakingRewardsPerSecond = sdkmath.NewInt(744191)
 )
 
 // NewParams returns a new params object
-func NewParams(upgradeTime time.Time, rewardsPerSecond sdkmath.Int) Params {
+func NewParams(
+	upgradeTime time.Time,
+	stakingRewardsPerSecond sdkmath.Int,
+) Params {
 	return Params{
 		UpgradeTimeDisableInflation: upgradeTime,
-		RewardsPerSecond:            rewardsPerSecond,
+		StakingRewardsPerSecond:     stakingRewardsPerSecond,
 	}
 }
 
@@ -26,18 +29,18 @@ func NewParams(upgradeTime time.Time, rewardsPerSecond sdkmath.Int) Params {
 func DefaultParams() Params {
 	return NewParams(
 		DefaultUpgradeTimeDisableInflation,
-		DefaultRewardsPerSecond,
+		DefaultStakingRewardsPerSecond,
 	)
 }
 
 // Validate checks the params are valid
 func (p Params) Validate() error {
-	if p.RewardsPerSecond.IsNil() {
-		return errors.New("rewards per second should not be nil")
+	if p.StakingRewardsPerSecond.IsNil() {
+		return errors.New("StakingRewardsPerSecond should not be nil")
 	}
 
-	if p.RewardsPerSecond.IsNegative() {
-		return fmt.Errorf("rewards per second should not be negative: %s", p.RewardsPerSecond)
+	if p.StakingRewardsPerSecond.IsNegative() {
+		return fmt.Errorf("StakingRewardsPerSecond should not be negative: %s", p.StakingRewardsPerSecond)
 	}
 
 	return nil
