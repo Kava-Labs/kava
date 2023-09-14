@@ -9,7 +9,8 @@ import (
 
 var (
 	DefaultUpgradeTimeDisableInflation = time.Time{}
-	DefaultRewardsPerSecond            = sdkmath.ZeroInt()
+	// DefaultRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
+	DefaultRewardsPerSecond = sdkmath.NewInt(744191)
 )
 
 // NewParams returns a new params object
