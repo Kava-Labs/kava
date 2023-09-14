@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	fmt "fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -36,7 +37,7 @@ func (p Params) Validate() error {
 	}
 
 	if p.RewardsPerSecond.IsNegative() {
-		return errors.New("rewards per second should not be negative")
+		return fmt.Errorf("rewards per second should not be negative: %s", p.RewardsPerSecond)
 	}
 
 	return nil
