@@ -69,6 +69,10 @@ type Metrics struct {
 	LastLevelReadCount    metrics.Gauge
 	NonLastLevelReadBytes metrics.Gauge
 	NonLastLevelReadCount metrics.Gauge
+
+	GetHitL0      metrics.Gauge
+	GetHitL1      metrics.Gauge
+	GetHitL2AndUp metrics.Gauge
 }
 
 // registerMetrics registers metrics in prometheus and initializes rocksdbMetrics variable
@@ -325,6 +329,25 @@ func registerMetrics() {
 			Name:      "non_last_level_read_count",
 			Help:      "",
 		}, labels),
+
+		GetHitL0: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "get_hit_l0",
+			Help:      "",
+		}, labels),
+		GetHitL1: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "get_hit_l1",
+			Help:      "",
+		}, labels),
+		GetHitL2AndUp: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "get_hit_l2_and_up",
+			Help:      "",
+		}, labels),
 	}
 }
 
@@ -385,4 +408,8 @@ func (m *Metrics) report(props *properties, stats *stats) {
 	m.LastLevelReadCount.Set(float64(stats.LastLevelReadCount))
 	m.NonLastLevelReadBytes.Set(float64(stats.NonLastLevelReadBytes))
 	m.NonLastLevelReadCount.Set(float64(stats.NonLastLevelReadCount))
+
+	m.GetHitL0.Set(float64(stats.GetHitL0))
+	m.GetHitL1.Set(float64(stats.GetHitL1))
+	m.GetHitL2AndUp.Set(float64(stats.GetHitL2AndUp))
 }
