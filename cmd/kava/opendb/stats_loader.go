@@ -65,6 +65,16 @@ type stats struct {
 	// # of failures when adding blocks to block cache.
 	BlockCacheAddFailures int64
 
+	BlockCacheIndexMiss         int64
+	BlockCacheIndexHit          int64
+	BlockCacheIndexBytesInsert  int64
+	BlockCacheFilterMiss        int64
+	BlockCacheFilterHit         int64
+	BlockCacheFilterBytesInsert int64
+	BlockCacheDataMiss          int64
+	BlockCacheDataHit           int64
+	BlockCacheDataBytesInsert   int64
+
 	CompactReadBytes  int64 // Bytes read during compaction
 	CompactWriteBytes int64 // Bytes written during compaction
 
@@ -161,6 +171,15 @@ func (l *statLoader) load() (*stats, error) {
 		BlockCacheHit:               l.getInt64StatValue("rocksdb.block.cache.hit", count),
 		BlockCacheAdd:               l.getInt64StatValue("rocksdb.block.cache.add", count),
 		BlockCacheAddFailures:       l.getInt64StatValue("rocksdb.block.cache.add.failures", count),
+		BlockCacheIndexMiss:         l.getInt64StatValue("rocksdb.block.cache.index.miss", count),
+		BlockCacheIndexHit:          l.getInt64StatValue("rocksdb.block.cache.index.hit", count),
+		BlockCacheIndexBytesInsert:  l.getInt64StatValue("rocksdb.block.cache.index.bytes.insert", count),
+		BlockCacheFilterMiss:        l.getInt64StatValue("rocksdb.block.cache.filter.miss", count),
+		BlockCacheFilterHit:         l.getInt64StatValue("rocksdb.block.cache.filter.hit", count),
+		BlockCacheFilterBytesInsert: l.getInt64StatValue("rocksdb.block.cache.filter.bytes.insert", count),
+		BlockCacheDataMiss:          l.getInt64StatValue("rocksdb.block.cache.data.miss", count),
+		BlockCacheDataHit:           l.getInt64StatValue("rocksdb.block.cache.data.hit", count),
+		BlockCacheDataBytesInsert:   l.getInt64StatValue("rocksdb.block.cache.data.bytes.insert", count),
 		CompactReadBytes:            l.getInt64StatValue("rocksdb.compact.read.bytes", count),
 		CompactWriteBytes:           l.getInt64StatValue("rocksdb.compact.write.bytes", count),
 		CompactionTimesMicros:       l.getFloat64HistogramStatValue("rocksdb.compaction.times.micros"),
