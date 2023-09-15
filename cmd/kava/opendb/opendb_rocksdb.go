@@ -55,6 +55,7 @@ const (
 	useFsyncDBOptName               = "rocksdb.use_fsync"
 	useAdaptiveMutexDBOptName       = "rocksdb.use_adaptive_mutex"
 	bytesPerSyncDBOptName           = "rocksdb.bytes_per_sync"
+	maxBackgroundJobsDBOptName      = "rocksdb.max-background-jobs"
 
 	writeBufferSizeCFOptName                = "rocksdb.write-buffer-size"
 	numLevelsCFOptName                      = "rocksdb.num-levels"
@@ -171,6 +172,11 @@ func overrideDBOpts(dbOpts *grocksdb.Options, appOpts types.AppOptions) *grocksd
 	bytesPerSync := appOpts.Get(bytesPerSyncDBOptName)
 	if bytesPerSync != nil {
 		dbOpts.SetBytesPerSync(cast.ToUint64(bytesPerSync))
+	}
+
+	maxBackgroundJobs := appOpts.Get(maxBackgroundJobsDBOptName)
+	if maxBackgroundJobs != nil {
+		dbOpts.SetMaxBackgroundJobs(cast.ToInt(maxBackgroundJobs))
 	}
 
 	return dbOpts
