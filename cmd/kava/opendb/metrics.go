@@ -315,7 +315,7 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "stall",
 			Name:      "stall_micros",
-			Help:      "",
+			Help:      "Writer has to wait for compaction or flush to finish.",
 		}, labels),
 
 		DBWriteStallP50: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
