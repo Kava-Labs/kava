@@ -35,6 +35,29 @@ type Metrics struct {
 	BlockCacheHit         metrics.Gauge
 	BlockCacheAdd         metrics.Gauge
 	BlockCacheAddFailures metrics.Gauge
+
+	// Latency
+	DBGetMicrosP50   metrics.Gauge
+	DBGetMicrosP95   metrics.Gauge
+	DBGetMicrosP99   metrics.Gauge
+	DBGetMicrosP100  metrics.Gauge
+	DBGetMicrosCount metrics.Gauge
+
+	DBWriteMicrosP50   metrics.Gauge
+	DBWriteMicrosP95   metrics.Gauge
+	DBWriteMicrosP99   metrics.Gauge
+	DBWriteMicrosP100  metrics.Gauge
+	DBWriteMicrosCount metrics.Gauge
+
+	// Write Stall
+	StallMicros metrics.Gauge
+
+	DBWriteStallP50   metrics.Gauge
+	DBWriteStallP95   metrics.Gauge
+	DBWriteStallP99   metrics.Gauge
+	DBWriteStallP100  metrics.Gauge
+	DBWriteStallCount metrics.Gauge
+	DBWriteStallSum   metrics.Gauge
 }
 
 // registerMetrics registers metrics in prometheus and initializes rocksdbMetrics variable
@@ -137,6 +160,114 @@ func registerMetrics() {
 			Name:      "block_cache_add_failures",
 			Help:      "number of failures when adding blocks to block cache",
 		}, labels),
+
+		// Latency
+		DBGetMicrosP50: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_get_micros_p50",
+			Help:      "",
+		}, labels),
+		DBGetMicrosP95: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_get_micros_p95",
+			Help:      "",
+		}, labels),
+		DBGetMicrosP99: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_get_micros_p99",
+			Help:      "",
+		}, labels),
+		DBGetMicrosP100: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_get_micros_p100",
+			Help:      "",
+		}, labels),
+		DBGetMicrosCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_get_micros_count",
+			Help:      "",
+		}, labels),
+
+		DBWriteMicrosP50: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_write_micros_p50",
+			Help:      "",
+		}, labels),
+		DBWriteMicrosP95: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_write_micros_p95",
+			Help:      "",
+		}, labels),
+		DBWriteMicrosP99: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_write_micros_p99",
+			Help:      "",
+		}, labels),
+		DBWriteMicrosP100: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_write_micros_p100",
+			Help:      "",
+		}, labels),
+		DBWriteMicrosCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "latency",
+			Name:      "db_write_micros_count",
+			Help:      "",
+		}, labels),
+
+		// Write Stall
+		StallMicros: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "stall_micros",
+			Help:      "",
+		}, labels),
+
+		DBWriteStallP50: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p50",
+			Help:      "",
+		}, labels),
+		DBWriteStallP95: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p95",
+			Help:      "",
+		}, labels),
+		DBWriteStallP99: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p99",
+			Help:      "",
+		}, labels),
+		DBWriteStallP100: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p100",
+			Help:      "",
+		}, labels),
+		DBWriteStallCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_count",
+			Help:      "",
+		}, labels),
+		DBWriteStallSum: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_sum",
+			Help:      "",
+		}, labels),
 	}
 }
 
@@ -163,4 +294,27 @@ func (m *Metrics) report(props *properties, stats *stats) {
 	m.BlockCacheHit.Set(float64(stats.BlockCacheHit))
 	m.BlockCacheAdd.Set(float64(stats.BlockCacheAdd))
 	m.BlockCacheAddFailures.Set(float64(stats.BlockCacheAddFailures))
+
+	// Latency
+	m.DBGetMicrosP50.Set(stats.DBGetMicros.P50)
+	m.DBGetMicrosP95.Set(stats.DBGetMicros.P95)
+	m.DBGetMicrosP99.Set(stats.DBGetMicros.P99)
+	m.DBGetMicrosP100.Set(stats.DBGetMicros.P100)
+	m.DBGetMicrosCount.Set(stats.DBGetMicros.Count)
+
+	m.DBWriteMicrosP50.Set(stats.DBWriteMicros.P50)
+	m.DBWriteMicrosP95.Set(stats.DBWriteMicros.P95)
+	m.DBWriteMicrosP99.Set(stats.DBWriteMicros.P99)
+	m.DBWriteMicrosP100.Set(stats.DBWriteMicros.P100)
+	m.DBWriteMicrosCount.Set(stats.DBWriteMicros.Count)
+
+	// Write Stall
+	m.StallMicros.Set(float64(stats.StallMicros))
+
+	m.DBWriteStallP50.Set(stats.DBWriteStallHistogram.P50)
+	m.DBWriteStallP95.Set(stats.DBWriteStallHistogram.P95)
+	m.DBWriteStallP99.Set(stats.DBWriteStallHistogram.P99)
+	m.DBWriteStallP100.Set(stats.DBWriteStallHistogram.P100)
+	m.DBWriteStallCount.Set(stats.DBWriteStallHistogram.Count)
+	m.DBWriteStallSum.Set(stats.DBWriteStallHistogram.Sum)
 }
