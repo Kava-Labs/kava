@@ -63,6 +63,12 @@ type Metrics struct {
 	BloomFilterUseful           metrics.Gauge
 	BloomFilterFullPositive     metrics.Gauge
 	BloomFilterFullTruePositive metrics.Gauge
+
+	// LSM Tree Stats
+	LastLevelReadBytes    metrics.Gauge
+	LastLevelReadCount    metrics.Gauge
+	NonLastLevelReadBytes metrics.Gauge
+	NonLastLevelReadCount metrics.Gauge
 }
 
 // registerMetrics registers metrics in prometheus and initializes rocksdbMetrics variable
@@ -293,6 +299,32 @@ func registerMetrics() {
 			Name:      "bloom_filter_full_true_positive",
 			Help:      "",
 		}, labels),
+
+		// LSM Tree Stats
+		LastLevelReadBytes: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "last_level_read_bytes",
+			Help:      "",
+		}, labels),
+		LastLevelReadCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "last_level_read_count",
+			Help:      "",
+		}, labels),
+		NonLastLevelReadBytes: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "non_last_level_read_bytes",
+			Help:      "",
+		}, labels),
+		NonLastLevelReadCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "non_last_level_read_count",
+			Help:      "",
+		}, labels),
 	}
 }
 
@@ -342,4 +374,15 @@ func (m *Metrics) report(props *properties, stats *stats) {
 	m.DBWriteStallP100.Set(stats.DBWriteStallHistogram.P100)
 	m.DBWriteStallCount.Set(stats.DBWriteStallHistogram.Count)
 	m.DBWriteStallSum.Set(stats.DBWriteStallHistogram.Sum)
+
+	// Bloom Filter
+	m.BloomFilterUseful.Set(float64(stats.BloomFilterUseful))
+	m.BloomFilterFullPositive.Set(float64(stats.BloomFilterFullPositive))
+	m.BloomFilterFullTruePositive.Set(float64(stats.BloomFilterFullTruePositive))
+
+	// LSM Tree Stats
+	m.LastLevelReadBytes.Set(float64(stats.LastLevelReadBytes))
+	m.LastLevelReadCount.Set(float64(stats.LastLevelReadCount))
+	m.NonLastLevelReadBytes.Set(float64(stats.NonLastLevelReadBytes))
+	m.NonLastLevelReadCount.Set(float64(stats.NonLastLevelReadCount))
 }
