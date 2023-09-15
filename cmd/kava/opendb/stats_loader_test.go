@@ -53,6 +53,7 @@ func TestStatsLoader(t *testing.T) {
 		"rocksdb.bytes.written":                   &defaultStat,
 		"rocksdb.bytes.read":                      &defaultStat,
 		"rocksdb.stall.micros":                    &defaultStat,
+		"rocksdb.db.write.stall":                  &defaultHistogramStat,
 		"rocksdb.last.level.read.bytes":           &defaultStat,
 		"rocksdb.last.level.read.count":           &defaultStat,
 		"rocksdb.non.last.level.read.bytes":       &defaultStat,
