@@ -36,6 +36,19 @@ type Metrics struct {
 	BlockCacheAdd         metrics.Gauge
 	BlockCacheAddFailures metrics.Gauge
 
+	// Detailed Cache
+	BlockCacheIndexMiss        metrics.Gauge
+	BlockCacheIndexHit         metrics.Gauge
+	BlockCacheIndexBytesInsert metrics.Gauge
+
+	BlockCacheFilterMiss        metrics.Gauge
+	BlockCacheFilterHit         metrics.Gauge
+	BlockCacheFilterBytesInsert metrics.Gauge
+
+	BlockCacheDataMiss        metrics.Gauge
+	BlockCacheDataHit         metrics.Gauge
+	BlockCacheDataBytesInsert metrics.Gauge
+
 	// Latency
 	DBGetMicrosP50   metrics.Gauge
 	DBGetMicrosP95   metrics.Gauge
@@ -58,6 +71,21 @@ type Metrics struct {
 	DBWriteStallP100  metrics.Gauge
 	DBWriteStallCount metrics.Gauge
 	DBWriteStallSum   metrics.Gauge
+
+	// Bloom Filter
+	BloomFilterUseful           metrics.Gauge
+	BloomFilterFullPositive     metrics.Gauge
+	BloomFilterFullTruePositive metrics.Gauge
+
+	// LSM Tree Stats
+	LastLevelReadBytes    metrics.Gauge
+	LastLevelReadCount    metrics.Gauge
+	NonLastLevelReadBytes metrics.Gauge
+	NonLastLevelReadCount metrics.Gauge
+
+	GetHitL0      metrics.Gauge
+	GetHitL1      metrics.Gauge
+	GetHitL2AndUp metrics.Gauge
 }
 
 // registerMetrics registers metrics in prometheus and initializes rocksdbMetrics variable
@@ -161,6 +189,64 @@ func registerMetrics() {
 			Help:      "number of failures when adding blocks to block cache",
 		}, labels),
 
+		// Detailed Cache
+		BlockCacheIndexMiss: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_index_miss",
+			Help:      "",
+		}, labels),
+		BlockCacheIndexHit: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_index_hit",
+			Help:      "",
+		}, labels),
+		BlockCacheIndexBytesInsert: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_index_bytes_insert",
+			Help:      "",
+		}, labels),
+
+		BlockCacheFilterMiss: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_filter_miss",
+			Help:      "",
+		}, labels),
+		BlockCacheFilterHit: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_filter_hit",
+			Help:      "",
+		}, labels),
+		BlockCacheFilterBytesInsert: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_filter_bytes_insert",
+			Help:      "",
+		}, labels),
+
+		BlockCacheDataMiss: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_data_miss",
+			Help:      "",
+		}, labels),
+		BlockCacheDataHit: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_data_hit",
+			Help:      "",
+		}, labels),
+		BlockCacheDataBytesInsert: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_data_bytes_insert",
+			Help:      "",
+		}, labels),
+
 		// Latency
 		DBGetMicrosP50: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
@@ -229,7 +315,7 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "stall",
 			Name:      "stall_micros",
-			Help:      "",
+			Help:      "Writer has to wait for compaction or flush to finish.",
 		}, labels),
 
 		DBWriteStallP50: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
@@ -268,6 +354,71 @@ func registerMetrics() {
 			Name:      "db_write_stall_sum",
 			Help:      "",
 		}, labels),
+
+		// Bloom Filter
+		BloomFilterUseful: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "filter",
+			Name:      "bloom_filter_useful",
+			Help:      "number of times bloom filter has avoided file reads, i.e., negatives.",
+		}, labels),
+		BloomFilterFullPositive: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "filter",
+			Name:      "bloom_filter_full_positive",
+			Help:      "number of times bloom FullFilter has not avoided the reads.",
+		}, labels),
+		BloomFilterFullTruePositive: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "filter",
+			Name:      "bloom_filter_full_true_positive",
+			Help:      "number of times bloom FullFilter has not avoided the reads and data actually exist.",
+		}, labels),
+
+		// LSM Tree Stats
+		LastLevelReadBytes: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "last_level_read_bytes",
+			Help:      "",
+		}, labels),
+		LastLevelReadCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "last_level_read_count",
+			Help:      "",
+		}, labels),
+		NonLastLevelReadBytes: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "non_last_level_read_bytes",
+			Help:      "",
+		}, labels),
+		NonLastLevelReadCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "non_last_level_read_count",
+			Help:      "",
+		}, labels),
+
+		GetHitL0: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "get_hit_l0",
+			Help:      "number of Get() queries served by L0",
+		}, labels),
+		GetHitL1: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "get_hit_l1",
+			Help:      "number of Get() queries served by L1",
+		}, labels),
+		GetHitL2AndUp: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "lsm",
+			Name:      "get_hit_l2_and_up",
+			Help:      "number of Get() queries served by L2 and up",
+		}, labels),
 	}
 }
 
@@ -295,6 +446,19 @@ func (m *Metrics) report(props *properties, stats *stats) {
 	m.BlockCacheAdd.Set(float64(stats.BlockCacheAdd))
 	m.BlockCacheAddFailures.Set(float64(stats.BlockCacheAddFailures))
 
+	// Detailed Cache
+	m.BlockCacheIndexMiss.Set(float64(stats.BlockCacheIndexMiss))
+	m.BlockCacheIndexHit.Set(float64(stats.BlockCacheIndexHit))
+	m.BlockCacheIndexBytesInsert.Set(float64(stats.BlockCacheIndexBytesInsert))
+
+	m.BlockCacheFilterMiss.Set(float64(stats.BlockCacheFilterMiss))
+	m.BlockCacheFilterHit.Set(float64(stats.BlockCacheFilterHit))
+	m.BlockCacheFilterBytesInsert.Set(float64(stats.BlockCacheFilterBytesInsert))
+
+	m.BlockCacheDataMiss.Set(float64(stats.BlockCacheDataMiss))
+	m.BlockCacheDataHit.Set(float64(stats.BlockCacheDataHit))
+	m.BlockCacheDataBytesInsert.Set(float64(stats.BlockCacheDataBytesInsert))
+
 	// Latency
 	m.DBGetMicrosP50.Set(stats.DBGetMicros.P50)
 	m.DBGetMicrosP95.Set(stats.DBGetMicros.P95)
@@ -317,4 +481,19 @@ func (m *Metrics) report(props *properties, stats *stats) {
 	m.DBWriteStallP100.Set(stats.DBWriteStallHistogram.P100)
 	m.DBWriteStallCount.Set(stats.DBWriteStallHistogram.Count)
 	m.DBWriteStallSum.Set(stats.DBWriteStallHistogram.Sum)
+
+	// Bloom Filter
+	m.BloomFilterUseful.Set(float64(stats.BloomFilterUseful))
+	m.BloomFilterFullPositive.Set(float64(stats.BloomFilterFullPositive))
+	m.BloomFilterFullTruePositive.Set(float64(stats.BloomFilterFullTruePositive))
+
+	// LSM Tree Stats
+	m.LastLevelReadBytes.Set(float64(stats.LastLevelReadBytes))
+	m.LastLevelReadCount.Set(float64(stats.LastLevelReadCount))
+	m.NonLastLevelReadBytes.Set(float64(stats.NonLastLevelReadBytes))
+	m.NonLastLevelReadCount.Set(float64(stats.NonLastLevelReadCount))
+
+	m.GetHitL0.Set(float64(stats.GetHitL0))
+	m.GetHitL1.Set(float64(stats.GetHitL1))
+	m.GetHitL2AndUp.Set(float64(stats.GetHitL2AndUp))
 }
