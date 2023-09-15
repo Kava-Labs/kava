@@ -36,6 +36,19 @@ type Metrics struct {
 	BlockCacheAdd         metrics.Gauge
 	BlockCacheAddFailures metrics.Gauge
 
+	// Detailed Cache
+	BlockCacheIndexMiss        metrics.Gauge
+	BlockCacheIndexHit         metrics.Gauge
+	BlockCacheIndexBytesInsert metrics.Gauge
+
+	BlockCacheFilterMiss        metrics.Gauge
+	BlockCacheFilterHit         metrics.Gauge
+	BlockCacheFilterBytesInsert metrics.Gauge
+
+	BlockCacheDataMiss        metrics.Gauge
+	BlockCacheDataHit         metrics.Gauge
+	BlockCacheDataBytesInsert metrics.Gauge
+
 	// Latency
 	DBGetMicrosP50   metrics.Gauge
 	DBGetMicrosP95   metrics.Gauge
@@ -174,6 +187,64 @@ func registerMetrics() {
 			Subsystem: "cache",
 			Name:      "block_cache_add_failures",
 			Help:      "number of failures when adding blocks to block cache",
+		}, labels),
+
+		// Detailed Cache
+		BlockCacheIndexMiss: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_index_miss",
+			Help:      "",
+		}, labels),
+		BlockCacheIndexHit: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_index_hit",
+			Help:      "",
+		}, labels),
+		BlockCacheIndexBytesInsert: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_index_bytes_insert",
+			Help:      "",
+		}, labels),
+
+		BlockCacheFilterMiss: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_filter_miss",
+			Help:      "",
+		}, labels),
+		BlockCacheFilterHit: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_filter_hit",
+			Help:      "",
+		}, labels),
+		BlockCacheFilterBytesInsert: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_filter_bytes_insert",
+			Help:      "",
+		}, labels),
+
+		BlockCacheDataMiss: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_data_miss",
+			Help:      "",
+		}, labels),
+		BlockCacheDataHit: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_data_hit",
+			Help:      "",
+		}, labels),
+		BlockCacheDataBytesInsert: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "detailed_cache",
+			Name:      "block_cache_data_bytes_insert",
+			Help:      "",
 		}, labels),
 
 		// Latency
@@ -374,6 +445,19 @@ func (m *Metrics) report(props *properties, stats *stats) {
 	m.BlockCacheHit.Set(float64(stats.BlockCacheHit))
 	m.BlockCacheAdd.Set(float64(stats.BlockCacheAdd))
 	m.BlockCacheAddFailures.Set(float64(stats.BlockCacheAddFailures))
+
+	// Detailed Cache
+	m.BlockCacheIndexMiss.Set(float64(stats.BlockCacheIndexMiss))
+	m.BlockCacheIndexHit.Set(float64(stats.BlockCacheIndexHit))
+	m.BlockCacheIndexBytesInsert.Set(float64(stats.BlockCacheIndexBytesInsert))
+
+	m.BlockCacheFilterMiss.Set(float64(stats.BlockCacheFilterMiss))
+	m.BlockCacheFilterHit.Set(float64(stats.BlockCacheFilterHit))
+	m.BlockCacheFilterBytesInsert.Set(float64(stats.BlockCacheFilterBytesInsert))
+
+	m.BlockCacheDataMiss.Set(float64(stats.BlockCacheDataMiss))
+	m.BlockCacheDataHit.Set(float64(stats.BlockCacheDataHit))
+	m.BlockCacheDataBytesInsert.Set(float64(stats.BlockCacheDataBytesInsert))
 
 	// Latency
 	m.DBGetMicrosP50.Set(stats.DBGetMicros.P50)
