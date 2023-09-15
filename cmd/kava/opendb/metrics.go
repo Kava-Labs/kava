@@ -360,19 +360,19 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "filter",
 			Name:      "bloom_filter_useful",
-			Help:      "",
+			Help:      "number of times bloom filter has avoided file reads, i.e., negatives.",
 		}, labels),
 		BloomFilterFullPositive: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "filter",
 			Name:      "bloom_filter_full_positive",
-			Help:      "",
+			Help:      "number of times bloom FullFilter has not avoided the reads.",
 		}, labels),
 		BloomFilterFullTruePositive: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "filter",
 			Name:      "bloom_filter_full_true_positive",
-			Help:      "",
+			Help:      "number of times bloom FullFilter has not avoided the reads and data actually exist.",
 		}, labels),
 
 		// LSM Tree Stats
@@ -405,19 +405,19 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "lsm",
 			Name:      "get_hit_l0",
-			Help:      "",
+			Help:      "number of Get() queries served by L0",
 		}, labels),
 		GetHitL1: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "lsm",
 			Name:      "get_hit_l1",
-			Help:      "",
+			Help:      "number of Get() queries served by L1",
 		}, labels),
 		GetHitL2AndUp: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
 			Namespace: "rocksdb",
 			Subsystem: "lsm",
 			Name:      "get_hit_l2_and_up",
-			Help:      "",
+			Help:      "number of Get() queries served by L2 and up",
 		}, labels),
 	}
 }
