@@ -48,6 +48,9 @@ type Metrics struct {
 	DBWriteMicrosP99   metrics.Gauge
 	DBWriteMicrosP100  metrics.Gauge
 	DBWriteMicrosCount metrics.Gauge
+
+	// Write Stall
+	StallMicros metrics.Gauge
 }
 
 // registerMetrics registers metrics in prometheus and initializes rocksdbMetrics variable
@@ -211,6 +214,14 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "latency",
 			Name:      "db_write_micros_count",
+			Help:      "",
+		}, labels),
+
+		// Write Stall
+		StallMicros: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "stall_micros",
 			Help:      "",
 		}, labels),
 	}
