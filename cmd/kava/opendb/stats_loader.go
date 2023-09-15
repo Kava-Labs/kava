@@ -114,7 +114,8 @@ type stats struct {
 	BytesRead int64
 
 	// Writer has to wait for compaction or flush to finish.
-	StallMicros int64
+	StallMicros           int64
+	DBWriteStallHistogram *float64Histogram
 
 	// Last level and non-last level read statistics
 	LastLevelReadBytes    int64
@@ -180,6 +181,7 @@ func (l *statLoader) load() (*stats, error) {
 		BytesWritten:                l.getInt64StatValue("rocksdb.bytes.written", count),
 		BytesRead:                   l.getInt64StatValue("rocksdb.bytes.read", count),
 		StallMicros:                 l.getInt64StatValue("rocksdb.stall.micros", count),
+		DBWriteStallHistogram:       l.getFloat64HistogramStatValue("rocksdb.db.write.stall"),
 		LastLevelReadBytes:          l.getInt64StatValue("rocksdb.last.level.read.bytes", count),
 		LastLevelReadCount:          l.getInt64StatValue("rocksdb.last.level.read.count", count),
 		NonLastLevelReadBytes:       l.getInt64StatValue("rocksdb.non.last.level.read.bytes", count),
