@@ -58,6 +58,11 @@ type Metrics struct {
 	DBWriteStallP100  metrics.Gauge
 	DBWriteStallCount metrics.Gauge
 	DBWriteStallSum   metrics.Gauge
+
+	// Bloom Filter
+	BloomFilterUseful           metrics.Gauge
+	BloomFilterFullPositive     metrics.Gauge
+	BloomFilterFullTruePositive metrics.Gauge
 }
 
 // registerMetrics registers metrics in prometheus and initializes rocksdbMetrics variable
@@ -266,6 +271,26 @@ func registerMetrics() {
 			Namespace: "rocksdb",
 			Subsystem: "stall",
 			Name:      "db_write_stall_sum",
+			Help:      "",
+		}, labels),
+
+		// Bloom Filter
+		BloomFilterUseful: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "filter",
+			Name:      "bloom_filter_useful",
+			Help:      "",
+		}, labels),
+		BloomFilterFullPositive: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "filter",
+			Name:      "bloom_filter_full_positive",
+			Help:      "",
+		}, labels),
+		BloomFilterFullTruePositive: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "filter",
+			Name:      "bloom_filter_full_true_positive",
 			Help:      "",
 		}, labels),
 	}
