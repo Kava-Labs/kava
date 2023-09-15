@@ -51,6 +51,13 @@ type Metrics struct {
 
 	// Write Stall
 	StallMicros metrics.Gauge
+
+	DBWriteStallP50   metrics.Gauge
+	DBWriteStallP95   metrics.Gauge
+	DBWriteStallP99   metrics.Gauge
+	DBWriteStallP100  metrics.Gauge
+	DBWriteStallCount metrics.Gauge
+	DBWriteStallSum   metrics.Gauge
 }
 
 // registerMetrics registers metrics in prometheus and initializes rocksdbMetrics variable
@@ -224,6 +231,43 @@ func registerMetrics() {
 			Name:      "stall_micros",
 			Help:      "",
 		}, labels),
+
+		DBWriteStallP50: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p50",
+			Help:      "",
+		}, labels),
+		DBWriteStallP95: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p95",
+			Help:      "",
+		}, labels),
+		DBWriteStallP99: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p99",
+			Help:      "",
+		}, labels),
+		DBWriteStallP100: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_p100",
+			Help:      "",
+		}, labels),
+		DBWriteStallCount: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_count",
+			Help:      "",
+		}, labels),
+		DBWriteStallSum: prometheus.NewGaugeFrom(stdprometheus.GaugeOpts{
+			Namespace: "rocksdb",
+			Subsystem: "stall",
+			Name:      "db_write_stall_sum",
+			Help:      "",
+		}, labels),
 	}
 }
 
@@ -263,4 +307,14 @@ func (m *Metrics) report(props *properties, stats *stats) {
 	m.DBWriteMicrosP99.Set(stats.DBWriteMicros.P99)
 	m.DBWriteMicrosP100.Set(stats.DBWriteMicros.P100)
 	m.DBWriteMicrosCount.Set(stats.DBWriteMicros.Count)
+
+	// Write Stall
+	m.StallMicros.Set(float64(stats.StallMicros))
+
+	m.DBWriteStallP50.Set(stats.DBWriteStallHistogram.P50)
+	m.DBWriteStallP95.Set(stats.DBWriteStallHistogram.P95)
+	m.DBWriteStallP99.Set(stats.DBWriteStallHistogram.P99)
+	m.DBWriteStallP100.Set(stats.DBWriteStallHistogram.P100)
+	m.DBWriteStallCount.Set(stats.DBWriteStallHistogram.Count)
+	m.DBWriteStallSum.Set(stats.DBWriteStallHistogram.Sum)
 }
