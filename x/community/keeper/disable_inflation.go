@@ -28,6 +28,10 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 	params.StakingRewardsPerSecond = params.UpgradeTimeSetStakingRewardsPerSecond
 	k.SetParams(ctx, params)
 
+	if err := k.StartCommunityFundConsolidation(ctx); err != nil {
+		panic(err)
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeInflationStop,
