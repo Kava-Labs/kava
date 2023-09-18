@@ -67,10 +67,18 @@ func (suite *proposalTestSuite) SetupTest() {
 		ChainID: chainID,
 	})
 
+	// Set UpgradeTimeDisableInflation to far future to not influence module
+	// account balances
+	params := types.Params{
+		UpgradeTimeDisableInflation: time.Now().Add(100000 * time.Hour),
+	}
+	communityGs := types.NewGenesisState(params)
+
 	tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		genTime, chainID,
 		app.GenesisState{hardtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)},
 		app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+		app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&communityGs)},
 		testutil.NewCDPGenState(tApp.AppCodec(), "ukava", "kava", sdk.NewDec(2)),
 	)
 
