@@ -21,12 +21,11 @@ func (k Keeper) ShouldStartDisableInflationUpgrade(ctx sdk.Context) bool {
 	upgradeTime := params.UpgradeTimeDisableInflation
 
 	// a vanilla kava chain should disable inflation on the first block if `upgradeTime` is not set.
-	// thus, we don't upgrade if `upgradeTime` is set and `blockTime` is before `upgradeTime`.
-	if !upgradeTime.IsZero() && blockTime.Before(upgradeTime) {
-		return false
+	if upgradeTime.IsZero() {
+		return true
 	}
 
-	return true
+	return !blockTime.Before(upgradeTime)
 }
 
 // StartDisableInflationUpgrade disables x/mint and x/kavadist inflation
