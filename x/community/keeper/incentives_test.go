@@ -1,12 +1,16 @@
 package keeper_test
 
 import (
+	"fmt"
+	"reflect"
 	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/suite"
+	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -52,6 +56,7 @@ func TestIncentivesTestSuite(t *testing.T) {
 
 func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
 	suite.SetupTest()
+	ak := suite.App.GetAccountKeeper()
 
 	initialFeePool := distrtypes.FeePool{
 		CommunityPool: sdk.NewDecCoins(
@@ -88,7 +93,7 @@ func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
 	suite.Equal(initialFeePool, feePoolBefore, "initial feepool should be set")
 	communityBalanceBefore := suite.App.GetCommunityKeeper().GetModuleAccountBalance(suite.Ctx)
 
-	kavadistAcc := suite.App.GetAccountKeeper().GetModuleAccount(suite.Ctx, kavadisttypes.KavaDistMacc)
+	kavadistAcc := ak.GetModuleAccount(suite.Ctx, kavadisttypes.KavaDistMacc)
 	kavaDistCoinsBefore := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
 	suite.Equal(
 		fundCoins,
@@ -106,31 +111,61 @@ func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
 	// -------------
 	// Check results
 
-	feePoolAfter := suite.App.GetDistrKeeper().GetFeePool(suite.Ctx)
-	suite.Equal(
-		initialFeePoolDust,
-		feePoolAfter.CommunityPool,
-		"x/distribution community pool should be sent to x/community",
-	)
+	suite.Run("balances should be correct", func() {
+		feePoolAfter := suite.App.GetDistrKeeper().GetFeePool(suite.Ctx)
+		suite.Equal(
+			initialFeePoolDust,
+			feePoolAfter.CommunityPool,
+			"x/distribution community pool should be sent to x/community",
+		)
 
-	kavaDistCoinsAfter := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
-	suite.Equal(
-		sdk.NewCoins(),
-		kavaDistCoinsAfter,
-		"x/kavadist balance should be empty",
-	)
+		kavaDistCoinsAfter := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
+		suite.Equal(
+			sdk.NewCoins(),
+			kavaDistCoinsAfter,
+			"x/kavadist balance should be empty",
+		)
 
-	totalExpectedCommunityPoolCoins := communityBalanceBefore.
-		Add(initialFeePoolCoins...). // x/distribution fee pool
-		Add(fundCoins...)            // x/kavadist module balance
+		totalExpectedCommunityPoolCoins := communityBalanceBefore.
+			Add(initialFeePoolCoins...). // x/distribution fee pool
+			Add(fundCoins...)            // x/kavadist module balance
 
-	communityBalanceAfter := suite.App.GetCommunityKeeper().GetModuleAccountBalance(suite.Ctx)
+		communityBalanceAfter := suite.App.GetCommunityKeeper().GetModuleAccountBalance(suite.Ctx)
 
-	suite.Equal(
-		totalExpectedCommunityPoolCoins,
-		communityBalanceAfter,
-		"x/community balance should be increased by the truncated x/distribution community pool",
-	)
+		suite.Equal(
+			totalExpectedCommunityPoolCoins,
+			communityBalanceAfter,
+			"x/community balance should be increased by the truncated x/distribution community pool",
+		)
+	})
+
+	suite.Run("events should be emitted", func() {
+		communityAcc := ak.GetModuleAccount(suite.Ctx, types.ModuleAccountName)
+		distributionAcc := ak.GetModuleAccount(suite.Ctx, distrtypes.ModuleName)
+		kavadistAcc := ak.GetModuleAccount(suite.Ctx, kavadisttypes.KavaDistMacc)
+
+		events := suite.Ctx.EventManager().Events()
+
+		suite.EventsContains(
+			events,
+			sdk.NewEvent(
+				banktypes.EventTypeTransfer,
+				sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
+				sdk.NewAttribute(banktypes.AttributeKeySender, distributionAcc.GetAddress().String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, initialFeePoolCoins.String()),
+			),
+		)
+
+		suite.EventsContains(
+			events,
+			sdk.NewEvent(
+				banktypes.EventTypeTransfer,
+				sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
+				sdk.NewAttribute(banktypes.AttributeKeySender, kavadistAcc.GetAddress().String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, kavaDistCoinsBefore.String()),
+			),
+		)
+	})
 }
 
 func (suite *IncentivesTestSuite) setUpgradeTimeFromNow(t time.Duration) {
@@ -138,4 +173,28 @@ func (suite *IncentivesTestSuite) setUpgradeTimeFromNow(t time.Duration) {
 	suite.True(found)
 	params.UpgradeTimeDisableInflation = suite.Ctx.BlockTime().Add(t)
 	suite.Keeper.SetParams(suite.Ctx, params)
+}
+
+// EventsContains asserts that the expected event is in the provided events
+func (suite *IncentivesTestSuite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
+	foundMatch := false
+	for _, event := range events {
+		if event.Type == expectedEvent.Type {
+			if reflect.DeepEqual(attrsToMap(expectedEvent.Attributes), attrsToMap(event.Attributes)) {
+				foundMatch = true
+			}
+		}
+	}
+
+	suite.True(foundMatch, fmt.Sprintf("event of type %s not found or did not match", expectedEvent.Type))
+}
+
+func attrsToMap(attrs []abci.EventAttribute) []sdk.Attribute { // new cosmos changed the event attribute type
+	out := []sdk.Attribute{}
+
+	for _, attr := range attrs {
+		out = append(out, sdk.NewAttribute(string(attr.Key), string(attr.Value)))
+	}
+
+	return out
 }
