@@ -1316,7 +1316,8 @@
     },
     "community": {
       "params": {
-        "upgrade_time_disable_inflation": "2023-11-01T00:00:00Z"
+        "upgrade_time_disable_inflation": "2023-11-01T00:00:00Z",
+        "rewards_per_second": "744191"
       }
     },
     "crisis": {

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -59,7 +60,10 @@ func (suite *StoreTestSuite) TestGetSetParams() {
 	suite.Run("set overwrite previous value", func() {
 		suite.Keeper.SetParams(suite.Ctx, types.DefaultParams())
 
-		params := types.NewParams(time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC))
+		params := types.NewParams(
+			time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+			sdkmath.NewInt(1000),
+		)
 		suite.Keeper.SetParams(suite.Ctx, params)
 
 		storedParams, found := suite.Keeper.GetParams(suite.Ctx)

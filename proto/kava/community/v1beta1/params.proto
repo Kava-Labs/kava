@@ -1,6 +1,7 @@
 syntax = "proto3";
 package kava.community.v1beta1;
 
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -10,6 +11,12 @@ option go_package = "github.com/kava-labs/kava/x/community/types";
 message Params {
   google.protobuf.Timestamp upgrade_time_disable_inflation = 1 [
     (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+
+  string staking_rewards_per_second = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
