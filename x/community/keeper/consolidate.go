@@ -29,7 +29,7 @@ func (k Keeper) StartCommunityFundConsolidation(ctx sdk.Context) error {
 
 	// Log new x/community balance
 	communityCoins := k.GetModuleAccountBalance(ctx)
-	logger.Info(fmt.Sprintf("x/community balance is now %s", communityCoins))
+	logger.Info(fmt.Sprintf("community funds consolidated, x/community balance is now %s", communityCoins))
 
 	return nil
 }
@@ -39,9 +39,10 @@ func (k Keeper) StartCommunityFundConsolidation(ctx sdk.Context) error {
 func (k Keeper) consolidateCommunityDistribution(ctx sdk.Context) error {
 	logger := k.Logger(ctx)
 
-	// Get community coins and ignore change coins dust
-	distrCoins := k.distrKeeper.GetFeePoolCommunityCoins(ctx)
-	truncatedCoins, _ := distrCoins.TruncateDecimal()
+	// Get community coins with leftover leftoverDust
+	truncatedCoins, leftoverDust := k.distrKeeper.
+		GetFeePoolCommunityCoins(ctx).
+		TruncateDecimal()
 
 	// Transfer to x/community
 	err := k.bankKeeper.SendCoinsFromModuleToModule(
@@ -56,9 +57,9 @@ func (k Keeper) consolidateCommunityDistribution(ctx sdk.Context) error {
 
 	logger.Info(fmt.Sprintf("transferred %s from x/distribution to x/community", truncatedCoins))
 
-	// Set x/distribution community pool to 0
+	// Set x/distribution community pool to remaining dust amounts
 	k.distrKeeper.SetFeePool(ctx, distrtypes.FeePool{
-		CommunityPool: sdk.NewDecCoins(),
+		CommunityPool: leftoverDust,
 	})
 
 	logger.Info("updated x/distribution community pool to 0")
