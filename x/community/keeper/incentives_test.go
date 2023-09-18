@@ -135,8 +135,8 @@ func (suite *IncentivesTestSuite) TestStartDisableInflationUpgrade() {
 }
 
 func (suite *IncentivesTestSuite) setUpgradeTimeFromNow(t time.Duration) {
-	suite.Keeper.SetParams(
-		suite.Ctx,
-		types.Params{UpgradeTimeDisableInflation: suite.Ctx.BlockTime().Add(t)},
-	)
+	params, found := suite.Keeper.GetParams(suite.Ctx)
+	suite.True(found)
+	params.UpgradeTimeDisableInflation = suite.Ctx.BlockTime().Add(t)
+	suite.Keeper.SetParams(suite.Ctx, params)
 }
