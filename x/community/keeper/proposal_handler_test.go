@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
@@ -71,6 +72,7 @@ func (suite *proposalTestSuite) SetupTest() {
 	// account balances
 	params := types.Params{
 		UpgradeTimeDisableInflation: time.Now().Add(100000 * time.Hour),
+		StakingRewardsPerSecond:     sdkmath.ZeroInt(),
 	}
 	communityGs := types.NewGenesisState(params)
 
