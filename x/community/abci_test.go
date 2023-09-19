@@ -13,7 +13,6 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/keeper"
-	"github.com/kava-labs/kava/x/community/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -112,8 +111,8 @@ func (suite *ABCITestSuite) TestBeginBlockerDisableInflationUpgrade() {
 }
 
 func (suite *ABCITestSuite) setUpgradeTimeFromNow(t time.Duration) {
-	suite.Keeper.SetParams(
-		suite.Ctx,
-		types.Params{UpgradeTimeDisableInflation: suite.Ctx.BlockTime().Add(t)},
-	)
+	params, found := suite.Keeper.GetParams(suite.Ctx)
+	suite.True(found)
+	params.UpgradeTimeDisableInflation = suite.Ctx.BlockTime().Add(t)
+	suite.Keeper.SetParams(suite.Ctx, params)
 }
