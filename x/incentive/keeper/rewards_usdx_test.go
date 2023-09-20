@@ -94,7 +94,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncing(
 
 	// User claims all their rewards
 	msg := types.NewMsgClaimUSDXMintingReward(userA.String(), "large")
-	suite.NoError(suite.DeliverIncentiveMsg(&msg))
+	suite.Require().NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The users has always had 100% of cdp debt, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second
@@ -141,7 +141,7 @@ func (suite *USDXIntegrationTests) TestSingleUserAccumulatesRewardsWithoutSyncin
 	suite.NextBlockAfter(1e6 * time.Second)
 
 	msg := types.NewMsgClaimUSDXMintingReward(user.String(), "large")
-	suite.NoError(suite.DeliverIncentiveMsg(&msg))
+	suite.Require().NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The users has always had 100% of cdp debt, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second
@@ -217,7 +217,7 @@ func (suite *USDXIntegrationTests) TestReinstatingRewardParamsDoesNotTriggerOver
 
 	// Claim rewards
 	msg := types.NewMsgClaimUSDXMintingReward(userB.String(), "large")
-	suite.NoError(suite.DeliverIncentiveMsg(&msg))
+	suite.Require().NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The cdp had half the total borrows for a 1s block. So should earn half the rewards for that block
 	suite.BalanceInEpsilon(

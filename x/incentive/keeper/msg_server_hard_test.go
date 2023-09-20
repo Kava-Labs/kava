@@ -40,7 +40,7 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimMultiDenom() {
 
 	// Claim denoms
 	err := suite.DeliverIncentiveMsg(&msg)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	// Check rewards were paid out
 	expectedRewardsHard := c("hard", int64(0.2*float64(2*7*1e6)))
@@ -85,7 +85,7 @@ func (suite *HandlerTestSuite) TestPayoutHardClaimSingleDenom() {
 
 	// Claim rewards
 	err := suite.DeliverIncentiveMsg(&msg)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	// Check rewards were paid out
 	expectedRewards := c("swap", 2*7*1e6)
