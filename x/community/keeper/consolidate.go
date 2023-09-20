@@ -62,7 +62,7 @@ func (k Keeper) consolidateCommunityDistribution(ctx sdk.Context) error {
 		CommunityPool: leftoverDust,
 	})
 
-	logger.Info("updated x/distribution community pool to 0")
+	logger.Info(fmt.Sprintf("remaining x/distribution community pool dust: %s", leftoverDust)))
 
 	return nil
 }
