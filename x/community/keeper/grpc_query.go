@@ -21,7 +21,7 @@ func NewQueryServerImpl(k Keeper) types.QueryServer {
 	return &queryServer{keeper: k}
 }
 
-// Balance implements the gRPC service handler for querying x/community params.
+// Params implements the gRPC service handler for querying x/community params.
 func (s queryServer) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
