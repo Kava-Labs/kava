@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
@@ -10,7 +8,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
@@ -187,23 +184,27 @@ func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
 
 				events := suite.Ctx.EventManager().Events()
 
-				suite.EventsContains(
-					events,
-					sdk.NewEvent(
-						banktypes.EventTypeTransfer,
-						sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
-						sdk.NewAttribute(banktypes.AttributeKeySender, distributionAcc.GetAddress().String()),
-						sdk.NewAttribute(sdk.AttributeKeyAmount, initialFeePoolCoins.String()),
+				suite.NoError(
+					app.EventsContains(
+						events,
+						sdk.NewEvent(
+							banktypes.EventTypeTransfer,
+							sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
+							sdk.NewAttribute(banktypes.AttributeKeySender, distributionAcc.GetAddress().String()),
+							sdk.NewAttribute(sdk.AttributeKeyAmount, initialFeePoolCoins.String()),
+						),
 					),
 				)
 
-				suite.EventsContains(
-					events,
-					sdk.NewEvent(
-						banktypes.EventTypeTransfer,
-						sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
-						sdk.NewAttribute(banktypes.AttributeKeySender, kavadistAcc.GetAddress().String()),
-						sdk.NewAttribute(sdk.AttributeKeyAmount, kavaDistCoinsBefore.String()),
+				suite.NoError(
+					app.EventsContains(
+						events,
+						sdk.NewEvent(
+							banktypes.EventTypeTransfer,
+							sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
+							sdk.NewAttribute(banktypes.AttributeKeySender, kavadistAcc.GetAddress().String()),
+							sdk.NewAttribute(sdk.AttributeKeyAmount, kavaDistCoinsBefore.String()),
+						),
 					),
 				)
 			})
@@ -216,28 +217,4 @@ func (suite *IncentivesTestSuite) setUpgradeTimeFromNow(t time.Duration) {
 	suite.True(found)
 	params.UpgradeTimeDisableInflation = suite.Ctx.BlockTime().Add(t)
 	suite.Keeper.SetParams(suite.Ctx, params)
-}
-
-// EventsContains asserts that the expected event is in the provided events
-func (suite *IncentivesTestSuite) EventsContains(events sdk.Events, expectedEvent sdk.Event) {
-	foundMatch := false
-	for _, event := range events {
-		if event.Type == expectedEvent.Type {
-			if reflect.DeepEqual(attrsToMap(expectedEvent.Attributes), attrsToMap(event.Attributes)) {
-				foundMatch = true
-			}
-		}
-	}
-
-	suite.True(foundMatch, fmt.Sprintf("event of type %s not found or did not match", expectedEvent.Type))
-}
-
-func attrsToMap(attrs []abci.EventAttribute) []sdk.Attribute { // new cosmos changed the event attribute type
-	out := []sdk.Attribute{}
-
-	for _, attr := range attrs {
-		out = append(out, sdk.NewAttribute(string(attr.Key), string(attr.Value)))
-	}
-
-	return out
 }
