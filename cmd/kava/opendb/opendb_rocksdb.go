@@ -27,6 +27,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/linxGnu/grocksdb"
@@ -38,15 +39,41 @@ var ErrUnexpectedConfiguration = errors.New("unexpected rocksdb configuration, r
 
 const (
 	// default tm-db block cache size for RocksDB
-	blockCacheSize = 1 << 30
+	defaultBlockCacheSize = 1 << 30
 
 	defaultColumnFamilyName = "default"
 
-	maxOpenFilesDBOptName          = "max_open_files"
-	maxFileOpeningThreadsDBOptName = "max_file_opening_threads"
+	enableMetricsOptName             = "rocksdb.enable-metrics"
+	reportMetricsIntervalSecsOptName = "rocksdb.report-metrics-interval-secs"
+	defaultReportMetricsIntervalSecs = 15
 
-	writeBufferSizeCFOptName = "write_buffer_size"
-	numLevelsCFOptName       = "num_levels"
+	maxOpenFilesDBOptName           = "rocksdb.max-open-files"
+	maxFileOpeningThreadsDBOptName  = "rocksdb.max-file-opening-threads"
+	tableCacheNumshardbitsDBOptName = "rocksdb.table_cache_numshardbits"
+	allowMMAPWritesDBOptName        = "rocksdb.allow_mmap_writes"
+	allowMMAPReadsDBOptName         = "rocksdb.allow_mmap_reads"
+	useFsyncDBOptName               = "rocksdb.use_fsync"
+	useAdaptiveMutexDBOptName       = "rocksdb.use_adaptive_mutex"
+	bytesPerSyncDBOptName           = "rocksdb.bytes_per_sync"
+	maxBackgroundJobsDBOptName      = "rocksdb.max-background-jobs"
+
+	writeBufferSizeCFOptName                = "rocksdb.write-buffer-size"
+	numLevelsCFOptName                      = "rocksdb.num-levels"
+	maxWriteBufferNumberCFOptName           = "rocksdb.max_write_buffer_number"
+	minWriteBufferNumberToMergeCFOptName    = "rocksdb.min_write_buffer_number_to_merge"
+	maxBytesForLevelBaseCFOptName           = "rocksdb.max_bytes_for_level_base"
+	maxBytesForLevelMultiplierCFOptName     = "rocksdb.max_bytes_for_level_multiplier"
+	targetFileSizeBaseCFOptName             = "rocksdb.target_file_size_base"
+	targetFileSizeMultiplierCFOptName       = "rocksdb.target_file_size_multiplier"
+	level0FileNumCompactionTriggerCFOptName = "rocksdb.level0_file_num_compaction_trigger"
+	level0SlowdownWritesTriggerCFOptName    = "rocksdb.level0_slowdown_writes_trigger"
+
+	blockCacheSizeBBTOOptName                   = "rocksdb.block_cache_size"
+	bitsPerKeyBBTOOptName                       = "rocksdb.bits_per_key"
+	blockSizeBBTOOptName                        = "rocksdb.block_size"
+	cacheIndexAndFilterBlocksBBTOOptName        = "rocksdb.cache_index_and_filter_blocks"
+	pinL0FilterAndIndexBlocksInCacheBBTOOptName = "rocksdb.pin_l0_filter_and_index_blocks_in_cache"
+	formatVersionBBTOOptName                    = "rocksdb.format_version"
 )
 
 func OpenDB(appOpts types.AppOptions, home string, backendType dbm.BackendType) (dbm.DB, error) {
@@ -66,17 +93,26 @@ func openRocksdb(dir string, appOpts types.AppOptions) (dbm.DB, error) {
 		return nil, err
 	}
 	// customize rocksdb options
+	bbtoOpts := bbtoFromAppOpts(appOpts)
+	dbOpts.SetBlockBasedTableFactory(bbtoOpts)
+	cfOpts.SetBlockBasedTableFactory(bbtoOpts)
 	dbOpts = overrideDBOpts(dbOpts, appOpts)
 	cfOpts = overrideCFOpts(cfOpts, appOpts)
 
-	return newRocksDBWithOptions("application", dir, dbOpts, cfOpts)
+	enableMetrics := cast.ToBool(appOpts.Get(enableMetricsOptName))
+	reportMetricsIntervalSecs := cast.ToInt64(appOpts.Get(reportMetricsIntervalSecsOptName))
+	if reportMetricsIntervalSecs == 0 {
+		reportMetricsIntervalSecs = defaultReportMetricsIntervalSecs
+	}
+
+	return newRocksDBWithOptions("application", dir, dbOpts, cfOpts, enableMetrics, reportMetricsIntervalSecs)
 }
 
 // loadLatestOptions loads and returns database and column family options
 // if options file not found, it means database isn't created yet, in such case default tm-db options will be returned
 // if database exists it should have only one column family named default
 func loadLatestOptions(dir string) (*grocksdb.Options, *grocksdb.Options, error) {
-	latestOpts, err := grocksdb.LoadLatestOptions(dir, grocksdb.NewDefaultEnv(), true, grocksdb.NewLRUCache(blockCacheSize))
+	latestOpts, err := grocksdb.LoadLatestOptions(dir, grocksdb.NewDefaultEnv(), true, grocksdb.NewLRUCache(defaultBlockCacheSize))
 	if err != nil && strings.HasPrefix(err.Error(), "NotFound: ") {
 		return newDefaultOptions(), newDefaultOptions(), nil
 	}
@@ -108,6 +144,41 @@ func overrideDBOpts(dbOpts *grocksdb.Options, appOpts types.AppOptions) *grocksd
 		dbOpts.SetMaxFileOpeningThreads(cast.ToInt(maxFileOpeningThreads))
 	}
 
+	tableCacheNumshardbits := appOpts.Get(tableCacheNumshardbitsDBOptName)
+	if tableCacheNumshardbits != nil {
+		dbOpts.SetTableCacheNumshardbits(cast.ToInt(tableCacheNumshardbits))
+	}
+
+	allowMMAPWrites := appOpts.Get(allowMMAPWritesDBOptName)
+	if allowMMAPWrites != nil {
+		dbOpts.SetAllowMmapWrites(cast.ToBool(allowMMAPWrites))
+	}
+
+	allowMMAPReads := appOpts.Get(allowMMAPReadsDBOptName)
+	if allowMMAPReads != nil {
+		dbOpts.SetAllowMmapReads(cast.ToBool(allowMMAPReads))
+	}
+
+	useFsync := appOpts.Get(useFsyncDBOptName)
+	if useFsync != nil {
+		dbOpts.SetUseFsync(cast.ToBool(useFsync))
+	}
+
+	useAdaptiveMutex := appOpts.Get(useAdaptiveMutexDBOptName)
+	if useAdaptiveMutex != nil {
+		dbOpts.SetUseAdaptiveMutex(cast.ToBool(useAdaptiveMutex))
+	}
+
+	bytesPerSync := appOpts.Get(bytesPerSyncDBOptName)
+	if bytesPerSync != nil {
+		dbOpts.SetBytesPerSync(cast.ToUint64(bytesPerSync))
+	}
+
+	maxBackgroundJobs := appOpts.Get(maxBackgroundJobsDBOptName)
+	if maxBackgroundJobs != nil {
+		dbOpts.SetMaxBackgroundJobs(cast.ToInt(maxBackgroundJobs))
+	}
+
 	return dbOpts
 }
 
@@ -123,12 +194,97 @@ func overrideCFOpts(cfOpts *grocksdb.Options, appOpts types.AppOptions) *grocksd
 		cfOpts.SetNumLevels(cast.ToInt(numLevels))
 	}
 
+	maxWriteBufferNumber := appOpts.Get(maxWriteBufferNumberCFOptName)
+	if maxWriteBufferNumber != nil {
+		cfOpts.SetMaxWriteBufferNumber(cast.ToInt(maxWriteBufferNumber))
+	}
+
+	minWriteBufferNumberToMerge := appOpts.Get(minWriteBufferNumberToMergeCFOptName)
+	if minWriteBufferNumberToMerge != nil {
+		cfOpts.SetMinWriteBufferNumberToMerge(cast.ToInt(minWriteBufferNumberToMerge))
+	}
+
+	maxBytesForLevelBase := appOpts.Get(maxBytesForLevelBaseCFOptName)
+	if maxBytesForLevelBase != nil {
+		cfOpts.SetMaxBytesForLevelBase(cast.ToUint64(maxBytesForLevelBase))
+	}
+
+	maxBytesForLevelMultiplier := appOpts.Get(maxBytesForLevelMultiplierCFOptName)
+	if maxBytesForLevelMultiplier != nil {
+		cfOpts.SetMaxBytesForLevelMultiplier(cast.ToFloat64(maxBytesForLevelMultiplier))
+	}
+
+	targetFileSizeBase := appOpts.Get(targetFileSizeBaseCFOptName)
+	if targetFileSizeBase != nil {
+		cfOpts.SetTargetFileSizeBase(cast.ToUint64(targetFileSizeBase))
+	}
+
+	targetFileSizeMultiplier := appOpts.Get(targetFileSizeMultiplierCFOptName)
+	if targetFileSizeMultiplier != nil {
+		cfOpts.SetTargetFileSizeMultiplier(cast.ToInt(targetFileSizeMultiplier))
+	}
+
+	level0FileNumCompactionTrigger := appOpts.Get(level0FileNumCompactionTriggerCFOptName)
+	if level0FileNumCompactionTrigger != nil {
+		cfOpts.SetLevel0FileNumCompactionTrigger(cast.ToInt(level0FileNumCompactionTrigger))
+	}
+
+	level0SlowdownWritesTrigger := appOpts.Get(level0SlowdownWritesTriggerCFOptName)
+	if level0SlowdownWritesTrigger != nil {
+		cfOpts.SetLevel0SlowdownWritesTrigger(cast.ToInt(level0SlowdownWritesTrigger))
+	}
+
 	return cfOpts
+}
+
+func bbtoFromAppOpts(appOpts types.AppOptions) *grocksdb.BlockBasedTableOptions {
+	bbto := defaultBBTO()
+
+	blockCacheSize := appOpts.Get(blockCacheSizeBBTOOptName)
+	if blockCacheSize != nil {
+		cache := grocksdb.NewLRUCache(cast.ToUint64(blockCacheSize))
+		bbto.SetBlockCache(cache)
+	}
+
+	bitsPerKey := appOpts.Get(bitsPerKeyBBTOOptName)
+	if bitsPerKey != nil {
+		filter := grocksdb.NewBloomFilter(cast.ToFloat64(bitsPerKey))
+		bbto.SetFilterPolicy(filter)
+	}
+
+	blockSize := appOpts.Get(blockSizeBBTOOptName)
+	if blockSize != nil {
+		bbto.SetBlockSize(cast.ToInt(blockSize))
+	}
+
+	cacheIndexAndFilterBlocks := appOpts.Get(cacheIndexAndFilterBlocksBBTOOptName)
+	if cacheIndexAndFilterBlocks != nil {
+		bbto.SetCacheIndexAndFilterBlocks(cast.ToBool(cacheIndexAndFilterBlocks))
+	}
+
+	pinL0FilterAndIndexBlocksInCache := appOpts.Get(pinL0FilterAndIndexBlocksInCacheBBTOOptName)
+	if pinL0FilterAndIndexBlocksInCache != nil {
+		bbto.SetPinL0FilterAndIndexBlocksInCache(cast.ToBool(pinL0FilterAndIndexBlocksInCache))
+	}
+
+	formatVersion := appOpts.Get(formatVersionBBTOOptName)
+	if formatVersion != nil {
+		bbto.SetFormatVersion(cast.ToInt(formatVersion))
+	}
+
+	return bbto
 }
 
 // newRocksDBWithOptions opens rocksdb with provided database and column family options
 // newRocksDBWithOptions expects that db has only one column family named default
-func newRocksDBWithOptions(name string, dir string, dbOpts, cfOpts *grocksdb.Options) (*dbm.RocksDB, error) {
+func newRocksDBWithOptions(
+	name string,
+	dir string,
+	dbOpts *grocksdb.Options,
+	cfOpts *grocksdb.Options,
+	enableMetrics bool,
+	reportMetricsIntervalSecs int64,
+) (*dbm.RocksDB, error) {
 	dbPath := filepath.Join(dir, name+".db")
 
 	// Ensure path exists
@@ -136,10 +292,21 @@ func newRocksDBWithOptions(name string, dir string, dbOpts, cfOpts *grocksdb.Opt
 		return nil, fmt.Errorf("failed to create db path: %w", err)
 	}
 
+	// EnableStatistics adds overhead so shouldn't be enabled in production
+	if enableMetrics {
+		dbOpts.EnableStatistics()
+	}
+
 	db, _, err := grocksdb.OpenDbColumnFamilies(dbOpts, dbPath, []string{defaultColumnFamilyName}, []*grocksdb.Options{cfOpts})
 	if err != nil {
 		return nil, err
 	}
+
+	if enableMetrics {
+		registerMetrics()
+		go reportMetrics(db, time.Second*time.Duration(reportMetricsIntervalSecs))
+	}
+
 	ro := grocksdb.NewDefaultReadOptions()
 	wo := grocksdb.NewDefaultWriteOptions()
 	woSync := grocksdb.NewDefaultWriteOptions()
@@ -153,9 +320,7 @@ func newDefaultOptions() *grocksdb.Options {
 	// default rocksdb option, good enough for most cases, including heavy workloads.
 	// 1GB table cache, 512MB write buffer(may use 50% more on heavy workloads).
 	// compression: snappy as default, need to -lsnappy to enable.
-	bbto := grocksdb.NewDefaultBlockBasedTableOptions()
-	bbto.SetBlockCache(grocksdb.NewLRUCache(1 << 30))
-	bbto.SetFilterPolicy(grocksdb.NewBloomFilter(10))
+	bbto := defaultBBTO()
 
 	opts := grocksdb.NewDefaultOptions()
 	opts.SetBlockBasedTableFactory(bbto)
@@ -167,4 +332,53 @@ func newDefaultOptions() *grocksdb.Options {
 	opts.OptimizeLevelStyleCompaction(512 * 1024 * 1024)
 
 	return opts
+}
+
+// defaultBBTO returns default tm-db bbto options for RocksDB, see for details:
+// https://github.com/Kava-Labs/tm-db/blob/94ff76d31724965f8883cddebabe91e0d01bc03f/rocksdb.go#L30
+func defaultBBTO() *grocksdb.BlockBasedTableOptions {
+	bbto := grocksdb.NewDefaultBlockBasedTableOptions()
+	bbto.SetBlockCache(grocksdb.NewLRUCache(defaultBlockCacheSize))
+	bbto.SetFilterPolicy(grocksdb.NewBloomFilter(10))
+
+	return bbto
+}
+
+// reportMetrics periodically requests stats from rocksdb and reports to prometheus
+// NOTE: should be launched as a goroutine
+func reportMetrics(db *grocksdb.DB, interval time.Duration) {
+	ticker := time.NewTicker(interval)
+	for {
+		select {
+		case <-ticker.C:
+			props, stats, err := getPropsAndStats(db)
+			if err != nil {
+				continue
+			}
+
+			rocksdbMetrics.report(props, stats)
+		}
+	}
+}
+
+// getPropsAndStats gets statistics from rocksdb
+func getPropsAndStats(db *grocksdb.DB) (*properties, *stats, error) {
+	propsLoader := newPropsLoader(db)
+	props, err := propsLoader.load()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	statMap, err := parseSerializedStats(props.OptionsStatistics)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	statLoader := newStatLoader(statMap)
+	stats, err := statLoader.load()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return props, stats, nil
 }
