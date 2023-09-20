@@ -2905,8 +2905,8 @@ Params defines the parameters of the community module.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `upgrade_time_disable_inflation` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  |  |
-| `staking_rewards_per_second` | [string](#string) |  |  |
+| `upgrade_time_disable_inflation` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | upgrade_time_disable_inflation is the time at which to disable mint and kavadist module inflation. If set to 0, inflation will be disabled from block 1. |
+| `staking_rewards_per_second` | [string](#string) |  | staking_rewards_per_second is the amount paid out to delegators each block from the community account |
 
 
 

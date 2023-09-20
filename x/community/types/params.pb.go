@@ -31,8 +31,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters of the community module.
 type Params struct {
-	UpgradeTimeDisableInflation time.Time             `protobuf:"bytes,1,opt,name=upgrade_time_disable_inflation,json=upgradeTimeDisableInflation,proto3,stdtime" json:"upgrade_time_disable_inflation"`
-	StakingRewardsPerSecond     cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=staking_rewards_per_second,json=stakingRewardsPerSecond,proto3,customtype=cosmossdk.io/math.Int" json:"staking_rewards_per_second"`
+	// upgrade_time_disable_inflation is the time at which to disable mint and kavadist module inflation.
+	// If set to 0, inflation will be disabled from block 1.
+	UpgradeTimeDisableInflation time.Time `protobuf:"bytes,1,opt,name=upgrade_time_disable_inflation,json=upgradeTimeDisableInflation,proto3,stdtime" json:"upgrade_time_disable_inflation"`
+	// staking_rewards_per_second is the amount paid out to delegators each block from the community account
+	StakingRewardsPerSecond cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=staking_rewards_per_second,json=stakingRewardsPerSecond,proto3,customtype=cosmossdk.io/math.Int" json:"staking_rewards_per_second"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
