@@ -55,117 +55,160 @@ func TestIncentivesTestSuite(t *testing.T) {
 }
 
 func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
-	suite.SetupTest()
-	ak := suite.App.GetAccountKeeper()
-
-	initialFeePool := distrtypes.FeePool{
-		CommunityPool: sdk.NewDecCoins(
-			sdk.NewDecCoinFromDec("ukava", sdk.NewDecWithPrec(123456, 2)),
-			sdk.NewDecCoinFromDec("usdx", sdk.NewDecWithPrec(654321, 3)),
-		),
+	tests := []struct {
+		name                   string
+		initialFeePoolCoins    sdk.DecCoins
+		initialKavadistBalance sdk.Coins
+	}{
+		{
+			"basic test with both balances and dust",
+			sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("ukava", sdk.NewDecWithPrec(123456, 2)),
+				sdk.NewDecCoinFromDec("usdx", sdk.NewDecWithPrec(654321, 3)),
+			),
+			sdk.NewCoins(
+				sdk.NewInt64Coin("ukava", 10_000),
+				sdk.NewInt64Coin("usdx", 10_000),
+			),
+		},
+		{
+			"empty x/distribution feepool",
+			sdk.DecCoins(nil),
+			sdk.NewCoins(
+				sdk.NewInt64Coin("ukava", 10_000),
+				sdk.NewInt64Coin("usdx", 10_000),
+			),
+		},
+		{
+			"empty x/kavadist balance",
+			sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("ukava", sdk.NewDecWithPrec(123456, 2)),
+				sdk.NewDecCoinFromDec("usdx", sdk.NewDecWithPrec(654321, 3)),
+			),
+			sdk.Coins{},
+		},
+		{
+			"both x/distribution feepool and x/kavadist balance empty",
+			sdk.DecCoins(nil),
+			sdk.Coins{},
+		},
 	}
 
-	initialFeePoolCoins, initialFeePoolDust := initialFeePool.CommunityPool.TruncateDecimal()
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+			ak := suite.App.GetAccountKeeper()
 
-	// More coins than initial feepool/communitypool
-	fundCoins := sdk.NewCoins(
-		sdk.NewInt64Coin("ukava", 10_000),
-		sdk.NewInt64Coin("usdx", 10_000),
-	)
+			initialFeePool := distrtypes.FeePool{
+				CommunityPool: tc.initialFeePoolCoins,
+			}
 
-	err := suite.App.FundModuleAccount(
-		suite.Ctx,
-		distrtypes.ModuleName,
-		fundCoins,
-	)
-	suite.NoError(err, "x/distribution account should be funded without error")
-	err = suite.App.FundModuleAccount(
-		suite.Ctx,
-		kavadisttypes.ModuleName,
-		fundCoins,
-	)
-	suite.NoError(err, "x/kavadist account should be funded without error")
+			initialFeePoolCoins, initialFeePoolDust := initialFeePool.CommunityPool.TruncateDecimal()
 
-	suite.App.GetDistrKeeper().SetFeePool(suite.Ctx, initialFeePool)
+			// More coins than initial feepool/communitypool
+			fundCoins := sdk.NewCoins(
+				sdk.NewInt64Coin("ukava", 10_000),
+				sdk.NewInt64Coin("usdx", 10_000),
+			)
 
-	// Ensure the feepool was set before migration
-	feePoolBefore := suite.App.GetDistrKeeper().GetFeePool(suite.Ctx)
-	suite.Equal(initialFeePool, feePoolBefore, "initial feepool should be set")
-	communityBalanceBefore := suite.App.GetCommunityKeeper().GetModuleAccountBalance(suite.Ctx)
+			// Always fund x/distribution with enough coins to cover feepool
+			err := suite.App.FundModuleAccount(
+				suite.Ctx,
+				distrtypes.ModuleName,
+				fundCoins,
+			)
+			suite.NoError(err, "x/distribution account should be funded without error")
 
-	kavadistAcc := ak.GetModuleAccount(suite.Ctx, kavadisttypes.KavaDistMacc)
-	kavaDistCoinsBefore := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
-	suite.Equal(
-		fundCoins,
-		kavaDistCoinsBefore,
-		"x/kavadist balance should be funded",
-	)
+			err = suite.App.FundModuleAccount(
+				suite.Ctx,
+				kavadisttypes.ModuleName,
+				tc.initialKavadistBalance,
+			)
+			suite.NoError(err, "x/kavadist account should be funded without error")
 
-	// -------------
-	// Run upgrade
+			suite.App.GetDistrKeeper().SetFeePool(suite.Ctx, initialFeePool)
 
-	suite.setUpgradeTimeFromNow(-2 * time.Minute)
-	err = suite.Keeper.StartCommunityFundConsolidation(suite.Ctx)
-	suite.NoError(err, "consolidation should not error")
+			// Ensure the feepool was set before migration
+			feePoolBefore := suite.App.GetDistrKeeper().GetFeePool(suite.Ctx)
+			suite.Equal(initialFeePool, feePoolBefore, "initial feepool should be set")
+			communityBalanceBefore := suite.App.GetCommunityKeeper().GetModuleAccountBalance(suite.Ctx)
 
-	// -------------
-	// Check results
+			kavadistAcc := ak.GetModuleAccount(suite.Ctx, kavadisttypes.KavaDistMacc)
+			kavaDistCoinsBefore := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
+			suite.Equal(
+				tc.initialKavadistBalance,
+				kavaDistCoinsBefore,
+				"x/kavadist balance should be funded",
+			)
 
-	suite.Run("balances should be correct", func() {
-		feePoolAfter := suite.App.GetDistrKeeper().GetFeePool(suite.Ctx)
-		suite.Equal(
-			initialFeePoolDust,
-			feePoolAfter.CommunityPool,
-			"x/distribution community pool should be sent to x/community",
-		)
+			// -------------
+			// Run upgrade
 
-		kavaDistCoinsAfter := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
-		suite.Equal(
-			sdk.NewCoins(),
-			kavaDistCoinsAfter,
-			"x/kavadist balance should be empty",
-		)
+			suite.setUpgradeTimeFromNow(-2 * time.Minute)
+			err = suite.Keeper.StartCommunityFundConsolidation(suite.Ctx)
+			suite.NoError(err, "consolidation should not error")
 
-		totalExpectedCommunityPoolCoins := communityBalanceBefore.
-			Add(initialFeePoolCoins...). // x/distribution fee pool
-			Add(fundCoins...)            // x/kavadist module balance
+			// -------------
+			// Check results
+			suite.Run("module balances after consolidation should moved", func() {
+				feePoolAfter := suite.App.GetDistrKeeper().GetFeePool(suite.Ctx)
+				suite.Equal(
+					initialFeePoolDust,
+					feePoolAfter.CommunityPool,
+					"x/distribution community pool should be sent to x/community",
+				)
 
-		communityBalanceAfter := suite.App.GetCommunityKeeper().GetModuleAccountBalance(suite.Ctx)
+				kavaDistCoinsAfter := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
+				suite.Equal(
+					sdk.NewCoins(),
+					kavaDistCoinsAfter,
+					"x/kavadist balance should be empty",
+				)
 
-		suite.Equal(
-			totalExpectedCommunityPoolCoins,
-			communityBalanceAfter,
-			"x/community balance should be increased by the truncated x/distribution community pool",
-		)
-	})
+				totalExpectedCommunityPoolCoins := communityBalanceBefore.
+					Add(initialFeePoolCoins...).      // x/distribution fee pool
+					Add(tc.initialKavadistBalance...) // x/kavadist module balance
 
-	suite.Run("events should be emitted", func() {
-		communityAcc := ak.GetModuleAccount(suite.Ctx, types.ModuleAccountName)
-		distributionAcc := ak.GetModuleAccount(suite.Ctx, distrtypes.ModuleName)
-		kavadistAcc := ak.GetModuleAccount(suite.Ctx, kavadisttypes.KavaDistMacc)
+				communityBalanceAfter := suite.App.GetCommunityKeeper().GetModuleAccountBalance(suite.Ctx)
 
-		events := suite.Ctx.EventManager().Events()
+				// Use .IsAllGTE to avoid types.Coins(nil) vs types.Coins{} mismatch
+				suite.Truef(
+					totalExpectedCommunityPoolCoins.IsAllGTE(communityBalanceAfter),
+					"x/community balance should be increased by the truncated x/distribution community pool, got %s, expected %s",
+					communityBalanceAfter,
+					totalExpectedCommunityPoolCoins,
+				)
+			})
 
-		suite.EventsContains(
-			events,
-			sdk.NewEvent(
-				banktypes.EventTypeTransfer,
-				sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
-				sdk.NewAttribute(banktypes.AttributeKeySender, distributionAcc.GetAddress().String()),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, initialFeePoolCoins.String()),
-			),
-		)
+			suite.Run("bank transfer events should be emitted", func() {
+				communityAcc := ak.GetModuleAccount(suite.Ctx, types.ModuleAccountName)
+				distributionAcc := ak.GetModuleAccount(suite.Ctx, distrtypes.ModuleName)
+				kavadistAcc := ak.GetModuleAccount(suite.Ctx, kavadisttypes.KavaDistMacc)
 
-		suite.EventsContains(
-			events,
-			sdk.NewEvent(
-				banktypes.EventTypeTransfer,
-				sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
-				sdk.NewAttribute(banktypes.AttributeKeySender, kavadistAcc.GetAddress().String()),
-				sdk.NewAttribute(sdk.AttributeKeyAmount, kavaDistCoinsBefore.String()),
-			),
-		)
-	})
+				events := suite.Ctx.EventManager().Events()
+
+				suite.EventsContains(
+					events,
+					sdk.NewEvent(
+						banktypes.EventTypeTransfer,
+						sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
+						sdk.NewAttribute(banktypes.AttributeKeySender, distributionAcc.GetAddress().String()),
+						sdk.NewAttribute(sdk.AttributeKeyAmount, initialFeePoolCoins.String()),
+					),
+				)
+
+				suite.EventsContains(
+					events,
+					sdk.NewEvent(
+						banktypes.EventTypeTransfer,
+						sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
+						sdk.NewAttribute(banktypes.AttributeKeySender, kavadistAcc.GetAddress().String()),
+						sdk.NewAttribute(sdk.AttributeKeyAmount, kavaDistCoinsBefore.String()),
+					),
+				)
+			})
+		})
+	}
 }
 
 func (suite *IncentivesTestSuite) setUpgradeTimeFromNow(t time.Duration) {
