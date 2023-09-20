@@ -666,6 +666,7 @@ func NewApp(
 		&hardKeeper,
 		&app.mintKeeper,
 		&app.kavadistKeeper,
+		authtypes.FeeCollectorName,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
@@ -812,8 +813,10 @@ func NewApp(
 		// Committee begin blocker changes module params by enacting proposals.
 		// Run before to ensure params are updated together before state changes.
 		committeetypes.ModuleName,
-		// Community begin blocker should run before x/mint and x/kavadist since
+		// Community begin blocker must run before x/mint and x/kavadist since
 		// the disable inflation upgrade will update those modules' params.
+		// Futhermore, it also needs to come before x/distribution since x/community pays out
+		// staking rewards whish are then collected and distributed by x/distibution.
 		communitytypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,

@@ -18,13 +18,14 @@ type Keeper struct {
 	key storetypes.StoreKey
 	cdc codec.Codec
 
-	bankKeeper     types.BankKeeper
-	cdpKeeper      types.CdpKeeper
-	distrKeeper    types.DistributionKeeper
-	hardKeeper     types.HardKeeper
-	moduleAddress  sdk.AccAddress
-	mintKeeper     types.MintKeeper
-	kavadistKeeper types.KavadistKeeper
+	bankKeeper       types.BankKeeper
+	cdpKeeper        types.CdpKeeper
+	distrKeeper      types.DistributionKeeper
+	hardKeeper       types.HardKeeper
+	moduleAddress    sdk.AccAddress
+	mintKeeper       types.MintKeeper
+	kavadistKeeper   types.KavadistKeeper
+	feeCollectorName string
 
 	legacyCommunityPoolAddress sdk.AccAddress
 }
@@ -40,6 +41,7 @@ func NewKeeper(
 	hk types.HardKeeper,
 	mk types.MintKeeper,
 	kk types.KavadistKeeper,
+	fcn string,
 ) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
@@ -55,13 +57,14 @@ func NewKeeper(
 		key: key,
 		cdc: cdc,
 
-		bankKeeper:     bk,
-		cdpKeeper:      ck,
-		distrKeeper:    dk,
-		hardKeeper:     hk,
-		mintKeeper:     mk,
-		kavadistKeeper: kk,
-		moduleAddress:  addr,
+		bankKeeper:       bk,
+		cdpKeeper:        ck,
+		distrKeeper:      dk,
+		hardKeeper:       hk,
+		mintKeeper:       mk,
+		kavadistKeeper:   kk,
+		moduleAddress:    addr,
+		feeCollectorName: fcn,
 
 		legacyCommunityPoolAddress: legacyAddr,
 	}

@@ -16,4 +16,10 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	if k.ShouldStartDisableInflationUpgrade(ctx) {
 		k.StartDisableInflationUpgrade(ctx)
 	}
+
+	if k.CanPayoutStakingRewards(ctx) {
+		if err := k.PayoutStakingRewards(ctx); err != nil {
+			panic(err)
+		}
+	}
 }
