@@ -58,11 +58,11 @@ func (k Keeper) consolidateCommunityDistribution(ctx sdk.Context) error {
 	logger.Info(fmt.Sprintf("transferred %s from x/distribution to x/community", truncatedCoins))
 
 	// Set x/distribution community pool to remaining dust amounts
-	k.distrKeeper.SetFeePool(ctx, distrtypes.FeePool{
-		CommunityPool: leftoverDust,
-	})
+	feePool := k.distrKeeper.GetFeePool(ctx)
+	feePool.CommunityPool = leftoverDust
+	k.distrKeeper.SetFeePool(ctx, feePool)
 
-	logger.Info(fmt.Sprintf("remaining x/distribution community pool dust: %s", leftoverDust)))
+	logger.Info(fmt.Sprintf("remaining x/distribution community pool dust: %s", leftoverDust))
 
 	return nil
 }

@@ -41,6 +41,7 @@ type DistributionKeeper interface {
 	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
+	GetFeePool(ctx sdk.Context) distrtypes.FeePool
 	SetFeePool(ctx sdk.Context, feePool distrtypes.FeePool)
 }
 
