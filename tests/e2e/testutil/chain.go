@@ -14,6 +14,7 @@ import (
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
@@ -32,6 +33,7 @@ import (
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // Chain wraps query clients & accounts for a network
@@ -48,18 +50,20 @@ type Chain struct {
 
 	EncodingConfig kavaparams.EncodingConfig
 
-	Auth      authtypes.QueryClient
-	Bank      banktypes.QueryClient
-	Cdp       cdptypes.QueryClient
-	Committee committeetypes.QueryClient
-	Community communitytypes.QueryClient
-	Earn      earntypes.QueryClient
-	Evm       evmtypes.QueryClient
-	Evmutil   evmutiltypes.QueryClient
-	Gov       govv1types.QueryClient
-	Tm        tmservice.ServiceClient
-	Tx        txtypes.ServiceClient
-	Upgrade   upgradetypes.QueryClient
+	Auth         authtypes.QueryClient
+	Bank         banktypes.QueryClient
+	Cdp          cdptypes.QueryClient
+	Committee    committeetypes.QueryClient
+	Community    communitytypes.QueryClient
+	Distribution distrtypes.QueryClient
+	Kavadist     kavadisttypes.QueryClient
+	Earn         earntypes.QueryClient
+	Evm          evmtypes.QueryClient
+	Evmutil      evmutiltypes.QueryClient
+	Gov          govv1types.QueryClient
+	Tm           tmservice.ServiceClient
+	Tx           txtypes.ServiceClient
+	Upgrade      upgradetypes.QueryClient
 }
 
 // NewChain creates the query clients & signing account management for a chain run on a set of ports.
@@ -90,6 +94,8 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Cdp = cdptypes.NewQueryClient(grpcConn)
 	chain.Committee = committeetypes.NewQueryClient(grpcConn)
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
+	chain.Distribution = distrtypes.NewQueryClient(grpcConn)
+	chain.Kavadist = kavadisttypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
 	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
