@@ -74,6 +74,8 @@ const (
 	cacheIndexAndFilterBlocksBBTOOptName        = "rocksdb.cache_index_and_filter_blocks"
 	pinL0FilterAndIndexBlocksInCacheBBTOOptName = "rocksdb.pin_l0_filter_and_index_blocks_in_cache"
 	formatVersionBBTOOptName                    = "rocksdb.format_version"
+
+	asyncIOReadOptName = "rocksdb.read-async-io"
 )
 
 func OpenDB(appOpts types.AppOptions, home string, backendType dbm.BackendType) (dbm.DB, error) {
@@ -98,6 +100,7 @@ func openRocksdb(dir string, appOpts types.AppOptions) (dbm.DB, error) {
 	cfOpts.SetBlockBasedTableFactory(bbtoOpts)
 	dbOpts = overrideDBOpts(dbOpts, appOpts)
 	cfOpts = overrideCFOpts(cfOpts, appOpts)
+	readOpts := readOptsFromAppOpts(appOpts)
 
 	enableMetrics := cast.ToBool(appOpts.Get(enableMetricsOptName))
 	reportMetricsIntervalSecs := cast.ToInt64(appOpts.Get(reportMetricsIntervalSecsOptName))
@@ -105,7 +108,7 @@ func openRocksdb(dir string, appOpts types.AppOptions) (dbm.DB, error) {
 		reportMetricsIntervalSecs = defaultReportMetricsIntervalSecs
 	}
 
-	return newRocksDBWithOptions("application", dir, dbOpts, cfOpts, enableMetrics, reportMetricsIntervalSecs)
+	return newRocksDBWithOptions("application", dir, dbOpts, cfOpts, readOpts, enableMetrics, reportMetricsIntervalSecs)
 }
 
 // loadLatestOptions loads and returns database and column family options
@@ -237,6 +240,16 @@ func overrideCFOpts(cfOpts *grocksdb.Options, appOpts types.AppOptions) *grocksd
 	return cfOpts
 }
 
+func readOptsFromAppOpts(appOpts types.AppOptions) *grocksdb.ReadOptions {
+	ro := grocksdb.NewDefaultReadOptions()
+	asyncIO := appOpts.Get(asyncIOReadOptName)
+	if asyncIO != nil {
+		ro.SetAsyncIO(cast.ToBool(asyncIO))
+	}
+
+	return ro
+}
+
 func bbtoFromAppOpts(appOpts types.AppOptions) *grocksdb.BlockBasedTableOptions {
 	bbto := defaultBBTO()
 
@@ -282,6 +295,7 @@ func newRocksDBWithOptions(
 	dir string,
 	dbOpts *grocksdb.Options,
 	cfOpts *grocksdb.Options,
+	readOpts *grocksdb.ReadOptions,
 	enableMetrics bool,
 	reportMetricsIntervalSecs int64,
 ) (*dbm.RocksDB, error) {
@@ -307,11 +321,10 @@ func newRocksDBWithOptions(
 		go reportMetrics(db, time.Second*time.Duration(reportMetricsIntervalSecs))
 	}
 
-	ro := grocksdb.NewDefaultReadOptions()
 	wo := grocksdb.NewDefaultWriteOptions()
 	woSync := grocksdb.NewDefaultWriteOptions()
 	woSync.SetSync(true)
-	return dbm.NewRocksDBWithRawDB(db, ro, wo, woSync), nil
+	return dbm.NewRocksDBWithRawDB(db, readOpts, wo, woSync), nil
 }
 
 // newDefaultOptions returns default tm-db options for RocksDB, see for details:
