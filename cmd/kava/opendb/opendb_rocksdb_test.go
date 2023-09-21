@@ -186,7 +186,7 @@ func TestLoadLatestOptions(t *testing.T) {
 					require.NoError(t, err)
 				}()
 
-				db, err := newRocksDBWithOptions(name, dir, tc.dbOpts, tc.cfOpts, true, defaultReportMetricsIntervalSecs)
+				db, err := newRocksDBWithOptions(name, dir, tc.dbOpts, tc.cfOpts, grocksdb.NewDefaultReadOptions(), true, defaultReportMetricsIntervalSecs)
 				require.NoError(t, err)
 				require.NoError(t, db.Close())
 
@@ -321,6 +321,33 @@ func TestOverrideCFOpts(t *testing.T) {
 	}
 }
 
+func TestReadOptsFromAppOpts(t *testing.T) {
+	for _, tc := range []struct {
+		desc           string
+		mockAppOptions *mockAppOptions
+		asyncIO        bool
+	}{
+		{
+			desc:           "default options",
+			mockAppOptions: newMockAppOptions(map[string]interface{}{}),
+			asyncIO:        false,
+		},
+		{
+			desc: "set asyncIO option to true",
+			mockAppOptions: newMockAppOptions(map[string]interface{}{
+				asyncIOReadOptName: true,
+			}),
+			asyncIO: true,
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			readOpts := readOptsFromAppOpts(tc.mockAppOptions)
+
+			require.Equal(t, tc.asyncIO, readOpts.IsAsyncIO())
+		})
+	}
+}
+
 func TestNewRocksDBWithOptions(t *testing.T) {
 	defaultOpts := newDefaultOptions()
 
@@ -337,7 +364,7 @@ func TestNewRocksDBWithOptions(t *testing.T) {
 	cfOpts := newDefaultOptions()
 	cfOpts.SetWriteBufferSize(999_999)
 
-	db, err := newRocksDBWithOptions(name, dir, dbOpts, cfOpts, true, defaultReportMetricsIntervalSecs)
+	db, err := newRocksDBWithOptions(name, dir, dbOpts, cfOpts, grocksdb.NewDefaultReadOptions(), true, defaultReportMetricsIntervalSecs)
 	require.NoError(t, err)
 	require.NoError(t, db.Close())
 
