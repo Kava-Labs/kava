@@ -321,6 +321,33 @@ func TestOverrideCFOpts(t *testing.T) {
 	}
 }
 
+func TestReadOptsFromAppOpts(t *testing.T) {
+	for _, tc := range []struct {
+		desc           string
+		mockAppOptions *mockAppOptions
+		asyncIO        bool
+	}{
+		{
+			desc:           "default options",
+			mockAppOptions: newMockAppOptions(map[string]interface{}{}),
+			asyncIO:        false,
+		},
+		{
+			desc: "set asyncIO option to true",
+			mockAppOptions: newMockAppOptions(map[string]interface{}{
+				asyncIOReadOptName: true,
+			}),
+			asyncIO: true,
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			readOpts := readOptsFromAppOpts(tc.mockAppOptions)
+
+			require.Equal(t, tc.asyncIO, readOpts.IsAsyncIO())
+		})
+	}
+}
+
 func TestNewRocksDBWithOptions(t *testing.T) {
 	defaultOpts := newDefaultOptions()
 
