@@ -4,6 +4,9 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/kava-labs/kava/x/community/types"
 )
 
@@ -16,6 +19,20 @@ var _ types.QueryServer = queryServer{}
 // NewQueryServerImpl creates a new server for handling gRPC queries.
 func NewQueryServerImpl(k Keeper) types.QueryServer {
 	return &queryServer{keeper: k}
+}
+
+// Params implements the gRPC service handler for querying x/community params.
+func (s queryServer) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	params, found := s.keeper.GetParams(ctx)
+	if !found {
+		return nil, status.Error(codes.NotFound, "params not found")
+	}
+
+	return &types.QueryParamsResponse{
+		Params: params,
+	}, nil
 }
 
 // Balance implements the gRPC service handler for querying x/community balance.

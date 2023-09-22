@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+
 	"github.com/kava-labs/kava/x/community/types"
 )
 
@@ -19,7 +22,8 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	commands := []*cobra.Command{
-		GetCmdQueryBalance(),
+		getCmdQueryParams(),
+		getCmdQueryBalance(),
 	}
 
 	for _, cmd := range commands {
@@ -31,8 +35,32 @@ func GetQueryCmd() *cobra.Command {
 	return communityQueryCmd
 }
 
-// GetCmdQueryBalance implements a command to return the current community pool balance.
-func GetCmdQueryBalance() *cobra.Command {
+func getCmdQueryParams() *cobra.Command {
+	return &cobra.Command{
+		Use:   "params",
+		Short: "get the community module parameters",
+		Long:  "Get the current community module parameters.",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(&res.Params)
+		},
+	}
+}
+
+// getCmdQueryBalance implements a command to return the current community pool balance.
+func getCmdQueryBalance() *cobra.Command {
 	return &cobra.Command{
 		Use:   "balance",
 		Short: "Query the current balance of the community module account",

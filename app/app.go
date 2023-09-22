@@ -372,7 +372,7 @@ func NewApp(
 		evmtypes.StoreKey, feemarkettypes.StoreKey, authzkeeper.StoreKey,
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
 		issuancetypes.StoreKey, bep3types.StoreKey, pricefeedtypes.StoreKey,
-		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey,
+		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey, communitytypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, minttypes.StoreKey,
 	)
@@ -637,6 +637,8 @@ func NewApp(
 
 	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
 	app.communityKeeper = communitykeeper.NewKeeper(
+		appCodec,
+		keys[communitytypes.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
 		&cdpKeeper,

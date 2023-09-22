@@ -31,6 +31,89 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// QueryParams defines the request type for querying x/community params.
+type QueryParamsRequest struct {
+}
+
+func (m *QueryParamsRequest) Reset()         { *m = QueryParamsRequest{} }
+func (m *QueryParamsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryParamsRequest) ProtoMessage()    {}
+func (*QueryParamsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f236f06c43149273, []int{0}
+}
+func (m *QueryParamsRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryParamsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryParamsRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryParamsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryParamsRequest.Merge(m, src)
+}
+func (m *QueryParamsRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryParamsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryParamsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryParamsRequest proto.InternalMessageInfo
+
+// QueryParamsResponse defines the response type for querying x/community params.
+type QueryParamsResponse struct {
+	// params represents the community module parameters
+	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
+}
+
+func (m *QueryParamsResponse) Reset()         { *m = QueryParamsResponse{} }
+func (m *QueryParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryParamsResponse) ProtoMessage()    {}
+func (*QueryParamsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f236f06c43149273, []int{1}
+}
+func (m *QueryParamsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryParamsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryParamsResponse.Merge(m, src)
+}
+func (m *QueryParamsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryParamsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryParamsResponse proto.InternalMessageInfo
+
+func (m *QueryParamsResponse) GetParams() Params {
+	if m != nil {
+		return m.Params
+	}
+	return Params{}
+}
+
 // QueryBalanceRequest defines the request type for querying x/community balance.
 type QueryBalanceRequest struct {
 }
@@ -39,7 +122,7 @@ func (m *QueryBalanceRequest) Reset()         { *m = QueryBalanceRequest{} }
 func (m *QueryBalanceRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryBalanceRequest) ProtoMessage()    {}
 func (*QueryBalanceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f236f06c43149273, []int{0}
+	return fileDescriptor_f236f06c43149273, []int{2}
 }
 func (m *QueryBalanceRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -77,7 +160,7 @@ func (m *QueryBalanceResponse) Reset()         { *m = QueryBalanceResponse{} }
 func (m *QueryBalanceResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryBalanceResponse) ProtoMessage()    {}
 func (*QueryBalanceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f236f06c43149273, []int{1}
+	return fileDescriptor_f236f06c43149273, []int{3}
 }
 func (m *QueryBalanceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -121,7 +204,7 @@ func (m *QueryTotalBalanceRequest) Reset()         { *m = QueryTotalBalanceReque
 func (m *QueryTotalBalanceRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryTotalBalanceRequest) ProtoMessage()    {}
 func (*QueryTotalBalanceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f236f06c43149273, []int{2}
+	return fileDescriptor_f236f06c43149273, []int{4}
 }
 func (m *QueryTotalBalanceRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -161,7 +244,7 @@ func (m *QueryTotalBalanceResponse) Reset()         { *m = QueryTotalBalanceResp
 func (m *QueryTotalBalanceResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryTotalBalanceResponse) ProtoMessage()    {}
 func (*QueryTotalBalanceResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f236f06c43149273, []int{3}
+	return fileDescriptor_f236f06c43149273, []int{5}
 }
 func (m *QueryTotalBalanceResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -198,6 +281,8 @@ func (m *QueryTotalBalanceResponse) GetPool() github_com_cosmos_cosmos_sdk_types
 }
 
 func init() {
+	proto.RegisterType((*QueryParamsRequest)(nil), "kava.community.v1beta1.QueryParamsRequest")
+	proto.RegisterType((*QueryParamsResponse)(nil), "kava.community.v1beta1.QueryParamsResponse")
 	proto.RegisterType((*QueryBalanceRequest)(nil), "kava.community.v1beta1.QueryBalanceRequest")
 	proto.RegisterType((*QueryBalanceResponse)(nil), "kava.community.v1beta1.QueryBalanceResponse")
 	proto.RegisterType((*QueryTotalBalanceRequest)(nil), "kava.community.v1beta1.QueryTotalBalanceRequest")
@@ -209,33 +294,37 @@ func init() {
 }
 
 var fileDescriptor_f236f06c43149273 = []byte{
-	// 411 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x92, 0x4f, 0x8e, 0xd3, 0x30,
-	0x14, 0xc6, 0x93, 0x42, 0x41, 0x32, 0xac, 0x42, 0x41, 0x6d, 0x54, 0xa5, 0x10, 0x09, 0xb5, 0x52,
-	0xa9, 0xdd, 0x3f, 0x37, 0x28, 0x70, 0x00, 0x2a, 0x56, 0x6c, 0x90, 0x13, 0xac, 0x10, 0x35, 0xf5,
-	0x4b, 0x6b, 0xa7, 0x22, 0xdb, 0xee, 0x91, 0x90, 0xb8, 0x01, 0x4b, 0xce, 0xc0, 0x01, 0xba, 0xac,
-	0xc4, 0x66, 0x56, 0x33, 0xa3, 0x76, 0x0e, 0x32, 0xb2, 0xe3, 0xa9, 0x3a, 0xa3, 0x74, 0xd4, 0x59,
-	0xd9, 0xb2, 0xdf, 0xf7, 0x7d, 0x3f, 0xbf, 0x67, 0xe4, 0x4f, 0xe9, 0x92, 0x92, 0x10, 0x66, 0xb3,
-	0x8c, 0xc7, 0x32, 0x27, 0xcb, 0x41, 0xc0, 0x24, 0x1d, 0x90, 0x79, 0xc6, 0x16, 0x39, 0x4e, 0x17,
-	0x20, 0xc1, 0x79, 0xa5, 0x6a, 0xf0, 0xbe, 0x06, 0x9b, 0x1a, 0xd7, 0x0b, 0x41, 0xcc, 0x40, 0x90,
-	0x80, 0x0a, 0xb6, 0x17, 0x86, 0x10, 0xf3, 0x42, 0xe7, 0xd6, 0x22, 0x88, 0x40, 0x6f, 0x89, 0xda,
-	0x99, 0xd3, 0x66, 0x04, 0x10, 0x25, 0x8c, 0xd0, 0x34, 0x26, 0x94, 0x73, 0x90, 0x54, 0xc6, 0xc0,
-	0x45, 0x71, 0xeb, 0xbf, 0x44, 0x2f, 0x3e, 0xa9, 0xe8, 0x31, 0x4d, 0x28, 0x0f, 0xd9, 0x84, 0xcd,
-	0x33, 0x26, 0xa4, 0x9f, 0xa3, 0xda, 0xed, 0x63, 0x91, 0x02, 0x17, 0xcc, 0xa1, 0xa8, 0xaa, 0x02,
-	0x45, 0xdd, 0x7e, 0xfd, 0xa8, 0xf3, 0x6c, 0xd8, 0xc0, 0x05, 0x12, 0x56, 0x48, 0x37, 0x9c, 0xf8,
-	0x3d, 0xc4, 0x7c, 0xdc, 0x5f, 0x9f, 0xb7, 0xac, 0xbf, 0x17, 0xad, 0x4e, 0x14, 0xcb, 0xef, 0x59,
-	0xa0, 0x9e, 0x43, 0x0c, 0x7f, 0xb1, 0xf4, 0xc4, 0xb7, 0x29, 0x91, 0x79, 0xca, 0x84, 0x16, 0x88,
-	0x49, 0xe1, 0xec, 0xbb, 0xa8, 0xae, 0xa3, 0x3f, 0x83, 0xa4, 0xc9, 0x1d, 0xac, 0x95, 0x8d, 0x1a,
-	0x25, 0x97, 0x06, 0x8e, 0xa1, 0xc7, 0x29, 0x40, 0x62, 0xd8, 0x9a, 0xa5, 0x6c, 0x1f, 0x58, 0xa8,
-	0xf1, 0x46, 0x06, 0xaf, 0x7b, 0x02, 0x9e, 0xd1, 0x88, 0x89, 0xb6, 0x1f, 0xfe, 0xab, 0xa0, 0xaa,
-	0x86, 0x70, 0x7e, 0xda, 0xe8, 0xa9, 0x81, 0x70, 0xba, 0xb8, 0x7c, 0x6a, 0xb8, 0xa4, 0xbd, 0xee,
-	0xbb, 0xd3, 0x8a, 0x8b, 0x77, 0xf9, 0xed, 0xd5, 0xff, 0xab, 0xdf, 0x95, 0x37, 0x4e, 0x8b, 0x1c,
-	0xf9, 0x3c, 0x81, 0x61, 0xf8, 0x63, 0xa3, 0xe7, 0x87, 0x9d, 0x71, 0xfa, 0xf7, 0xe6, 0x94, 0x74,
-	0xd8, 0x1d, 0x3c, 0x40, 0x61, 0xf0, 0x7a, 0x1a, 0xaf, 0xed, 0xbc, 0x3d, 0x86, 0x27, 0x95, 0xea,
-	0xab, 0x81, 0x1c, 0x7f, 0x5c, 0x6f, 0x3d, 0x7b, 0xb3, 0xf5, 0xec, 0xcb, 0xad, 0x67, 0xff, 0xda,
-	0x79, 0xd6, 0x66, 0xe7, 0x59, 0x67, 0x3b, 0xcf, 0xfa, 0x72, 0x38, 0x0b, 0x65, 0xd5, 0x4b, 0x68,
-	0x20, 0x0a, 0xd3, 0x1f, 0x07, 0xb6, 0x7a, 0x28, 0xc1, 0x13, 0xfd, 0x7f, 0x47, 0xd7, 0x01, 0x00,
-	0x00, 0xff, 0xff, 0x67, 0x9d, 0xae, 0xd2, 0x51, 0x03, 0x00, 0x00,
+	// 478 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x93, 0x31, 0x6f, 0x13, 0x31,
+	0x14, 0xc7, 0x63, 0xda, 0x06, 0xc9, 0x65, 0x32, 0x01, 0xb5, 0xa7, 0xca, 0x29, 0x87, 0xa0, 0x11,
+	0x25, 0xe7, 0x26, 0x5d, 0x99, 0x02, 0xec, 0x10, 0x98, 0x58, 0x90, 0xef, 0xb0, 0x8e, 0x53, 0x2f,
+	0xf7, 0xae, 0xb1, 0x53, 0x91, 0xb5, 0x1b, 0x03, 0x12, 0x12, 0xdf, 0x80, 0x91, 0x4f, 0x92, 0xb1,
+	0x12, 0x0b, 0x13, 0xa0, 0x84, 0x0f, 0x82, 0x6c, 0x3f, 0xa2, 0x04, 0x72, 0x51, 0x98, 0xce, 0x7a,
+	0x7e, 0xff, 0xf7, 0xff, 0xf9, 0x6f, 0x1f, 0x0d, 0xcf, 0xe4, 0x85, 0x14, 0x09, 0x0c, 0x06, 0xa3,
+	0x22, 0x33, 0x63, 0x71, 0xd1, 0x89, 0x95, 0x91, 0x1d, 0x71, 0x3e, 0x52, 0xc3, 0x71, 0x54, 0x0e,
+	0xc1, 0x00, 0xbb, 0x6d, 0x7b, 0xa2, 0x79, 0x4f, 0x84, 0x3d, 0x01, 0x4f, 0x40, 0x0f, 0x40, 0x8b,
+	0x58, 0x6a, 0x35, 0x17, 0x26, 0x90, 0x15, 0x5e, 0x17, 0x34, 0x52, 0x48, 0xc1, 0x2d, 0x85, 0x5d,
+	0x61, 0xf5, 0x20, 0x05, 0x48, 0x73, 0x25, 0x64, 0x99, 0x09, 0x59, 0x14, 0x60, 0xa4, 0xc9, 0xa0,
+	0xd0, 0xb8, 0x7b, 0xb7, 0x82, 0xa7, 0x94, 0x43, 0x39, 0xc0, 0xa6, 0xb0, 0x41, 0xd9, 0x73, 0xcb,
+	0xf7, 0xcc, 0x15, 0xfb, 0xea, 0x7c, 0xa4, 0xb4, 0x09, 0x5f, 0xd0, 0x9b, 0x4b, 0x55, 0x5d, 0x42,
+	0xa1, 0x15, 0x7b, 0x44, 0xeb, 0x5e, 0xbc, 0x47, 0x0e, 0x49, 0x6b, 0xb7, 0xcb, 0xa3, 0xd5, 0xc7,
+	0x89, 0xbc, 0xae, 0xb7, 0x3d, 0xf9, 0xde, 0xac, 0xf5, 0x51, 0x13, 0xde, 0xc2, 0xa1, 0x3d, 0x99,
+	0xcb, 0x22, 0x51, 0x7f, 0xbc, 0xc6, 0xb4, 0xb1, 0x5c, 0x46, 0x33, 0x49, 0x77, 0x6c, 0x00, 0xd6,
+	0x6b, 0xab, 0xb5, 0xdb, 0xdd, 0x8f, 0x7c, 0x44, 0x91, 0x8d, 0x68, 0x6e, 0xf4, 0x18, 0xb2, 0xa2,
+	0x77, 0x62, 0x6d, 0xbe, 0xfc, 0x68, 0xb6, 0xd2, 0xcc, 0xbc, 0x1d, 0xc5, 0x96, 0x47, 0x60, 0x9e,
+	0xfe, 0xd3, 0xd6, 0x6f, 0xce, 0x84, 0x19, 0x97, 0x4a, 0x3b, 0x81, 0xee, 0xfb, 0xc9, 0x61, 0x40,
+	0xf7, 0x9c, 0xf5, 0x4b, 0x30, 0x32, 0xff, 0x0b, 0xeb, 0x92, 0xd0, 0xfd, 0x15, 0x9b, 0x08, 0xa7,
+	0xe8, 0x76, 0x09, 0x90, 0x23, 0xdb, 0xc1, 0x4a, 0xb6, 0x27, 0x2a, 0x71, 0x78, 0xa7, 0x88, 0x77,
+	0xbc, 0x01, 0x1e, 0x6a, 0x74, 0xdf, 0x8d, 0xef, 0x4e, 0xb6, 0xe8, 0x8e, 0x83, 0x60, 0xef, 0x09,
+	0xad, 0xfb, 0x54, 0xd9, 0x83, 0xaa, 0xd4, 0xff, 0xbd, 0xc8, 0xe0, 0x78, 0xa3, 0x5e, 0x7f, 0xa8,
+	0xf0, 0xfe, 0xe5, 0xd7, 0x5f, 0x9f, 0xae, 0x1d, 0x32, 0x2e, 0xd6, 0xbe, 0x1c, 0xf6, 0x81, 0xd0,
+	0xeb, 0x18, 0x08, 0x5b, 0x6f, 0xb0, 0x9c, 0x69, 0xf0, 0x70, 0xb3, 0x66, 0xc4, 0x39, 0x72, 0x38,
+	0x77, 0x58, 0xb3, 0x0a, 0x27, 0x46, 0x86, 0xcf, 0x84, 0xde, 0x58, 0xbc, 0x25, 0x76, 0xb2, 0xd6,
+	0x67, 0xc5, 0x6d, 0x07, 0x9d, 0xff, 0x50, 0x20, 0x5e, 0xdb, 0xe1, 0x1d, 0xb1, 0x7b, 0x55, 0x78,
+	0xc6, 0xaa, 0x5e, 0x23, 0x64, 0xef, 0xe9, 0x64, 0xca, 0xc9, 0xd5, 0x94, 0x93, 0x9f, 0x53, 0x4e,
+	0x3e, 0xce, 0x78, 0xed, 0x6a, 0xc6, 0x6b, 0xdf, 0x66, 0xbc, 0xf6, 0x6a, 0xf1, 0x5d, 0xd8, 0x51,
+	0xed, 0x5c, 0xc6, 0xda, 0x0f, 0x7d, 0xb7, 0x30, 0xd6, 0x3d, 0x90, 0xb8, 0xee, 0x7e, 0xdb, 0xd3,
+	0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x62, 0x63, 0xf8, 0x10, 0x6d, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -250,6 +339,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type QueryClient interface {
+	// Params queires the module params.
+	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// Balance queries the balance of all coins of x/community module.
 	Balance(ctx context.Context, in *QueryBalanceRequest, opts ...grpc.CallOption) (*QueryBalanceResponse, error)
 	// TotalBalance queries the balance of all coins, including x/distribution,
@@ -263,6 +354,15 @@ type queryClient struct {
 
 func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 	return &queryClient{cc}
+}
+
+func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
+	out := new(QueryParamsResponse)
+	err := c.cc.Invoke(ctx, "/kava.community.v1beta1.Query/Params", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *queryClient) Balance(ctx context.Context, in *QueryBalanceRequest, opts ...grpc.CallOption) (*QueryBalanceResponse, error) {
@@ -285,6 +385,8 @@ func (c *queryClient) TotalBalance(ctx context.Context, in *QueryTotalBalanceReq
 
 // QueryServer is the server API for Query service.
 type QueryServer interface {
+	// Params queires the module params.
+	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// Balance queries the balance of all coins of x/community module.
 	Balance(context.Context, *QueryBalanceRequest) (*QueryBalanceResponse, error)
 	// TotalBalance queries the balance of all coins, including x/distribution,
@@ -296,6 +398,9 @@ type QueryServer interface {
 type UnimplementedQueryServer struct {
 }
 
+func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
 func (*UnimplementedQueryServer) Balance(ctx context.Context, req *QueryBalanceRequest) (*QueryBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Balance not implemented")
 }
@@ -305,6 +410,24 @@ func (*UnimplementedQueryServer) TotalBalance(ctx context.Context, req *QueryTot
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
 	s.RegisterService(&_Query_serviceDesc, srv)
+}
+
+func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryParamsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).Params(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kava.community.v1beta1.Query/Params",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).Params(ctx, req.(*QueryParamsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Query_Balance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -348,6 +471,10 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "Params",
+			Handler:    _Query_Params_Handler,
+		},
+		{
 			MethodName: "Balance",
 			Handler:    _Query_Balance_Handler,
 		},
@@ -358,6 +485,62 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "kava/community/v1beta1/query.proto",
+}
+
+func (m *QueryParamsRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryParamsRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryParamsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryParamsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
 }
 
 func (m *QueryBalanceRequest) Marshal() (dAtA []byte, err error) {
@@ -491,6 +674,26 @@ func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *QueryParamsRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryParamsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Params.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
 func (m *QueryBalanceRequest) Size() (n int) {
 	if m == nil {
 		return 0
@@ -544,6 +747,139 @@ func sovQuery(x uint64) (n int) {
 }
 func sozQuery(x uint64) (n int) {
 	return sovQuery(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *QueryParamsRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryParamsRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryParamsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryParamsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *QueryBalanceRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)

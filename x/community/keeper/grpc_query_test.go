@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -30,6 +31,23 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 
 func TestGrpcQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(grpcQueryTestSuite))
+}
+
+func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {
+	p := types.NewParams(
+		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+		sdkmath.NewInt(1000),
+	)
+	suite.Keeper.SetParams(suite.Ctx, p)
+
+	res, err := suite.queryClient.Params(context.Background(), &types.QueryParamsRequest{})
+	suite.Require().NoError(err)
+	suite.Equal(
+		types.QueryParamsResponse{
+			Params: p,
+		},
+		*res,
+	)
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryBalance() {

@@ -3,14 +3,19 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/community/types"
 )
 
 // Keeper of the community store
 type Keeper struct {
+	key storetypes.StoreKey
+	cdc codec.Codec
+
 	bankKeeper    types.BankKeeper
 	cdpKeeper     types.CdpKeeper
 	distrKeeper   types.DistributionKeeper
@@ -21,7 +26,15 @@ type Keeper struct {
 }
 
 // NewKeeper creates a new community Keeper instance
-func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper, ck types.CdpKeeper, dk types.DistributionKeeper, hk types.HardKeeper) Keeper {
+func NewKeeper(
+	cdc codec.Codec,
+	key storetypes.StoreKey,
+	ak types.AccountKeeper,
+	bk types.BankKeeper,
+	ck types.CdpKeeper,
+	dk types.DistributionKeeper,
+	hk types.HardKeeper,
+) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
 	if addr == nil {
@@ -33,6 +46,9 @@ func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper, ck types.CdpKeeper, 
 	}
 
 	return Keeper{
+		key: key,
+		cdc: cdc,
+
 		bankKeeper:    bk,
 		cdpKeeper:     ck,
 		distrKeeper:   dk,

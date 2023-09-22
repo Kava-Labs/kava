@@ -181,6 +181,12 @@
   
     - [Msg](#kava.committee.v1beta1.Msg)
   
+- [kava/community/v1beta1/params.proto](#kava/community/v1beta1/params.proto)
+    - [Params](#kava.community.v1beta1.Params)
+  
+- [kava/community/v1beta1/genesis.proto](#kava/community/v1beta1/genesis.proto)
+    - [GenesisState](#kava.community.v1beta1.GenesisState)
+  
 - [kava/community/v1beta1/proposal.proto](#kava/community/v1beta1/proposal.proto)
     - [CommunityCDPRepayDebtProposal](#kava.community.v1beta1.CommunityCDPRepayDebtProposal)
     - [CommunityCDPWithdrawCollateralProposal](#kava.community.v1beta1.CommunityCDPWithdrawCollateralProposal)
@@ -190,6 +196,8 @@
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
+    - [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest)
+    - [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse)
     - [QueryTotalBalanceRequest](#kava.community.v1beta1.QueryTotalBalanceRequest)
     - [QueryTotalBalanceResponse](#kava.community.v1beta1.QueryTotalBalanceResponse)
   
@@ -2882,6 +2890,69 @@ Msg defines the committee Msg service
 
 
 
+<a name="kava/community/v1beta1/params.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/params.proto
+
+
+
+<a name="kava.community.v1beta1.Params"></a>
+
+### Params
+Params defines the parameters of the community module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `upgrade_time_disable_inflation` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | upgrade_time_disable_inflation is the time at which to disable mint and kavadist module inflation. If set to 0, inflation will be disabled from block 1. |
+| `staking_rewards_per_second` | [string](#string) |  | staking_rewards_per_second is the amount paid out to delegators each block from the community account |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/community/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/genesis.proto
+
+
+
+<a name="kava.community.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the community module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the paramaters related to commmunity |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/community/v1beta1/proposal.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3002,6 +3073,31 @@ QueryBalanceResponse defines the response type for querying x/community balance.
 
 
 
+<a name="kava.community.v1beta1.QueryParamsRequest"></a>
+
+### QueryParamsRequest
+QueryParams defines the request type for querying x/community params.
+
+
+
+
+
+
+<a name="kava.community.v1beta1.QueryParamsResponse"></a>
+
+### QueryParamsResponse
+QueryParamsResponse defines the response type for querying x/community params.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params represents the community module parameters |
+
+
+
+
+
+
 <a name="kava.community.v1beta1.QueryTotalBalanceRequest"></a>
 
 ### QueryTotalBalanceRequest
@@ -3041,6 +3137,7 @@ Query defines the gRPC querier service for x/community.
 
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `Params` | [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse) | Params queires the module params. | GET|/kava/community/v1beta1/params|
 | `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
 | `TotalBalance` | [QueryTotalBalanceRequest](#kava.community.v1beta1.QueryTotalBalanceRequest) | [QueryTotalBalanceResponse](#kava.community.v1beta1.QueryTotalBalanceResponse) | TotalBalance queries the balance of all coins, including x/distribution, x/community, and supplied balances. | GET|/kava/community/v1beta1/total_balance|
 

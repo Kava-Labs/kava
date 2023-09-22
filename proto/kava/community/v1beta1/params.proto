@@ -1,0 +1,25 @@
+syntax = "proto3";
+package kava.community.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kava-labs/kava/x/community/types";
+
+// Params defines the parameters of the community module.
+message Params {
+  // upgrade_time_disable_inflation is the time at which to disable mint and kavadist module inflation.
+  // If set to 0, inflation will be disabled from block 1.
+  google.protobuf.Timestamp upgrade_time_disable_inflation = 1 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+
+  // staking_rewards_per_second is the amount paid out to delegators each block from the community account
+  string staking_rewards_per_second = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
