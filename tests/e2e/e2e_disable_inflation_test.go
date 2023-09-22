@@ -12,10 +12,7 @@ import (
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
-// TestUpgradeHandler can be used to run tests post-upgrade. If an upgrade is enabled, all tests
-// are run against the upgraded chain. However, this file is a good place to consolidate all
-// acceptance tests for a given set of upgrade handlers.
-func (suite *IntegrationTestSuite) TestDisableInflation() {
+func (suite *IntegrationTestSuite) TestDisableInflationOnUpgrade() {
 	suite.SkipIfUpgradeDisabled()
 	fmt.Println("An upgrade has run!")
 
@@ -52,27 +49,54 @@ func (suite *IntegrationTestSuite) TestDisableInflation() {
 		)
 	})
 
-	// After balances
-	kavaDistBalAfter, err := suite.Kava.Kavadist.Balance(afterUpgradeCtx, &kavadisttypes.QueryBalanceRequest{})
-	suite.NoError(err)
-	distrBalAfter, err := suite.Kava.Distribution.CommunityPool(afterUpgradeCtx, &distrtypes.QueryCommunityPoolRequest{})
-	suite.NoError(err)
-	afterCommPoolBalance, err := suite.Kava.Community.Balance(afterUpgradeCtx, &communitytypes.QueryBalanceRequest{})
-	suite.NoError(err)
+	// After parameters
+	suite.Run("x/distribution and x/kavadist parameters after upgrade", func() {
+		kavaDistParamsAfter, err := suite.Kava.Kavadist.Params(afterUpgradeCtx, &kavadisttypes.QueryParamsRequest{})
+		suite.NoError(err)
+		mintParamsAfter, err := suite.Kava.Mint.Params(afterUpgradeCtx, &minttypes.QueryParamsRequest{})
+		suite.NoError(err)
 
-	// expect empty balances after (ignoring dust in x/distribution)
-	suite.Equal(sdk.NewCoins(), kavaDistBalAfter.Coins)
-	distrCoinsAfter, distrBalDustAfter := distrBalAfter.Pool.TruncateDecimal()
-	suite.Equal(sdk.NewCoins(), distrCoinsAfter)
+		suite.Require().False(
+			kavaDistParamsAfter.Params.Active,
+			"x/kavadist should be inactive after upgrade",
+		)
+		suite.Require().True(
+			mintParamsAfter.Params.InflationMax.IsZero(),
+			"x/mint inflation max should be zero after upgrade",
+		)
+		suite.Require().True(
+			mintParamsAfter.Params.InflationMin.IsZero(),
+			"x/mint inflation min should be zero after upgrade",
+		)
+	})
 
-	// x/kavadist and x/distribution community pools should be moved to x/community
-	suite.Equal(
-		beforeCommPoolBalance.Coins.
-			Add(kavaDistBalBefore.Coins...).
-			Add(distrBalCoinsBefore...),
-		afterCommPoolBalance.Coins,
-	)
+	suite.Run("x/distribution and x/kavadist balances after upgrade", func() {
+		// After balances
+		kavaDistBalAfter, err := suite.Kava.Kavadist.Balance(afterUpgradeCtx, &kavadisttypes.QueryBalanceRequest{})
+		suite.NoError(err)
+		distrBalAfter, err := suite.Kava.Distribution.CommunityPool(afterUpgradeCtx, &distrtypes.QueryCommunityPoolRequest{})
+		suite.NoError(err)
+		afterCommPoolBalance, err := suite.Kava.Community.Balance(afterUpgradeCtx, &communitytypes.QueryBalanceRequest{})
+		suite.NoError(err)
 
-	// x/distribution dust should stay in x/distribution
-	suite.Equal(distrBalDustBefore, distrBalDustAfter)
+		// expect empty balances after (ignoring dust in x/distribution)
+		suite.Equal(sdk.NewCoins(), kavaDistBalAfter.Coins)
+		distrCoinsAfter, distrBalDustAfter := distrBalAfter.Pool.TruncateDecimal()
+		suite.Equal(sdk.NewCoins(), distrCoinsAfter)
+
+		// x/kavadist and x/distribution community pools should be moved to x/community
+		suite.Equal(
+			beforeCommPoolBalance.Coins.
+				Add(kavaDistBalBefore.Coins...).
+				Add(distrBalCoinsBefore...),
+			afterCommPoolBalance.Coins,
+		)
+
+		// x/distribution dust should stay in x/distribution
+		suite.Equal(distrBalDustBefore, distrBalDustAfter)
+	})
+}
+
+func (suite *IntegrationTestSuite) TestDisableInflationOnNewChain() {
+
 }
