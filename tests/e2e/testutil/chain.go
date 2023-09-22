@@ -15,6 +15,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/ethereum/go-ethereum"
@@ -59,6 +60,7 @@ type Chain struct {
 	Earn         earntypes.QueryClient
 	Evm          evmtypes.QueryClient
 	Evmutil      evmutiltypes.QueryClient
+	Mint         minttypes.QueryClient
 	Tm           tmservice.ServiceClient
 	Tx           txtypes.ServiceClient
 	Upgrade      upgradetypes.QueryClient
@@ -97,6 +99,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
 	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
+	chain.Mint = minttypes.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
 	chain.Upgrade = upgradetypes.NewQueryClient(grpcConn)
