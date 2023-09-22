@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"github.com/kava-labs/kava/tests/util"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
@@ -14,12 +16,11 @@ import (
 // are run against the upgraded chain. However, this file is a good place to consolidate all
 // acceptance tests for a given set of upgrade handlers.
 func (suite *IntegrationTestSuite) TestDisableInflation() {
-	// suite.SkipIfUpgradeDisabled()
+	suite.SkipIfUpgradeDisabled()
 	fmt.Println("An upgrade has run!")
-	// suite.True(true)
 
 	beforeUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight - 1)
-	afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight)
+	afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight + 1)
 
 	// Before balances
 	kavaDistBalBefore, err := suite.Kava.Kavadist.Balance(beforeUpgradeCtx, &kavadisttypes.QueryBalanceRequest{})
@@ -29,6 +30,27 @@ func (suite *IntegrationTestSuite) TestDisableInflation() {
 	distrBalCoinsBefore, distrBalDustBefore := distrBalBefore.Pool.TruncateDecimal()
 	beforeCommPoolBalance, err := suite.Kava.Community.Balance(beforeUpgradeCtx, &communitytypes.QueryBalanceRequest{})
 	suite.NoError(err)
+
+	// Before parameters
+	suite.Run("x/distribution and x/kavadist parameters before upgrade", func() {
+		kavaDistParamsBefore, err := suite.Kava.Kavadist.Params(beforeUpgradeCtx, &kavadisttypes.QueryParamsRequest{})
+		suite.NoError(err)
+		mintParamsBefore, err := suite.Kava.Mint.Params(beforeUpgradeCtx, &minttypes.QueryParamsRequest{})
+		suite.NoError(err)
+
+		suite.Require().True(
+			kavaDistParamsBefore.Params.Active,
+			"x/kavadist should be active before upgrade",
+		)
+		suite.Require().True(
+			mintParamsBefore.Params.InflationMax.IsPositive(),
+			"x/mint inflation max should be positive before upgrade",
+		)
+		suite.Require().True(
+			mintParamsBefore.Params.InflationMin.IsPositive(),
+			"x/mint inflation min should be positive before upgrade",
+		)
+	})
 
 	// After balances
 	kavaDistBalAfter, err := suite.Kava.Kavadist.Balance(afterUpgradeCtx, &kavadisttypes.QueryBalanceRequest{})
