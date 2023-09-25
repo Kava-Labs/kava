@@ -36,7 +36,7 @@ func TestGrpcQueryTestSuite(t *testing.T) {
 func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {
 	p := types.NewParams(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-		sdkmath.NewInt(1000),
+		sdkmath.LegacyNewDec(1000),
 	)
 	suite.Keeper.SetParams(suite.Ctx, p)
 

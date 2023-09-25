@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
@@ -40,7 +41,7 @@ func TestMigrateStore(t *testing.T) {
 		t,
 		types.NewParams(
 			time.Time{},
-			sdk.NewInt(0),
+			sdkmath.LegacyNewDec(0),
 		),
 		params,
 		"params should be correct after migration",

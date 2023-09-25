@@ -11,13 +11,13 @@ import (
 var (
 	DefaultUpgradeTimeDisableInflation = time.Time{}
 	// DefaultStakingRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
-	DefaultStakingRewardsPerSecond = sdkmath.NewInt(744191)
+	DefaultStakingRewardsPerSecond = sdkmath.LegacyNewDec(744191)
 )
 
 // NewParams returns a new params object
 func NewParams(
 	upgradeTime time.Time,
-	stakingRewardsPerSecond sdkmath.Int,
+	stakingRewardsPerSecond sdkmath.LegacyDec,
 ) Params {
 	return Params{
 		UpgradeTimeDisableInflation: upgradeTime,

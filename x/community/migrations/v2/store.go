@@ -5,6 +5,7 @@ import (
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/community/types"
@@ -23,7 +24,7 @@ func Migrate(
 ) error {
 	params := types.NewParams(
 		time.Time{},
-		sdk.NewInt(0),
+		sdkmath.LegacyNewDec(0),
 	)
 
 	if err := params.Validate(); err != nil {

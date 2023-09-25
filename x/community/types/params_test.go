@@ -26,7 +26,7 @@ var paramTestCases = []paramTestCase{
 		name: "valid params",
 		params: types.Params{
 			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.NewInt(1000),
+			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(1000),
 		},
 		expectedErr: "",
 	},
@@ -34,7 +34,7 @@ var paramTestCases = []paramTestCase{
 		name: "rewards per second are allowed to be zero",
 		params: types.Params{
 			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.NewInt(0),
+			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(0),
 		},
 		expectedErr: "",
 	},
@@ -42,7 +42,7 @@ var paramTestCases = []paramTestCase{
 		name: "nil rewards per second",
 		params: types.Params{
 			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.Int{},
+			StakingRewardsPerSecond:     sdkmath.LegacyDec{},
 		},
 		expectedErr: "StakingRewardsPerSecond should not be nil",
 	},
@@ -50,7 +50,7 @@ var paramTestCases = []paramTestCase{
 		name: "negative rewards per second",
 		params: types.Params{
 			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.NewInt(-5),
+			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(-5),
 		},
 		expectedErr: "StakingRewardsPerSecond should not be negative",
 	},
