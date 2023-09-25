@@ -26,6 +26,14 @@ var paramTestCases = []paramTestCase{
 		expectedErr: "",
 	},
 	{
+		name: "rewards per second are allowed to be zero",
+		params: types.Params{
+			UpgradeTimeDisableInflation: time.Time{},
+			StakingRewardsPerSecond:     sdkmath.NewInt(0),
+		},
+		expectedErr: "",
+	},
+	{
 		name: "nil rewards per second",
 		params: types.Params{
 			UpgradeTimeDisableInflation: time.Time{},
