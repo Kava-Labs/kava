@@ -39,8 +39,8 @@ func TestMigrateStore(t *testing.T) {
 	require.Equal(
 		t,
 		types.NewParams(
-			time.Date(2023, 11, 1, 0, 0, 0, 0, time.UTC),
-			sdk.NewInt(744191),
+			time.Time{},
+			sdk.NewInt(0),
 		),
 		params,
 		"params should be correct after migration",

@@ -22,9 +22,8 @@ func Migrate(
 	cdc codec.BinaryCodec,
 ) error {
 	params := types.NewParams(
-		// 2023-11-01T00:00:00Z
-		time.Date(2023, 11, 1, 0, 0, 0, 0, time.UTC),
-		sdk.NewInt(744191),
+		time.Time{},
+		sdk.NewInt(0),
 	)
 
 	if err := params.Validate(); err != nil {
