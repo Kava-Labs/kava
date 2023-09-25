@@ -18,6 +18,11 @@ type paramTestCase struct {
 
 var paramTestCases = []paramTestCase{
 	{
+		name:        "default params are valid",
+		params:      types.DefaultParams(),
+		expectedErr: "",
+	},
+	{
 		name: "valid params",
 		params: types.Params{
 			UpgradeTimeDisableInflation: time.Time{},
