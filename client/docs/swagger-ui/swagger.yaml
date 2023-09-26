@@ -13044,7 +13044,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Savings
+        - Community
   /kava/community/v1beta1/params:
     get:
       summary: Params queires the module params.
@@ -13099,7 +13099,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Savings
+        - Community
   /kava/community/v1beta1/total_balance:
     get:
       summary: |-
@@ -13160,7 +13160,7 @@ paths:
                       type: string
                       format: byte
       tags:
-        - Savings
+        - Community
   /cosmos/auth/v1beta1/accounts:
     get:
       summary: Accounts returns all the existing accounts
