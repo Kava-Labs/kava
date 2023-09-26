@@ -237,7 +237,7 @@
       "url": "./out/swagger/kava/community/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
-          "Query": "Savings"
+          "Query": "Community"
         }
       },
       "operationIds": {
