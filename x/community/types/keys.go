@@ -23,6 +23,5 @@ const (
 
 // key prefixes for store
 var (
-	ParamsKey            = []byte{0x01}
-	PreviousBlockTimeKey = []byte{0x02}
+	ParamsKey = []byte{0x01}
 )
