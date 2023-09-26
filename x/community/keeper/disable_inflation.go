@@ -6,6 +6,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// CheckAndDisableMintAndKavaDistInflation compares the disable inflation time and block time,
+// and disables inflation if time is set and before block time.  Inflation time is reset,
+// so this method is safe to call more than once.
 func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 	params, found := k.GetParams(ctx)
 	if !found {
@@ -18,6 +21,18 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 		return
 	}
 
+	// run disable inflation logic
+	k.disableInflation(ctx)
+
+	// reset disable inflation time to ensure next call is a no-op
+	params.UpgradeTimeDisableInflation = time.Time{}
+	k.SetParams(ctx, params)
+
+}
+
+// TODO: double check this is correct method for disabling inflation in kavadist without
+// affecting rewards.  In addition, inflation periods in kavadist should be removed.
+func (k Keeper) disableInflation(ctx sdk.Context) {
 	logger := k.Logger(ctx)
 	logger.Info("disable inflation upgrade started")
 
@@ -33,11 +48,6 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 	kavadistParams.Active = false
 	k.kavadistKeeper.SetParams(ctx, kavadistParams)
 	logger.Info("x/kavadist inflation disabled")
-
-	// reset disable inflation upgrade time
-	params.UpgradeTimeDisableInflation = time.Time{}
-	k.SetParams(ctx, params)
-	logger.Info("disable inflation upgrade time reset")
 
 	logger.Info("disable inflation upgrade finished successfully!")
 }
