@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
@@ -39,8 +40,8 @@ func TestMigrateStore(t *testing.T) {
 	require.Equal(
 		t,
 		types.NewParams(
-			time.Date(2023, 11, 1, 0, 0, 0, 0, time.UTC),
-			sdk.NewInt(744191),
+			time.Time{},
+			sdkmath.LegacyNewDec(0),
 		),
 		params,
 		"params should be correct after migration",

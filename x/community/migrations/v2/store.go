@@ -5,6 +5,7 @@ import (
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/community/types"
@@ -22,9 +23,8 @@ func Migrate(
 	cdc codec.BinaryCodec,
 ) error {
 	params := types.NewParams(
-		// 2023-11-01T00:00:00Z
-		time.Date(2023, 11, 1, 0, 0, 0, 0, time.UTC),
-		sdk.NewInt(744191),
+		time.Time{},
+		sdkmath.LegacyNewDec(0),
 	)
 
 	if err := params.Validate(); err != nil {

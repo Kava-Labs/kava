@@ -234,6 +234,23 @@
       }
     },
     {
+      "url": "./out/swagger/kava/community/v1beta1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Community"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Community$1"
+          }
+        ]
+      }
+    },
+    {
       "url": "./client/docs/cosmos-swagger.yml",
       "dereference": {
         "circular": "ignore"

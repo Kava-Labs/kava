@@ -10,39 +10,54 @@ import (
 	"github.com/kava-labs/kava/x/community/types"
 )
 
-func TestParamsValidate(t *testing.T) {
-	testCases := []struct {
-		name        string
-		params      types.Params
-		expectedErr string
-	}{
-		{
-			name: "valid parms",
-			params: types.Params{
-				UpgradeTimeDisableInflation: time.Time{},
-				StakingRewardsPerSecond:     sdkmath.NewInt(1000),
-			},
-			expectedErr: "",
-		},
-		{
-			name: "nil rewards per second",
-			params: types.Params{
-				UpgradeTimeDisableInflation: time.Time{},
-				StakingRewardsPerSecond:     sdkmath.Int{},
-			},
-			expectedErr: "StakingRewardsPerSecond should not be nil",
-		},
-		{
-			name: "negative rewards per second",
-			params: types.Params{
-				UpgradeTimeDisableInflation: time.Time{},
-				StakingRewardsPerSecond:     sdkmath.NewInt(-5),
-			},
-			expectedErr: "StakingRewardsPerSecond should not be negative",
-		},
-	}
+type paramTestCase struct {
+	name        string
+	params      types.Params
+	expectedErr string
+}
 
-	for _, tc := range testCases {
+var paramTestCases = []paramTestCase{
+	{
+		name:        "default params are valid",
+		params:      types.DefaultParams(),
+		expectedErr: "",
+	},
+	{
+		name: "valid params",
+		params: types.Params{
+			UpgradeTimeDisableInflation: time.Time{},
+			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(1000),
+		},
+		expectedErr: "",
+	},
+	{
+		name: "rewards per second are allowed to be zero",
+		params: types.Params{
+			UpgradeTimeDisableInflation: time.Time{},
+			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(0),
+		},
+		expectedErr: "",
+	},
+	{
+		name: "nil rewards per second",
+		params: types.Params{
+			UpgradeTimeDisableInflation: time.Time{},
+			StakingRewardsPerSecond:     sdkmath.LegacyDec{},
+		},
+		expectedErr: "StakingRewardsPerSecond should not be nil",
+	},
+	{
+		name: "negative rewards per second",
+		params: types.Params{
+			UpgradeTimeDisableInflation: time.Time{},
+			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(-5),
+		},
+		expectedErr: "StakingRewardsPerSecond should not be negative",
+	},
+}
+
+func TestParamsValidate(t *testing.T) {
+	for _, tc := range paramTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.params.Validate()
 

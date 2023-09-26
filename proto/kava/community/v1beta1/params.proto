@@ -18,8 +18,8 @@ message Params {
 
   // staking_rewards_per_second is the amount paid out to delegators each block from the community account
   string staking_rewards_per_second = 2 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
