@@ -2,10 +2,8 @@ package keeper
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -85,28 +83,4 @@ func (k Keeper) FundCommunityPool(ctx sdk.Context, sender sdk.AccAddress, amount
 // DistributeFromCommunityPool transfers coins from the community pool to recipient.
 func (k Keeper) DistributeFromCommunityPool(ctx sdk.Context, recipient sdk.AccAddress, amount sdk.Coins) error {
 	return k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleAccountName, recipient, amount)
-}
-
-// GetPreviousBlockTime returns the blockTime for the previous block after the inflation upgrade.
-// If inflation upgrade has not been executed, this will not be set.
-func (k Keeper) GetPreviousBlockTime(ctx sdk.Context) (blockTime time.Time, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b := store.Get(types.PreviousBlockTimeKey)
-	if b == nil {
-		return time.Time{}, false
-	}
-	if err := blockTime.UnmarshalBinary(b); err != nil {
-		panic(err)
-	}
-	return blockTime, true
-}
-
-// SetPreviousBlockTime set the time of the previous block
-func (k Keeper) SetPreviousBlockTime(ctx sdk.Context, blockTime time.Time) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousBlockTimeKey)
-	b, err := blockTime.MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-	store.Set(types.PreviousBlockTimeKey, b)
 }
