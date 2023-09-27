@@ -99,6 +99,8 @@ func (suite *disableInflationTestSuite) TestStartCommunityFundConsolidation() {
 				"x/kavadist balance should be funded",
 			)
 
+			expectedKavaDistCoins := sdk.NewCoins(sdk.NewCoin("ukava", kavaDistCoinsBefore.AmountOf("ukava")))
+
 			// -------------
 			// Run upgrade
 
@@ -122,9 +124,9 @@ func (suite *disableInflationTestSuite) TestStartCommunityFundConsolidation() {
 
 				kavaDistCoinsAfter := suite.App.GetBankKeeper().GetAllBalances(suite.Ctx, kavadistAcc.GetAddress())
 				suite.Equal(
-					sdk.NewCoins(),
+					expectedKavaDistCoins,
 					kavaDistCoinsAfter,
-					"x/kavadist balance should be empty",
+					"x/kavadist balance should ony contain ukava",
 				)
 
 				totalExpectedCommunityPoolCoins := communityBalanceBefore.
@@ -168,7 +170,7 @@ func (suite *disableInflationTestSuite) TestStartCommunityFundConsolidation() {
 							banktypes.EventTypeTransfer,
 							sdk.NewAttribute(banktypes.AttributeKeyRecipient, communityAcc.GetAddress().String()),
 							sdk.NewAttribute(banktypes.AttributeKeySender, kavadistAcc.GetAddress().String()),
-							sdk.NewAttribute(sdk.AttributeKeyAmount, kavaDistCoinsBefore.String()),
+							sdk.NewAttribute(sdk.AttributeKeyAmount, kavaDistCoinsBefore.Sub(expectedKavaDistCoins...).String()),
 						),
 					),
 				)

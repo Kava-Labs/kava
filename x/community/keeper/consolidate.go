@@ -73,20 +73,32 @@ func (k Keeper) consolidateCommunityKavadist(ctx sdk.Context) error {
 	logger := k.Logger(ctx)
 
 	kavadistAcc := k.accountKeeper.GetModuleAccount(ctx, kavadisttypes.KavaDistMacc)
-	kavadistCoins := k.bankKeeper.GetAllBalances(ctx, kavadistAcc.GetAddress())
+	transferCoins := k.bankKeeper.GetAllBalances(ctx, kavadistAcc.GetAddress())
 
-	// Transfer to x/community
+	// Remove ukava from transfer coins - ony transfer non-ukava coins
+	found, kavaCoins := transferCoins.Find("ukava")
+	if found {
+		transferCoins = transferCoins.Sub(kavaCoins)
+	}
+
+	// Transfer remaining coins to x/community
 	err := k.bankKeeper.SendCoinsFromModuleToModule(
 		ctx,
 		kavadisttypes.ModuleName, // sender
 		types.ModuleName,         // recipient
-		kavadistCoins,
+		transferCoins,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to transfer x/kavadist coins to x/community: %w", err)
 	}
 
-	logger.Info(fmt.Sprintf("transferred %s from x/kavadist to x/community", kavadistCoins))
+	kavadistRemainingCoins := k.bankKeeper.GetAllBalances(ctx, kavadistAcc.GetAddress())
+
+	logger.Info(fmt.Sprintf(
+		"transferred %s from x/kavadist to x/community, remaining x/kavadist balance: %s",
+		transferCoins,
+		kavadistRemainingCoins,
+	))
 
 	return nil
 }
