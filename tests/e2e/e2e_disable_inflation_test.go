@@ -1,8 +1,6 @@
 package e2e_test
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -13,26 +11,23 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestDisableInflationOnUpgrade() {
-	suite.SkipIfUpgradeDisabled()
-	fmt.Println("An upgrade has run!")
-
-	beforeUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight - 1)
-	afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight + 1)
+	beforeInflationDisableCtx := util.CtxAtHeight(1)
+	afterInflationDisableCtx := util.CtxAtHeight(2)
 
 	// Before balances
-	kavaDistBalBefore, err := suite.Kava.Kavadist.Balance(beforeUpgradeCtx, &kavadisttypes.QueryBalanceRequest{})
+	kavaDistBalBefore, err := suite.Kava.Kavadist.Balance(beforeInflationDisableCtx, &kavadisttypes.QueryBalanceRequest{})
 	suite.NoError(err)
-	distrBalBefore, err := suite.Kava.Distribution.CommunityPool(beforeUpgradeCtx, &distrtypes.QueryCommunityPoolRequest{})
+	distrBalBefore, err := suite.Kava.Distribution.CommunityPool(beforeInflationDisableCtx, &distrtypes.QueryCommunityPoolRequest{})
 	suite.NoError(err)
 	distrBalCoinsBefore, distrBalDustBefore := distrBalBefore.Pool.TruncateDecimal()
-	beforeCommPoolBalance, err := suite.Kava.Community.Balance(beforeUpgradeCtx, &communitytypes.QueryBalanceRequest{})
+	beforeCommPoolBalance, err := suite.Kava.Community.Balance(beforeInflationDisableCtx, &communitytypes.QueryBalanceRequest{})
 	suite.NoError(err)
 
 	// Before parameters
 	suite.Run("x/distribution and x/kavadist parameters before upgrade", func() {
-		kavaDistParamsBefore, err := suite.Kava.Kavadist.Params(beforeUpgradeCtx, &kavadisttypes.QueryParamsRequest{})
+		kavaDistParamsBefore, err := suite.Kava.Kavadist.Params(beforeInflationDisableCtx, &kavadisttypes.QueryParamsRequest{})
 		suite.NoError(err)
-		mintParamsBefore, err := suite.Kava.Mint.Params(beforeUpgradeCtx, &minttypes.QueryParamsRequest{})
+		mintParamsBefore, err := suite.Kava.Mint.Params(beforeInflationDisableCtx, &minttypes.QueryParamsRequest{})
 		suite.NoError(err)
 
 		suite.Require().True(
@@ -51,9 +46,9 @@ func (suite *IntegrationTestSuite) TestDisableInflationOnUpgrade() {
 
 	// After parameters
 	suite.Run("x/distribution and x/kavadist parameters after upgrade", func() {
-		kavaDistParamsAfter, err := suite.Kava.Kavadist.Params(afterUpgradeCtx, &kavadisttypes.QueryParamsRequest{})
+		kavaDistParamsAfter, err := suite.Kava.Kavadist.Params(afterInflationDisableCtx, &kavadisttypes.QueryParamsRequest{})
 		suite.NoError(err)
-		mintParamsAfter, err := suite.Kava.Mint.Params(afterUpgradeCtx, &minttypes.QueryParamsRequest{})
+		mintParamsAfter, err := suite.Kava.Mint.Params(afterInflationDisableCtx, &minttypes.QueryParamsRequest{})
 		suite.NoError(err)
 
 		suite.Require().False(
@@ -72,11 +67,11 @@ func (suite *IntegrationTestSuite) TestDisableInflationOnUpgrade() {
 
 	suite.Run("x/distribution and x/kavadist balances after upgrade", func() {
 		// After balances
-		kavaDistBalAfter, err := suite.Kava.Kavadist.Balance(afterUpgradeCtx, &kavadisttypes.QueryBalanceRequest{})
+		kavaDistBalAfter, err := suite.Kava.Kavadist.Balance(afterInflationDisableCtx, &kavadisttypes.QueryBalanceRequest{})
 		suite.NoError(err)
-		distrBalAfter, err := suite.Kava.Distribution.CommunityPool(afterUpgradeCtx, &distrtypes.QueryCommunityPoolRequest{})
+		distrBalAfter, err := suite.Kava.Distribution.CommunityPool(afterInflationDisableCtx, &distrtypes.QueryCommunityPoolRequest{})
 		suite.NoError(err)
-		afterCommPoolBalance, err := suite.Kava.Community.Balance(afterUpgradeCtx, &communitytypes.QueryBalanceRequest{})
+		afterCommPoolBalance, err := suite.Kava.Community.Balance(afterInflationDisableCtx, &communitytypes.QueryBalanceRequest{})
 		suite.NoError(err)
 
 		// expect empty balances after (ignoring dust in x/distribution)
