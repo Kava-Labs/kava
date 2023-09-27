@@ -13072,6 +13072,13 @@ paths:
                     title: >-
                       staking_rewards_per_second is the amount paid out to
                       delegators each block from the community account
+                  upgrade_time_set_staking_rewards_per_second:
+                    type: string
+                    title: >-
+                      upgrade_time_set_staking_rewards_per_second is the initial
+                      staking_rewards_per_second to set
+
+                      and use when the disable inflation time is reached
                 description: Params defines the parameters of the community module.
             description: >-
               QueryParamsResponse defines the response type for querying
@@ -57028,6 +57035,13 @@ definitions:
         title: >-
           staking_rewards_per_second is the amount paid out to delegators each
           block from the community account
+      upgrade_time_set_staking_rewards_per_second:
+        type: string
+        title: >-
+          upgrade_time_set_staking_rewards_per_second is the initial
+          staking_rewards_per_second to set
+
+          and use when the disable inflation time is reached
     description: Params defines the parameters of the community module.
   kava.community.v1beta1.QueryBalanceResponse:
     type: object
@@ -57069,6 +57083,13 @@ definitions:
             title: >-
               staking_rewards_per_second is the amount paid out to delegators
               each block from the community account
+          upgrade_time_set_staking_rewards_per_second:
+            type: string
+            title: >-
+              upgrade_time_set_staking_rewards_per_second is the initial
+              staking_rewards_per_second to set
+
+              and use when the disable inflation time is reached
         description: Params defines the parameters of the community module.
     description: >-
       QueryParamsResponse defines the response type for querying x/community

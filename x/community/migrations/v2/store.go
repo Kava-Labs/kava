@@ -25,6 +25,7 @@ func Migrate(
 	params := types.NewParams(
 		time.Time{},
 		sdkmath.LegacyNewDec(0),
+		sdkmath.LegacyNewDec(0),
 	)
 
 	if err := params.Validate(); err != nil {

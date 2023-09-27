@@ -34,6 +34,7 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 		types.NewParams(
 			time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 			sdkmath.LegacyNewDec(1000),
+			sdkmath.LegacyNewDec(1000),
 		),
 	)
 
@@ -56,6 +57,7 @@ func (suite *genesisTestSuite) TestExportGenesis() {
 	params := types.NewParams(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		sdkmath.LegacyNewDec(1000),
+		sdkmath.LegacyNewDec(1000),
 	)
 	suite.Keeper.SetParams(suite.Ctx, params)
 
@@ -68,6 +70,7 @@ func (suite *genesisTestSuite) TestInitExportIsLossless() {
 	genesisState := types.NewGenesisState(
 		types.NewParams(
 			time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
+			sdkmath.LegacyNewDec(1000),
 			sdkmath.LegacyNewDec(1000),
 		),
 	)

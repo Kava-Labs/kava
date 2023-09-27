@@ -42,6 +42,7 @@ func TestMigrateStore(t *testing.T) {
 		types.NewParams(
 			time.Time{},
 			sdkmath.LegacyNewDec(0),
+			sdkmath.LegacyNewDec(0),
 		),
 		params,
 		"params should be correct after migration",
