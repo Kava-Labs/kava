@@ -72,7 +72,7 @@ func (suite *proposalTestSuite) SetupTest() {
 	// account balances
 	params := types.Params{
 		UpgradeTimeDisableInflation: time.Now().Add(100000 * time.Hour),
-		StakingRewardsPerSecond:     sdkmath.ZeroInt(),
+		StakingRewardsPerSecond:     sdkmath.LegacyNewDec(0),
 	}
 	communityGs := types.NewGenesisState(params)
 

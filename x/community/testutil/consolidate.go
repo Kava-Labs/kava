@@ -1,57 +1,18 @@
-package keeper_test
+package testutil
 
 import (
-	"testing"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/community/keeper"
+	types "github.com/kava-labs/kava/x/community/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
-// Test suite used for all incentive tests
-type IncentivesTestSuite struct {
-	suite.Suite
-
-	App    app.TestApp
-	Ctx    sdk.Context
-	Keeper keeper.Keeper
-}
-
-// The default state used by each test
-func (suite *IncentivesTestSuite) SetupTest() {
-	app.SetSDKConfig()
-	tApp := app.NewTestApp()
-	suite.App = tApp
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-	suite.Keeper = suite.App.GetCommunityKeeper()
-
-	// Set up x/mint and x/kavadist gen state
-	mintGen := minttypes.DefaultGenesisState()
-	mintGen.Params.InflationMax = sdk.NewDecWithPrec(595, 3)
-	mintGen.Params.InflationMin = sdk.NewDecWithPrec(595, 3)
-	kavadistGen := kavadisttypes.DefaultGenesisState()
-	kavadistGen.Params.Active = true
-	appCodec := tApp.AppCodec()
-	suite.App.InitializeFromGenesisStates(
-		app.GenesisState{minttypes.ModuleName: appCodec.MustMarshalJSON(mintGen)},
-		app.GenesisState{kavadisttypes.ModuleName: appCodec.MustMarshalJSON(kavadistGen)},
-	)
-}
-
-func TestIncentivesTestSuite(t *testing.T) {
-	suite.Run(t, new(IncentivesTestSuite))
-}
-
-func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
+func (suite *disableInflationTestSuite) TestStartCommunityFundConsolidation() {
 	tests := []struct {
 		name                   string
 		initialFeePoolCoins    sdk.DecCoins
@@ -141,7 +102,11 @@ func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
 			// -------------
 			// Run upgrade
 
-			suite.setUpgradeTimeFromNow(-2 * time.Minute)
+			params, found := suite.Keeper.GetParams(suite.Ctx)
+			suite.Require().True(found)
+			params.UpgradeTimeDisableInflation = suite.Ctx.BlockTime().Add(-time.Minute)
+			suite.Keeper.SetParams(suite.Ctx, params)
+
 			err = suite.Keeper.StartCommunityFundConsolidation(suite.Ctx)
 			suite.NoError(err, "consolidation should not error")
 
@@ -210,11 +175,4 @@ func (suite *IncentivesTestSuite) TestStartCommunityFundConsolidation() {
 			})
 		})
 	}
-}
-
-func (suite *IncentivesTestSuite) setUpgradeTimeFromNow(t time.Duration) {
-	params, found := suite.Keeper.GetParams(suite.Ctx)
-	suite.True(found)
-	params.UpgradeTimeDisableInflation = suite.Ctx.BlockTime().Add(t)
-	suite.Keeper.SetParams(suite.Ctx, params)
 }
