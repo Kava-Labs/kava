@@ -80,7 +80,7 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			// Disable upgrade time is reset when run.
 			//
 			// This allows the time to be set and run again if required.
-			// In addition, with zero time not upgrading, achieves impodence
+			// In addition, with zero time not upgrading, achieves idempotence
 			// without extra logic or state.
 			expectedDisableTime = time.Time{}
 			disableTimeMsg = "expected inflation disable time to be reset"
@@ -128,7 +128,7 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			// run assertions to ensure upgrade did or did not run
 			validateState(tc.shouldUpgrade, tc.upgradeTime, "first begin blocker run")
 
-			// test impodence only if upgrade should have been ran
+			// test idempotence only if upgrade should have been ran
 			if tc.shouldUpgrade {
 				// reset mint and kavadist state to their initial values
 				suite.App.GetMintKeeper().SetParams(suite.Ctx, suite.genesisMintState.Params)
