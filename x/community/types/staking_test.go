@@ -34,7 +34,7 @@ var stakingRewardsStateTestCases = []stakingRewardsStateTestCase{
 		name: "last accumulation time can be zero",
 		stakingRewardsState: types.StakingRewardsState{
 			LastAccumulationTime: time.Time{},
-			LastTruncationError:  newDecFromString("0.10000000000000000"),
+			LastTruncationError:  sdkmath.LegacyZeroDec(),
 		},
 		expectedErr: "",
 	},
@@ -69,6 +69,14 @@ var stakingRewardsStateTestCases = []stakingRewardsStateTestCase{
 			LastTruncationError:  newDecFromString("1.00000000000000000"),
 		},
 		expectedErr: "LastTruncationError should not be greater or equal to 1",
+	},
+	{
+		name: "last truncation error can not be set if last accumulation time is zero",
+		stakingRewardsState: types.StakingRewardsState{
+			LastAccumulationTime: time.Time{},
+			LastTruncationError:  newDecFromString("0.10000000000000000"),
+		},
+		expectedErr: "LastTruncationError should be zero if last accumulation time is zero",
 	},
 }
 

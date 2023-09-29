@@ -43,5 +43,9 @@ func (p StakingRewardsState) Validate() error {
 		return errors.New("LastTruncationError should not be greater or equal to 1")
 	}
 
+	if p.LastAccumulationTime.IsZero() && !p.LastTruncationError.IsZero() {
+		return errors.New("LastTruncationError should be zero if last accumulation time is zero")
+	}
+
 	return nil
 }

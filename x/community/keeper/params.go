@@ -34,3 +34,12 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 
 	store.Set(types.ParamsKey, bz)
 }
+
+func (k Keeper) mustGetParams(ctx sdk.Context) types.Params {
+	params, found := k.GetParams(ctx)
+	if !found {
+		panic("invalid state: module parameters not found")
+	}
+
+	return params
+}

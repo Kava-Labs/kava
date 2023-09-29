@@ -10,7 +10,7 @@ import (
 var (
 	DefaultUpgradeTimeDisableInflation = time.Time{}
 	// DefaultStakingRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
-	DefaultStakingRewardsPerSecond = sdkmath.LegacyNewDec(744191)
+	DefaultStakingRewardsPerSecond = sdkmath.LegacyNewDec(0)
 	// DefaultStakingRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
 	DefaultUpgradeTimeSetStakingRewardsPerSecond = sdkmath.LegacyNewDec(744191)
 )

@@ -10,11 +10,8 @@ import (
 // and disables inflation if time is set and before block time.  Inflation time is reset,
 // so this method is safe to call more than once.
 func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
-	params, found := k.GetParams(ctx)
-	if !found {
-		// panic since this can only be reached if chain state is corrupted or method is ran at an invalid height
-		panic("invalid state: module parameters not found")
-	}
+	// panic if params are not found  since this can only be reached if chain state is corrupted or method is ran at an invalid height
+	params := k.mustGetParams(ctx)
 
 	// if upgrade time is in the future or zero there is nothing to do, so return
 	if params.UpgradeTimeDisableInflation.IsZero() || params.UpgradeTimeDisableInflation.After(ctx.BlockTime()) {
