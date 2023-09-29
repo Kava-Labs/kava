@@ -36,6 +36,10 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 			sdkmath.LegacyNewDec(1000),
 			sdkmath.LegacyNewDec(1000),
 		),
+		types.NewStakingRewardsState(
+			time.Date(1997, 1, 1, 0, 0, 0, 0, time.UTC),
+			sdkmath.LegacyMustNewDecFromStr("0.100000000000000000"),
+		),
 	)
 
 	suite.NotPanics(func() {
@@ -48,9 +52,13 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 	_, ok := acc.(authtypes.ModuleAccountI)
 	suite.True(ok)
 
-	storedParams, found := suite.App.GetCommunityKeeper().GetParams(suite.Ctx)
+	keeper := suite.App.GetCommunityKeeper()
+	storedParams, found := keeper.GetParams(suite.Ctx)
 	suite.True(found)
 	suite.Equal(genesisState.Params, storedParams)
+
+	stakingRewardsState := keeper.GetStakingRewardsState(suite.Ctx)
+	suite.Equal(genesisState.StakingRewardsState, stakingRewardsState)
 }
 
 func (suite *genesisTestSuite) TestExportGenesis() {
@@ -61,9 +69,16 @@ func (suite *genesisTestSuite) TestExportGenesis() {
 	)
 	suite.Keeper.SetParams(suite.Ctx, params)
 
+	stakingRewardsState := types.NewStakingRewardsState(
+		time.Date(1997, 1, 1, 0, 0, 0, 0, time.UTC),
+		sdkmath.LegacyMustNewDecFromStr("0.100000000000000000"),
+	)
+	suite.Keeper.SetStakingRewardsState(suite.Ctx, stakingRewardsState)
+
 	genesisState := community.ExportGenesis(suite.Ctx, suite.Keeper)
 
 	suite.Equal(params, genesisState.Params)
+	suite.Equal(stakingRewardsState, genesisState.StakingRewardsState)
 }
 
 func (suite *genesisTestSuite) TestInitExportIsLossless() {
@@ -72,6 +87,10 @@ func (suite *genesisTestSuite) TestInitExportIsLossless() {
 			time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 			sdkmath.LegacyNewDec(1000),
 			sdkmath.LegacyNewDec(1000),
+		),
+		types.NewStakingRewardsState(
+			time.Date(1997, 1, 1, 0, 0, 0, 0, time.UTC),
+			sdkmath.LegacyMustNewDecFromStr("0.100000000000000000"),
 		),
 	)
 

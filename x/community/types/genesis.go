@@ -1,9 +1,10 @@
 package types
 
 // NewGenesisState returns a new genesis state object
-func NewGenesisState(params Params) GenesisState {
+func NewGenesisState(params Params, stakingRewardsState StakingRewardsState) GenesisState {
 	return GenesisState{
-		Params: params,
+		Params:              params,
+		StakingRewardsState: stakingRewardsState,
 	}
 }
 
@@ -11,10 +12,15 @@ func NewGenesisState(params Params) GenesisState {
 func DefaultGenesisState() GenesisState {
 	return NewGenesisState(
 		DefaultParams(),
+		DefaultStakingRewardsState(),
 	)
 }
 
 // Validate checks the params are valid
 func (gs GenesisState) Validate() error {
-	return gs.Params.Validate()
+	if err := gs.Params.Validate(); err != nil {
+		return err
+	}
+
+	return gs.StakingRewardsState.Validate()
 }

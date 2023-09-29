@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,4 +65,27 @@ func (suite *KeeperTestSuite) TestCommunityPool() {
 		err := suite.Keeper.DistributeFromCommunityPool(suite.Ctx, sender, funds)
 		suite.Require().ErrorContains(err, "insufficient funds")
 	})
+}
+
+func (suite *KeeperTestSuite) TestGetAndSetStakingRewardsState() {
+	keeper := suite.Keeper
+
+	defaultParams := keeper.GetStakingRewardsState(suite.Ctx)
+	suite.Equal(time.Time{}, defaultParams.LastAccumulationTime, "expected default returned accumulation time to be zero")
+	suite.Equal(sdkmath.LegacyZeroDec(), defaultParams.LastTruncationError, "expected default truncation error to be zero")
+
+	suite.NotPanics(func() { keeper.SetStakingRewardsState(suite.Ctx, defaultParams) }, "expected setting default state to not panic")
+
+	invalidParams := defaultParams
+	invalidParams.LastTruncationError = sdkmath.LegacyDec{}
+
+	suite.Panics(func() { keeper.SetStakingRewardsState(suite.Ctx, invalidParams) }, "expected setting invalid state to panic")
+
+	validParams := defaultParams
+	validParams.LastAccumulationTime = time.Date(2023, 9, 29, 11, 42, 53, 123456789, time.UTC)
+	validParams.LastTruncationError = sdkmath.LegacyMustNewDecFromStr("0.50000000000000000")
+
+	suite.NotPanics(func() { keeper.SetStakingRewardsState(suite.Ctx, validParams) }, "expected setting valid state to not panic")
+
+	suite.Equal(validParams, keeper.GetStakingRewardsState(suite.Ctx), "expected fetched state to equal set state")
 }

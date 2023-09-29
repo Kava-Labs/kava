@@ -1,0 +1,26 @@
+syntax = "proto3";
+package kava.community.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/kava-labs/kava/x/community/types";
+
+// StakingRewardsState represents the state of staking reward accumulation between blocks.
+message StakingRewardsState {
+  // last_accumulation_time represents the last block time which rewards where calculated and distributed.
+  // This may be zero to signal accumulation should start on the next interval.
+  google.protobuf.Timestamp last_accumulation_time = 1 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+
+  // accumulated_truncation_error represents the sum of previous errors due to truncation on payout
+  // This value will always be on the interval [0, 1).
+  string last_truncation_error = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
+    (gogoproto.nullable) = false
+  ];
+}

@@ -3,6 +3,7 @@ package kava.community.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "kava/community/v1beta1/params.proto";
+import "kava/community/v1beta1/staking.proto";
 
 option go_package = "github.com/kava-labs/kava/x/community/types";
 
@@ -10,4 +11,8 @@ option go_package = "github.com/kava-labs/kava/x/community/types";
 message GenesisState {
   // params defines all the paramaters related to commmunity
   Params params = 1 [(gogoproto.nullable) = false];
+
+  // StakingRewardsState stores the internal staking reward data required to
+  // track staking rewards across blocks
+  StakingRewardsState staking_rewards_state = 2 [(gogoproto.nullable) = false];
 }
