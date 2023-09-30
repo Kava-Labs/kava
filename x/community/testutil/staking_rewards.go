@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/keeper"
 	"github.com/kava-labs/kava/x/community/types"
 )
@@ -85,26 +86,23 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 		//	blockTimeRangeMin:    5.5,
 		//	blockTimeRangeMax:    6.5,
 		//	rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("1585489.599188229325215626"), // 50 million kava per year
-		//	expectedRewardsTotal: sdkmath.NewInt(49999999999999),
+		//	communityPoolFunds:   sdkmath.NewInt(50000000000000),
+		//	expectedRewardsTotal: sdkmath.NewInt(49999999999999), // truncation results in 1 ukava error
 		//},
-		//{
-		//	name:                 "one year with 0.05 to 15 second blocktimes",
-		//	periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
-		//	periodEnd:            time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
-		//	blockTimeRangeMin:    0.5,
-		//	blockTimeRangeMax:    15,
-		//	rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("1585489.599188229325215626"), // 50 million kava per year
-		//	expectedRewardsTotal: sdkmath.NewInt(49999999999999),
-		//},
+		//
+		//
+		//  One Day of blocks with different block time variations
+		//
+		//
 		{
 			name:                 "one day with sub-second block times and 50 million KAVA per year",
 			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
 			periodEnd:            time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
 			blockTimeRangeMin:    0.1,
 			blockTimeRangeMax:    1,
-			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("1585489.599188229325215626"), // 25 million kava per year
+			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("1585489.599188229325215626"), // 50 million kava per year
 			communityPoolFunds:   sdkmath.NewInt(200000000000),
-			expectedRewardsTotal: sdkmath.NewInt(136986301369), // 25 million / 365 days  - 1 ukava
+			expectedRewardsTotal: sdkmath.NewInt(136986301369), // 50 million / 365 days  - 1 ukava
 
 		},
 		{
@@ -113,10 +111,15 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			periodEnd:            time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
 			blockTimeRangeMin:    5.5,
 			blockTimeRangeMax:    6.5,
-			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("1585489.599188229325215626"), // 25 million kava per year
+			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("1585489.599188229325215626"), // 50 million kava per year
 			communityPoolFunds:   sdkmath.NewInt(200000000000),
-			expectedRewardsTotal: sdkmath.NewInt(136986301369), // 25 million / 365 days  - 1 ukava
+			expectedRewardsTotal: sdkmath.NewInt(136986301369), // 50 million / 365 days  - 1 ukava
 		},
+		//
+		//
+		// Total time span under 1 second
+		//
+		//
 		{
 			name:                 "single 6.9 second time span and 25 million KAVA per year",
 			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -125,7 +128,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			blockTimeRangeMax:    10,
 			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("792744.799594114662607813"), // 25 million kava per year
 			communityPoolFunds:   sdkmath.NewInt(10000000),
-			expectedRewardsTotal: sdkmath.NewInt(5469939), // 50 million KAVA per year
+			expectedRewardsTotal: sdkmath.NewInt(5469939), // per second rate * 6.9
 		},
 		{
 			name:                 "multiple blocks across sub-second time span nd 10 million KAVA per year",
@@ -135,10 +138,15 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			blockTimeRangeMax:    0.2,
 			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("317097.919837645865043125"), // 10 million kava per year
 			communityPoolFunds:   sdkmath.NewInt(300000),
-			expectedRewardsTotal: sdkmath.NewInt(253678),
+			expectedRewardsTotal: sdkmath.NewInt(253678), // per second rate * 0.8
 		},
+		//
+		//
+		// Variations of community pool balance
+		//
+		//
 		{
-			name:                 "community pool exact funds",
+			name:                 "community pool exact funds -- should spend community to zero and not panic",
 			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
 			periodEnd:            time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
 			blockTimeRangeMin:    5.5,
@@ -154,9 +162,39 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			blockTimeRangeMin:    5.5,
 			blockTimeRangeMax:    6.5,
 			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("1585489.599188229325215626"), // 25 million kava per year
-			communityPoolFunds:   sdkmath.NewInt(100000000000),
-			expectedRewardsTotal: sdkmath.NewInt(100000000000), // exact balance of community pool
+			communityPoolFunds:   sdkmath.NewInt(100000000000),                                  // under funded
+			expectedRewardsTotal: sdkmath.NewInt(100000000000),                                  // rewards max is the community pool balance
 		},
+		{
+			name:                 "community pool no funds -- should pay zero rewards and not panic",
+			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+			periodEnd:            time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
+			blockTimeRangeMin:    5.5,
+			blockTimeRangeMax:    6.5,
+			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("792744.799594114662607813"), // 25 million kava per year
+			communityPoolFunds:   sdkmath.NewInt(0),
+			expectedRewardsTotal: sdkmath.NewInt(0),
+		},
+		//
+		//
+		// Disabled
+		//
+		//
+		{
+			name:                 "zero rewards per second results in zero rewards paid",
+			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
+			periodEnd:            time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
+			blockTimeRangeMin:    5.5,
+			blockTimeRangeMax:    6.5,
+			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("0.000000000000000000"), // 25 million kava per year
+			communityPoolFunds:   sdkmath.NewInt(100000000000000),
+			expectedRewardsTotal: sdkmath.NewInt(0),
+		},
+		//
+		//
+		// Test underlying calculations are safe and overflow/underflow bounds are reasonable
+		//
+		//
 		{
 			name:                 "does not overflow with extremely large per second value and extremely large single block durations",
 			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -178,24 +216,14 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			expectedRewardsTotal: sdkmath.NewInt(8640),
 		},
 		{
-			name:                 "a starting community pool balance of zero does not panic with rewards per second set",
+			name:                 "underflow does not happen for any reasonable amount of rewards by ensure down to 1 ukava per year can be accumulated",
 			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
-			periodEnd:            time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
-			blockTimeRangeMin:    5.5,
-			blockTimeRangeMax:    6.5,
-			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("792744.799594114662607813"), // 25 million kava per year
-			communityPoolFunds:   sdkmath.NewInt(0),
-			expectedRewardsTotal: sdkmath.NewInt(0),
-		},
-		{
-			name:                 "zero rewards per second is valid and results in no rewards when community pool is funded",
-			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
-			periodEnd:            time.Date(2023, 1, 2, 0, 0, 0, 0, time.UTC),
-			blockTimeRangeMin:    5.5,
-			blockTimeRangeMax:    6.5,
-			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("0.000000000000000000"), // 25 million kava per year
-			communityPoolFunds:   sdkmath.NewInt(100000000000000),
-			expectedRewardsTotal: sdkmath.NewInt(0),
+			periodEnd:            time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+			blockTimeRangeMin:    60, // large block times speed up this test case
+			blockTimeRangeMax:    120,
+			rewardsPerSecond:     sdkmath.LegacyMustNewDecFromStr("0.000000031709791984"),
+			communityPoolFunds:   sdkmath.NewInt(1),
+			expectedRewardsTotal: sdkmath.NewInt(1),
 		},
 	}
 
@@ -266,6 +294,63 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 		})
 	}
 
+}
+
+func (suite *stakingRewardsTestSuite) TestStakingRewardsDoNotAccumulateWhenPoolIsDrained() {
+	app := suite.App
+	keeper := suite.Keeper
+	accountKeeper := suite.App.GetAccountKeeper()
+	bankKeeper := suite.App.GetBankKeeper()
+
+	// first block
+	blockTime := time.Now()
+	ctx := app.NewContext(true, tmproto.Header{Height: 1, Time: blockTime})
+
+	poolAcc := accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	feeCollectorAcc := accountKeeper.GetModuleAccount(ctx, authtypes.FeeCollectorName)
+
+	// set state to pay staking rewards
+	params, _ := keeper.GetParams(ctx)
+	// we set a decimal amount that ensures after 10 seconds we overspend the community pool
+	// with enough truncation error that we would have an ending balance of 20.000001 if it was
+	// carried over after the pool run out of funds
+	params.StakingRewardsPerSecond = sdkmath.LegacyMustNewDecFromStr("1000000.099999999999999999") // > 1 KAVA per second
+	keeper.SetParams(ctx, params)
+
+	// fund community pool account
+	app.FundAccount(ctx, poolAcc.GetAddress(), sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(10000000)))) // 10 KAVA
+	initialFeeCollectorBalance := bankKeeper.GetBalance(ctx, feeCollectorAcc.GetAddress(), "ukava").Amount
+
+	// run first block (no rewards hapeen on first block)
+	community.BeginBlocker(ctx, keeper)
+
+	// run second block 10 seconds in future and spend all community pool rewards
+	blockTime = blockTime.Add(10 * time.Second)
+	ctx = app.NewContext(true, tmproto.Header{Height: 2, Time: blockTime})
+	community.BeginBlocker(ctx, keeper)
+
+	// run third block 10 seconds in future which no rewards will be paid
+	blockTime = blockTime.Add(10 * time.Second)
+	ctx = app.NewContext(true, tmproto.Header{Height: 3, Time: blockTime})
+	community.BeginBlocker(ctx, keeper)
+
+	// run fourth block 10 seconds in future which no rewards will be paid
+	blockTime = blockTime.Add(10 * time.Second)
+	ctx = app.NewContext(true, tmproto.Header{Height: 4, Time: blockTime})
+	community.BeginBlocker(ctx, keeper)
+
+	// refund the community pool with 100 KAVA -- plenty of funds
+	app.FundAccount(ctx, poolAcc.GetAddress(), sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100000000)))) // 100 KAVA
+
+	// run fifth block 10 seconds in future which no rewards will be paid
+	blockTime = blockTime.Add(10 * time.Second)
+	ctx = app.NewContext(true, tmproto.Header{Height: 5, Time: blockTime})
+	community.BeginBlocker(ctx, keeper)
+
+	// assert that only 20 total KAVA has been distributed in rewards
+	// and blocks where community pool had d
+	rewards := bankKeeper.GetBalance(ctx, feeCollectorAcc.GetAddress(), "ukava").Amount.Sub(initialFeeCollectorBalance)
+	suite.Require().Equal(sdkmath.NewInt(20000000).String(), rewards.String())
 }
 
 func (suite *stakingRewardsTestSuite) TestPanicsOnMissingParameters() {

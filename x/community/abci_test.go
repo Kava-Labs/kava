@@ -14,7 +14,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
-func TestABCIStakingRewardPayoutOnDisableInflationBlock(t *testing.T) {
+func TestABCIStakingRewardsArePaidOutOnUpgradeBlock(t *testing.T) {
 	app.SetSDKConfig()
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates()
