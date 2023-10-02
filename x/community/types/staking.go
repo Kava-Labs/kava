@@ -14,7 +14,7 @@ var (
 	DefaultLastTruncationError = sdkmath.LegacyZeroDec()
 )
 
-// NewStakingRewardsState returns a new params object
+// NewStakingRewardsState returns a new staking rewards state object
 func NewStakingRewardsState(
 	lastAccumulationTime time.Time,
 	lastTruncationError sdkmath.LegacyDec,
