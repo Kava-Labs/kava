@@ -9,6 +9,7 @@ import (
 
 const nanosecondsInOneSecond = int64(1000000000)
 
+// PayoutAccumulatedStakingRewards calculates and transfers taking rewards to the fee collector address
 func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 	// get module parameters which define the amount of rewards to payout per second
 	params := k.mustGetParams(ctx)
