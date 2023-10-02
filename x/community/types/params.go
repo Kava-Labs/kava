@@ -9,10 +9,10 @@ import (
 
 var (
 	DefaultUpgradeTimeDisableInflation = time.Time{}
-	// DefaultStakingRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
+	// DefaultStakingRewardsPerSecond is zero and should be set by genesis or upgrade
 	DefaultStakingRewardsPerSecond = sdkmath.LegacyNewDec(0)
-	// DefaultStakingRewardsPerSecond is ~4.6 KAVA per block, 6.3s block time
-	DefaultUpgradeTimeSetStakingRewardsPerSecond = sdkmath.LegacyNewDec(744191)
+	// DefaultStakingRewardsPerSecond is zero and should be set by genesis or upgrade
+	DefaultUpgradeTimeSetStakingRewardsPerSecond = sdkmath.LegacyNewDec(0)
 )
 
 // NewParams returns a new params object
