@@ -37,20 +37,26 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 ### Features
+
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 - (community) [#1704] Add module params
+- (community) [#1706] Add disable inflation upgrade
 
 ### Bug Fixes
+
 - (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
 
 ## State Machine Breaking
+
 - (community) [#1704] Add param to control when inflation will be disabled
 - (community) [#1707] Default staking rewards per second set to `744191`
+- (community) [#1706] Add disable inflation upgrade to begin blocker that updates x/mint and x/kavadist params.
 
 ## [v0.24.0]
 
 ### Features
+
 - (evmutil) [#1590] & [#1596] Add allow list param of sdk native denoms that can be transferred to evm
 - (evmutil) [#1591] & [#1596] Configure module to support deploying ERC20KavaWrappedCosmosCoin contracts
 - (evmutil) [#1598] Track deployed ERC20 contract addresses for representing cosmos coins in module state
@@ -61,6 +67,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evmutil) [#1610] Add new invariant checking that ERC20s are fully backed by sdk.Coins
 
 ### Client Breaking
+
 - (evmutil) [#1603] Renamed error `ErrConversionNotEnabled` to `ErrEVMConversionNotEnabled`
 - (evmutil) [#1604] Renamed event types
   - `convert_erc20_to_coin` -> `convert_evm_erc20_to_coin`
@@ -72,8 +79,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (cli) [#1624] Removes unused, no-op `migrate` CLI command.
 
 ### Bug Fixes
-- (cli) [#1624] Fix `assert-invariants` CLI command.
 
+- (cli) [#1624] Fix `assert-invariants` CLI command.
 
 ## [v0.23.2]
 
@@ -286,6 +293,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
   large-scale simulations remotely using aws-batch
 
 [#1707]: https://github.com/Kava-Labs/kava/pull/1707
+[#1706]: https://github.com/Kava-Labs/kava/pull/1706
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1655]: https://github.com/Kava-Labs/kava/pull/1655
