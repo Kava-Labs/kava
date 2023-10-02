@@ -216,7 +216,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			expectedRewardsTotal: sdkmath.NewInt(8640),
 		},
 		{
-			name:                 "underflow does not happen for any reasonable amount of rewards by ensure down to 1 ukava per year can be accumulated",
+			name:                 "down to 1 ukava per year can be accumulated -- we are safe from underflow at reasonably small values",
 			periodStart:          time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
 			periodEnd:            time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 			blockTimeRangeMin:    60, // large block times speed up this test case

@@ -158,7 +158,7 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 				// run begin blocker again
 				community.BeginBlocker(suite.Ctx, suite.Keeper)
 
-				// ensure begin blocker is impodent and never runs twice
+				// ensure begin blocker is idempotent and never runs twice
 				validateState(false, time.Time{}, params.StakingRewardsPerSecond, tc.setStakingRewards, "second begin blocker run")
 			}
 		})
