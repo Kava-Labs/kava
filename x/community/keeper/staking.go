@@ -63,7 +63,7 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 
 // calculateStakingRewards takees the currentBlockTime, state of last accumulation, rewards per second, and the community pool balance
 // in order to calculate the total payout since the last accumulation time.  It returns the truncated payout amount and the truncation error.
-func calculateStakingRewards(currentBlockTime, lastAccumulationTime time.Time, lastTruncationError, stakingRewardsPerSecond, communityPoolBalance sdkmath.LegacyDec) (sdk.Int, sdkmath.LegacyDec) {
+func calculateStakingRewards(currentBlockTime, lastAccumulationTime time.Time, lastTruncationError, stakingRewardsPerSecond, communityPoolBalance sdkmath.LegacyDec) (sdkmath.Int, sdkmath.LegacyDec) {
 	// we get the duration since we last accumulated, then use nanoseconds for full precision available
 	durationSinceLastPayout := currentBlockTime.Sub(lastAccumulationTime)
 	nanosecondsSinceLastPayout := sdkmath.LegacyNewDec(durationSinceLastPayout.Nanoseconds())
