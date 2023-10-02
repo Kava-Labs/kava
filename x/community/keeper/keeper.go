@@ -23,6 +23,7 @@ type Keeper struct {
 	moduleAddress  sdk.AccAddress
 	mintKeeper     types.MintKeeper
 	kavadistKeeper types.KavadistKeeper
+	stakingKeeper  types.StakingKeeper
 
 	legacyCommunityPoolAddress sdk.AccAddress
 }
@@ -38,6 +39,7 @@ func NewKeeper(
 	hk types.HardKeeper,
 	mk types.MintKeeper,
 	kk types.KavadistKeeper,
+	sk types.StakingKeeper,
 ) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
@@ -59,6 +61,7 @@ func NewKeeper(
 		hardKeeper:     hk,
 		mintKeeper:     mk,
 		kavadistKeeper: kk,
+		stakingKeeper:  sk,
 		moduleAddress:  addr,
 
 		legacyCommunityPoolAddress: legacyAddr,

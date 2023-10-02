@@ -51,3 +51,8 @@ type KavadistKeeper interface {
 	GetParams(ctx sdk.Context) (params kavadisttypes.Params)
 	SetParams(ctx sdk.Context, params kavadisttypes.Params)
 }
+
+// StakingKeeper expected interface for the staking keeper
+type StakingKeeper interface {
+	BondDenom(ctx sdk.Context) string
+}

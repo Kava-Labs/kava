@@ -27,8 +27,11 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 		return
 	}
 
+	// get the denom for staking
+	stakingRewardDenom := k.stakingKeeper.BondDenom(ctx)
+
 	// we fetch the community pool balance to ensure only accumulate rewards up to the current balance
-	communityPoolBalance := sdkmath.LegacyNewDecFromInt(k.bankKeeper.GetBalance(ctx, k.moduleAddress, "ukava").Amount)
+	communityPoolBalance := sdkmath.LegacyNewDecFromInt(k.bankKeeper.GetBalance(ctx, k.moduleAddress, stakingRewardDenom).Amount)
 
 	// calculate staking reward payout capped to community pool balance
 	truncatedRewards, truncationError := calculateStakingRewards(
@@ -41,7 +44,7 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 
 	// only payout if the truncated rewards are non-zero
 	if !truncatedRewards.IsZero() {
-		transferAmount := sdk.NewCoins(sdk.NewCoin("ukava", truncatedRewards))
+		transferAmount := sdk.NewCoins(sdk.NewCoin(stakingRewardDenom, truncatedRewards))
 
 		if err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleAccountName, authtypes.FeeCollectorName, transferAmount); err != nil {
 			// we check for a valid balance and rewards can never be negative so panic since this will only
