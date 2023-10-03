@@ -258,11 +258,14 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			params.StakingRewardsPerSecond = tc.rewardsPerSecond
 			keeper.SetParams(ctx, params)
 
-			eventCoins := sdk.NewCoins()
+			stakingRewardEvents := sdk.Events{}
 
 			for {
 				// run community begin blocker logic
 				suite.testFunc(ctx, keeper)
+
+				// accumulate event rewards from events
+				stakingRewardEvents = append(stakingRewardEvents, filterStakingRewardEvents(ctx.EventManager().Events())...)
 
 				// exit loop if we are at last block
 				if blockTime.Equal(tc.periodEnd) {
@@ -272,10 +275,6 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 				// create random block duration in nanoseconds
 				randomBlockDurationInSeconds := tc.blockTimeRangeMin + rand.Float64()*(tc.blockTimeRangeMax-tc.blockTimeRangeMin)
 				nextBlockDuration := time.Duration(randomBlockDurationInSeconds * math.Pow10(9))
-
-				// accumulate event rewards from events
-				bockEventCoins := getRewardCoinsFromEvents(ctx.EventManager().Events())
-				eventCoins = eventCoins.Add(bockEventCoins...)
 
 				// move to next block by incrementing height, adding random duration, and settings new context
 				height++
@@ -293,15 +292,19 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			// assert fee pool was payed the correct rewards
 			suite.Equal(tc.expectedRewardsTotal.String(), feeCollectorBalanceAdded.String(), "expected fee collector balance to match")
 
-			bockEventCoins := getRewardCoinsFromEvents(ctx.EventManager().Events())
-			eventCoins = eventCoins.Add(bockEventCoins...)
+			if tc.expectedRewardsTotal.IsZero() {
+				suite.Equal(0, len(stakingRewardEvents), "expected no events to be emitted")
+			} else {
+				// we add up all reward coin events
+				eventCoins := getRewardCoinsFromEvents(stakingRewardEvents)
 
-			// assert events emitted match expected rewards
-			suite.Equal(
-				tc.expectedRewardsTotal.String(),
-				eventCoins.AmountOf("ukava").String(),
-				"expected event coins to match",
-			)
+				// assert events emitted match expected rewards
+				suite.Equal(
+					tc.expectedRewardsTotal.String(),
+					eventCoins.AmountOf("ukava").String(),
+					"expected event coins to match",
+				)
+			}
 
 			// assert the community pool deducted the same amount
 			expectedCommunityPoolBalance := tc.communityPoolFunds.Sub(tc.expectedRewardsTotal)
@@ -390,7 +393,19 @@ func newIntFromString(str string) sdkmath.Int {
 	return num
 }
 
+func filterStakingRewardEvents(events sdk.Events) (rewardEvents sdk.Events) {
+	for _, event := range events {
+		if event.Type == types.EventTypeStakingRewardsPaid {
+			rewardEvents = append(rewardEvents, event)
+		}
+	}
+
+	return
+}
+
 func getRewardCoinsFromEvents(events sdk.Events) sdk.Coins {
+	coins := sdk.NewCoins()
+
 	for _, event := range events {
 		if event.Type == types.EventTypeStakingRewardsPaid {
 			rewards, err := sdk.ParseCoinNormalized(string(event.Attributes[0].Value))
@@ -398,9 +413,9 @@ func getRewardCoinsFromEvents(events sdk.Events) sdk.Coins {
 				panic(err)
 			}
 
-			return sdk.NewCoins(rewards)
+			coins = coins.Add(rewards)
 		}
 	}
 
-	return sdk.NewCoins()
+	return coins
 }

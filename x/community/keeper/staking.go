@@ -52,13 +52,14 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 			panic(err)
 		}
 
-		// emit event
+		// emit event with amount transferred
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeStakingRewardsPaid,
 				sdk.NewAttribute(types.AttributeKeyStakingRewardAmount, transferAmount.String()),
 			),
 		)
+
 	}
 
 	// update accumulation state
