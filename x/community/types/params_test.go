@@ -25,34 +25,65 @@ var paramTestCases = []paramTestCase{
 	{
 		name: "valid params",
 		params: types.Params{
-			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(1000),
+			UpgradeTimeDisableInflation:           time.Time{},
+			StakingRewardsPerSecond:               sdkmath.LegacyNewDec(1000),
+			UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyNewDec(1000),
 		},
 		expectedErr: "",
 	},
 	{
 		name: "rewards per second are allowed to be zero",
 		params: types.Params{
-			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(0),
+			UpgradeTimeDisableInflation:           time.Time{},
+			StakingRewardsPerSecond:               sdkmath.LegacyNewDec(0),
+			UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyNewDec(1000),
 		},
 		expectedErr: "",
 	},
 	{
 		name: "nil rewards per second",
 		params: types.Params{
-			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.LegacyDec{},
+			UpgradeTimeDisableInflation:           time.Time{},
+			StakingRewardsPerSecond:               sdkmath.LegacyDec{},
+			UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyNewDec(1000),
 		},
 		expectedErr: "StakingRewardsPerSecond should not be nil",
 	},
 	{
 		name: "negative rewards per second",
 		params: types.Params{
-			UpgradeTimeDisableInflation: time.Time{},
-			StakingRewardsPerSecond:     sdkmath.LegacyNewDec(-5),
+			UpgradeTimeDisableInflation:           time.Time{},
+			StakingRewardsPerSecond:               sdkmath.LegacyNewDec(-5),
+			UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyNewDec(1000),
 		},
 		expectedErr: "StakingRewardsPerSecond should not be negative",
+	},
+	{
+		name: "upgrade time set rewards per second are allowed to be zero",
+		params: types.Params{
+			UpgradeTimeDisableInflation:           time.Time{},
+			StakingRewardsPerSecond:               sdkmath.LegacyNewDec(1000),
+			UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyNewDec(0),
+		},
+		expectedErr: "",
+	},
+	{
+		name: "nil upgrade time set rewards per second",
+		params: types.Params{
+			UpgradeTimeDisableInflation:           time.Time{},
+			StakingRewardsPerSecond:               sdkmath.LegacyNewDec(1000),
+			UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyDec{},
+		},
+		expectedErr: "UpgradeTimeSetStakingRewardsPerSecond should not be nil",
+	},
+	{
+		name: "upgrade time  set negative rewards per second",
+		params: types.Params{
+			UpgradeTimeDisableInflation:           time.Time{},
+			StakingRewardsPerSecond:               sdkmath.LegacyNewDec(1000),
+			UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyNewDec(-5),
+		},
+		expectedErr: "UpgradeTimeSetStakingRewardsPerSecond should not be negative",
 	},
 }
 

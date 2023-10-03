@@ -9,6 +9,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/keeper"
@@ -64,7 +65,7 @@ func (suite *disableInflationTestSuite) SetupTest() {
 }
 
 func (suite *disableInflationTestSuite) TestDisableInflation() {
-	validateState := func(upgraded bool, expectedDisableTime time.Time, msg string) {
+	validateState := func(upgraded bool, expectedDisableTime time.Time, originalStakingRewards sdkmath.LegacyDec, setStakingRewards sdkmath.LegacyDec, msg string) {
 		params, found := suite.Keeper.GetParams(suite.Ctx)
 		suite.Require().True(found)
 		mintParams := suite.App.GetMintKeeper().GetParams(suite.Ctx)
@@ -73,6 +74,7 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 		disableTimeMsg := "expected inflation disable time to match"
 		expectedMintState := suite.genesisMintState
 		expectedKavadistState := suite.genesisKavadistState
+		expectedStakingRewards := originalStakingRewards
 		msgSuffix := "before upgrade"
 
 		// The state expected after upgrade time is reached
@@ -84,6 +86,7 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			// without extra logic or state.
 			expectedDisableTime = time.Time{}
 			disableTimeMsg = "expected inflation disable time to be reset"
+			expectedStakingRewards = setStakingRewards
 
 			expectedMintState.Params.InflationMin = sdk.ZeroDec()
 			expectedMintState.Params.InflationMax = sdk.ZeroDec()
@@ -96,37 +99,49 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 		suite.Require().Equal(expectedMintState.Params.InflationMax, mintParams.InflationMax, msg+": expected mint inflation max to match state "+msgSuffix)
 		suite.Require().Equal(expectedKavadistState.Params.Active, kavadistParams.Active, msg+":expected kavadist active flag match state "+msgSuffix)
 		suite.Require().Equal(expectedDisableTime, params.UpgradeTimeDisableInflation, msg+": "+disableTimeMsg)
+
+		// we always check staking rewards per second matches the passed in expectation
+		suite.Require().Equal(expectedStakingRewards, params.StakingRewardsPerSecond, msg+": "+"staking rewards per second to match "+msgSuffix)
+		// we don't modify or zero out the initial rewards per second for upgrade time
+		suite.Require().Equal(setStakingRewards, params.UpgradeTimeSetStakingRewardsPerSecond, msg+": "+"set staking rewards per second to match "+msgSuffix)
 	}
 
 	blockTime := suite.Ctx.BlockTime()
 	testCases := []struct {
-		name          string
-		upgradeTime   time.Time
-		shouldUpgrade bool
+		name              string
+		upgradeTime       time.Time
+		setStakingRewards sdkmath.LegacyDec
+		shouldUpgrade     bool
 	}{
-		{"zero upgrade time -- should not upgrade", time.Time{}, false},
-		{"upgrade time in future -- should not upgrade", blockTime.Add(1 * time.Second), false},
-		{"upgrade time in past -- should upgrade", blockTime.Add(-1 * time.Second), true},
-		{"upgrade time equal to block time -- should upgrade", blockTime, true},
+		{"zero upgrade time -- should not upgrade", time.Time{}, sdkmath.LegacyNewDec(1001), false},
+		{"upgrade time in future -- should not upgrade", blockTime.Add(1 * time.Second), sdkmath.LegacyNewDec(1002), false},
+		{"upgrade time in past -- should upgrade", blockTime.Add(-1 * time.Second), sdkmath.LegacyNewDec(1003), true},
+		{"upgrade time equal to block time -- should upgrade", blockTime, sdkmath.LegacyNewDec(1004), true},
 	}
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
-			// ensure state is as we expect before running upgrade or updating time
-			validateState(false, time.Time{}, "initial state")
-
-			// set inflation disable time
 			params, found := suite.Keeper.GetParams(suite.Ctx)
 			suite.Require().True(found)
+
+			// these should not match in order to assure assertions test correct behavior
+			suite.Require().NotEqual(params.StakingRewardsPerSecond, tc.setStakingRewards, "set staking rewards can not match initial staking rewards")
+
+			// ensure state is as we expect before running upgrade or updating time
+			validateState(false, time.Time{}, params.StakingRewardsPerSecond, params.UpgradeTimeSetStakingRewardsPerSecond, "initial state")
+
+			// set inflation disable time
 			params.UpgradeTimeDisableInflation = tc.upgradeTime
+			// set upgrade time set staking rewards per second
+			params.UpgradeTimeSetStakingRewardsPerSecond = tc.setStakingRewards
 			suite.Keeper.SetParams(suite.Ctx, params)
 
 			// run test function
 			suite.testFunc(suite.Ctx, suite.Keeper)
 
 			// run assertions to ensure upgrade did or did not run
-			validateState(tc.shouldUpgrade, tc.upgradeTime, "first begin blocker run")
+			validateState(tc.shouldUpgrade, tc.upgradeTime, params.StakingRewardsPerSecond, tc.setStakingRewards, "first begin blocker run")
 
 			// test idempotence only if upgrade should have been ran
 			if tc.shouldUpgrade {
@@ -134,11 +149,17 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 				suite.App.GetMintKeeper().SetParams(suite.Ctx, suite.genesisMintState.Params)
 				suite.App.GetKavadistKeeper().SetParams(suite.Ctx, suite.genesisKavadistState.Params)
 
+				// modify staking rewards per second to ensure they are not overridden again
+				params, found := suite.Keeper.GetParams(suite.Ctx)
+				suite.Require().True(found)
+				params.StakingRewardsPerSecond = params.StakingRewardsPerSecond.Add(sdkmath.LegacyOneDec())
+				suite.Keeper.SetParams(suite.Ctx, params)
+
 				// run begin blocker again
 				community.BeginBlocker(suite.Ctx, suite.Keeper)
 
-				// ensure begin blocker is impodent and never runs twice
-				validateState(false, time.Time{}, "second begin blocker run")
+				// ensure begin blocker is idempotent and never runs twice
+				validateState(false, time.Time{}, params.StakingRewardsPerSecond, tc.setStakingRewards, "second begin blocker run")
 			}
 		})
 	}

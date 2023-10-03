@@ -184,6 +184,9 @@
 - [kava/community/v1beta1/params.proto](#kava/community/v1beta1/params.proto)
     - [Params](#kava.community.v1beta1.Params)
   
+- [kava/community/v1beta1/staking.proto](#kava/community/v1beta1/staking.proto)
+    - [StakingRewardsState](#kava.community.v1beta1.StakingRewardsState)
+  
 - [kava/community/v1beta1/genesis.proto](#kava/community/v1beta1/genesis.proto)
     - [GenesisState](#kava.community.v1beta1.GenesisState)
   
@@ -2907,6 +2910,39 @@ Params defines the parameters of the community module.
 | ----- | ---- | ----- | ----------- |
 | `upgrade_time_disable_inflation` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | upgrade_time_disable_inflation is the time at which to disable mint and kavadist module inflation. If set to 0, inflation will be disabled from block 1. |
 | `staking_rewards_per_second` | [string](#string) |  | staking_rewards_per_second is the amount paid out to delegators each block from the community account |
+| `upgrade_time_set_staking_rewards_per_second` | [string](#string) |  | upgrade_time_set_staking_rewards_per_second is the initial staking_rewards_per_second to set and use when the disable inflation time is reached |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/community/v1beta1/staking.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/community/v1beta1/staking.proto
+
+
+
+<a name="kava.community.v1beta1.StakingRewardsState"></a>
+
+### StakingRewardsState
+StakingRewardsState represents the state of staking reward accumulation between blocks.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `last_accumulation_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | last_accumulation_time represents the last block time which rewards where calculated and distributed. This may be zero to signal accumulation should start on the next interval. |
+| `last_truncation_error` | [string](#string) |  | accumulated_truncation_error represents the sum of previous errors due to truncation on payout This value will always be on the interval [0, 1). |
 
 
 
@@ -2938,6 +2974,7 @@ GenesisState defines the community module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the paramaters related to commmunity |
+| `staking_rewards_state` | [StakingRewardsState](#kava.community.v1beta1.StakingRewardsState) |  | StakingRewardsState stores the internal staking reward data required to track staking rewards across blocks |
 
 
 

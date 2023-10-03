@@ -1317,7 +1317,12 @@
     "community": {
       "params": {
         "upgrade_time_disable_inflation": "2023-11-01T00:00:00Z",
-        "staking_rewards_per_second": "744191"
+        "upgrade_time_set_staking_rewards_per_second": "744191",
+        "staking_rewards_per_second": "0"
+      },
+      "staking_rewards_state": {
+        "last_accumulation_time": "0001-01-01T00:00:00Z",
+        "last_truncation_error": "0"
       }
     },
     "crisis": {

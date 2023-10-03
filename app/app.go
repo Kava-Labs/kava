@@ -666,6 +666,7 @@ func NewApp(
 		&hardKeeper,
 		&app.mintKeeper,
 		&app.kavadistKeeper,
+		app.stakingKeeper,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(

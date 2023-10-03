@@ -18,6 +18,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, ak types.AccountKeeper, gs ty
 	}
 
 	k.SetParams(ctx, gs.Params)
+	k.SetStakingRewardsState(ctx, gs.StakingRewardsState)
 }
 
 // ExportGenesis exports the store to a genesis state
@@ -27,5 +28,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		params = types.Params{}
 	}
 
-	return types.NewGenesisState(params)
+	stakingRewardsState := k.GetStakingRewardsState(ctx)
+
+	return types.NewGenesisState(params, stakingRewardsState)
 }
