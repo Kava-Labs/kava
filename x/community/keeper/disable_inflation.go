@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/community/types"
 )
 
 // CheckAndDisableMintAndKavaDistInflation compares the disable inflation time and block time,
@@ -27,6 +28,11 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 	params.StakingRewardsPerSecond = params.UpgradeTimeSetStakingRewardsPerSecond
 	k.SetParams(ctx, params)
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeInflationStop,
+		),
+	)
 }
 
 // TODO: double check this is correct method for disabling inflation in kavadist without

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"testing"
 	"time"
 
@@ -535,4 +536,32 @@ func NewFundedGenStateWithSameCoinsWithModuleAccount(cdc codec.JSONCodec, coins 
 	builder.WithSimpleModuleAccount(modAcc.Address, nil)
 
 	return builder.BuildMarshalled(cdc)
+}
+
+// EventsContains returns an error if the expected event is not in the provided events
+func EventsContains(events sdk.Events, expectedEvent sdk.Event) error {
+	foundMatch := false
+	for _, event := range events {
+		if event.Type == expectedEvent.Type {
+			if reflect.DeepEqual(attrsToMap(expectedEvent.Attributes), attrsToMap(event.Attributes)) {
+				foundMatch = true
+			}
+		}
+	}
+
+	if !foundMatch {
+		return fmt.Errorf("event of type %s not found or did not match", expectedEvent.Type)
+	}
+
+	return nil
+}
+
+func attrsToMap(attrs []abci.EventAttribute) []sdk.Attribute { // new cosmos changed the event attribute type
+	out := []sdk.Attribute{}
+
+	for _, attr := range attrs {
+		out = append(out, sdk.NewAttribute(string(attr.Key), string(attr.Value)))
+	}
+
+	return out
 }
