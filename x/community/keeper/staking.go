@@ -51,6 +51,14 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 			// occur in cases where the chain is running in an invalid state
 			panic(err)
 		}
+
+		// emit event
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypeStakingRewardsPaid,
+				sdk.NewAttribute(types.AttributeKeyStakingRewardAmount, sdk.NewCoin(stakingRewardDenom, truncatedRewards).String()),
+			),
+		)
 	}
 
 	// update accumulation state
@@ -60,14 +68,6 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 
 	// save state
 	k.SetStakingRewardsState(ctx, state)
-
-	// emit event
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeStakingRewardsPaid,
-			sdk.NewAttribute(types.AttributeKeyStakingRewardAmount, sdk.NewCoin(stakingRewardDenom, truncatedRewards).String()),
-		),
-	)
 }
 
 // calculateStakingRewards takees the currentBlockTime, state of last accumulation, rewards per second, and the community pool balance

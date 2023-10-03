@@ -274,7 +274,8 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 				nextBlockDuration := time.Duration(randomBlockDurationInSeconds * math.Pow10(9))
 
 				// accumulate event rewards from events
-				eventCoins = eventCoins.Add(getRewardCoinsFromEvents(ctx.EventManager().Events())...)
+				bockEventCoins := getRewardCoinsFromEvents(ctx.EventManager().Events())
+				eventCoins = eventCoins.Add(bockEventCoins...)
 
 				// move to next block by incrementing height, adding random duration, and settings new context
 				height++
@@ -292,7 +293,8 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			// assert fee pool was payed the correct rewards
 			suite.Equal(tc.expectedRewardsTotal.String(), feeCollectorBalanceAdded.String(), "expected fee collector balance to match")
 
-			eventCoins = eventCoins.Add(getRewardCoinsFromEvents(ctx.EventManager().Events())...)
+			bockEventCoins := getRewardCoinsFromEvents(ctx.EventManager().Events())
+			eventCoins = eventCoins.Add(bockEventCoins...)
 
 			// assert events emitted match expected rewards
 			suite.Equal(
@@ -395,6 +397,7 @@ func getRewardCoinsFromEvents(events sdk.Events) sdk.Coins {
 			if err != nil {
 				panic(err)
 			}
+
 			return sdk.NewCoins(rewards)
 		}
 	}
