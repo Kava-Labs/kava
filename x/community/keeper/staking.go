@@ -56,7 +56,7 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeStakingRewardsPaid,
-				sdk.NewAttribute(types.AttributeKeyStakingRewardAmount, sdk.NewCoin(stakingRewardDenom, truncatedRewards).String()),
+				sdk.NewAttribute(types.AttributeKeyStakingRewardAmount, transferAmount.String()),
 			),
 		)
 	}
