@@ -61,7 +61,13 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 	// save state
 	k.SetStakingRewardsState(ctx, state)
 
-	return
+	// emit event
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeStakingRewardsPaid,
+			sdk.NewAttribute(types.AttributeKeyStakingRewardAmount, sdk.NewCoin(stakingRewardDenom, truncatedRewards).String()),
+		),
+	)
 }
 
 // calculateStakingRewards takees the currentBlockTime, state of last accumulation, rewards per second, and the community pool balance

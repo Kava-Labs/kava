@@ -258,6 +258,8 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			params.StakingRewardsPerSecond = tc.rewardsPerSecond
 			keeper.SetParams(ctx, params)
 
+			eventCoins := sdk.NewCoins()
+
 			for {
 				// run community begin blocker logic
 				suite.testFunc(ctx, keeper)
@@ -270,6 +272,9 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 				// create random block duration in nanoseconds
 				randomBlockDurationInSeconds := tc.blockTimeRangeMin + rand.Float64()*(tc.blockTimeRangeMax-tc.blockTimeRangeMin)
 				nextBlockDuration := time.Duration(randomBlockDurationInSeconds * math.Pow10(9))
+
+				// accumulate event rewards from events
+				eventCoins = eventCoins.Add(getRewardCoinsFromEvents(ctx.EventManager().Events())...)
 
 				// move to next block by incrementing height, adding random duration, and settings new context
 				height++
@@ -286,6 +291,15 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 
 			// assert fee pool was payed the correct rewards
 			suite.Equal(tc.expectedRewardsTotal.String(), feeCollectorBalanceAdded.String(), "expected fee collector balance to match")
+
+			eventCoins = eventCoins.Add(getRewardCoinsFromEvents(ctx.EventManager().Events())...)
+
+			// assert events emitted match expected rewards
+			suite.Equal(
+				tc.expectedRewardsTotal.String(),
+				eventCoins.AmountOf("ukava").String(),
+				"expected event coins to match",
+			)
 
 			// assert the community pool deducted the same amount
 			expectedCommunityPoolBalance := tc.communityPoolFunds.Sub(tc.expectedRewardsTotal)
@@ -372,4 +386,18 @@ func newIntFromString(str string) sdkmath.Int {
 		panic(fmt.Sprintf("overflow creating Int from %s", str))
 	}
 	return num
+}
+
+func getRewardCoinsFromEvents(events sdk.Events) sdk.Coins {
+	for _, event := range events {
+		if event.Type == types.EventTypeStakingRewardsPaid {
+			rewards, err := sdk.ParseCoinNormalized(string(event.Attributes[0].Value))
+			if err != nil {
+				panic(err)
+			}
+			return sdk.NewCoins(rewards)
+		}
+	}
+
+	return sdk.NewCoins()
 }
