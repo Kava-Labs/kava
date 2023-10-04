@@ -209,6 +209,8 @@
 - [kava/community/v1beta1/tx.proto](#kava/community/v1beta1/tx.proto)
     - [MsgFundCommunityPool](#kava.community.v1beta1.MsgFundCommunityPool)
     - [MsgFundCommunityPoolResponse](#kava.community.v1beta1.MsgFundCommunityPoolResponse)
+    - [MsgUpdateParams](#kava.community.v1beta1.MsgUpdateParams)
+    - [MsgUpdateParamsResponse](#kava.community.v1beta1.MsgUpdateParamsResponse)
   
     - [Msg](#kava.community.v1beta1.Msg)
   
@@ -3214,6 +3216,36 @@ MsgFundCommunityPoolResponse defines the Msg/FundCommunityPool response type.
 
 
 
+
+<a name="kava.community.v1beta1.MsgUpdateParams"></a>
+
+### MsgUpdateParams
+MsgUpdateParams is the Msg/UpdateParams request type.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address that controls the module (defaults to x/gov unless overwritten). |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines the community parameters to update.
+
+NOTE: All parameters must be supplied.
+
+TODO |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.MsgUpdateParamsResponse"></a>
+
+### MsgUpdateParamsResponse
+MsgUpdateParamsResponse defines the response structure for executing a MsgUpdateParams message.
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -3229,6 +3261,7 @@ Msg defines the community Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `FundCommunityPool` | [MsgFundCommunityPool](#kava.community.v1beta1.MsgFundCommunityPool) | [MsgFundCommunityPoolResponse](#kava.community.v1beta1.MsgFundCommunityPoolResponse) | FundCommunityPool defines a method to allow an account to directly fund the community module account. | |
+| `UpdateParams` | [MsgUpdateParams](#kava.community.v1beta1.MsgUpdateParams) | [MsgUpdateParamsResponse](#kava.community.v1beta1.MsgUpdateParamsResponse) | UpdateParams defines a method to update the params of the community module. | |
 
  <!-- end services -->
 
