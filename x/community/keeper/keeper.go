@@ -26,6 +26,7 @@ type Keeper struct {
 	stakingKeeper  types.StakingKeeper
 
 	legacyCommunityPoolAddress sdk.AccAddress
+	authority                  sdk.AccAddress
 }
 
 // NewKeeper creates a new community Keeper instance
@@ -40,6 +41,7 @@ func NewKeeper(
 	mk types.MintKeeper,
 	kk types.KavadistKeeper,
 	sk types.StakingKeeper,
+	authority sdk.AccAddress,
 ) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
@@ -65,6 +67,7 @@ func NewKeeper(
 		moduleAddress:  addr,
 
 		legacyCommunityPoolAddress: legacyAddr,
+		authority:                  authority,
 	}
 }
 

@@ -2,9 +2,13 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
@@ -107,6 +111,74 @@ func (suite *msgServerTestSuite) TestMsgFundCommunityPool() {
 
 			balance := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
 			suite.App.CheckBalance(suite.T(), suite.Ctx, suite.communityPool, balance)
+		})
+	}
+}
+
+func (suite *msgServerTestSuite) TestMsgUpdateParams() {
+	testCases := []struct {
+		name        string
+		setup       func() *types.MsgUpdateParams
+		expectedErr error
+	}{
+		{
+			name: "new params overwrite existing",
+			setup: func() *types.MsgUpdateParams {
+				newParams := types.DefaultParams()
+				newParams.UpgradeTimeDisableInflation = time.Date(2050, 1, 1, 0, 0, 0, 0, time.UTC)
+				return &types.MsgUpdateParams{
+					Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+					Params:    newParams,
+				}
+			},
+		},
+		{
+			name: "msg with invalid authority is rejected",
+			setup: func() *types.MsgUpdateParams {
+				return &types.MsgUpdateParams{
+					Authority: authtypes.NewModuleAddress("not gov").String(),
+					Params: types.Params{
+						UpgradeTimeDisableInflation: time.Date(2050, 1, 1, 0, 0, 0, 0, time.UTC),
+					},
+				}
+			},
+			expectedErr: sdkerrors.ErrUnauthorized,
+		},
+		{
+			name: "msg with invalid params is rejected",
+			setup: func() *types.MsgUpdateParams {
+				return &types.MsgUpdateParams{
+					Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+					Params: types.Params{
+						UpgradeTimeDisableInflation:           time.Time{},
+						StakingRewardsPerSecond:               sdkmath.LegacyNewDec(-5), // invalid
+						UpgradeTimeSetStakingRewardsPerSecond: sdkmath.LegacyNewDec(1000),
+					},
+				}
+			},
+			expectedErr: types.ErrInvalidParams,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			msg := tc.setup()
+
+			oldParams, found := suite.Keeper.GetParams(suite.Ctx)
+			suite.Require().True(found)
+			_, err := suite.msgServer.UpdateParams(sdk.WrapSDKContext(suite.Ctx), msg)
+			newParams, found := suite.Keeper.GetParams(suite.Ctx)
+			suite.Require().True(found)
+
+			if tc.expectedErr == nil {
+				suite.NoError(err)
+				suite.Equal(msg.Params, newParams)
+			} else {
+				suite.ErrorIs(err, tc.expectedErr)
+				suite.Equal(oldParams, newParams)
+			}
 		})
 	}
 }

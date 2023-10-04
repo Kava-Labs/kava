@@ -667,6 +667,7 @@ func NewApp(
 		&app.mintKeeper,
 		&app.kavadistKeeper,
 		app.stakingKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName),
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(

@@ -3,7 +3,9 @@ package keeper
 import (
 	"context"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/kava-labs/kava/x/community/types"
 )
@@ -46,4 +48,19 @@ func (s msgServer) FundCommunityPool(goCtx context.Context, msg *types.MsgFundCo
 	)
 
 	return &types.MsgFundCommunityPoolResponse{}, nil
+}
+
+// UpdateParams overwrites the module params provided the msg is authorized.
+func (s msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if s.keeper.authority.String() != msg.Authority {
+		return nil, errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "invalid authority; expected %s, got %s", s.keeper.authority, msg.Authority)
+	}
+	if err := msg.Params.Validate(); err != nil {
+		return nil, errorsmod.Wrap(types.ErrInvalidParams, err.Error())
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	s.keeper.SetParams(ctx, msg.Params)
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }
