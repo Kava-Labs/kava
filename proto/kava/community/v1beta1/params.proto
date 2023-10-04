@@ -9,6 +9,8 @@ option go_package = "github.com/kava-labs/kava/x/community/types";
 
 // Params defines the parameters of the community module.
 message Params {
+  option (gogoproto.equal) = true;
+
   // upgrade_time_disable_inflation is the time at which to disable mint and kavadist module inflation.
   // If set to 0, inflation will be disabled from block 1.
   google.protobuf.Timestamp upgrade_time_disable_inflation = 1 [

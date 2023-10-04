@@ -74,6 +74,47 @@ func TestFundCommunityPool_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
+	testCases := []struct {
+		name       string
+		shouldPass bool
+		message    types.MsgUpdateParams
+	}{
+		{
+			name:       "valid message",
+			shouldPass: true,
+			message:    types.NewMsgUpdateParams(app.RandomAddress(), types.DefaultParams()),
+		},
+		{
+			name:       "invalid - bad authority",
+			shouldPass: false,
+			message: types.MsgUpdateParams{
+				Authority: "not-an-address",
+				Params:    types.DefaultParams(),
+			},
+		},
+		{
+			name:       "invalid - invalid params",
+			shouldPass: false,
+			message: types.MsgUpdateParams{
+				Authority: app.RandomAddress().String(),
+				Params:    types.Params{},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.message.ValidateBasic()
+			if tc.shouldPass {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+}
+
 func TestFundCommunityPool_GetSigners(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		address := app.RandomAddress()
@@ -88,6 +129,25 @@ func TestFundCommunityPool_GetSigners(t *testing.T) {
 		require.Panics(t, func() {
 			types.MsgFundCommunityPool{
 				Depositor: "not-an-address",
+			}.GetSigners()
+		})
+	})
+}
+
+func TestMsgUpdateParams_GetSigners(t *testing.T) {
+	t.Run("valid", func(t *testing.T) {
+		address := app.RandomAddress()
+		signers := types.MsgUpdateParams{
+			Authority: address.String(),
+		}.GetSigners()
+		require.Len(t, signers, 1)
+		require.Equal(t, address, signers[0])
+	})
+
+	t.Run("panics when depositor is invalid", func(t *testing.T) {
+		require.Panics(t, func() {
+			types.MsgUpdateParams{
+				Authority: "not-an-address",
 			}.GetSigners()
 		})
 	})
