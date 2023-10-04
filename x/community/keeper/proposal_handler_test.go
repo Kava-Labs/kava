@@ -28,9 +28,11 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func ukava(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("ukava", amt))
 }
+
 func usdx(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("usdx", amt))
 }
+
 func otherdenom(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("other-denom", amt))
 }
@@ -74,7 +76,7 @@ func (suite *proposalTestSuite) SetupTest() {
 		UpgradeTimeDisableInflation: time.Now().Add(100000 * time.Hour),
 		StakingRewardsPerSecond:     sdkmath.LegacyNewDec(0),
 	}
-	communityGs := types.NewGenesisState(params)
+	communityGs := types.NewGenesisState(params, types.DefaultStakingRewardsState())
 
 	tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		genTime, chainID,
