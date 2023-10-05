@@ -57,11 +57,11 @@ func (s msgServer) UpdateParams(
 ) (*types.MsgUpdateParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if s.keeper.authority.String() != msg.Authority {
+	if s.keeper.GetAuthority().String() != msg.Authority {
 		return nil, errors.Wrapf(
 			govtypes.ErrInvalidSigner,
 			"invalid authority; expected %s, got %s",
-			s.keeper.authority,
+			s.keeper.GetAuthority(),
 			msg.Authority,
 		)
 	}
