@@ -67,7 +67,7 @@ func (s msgServer) UpdateParams(
 	}
 
 	if err := msg.Params.Validate(); err != nil {
-		return nil, err
+		return nil, errors.Wrap(types.ErrInvalidParams, err.Error())
 	}
 
 	s.keeper.SetParams(ctx, msg.Params)

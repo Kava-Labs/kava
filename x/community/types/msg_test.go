@@ -7,6 +7,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/community/types"
 )
@@ -76,40 +77,48 @@ func TestFundCommunityPool_ValidateBasic(t *testing.T) {
 
 func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 	testCases := []struct {
-		name       string
-		shouldPass bool
-		message    types.MsgUpdateParams
+		name        string
+		message     types.MsgUpdateParams
+		expectedErr error
 	}{
 		{
-			name:       "valid message",
-			shouldPass: true,
-			message:    types.NewMsgUpdateParams(app.RandomAddress(), types.DefaultParams()),
+			name:        "valid message",
+			message:     types.NewMsgUpdateParams(app.RandomAddress(), types.DefaultParams()),
+			expectedErr: nil,
 		},
 		{
-			name:       "invalid - bad authority",
-			shouldPass: false,
+			name: "invalid - bad authority",
 			message: types.MsgUpdateParams{
 				Authority: "not-an-address",
 				Params:    types.DefaultParams(),
 			},
+			expectedErr: sdkerrors.ErrInvalidAddress,
 		},
 		{
-			name:       "invalid - invalid params",
-			shouldPass: false,
+			name: "invalid - empty authority",
+			message: types.MsgUpdateParams{
+				Authority: "",
+				Params:    types.DefaultParams(),
+			},
+			expectedErr: sdkerrors.ErrInvalidAddress,
+		},
+		{
+			name: "invalid - invalid params",
 			message: types.MsgUpdateParams{
 				Authority: app.RandomAddress().String(),
 				Params:    types.Params{},
 			},
+			expectedErr: types.ErrInvalidParams,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := tc.message.ValidateBasic()
-			if tc.shouldPass {
+			if tc.expectedErr == nil {
 				require.NoError(t, err)
 			} else {
-				require.Error(t, err)
+				require.ErrorIs(t, err, tc.expectedErr)
 			}
 		})
 	}

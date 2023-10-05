@@ -79,7 +79,11 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	return msg.Params.Validate()
+	if err := msg.Params.Validate(); err != nil {
+		return errorsmod.Wrap(ErrInvalidParams, err.Error())
+	}
+
+	return nil
 }
 
 // GetSignBytes gets the canonical byte representation of the Msg.
