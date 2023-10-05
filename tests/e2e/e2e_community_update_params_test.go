@@ -59,8 +59,6 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	)
 	suite.Require().NoError(err)
 
-	suite.T().Logf("initial params: %v", communityParamsResInitial.Params)
-
 	// setup kava account
 	// .1 KAVA + min deposit amount for proposal
 	funds := sdk.NewCoins(ukava(1e5)).Add(govParamsRes.DepositParams.MinDeposit...)
@@ -71,6 +69,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 
 	upgradeTime := time.Now().Add(24 * time.Hour).UTC()
 
+	// 1. Proposal
 	updateParamsMsg := communitytypes.NewMsgUpdateParams(
 		authtypes.NewModuleAddress(govtypes.ModuleName), // authority
 		communitytypes.NewParams(
@@ -78,6 +77,13 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 			sdkmath.LegacyNewDec(1111), // stakingRewardsPerSecond
 			sdkmath.LegacyNewDec(2222), // upgradeTimeSetstakingRewardsPerSecond
 		),
+	)
+
+	// Make sure we're actually changing the params
+	suite.NotEqual(
+		updateParamsMsg.Params,
+		communityParamsResInitial.Params,
+		"new params should be different from existing",
 	)
 
 	proposalMsg, err := govv1.NewMsgSubmitProposal(
@@ -88,7 +94,6 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	)
 	suite.NoError(err)
 
-	// ACT
 	req := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{proposalMsg},
 		GasLimit:  uint64(gasLimit),
@@ -106,7 +111,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	var govRes govv1.MsgSubmitProposalResponse
 	suite.decodeTxMsgResponse(txRes, &govRes)
 
-	// Vote for proposal from whale account
+	// 2. Vote for proposal from whale account
 	whale := suite.Kava.GetAccount(testutil.FundedAccountName)
 	voteMsg := govv1.NewMsgVote(
 		whale.SdkAddress,
@@ -127,16 +132,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, voteRes.Result.TxHash, 6*time.Second)
 	suite.Require().NoError(err)
 
-	// Fetch proposal
-	proposalRes, err := suite.Kava.Gov.Proposal(context.Background(), &govv1.QueryProposalRequest{
-		ProposalId: govRes.ProposalId,
-	})
-	suite.NoError(err)
-
-	suite.T().Logf("proposal status: %v", proposalRes.Proposal.Status)
-	suite.T().Logf("proposal ending: %v", proposalRes.Proposal.VotingEndTime)
-
-	// Wait until proposal passes
+	// 3. Wait until proposal passes
 	suite.Require().Eventually(func() bool {
 		proposalRes, err := suite.Kava.Gov.Proposal(context.Background(), &govv1.QueryProposalRequest{
 			ProposalId: govRes.ProposalId,
@@ -154,8 +150,6 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	suite.Require().NoError(err)
 
 	suite.Equal(updateParamsMsg.Params, communityParamsRes.Params)
-
-	suite.T().Logf("new params: %v", communityParamsRes.Params)
 }
 
 func (suite *IntegrationTestSuite) decodeTxMsgResponse(txRes *sdk.TxResponse, ptr codec.ProtoMarshaler) {
