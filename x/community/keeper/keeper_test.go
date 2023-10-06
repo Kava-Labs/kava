@@ -6,8 +6,11 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/kava-labs/kava/x/community/keeper"
 	"github.com/kava-labs/kava/x/community/testutil"
 	"github.com/kava-labs/kava/x/community/types"
 )
@@ -88,4 +91,57 @@ func (suite *KeeperTestSuite) TestGetAndSetStakingRewardsState() {
 	suite.NotPanics(func() { keeper.SetStakingRewardsState(suite.Ctx, validParams) }, "expected setting valid state to not panic")
 
 	suite.Equal(validParams, keeper.GetStakingRewardsState(suite.Ctx), "expected fetched state to equal set state")
+}
+
+func (suite *KeeperTestSuite) TestGetAuthority_Default() {
+	suite.Equal(
+		authtypes.NewModuleAddress(govtypes.ModuleName),
+		suite.Keeper.GetAuthority(),
+		"expected fetched authority to equal x/gov address",
+	)
+}
+
+func (suite *KeeperTestSuite) TestGetAuthority_Any() {
+	tests := []struct {
+		name      string
+		authority sdk.AccAddress
+	}{
+		{
+			name:      "gov",
+			authority: authtypes.NewModuleAddress(govtypes.ModuleName),
+		},
+		{
+			name:      "empty",
+			authority: sdk.AccAddress{},
+		},
+		{
+			name:      "random",
+			authority: sdk.AccAddress("random"),
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.Keeper = keeper.NewKeeper(
+				suite.App.AppCodec(),
+				suite.App.GetKVStoreKey(types.StoreKey),
+				suite.App.GetAccountKeeper(),
+				suite.App.GetBankKeeper(),
+				suite.App.GetCDPKeeper(),
+				suite.App.GetDistrKeeper(),
+				suite.App.GetHardKeeper(),
+				suite.App.GetMintKeeper(),
+				suite.App.GetKavadistKeeper(),
+				suite.App.GetStakingKeeper(),
+				tc.authority,
+			)
+
+			suite.Equalf(
+				tc.authority,
+				suite.Keeper.GetAuthority(),
+				"expected fetched authority to equal %s address",
+				tc.authority,
+			)
+		})
+	}
 }
