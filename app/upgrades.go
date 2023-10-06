@@ -10,7 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
-	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
@@ -82,24 +81,8 @@ func upgradeHandler(
 		}
 
 		app.Logger().Info("initializing x/community params")
-		InitializeCommunityParams(ctx, app.communityKeeper, communityParams)
+		app.communityKeeper.SetParams(ctx, communityParams)
 
 		return toVM, nil
 	}
-}
-
-// InitializeCommunityParams sets the community params in the store, first
-// checking that they are not already set.
-func InitializeCommunityParams(
-	ctx sdk.Context,
-	communityKeeper communitykeeper.Keeper,
-	params communitytypes.Params,
-) {
-	_, found := communityKeeper.GetParams(ctx)
-	if found {
-		panic("x/community params already set")
-	}
-
-	// SetParams validates the params
-	communityKeeper.SetParams(ctx, params)
 }
