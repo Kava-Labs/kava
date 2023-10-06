@@ -381,6 +381,9 @@ func NewApp(
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
+	// Authority for gov proposals, using the x/gov module account address
+	govAuthorityAddr := authtypes.NewModuleAddress(govtypes.ModuleName)
+
 	app := &App{
 		BaseApp:           bApp,
 		legacyAmino:       legacyAmino,
@@ -487,8 +490,7 @@ func NewApp(
 		appCodec,
 		homePath,
 		app.BaseApp,
-		// Authority
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		govAuthorityAddr.String(),
 	)
 	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
@@ -509,8 +511,7 @@ func NewApp(
 	// Create Ethermint keepers
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec,
-		// Authority
-		authtypes.NewModuleAddress(govtypes.ModuleName),
+		govAuthorityAddr,
 		keys[feemarkettypes.StoreKey],
 		tkeys[feemarkettypes.TransientKey],
 		feemarketSubspace,
@@ -527,8 +528,7 @@ func NewApp(
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
-		// Authority
-		authtypes.NewModuleAddress(govtypes.ModuleName),
+		govAuthorityAddr,
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		nil, // precompiled contracts
 		geth.NewEVM,
@@ -669,7 +669,7 @@ func NewApp(
 		&app.mintKeeper,
 		&app.kavadistKeeper,
 		app.stakingKeeper,
-		authtypes.NewModuleAddress(govtypes.ModuleName), // Authority
+		govAuthorityAddr,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
