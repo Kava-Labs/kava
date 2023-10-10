@@ -94,7 +94,17 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			expectedKavadistState.Params.Active = false
 			msgSuffix = "after upgrade"
 
-			suite.Require().NoError(app.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(types.EventTypeInflationStop)))
+			suite.Require().NoError(
+				app.EventsContains(
+					suite.Ctx.EventManager().Events(),
+					sdk.NewEvent(
+						types.EventTypeInflationStop,
+						sdk.NewAttribute(
+							types.AttributeKeyDisableTime,
+							expectedDisableTime.Format(time.RFC3339),
+						),
+					),
+				))
 		}
 
 		suite.Require().Equal(expectedMintState.Params.InflationMin, mintParams.InflationMin, msg+": expected mint inflation min to match state "+msgSuffix)
