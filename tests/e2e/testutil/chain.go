@@ -18,6 +18,8 @@ import (
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	tmclient "github.com/tendermint/tendermint/rpc/client"
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -66,6 +68,8 @@ type Chain struct {
 	Tm           tmservice.ServiceClient
 	Tx           txtypes.ServiceClient
 	Upgrade      upgradetypes.QueryClient
+
+	TmSignClient tmclient.SignClient
 }
 
 // NewChain creates the query clients & signing account management for a chain run on a set of ports.
@@ -87,6 +91,11 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	}
 
 	chain.EvmClient, err = details.EvmClient()
+	if err != nil {
+		return chain, err
+	}
+
+	chain.TmSignClient, err = details.RpcConn()
 	if err != nil {
 		return chain, err
 	}
@@ -210,4 +219,65 @@ func (chain *Chain) GetErc20Balance(contract, address common.Address) *big.Int {
 	require.NoError(chain.t, err)
 
 	return new(big.Int).SetBytes(resData)
+}
+
+func (chain *Chain) GetBeginBlockEventsFromQuery(
+	ctx context.Context,
+	query string,
+) (sdk.StringEvents, int64, error) {
+	// 1) Block search to find auction_start event and corresponding height
+	// https://rpc.kava.io/block_search?query=%22auction_start.auction_id=16837%22
+
+	blocks, err := chain.QueryBlock(ctx, query)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(blocks) == 0 {
+		return nil, 0, fmt.Errorf("no blocks found")
+	}
+
+	// 2) Block results to query events from height
+	// https://rpc.kava.io/block_results?height=3146803
+	events, err := chain.GetBeginBlockEvents(ctx, blocks[0].Block.Height)
+	return events, blocks[0].Block.Height, err
+}
+
+func (chain *Chain) QueryBlock(ctx context.Context, query string) ([]*coretypes.ResultBlock, error) {
+	page := 1
+	perPage := 100
+
+	res, err := chain.TmSignClient.BlockSearch(
+		ctx,
+		query,
+		&page,
+		&perPage,
+		"desc",
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed BlockSearch: %w", err)
+	}
+
+	return res.Blocks, nil
+}
+
+func (chain *Chain) GetBeginBlockEvents(ctx context.Context, height int64) (sdk.StringEvents, error) {
+	res, err := chain.TmSignClient.BlockResults(
+		ctx,
+		&height,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed BlockResults: %w", err)
+	}
+
+	// Do not use sdk.StringifyEvents as it flattens events which makes it
+	// more difficult to parse.
+	strEvents := make(sdk.StringEvents, 0, len(res.BeginBlockEvents))
+	for _, e := range res.BeginBlockEvents {
+		strEvents = append(strEvents, sdk.StringifyEvent(e))
+	}
+
+	return strEvents, nil
 }
