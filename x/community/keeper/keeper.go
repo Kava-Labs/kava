@@ -55,6 +55,9 @@ func NewKeeper(
 	if addr == nil {
 		panic("legacy community pool address not found")
 	}
+	if err := sdk.VerifyAddressFormat(authority); err != nil {
+		panic(fmt.Sprintf("invalid authority address: %s", err))
+	}
 
 	return Keeper{
 		key: key,

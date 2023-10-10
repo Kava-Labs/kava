@@ -1,11 +1,13 @@
 package keeper_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
@@ -111,10 +113,6 @@ func (suite *KeeperTestSuite) TestGetAuthority_Any() {
 			authority: authtypes.NewModuleAddress(govtypes.ModuleName),
 		},
 		{
-			name:      "empty",
-			authority: sdk.AccAddress{},
-		},
-		{
 			name:      "random",
 			authority: sdk.AccAddress("random"),
 		},
@@ -122,19 +120,21 @@ func (suite *KeeperTestSuite) TestGetAuthority_Any() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			suite.Keeper = keeper.NewKeeper(
-				suite.App.AppCodec(),
-				suite.App.GetKVStoreKey(types.StoreKey),
-				suite.App.GetAccountKeeper(),
-				suite.App.GetBankKeeper(),
-				suite.App.GetCDPKeeper(),
-				suite.App.GetDistrKeeper(),
-				suite.App.GetHardKeeper(),
-				suite.App.GetMintKeeper(),
-				suite.App.GetKavadistKeeper(),
-				suite.App.GetStakingKeeper(),
-				tc.authority,
-			)
+			suite.NotPanics(func() {
+				suite.Keeper = keeper.NewKeeper(
+					suite.App.AppCodec(),
+					suite.App.GetKVStoreKey(types.StoreKey),
+					suite.App.GetAccountKeeper(),
+					suite.App.GetBankKeeper(),
+					suite.App.GetCDPKeeper(),
+					suite.App.GetDistrKeeper(),
+					suite.App.GetHardKeeper(),
+					suite.App.GetMintKeeper(),
+					suite.App.GetKavadistKeeper(),
+					suite.App.GetStakingKeeper(),
+					tc.authority,
+				)
+			})
 
 			suite.Equalf(
 				tc.authority,
@@ -142,6 +142,47 @@ func (suite *KeeperTestSuite) TestGetAuthority_Any() {
 				"expected fetched authority to equal %s address",
 				tc.authority,
 			)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestNewKeeper_InvalidAuthority() {
+	tests := []struct {
+		name      string
+		authority sdk.AccAddress
+		panicStr  string
+	}{
+		{
+			name:      "empty",
+			authority: sdk.AccAddress{},
+			panicStr:  "invalid authority address: addresses cannot be empty: unknown address",
+		},
+		{
+			name:      "too long",
+			authority: sdk.AccAddress(strings.Repeat("a", address.MaxAddrLen+1)),
+			panicStr:  "invalid authority address: address max length is 255, got 256: unknown address",
+		},
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			suite.PanicsWithValue(
+				tc.panicStr,
+				func() {
+					suite.Keeper = keeper.NewKeeper(
+						suite.App.AppCodec(),
+						suite.App.GetKVStoreKey(types.StoreKey),
+						suite.App.GetAccountKeeper(),
+						suite.App.GetBankKeeper(),
+						suite.App.GetCDPKeeper(),
+						suite.App.GetDistrKeeper(),
+						suite.App.GetHardKeeper(),
+						suite.App.GetMintKeeper(),
+						suite.App.GetKavadistKeeper(),
+						suite.App.GetStakingKeeper(),
+						tc.authority,
+					)
+				})
 		})
 	}
 }
