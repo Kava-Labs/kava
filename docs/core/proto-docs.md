@@ -3226,7 +3226,7 @@ MsgUpdateParams allows an account to update the community module parameters.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `authority` | [string](#string) |  | authority is the address that controls the module (defaults to x/gov unless overwritten). |
-| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines the x/distribution parameters to update. |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines the x/community parameters to update. |
 
 
 
