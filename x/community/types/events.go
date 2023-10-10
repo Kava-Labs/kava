@@ -6,6 +6,7 @@ const (
 	EventTypeStakingRewardsPaid = "staking_rewards_paid"
 
 	AttributeKeyStakingRewardAmount = "staking_reward_amount"
+	AttributeKeyDisableTime         = "disable_time"
 
 	AttributeValueFundCommunityPool = "fund_community_pool"
 	AttributeValueCategory          = ModuleName
