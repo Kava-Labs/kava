@@ -12,7 +12,7 @@ import (
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
-func (suite *IntegrationTestSuite) TestDisableInflationOnUpgrade() {
+func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 	beforeUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight - 1)
 	afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight)
 
