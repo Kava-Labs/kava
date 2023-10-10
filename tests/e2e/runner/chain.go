@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/ethereum/go-ethereum/ethclient"
+	rpchttpclient "github.com/tendermint/tendermint/rpc/client/http"
 	"google.golang.org/grpc"
 
 	"github.com/kava-labs/kava/tests/util"
@@ -32,6 +33,11 @@ func (c ChainDetails) EvmClient() (*ethclient.Client, error) {
 // GrpcConn creates a new connection to the underlying Grpc url.
 func (c ChainDetails) GrpcConn() (*grpc.ClientConn, error) {
 	return util.NewGrpcConnection(c.GrpcUrl)
+}
+
+// RpcConn creates a new connection to the underlying Rpc url.
+func (c ChainDetails) RpcConn() (*rpchttpclient.HTTP, error) {
+	return rpchttpclient.New(c.RpcUrl, "/websocket")
 }
 
 // Chains wraps a map of name -> details about how to connect to a chain.
