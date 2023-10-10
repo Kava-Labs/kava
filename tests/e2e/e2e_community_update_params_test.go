@@ -42,7 +42,12 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_NonAuthority() {
 
 	// ASSERT
 	_, err := util.WaitForSdkTxCommit(suite.Kava.Tx, res.Result.TxHash, 6*time.Second)
-	suite.Error(err)
+	suite.Require().Error(err)
+	suite.Require().ErrorContains(
+		err,
+		govtypes.ErrInvalidSigner.Error(),
+		"should return with authority check error",
+	)
 }
 
 func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
