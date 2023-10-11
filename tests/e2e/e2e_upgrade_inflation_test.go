@@ -276,6 +276,50 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 			)
 		}
 	})
+
+	suite.Run("no staking rewards from x/community", func() {
+		// 1 block before switchover
+		queryHeight := switchoverHeight - 1
+
+		block, err := suite.Kava.TmSignClient.BlockResults(
+			context.Background(),
+			&queryHeight,
+		)
+		suite.Require().NoError(err)
+
+		// Events are not emitted if amount is 0
+		stakingRewardEvents := FilterEventsByType(block.BeginBlockEvents, communitytypes.EventTypeStakingRewardsPaid)
+		suite.Require().Empty(stakingRewardEvents, "staking reward events should not be emitted")
+	})
+
+	suite.Run("staking rewards pay out from x/community", func() {
+		// after switchover
+		queryHeight := switchoverHeight
+
+		block, err := suite.Kava.TmSignClient.BlockResults(
+			context.Background(),
+			&queryHeight,
+		)
+		suite.Require().NoError(err)
+
+		stakingRewardEvents := FilterEventsByType(block.BeginBlockEvents, communitytypes.EventTypeStakingRewardsPaid)
+		suite.Require().NotEmpty(stakingRewardEvents, "staking reward events should be emitted")
+
+		// Ensure amounts are non-zero
+		found := false
+		for _, attr := range stakingRewardEvents[0].Attributes {
+			if string(attr.Key) == communitytypes.AttributeKeyStakingRewardAmount {
+				coins, err := sdk.ParseCoinNormalized(string(attr.Value))
+				suite.Require().NoError(err, "staking reward amount should be parsable coins")
+
+				suite.True(coins.Amount.IsPositive(), "staking reward amount should be a positive amount")
+
+				found = true
+			}
+		}
+
+		suite.True(found, "staking reward amount should be found in events")
+	})
 }
 
 // FilterEventsByType returns a slice of events that match the given type.
