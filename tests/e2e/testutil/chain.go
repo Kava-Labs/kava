@@ -94,7 +94,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	kr, err := keyring.New(
 		sdk.KeyringServiceName(),
 		keyring.BackendTest,
-		KavaHomePath(),
+		util.KavaHomePath(),
 		nil,
 		chain.EncodingConfig.Marshaler,
 		evmhd.EthSecp256k1Option(),
