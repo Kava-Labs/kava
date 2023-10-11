@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 - (community) [#1704] Add module params
 - (community) [#1706] Add disable inflation upgrade
+- (community) [#1745] Enable params update via governance with `MsgUpdateParams`
 
 ### Bug Fixes
 
@@ -292,6 +293,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1745]: https://github.com/Kava-Labs/kava/pull/1745
 [#1707]: https://github.com/Kava-Labs/kava/pull/1707
 [#1706]: https://github.com/Kava-Labs/kava/pull/1706
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668

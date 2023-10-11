@@ -4,6 +4,7 @@ package kava.community.v1beta1;
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "kava/community/v1beta1/params.proto";
 
 option go_package = "github.com/kava-labs/kava/x/community/types";
 option (gogoproto.equal_all) = true;
@@ -12,6 +13,9 @@ option (gogoproto.equal_all) = true;
 service Msg {
   // FundCommunityPool defines a method to allow an account to directly fund the community module account.
   rpc FundCommunityPool(MsgFundCommunityPool) returns (MsgFundCommunityPoolResponse);
+
+  // UpdateParams defines a method to allow an account to update the community module parameters.
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgFundCommunityPool allows an account to directly fund the community module account.
@@ -27,3 +31,17 @@ message MsgFundCommunityPool {
 
 // MsgFundCommunityPoolResponse defines the Msg/FundCommunityPool response type.
 message MsgFundCommunityPoolResponse {}
+
+// MsgUpdateParams allows an account to update the community module parameters.
+message MsgUpdateParams {
+  option (gogoproto.goproto_getters) = false;
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the x/community parameters to update.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the Msg/UpdateParams response type.
+message MsgUpdateParamsResponse {}
