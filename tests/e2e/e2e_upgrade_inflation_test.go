@@ -7,9 +7,12 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 
@@ -320,4 +323,75 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 
 		suite.True(found, "staking reward amount should be found in events")
 	})
+
+	// Staking rewards can still be claimed
+	suite.Run("staking rewards claimable after switchover", func() {
+		// Get the delegator of the only validator
+		validators, err := suite.Kava.Staking.Validators(
+			context.Background(),
+			&stakingtypes.QueryValidatorsRequest{},
+		)
+		suite.Require().NoError(err)
+		suite.Require().Positive(len(validators.Validators), "should only be at least 1 validator")
+
+		valAddr, err := sdk.ValAddressFromBech32(validators.Validators[0].OperatorAddress)
+		suite.Require().NoError(err)
+
+		accAddr := sdk.AccAddress(valAddr.Bytes())
+
+		suite.T().Logf("valAddr: %s", valAddr.String())
+		suite.T().Logf("accAddr: %s", accAddr.String())
+
+		rewards, err := suite.Kava.Distribution.DelegationRewards(
+			context.Background(),
+			&distributiontypes.QueryDelegationRewardsRequest{
+				ValidatorAddress: valAddr.String(),
+				DelegatorAddress: accAddr.String(),
+			},
+		)
+		suite.Require().NoError(err)
+
+		suite.True(!rewards.Rewards.Empty())
+		suite.True(rewards.Rewards.IsAllPositive(), "staking rewards should be positive")
+
+		withdrawRewardsMsg := distributiontypes.NewMsgWithdrawDelegatorReward(
+			accAddr,
+			valAddr,
+		)
+
+		key, err := suite.Kava.Keyring.(unsafeExporter).ExportPrivateKeyObject(
+			"validator",
+		)
+		suite.Require().NoError(err)
+
+		key.Bytes()
+
+		acc := suite.Kava.AddNewSigningAccountFromPrivKey(
+			"validator",
+			key,
+			"",
+			suite.Kava.ChainID,
+		)
+
+		gasLimit := int64(2e5)
+		fee := ukava(200)
+		req := util.KavaMsgRequest{
+			Msgs:      []sdk.Msg{withdrawRewardsMsg},
+			GasLimit:  uint64(gasLimit),
+			FeeAmount: sdk.NewCoins(fee),
+			Memo:      "give me my money",
+		}
+		res := acc.SignAndBroadcastKavaTx(req)
+
+		// ASSERT
+		_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.Result.TxHash, 6*time.Second)
+		suite.Require().NoError(err)
+	})
+}
+
+// unsafeExporter is implemented by key stores that support unsafe export
+// of private keys' material.
+type unsafeExporter interface {
+	// ExportPrivateKeyObject returns a private key in unarmored format.
+	ExportPrivateKeyObject(uid string) (cryptotypes.PrivKey, error)
 }
