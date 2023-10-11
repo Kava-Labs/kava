@@ -126,7 +126,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		suite.Require().NoError(err)
 
 		// Mint events should only occur in begin block
-		mintEvents := FilterEventsByType(block.BeginBlockEvents, minttypes.EventTypeMint)
+		mintEvents := util.FilterEventsByType(block.BeginBlockEvents, minttypes.EventTypeMint)
 
 		suite.Require().NotEmpty(mintEvents, "mint events should be emitted")
 
@@ -218,9 +218,9 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 
 					// Mint events should only occur in begin block, but we just include
 					// everything else just in case anything changes in x/mint
-					mintEventsBegin := FilterEventsByType(block.BeginBlockEvents, minttypes.EventTypeMint)
-					mintEventsEnd := FilterEventsByType(block.EndBlockEvents, minttypes.EventTypeMint)
-					mintEventsTx := FilterTxEventsByType(block.TxsResults, minttypes.EventTypeMint)
+					mintEventsBegin := util.FilterEventsByType(block.BeginBlockEvents, minttypes.EventTypeMint)
+					mintEventsEnd := util.FilterEventsByType(block.EndBlockEvents, minttypes.EventTypeMint)
+					mintEventsTx := util.FilterTxEventsByType(block.TxsResults, minttypes.EventTypeMint)
 
 					mintEvents = append(mintEvents, mintEventsBegin...)
 					mintEvents = append(mintEvents, mintEventsEnd...)
@@ -288,7 +288,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		suite.Require().NoError(err)
 
 		// Events are not emitted if amount is 0
-		stakingRewardEvents := FilterEventsByType(block.BeginBlockEvents, communitytypes.EventTypeStakingRewardsPaid)
+		stakingRewardEvents := util.FilterEventsByType(block.BeginBlockEvents, communitytypes.EventTypeStakingRewardsPaid)
 		suite.Require().Empty(stakingRewardEvents, "staking reward events should not be emitted")
 	})
 
@@ -302,7 +302,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		)
 		suite.Require().NoError(err)
 
-		stakingRewardEvents := FilterEventsByType(block.BeginBlockEvents, communitytypes.EventTypeStakingRewardsPaid)
+		stakingRewardEvents := util.FilterEventsByType(block.BeginBlockEvents, communitytypes.EventTypeStakingRewardsPaid)
 		suite.Require().NotEmpty(stakingRewardEvents, "staking reward events should be emitted")
 
 		// Ensure amounts are non-zero
@@ -320,30 +320,4 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 
 		suite.True(found, "staking reward amount should be found in events")
 	})
-}
-
-// FilterEventsByType returns a slice of events that match the given type.
-func FilterEventsByType(events []abci.Event, eventType string) []abci.Event {
-	filteredEvents := []abci.Event{}
-
-	for _, event := range events {
-		if event.Type == eventType {
-			filteredEvents = append(filteredEvents, event)
-		}
-	}
-
-	return filteredEvents
-}
-
-// FilterTxEventsByType returns a slice of events that match the given type
-// from a slice of ResponseDeliverTx.
-func FilterTxEventsByType(txs []*abci.ResponseDeliverTx, eventType string) []abci.Event {
-	filteredEvents := []abci.Event{}
-
-	for _, tx := range txs {
-		events := FilterEventsByType(tx.Events, eventType)
-		filteredEvents = append(filteredEvents, events...)
-	}
-
-	return filteredEvents
 }
