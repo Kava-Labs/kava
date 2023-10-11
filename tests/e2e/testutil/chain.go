@@ -10,13 +10,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	evmhd "github.com/evmos/ethermint/crypto/hd"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 
@@ -44,7 +47,8 @@ type Chain struct {
 	t        *testing.T
 
 	StakingDenom string
-	ChainId      string
+	ChainID      string
+	Keyring      keyring.Keyring
 
 	EvmClient     *ethclient.Client
 	ContractAddrs map[string]common.Address
@@ -63,6 +67,7 @@ type Chain struct {
 	Evm          evmtypes.QueryClient
 	Evmutil      evmutiltypes.QueryClient
 	Mint         minttypes.QueryClient
+	Staking      stakingtypes.QueryClient
 	Tm           tmservice.ServiceClient
 	Tx           txtypes.ServiceClient
 	Upgrade      upgradetypes.QueryClient
@@ -77,11 +82,25 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain := &Chain{
 		t:             t,
 		StakingDenom:  details.StakingDenom,
-		ChainId:       details.ChainId,
+		ChainID:       details.ChainId,
 		ContractAddrs: make(map[string]common.Address),
 		erc20s:        make(map[common.Address]struct{}),
 	}
 	chain.EncodingConfig = app.MakeEncodingConfig()
+
+	// setup keyring
+	kr, err := keyring.New(
+		sdk.KeyringServiceName(),
+		keyring.BackendTest,
+		KavaHomePath(),
+		nil,
+		chain.EncodingConfig.Marshaler,
+		evmhd.EthSecp256k1Option(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	chain.Keyring = kr
 
 	grpcConn, err := details.GrpcConn()
 	if err != nil {
@@ -109,6 +128,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
 	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
 	chain.Mint = minttypes.NewQueryClient(grpcConn)
+	chain.Staking = stakingtypes.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
 	chain.Upgrade = upgradetypes.NewQueryClient(grpcConn)
@@ -119,12 +139,12 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	whale := chain.AddNewSigningAccount(
 		FundedAccountName,
 		hd.CreateHDPath(Bip44CoinType, 0, 0),
-		chain.ChainId,
+		chain.ChainID,
 		fundedAccountMnemonic,
 	)
 
 	// check that funded account is actually funded.
-	fmt.Printf("[%s] account used for funding (%s) address: %s\n", chain.ChainId, FundedAccountName, whale.SdkAddress)
+	fmt.Printf("[%s] account used for funding (%s) address: %s\n", chain.ChainID, FundedAccountName, whale.SdkAddress)
 	whaleFunds := chain.QuerySdkForBalances(whale.SdkAddress)
 	if whaleFunds.IsZero() {
 		chain.t.Fatal("funded account mnemonic is for account with no funds")

@@ -35,7 +35,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	accNumber := accDetails.GetAccountNumber()
 
 	// get chain id
-	pc, err := emtypes.ParseChainID(chain.ChainId)
+	pc, err := emtypes.ParseChainID(chain.ChainID)
 	suite.NoError(err)
 	ethChainId := pc.Uint64()
 
@@ -47,7 +47,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	// build EIP712 tx
 	// -- untyped data
 	untypedData := eip712.ConstructUntypedEIP712Data(
-		chain.ChainId,
+		chain.ChainID,
 		accNumber,
 		nonce,
 		0, // no timeout
