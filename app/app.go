@@ -1024,6 +1024,23 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 	// all consensus versions of modules registrered to the moduel manager contribute to the AppHash.
 	// to prevent the backport of x/metrics from being consensus breaking, it is called directly.
 	metrics.BeginBlocker(ctx, app.metrics)
+
+	upgradeHeight := int64(6857727 + 5)
+	if ctx.BlockHeight() == upgradeHeight-1 {
+		upgradePlan := upgradetypes.Plan{
+			Name:   "v0.25.0",
+			Height: upgradeHeight,
+		}
+		if err := app.upgradeKeeper.ScheduleUpgrade(ctx, upgradePlan); err != nil {
+			panic(
+				fmt.Errorf(
+					"failed to schedule upgrade %s during BeginBlock at height %d: %w",
+					upgradePlan.Name, upgradePlan.Height, err,
+				),
+			)
+		}
+	}
+
 	return app.mm.BeginBlock(ctx, req)
 }
 
