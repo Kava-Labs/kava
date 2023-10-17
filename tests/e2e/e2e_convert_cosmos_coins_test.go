@@ -198,8 +198,8 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 6*time.Second)
-	suite.NoError(err)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 12*time.Second)
+	suite.Require().NoError(err)
 
 	// query for the deployed contract
 	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(

@@ -22,6 +22,8 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
+	suite.SkipIfUpgradeDisabled()
+
 	afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight)
 
 	// Get x/community for switchover time

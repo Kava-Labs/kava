@@ -14,6 +14,8 @@ type LiveNodeRunnerConfig struct {
 	KavaRpcUrl    string
 	KavaGrpcUrl   string
 	KavaEvmRpcUrl string
+
+	UpgradeHeight int64
 }
 
 // LiveNodeRunner implements NodeRunner for an already-running chain.
