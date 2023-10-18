@@ -355,9 +355,6 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 
 		accAddr := sdk.AccAddress(valAddr.Bytes())
 
-		suite.T().Logf("valAddr: %s", valAddr.String())
-		suite.T().Logf("accAddr: %s", accAddr.String())
-
 		rewards, err := suite.Kava.Distribution.DelegationRewards(
 			context.Background(),
 			&distributiontypes.QueryDelegationRewardsRequest{
@@ -375,12 +372,11 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 			valAddr,
 		)
 
+		// Get the validator private key from kava keyring
 		key, err := suite.Kava.Keyring.(unsafeExporter).ExportPrivateKeyObject(
 			"validator",
 		)
 		suite.Require().NoError(err)
-
-		key.Bytes()
 
 		acc := suite.Kava.AddNewSigningAccountFromPrivKey(
 			"validator",
@@ -399,7 +395,6 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		}
 		res := acc.SignAndBroadcastKavaTx(req)
 
-		// ASSERT
 		_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.Result.TxHash, 6*time.Second)
 		suite.Require().NoError(err)
 	})
