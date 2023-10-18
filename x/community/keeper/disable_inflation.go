@@ -45,7 +45,7 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 			types.EventTypeInflationStop,
 			sdk.NewAttribute(
 				types.AttributeKeyDisableTime,
-				params.UpgradeTimeDisableInflation.Format(time.RFC3339),
+				ctx.BlockTime().Format(time.RFC3339),
 			),
 		),
 	)
