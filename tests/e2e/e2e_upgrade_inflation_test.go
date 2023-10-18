@@ -204,7 +204,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 			queryHeight := switchoverHeight + int64(i)
 
 			suite.Run(
-				fmt.Sprintf("x/mint events should with 0 amount @ height=%d", queryHeight),
+				fmt.Sprintf("x/mint events with 0 amount @ height=%d", queryHeight),
 				func() {
 					var block *coretypes.ResultBlockResults
 					suite.Require().Eventually(func() bool {
@@ -296,32 +296,48 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 	})
 
 	suite.Run("staking rewards pay out from x/community after switchover", func() {
-		// after switchover
-		queryHeight := switchoverHeight
+		for i := 0; i < 5; i++ {
+			// after switchover
+			queryHeight := switchoverHeight + int64(i)
 
-		block, err := suite.Kava.TmSignClient.BlockResults(
-			context.Background(),
-			&queryHeight,
-		)
-		suite.Require().NoError(err)
+			block, err := suite.Kava.TmSignClient.BlockResults(
+				context.Background(),
+				&queryHeight,
+			)
+			suite.Require().NoError(err)
 
-		stakingRewardEvents := util.FilterEventsByType(block.BeginBlockEvents, communitytypes.EventTypeStakingRewardsPaid)
-		suite.Require().NotEmpty(stakingRewardEvents, "staking reward events should be emitted")
+			stakingRewardEvents := util.FilterEventsByType(
+				block.BeginBlockEvents,
+				communitytypes.EventTypeStakingRewardsPaid,
+			)
+			suite.Require().NotEmptyf(
+				stakingRewardEvents,
+				"staking reward events should be emitted at height=%d",
+				queryHeight,
+			)
 
-		// Ensure amounts are non-zero
-		found := false
-		for _, attr := range stakingRewardEvents[0].Attributes {
-			if string(attr.Key) == communitytypes.AttributeKeyStakingRewardAmount {
-				coins, err := sdk.ParseCoinNormalized(string(attr.Value))
-				suite.Require().NoError(err, "staking reward amount should be parsable coins")
+			// Ensure amounts are non-zero
+			found := false
+			for _, attr := range stakingRewardEvents[0].Attributes {
+				if string(attr.Key) == communitytypes.AttributeKeyStakingRewardAmount {
+					coins, err := sdk.ParseCoinNormalized(string(attr.Value))
+					suite.Require().NoError(err, "staking reward amount should be parsable coins")
 
-				suite.True(coins.Amount.IsPositive(), "staking reward amount should be a positive amount")
-
-				found = true
+					suite.Truef(
+						coins.Amount.IsPositive(),
+						"staking reward amount should be a positive amount at height=%d",
+						queryHeight,
+					)
+					found = true
+				}
 			}
-		}
 
-		suite.True(found, "staking reward amount should be found in events")
+			suite.Truef(
+				found,
+				"staking reward amount should be found in events at height=%d",
+				queryHeight,
+			)
+		}
 	})
 
 	// Staking rewards can still be claimed
@@ -351,7 +367,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		)
 		suite.Require().NoError(err)
 
-		suite.True(!rewards.Rewards.Empty())
+		suite.False(rewards.Rewards.Empty())
 		suite.True(rewards.Rewards.IsAllPositive(), "staking rewards should be positive")
 
 		withdrawRewardsMsg := distributiontypes.NewMsgWithdrawDelegatorReward(
