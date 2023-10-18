@@ -280,7 +280,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		}
 	})
 
-	suite.Run("no staking rewards from x/community", func() {
+	suite.Run("no staking rewards from x/community before switchover", func() {
 		// 1 block before switchover
 		queryHeight := switchoverHeight - 1
 
@@ -295,7 +295,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		suite.Require().Empty(stakingRewardEvents, "staking reward events should not be emitted")
 	})
 
-	suite.Run("staking rewards pay out from x/community", func() {
+	suite.Run("staking rewards pay out from x/community after switchover", func() {
 		// after switchover
 		queryHeight := switchoverHeight
 
