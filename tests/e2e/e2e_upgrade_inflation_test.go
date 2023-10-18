@@ -355,7 +355,17 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 
 		accAddr := sdk.AccAddress(valAddr.Bytes())
 
-		rewards, err := suite.Kava.Distribution.DelegationRewards(
+		balBefore, err := suite.Kava.Bank.Balance(
+			context.Background(),
+			&types.QueryBalanceRequest{
+				Address: accAddr.String(),
+				Denom:   suite.Kava.StakingDenom,
+			},
+		)
+		suite.Require().NoError(err)
+		suite.Require().False(balBefore.Balance.IsZero(), "val staking denom balance should be non-zero")
+
+		delegationRewards, err := suite.Kava.Distribution.DelegationRewards(
 			context.Background(),
 			&distributiontypes.QueryDelegationRewardsRequest{
 				ValidatorAddress: valAddr.String(),
@@ -364,8 +374,8 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		)
 		suite.Require().NoError(err)
 
-		suite.False(rewards.Rewards.Empty())
-		suite.True(rewards.Rewards.IsAllPositive(), "staking rewards should be positive")
+		suite.False(delegationRewards.Rewards.Empty())
+		suite.True(delegationRewards.Rewards.IsAllPositive(), "queried rewards should be positive")
 
 		withdrawRewardsMsg := distributiontypes.NewMsgWithdrawDelegatorReward(
 			accAddr,
@@ -397,6 +407,30 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 
 		_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.Result.TxHash, 6*time.Second)
 		suite.Require().NoError(err)
+
+		balAfter, err := suite.Kava.Bank.Balance(
+			context.Background(),
+			&types.QueryBalanceRequest{
+				Address: accAddr.String(),
+				Denom:   suite.Kava.StakingDenom,
+			},
+		)
+		suite.Require().NoError(err)
+		suite.Require().False(balAfter.Balance.IsZero(), "val staking denom balance should be non-zero")
+
+		balIncrease := balAfter.Balance.
+			Sub(*balBefore.Balance).
+			Add(res.Tx.GetFee()[0]) // Add the fee back to balance to compare actual balances
+
+		queriedRewardsCoins, _ := delegationRewards.Rewards.TruncateDecimal()
+
+		suite.Require().Truef(
+			queriedRewardsCoins.AmountOf(suite.Kava.StakingDenom).
+				LTE(balIncrease.Amount),
+			"claimed rewards should be >= queried delegation rewards, got claimed %s vs queried %s",
+			balIncrease.Amount.String(),
+			queriedRewardsCoins.AmountOf(suite.Kava.StakingDenom).String(),
+		)
 	})
 }
 
