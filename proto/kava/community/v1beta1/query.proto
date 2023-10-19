@@ -75,7 +75,7 @@ message QueryAnnualizedRewardsResponse {
   // staking_rewards is the calculated annualized staking rewards percentage rate
   string staking_rewards = 1 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }

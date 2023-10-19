@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const SecondsPerYear = 365 * 24 * 3600
@@ -12,14 +11,14 @@ const SecondsPerYear = 365 * 24 * 3600
 type StakingRewardCalculator struct {
 	TotalSupply   sdkmath.Int
 	TotalBonded   sdkmath.Int
-	InflationRate sdk.Dec
-	CommunityTax  sdk.Dec
+	InflationRate sdkmath.LegacyDec
+	CommunityTax  sdkmath.LegacyDec
 
-	RewardsPerSecond sdk.Dec
+	RewardsPerSecond sdkmath.LegacyDec
 }
 
 // GetAnnualizedRate returns the annualized staking reward rate
-func (src StakingRewardCalculator) GetAnnualizedRate() sdk.Dec {
+func (src StakingRewardCalculator) GetAnnualizedRate() sdkmath.LegacyDec {
 	inflationEnabledRate := src.GetInflationRewardRate()
 	inflationDisabledRate := src.GetRPSRewardRate()
 	return inflationEnabledRate.Add(inflationDisabledRate)
@@ -27,20 +26,20 @@ func (src StakingRewardCalculator) GetAnnualizedRate() sdk.Dec {
 
 // GetRPSRewardRate gets the rewards-per-second contribution of the staking reward rate.
 // Will be zero if rewards per sec is zero.
-func (src StakingRewardCalculator) GetRPSRewardRate() sdk.Dec {
+func (src StakingRewardCalculator) GetRPSRewardRate() sdkmath.LegacyDec {
 	if src.TotalBonded.IsZero() {
-		return sdk.ZeroDec()
+		return sdkmath.LegacyZeroDec()
 	}
-	return src.RewardsPerSecond.Mul(sdk.NewDec(SecondsPerYear)).QuoInt(src.TotalBonded)
+	return src.RewardsPerSecond.Mul(sdkmath.LegacyNewDec(SecondsPerYear)).QuoInt(src.TotalBonded)
 }
 
 // GetInflationRewardRate gets the inflationary contribution of the staking reward rate
 // Will be zero if inflation is zero.
-func (src StakingRewardCalculator) GetInflationRewardRate() sdk.Dec {
+func (src StakingRewardCalculator) GetInflationRewardRate() sdkmath.LegacyDec {
 	if src.TotalBonded.IsZero() {
-		return sdk.ZeroDec()
+		return sdkmath.LegacyZeroDec()
 	}
-	bondedRatio := sdk.NewDecFromInt(src.TotalBonded).QuoInt(src.TotalSupply)
-	communityAdjustment := sdk.OneDec().Sub(src.CommunityTax)
+	bondedRatio := sdkmath.LegacyNewDecFromInt(src.TotalBonded).QuoInt(src.TotalSupply)
+	communityAdjustment := sdkmath.LegacyOneDec().Sub(src.CommunityTax)
 	return src.InflationRate.Mul(communityAdjustment).Quo(bondedRatio)
 }
