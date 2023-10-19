@@ -11,6 +11,8 @@ import (
 var (
 	_ sdk.Msg            = &MsgFundCommunityPool{}
 	_ legacytx.LegacyMsg = &MsgFundCommunityPool{}
+	_ sdk.Msg            = &MsgUpdateParams{}
+	_ legacytx.LegacyMsg = &MsgUpdateParams{}
 )
 
 // NewMsgFundCommunityPool returns a new MsgFundCommunityPool
@@ -50,6 +52,49 @@ func (msg MsgFundCommunityPool) GetSignBytes() []byte {
 // GetSigners returns the addresses of signers that must sign.
 func (msg MsgFundCommunityPool) GetSigners() []sdk.AccAddress {
 	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{depositor}
+}
+
+// NewMsgUpdateParams returns a new MsgUpdateParams
+func NewMsgUpdateParams(authority sdk.AccAddress, params Params) MsgUpdateParams {
+	return MsgUpdateParams{
+		Authority: authority.String(),
+		Params:    params,
+	}
+}
+
+// Route return the message type used for routing the message.
+func (msg MsgUpdateParams) Route() string { return ModuleName }
+
+// Type returns a human-readable string for the message, intended for utilization within tags.
+func (msg MsgUpdateParams) Type() string { return sdk.MsgTypeURL(&msg) }
+
+// ValidateBasic does a simple validation check that doesn't require access to any other information.
+func (msg MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	if err := msg.Params.Validate(); err != nil {
+		return errorsmod.Wrap(ErrInvalidParams, err.Error())
+	}
+
+	return nil
+}
+
+// GetSignBytes gets the canonical byte representation of the Msg.
+func (msg MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// GetSigners returns the addresses of signers that must sign.
+func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	depositor, err := sdk.AccAddressFromBech32(msg.Authority)
 	if err != nil {
 		panic(err)
 	}

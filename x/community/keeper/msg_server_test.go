@@ -5,6 +5,8 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
@@ -107,6 +109,62 @@ func (suite *msgServerTestSuite) TestMsgFundCommunityPool() {
 
 			balance := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
 			suite.App.CheckBalance(suite.T(), suite.Ctx, suite.communityPool, balance)
+		})
+	}
+}
+
+func (suite *msgServerTestSuite) TestMsgUpdateParams() {
+	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName)
+
+	testCases := []struct {
+		name          string
+		msg           types.MsgUpdateParams
+		expectedError error
+	}{
+		{
+			name: "valid",
+			msg: types.MsgUpdateParams{
+				Authority: govAddr.String(),
+				Params:    types.DefaultParams(),
+			},
+			expectedError: nil,
+		},
+		{
+			name: "invalid - bad authority",
+			msg: types.MsgUpdateParams{
+				Authority: sdk.AccAddress{1, 2, 3}.String(),
+				Params:    types.DefaultParams(),
+			},
+			expectedError: govtypes.ErrInvalidSigner,
+		},
+		{
+			name: "invalid - empty authority",
+			msg: types.MsgUpdateParams{
+				Authority: "",
+				Params:    types.DefaultParams(),
+			},
+			expectedError: govtypes.ErrInvalidSigner,
+		},
+		{
+			name: "invalid - parameters",
+			msg: types.MsgUpdateParams{
+				Authority: govAddr.String(),
+				Params:    types.Params{},
+			},
+			expectedError: types.ErrInvalidParams,
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			_, err := suite.msgServer.UpdateParams(sdk.WrapSDKContext(suite.Ctx), &tc.msg)
+			if tc.expectedError == nil {
+				suite.NoError(err)
+			} else {
+				suite.ErrorIs(err, tc.expectedError)
+			}
 		})
 	}
 }
