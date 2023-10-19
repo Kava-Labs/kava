@@ -394,7 +394,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 		Data: "bob transfers alice's funds, allowed because he's approved",
 	}
 	res = bob.SignAndBroadcastEvmTx(transferJustRightTx)
-	suite.NoError(res.Err)
+	suite.Require().NoError(res.Err)
 
 	// alice should have amount deducted
 	erc20Balance := suite.Kava.GetErc20Balance(contractAddress.Address, alice.EvmAddress)

@@ -372,6 +372,8 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 
 	// Staking rewards can still be claimed
 	suite.Run("staking rewards claimable after switchover", func() {
+		suite.SkipIfKvtoolDisabled()
+
 		// Get the delegator of the only validator
 		validators, err := suite.Kava.Staking.Validators(
 			context.Background(),
