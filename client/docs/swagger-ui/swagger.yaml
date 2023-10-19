@@ -12991,6 +12991,52 @@ paths:
                       format: byte
       tags:
         - Savings
+  /kava/community/v1beta1/annualized_rewards:
+    get:
+      summary: >-
+        AnnualizedRewards calculates and returns the current annualized reward
+        percentages,
+
+        like staking rewards, for the chain.
+      operationId: CommunityAnnualizedRewards
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              staking_rewards:
+                type: string
+                title: >-
+                  staking_rewards is the calculated annualized staking rewards
+                  percentage rate
+            description: >-
+              QueryAnnualizedRewardsResponse defines the response type for
+              querying the annualized rewards.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Community
   /kava/community/v1beta1/balance:
     get:
       summary: Balance queries the balance of all coins of x/community module.
@@ -57043,6 +57089,17 @@ definitions:
 
           and use when the disable inflation time is reached
     description: Params defines the parameters of the community module.
+  kava.community.v1beta1.QueryAnnualizedRewardsResponse:
+    type: object
+    properties:
+      staking_rewards:
+        type: string
+        title: >-
+          staking_rewards is the calculated annualized staking rewards
+          percentage rate
+    description: >-
+      QueryAnnualizedRewardsResponse defines the response type for querying the
+      annualized rewards.
   kava.community.v1beta1.QueryBalanceResponse:
     type: object
     properties:

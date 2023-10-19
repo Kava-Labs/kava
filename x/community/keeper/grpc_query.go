@@ -62,3 +62,8 @@ func (s queryServer) TotalBalance(
 		Pool: totalBalance,
 	}, nil
 }
+
+// AnnualizedRewards implements types.QueryServer.
+func (queryServer) AnnualizedRewards(context.Context, *types.QueryAnnualizedRewardsRequest) (*types.QueryAnnualizedRewardsResponse, error) {
+	panic("unimplemented")
+}
