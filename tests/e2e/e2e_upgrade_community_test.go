@@ -2,8 +2,12 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 
 	"github.com/kava-labs/kava/app"
@@ -13,19 +17,10 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
+	suite.SkipIfUpgradeDisabled()
+
 	beforeUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight - 1)
 	afterUpgradeCtx := util.CtxAtHeight(suite.UpgradeHeight)
-
-	// Before balances - pending community pool fund consolidation
-	/*
-		kavaDistBalBefore, err := suite.Kava.Kavadist.Balance(beforeUpgradeCtx, &kavadisttypes.QueryBalanceRequest{})
-		suite.NoError(err)
-		distrBalBefore, err := suite.Kava.Distribution.CommunityPool(beforeUpgradeCtx, &distrtypes.QueryCommunityPoolRequest{})
-		suite.NoError(err)
-		distrBalCoinsBefore, distrBalDustBefore := distrBalBefore.Pool.TruncateDecimal()
-		beforeCommPoolBalance, err := suite.Kava.Community.Balance(beforeUpgradeCtx, &communitytypes.QueryBalanceRequest{})
-		suite.NoError(err)
-	*/
 
 	// Before params
 	kavaDistParamsBefore, err := suite.Kava.Kavadist.Params(beforeUpgradeCtx, &kavadisttypes.QueryParamsRequest{})
@@ -92,27 +87,50 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 		)
 	})
 
-	// Get x/community for switchover time
-	params, err := suite.Kava.Community.Params(afterUpgradeCtx, &communitytypes.QueryParamsRequest{})
-	suite.Require().NoError(err)
+	suite.Require().Eventually(
+		func() bool {
+			// Get x/community for switchover time
+			params, err := suite.Kava.Community.Params(
+				context.Background(),
+				&communitytypes.QueryParamsRequest{},
+			)
+			suite.Require().NoError(err)
 
-	// Sleep until switchover time + 6 seconds for extra block
-	sleepDuration := time.Until(params.Params.UpgradeTimeDisableInflation.Add(6 * time.Second))
-	time.Sleep(sleepDuration)
+			// Check that switchover time is set to zero, e.g. switchover happened
+			return params.Params.UpgradeTimeDisableInflation.Equal(time.Time{})
+		},
+		20*time.Second, 1*time.Second,
+		"switchover should happen and x/community params should be updated",
+	)
+
+	// Fetch exact block when inflation stop event emitted
+	_, switchoverHeight, err := suite.Kava.GetBeginBlockEventsFromQuery(
+		context.Background(),
+		fmt.Sprintf(
+			"%s.%s EXISTS",
+			communitytypes.EventTypeInflationStop,
+			communitytypes.AttributeKeyDisableTime,
+		),
+	)
+	suite.Require().NoError(err)
+	suite.Require().NotZero(switchoverHeight)
+
+	beforeSwitchoverCtx := util.CtxAtHeight(switchoverHeight - 1)
+	afterSwitchoverCtx := util.CtxAtHeight(switchoverHeight)
 
 	suite.Run("x/distribution and x/kavadist parameters after upgrade, after switchover", func() {
 		kavaDistParamsAfter, err := suite.Kava.Kavadist.Params(
-			context.Background(),
+			afterSwitchoverCtx,
 			&kavadisttypes.QueryParamsRequest{},
 		)
 		suite.NoError(err)
 		mintParamsAfter, err := suite.Kava.Mint.Params(
-			context.Background(),
+			afterSwitchoverCtx,
 			&minttypes.QueryParamsRequest{},
 		)
 		suite.NoError(err)
 		communityParamsAfter, err := suite.Kava.Community.Params(
-			context.Background(),
+			afterSwitchoverCtx,
 			&communitytypes.QueryParamsRequest{},
 		)
 		suite.NoError(err)
@@ -144,40 +162,95 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 		)
 	})
 
-	/* TODO: Pending community pool fund consolidation
 	suite.Run("x/distribution and x/kavadist balances after switchover", func() {
-		// After balances
-		kavaDistBalAfter, err := suite.Kava.Kavadist.Balance(
-			context.Background(),
+		// Before balances - community pool fund consolidation
+		kavaDistBalBefore, err := suite.Kava.Kavadist.Balance(
+			beforeSwitchoverCtx,
 			&kavadisttypes.QueryBalanceRequest{},
 		)
 		suite.NoError(err)
-		distrBalAfter, err := suite.Kava.Distribution.CommunityPool(
-			context.Background(),
+		distrBalBefore, err := suite.Kava.Distribution.CommunityPool(
+			beforeSwitchoverCtx,
 			&distrtypes.QueryCommunityPoolRequest{},
 		)
 		suite.NoError(err)
-		afterCommPoolBalance, err := suite.Kava.Community.Balance(
-			context.Background(),
+		distrBalCoinsBefore, _ := distrBalBefore.Pool.TruncateDecimal()
+		beforeCommPoolBalance, err := suite.Kava.Community.Balance(
+			beforeSwitchoverCtx,
 			&communitytypes.QueryBalanceRequest{},
 		)
 		suite.NoError(err)
 
-		// expect empty balances after (ignoring dust in x/distribution)
-		suite.Equal(sdk.NewCoins(), kavaDistBalAfter.Coins)
-		distrCoinsAfter, distrBalDustAfter := distrBalAfter.Pool.TruncateDecimal()
-		suite.Equal(sdk.NewCoins(), distrCoinsAfter)
+		// After balances
+		kavaDistBalAfter, err := suite.Kava.Kavadist.Balance(
+			afterSwitchoverCtx,
+			&kavadisttypes.QueryBalanceRequest{},
+		)
+		suite.NoError(err)
+		distrBalAfter, err := suite.Kava.Distribution.CommunityPool(
+			afterSwitchoverCtx,
+			&distrtypes.QueryCommunityPoolRequest{},
+		)
+		suite.NoError(err)
+		afterCommPoolBalance, err := suite.Kava.Community.Balance(
+			afterSwitchoverCtx,
+			&communitytypes.QueryBalanceRequest{},
+		)
+		suite.NoError(err)
+
+		expectedKavadistBal := sdk.NewCoins(sdk.NewCoin(
+			"ukava",
+			kavaDistBalBefore.Coins.AmountOf("ukava"),
+		))
+		suite.Equal(
+			expectedKavadistBal,
+			kavaDistBalAfter.Coins,
+			"x/kavadist balance should persist the ukava amount and move all other funds",
+		)
+		expectedKavadistTransferred := kavaDistBalBefore.Coins.Sub(expectedKavadistBal...)
+
+		// very low ukava balance after (ignoring dust in x/distribution)
+		// a small amount of tx fees can still end up here.
+		// dust should stay in x/distribution, but may not be the same so it's unchecked
+		distrCoinsAfter, _ := distrBalAfter.Pool.TruncateDecimal()
+		suite.Len(distrCoinsAfter, 1, "expected only 1 coin in x/distribution community pool")
+		suite.Equal("ukava", distrCoinsAfter[0].Denom, "expected only ukava in x/distribution community pool")
+		suite.True(
+			distrCoinsAfter[0].Amount.LTE(sdkmath.NewInt(10000)),
+			"remaining ukava in x/distribution community pool should be very low",
+		)
+
+		// Fetch block results for paid staking rewards in the block
+		blockRes, err := suite.Kava.TmSignClient.BlockResults(
+			context.Background(),
+			&switchoverHeight,
+		)
+		suite.Require().NoError(err)
+
+		stakingRewardPaidEvents := util.FilterEventsByType(
+			blockRes.BeginBlockEvents,
+			communitytypes.EventTypeStakingRewardsPaid,
+		)
+		suite.Require().Len(stakingRewardPaidEvents, 1, "there should be only 1 staking reward paid event")
+		stakingRewardAmount := sdk.NewCoins()
+		for _, attr := range stakingRewardPaidEvents[0].Attributes {
+			if string(attr.Key) == communitytypes.AttributeKeyStakingRewardAmount {
+				stakingRewardAmount, err = sdk.ParseCoinsNormalized(string(attr.Value))
+				suite.Require().NoError(err)
+
+				break
+			}
+		}
+
+		expectedCommunityBal := beforeCommPoolBalance.Coins.
+			Add(distrBalCoinsBefore...).
+			Add(expectedKavadistTransferred...).
+			Sub(stakingRewardAmount...) // Remove staking rewards paid in the block
 
 		// x/kavadist and x/distribution community pools should be moved to x/community
 		suite.Equal(
-			beforeCommPoolBalance.Coins.
-				Add(kavaDistBalBefore.Coins...).
-				Add(distrBalCoinsBefore...),
+			expectedCommunityBal,
 			afterCommPoolBalance.Coins,
 		)
-
-		// x/distribution dust should stay in x/distribution
-		suite.Equal(distrBalDustBefore, distrBalDustAfter)
 	})
-	*/
 }
