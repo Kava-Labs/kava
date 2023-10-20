@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
@@ -40,6 +41,8 @@ type DistributionKeeper interface {
 	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
+	GetFeePool(ctx sdk.Context) distrtypes.FeePool
+	SetFeePool(ctx sdk.Context, feePool distrtypes.FeePool)
 }
 
 type MintKeeper interface {

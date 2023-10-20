@@ -16,6 +16,7 @@ type Keeper struct {
 	key storetypes.StoreKey
 	cdc codec.Codec
 
+	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
 	cdpKeeper      types.CdpKeeper
 	distrKeeper    types.DistributionKeeper
@@ -63,6 +64,7 @@ func NewKeeper(
 		key: key,
 		cdc: cdc,
 
+		accountKeeper:  ak,
 		bankKeeper:     bk,
 		cdpKeeper:      ck,
 		distrKeeper:    dk,

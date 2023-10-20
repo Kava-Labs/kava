@@ -22,17 +22,21 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 	// run disable inflation logic
 	k.disableInflation(ctx)
 
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeInflationStop,
+		),
+	)
+
 	// reset disable inflation time to ensure next call is a no-op
 	params.UpgradeTimeDisableInflation = time.Time{}
 	// set staking rewards to provided intial value
 	params.StakingRewardsPerSecond = params.UpgradeTimeSetStakingRewardsPerSecond
 	k.SetParams(ctx, params)
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeInflationStop,
-		),
-	)
+	if err := k.StartCommunityFundConsolidation(ctx); err != nil {
+		panic(err)
+	}
 }
 
 // TODO: double check this is correct method for disabling inflation in kavadist without
