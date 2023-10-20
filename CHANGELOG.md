@@ -43,6 +43,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (community) [#1704] Add module params
 - (community) [#1706] Add disable inflation upgrade
 - (community) [#1745] Enable params update via governance with `MsgUpdateParams`
+- (community) [#1751] Add `AnnualizedRewards` query endpoint
 
 ### Bug Fixes
 
@@ -296,8 +297,9 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
   large-scale simulations remotely using aws-batch
 
 [#1752]: https://github.com/Kava-Labs/kava/pull/1752
-[#1729]: https://github.com/Kava-Labs/kava/pull/1729
+[#1751]: https://github.com/Kava-Labs/kava/pull/1751
 [#1745]: https://github.com/Kava-Labs/kava/pull/1745
+[#1729]: https://github.com/Kava-Labs/kava/pull/1729
 [#1707]: https://github.com/Kava-Labs/kava/pull/1707
 [#1706]: https://github.com/Kava-Labs/kava/pull/1706
 [#1704]: https://github.com/Kava-Labs/kava/pull/1704
