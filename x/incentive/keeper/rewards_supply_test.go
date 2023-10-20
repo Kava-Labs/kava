@@ -89,7 +89,7 @@ func (suite *SupplyIntegrationTests) TestSingleUserAccumulatesRewardsAfterSyncin
 		})
 
 	// User claims all their rewards
-	suite.NoError(suite.DeliverIncentiveMsg(&msg))
+	suite.Require().NoError(suite.DeliverIncentiveMsg(&msg))
 
 	// The users has always had 100% of deposits, so they should receive all rewards for the previous two blocks.
 	// Total rewards for each block is block duration * rewards per second

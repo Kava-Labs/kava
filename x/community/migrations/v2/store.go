@@ -11,10 +11,6 @@ import (
 	"github.com/kava-labs/kava/x/community/types"
 )
 
-const (
-	ModuleName = "mint"
-)
-
 // Migrate migrates the x/community module state from the consensus version 1 to
 // version 2. Specifically, sets new parameters in the module state.
 func Migrate(

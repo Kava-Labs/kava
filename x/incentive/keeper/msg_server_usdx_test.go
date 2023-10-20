@@ -32,7 +32,7 @@ func (suite *HandlerTestSuite) TestPayoutUSDXClaim() {
 
 	// Claim a single denom
 	err = suite.DeliverIncentiveMsg(&msg)
-	suite.NoError(err)
+	suite.Require().NoError(err)
 
 	// Check rewards were paid out
 	expectedRewards := cs(c(types.USDXMintingRewardDenom, 7*1e6))

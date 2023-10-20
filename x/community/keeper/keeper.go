@@ -16,6 +16,7 @@ type Keeper struct {
 	key storetypes.StoreKey
 	cdc codec.Codec
 
+	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
 	cdpKeeper      types.CdpKeeper
 	distrKeeper    types.DistributionKeeper
@@ -24,6 +25,10 @@ type Keeper struct {
 	mintKeeper     types.MintKeeper
 	kavadistKeeper types.KavadistKeeper
 	stakingKeeper  types.StakingKeeper
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority sdk.AccAddress
 
 	legacyCommunityPoolAddress sdk.AccAddress
 }
@@ -40,6 +45,7 @@ func NewKeeper(
 	mk types.MintKeeper,
 	kk types.KavadistKeeper,
 	sk types.StakingKeeper,
+	authority sdk.AccAddress,
 ) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
@@ -50,11 +56,15 @@ func NewKeeper(
 	if addr == nil {
 		panic("legacy community pool address not found")
 	}
+	if err := sdk.VerifyAddressFormat(authority); err != nil {
+		panic(fmt.Sprintf("invalid authority address: %s", err))
+	}
 
 	return Keeper{
 		key: key,
 		cdc: cdc,
 
+		accountKeeper:  ak,
 		bankKeeper:     bk,
 		cdpKeeper:      ck,
 		distrKeeper:    dk,
@@ -64,8 +74,14 @@ func NewKeeper(
 		stakingKeeper:  sk,
 		moduleAddress:  addr,
 
+		authority:                  authority,
 		legacyCommunityPoolAddress: legacyAddr,
 	}
+}
+
+// GetAuthority returns the x/community module's authority.
+func (k Keeper) GetAuthority() sdk.AccAddress {
+	return k.authority
 }
 
 // Logger returns a module-specific logger.

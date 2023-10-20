@@ -16,6 +16,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -66,6 +67,7 @@ type Chain struct {
 	Earn         earntypes.QueryClient
 	Evm          evmtypes.QueryClient
 	Evmutil      evmutiltypes.QueryClient
+	Gov          govv1types.QueryClient
 	Mint         minttypes.QueryClient
 	Staking      stakingtypes.QueryClient
 	Tm           tmservice.ServiceClient
@@ -129,6 +131,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
 	chain.Mint = minttypes.NewQueryClient(grpcConn)
 	chain.Staking = stakingtypes.NewQueryClient(grpcConn)
+	chain.Gov = govv1types.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
 	chain.Upgrade = upgradetypes.NewQueryClient(grpcConn)

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	abcitypes "github.com/tendermint/tendermint/abci/types"
@@ -27,9 +28,11 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func ukava(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("ukava", amt))
 }
+
 func usdx(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("usdx", amt))
 }
+
 func otherdenom(amt int64) sdk.Coins {
 	return sdk.NewCoins(c("other-denom", amt))
 }
@@ -67,10 +70,19 @@ func (suite *proposalTestSuite) SetupTest() {
 		ChainID: chainID,
 	})
 
+	// Set UpgradeTimeDisableInflation to far future to not influence module
+	// account balances
+	params := types.Params{
+		UpgradeTimeDisableInflation: time.Now().Add(100000 * time.Hour),
+		StakingRewardsPerSecond:     sdkmath.LegacyNewDec(0),
+	}
+	communityGs := types.NewGenesisState(params, types.DefaultStakingRewardsState())
+
 	tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		genTime, chainID,
 		app.GenesisState{hardtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)},
 		app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
+		app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&communityGs)},
 		testutil.NewCDPGenState(tApp.AppCodec(), "ukava", "kava", sdk.NewDec(2)),
 	)
 

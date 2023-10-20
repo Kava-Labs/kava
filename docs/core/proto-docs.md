@@ -209,6 +209,8 @@
 - [kava/community/v1beta1/tx.proto](#kava/community/v1beta1/tx.proto)
     - [MsgFundCommunityPool](#kava.community.v1beta1.MsgFundCommunityPool)
     - [MsgFundCommunityPoolResponse](#kava.community.v1beta1.MsgFundCommunityPoolResponse)
+    - [MsgUpdateParams](#kava.community.v1beta1.MsgUpdateParams)
+    - [MsgUpdateParamsResponse](#kava.community.v1beta1.MsgUpdateParamsResponse)
   
     - [Msg](#kava.community.v1beta1.Msg)
   
@@ -3214,6 +3216,32 @@ MsgFundCommunityPoolResponse defines the Msg/FundCommunityPool response type.
 
 
 
+
+<a name="kava.community.v1beta1.MsgUpdateParams"></a>
+
+### MsgUpdateParams
+MsgUpdateParams allows an account to update the community module parameters.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `authority` | [string](#string) |  | authority is the address that controls the module (defaults to x/gov unless overwritten). |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines the x/community parameters to update. |
+
+
+
+
+
+
+<a name="kava.community.v1beta1.MsgUpdateParamsResponse"></a>
+
+### MsgUpdateParamsResponse
+MsgUpdateParamsResponse defines the Msg/UpdateParams response type.
+
+
+
+
+
  <!-- end messages -->
 
  <!-- end enums -->
@@ -3229,6 +3257,7 @@ Msg defines the community Msg service.
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `FundCommunityPool` | [MsgFundCommunityPool](#kava.community.v1beta1.MsgFundCommunityPool) | [MsgFundCommunityPoolResponse](#kava.community.v1beta1.MsgFundCommunityPoolResponse) | FundCommunityPool defines a method to allow an account to directly fund the community module account. | |
+| `UpdateParams` | [MsgUpdateParams](#kava.community.v1beta1.MsgUpdateParams) | [MsgUpdateParamsResponse](#kava.community.v1beta1.MsgUpdateParamsResponse) | UpdateParams defines a method to allow an account to update the community module parameters. | |
 
  <!-- end services -->
 
