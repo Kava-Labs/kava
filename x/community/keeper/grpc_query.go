@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -63,7 +64,41 @@ func (s queryServer) TotalBalance(
 	}, nil
 }
 
-// AnnualizedRewards implements types.QueryServer.
-func (queryServer) AnnualizedRewards(context.Context, *types.QueryAnnualizedRewardsRequest) (*types.QueryAnnualizedRewardsResponse, error) {
-	panic("unimplemented")
+// AnnualizedRewards calculates the annualized rewards for the chain.
+func (s queryServer) AnnualizedRewards(
+	c context.Context,
+	req *types.QueryAnnualizedRewardsRequest,
+) (*types.QueryAnnualizedRewardsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	// staking rewards come from one of two sources depending on if inflation is enabled or not.
+	// at any given time, only one source will contribute to the staking rewards. the other will be zero.
+	// this method adds both sources together so it is accurate in both cases.
+
+	params := s.keeper.mustGetParams(ctx)
+	bondDenom := s.keeper.stakingKeeper.BondDenom(ctx)
+
+	// need to convert these from sdk.Dec to sdkmath.LegacyDec
+	inflation := s.keeper.mintKeeper.GetMinter(ctx).Inflation
+	communityTax := s.keeper.distrKeeper.GetCommunityTax(ctx)
+
+	calc := StakingRewardCalculator{
+		TotalSupply:      s.keeper.bankKeeper.GetSupply(ctx, bondDenom).Amount,
+		TotalBonded:      s.keeper.stakingKeeper.TotalBondedTokens(ctx),
+		InflationRate:    convertDecToLegacyDec(inflation),
+		CommunityTax:     convertDecToLegacyDec(communityTax),
+		RewardsPerSecond: params.StakingRewardsPerSecond,
+	}
+
+	return &types.QueryAnnualizedRewardsResponse{
+		StakingRewards: calc.GetAnnualizedRate(),
+	}, nil
+}
+
+// convertDecToLegacyDec is a helper method for converting between new and old Dec types
+// current version of cosmos-sdk in this repo uses sdk.Dec
+// this module uses sdkmath.LegacyDec in its parameters
+// TODO: remove me after upgrade to cosmos-sdk v50 (LegacyDec is everywhere)
+func convertDecToLegacyDec(in sdk.Dec) sdkmath.LegacyDec {
+	return sdkmath.LegacyNewDecFromBigIntWithPrec(in.BigInt(), sdkmath.LegacyPrecision)
 }
