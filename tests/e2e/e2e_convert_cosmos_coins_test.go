@@ -198,8 +198,8 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 6*time.Second)
-	suite.NoError(err)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 12*time.Second)
+	suite.Require().NoError(err)
 
 	// query for the deployed contract
 	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(
@@ -394,7 +394,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 		Data: "bob transfers alice's funds, allowed because he's approved",
 	}
 	res = bob.SignAndBroadcastEvmTx(transferJustRightTx)
-	suite.NoError(res.Err)
+	suite.Require().NoError(res.Err)
 
 	// alice should have amount deducted
 	erc20Balance := suite.Kava.GetErc20Balance(contractAddress.Address, alice.EvmAddress)
