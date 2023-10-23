@@ -43,6 +43,8 @@ type DistributionKeeper interface {
 	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
 	GetFeePool(ctx sdk.Context) distrtypes.FeePool
 	SetFeePool(ctx sdk.Context, feePool distrtypes.FeePool)
+	GetParams(ctx sdk.Context) distrtypes.Params
+	SetParams(ctx sdk.Context, params distrtypes.Params)
 }
 
 type MintKeeper interface {
