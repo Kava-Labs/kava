@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/suite"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -29,6 +30,7 @@ type disableInflationTestSuite struct {
 
 	genesisMintState     *minttypes.GenesisState
 	genesisKavadistState *kavadisttypes.GenesisState
+	genesisDistrState    *distrtypes.GenesisState
 
 	testFunc testFunc
 }
@@ -57,10 +59,15 @@ func (suite *disableInflationTestSuite) SetupTest() {
 	kavadistGen.Params.Active = true
 	suite.genesisKavadistState = kavadistGen
 
+	distrGen := distrtypes.DefaultGenesisState()
+	distrGen.Params.CommunityTax = sdk.MustNewDecFromStr("0.949500000000000000")
+	suite.genesisDistrState = distrGen
+
 	appCodec := tApp.AppCodec()
 	suite.App.InitializeFromGenesisStates(
 		app.GenesisState{minttypes.ModuleName: appCodec.MustMarshalJSON(mintGen)},
 		app.GenesisState{kavadisttypes.ModuleName: appCodec.MustMarshalJSON(kavadistGen)},
+		app.GenesisState{distrtypes.ModuleName: appCodec.MustMarshalJSON(distrGen)},
 	)
 }
 
@@ -70,10 +77,12 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 		suite.Require().True(found)
 		mintParams := suite.App.GetMintKeeper().GetParams(suite.Ctx)
 		kavadistParams := suite.App.GetKavadistKeeper().GetParams(suite.Ctx)
+		distrParams := suite.App.GetDistrKeeper().GetParams(suite.Ctx)
 
 		disableTimeMsg := "expected inflation disable time to match"
 		expectedMintState := suite.genesisMintState
 		expectedKavadistState := suite.genesisKavadistState
+		expectedDistrState := suite.genesisDistrState
 		expectedStakingRewards := originalStakingRewards
 		msgSuffix := "before upgrade"
 
@@ -92,6 +101,9 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			expectedMintState.Params.InflationMax = sdk.ZeroDec()
 
 			expectedKavadistState.Params.Active = false
+
+			expectedDistrState.Params.CommunityTax = sdk.ZeroDec()
+
 			msgSuffix = "after upgrade"
 
 			suite.Require().NoError(app.EventsContains(suite.Ctx.EventManager().Events(), sdk.NewEvent(types.EventTypeInflationStop)))
@@ -100,6 +112,7 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 		suite.Require().Equal(expectedMintState.Params.InflationMin, mintParams.InflationMin, msg+": expected mint inflation min to match state "+msgSuffix)
 		suite.Require().Equal(expectedMintState.Params.InflationMax, mintParams.InflationMax, msg+": expected mint inflation max to match state "+msgSuffix)
 		suite.Require().Equal(expectedKavadistState.Params.Active, kavadistParams.Active, msg+":expected kavadist active flag match state "+msgSuffix)
+		suite.Require().Equal(expectedDistrState.Params.CommunityTax, distrParams.CommunityTax, msg+":expected x/distribution community tax to match state "+msgSuffix)
 		suite.Require().Equal(expectedDisableTime, params.UpgradeTimeDisableInflation, msg+": "+disableTimeMsg)
 
 		// we always check staking rewards per second matches the passed in expectation

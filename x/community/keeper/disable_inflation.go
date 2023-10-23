@@ -19,8 +19,14 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 		return
 	}
 
+	logger := k.Logger(ctx)
+	logger.Info("disable inflation upgrade started")
+
 	// run disable inflation logic
 	k.disableInflation(ctx)
+	k.disableCommunityTax(ctx)
+
+	logger.Info("disable inflation upgrade finished successfully!")
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -43,7 +49,6 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 // affecting rewards.  In addition, inflation periods in kavadist should be removed.
 func (k Keeper) disableInflation(ctx sdk.Context) {
 	logger := k.Logger(ctx)
-	logger.Info("disable inflation upgrade started")
 
 	// set x/min inflation to 0
 	mintParams := k.mintKeeper.GetParams(ctx)
@@ -57,6 +62,14 @@ func (k Keeper) disableInflation(ctx sdk.Context) {
 	kavadistParams.Active = false
 	k.kavadistKeeper.SetParams(ctx, kavadistParams)
 	logger.Info("x/kavadist inflation disabled")
+}
 
-	logger.Info("disable inflation upgrade finished successfully!")
+// disableCommunityTax sets x/distribution Params.CommunityTax to 0
+func (k Keeper) disableCommunityTax(ctx sdk.Context) {
+	logger := k.Logger(ctx)
+
+	distrParams := k.distrKeeper.GetParams(ctx)
+	distrParams.CommunityTax = sdk.ZeroDec()
+	k.distrKeeper.SetParams(ctx, distrParams)
+	logger.Info("x/distribution community tax set to 0")
 }
