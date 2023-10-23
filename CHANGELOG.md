@@ -38,7 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 - (community) [#1704] Add module params
 - (community) [#1706] Add disable inflation upgrade
@@ -52,8 +52,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (community) [#1704] Add param to control when inflation will be disabled
 - (community) [#1707] Default staking rewards per second set to `744191`
-- (community) [#1706] Add disable inflation upgrade to begin blocker that updates x/mint and x/kavadist params.
+- (community) [#1706] Add disable inflation upgrade to begin blocker that updates x/mint and x/kavadist params
 - (community) [#1729] Consolidate community funds from `x/distribution` and `x/kavadist` to `x/community`
+- (community) [#1752] Set `x/distribution` CommunityTax to zero on inflation disable upgrade
 
 ## [v0.24.0]
 
@@ -294,10 +295,12 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1752]: https://github.com/Kava-Labs/kava/pull/1752
 [#1729]: https://github.com/Kava-Labs/kava/pull/1729
 [#1745]: https://github.com/Kava-Labs/kava/pull/1745
 [#1707]: https://github.com/Kava-Labs/kava/pull/1707
 [#1706]: https://github.com/Kava-Labs/kava/pull/1706
+[#1704]: https://github.com/Kava-Labs/kava/pull/1704
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1655]: https://github.com/Kava-Labs/kava/pull/1655
