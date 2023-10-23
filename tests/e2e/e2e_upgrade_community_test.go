@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -174,7 +173,7 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 			&distrtypes.QueryCommunityPoolRequest{},
 		)
 		suite.NoError(err)
-		distrBalCoinsBefore, _ := distrBalBefore.Pool.TruncateDecimal()
+		distrBalCoinsBefore, distrDustBefore := distrBalBefore.Pool.TruncateDecimal()
 		beforeCommPoolBalance, err := suite.Kava.Community.Balance(
 			beforeSwitchoverCtx,
 			&communitytypes.QueryBalanceRequest{},
@@ -212,13 +211,8 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 		// very low ukava balance after (ignoring dust in x/distribution)
 		// a small amount of tx fees can still end up here.
 		// dust should stay in x/distribution, but may not be the same so it's unchecked
-		distrCoinsAfter, _ := distrBalAfter.Pool.TruncateDecimal()
-		suite.Len(distrCoinsAfter, 1, "expected only 1 coin in x/distribution community pool")
-		suite.Equal("ukava", distrCoinsAfter[0].Denom, "expected only ukava in x/distribution community pool")
-		suite.True(
-			distrCoinsAfter[0].Amount.LTE(sdkmath.NewInt(10000)),
-			"remaining ukava in x/distribution community pool should be very low",
-		)
+		distrCoinsAfter, distrDustAfter := distrBalAfter.Pool.TruncateDecimal()
+		suite.Empty(distrCoinsAfter, "expected no coins in x/distribution community pool")
 
 		// Fetch block results for paid staking rewards in the block
 		blockRes, err := suite.Kava.TmSignClient.BlockResults(
@@ -251,6 +245,12 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 		suite.Equal(
 			expectedCommunityBal,
 			afterCommPoolBalance.Coins,
+		)
+
+		suite.Equal(
+			distrDustBefore,
+			distrDustAfter,
+			"x/distribution community pool dust should be unchanged",
 		)
 	})
 }
