@@ -88,6 +88,20 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		)
 	})
 
+	suite.Run("x/distribution community tax before switchover", func() {
+		distrParams, err := suite.Kava.Distribution.Params(
+			beforeSwitchoverCtx,
+			&distributiontypes.QueryParamsRequest{},
+		)
+		suite.NoError(err)
+
+		suite.Equal(
+			sdkmath.LegacyMustNewDecFromStr("0.949500000000000000").String(),
+			distrParams.Params.CommunityTax.String(),
+			"x/distribution community tax should be 94.95%% before switchover",
+		)
+	})
+
 	suite.Run("x/mint inflation after switchover", func() {
 		mintParams, err := suite.Kava.Mint.Params(
 			afterSwitchoverCtx,
@@ -114,6 +128,20 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		suite.False(
 			kavaDistParams.Params.Active,
 			"x/kavadist should be inactive after switchover",
+		)
+	})
+
+	suite.Run("x/distribution community tax after switchover", func() {
+		distrParams, err := suite.Kava.Distribution.Params(
+			afterSwitchoverCtx,
+			&distributiontypes.QueryParamsRequest{},
+		)
+		suite.NoError(err)
+
+		suite.Equal(
+			sdkmath.LegacyZeroDec().String(),
+			distrParams.Params.CommunityTax.String(),
+			"x/distribution community tax should be 0%% before switchover",
 		)
 	})
 
