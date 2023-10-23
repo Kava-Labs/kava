@@ -20,7 +20,11 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 	// ensure funded account has nonzero erc20 balance
 	balance := suite.Kava.GetErc20Balance(suite.DeployedErc20.Address, whale.EvmAddress)
 	if balance.Cmp(big.NewInt(0)) != 1 {
-		panic(fmt.Sprintf("expected funded account (%s) to have erc20 balance", whale.EvmAddress.Hex()))
+		panic(fmt.Sprintf(
+			"expected funded account (%s) to have erc20 balance of token %s",
+			whale.EvmAddress.Hex(),
+			suite.DeployedErc20.Address.Hex(),
+		))
 	}
 
 	// expect the erc20 to be enabled for conversion to sdk.Coin
