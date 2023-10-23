@@ -99,7 +99,7 @@ func (suite *IntegrationTestSuite) TestTransferOverEVM() {
 		Data: "any ol' data to track this through the system",
 	}
 	res := acc.SignAndBroadcastEvmTx(req)
-	suite.NoError(res.Err)
+	suite.Require().NoError(res.Err)
 	suite.Equal(ethtypes.ReceiptStatusSuccessful, res.Receipt.Status)
 
 	// evm txs refund unused gas. so to know the expected balance we need to know how much gas was used.

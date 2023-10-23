@@ -56,6 +56,8 @@ type LiveNetworkConfig struct {
 	KavaRpcUrl    string
 	KavaGrpcUrl   string
 	KavaEvmRpcUrl string
+
+	UpgradeHeight int64
 }
 
 // ParseSuiteConfig builds a SuiteConfig from environment variables.
@@ -107,11 +109,23 @@ func ParseKvtoolConfig() KvtoolConfig {
 
 // ParseLiveNetworkConfig builds a LiveNetworkConfig from environment variables.
 func ParseLiveNetworkConfig() LiveNetworkConfig {
-	return LiveNetworkConfig{
+	config := LiveNetworkConfig{
 		KavaRpcUrl:    nonemptyStringEnv("E2E_KAVA_RPC_URL"),
 		KavaGrpcUrl:   nonemptyStringEnv("E2E_KAVA_GRPC_URL"),
 		KavaEvmRpcUrl: nonemptyStringEnv("E2E_KAVA_EVM_RPC_URL"),
 	}
+
+	upgradeHeight := os.Getenv("E2E_KAVA_UPGRADE_HEIGHT")
+	if upgradeHeight != "" {
+		parsedHeight, err := strconv.ParseInt(upgradeHeight, 10, 64)
+		if err != nil {
+			panic(fmt.Sprintf("E2E_KAVA_UPGRADE_HEIGHT must be a number: %s", err))
+		}
+
+		config.UpgradeHeight = parsedHeight
+	}
+
+	return config
 }
 
 // mustParseBool is a helper method that panics if the env variable `name`

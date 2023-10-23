@@ -193,12 +193,16 @@ func (suite *E2eTestSuite) SetupLiveNetworkNodeRunner() *runner.LiveNodeRunner {
 	if suite.config.IncludeIbcTests {
 		panic("ibc tests not supported for live network configuration")
 	}
+
+	// Manually set upgrade height for live networks
+	suite.UpgradeHeight = suite.config.LiveNetwork.UpgradeHeight
 	suite.enableRefunds = true
 
 	runnerConfig := runner.LiveNodeRunnerConfig{
 		KavaRpcUrl:    suite.config.LiveNetwork.KavaRpcUrl,
 		KavaGrpcUrl:   suite.config.LiveNetwork.KavaGrpcUrl,
 		KavaEvmRpcUrl: suite.config.LiveNetwork.KavaEvmRpcUrl,
+		UpgradeHeight: suite.config.LiveNetwork.UpgradeHeight,
 	}
 
 	return runner.NewLiveNodeRunner(runnerConfig)
@@ -217,6 +221,20 @@ func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 // Note: automated upgrade tests are currently only enabled for Kvtool suite runs.
 func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
 	if suite.config.Kvtool != nil && !suite.config.Kvtool.IncludeAutomatedUpgrade {
+		fmt.Println("skipping upgrade test, kvtool automated upgrade is disabled")
+		suite.T().SkipNow()
+	}
+
+	// If there isn't a manual upgrade height set in the config, skip the test
+	if suite.config.LiveNetwork != nil && suite.config.LiveNetwork.UpgradeHeight == 0 {
+		fmt.Println("skipping upgrade test, live network upgrade height is not set")
+		suite.T().SkipNow()
+	}
+}
+
+// SkipIfKvtoolDisabled should be called at the start of tests that require kvtool.
+func (suite *E2eTestSuite) SkipIfKvtoolDisabled() {
+	if suite.config.Kvtool == nil {
 		suite.T().SkipNow()
 	}
 }
