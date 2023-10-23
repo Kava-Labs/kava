@@ -28,7 +28,7 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 	suite.NoError(err)
 
 	// Before parameters
-	suite.Run("x/distribution and x/kavadist parameters before upgrade", func() {
+	suite.Run("x/community and x/kavadist parameters before upgrade", func() {
 		_, err = suite.Kava.Community.Params(beforeUpgradeCtx, &communitytypes.QueryParamsRequest{})
 		suite.Error(err, "x/community should not have params before upgrade")
 
@@ -48,7 +48,7 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 	})
 
 	// After upgrade, Before switchover - parameters
-	suite.Run("x/distribution and x/kavadist parameters after upgrade, before switchover", func() {
+	suite.Run("x/kavadist, x/mint, x/community parameters after upgrade, before switchover", func() {
 		kavaDistParamsAfter, err := suite.Kava.Kavadist.Params(afterUpgradeCtx, &kavadisttypes.QueryParamsRequest{})
 		suite.NoError(err)
 		mintParamsAfter, err := suite.Kava.Mint.Params(afterUpgradeCtx, &minttypes.QueryParamsRequest{})
@@ -117,7 +117,7 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 	beforeSwitchoverCtx := util.CtxAtHeight(switchoverHeight - 1)
 	afterSwitchoverCtx := util.CtxAtHeight(switchoverHeight)
 
-	suite.Run("x/distribution and x/kavadist parameters after upgrade, after switchover", func() {
+	suite.Run("x/kavadist, x/mint, x/community parameters after upgrade, after switchover", func() {
 		kavaDistParamsAfter, err := suite.Kava.Kavadist.Params(
 			afterSwitchoverCtx,
 			&kavadisttypes.QueryParamsRequest{},
@@ -161,7 +161,7 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 		)
 	})
 
-	suite.Run("x/distribution and x/kavadist balances after switchover", func() {
+	suite.Run("x/kavadist, x/distribution, x/community balances after switchover", func() {
 		// Before balances - community pool fund consolidation
 		kavaDistBalBefore, err := suite.Kava.Kavadist.Balance(
 			beforeSwitchoverCtx,
