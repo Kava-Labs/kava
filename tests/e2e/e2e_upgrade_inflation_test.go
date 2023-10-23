@@ -57,7 +57,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 	beforeSwitchoverCtx := util.CtxAtHeight(switchoverHeight - 1)
 	afterSwitchoverCtx := util.CtxAtHeight(switchoverHeight)
 
-	suite.Run("x/mint inflation before switchover", func() {
+	suite.Run("x/mint, x/kavadist inflation before switchover", func() {
 		mintParams, err := suite.Kava.Mint.Params(
 			beforeSwitchoverCtx,
 			&minttypes.QueryParamsRequest{},
@@ -102,7 +102,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		)
 	})
 
-	suite.Run("x/mint inflation after switchover", func() {
+	suite.Run("x/mint, x/kavadist inflation after switchover", func() {
 		mintParams, err := suite.Kava.Mint.Params(
 			afterSwitchoverCtx,
 			&minttypes.QueryParamsRequest{},
