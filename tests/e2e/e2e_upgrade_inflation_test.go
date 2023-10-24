@@ -49,7 +49,7 @@ func (suite *IntegrationTestSuite) TestUpgradeInflation_Disable() {
 		fmt.Sprintf(
 			"%s.%s EXISTS",
 			communitytypes.EventTypeInflationStop,
-			communitytypes.AttributeKeyDisableTime,
+			communitytypes.AttributeKeyInflationDisableTime,
 		),
 	)
 	suite.Require().NoError(err)
