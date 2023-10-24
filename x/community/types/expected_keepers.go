@@ -4,6 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 )
 
 // AccountKeeper defines the contract required for account APIs.
@@ -18,12 +19,8 @@ type BankKeeper interface {
 
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-<<<<<<< HEAD
-=======
-	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule, recipientModule string, amt sdk.Coins) error
 
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
->>>>>>> 0efe7f22 (feat(community): add AnnualizedRewards grpc query (#1751))
 }
 
 // CdpKeeper defines the contract needed to be fulfilled for cdp dependencies.
@@ -43,29 +40,15 @@ type DistributionKeeper interface {
 	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
 	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
 	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
-<<<<<<< HEAD
-=======
-	GetFeePool(ctx sdk.Context) distrtypes.FeePool
-	SetFeePool(ctx sdk.Context, feePool distrtypes.FeePool)
-	GetParams(ctx sdk.Context) distrtypes.Params
-	SetParams(ctx sdk.Context, params distrtypes.Params)
 	GetCommunityTax(ctx sdk.Context) sdk.Dec
 }
 
 type MintKeeper interface {
-	GetParams(ctx sdk.Context) (params minttypes.Params)
-	SetParams(ctx sdk.Context, params minttypes.Params)
 	GetMinter(ctx sdk.Context) (minter minttypes.Minter)
-}
-
-type KavadistKeeper interface {
-	GetParams(ctx sdk.Context) (params kavadisttypes.Params)
-	SetParams(ctx sdk.Context, params kavadisttypes.Params)
 }
 
 // StakingKeeper expected interface for the staking keeper
 type StakingKeeper interface {
 	BondDenom(ctx sdk.Context) string
 	TotalBondedTokens(ctx sdk.Context) sdkmath.Int
->>>>>>> 0efe7f22 (feat(community): add AnnualizedRewards grpc query (#1751))
 }

@@ -648,6 +648,8 @@ func NewApp(
 		&cdpKeeper,
 		app.distrKeeper,
 		&hardKeeper,
+		&app.mintKeeper,
+		app.stakingKeeper,
 	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,

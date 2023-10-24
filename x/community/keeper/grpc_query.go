@@ -48,22 +48,18 @@ func (s queryServer) TotalBalance(
 }
 
 // AnnualizedRewards calculates the annualized rewards for the chain.
+// This method is backported from v0.25.x to allow for early migration.
 func (s queryServer) AnnualizedRewards(
 	c context.Context,
 	req *types.QueryAnnualizedRewardsRequest,
 ) (*types.QueryAnnualizedRewardsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	// staking rewards come from one of two sources depending on if inflation is enabled or not.
-	// at any given time, only one source will contribute to the staking rewards. the other will be zero.
-	// this method adds both sources together so it is accurate in both cases.
-
-	params := s.keeper.mustGetParams(ctx)
 	bondDenom := s.keeper.stakingKeeper.BondDenom(ctx)
 
 	totalSupply := s.keeper.bankKeeper.GetSupply(ctx, bondDenom).Amount
 	totalBonded := s.keeper.stakingKeeper.TotalBondedTokens(ctx)
-	rewardsPerSecond := params.StakingRewardsPerSecond
+	rewardsPerSecond := sdkmath.LegacyZeroDec() // always zero. this method is backported from v0.25.x to allow for early migration.
 	// need to convert these from sdk.Dec to sdkmath.LegacyDec
 	inflationRate := convertDecToLegacyDec(s.keeper.mintKeeper.GetMinter(ctx).Inflation)
 	communityTax := convertDecToLegacyDec(s.keeper.distrKeeper.GetCommunityTax(ctx))

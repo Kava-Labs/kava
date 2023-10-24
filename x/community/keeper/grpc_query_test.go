@@ -147,10 +147,10 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalBalance() {
 	}
 }
 
+// backported from v0.25.x. Does not actually use `rewardsPerSec` because concept does not exist.
 // NOTE: this test makes use of the fact that there is always an initial 1e6 bonded tokens
 // To adjust the bonded ratio, it adjusts the total supply by minting tokens.
 func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
-	bondedTokens := sdkmath.NewInt(1e6)
 	testCases := []struct {
 		name          string
 		bondedRatio   sdk.Dec
@@ -182,14 +182,6 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 			expectedRate:  sdkmath.LegacyZeroDec(),
 		},
 		{
-			name:          "rewards per second sanity check: (totalBonded/SecondsPerYear) rps => 100%",
-			bondedRatio:   sdk.OneDec(), // bonded tokens are constant in this test. ratio has no affect.
-			inflation:     sdk.ZeroDec(),
-			rewardsPerSec: sdkmath.LegacyNewDecFromInt(bondedTokens).QuoInt(sdkmath.NewInt(keeper.SecondsPerYear)),
-			// expect ~100%
-			expectedRate: sdkmath.LegacyMustNewDecFromStr("0.999999999999999984"),
-		},
-		{
 			name:          "inflation enabled: realistic example",
 			bondedRatio:   sdk.MustNewDecFromStr("0.148"),
 			inflation:     sdk.MustNewDecFromStr("0.595"),
@@ -197,15 +189,6 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 			rewardsPerSec: sdkmath.LegacyZeroDec(),
 			// expect ~20.23%
 			expectedRate: sdkmath.LegacyMustNewDecFromStr("0.203023625910000000"),
-		},
-		{
-			name:          "inflation disabled: simple example",
-			bondedRatio:   sdk.OneDec(), // bonded tokens are constant in this test. ratio has no affect.
-			inflation:     sdk.ZeroDec(),
-			rewardsPerSec: sdkmath.LegacyMustNewDecFromStr("0.01"),
-			// 1e6 bonded tokens => seconds per year / bonded tokens = 31.536
-			// expect 31.536%
-			expectedRate: sdkmath.LegacyMustNewDecFromStr("0.31536"),
 		},
 	}
 
@@ -228,12 +211,6 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 			distParams := dk.GetParams(suite.Ctx)
 			distParams.CommunityTax = communityTax
 			dk.SetParams(suite.Ctx, distParams)
-
-			// set staking rewards per second
-			ck := suite.App.GetCommunityKeeper()
-			commParams, _ := ck.GetParams(suite.Ctx)
-			commParams.StakingRewardsPerSecond = tc.rewardsPerSec
-			ck.SetParams(suite.Ctx, commParams)
 
 			// set bonded tokens
 			suite.adjustBondedRatio(tc.bondedRatio)

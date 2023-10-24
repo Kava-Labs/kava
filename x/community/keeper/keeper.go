@@ -16,12 +16,22 @@ type Keeper struct {
 	distrKeeper   types.DistributionKeeper
 	hardKeeper    types.HardKeeper
 	moduleAddress sdk.AccAddress
+	mintKeeper    types.MintKeeper
+	stakingKeeper types.StakingKeeper
 
 	legacyCommunityPoolAddress sdk.AccAddress
 }
 
 // NewKeeper creates a new community Keeper instance
-func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper, ck types.CdpKeeper, dk types.DistributionKeeper, hk types.HardKeeper) Keeper {
+func NewKeeper(
+	ak types.AccountKeeper,
+	bk types.BankKeeper,
+	ck types.CdpKeeper,
+	dk types.DistributionKeeper,
+	hk types.HardKeeper,
+	mk types.MintKeeper,
+	sk types.StakingKeeper,
+) Keeper {
 	// ensure community module account is set
 	addr := ak.GetModuleAddress(types.ModuleAccountName)
 	if addr == nil {
@@ -37,6 +47,8 @@ func NewKeeper(ak types.AccountKeeper, bk types.BankKeeper, ck types.CdpKeeper, 
 		cdpKeeper:     ck,
 		distrKeeper:   dk,
 		hardKeeper:    hk,
+		mintKeeper:    mk,
+		stakingKeeper: sk,
 		moduleAddress: addr,
 
 		legacyCommunityPoolAddress: legacyAddr,
