@@ -197,6 +197,8 @@
     - [CommunityPoolLendWithdrawProposal](#kava.community.v1beta1.CommunityPoolLendWithdrawProposal)
   
 - [kava/community/v1beta1/query.proto](#kava/community/v1beta1/query.proto)
+    - [QueryAnnualizedRewardsRequest](#kava.community.v1beta1.QueryAnnualizedRewardsRequest)
+    - [QueryAnnualizedRewardsResponse](#kava.community.v1beta1.QueryAnnualizedRewardsResponse)
     - [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest)
     - [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse)
     - [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest)
@@ -3087,6 +3089,31 @@ CommunityPoolLendWithdrawProposal withdraws a lend position back to the communit
 
 
 
+<a name="kava.community.v1beta1.QueryAnnualizedRewardsRequest"></a>
+
+### QueryAnnualizedRewardsRequest
+QueryAnnualizedRewardsRequest defines the request type for querying the annualized rewards.
+
+
+
+
+
+
+<a name="kava.community.v1beta1.QueryAnnualizedRewardsResponse"></a>
+
+### QueryAnnualizedRewardsResponse
+QueryAnnualizedRewardsResponse defines the response type for querying the annualized rewards.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `staking_rewards` | [string](#string) |  | staking_rewards is the calculated annualized staking rewards percentage rate |
+
+
+
+
+
+
 <a name="kava.community.v1beta1.QueryBalanceRequest"></a>
 
 ### QueryBalanceRequest
@@ -3179,6 +3206,7 @@ Query defines the gRPC querier service for x/community.
 | `Params` | [QueryParamsRequest](#kava.community.v1beta1.QueryParamsRequest) | [QueryParamsResponse](#kava.community.v1beta1.QueryParamsResponse) | Params queires the module params. | GET|/kava/community/v1beta1/params|
 | `Balance` | [QueryBalanceRequest](#kava.community.v1beta1.QueryBalanceRequest) | [QueryBalanceResponse](#kava.community.v1beta1.QueryBalanceResponse) | Balance queries the balance of all coins of x/community module. | GET|/kava/community/v1beta1/balance|
 | `TotalBalance` | [QueryTotalBalanceRequest](#kava.community.v1beta1.QueryTotalBalanceRequest) | [QueryTotalBalanceResponse](#kava.community.v1beta1.QueryTotalBalanceResponse) | TotalBalance queries the balance of all coins, including x/distribution, x/community, and supplied balances. | GET|/kava/community/v1beta1/total_balance|
+| `AnnualizedRewards` | [QueryAnnualizedRewardsRequest](#kava.community.v1beta1.QueryAnnualizedRewardsRequest) | [QueryAnnualizedRewardsResponse](#kava.community.v1beta1.QueryAnnualizedRewardsResponse) | AnnualizedRewards calculates and returns the current annualized reward percentages, like staking rewards, for the chain. | GET|/kava/community/v1beta1/annualized_rewards|
 
  <!-- end services -->
 

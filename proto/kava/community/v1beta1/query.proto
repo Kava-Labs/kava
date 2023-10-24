@@ -2,6 +2,7 @@ syntax = "proto3";
 package kava.community.v1beta1;
 
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "kava/community/v1beta1/params.proto";
@@ -24,6 +25,12 @@ service Query {
   // x/community, and supplied balances.
   rpc TotalBalance(QueryTotalBalanceRequest) returns (QueryTotalBalanceResponse) {
     option (google.api.http).get = "/kava/community/v1beta1/total_balance";
+  }
+
+  // AnnualizedRewards calculates and returns the current annualized reward percentages,
+  // like staking rewards, for the chain.
+  rpc AnnualizedRewards(QueryAnnualizedRewardsRequest) returns (QueryAnnualizedRewardsResponse) {
+    option (google.api.http).get = "/kava/community/v1beta1/annualized_rewards";
   }
 }
 
@@ -56,6 +63,19 @@ message QueryTotalBalanceResponse {
   // pool defines community pool's coins.
   repeated cosmos.base.v1beta1.DecCoin pool = 1 [
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryAnnualizedRewardsRequest defines the request type for querying the annualized rewards.
+message QueryAnnualizedRewardsRequest {}
+
+// QueryAnnualizedRewardsResponse defines the response type for querying the annualized rewards.
+message QueryAnnualizedRewardsResponse {
+  // staking_rewards is the calculated annualized staking rewards percentage rate
+  string staking_rewards = 1 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }
