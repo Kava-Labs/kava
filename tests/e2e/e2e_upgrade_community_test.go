@@ -108,7 +108,7 @@ func (suite *IntegrationTestSuite) TestUpgradeCommunityParams() {
 		fmt.Sprintf(
 			"%s.%s EXISTS",
 			communitytypes.EventTypeInflationStop,
-			communitytypes.AttributeKeyDisableTime,
+			communitytypes.AttributeKeyInflationDisableTime,
 		),
 	)
 	suite.Require().NoError(err)

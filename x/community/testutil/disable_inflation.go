@@ -112,7 +112,7 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 					sdk.NewEvent(
 						types.EventTypeInflationStop,
 						sdk.NewAttribute(
-							types.AttributeKeyDisableTime,
+							types.AttributeKeyInflationDisableTime,
 							suite.Ctx.BlockTime().Format(time.RFC3339),
 						),
 					),
