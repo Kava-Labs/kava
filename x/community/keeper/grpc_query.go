@@ -78,20 +78,15 @@ func (s queryServer) AnnualizedRewards(
 	params := s.keeper.mustGetParams(ctx)
 	bondDenom := s.keeper.stakingKeeper.BondDenom(ctx)
 
+	totalSupply := s.keeper.bankKeeper.GetSupply(ctx, bondDenom).Amount
+	totalBonded := s.keeper.stakingKeeper.TotalBondedTokens(ctx)
+	rewardsPerSecond := params.StakingRewardsPerSecond
 	// need to convert these from sdk.Dec to sdkmath.LegacyDec
-	inflation := s.keeper.mintKeeper.GetMinter(ctx).Inflation
-	communityTax := s.keeper.distrKeeper.GetCommunityTax(ctx)
-
-	calc := StakingRewardCalculator{
-		TotalSupply:      s.keeper.bankKeeper.GetSupply(ctx, bondDenom).Amount,
-		TotalBonded:      s.keeper.stakingKeeper.TotalBondedTokens(ctx),
-		InflationRate:    convertDecToLegacyDec(inflation),
-		CommunityTax:     convertDecToLegacyDec(communityTax),
-		RewardsPerSecond: params.StakingRewardsPerSecond,
-	}
+	inflationRate := convertDecToLegacyDec(s.keeper.mintKeeper.GetMinter(ctx).Inflation)
+	communityTax := convertDecToLegacyDec(s.keeper.distrKeeper.GetCommunityTax(ctx))
 
 	return &types.QueryAnnualizedRewardsResponse{
-		StakingRewards: calc.GetAnnualizedRate(),
+		StakingRewards: CalculateStakingAnnualPercentage(totalSupply, totalBonded, inflationRate, communityTax, rewardsPerSecond),
 	}, nil
 }
 
@@ -100,5 +95,5 @@ func (s queryServer) AnnualizedRewards(
 // this module uses sdkmath.LegacyDec in its parameters
 // TODO: remove me after upgrade to cosmos-sdk v50 (LegacyDec is everywhere)
 func convertDecToLegacyDec(in sdk.Dec) sdkmath.LegacyDec {
-	return sdkmath.LegacyNewDecFromBigIntWithPrec(in.BigInt(), sdkmath.LegacyPrecision)
+	return sdkmath.LegacyNewDecFromBigIntWithPrec(in.BigInt(), sdk.Precision)
 }

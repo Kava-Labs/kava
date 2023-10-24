@@ -215,7 +215,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 			communityTax:  sdk.MustNewDecFromStr("0.9495"),
 			rewardsPerSec: sdkmath.LegacyZeroDec(),
 			// expect ~20.23%
-			expectedRate: sdkmath.LegacyMustNewDecFromStr("0.203023625910000001"),
+			expectedRate: sdkmath.LegacyMustNewDecFromStr("0.203023625910000000"),
 		},
 		{
 			name:          "inflation disabled: simple example",
