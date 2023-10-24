@@ -80,8 +80,13 @@ func upgradeHandler(
 			return toVM, err
 		}
 
-		app.Logger().Info("initializing x/community params")
 		app.communityKeeper.SetParams(ctx, communityParams)
+		app.Logger().Info(
+			"initialized x/community params",
+			"UpgradeTimeDisableInflation", communityParams.UpgradeTimeDisableInflation,
+			"StakingRewardsPerSecond", communityParams.StakingRewardsPerSecond,
+			"UpgradeTimeSetStakingRewardsPerSecond", communityParams.UpgradeTimeSetStakingRewardsPerSecond,
+		)
 
 		return toVM, nil
 	}
