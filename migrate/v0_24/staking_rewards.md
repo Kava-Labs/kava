@@ -39,7 +39,7 @@ Informational Endpoints
 * https://api.data.kava.io/cosmos/mint/v1beta1/annual_provisions
 
 ## After Kava 15
-Kava 15 will implement new staking rewards as ratified in this proposal: https://www.mintscan.io/kava/proposals/141. They will come into effect at the “switchover time” on 2023-12-31.
+Kava 15 will implement new staking rewards as ratified in this proposal: https://www.mintscan.io/kava/proposals/141. They will come into effect at the “switchover time” on 2024-01-01.
 
 * All delegating and claiming transactions remain unchanged. There is no change in how rewards are claimed or how claimable balances are queried.
 * After the switchover time, inflation will be set to zero (and rewards will be paid from the community module account).
