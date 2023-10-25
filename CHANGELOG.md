@@ -38,12 +38,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
-- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry
-- (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 - (community) [#1704] Add module params
 - (community) [#1706] Add disable inflation upgrade
 - (community) [#1745] Enable params update via governance with `MsgUpdateParams`
-- (community) [#1751] Add `AnnualizedRewards` query endpoint
 
 ### Bug Fixes
 
@@ -57,6 +54,14 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (community) [#1729] Consolidate community funds from `x/distribution` and `x/kavadist` to `x/community`
 - (community) [#1752] Set `x/distribution` CommunityTax to zero on inflation disable upgrade
 - (community) [#1755] Keep funds in `x/community` in `CommunityPoolLendWithdrawProposal` handler
+
+
+## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
+
+### Features
+- (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
+- (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
+- (community) [#1751] Add `AnnualizedRewards` query endpoint
 
 ## [v0.24.0]
 
