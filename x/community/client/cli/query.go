@@ -19,13 +19,8 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	commands := []*cobra.Command{
-<<<<<<< HEAD
-		GetCmdQueryBalance(),
-=======
-		getCmdQueryParams(),
 		getCmdQueryBalance(),
 		getCmdQueryAnnualizedRewards(),
->>>>>>> 48ee996f (feat(community): add CLI cmd for annualized-rewards (#1756))
 	}
 
 	for _, cmd := range commands {
@@ -37,8 +32,8 @@ func GetQueryCmd() *cobra.Command {
 	return communityQueryCmd
 }
 
-// GetCmdQueryBalance implements a command to return the current community pool balance.
-func GetCmdQueryBalance() *cobra.Command {
+// getCmdQueryBalance implements a command to return the current community pool balance.
+func getCmdQueryBalance() *cobra.Command {
 	return &cobra.Command{
 		Use:   "balance",
 		Short: "Query the current balance of the community module account",
