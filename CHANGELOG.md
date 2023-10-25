@@ -36,6 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+
+## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
+
 ### Features
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
