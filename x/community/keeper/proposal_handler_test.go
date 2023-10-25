@@ -120,10 +120,13 @@ func (suite *proposalTestSuite) FundCommunityPool(coins sdk.Coins) {
 }
 
 func (suite *proposalTestSuite) GetCommunityPoolBalance() sdk.Coins {
-	balance, change := suite.App.GetDistrKeeper().GetFeePoolCommunityCoins(suite.Ctx).TruncateDecimal()
-	// expect no decimal dust
-	suite.True(sdk.NewDecCoins().IsEqual(change), "expected no decimal dust in community pool")
-	return balance
+	ak := suite.App.GetAccountKeeper()
+	bk := suite.App.GetBankKeeper()
+
+	addr := ak.GetModuleAddress(types.ModuleAccountName)
+
+	// Return x/community module account balance, no longer using x/distribution community pool
+	return bk.GetAllBalances(suite.Ctx, addr)
 }
 
 func (suite *proposalTestSuite) CheckCommunityPoolBalance(expected sdk.Coins) {

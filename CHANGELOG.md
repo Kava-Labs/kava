@@ -56,6 +56,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (community) [#1706] Add disable inflation upgrade to begin blocker that updates x/mint and x/kavadist params
 - (community) [#1729] Consolidate community funds from `x/distribution` and `x/kavadist` to `x/community`
 - (community) [#1752] Set `x/distribution` CommunityTax to zero on inflation disable upgrade
+- (community) [#1755] Keep funds in `x/community` in `CommunityPoolLendWithdrawProposal` handler
 
 ## [v0.24.0]
 
@@ -296,6 +297,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1755]: https://github.com/Kava-Labs/kava/pull/1755
 [#1752]: https://github.com/Kava-Labs/kava/pull/1752
 [#1751]: https://github.com/Kava-Labs/kava/pull/1751
 [#1745]: https://github.com/Kava-Labs/kava/pull/1745
