@@ -641,14 +641,6 @@ func NewApp(
 		&app.distrKeeper,
 	)
 
-	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
-	app.communityKeeper = communitykeeper.NewKeeper(
-		app.accountKeeper,
-		app.bankKeeper,
-		&cdpKeeper,
-		app.distrKeeper,
-		&hardKeeper,
-	)
 	app.kavadistKeeper = kavadistkeeper.NewKeeper(
 		appCodec,
 		keys[kavadisttypes.StoreKey],
@@ -667,6 +659,17 @@ func NewApp(
 		app.accountKeeper,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
+	)
+
+	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
+	app.communityKeeper = communitykeeper.NewKeeper(
+		app.accountKeeper,
+		app.bankKeeper,
+		&cdpKeeper,
+		app.distrKeeper,
+		&hardKeeper,
+		&app.mintKeeper,
+		app.stakingKeeper,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
