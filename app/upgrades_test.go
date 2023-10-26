@@ -2,6 +2,7 @@ package app_test
 
 import (
 	"testing"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -58,34 +59,52 @@ func TestUpdateValidatorMinimumCommission(t *testing.T) {
 	// Set some validators with varying commission rates
 
 	vals := []struct {
-		operatorAddr   sdk.ValAddress
-		consPriv       *ethsecp256k1.PrivKey
-		commissionRate sdk.Dec
+		name              string
+		operatorAddr      sdk.ValAddress
+		consPriv          *ethsecp256k1.PrivKey
+		commissionRateMin sdk.Dec
+		commissionRateMax sdk.Dec
+		shouldBeUpdated   bool
 	}{
 		{
-			operatorAddr:   sdk.ValAddress("val0"),
-			consPriv:       generateConsKey(t),
-			commissionRate: sdk.ZeroDec(),
+			name:              "zero commission rate",
+			operatorAddr:      sdk.ValAddress("val0"),
+			consPriv:          generateConsKey(t),
+			commissionRateMin: sdk.ZeroDec(),
+			commissionRateMax: sdk.ZeroDec(),
+			shouldBeUpdated:   true,
 		},
 		{
-			operatorAddr:   sdk.ValAddress("val1"),
-			consPriv:       generateConsKey(t),
-			commissionRate: sdk.MustNewDecFromStr("0.01"),
+			name:              "0.01 commission rate",
+			operatorAddr:      sdk.ValAddress("val1"),
+			consPriv:          generateConsKey(t),
+			commissionRateMin: sdk.MustNewDecFromStr("0.01"),
+			commissionRateMax: sdk.MustNewDecFromStr("0.01"),
+			shouldBeUpdated:   true,
 		},
 		{
-			operatorAddr:   sdk.ValAddress("val2"),
-			consPriv:       generateConsKey(t),
-			commissionRate: sdk.MustNewDecFromStr("0.05"),
+			name:              "0.05 commission rate",
+			operatorAddr:      sdk.ValAddress("val2"),
+			consPriv:          generateConsKey(t),
+			commissionRateMin: sdk.MustNewDecFromStr("0.05"),
+			commissionRateMax: sdk.MustNewDecFromStr("0.05"),
+			shouldBeUpdated:   false,
 		},
 		{
-			operatorAddr:   sdk.ValAddress("val3"),
-			consPriv:       generateConsKey(t),
-			commissionRate: sdk.MustNewDecFromStr("0.06"),
+			name:              "0.06 commission rate",
+			operatorAddr:      sdk.ValAddress("val3"),
+			consPriv:          generateConsKey(t),
+			commissionRateMin: sdk.MustNewDecFromStr("0.06"),
+			commissionRateMax: sdk.MustNewDecFromStr("0.06"),
+			shouldBeUpdated:   false,
 		},
 		{
-			operatorAddr:   sdk.ValAddress("val4"),
-			consPriv:       generateConsKey(t),
-			commissionRate: sdk.MustNewDecFromStr("0.5"),
+			name:              "0.5 commission rate",
+			operatorAddr:      sdk.ValAddress("val4"),
+			consPriv:          generateConsKey(t),
+			commissionRateMin: sdk.MustNewDecFromStr("0.5"),
+			commissionRateMax: sdk.MustNewDecFromStr("0.5"),
+			shouldBeUpdated:   false,
 		},
 	}
 
@@ -96,7 +115,8 @@ func TestUpdateValidatorMinimumCommission(t *testing.T) {
 			stakingtypes.Description{},
 		)
 		require.NoError(t, err)
-		val.Commission.Rate = v.commissionRate
+		val.Commission.Rate = v.commissionRateMin
+		val.Commission.MaxRate = v.commissionRateMax
 
 		err = sk.SetValidatorByConsAddr(ctx, val)
 		require.NoError(t, err)
@@ -113,24 +133,41 @@ func TestUpdateValidatorMinimumCommission(t *testing.T) {
 	require.Equal(t, stakingParamsAfter.MinCommissionRate, app.ValidatorMinimumCommission)
 
 	// Check that all validators have a commission rate >= 5%
-	count := 0
-	sk.IterateValidators(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
-		require.True(
-			t,
-			validator.GetCommission().GTE(app.ValidatorMinimumCommission),
-			"commission rate should be >= 5%",
-		)
+	for _, val := range vals {
+		t.Run(val.name, func(t *testing.T) {
+			validator, found := sk.GetValidator(ctx, val.operatorAddr)
+			require.True(t, found, "validator should be found")
 
-		count++
-		return false
-	})
+			require.True(
+				t,
+				validator.GetCommission().GTE(app.ValidatorMinimumCommission),
+				"commission rate should be >= 5%",
+			)
 
-	require.Equal(
-		t,
-		len(vals)+1, // InitializeFromGenesisStates adds a validator
-		count,
-		"validator count should match test validators",
-	)
+			require.True(
+				t,
+				validator.Commission.MaxRate.GTE(app.ValidatorMinimumCommission),
+				"commission rate max should be >= 5%, got %s",
+				validator.Commission.MaxRate,
+			)
+
+			if val.shouldBeUpdated {
+				require.Equal(
+					t,
+					ctx.BlockTime(),
+					validator.Commission.UpdateTime,
+					"commission update time should be set to block time",
+				)
+			} else {
+				require.Equal(
+					t,
+					time.Unix(0, 0).UTC(),
+					validator.Commission.UpdateTime,
+					"commission update time should not be changed -- default value is 0",
+				)
+			}
+		})
+	}
 }
 
 func generateConsKey(
