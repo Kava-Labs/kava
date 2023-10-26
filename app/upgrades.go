@@ -152,6 +152,16 @@ func UpdateValidatorMinimumCommission(
 
 			// Set minimum commission rate to 5%, when commission is < 5%
 			val.Commission.Rate = ValidatorMinimumCommission
+			val.Commission.UpdateTime = ctx.BlockTime()
+
+			// Update MaxRate if necessary
+			if val.Commission.MaxRate.LT(ValidatorMinimumCommission) {
+				val.Commission.MaxRate = ValidatorMinimumCommission
+			}
+
+			if err := app.stakingKeeper.BeforeValidatorModified(ctx, val.GetOperator()); err != nil {
+				panic(fmt.Sprintf("failed to call BeforeValidatorModified: %s", err))
+			}
 			app.stakingKeeper.SetValidator(ctx, val)
 
 			// Keep track of counts just for logging purposes
