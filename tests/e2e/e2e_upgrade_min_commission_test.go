@@ -1,7 +1,10 @@
 package e2e_test
 
 import (
+	"context"
+
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -53,6 +56,11 @@ func (suite *IntegrationTestSuite) TestValMinCommission() {
 	})
 
 	suite.Run("after upgrade", func() {
+		block, err := suite.Kava.Tm.GetBlockByHeight(context.Background(), &tmservice.GetBlockByHeightRequest{
+			Height: suite.UpgradeHeight,
+		})
+		suite.Require().NoError(err)
+
 		// After params
 		afterParams, err := suite.Kava.Staking.Params(afterUpgradeCtx, &types.QueryParamsRequest{})
 		suite.Require().NoError(err)
@@ -81,6 +89,14 @@ func (suite *IntegrationTestSuite) TestValMinCommission() {
 				val.Commission.CommissionRates.MaxRate.GTE(expectedMinRate),
 				"validator %s should have max commission rate of at least 5%%",
 				val.OperatorAddress,
+			)
+
+			suite.Require().Truef(
+				val.Commission.UpdateTime.Equal(block.Block.Header.Time),
+				"validator %s should have commission update time set to block time, expected %s, got %s",
+				val.OperatorAddress,
+				block.Block.Header.Time,
+				val.Commission.UpdateTime,
 			)
 		}
 	})
