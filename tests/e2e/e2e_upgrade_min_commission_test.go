@@ -92,10 +92,10 @@ func (suite *IntegrationTestSuite) TestValMinCommission() {
 			)
 
 			suite.Require().Truef(
-				val.Commission.UpdateTime.Equal(block.Block.Header.Time),
+				val.Commission.UpdateTime.Equal(block.SdkBlock.Header.Time),
 				"validator %s should have commission update time set to block time, expected %s, got %s",
 				val.OperatorAddress,
-				block.Block.Header.Time,
+				block.SdkBlock.Header.Time,
 				val.Commission.UpdateTime,
 			)
 		}
