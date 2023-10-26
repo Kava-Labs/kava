@@ -30,7 +30,9 @@ func (suite *IntegrationTestSuite) TestValMinCommission() {
 		suite.Require().NoError(err)
 
 		for _, val := range beforeValidators.Validators {
-			expectedRate := sdkmath.LegacyMustNewDecFromStr("0.1")
+			// In kvtool gentx, the commission rate is set to 0, with max of 0.01
+			expectedRate := sdkmath.LegacyZeroDec()
+			expectedRateMax := sdkmath.LegacyMustNewDecFromStr("0.01")
 
 			suite.Require().Equalf(
 				expectedRate.String(),
@@ -38,6 +40,14 @@ func (suite *IntegrationTestSuite) TestValMinCommission() {
 				"validator %s should have commission rate of %s before upgrade",
 				val.OperatorAddress,
 				expectedRate,
+			)
+
+			suite.Require().Equalf(
+				expectedRateMax.String(),
+				val.Commission.CommissionRates.MaxRate.String(),
+				"validator %s should have max commission rate of %s before upgrade",
+				val.OperatorAddress,
+				expectedRateMax,
 			)
 		}
 	})
@@ -47,8 +57,10 @@ func (suite *IntegrationTestSuite) TestValMinCommission() {
 		afterParams, err := suite.Kava.Staking.Params(afterUpgradeCtx, &types.QueryParamsRequest{})
 		suite.Require().NoError(err)
 
+		expectedMinRate := sdk.MustNewDecFromStr("0.05")
+
 		suite.Require().Equal(
-			sdkmath.LegacyMustNewDecFromStr("0.05").String(),
+			expectedMinRate.String(),
 			afterParams.Params.MinCommissionRate.String(),
 			"min commission rate should be 5%% after upgrade",
 		)
@@ -58,9 +70,16 @@ func (suite *IntegrationTestSuite) TestValMinCommission() {
 		suite.Require().NoError(err)
 
 		for _, val := range afterValidators.Validators {
+
 			suite.Require().Truef(
-				val.Commission.CommissionRates.Rate.GTE(sdk.MustNewDecFromStr("0.05")),
+				val.Commission.CommissionRates.Rate.GTE(expectedMinRate),
 				"validator %s should have commission rate of at least 5%%",
+				val.OperatorAddress,
+			)
+
+			suite.Require().Truef(
+				val.Commission.CommissionRates.MaxRate.GTE(expectedMinRate),
+				"validator %s should have max commission rate of at least 5%%",
 				val.OperatorAddress,
 			)
 		}
