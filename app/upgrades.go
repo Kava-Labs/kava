@@ -155,11 +155,13 @@ func upgradeHandler(
 		app.Logger().Info("created gov grant for kavadist funds")
 
 		//
-		// Gov Quorom
+		// Gov Quorum
 		//
 		govTallyParams := app.govKeeper.GetTallyParams(ctx)
+		oldQuorum := govTallyParams.Quorum
 		govTallyParams.Quorum = sdkmath.LegacyMustNewDecFromStr("0.2").String()
 		app.govKeeper.SetTallyParams(ctx, govTallyParams)
+		app.Logger().Info(fmt.Sprintf("updated tally quorum from %s to %s", oldQuorum, govTallyParams.Quorum))
 
 		return toVM, nil
 	}
