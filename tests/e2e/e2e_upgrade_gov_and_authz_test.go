@@ -80,6 +80,7 @@ func (suite *IntegrationTestSuite) TestAuthzParamChanges() {
 
 func (suite *IntegrationTestSuite) TestModuleAccountGovTransfers() {
 	suite.SkipIfUpgradeDisabled()
+	suite.SkipIfKvtoolDisabled()
 
 	// the module account (authority) that executes the transfers
 	govAcc := sdk.MustAccAddressFromBech32(govModuleAcc)
