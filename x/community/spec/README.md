@@ -16,4 +16,4 @@ parent:
 
 ## Abstract
 
-`x/community` is an implementation of a Cosmos SDK Module that provides governance for the community pool of funds controlled by Kava DAO. The community pool is a subaccount of the fee pool held by the x/distribution module.
+`x/community` is an implementation of a Cosmos SDK Module that provides governance for the community pool of funds controlled by Kava DAO. 
