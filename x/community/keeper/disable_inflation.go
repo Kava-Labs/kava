@@ -28,12 +28,6 @@ func (k Keeper) CheckAndDisableMintAndKavaDistInflation(ctx sdk.Context) {
 
 	logger.Info("disable inflation upgrade finished successfully!")
 
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeInflationStop,
-		),
-	)
-
 	// reset disable inflation time to ensure next call is a no-op
 	params.UpgradeTimeDisableInflation = time.Time{}
 	// set staking rewards to provided intial value
