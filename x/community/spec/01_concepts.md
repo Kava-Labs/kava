@@ -18,7 +18,7 @@ CommunityPoolLendWithdrawProposal.
 
 ### Rewards
 
-Rewards payout behavior for staking depends on the module parameter, and will
+Rewards payout behavior for staking depends on the module parameters, and will
 change based on the "switchover" time parameter `upgrade_time_disable_inflation`.
 
 If the current block is *before* the switchover time and the
