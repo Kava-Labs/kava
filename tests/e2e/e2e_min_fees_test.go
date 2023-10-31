@@ -17,8 +17,10 @@ import (
 )
 
 func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
+	suite.SkipIfKvtoolDisabled()
+
 	// read expected min fee from app.toml
-	minGasPrices, err := getMinFeeFromAppToml(suite.KavaHomePath())
+	minGasPrices, err := getMinFeeFromAppToml(util.KavaHomePath())
 	suite.NoError(err)
 
 	// evm uses akava, get akava min fee
@@ -32,12 +34,14 @@ func (suite *IntegrationTestSuite) TestEthGasPriceReturnsMinFee() {
 }
 
 func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
+	suite.SkipIfKvtoolDisabled()
+
 	// setup sender & receiver
 	sender := suite.Kava.NewFundedAccount("evm-min-fee-test-sender", sdk.NewCoins(ukava(1e3)))
 	randoReceiver := util.SdkToEvmAddress(app.RandomAddress())
 
 	// get min gas price for evm (from app.toml)
-	minFees, err := getMinFeeFromAppToml(suite.KavaHomePath())
+	minFees, err := getMinFeeFromAppToml(util.KavaHomePath())
 	suite.NoError(err)
 	minGasPrice := minFees.AmountOf("akava").TruncateInt()
 

@@ -41,7 +41,7 @@ func TestIntegrationTestSuite(t *testing.T) {
 
 // example test that queries kava via SDK and EVM
 func (suite *IntegrationTestSuite) TestChainID() {
-	expectedEvmNetworkId, err := emtypes.ParseChainID(suite.Kava.ChainId)
+	expectedEvmNetworkId, err := emtypes.ParseChainID(suite.Kava.ChainID)
 	suite.NoError(err)
 
 	// EVM query
@@ -52,7 +52,7 @@ func (suite *IntegrationTestSuite) TestChainID() {
 	// SDK query
 	nodeInfo, err := suite.Kava.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
 	suite.NoError(err)
-	suite.Equal(suite.Kava.ChainId, nodeInfo.DefaultNodeInfo.Network)
+	suite.Equal(suite.Kava.ChainID, nodeInfo.DefaultNodeInfo.Network)
 }
 
 // example test that funds a new account & queries its balance
@@ -99,7 +99,7 @@ func (suite *IntegrationTestSuite) TestTransferOverEVM() {
 		Data: "any ol' data to track this through the system",
 	}
 	res := acc.SignAndBroadcastEvmTx(req)
-	suite.NoError(res.Err)
+	suite.Require().NoError(res.Err)
 	suite.Equal(ethtypes.ReceiptStatusSuccessful, res.Receipt.Status)
 
 	// evm txs refund unused gas. so to know the expected balance we need to know how much gas was used.

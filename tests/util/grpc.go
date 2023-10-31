@@ -9,6 +9,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
@@ -21,17 +22,17 @@ func NewGrpcConnection(endpoint string) (*grpc.ClientConn, error) {
 		return nil, err
 	}
 
-	var secureOpt grpc.DialOption
+	var creds credentials.TransportCredentials
 	switch grpcUrl.Scheme {
 	case "http":
-		secureOpt = grpc.WithInsecure()
+		creds = insecure.NewCredentials()
 	case "https":
-		creds := credentials.NewTLS(&tls.Config{})
-		secureOpt = grpc.WithTransportCredentials(creds)
+		creds = credentials.NewTLS(&tls.Config{})
 	default:
 		return nil, fmt.Errorf("unknown grpc url scheme: %s", grpcUrl.Scheme)
 	}
 
+	secureOpt := grpc.WithTransportCredentials(creds)
 	grpcConn, err := grpc.Dial(grpcUrl.Host, secureOpt)
 	if err != nil {
 		return nil, err

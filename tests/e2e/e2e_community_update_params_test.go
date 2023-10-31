@@ -72,15 +72,38 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	gasLimit := int64(2e5)
 	fee := ukava(200)
 
-	upgradeTime := time.Now().Add(24 * time.Hour).UTC()
+	// Wait until switchover actually happens - When testing without the upgrade
+	// handler that sets a relative switchover time, the switchover time in
+	// genesis should be set in the past so it runs immediately.
+	suite.Require().Eventually(
+		func() bool {
+			params, err := suite.Kava.Community.Params(
+				context.Background(),
+				&communitytypes.QueryParamsRequest{},
+			)
+			suite.Require().NoError(err)
+
+			return params.Params.UpgradeTimeDisableInflation.Equal(time.Time{})
+		},
+		20*time.Second,
+		1*time.Second,
+		"switchover should happen",
+	)
+
+	// Add 1 to the staking rewards per second
+	newStakingRewardsPerSecond := communityParamsResInitial.Params.
+		StakingRewardsPerSecond.
+		Add(sdkmath.LegacyNewDec(1))
 
 	// 1. Proposal
+	// Only modify stakingRewardsPerSecond, as to not re-run the switchover and
+	// to not influence other tests
 	updateParamsMsg := communitytypes.NewMsgUpdateParams(
 		authtypes.NewModuleAddress(govtypes.ModuleName), // authority
 		communitytypes.NewParams(
-			upgradeTime,
-			sdkmath.LegacyNewDec(1111), // stakingRewardsPerSecond
-			sdkmath.LegacyNewDec(2222), // upgradeTimeSetstakingRewardsPerSecond
+			time.Time{},                // after switchover, is empty
+			newStakingRewardsPerSecond, // only modify stakingRewardsPerSecond
+			communityParamsResInitial.Params.UpgradeTimeSetStakingRewardsPerSecond,
 		),
 	)
 

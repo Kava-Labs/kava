@@ -27,12 +27,17 @@ The end-to-end tests support being run on a live network. The primary toggle for
 * `E2E_KAVA_RPC_URL`
 * `E2E_KAVA_GRPC_URL`
 * `E2E_KAVA_EVM_RPC_URL`
+* `E2E_KAVA_UPGRADE_HEIGHT` - the height at which an existing upgrade was run
 
 See an example environment configuration with full description of all supported configurations in [`.env.live-network-example`](./.env.live-network-example). This example expects a local kvtool network to be running: `kvtool testnet bootstrap`.
 
 When run against a live network, the suite will automatically return all the sdk funds sent to `SigningAccount`s on the chain, and will return any ERC20 balance from those accounts if the ERC20 is registered via `Chain.RegisterERC20`. The pre-deployed ERC20 that is required for the tests is registered on setup.
 
-At this time, live-network tests do not support `E2E_INCLUDE_IBC_TESTS=true` and they do not support automated upgrades.
+At this time, live-network tests do not support `E2E_INCLUDE_IBC_TESTS=true`.
+
+`E2E_KAVA_UPGRADE_HEIGHT` is supported for an existing upgrade height, and can
+be used to verify before / after upgrade state. This doesn't run automatically
+any upgrades.
 
 ## `Chain`s
 

@@ -10,12 +10,19 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	evmhd "github.com/evmos/ethermint/crypto/hd"
+	tmclient "github.com/tendermint/tendermint/rpc/client"
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -32,6 +39,7 @@ import (
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // Chain wraps query clients & accounts for a network
@@ -40,7 +48,8 @@ type Chain struct {
 	t        *testing.T
 
 	StakingDenom string
-	ChainId      string
+	ChainID      string
+	Keyring      keyring.Keyring
 
 	EvmClient     *ethclient.Client
 	ContractAddrs map[string]common.Address
@@ -48,18 +57,24 @@ type Chain struct {
 
 	EncodingConfig kavaparams.EncodingConfig
 
-	Auth      authtypes.QueryClient
-	Bank      banktypes.QueryClient
-	Cdp       cdptypes.QueryClient
-	Committee committeetypes.QueryClient
-	Community communitytypes.QueryClient
-	Earn      earntypes.QueryClient
-	Evm       evmtypes.QueryClient
-	Evmutil   evmutiltypes.QueryClient
-	Gov       govv1types.QueryClient
-	Tm        tmservice.ServiceClient
-	Tx        txtypes.ServiceClient
-	Upgrade   upgradetypes.QueryClient
+	Auth         authtypes.QueryClient
+	Bank         banktypes.QueryClient
+	Cdp          cdptypes.QueryClient
+	Committee    committeetypes.QueryClient
+	Community    communitytypes.QueryClient
+	Distribution distrtypes.QueryClient
+	Kavadist     kavadisttypes.QueryClient
+	Earn         earntypes.QueryClient
+	Evm          evmtypes.QueryClient
+	Evmutil      evmutiltypes.QueryClient
+	Gov          govv1types.QueryClient
+	Mint         minttypes.QueryClient
+	Staking      stakingtypes.QueryClient
+	Tm           tmservice.ServiceClient
+	Tx           txtypes.ServiceClient
+	Upgrade      upgradetypes.QueryClient
+
+	TmSignClient tmclient.SignClient
 }
 
 // NewChain creates the query clients & signing account management for a chain run on a set of ports.
@@ -69,11 +84,25 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain := &Chain{
 		t:             t,
 		StakingDenom:  details.StakingDenom,
-		ChainId:       details.ChainId,
+		ChainID:       details.ChainId,
 		ContractAddrs: make(map[string]common.Address),
 		erc20s:        make(map[common.Address]struct{}),
 	}
 	chain.EncodingConfig = app.MakeEncodingConfig()
+
+	// setup keyring
+	kr, err := keyring.New(
+		sdk.KeyringServiceName(),
+		keyring.BackendTest,
+		util.KavaHomePath(),
+		nil,
+		chain.EncodingConfig.Marshaler,
+		evmhd.EthSecp256k1Option(),
+	)
+	if err != nil {
+		return nil, err
+	}
+	chain.Keyring = kr
 
 	grpcConn, err := details.GrpcConn()
 	if err != nil {
@@ -85,15 +114,24 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		return chain, err
 	}
 
+	chain.TmSignClient, err = details.RpcConn()
+	if err != nil {
+		return chain, err
+	}
+
 	chain.Auth = authtypes.NewQueryClient(grpcConn)
 	chain.Bank = banktypes.NewQueryClient(grpcConn)
 	chain.Cdp = cdptypes.NewQueryClient(grpcConn)
 	chain.Committee = committeetypes.NewQueryClient(grpcConn)
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
+	chain.Distribution = distrtypes.NewQueryClient(grpcConn)
+	chain.Kavadist = kavadisttypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
 	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
 	chain.Gov = govv1types.NewQueryClient(grpcConn)
+	chain.Mint = minttypes.NewQueryClient(grpcConn)
+	chain.Staking = stakingtypes.NewQueryClient(grpcConn)
 	chain.Tm = tmservice.NewServiceClient(grpcConn)
 	chain.Tx = txtypes.NewServiceClient(grpcConn)
 	chain.Upgrade = upgradetypes.NewQueryClient(grpcConn)
@@ -104,12 +142,12 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	whale := chain.AddNewSigningAccount(
 		FundedAccountName,
 		hd.CreateHDPath(Bip44CoinType, 0, 0),
-		chain.ChainId,
+		chain.ChainID,
 		fundedAccountMnemonic,
 	)
 
 	// check that funded account is actually funded.
-	fmt.Printf("[%s] account used for funding (%s) address: %s\n", chain.ChainId, FundedAccountName, whale.SdkAddress)
+	fmt.Printf("[%s] account used for funding (%s) address: %s\n", chain.ChainID, FundedAccountName, whale.SdkAddress)
 	whaleFunds := chain.QuerySdkForBalances(whale.SdkAddress)
 	if whaleFunds.IsZero() {
 		chain.t.Fatal("funded account mnemonic is for account with no funds")
@@ -201,4 +239,65 @@ func (chain *Chain) GetErc20Balance(contract, address common.Address) *big.Int {
 	require.NoError(chain.t, err)
 
 	return new(big.Int).SetBytes(resData)
+}
+
+func (chain *Chain) GetBeginBlockEventsFromQuery(
+	ctx context.Context,
+	query string,
+) (sdk.StringEvents, int64, error) {
+	// 1) Block search to find auction_start event and corresponding height
+	// https://rpc.kava.io/block_search?query=%22auction_start.auction_id=16837%22
+
+	blocks, err := chain.QueryBlock(ctx, query)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if len(blocks) == 0 {
+		return nil, 0, fmt.Errorf("no blocks found")
+	}
+
+	// 2) Block results to query events from height
+	// https://rpc.kava.io/block_results?height=3146803
+	events, err := chain.GetBeginBlockEvents(ctx, blocks[0].Block.Height)
+	return events, blocks[0].Block.Height, err
+}
+
+func (chain *Chain) QueryBlock(ctx context.Context, query string) ([]*coretypes.ResultBlock, error) {
+	page := 1
+	perPage := 100
+
+	res, err := chain.TmSignClient.BlockSearch(
+		ctx,
+		query,
+		&page,
+		&perPage,
+		"desc",
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed BlockSearch: %w", err)
+	}
+
+	return res.Blocks, nil
+}
+
+func (chain *Chain) GetBeginBlockEvents(ctx context.Context, height int64) (sdk.StringEvents, error) {
+	res, err := chain.TmSignClient.BlockResults(
+		ctx,
+		&height,
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed BlockResults: %w", err)
+	}
+
+	// Do not use sdk.StringifyEvents as it flattens events which makes it
+	// more difficult to parse.
+	strEvents := make(sdk.StringEvents, 0, len(res.BeginBlockEvents))
+	for _, e := range res.BeginBlockEvents {
+		strEvents = append(strEvents, sdk.StringifyEvent(e))
+	}
+
+	return strEvents, nil
 }

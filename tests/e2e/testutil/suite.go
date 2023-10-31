@@ -3,7 +3,6 @@ package testutil
 import (
 	"fmt"
 	"math/big"
-	"path/filepath"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
@@ -194,12 +193,16 @@ func (suite *E2eTestSuite) SetupLiveNetworkNodeRunner() *runner.LiveNodeRunner {
 	if suite.config.IncludeIbcTests {
 		panic("ibc tests not supported for live network configuration")
 	}
+
+	// Manually set upgrade height for live networks
+	suite.UpgradeHeight = suite.config.LiveNetwork.UpgradeHeight
 	suite.enableRefunds = true
 
 	runnerConfig := runner.LiveNodeRunnerConfig{
 		KavaRpcUrl:    suite.config.LiveNetwork.KavaRpcUrl,
 		KavaGrpcUrl:   suite.config.LiveNetwork.KavaGrpcUrl,
 		KavaEvmRpcUrl: suite.config.LiveNetwork.KavaEvmRpcUrl,
+		UpgradeHeight: suite.config.LiveNetwork.UpgradeHeight,
 	}
 
 	return runner.NewLiveNodeRunner(runnerConfig)
@@ -217,15 +220,23 @@ func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 // It gracefully skips the current test if upgrades are dissabled.
 // Note: automated upgrade tests are currently only enabled for Kvtool suite runs.
 func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
-	if suite.config.Kvtool != nil && suite.config.Kvtool.IncludeAutomatedUpgrade {
+	if suite.config.Kvtool != nil && !suite.config.Kvtool.IncludeAutomatedUpgrade {
+		fmt.Println("skipping upgrade test, kvtool automated upgrade is disabled")
+		suite.T().SkipNow()
+	}
+
+	// If there isn't a manual upgrade height set in the config, skip the test
+	if suite.config.LiveNetwork != nil && suite.config.LiveNetwork.UpgradeHeight == 0 {
+		fmt.Println("skipping upgrade test, live network upgrade height is not set")
 		suite.T().SkipNow()
 	}
 }
 
-// KavaHomePath returns the OS-specific filepath for the kava home directory
-// Assumes network is running with kvtool installed from the sub-repository in tests/e2e/kvtool
-func (suite *E2eTestSuite) KavaHomePath() string {
-	return filepath.Join("kvtool", "full_configs", "generated", "kava", "initstate", ".kava")
+// SkipIfKvtoolDisabled should be called at the start of tests that require kvtool.
+func (suite *E2eTestSuite) SkipIfKvtoolDisabled() {
+	if suite.config.Kvtool == nil {
+		suite.T().SkipNow()
+	}
 }
 
 // BigIntsEqual is a helper method for comparing the equality of two big ints

@@ -14,6 +14,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/go-bip39"
@@ -37,7 +38,7 @@ type SigningAccount struct {
 	name     string
 	mnemonic string
 
-	evmPrivKey *ethsecp256k1.PrivKey
+	evmPrivKey cryptotypes.PrivKey
 	evmSigner  *util.EvmSigner
 	evmReqChan chan<- util.EvmTxRequest
 	evmResChan <-chan util.EvmTxResponse
@@ -76,6 +77,27 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 	require.NoErrorf(chain.t, err, "failed to derive private key from mnemonic for %s: %s", name, err)
 	privKey := &ethsecp256k1.PrivKey{Key: privKeyBytes}
 
+	return chain.AddNewSigningAccountFromPrivKey(
+		name,
+		privKey,
+		mnemonic,
+		chainId,
+	)
+}
+
+// AddNewSigningAccountFromPrivKey sets up a new account with a signer for SDK and EVM transactions,
+// using the given private key.
+func (chain *Chain) AddNewSigningAccountFromPrivKey(
+	name string,
+	privKey cryptotypes.PrivKey,
+	mnemonic string, // optional
+	chainId string,
+) *SigningAccount {
+	if _, found := chain.accounts[name]; found {
+		chain.t.Fatalf("account with name %s already exists", name)
+	}
+
+	// Kava signing account for SDK side
 	kavaSigner := util.NewKavaSigner(
 		chainId,
 		chain.EncodingConfig,
@@ -92,7 +114,7 @@ func (chain *Chain) AddNewSigningAccount(name string, hdPath *hd.BIP44Params, ch
 	// Kava signing account for EVM side
 	evmChainId, err := emtypes.ParseChainID(chainId)
 	require.NoErrorf(chain.t, err, "unable to parse ethermint-compatible chain id from %s", chainId)
-	ecdsaPrivKey, err := crypto.HexToECDSA(hex.EncodeToString(privKeyBytes))
+	ecdsaPrivKey, err := crypto.HexToECDSA(hex.EncodeToString(privKey.Bytes()))
 	require.NoError(chain.t, err, "failed to generate ECDSA private key from bytes")
 
 	evmSigner, err := util.NewEvmSigner(
@@ -201,7 +223,7 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 	acc := chain.AddNewSigningAccount(
 		name,
 		hd.CreateHDPath(app.Bip44CoinType, 0, 0),
-		chain.ChainId,
+		chain.ChainID,
 		mnemonic,
 	)
 
