@@ -8,6 +8,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	communitytypes "github.com/kava-labs/kava/x/community/types"
@@ -52,6 +53,9 @@ var (
 		sdkmath.LegacyNewDec(0),              // stakingRewardsPerSecond
 		sdkmath.LegacyNewDec(1000),           // upgradeTimeSetstakingRewardsPerSecond
 	)
+
+	// ValidatorMinimumCommission is the new 5% minimum commission rate for validators
+	ValidatorMinimumCommission = sdk.NewDecWithPrec(5, 2)
 )
 
 // RegisterUpgradeHandlers registers the upgrade handlers for the app.
@@ -109,6 +113,8 @@ func upgradeHandler(
 			return toVM, err
 		}
 
+		UpdateValidatorMinimumCommission(ctx, app)
+
 		app.communityKeeper.SetParams(ctx, communityParams)
 		app.Logger().Info(
 			"initialized x/community params",
@@ -119,4 +125,72 @@ func upgradeHandler(
 
 		return toVM, nil
 	}
+}
+
+// UpdateValidatorMinimumCommission updates the commission rate for all
+// validators to be at least the new min commission rate, and sets the minimum
+// commission rate in the staking params.
+func UpdateValidatorMinimumCommission(
+	ctx sdk.Context,
+	app App,
+) {
+	resultCount := make(map[stakingtypes.BondStatus]int)
+
+	// Iterate over *all* validators including inactive
+	app.stakingKeeper.IterateValidators(
+		ctx,
+		func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
+			// Skip if validator commission is already >= 5%
+			if validator.GetCommission().GTE(ValidatorMinimumCommission) {
+				return false
+			}
+
+			val, ok := validator.(stakingtypes.Validator)
+			if !ok {
+				panic("expected stakingtypes.Validator")
+			}
+
+			// Set minimum commission rate to 5%, when commission is < 5%
+			val.Commission.Rate = ValidatorMinimumCommission
+			val.Commission.UpdateTime = ctx.BlockTime()
+
+			// Update MaxRate if necessary
+			if val.Commission.MaxRate.LT(ValidatorMinimumCommission) {
+				val.Commission.MaxRate = ValidatorMinimumCommission
+			}
+
+			if err := app.stakingKeeper.BeforeValidatorModified(ctx, val.GetOperator()); err != nil {
+				panic(fmt.Sprintf("failed to call BeforeValidatorModified: %s", err))
+			}
+			app.stakingKeeper.SetValidator(ctx, val)
+
+			// Keep track of counts just for logging purposes
+			switch val.GetStatus() {
+			case stakingtypes.Bonded:
+				resultCount[stakingtypes.Bonded]++
+			case stakingtypes.Unbonded:
+				resultCount[stakingtypes.Unbonded]++
+			case stakingtypes.Unbonding:
+				resultCount[stakingtypes.Unbonding]++
+			}
+
+			return false
+		},
+	)
+
+	app.Logger().Info(
+		"updated validator minimum commission rate for all existing validators",
+		stakingtypes.BondStatusBonded, resultCount[stakingtypes.Bonded],
+		stakingtypes.BondStatusUnbonded, resultCount[stakingtypes.Unbonded],
+		stakingtypes.BondStatusUnbonding, resultCount[stakingtypes.Unbonding],
+	)
+
+	stakingParams := app.stakingKeeper.GetParams(ctx)
+	stakingParams.MinCommissionRate = ValidatorMinimumCommission
+	app.stakingKeeper.SetParams(ctx, stakingParams)
+
+	app.Logger().Info(
+		"updated x/staking params minimum commission rate",
+		"MinCommissionRate", stakingParams.MinCommissionRate,
+	)
 }
