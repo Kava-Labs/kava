@@ -8,13 +8,10 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-<<<<<<< HEAD
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-=======
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
->>>>>>> c3a96997 (add grants that allows gov to manage incentive funds through kavadist;)
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	communitytypes "github.com/kava-labs/kava/x/community/types"

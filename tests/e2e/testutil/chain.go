@@ -227,6 +227,21 @@ func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 	return res.Balances
 }
 
+// QuerySdkForBalancesAtHeight gets the balance of a particular address on this Chain, at the specified height.
+func (chain *Chain) QuerySdkForBalancesAtHeight(
+	height int64,
+	addr sdk.AccAddress,
+) sdk.Coins {
+	res, err := chain.Bank.AllBalances(
+		util.CtxAtHeight(height),
+		&banktypes.QueryAllBalancesRequest{
+			Address: addr.String(),
+		},
+	)
+	require.NoError(chain.t, err)
+	return res.Balances
+}
+
 // GetModuleBalances returns the balance of a requested module account
 func (chain *Chain) GetModuleBalances(moduleName string) sdk.Coins {
 	addr := authtypes.NewModuleAddress(moduleName)

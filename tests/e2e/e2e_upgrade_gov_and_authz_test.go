@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/kava-labs/kava/tests/e2e/testutil"
 	"github.com/kava-labs/kava/tests/util"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
 const (
@@ -111,9 +113,6 @@ func (suite *IntegrationTestSuite) TestModuleAccountGovTransfers() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			// get starting balance of the module account to be funded
-			startingBalance := suite.Kava.QuerySdkForBalances(tc.receiver)
-
 			// create msg exec for transfer between modules
 			msg := banktypes.NewMsgSend(
 				tc.sender,
@@ -123,21 +122,35 @@ func (suite *IntegrationTestSuite) TestModuleAccountGovTransfers() {
 			execMsg := authz.NewMsgExec(govAcc, []sdk.Msg{msg})
 
 			// ensure proposal passes
-			suite.submitAndPassProposal([]sdk.Msg{&execMsg})
+			passBlock := suite.submitAndPassProposal([]sdk.Msg{&execMsg})
 
+			// get starting balance of the module account to be funded, 1 block
+			// before the proposal passes
+			startingBalance := suite.Kava.QuerySdkForBalancesAtHeight(passBlock-1, tc.receiver)
 			// get ending balance of the receiving account
-			endingBalance := suite.Kava.QuerySdkForBalances(tc.receiver)
+			endingBalance := suite.Kava.QuerySdkForBalancesAtHeight(passBlock, tc.receiver)
+
+			paidRewards := suite.getStakingRewardsAtBlock(passBlock)
+
 			// subtract the starting balance to get the total transferred amount
-			transferredAmount := endingBalance.AmountOf(tc.amount.Denom).Sub(startingBalance.AmountOf(tc.amount.Denom))
+			transferredAmount := endingBalance.
+				Add(paidRewards...). // Re-add staking rewards paid in the block
+				Sub(startingBalance...).
+				AmountOf(tc.amount.Denom)
 
 			// assert that the transferred amount is greater than or equal to the sent amount
 			// we use >= here since module accounts can accumulate tokens between blocks
-			suite.Require().True(endingBalance.AmountOf(tc.amount.Denom).GTE(transferredAmount))
+			suite.Require().Truef(
+				transferredAmount.GTE(tc.amount.Amount),
+				"expected transferred amount to be greater than or equal to sent amount, got %s, expected %s",
+				transferredAmount,
+				tc.amount.Amount,
+			)
 		})
 	}
 }
 
-func (suite *IntegrationTestSuite) submitAndPassProposal(msgs []sdk.Msg) {
+func (suite *IntegrationTestSuite) submitAndPassProposal(msgs []sdk.Msg) int64 {
 	govParamsRes, err := suite.Kava.Gov.Params(context.Background(), &govv1.QueryParamsRequest{
 		ParamsType: govv1.ParamDeposit,
 	})
@@ -212,4 +225,52 @@ func (suite *IntegrationTestSuite) submitAndPassProposal(msgs []sdk.Msg) {
 
 		return false
 	}, 60*time.Second, 1*time.Second)
+
+	page := 1
+	perPage := 100
+
+	// Get the block the proposal was passed in
+	passBlock, err := suite.Kava.TmSignClient.BlockSearch(
+		context.Background(),
+		fmt.Sprintf(
+			"active_proposal.proposal_result = 'proposal_passed' AND active_proposal.proposal_id = %d",
+			govRes.ProposalId,
+		),
+		&page,
+		&perPage,
+		"asc",
+	)
+	suite.Require().NoError(err)
+	suite.Require().Equal(1, len(passBlock.Blocks), "passed proposal should be searchable")
+
+	return passBlock.Blocks[len(passBlock.Blocks)-1].Block.Height
+}
+
+// getStakingRewardsAtBlock returns the amount of staking rewards paid in the
+// block at the given height.
+func (suite *IntegrationTestSuite) getStakingRewardsAtBlock(height int64) sdk.Coins {
+	// Fetch block results for paid staking rewards in the block
+	blockRes, err := suite.Kava.TmSignClient.BlockResults(
+		context.Background(),
+		&height,
+	)
+	suite.Require().NoError(err)
+
+	stakingRewardPaidEvents := util.FilterEventsByType(
+		blockRes.BeginBlockEvents,
+		communitytypes.EventTypeStakingRewardsPaid,
+	)
+	suite.Require().Len(stakingRewardPaidEvents, 1, "there should be only 1 staking reward paid event")
+
+	stakingRewardAmount := sdk.NewCoins()
+	for _, attr := range stakingRewardPaidEvents[0].Attributes {
+		if string(attr.Key) == communitytypes.AttributeKeyStakingRewardAmount {
+			stakingRewardAmount, err = sdk.ParseCoinsNormalized(string(attr.Value))
+			suite.Require().NoError(err)
+
+			break
+		}
+	}
+
+	return stakingRewardAmount
 }
