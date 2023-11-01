@@ -40,6 +40,7 @@ import (
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -65,6 +66,7 @@ type Chain struct {
 	Committee    committeetypes.QueryClient
 	Community    communitytypes.QueryClient
 	Distribution distrtypes.QueryClient
+	Incentive    incentivetypes.QueryClient
 	Kavadist     kavadisttypes.QueryClient
 	Earn         earntypes.QueryClient
 	Evm          evmtypes.QueryClient
@@ -128,6 +130,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Committee = committeetypes.NewQueryClient(grpcConn)
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
 	chain.Distribution = distrtypes.NewQueryClient(grpcConn)
+	chain.Incentive = incentivetypes.NewQueryClient(grpcConn)
 	chain.Kavadist = kavadisttypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)

@@ -9,6 +9,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/kava-labs/kava/app"
+	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	"github.com/stretchr/testify/require"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtime "github.com/tendermint/tendermint/types/time"
@@ -168,6 +169,64 @@ func TestUpdateValidatorMinimumCommission(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestUpdateIncentiveParams(t *testing.T) {
+	tApp := app.NewTestApp()
+	tApp.InitializeFromGenesisStates()
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+
+	ik := tApp.GetIncentiveKeeper()
+	params := ik.GetParams(ctx)
+
+	startPeriod := time.Date(2021, 10, 26, 15, 0, 0, 0, time.UTC)
+	endPeriod := time.Date(2022, 10, 26, 15, 0, 0, 0, time.UTC)
+
+	params.EarnRewardPeriods = incentivetypes.MultiRewardPeriods{
+		incentivetypes.NewMultiRewardPeriod(
+			true,
+			"bkava",
+			startPeriod,
+			endPeriod,
+			sdk.NewCoins(
+				sdk.NewCoin("ukava", sdk.NewInt(159459)),
+			),
+		),
+	}
+	ik.SetParams(ctx, params)
+
+	beforeParams := ik.GetParams(ctx)
+	require.Equal(t, params, beforeParams, "initial incentive params should be set")
+
+	// -- UPGRADE
+	app.UpdateIncentiveParams(ctx, tApp.App)
+
+	// -- After
+	afterParams := ik.GetParams(ctx)
+
+	require.Len(
+		t,
+		afterParams.EarnRewardPeriods[0].RewardsPerSecond,
+		1,
+		"bkava earn reward period should only contain 1 coin",
+	)
+	require.Equal(
+		t,
+		// Manual calculation of
+		// 600,000 * 1000,000 / (365 * 24 * 60 * 60)
+		sdk.NewCoin("ukava", sdkmath.NewInt(19025)),
+		afterParams.EarnRewardPeriods[0].RewardsPerSecond[0],
+		"bkava earn reward period should be updated",
+	)
+
+	// Check that other params are not changed
+	afterParams.EarnRewardPeriods[0].RewardsPerSecond[0] = beforeParams.EarnRewardPeriods[0].RewardsPerSecond[0]
+	require.Equal(
+		t,
+		beforeParams,
+		afterParams,
+		"other param values should not be changed",
+	)
 }
 
 func generateConsKey(

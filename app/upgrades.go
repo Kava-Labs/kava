@@ -160,6 +160,11 @@ func upgradeHandler(
 		app.govKeeper.SetTallyParams(ctx, govTallyParams)
 		app.Logger().Info(fmt.Sprintf("updated tally quorum from %s to %s", oldQuorum, govTallyParams.Quorum))
 
+		//
+		// Incentive Params
+		//
+		UpdateIncentiveParams(ctx, app)
+
 		return toVM, nil
 	}
 }
@@ -230,4 +235,31 @@ func UpdateValidatorMinimumCommission(
 		"updated x/staking params minimum commission rate",
 		"MinCommissionRate", stakingParams.MinCommissionRate,
 	)
+}
+
+// UpdateIncentiveParams modifies the earn rewards period for bkava to be 600K KAVA per year.
+func UpdateIncentiveParams(
+	ctx sdk.Context,
+	app App,
+) {
+	incentiveParams := app.incentiveKeeper.GetParams(ctx)
+
+	// bkava annualized rewards: 600K KAVA
+	newAmount := sdkmath.LegacyNewDec(600_000).
+		MulInt(kavaConversionFactor).
+		QuoInt(secondsPerYear).
+		TruncateInt()
+
+	for i := range incentiveParams.EarnRewardPeriods {
+		if incentiveParams.EarnRewardPeriods[i].CollateralType != "bkava" {
+			continue
+		}
+
+		// Update rewards per second via index
+		incentiveParams.EarnRewardPeriods[i].RewardsPerSecond = sdk.NewCoins(
+			sdk.NewCoin("ukava", newAmount),
+		)
+	}
+
+	app.incentiveKeeper.SetParams(ctx, incentiveParams)
 }
