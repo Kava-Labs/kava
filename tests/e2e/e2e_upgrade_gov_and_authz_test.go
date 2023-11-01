@@ -13,7 +13,6 @@ import (
 
 	"github.com/kava-labs/kava/tests/e2e/testutil"
 	"github.com/kava-labs/kava/tests/util"
-	communitytypes "github.com/kava-labs/kava/x/community/types"
 )
 
 const (
@@ -123,28 +122,14 @@ func (suite *IntegrationTestSuite) TestModuleAccountGovTransfers() {
 
 			// ensure proposal passes
 			passBlock := suite.submitAndPassProposal([]sdk.Msg{&execMsg})
+			transfers := suite.getBankTransferAmountAtBlock(passBlock, tc.sender, tc.receiver)
 
-			// get starting balance of the module account to be funded, 1 block
-			// before the proposal passes
-			startingBalance := suite.Kava.QuerySdkForBalancesAtHeight(passBlock-1, tc.receiver)
-			// get ending balance of the receiving account
-			endingBalance := suite.Kava.QuerySdkForBalancesAtHeight(passBlock, tc.receiver)
-
-			paidRewards := suite.getStakingRewardsAtBlock(passBlock)
-
-			// subtract the starting balance to get the total transferred amount
-			transferredAmount := endingBalance.
-				Add(paidRewards...). // Re-add staking rewards paid in the block
-				Sub(startingBalance...).
-				AmountOf(tc.amount.Denom)
-
-			// assert that the transferred amount is greater than or equal to the sent amount
-			// we use >= here since module accounts can accumulate tokens between blocks
-			suite.Require().Truef(
-				transferredAmount.GTE(tc.amount.Amount),
-				"expected transferred amount to be greater than or equal to sent amount, got %s, expected %s",
-				transferredAmount,
-				tc.amount.Amount,
+			suite.Require().Containsf(
+				transfers,
+				tc.amount,
+				"expected transfer of %s to be included in bank transfer events: %s",
+				tc.amount,
+				transfers,
 			)
 		})
 	}
@@ -246,31 +231,61 @@ func (suite *IntegrationTestSuite) submitAndPassProposal(msgs []sdk.Msg) int64 {
 	return passBlock.Blocks[len(passBlock.Blocks)-1].Block.Height
 }
 
-// getStakingRewardsAtBlock returns the amount of staking rewards paid in the
-// block at the given height.
-func (suite *IntegrationTestSuite) getStakingRewardsAtBlock(height int64) sdk.Coins {
+// getBankTransferAmountAtBlock returns the amount of coins transferred between
+// the given accounts in the block at the given height. Note that this returns
+// a slice of sdk.Coin that can contain multiple coins of the SAME denom -- ie. NOT sdk.Coins
+func (suite *IntegrationTestSuite) getBankTransferAmountAtBlock(
+	blockHeight int64,
+	sender sdk.AccAddress,
+	receiver sdk.AccAddress,
+) []sdk.Coin {
 	// Fetch block results for paid staking rewards in the block
 	blockRes, err := suite.Kava.TmSignClient.BlockResults(
 		context.Background(),
-		&height,
+		&blockHeight,
 	)
 	suite.Require().NoError(err)
 
-	stakingRewardPaidEvents := util.FilterEventsByType(
-		blockRes.BeginBlockEvents,
-		communitytypes.EventTypeStakingRewardsPaid,
+	transferEvents := util.FilterEventsByType(
+		blockRes.EndBlockEvents, // gov proposals applied in EndBlocker
+		banktypes.EventTypeTransfer,
 	)
-	suite.Require().Len(stakingRewardPaidEvents, 1, "there should be only 1 staking reward paid event")
+	suite.Require().NotEmpty(transferEvents, "there should be at least 1 bank transfer event")
 
-	stakingRewardAmount := sdk.NewCoins()
-	for _, attr := range stakingRewardPaidEvents[0].Attributes {
-		if string(attr.Key) == communitytypes.AttributeKeyStakingRewardAmount {
-			stakingRewardAmount, err = sdk.ParseCoinsNormalized(string(attr.Value))
-			suite.Require().NoError(err)
+	transfers := []sdk.Coin{}
 
-			break
+event:
+	for _, event := range transferEvents {
+		if event.Type != banktypes.EventTypeTransfer {
+			suite.FailNowf(
+				"unexpected event type %s in block results",
+				event.Type,
+			)
+		}
+
+		for _, attr := range event.Attributes {
+			suite.T().Logf("event attr: %s = %s", string(attr.Key), string(attr.Value))
+
+			if string(attr.Key) == banktypes.AttributeKeyRecipient {
+				if string(attr.Value) != receiver.String() {
+					continue event
+				}
+			}
+
+			if string(attr.Key) == banktypes.AttributeKeySender {
+				if string(attr.Value) != sender.String() {
+					continue event
+				}
+			}
+
+			if string(attr.Key) == sdk.AttributeKeyAmount {
+				amount, err := sdk.ParseCoinNormalized(string(attr.Value))
+				suite.Require().NoError(err)
+
+				transfers = append(transfers, amount)
+			}
 		}
 	}
 
-	return stakingRewardAmount
+	return transfers
 }
