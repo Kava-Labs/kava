@@ -14,6 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -58,6 +59,7 @@ type Chain struct {
 	EncodingConfig kavaparams.EncodingConfig
 
 	Auth         authtypes.QueryClient
+	Authz        authz.QueryClient
 	Bank         banktypes.QueryClient
 	Cdp          cdptypes.QueryClient
 	Committee    committeetypes.QueryClient
@@ -120,6 +122,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	}
 
 	chain.Auth = authtypes.NewQueryClient(grpcConn)
+	chain.Authz = authz.NewQueryClient(grpcConn)
 	chain.Bank = banktypes.NewQueryClient(grpcConn)
 	chain.Cdp = cdptypes.NewQueryClient(grpcConn)
 	chain.Committee = committeetypes.NewQueryClient(grpcConn)
@@ -220,6 +223,21 @@ func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 	res, err := chain.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
 		Address: addr.String(),
 	})
+	require.NoError(chain.t, err)
+	return res.Balances
+}
+
+// QuerySdkForBalancesAtHeight gets the balance of a particular address on this Chain, at the specified height.
+func (chain *Chain) QuerySdkForBalancesAtHeight(
+	height int64,
+	addr sdk.AccAddress,
+) sdk.Coins {
+	res, err := chain.Bank.AllBalances(
+		util.CtxAtHeight(height),
+		&banktypes.QueryAllBalancesRequest{
+			Address: addr.String(),
+		},
+	)
 	require.NoError(chain.t, err)
 	return res.Balances
 }

@@ -8,10 +8,14 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	communitytypes "github.com/kava-labs/kava/x/community/types"
+	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 const (
@@ -113,8 +117,14 @@ func upgradeHandler(
 			return toVM, err
 		}
 
+		//
+		// Staking validator minimum commission
+		//
 		UpdateValidatorMinimumCommission(ctx, app)
 
+		//
+		// Community Params
+		//
 		app.communityKeeper.SetParams(ctx, communityParams)
 		app.Logger().Info(
 			"initialized x/community params",
@@ -122,6 +132,33 @@ func upgradeHandler(
 			"StakingRewardsPerSecond", communityParams.StakingRewardsPerSecond,
 			"UpgradeTimeSetStakingRewardsPerSecond", communityParams.UpgradeTimeSetStakingRewardsPerSecond,
 		)
+
+		//
+		// Kavadist gov grant
+		//
+		msgGrant, err := authz.NewMsgGrant(
+			app.accountKeeper.GetModuleAddress(kavadisttypes.ModuleName),        // granter
+			app.accountKeeper.GetModuleAddress(govtypes.ModuleName),             // grantee
+			authz.NewGenericAuthorization(sdk.MsgTypeURL(&banktypes.MsgSend{})), // authorization
+			nil, // expiration
+		)
+		if err != nil {
+			return toVM, err
+		}
+		_, err = app.authzKeeper.Grant(ctx, msgGrant)
+		if err != nil {
+			return toVM, err
+		}
+		app.Logger().Info("created gov grant for kavadist funds")
+
+		//
+		// Gov Quorum
+		//
+		govTallyParams := app.govKeeper.GetTallyParams(ctx)
+		oldQuorum := govTallyParams.Quorum
+		govTallyParams.Quorum = sdkmath.LegacyMustNewDecFromStr("0.2").String()
+		app.govKeeper.SetTallyParams(ctx, govTallyParams)
+		app.Logger().Info(fmt.Sprintf("updated tally quorum from %s to %s", oldQuorum, govTallyParams.Quorum))
 
 		return toVM, nil
 	}
