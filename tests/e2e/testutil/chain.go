@@ -14,6 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -39,6 +40,7 @@ import (
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+	incentivetypes "github.com/kava-labs/kava/x/incentive/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -58,11 +60,13 @@ type Chain struct {
 	EncodingConfig kavaparams.EncodingConfig
 
 	Auth         authtypes.QueryClient
+	Authz        authz.QueryClient
 	Bank         banktypes.QueryClient
 	Cdp          cdptypes.QueryClient
 	Committee    committeetypes.QueryClient
 	Community    communitytypes.QueryClient
 	Distribution distrtypes.QueryClient
+	Incentive    incentivetypes.QueryClient
 	Kavadist     kavadisttypes.QueryClient
 	Earn         earntypes.QueryClient
 	Evm          evmtypes.QueryClient
@@ -120,11 +124,13 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	}
 
 	chain.Auth = authtypes.NewQueryClient(grpcConn)
+	chain.Authz = authz.NewQueryClient(grpcConn)
 	chain.Bank = banktypes.NewQueryClient(grpcConn)
 	chain.Cdp = cdptypes.NewQueryClient(grpcConn)
 	chain.Committee = committeetypes.NewQueryClient(grpcConn)
 	chain.Community = communitytypes.NewQueryClient(grpcConn)
 	chain.Distribution = distrtypes.NewQueryClient(grpcConn)
+	chain.Incentive = incentivetypes.NewQueryClient(grpcConn)
 	chain.Kavadist = kavadisttypes.NewQueryClient(grpcConn)
 	chain.Earn = earntypes.NewQueryClient(grpcConn)
 	chain.Evm = evmtypes.NewQueryClient(grpcConn)
@@ -220,6 +226,21 @@ func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
 	res, err := chain.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
 		Address: addr.String(),
 	})
+	require.NoError(chain.t, err)
+	return res.Balances
+}
+
+// QuerySdkForBalancesAtHeight gets the balance of a particular address on this Chain, at the specified height.
+func (chain *Chain) QuerySdkForBalancesAtHeight(
+	height int64,
+	addr sdk.AccAddress,
+) sdk.Coins {
+	res, err := chain.Bank.AllBalances(
+		util.CtxAtHeight(height),
+		&banktypes.QueryAllBalancesRequest{
+			Address: addr.String(),
+		},
+	)
 	require.NoError(chain.t, err)
 	return res.Balances
 }
