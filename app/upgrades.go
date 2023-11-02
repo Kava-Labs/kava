@@ -31,7 +31,7 @@ var (
 
 	// 10 Million KAVA per year in staking rewards, inflation disable time 2024-01-01T00:00:00 UTC
 	CommunityParams_Mainnet = communitytypes.NewParams(
-		time.Date(2023, 11, 2, 0, 0, 0, 0, time.UTC),
+		time.Date(2023, 11, 2, 22, 0, 0, 0, time.UTC),
 		// before switchover
 		sdkmath.LegacyZeroDec(),
 		// after switchover - 10M KAVA to ukava per year / seconds per year
