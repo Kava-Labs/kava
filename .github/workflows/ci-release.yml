@@ -1,0 +1,35 @@
+name: Continuous Integration (Release)
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+jobs:
+  # run per commit ci checks against released version
+  lint-checks:
+    uses: ./.github/workflows/ci-lint.yml
+  # run default ci checks against released version
+  default-checks:
+    uses: ./.github/workflows/ci-default.yml
+
+  # get the version tag that triggered this workflow
+  get-version-tag:
+    # prep version release only if all checks pass
+    needs: [lint-checks, default-checks]
+    runs-on: ubuntu-latest
+    outputs:
+      git-tag: ${{ steps.git-tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: git-tag
+        run: echo "tag=$(git describe --always --tags --match='v*')" >> $GITHUB_OUTPUT
+
+  # build and upload versions of kava for use on internal infrastructure
+  # configurations for databases, cpu architectures and operating systems
+  docker:
+    # only run if all checks pass
+    needs: get-version-tag
+    uses: ./.github/workflows/ci-docker.yml
+    with:
+      dockerhub-username: kavaops
+      extra-image-tag: ${{ needs.get-version-tag.outputs.git-tag }}
+    secrets: inherit

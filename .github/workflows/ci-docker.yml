@@ -6,6 +6,14 @@ on:
       dockerhub-username:
         required: true
         type: string
+      # this workflow publishes a rocksdb & goleveldb docker images with these tags:
+      # - <commit-hash>-goleveldb
+      # - <extra-image-tag>-goleveldb
+      # - <commit-hash>-rocksdb
+      # - <extra-image-tag>-rocksdb
+      extra-image-tag:
+        required: true
+        type: string
     secrets:
       CI_DOCKERHUB_TOKEN:
         required: true
@@ -14,34 +22,81 @@ on:
 # you can use images built by this action in future jobs.
 # https://docs.docker.com/build/ci/github-actions/examples/#share-built-image-between-jobs
 jobs:
-  docker:
+  docker-goleveldb:
     # https://github.com/marketplace/actions/build-and-push-docker-images
     runs-on: ubuntu-latest
     steps:
       # ensure working with latest code
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       # generate a git commit hash to be used as image tag
       - name: Generate short hash
         id: commit-hash
         run: echo "short=$( git rev-parse --short $GITHUB_SHA )" >> $GITHUB_OUTPUT
+
       # qemu is used to emulate different platform architectures
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
+
       # cross-platform build of the image
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
+
       # authenticate for publish to docker hub
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ inputs.dockerhub-username }}
           password: ${{ secrets.CI_DOCKERHUB_TOKEN }}
+
       # publish to docker hub, tag with short git hash
-      - name: Build and push
-        uses: docker/build-push-action@v3
+      - name: Build and push (goleveldb)
+        uses: docker/build-push-action@v5
         with:
           context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: kava/kava:${{ steps.commit-hash.outputs.short }},kava/kava:master
+          tags: kava/kava:${{ steps.commit-hash.outputs.short }}-goleveldb,kava/kava:${{ inputs.extra-image-tag }}-goleveldb
+
+  docker-rocksdb:
+    # https://github.com/marketplace/actions/build-and-push-docker-images
+    runs-on: ubuntu-latest
+    steps:
+      # ensure working with latest code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # generate a git commit hash to be used as image tag
+      - name: Generate short hash
+        id: commit-hash
+        run: echo "short=$( git rev-parse --short $GITHUB_SHA )" >> $GITHUB_OUTPUT
+
+      # qemu is used to emulate different platform architectures
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # cross-platform build of the image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # authenticate for publish to docker hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ inputs.dockerhub-username }}
+          password: ${{ secrets.CI_DOCKERHUB_TOKEN }}
+
+      # publish to docker hub, tag with short git hash
+      - name: Build and push (rocksdb)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile-rocksdb
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: kava/kava:${{ steps.commit-hash.outputs.short }}-rocksdb,kava/kava:${{ inputs.extra-image-tag }}-rocksdb
