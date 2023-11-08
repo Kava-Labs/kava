@@ -32,25 +32,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from master
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
-         ref: master
+          ref: master
       - name: checkout version of kava used by network
         run: |
           git pull -p
           git checkout $(cat ${KAVA_VERSION_FILEPATH})
         env:
-            KAVA_VERSION_FILEPATH: ${{ inputs.kava_version_filepath }}
+          KAVA_VERSION_FILEPATH: ${{ inputs.kava_version_filepath }}
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
+          go-version-file: go.mod
       - name: build kava binary
         run: make install
       - name: checkout go evm tools repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ethereum/go-ethereum
           path: go-ethereum
@@ -61,7 +59,7 @@ jobs:
           make devtools
         working-directory: go-ethereum
       - name: checkout kava bridge repo for deploying evm contracts
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: Kava-Labs/kava-bridge
           path: kava-bridge
@@ -82,7 +80,7 @@ jobs:
         run: wget https://raw.githubusercontent.com/Kava-Labs/kava/master/.github/scripts/${SEED_SCRIPT_FILENAME} && chmod +x ${SEED_SCRIPT_FILENAME}
         working-directory: kava-bridge/contract
         env:
-            SEED_SCRIPT_FILENAME: ${{ inputs.seed-script-filename }}
+          SEED_SCRIPT_FILENAME: ${{ inputs.seed-script-filename }}
       - name: run seed scripts
         run: bash ./${SEED_SCRIPT_FILENAME}
         working-directory: kava-bridge/contract

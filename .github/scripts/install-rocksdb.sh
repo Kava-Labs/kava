@@ -7,9 +7,9 @@ sudo apt-get install -y libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4
 # get rocksdb sources
 git clone https://github.com/facebook/rocksdb.git /home/runner/rocksdb
 
-cd /home/runner/rocksdb
+cd /home/runner/rocksdb || exit 1
 
 git checkout "$ROCKSDB_VERSION"
 
 # install rocksdb locally
-sudo make -j $(nproc --all) install-shared
+sudo make -j "$(nproc --all)" install-shared && sudo ldconfig

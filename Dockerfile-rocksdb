@@ -19,8 +19,18 @@ RUN git clone https://github.com/facebook/rocksdb.git \
     && make -j$(nproc) install-shared \
     && ldconfig
 
-# Add source files for kava
-COPY . kava
+WORKDIR /root/kava
+# Copy dependency files first to facilitate dependency caching
+COPY ./go.mod ./
+COPY ./go.sum ./
+
+# Download dependencies
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go version && go mod download
+
+# Add source files
+COPY . .
 
 ARG kava_database_backend=rocksdb
 ENV KAVA_DATABASE_BACKEND=$kava_database_backend
@@ -28,7 +38,7 @@ ENV KAVA_DATABASE_BACKEND=$kava_database_backend
 # Mount go build and mod caches as container caches, persisted between builder invocations
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
-    cd kava && make install COSMOS_BUILD_OPTIONS=$KAVA_DATABASE_BACKEND
+    make install COSMOS_BUILD_OPTIONS=$KAVA_DATABASE_BACKEND
 
 
 FROM ubuntu:22.04
