@@ -19,13 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from current commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
+          go-version-file: go.mod
       - name: set build tag
         run: echo "BUILD_TAG=$(date +%s)-$(git rev-parse HEAD | cut -c 1-8)" >> $GITHUB_ENV
       - name: build rocksdb dependency
@@ -45,6 +43,7 @@ jobs:
     uses: ./.github/workflows/ci-docker.yml
     with:
       dockerhub-username: kavaops
+      extra-image-tag: master
     secrets: inherit
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml

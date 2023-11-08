@@ -1,9 +1,15 @@
 out/
 **/node_modules/
 .git/
-docs/
+.github/
 tests/
+
+ci/
 contracts/
+contrib/
+docs/
+networks/
+scratch/
 
 go.work
 go.work.sum

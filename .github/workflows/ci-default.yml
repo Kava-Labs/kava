@@ -7,28 +7,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from current commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/e2e/kvtool/go.sum
       - name: build application
         run: make build
   test:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from current commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/e2e/kvtool/go.sum
       - name: run unit tests
         run: make test
       - name: run e2e tests
@@ -37,13 +39,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from current commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: save version of kava that will be deployed if this pr is merged
         id: kava-version
         run: |
           echo "KAVA_VERSION=$(cat ./ci/env/kava-internal-testnet/KAVA.VERSION)" >> $GITHUB_OUTPUT
       - name: checkout repo from master
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: master
       - name: checkout version of kava that will be deployed if this pr is merged
@@ -53,28 +55,24 @@ jobs:
         env:
           KAVA_VERSION: ${{ steps.kava-version.outputs.KAVA_VERSION }}
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
+          go-version-file: go.mod
       - name: build kava cli
         run: make install
       - name: checkout repo from current commit to validate current branch's genesis
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: validate testnet genesis
         run: kava validate-genesis ci/env/kava-internal-testnet/genesis.json
   validate-protonet-genesis:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from current commit
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
-          go-version: "1.20"
-          check-latest: true
-          cache: true
+          go-version-file: go.mod
       - name: build kava cli
         run: make install
       - name: validate protonet genesis
