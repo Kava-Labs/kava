@@ -4,7 +4,7 @@
 
 - The version of `kava` for Kava 15 is v0.25.0
 - The Kava 14 chain will be shutdown with a `SoftwareUpgradeProposal` that
-  activates at approximately 00:00 UTC on December 8th, 2023.
+  activates at approximately 15:00 UTC on December 7th, 2023.
 
 ## Dependency Changes
 
