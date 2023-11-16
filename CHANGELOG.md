@@ -36,6 +36,30 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+<<<<<<< HEAD
+=======
+### Features
+
+- (community) [#1704] Add module params
+- (community) [#1706] Add disable inflation upgrade
+- (community) [#1745] Enable params update via governance with `MsgUpdateParams`
+
+### Bug Fixes
+
+- (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
+- (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
+  cosmos ledger app 2.34.12
+
+## State Machine Breaking
+
+- (community) [#1704] Add param to control when inflation will be disabled
+- (community) [#1707] Default staking rewards per second set to `744191`
+- (community) [#1706] Add disable inflation upgrade to begin blocker that updates x/mint and x/kavadist params
+- (community) [#1729] Consolidate community funds from `x/distribution` and `x/kavadist` to `x/community`
+- (community) [#1752] Set `x/distribution` CommunityTax to zero on inflation disable upgrade
+- (community) [#1755] Keep funds in `x/community` in `CommunityPoolLendWithdrawProposal` handler
+- (staking) [#1761] Set validator minimum commission to 5% for all validators under 5%
+>>>>>>> 39146747 (fix: update ledger-cosmos-go v0.13.1 to resolve signing error with cosmos ledger app 2.34.12 (#1770))
 
 ## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
 
@@ -281,6 +305,13 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+<<<<<<< HEAD
+=======
+[#1770]: https://github.com/Kava-Labs/kava/pull/1770
+[#1755]: https://github.com/Kava-Labs/kava/pull/1755
+[#1761]: https://github.com/Kava-Labs/kava/pull/1761
+[#1752]: https://github.com/Kava-Labs/kava/pull/1752
+>>>>>>> 39146747 (fix: update ledger-cosmos-go v0.13.1 to resolve signing error with cosmos ledger app 2.34.12 (#1770))
 [#1751]: https://github.com/Kava-Labs/kava/pull/1751
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
