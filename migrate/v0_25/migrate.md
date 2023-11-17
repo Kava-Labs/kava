@@ -36,7 +36,7 @@ To update to v0.25.0
 ```sh
 # check go version - look for 1.20!
 go version
-# go version go1.20.5 linux/arm64
+# go version go1.20.5 linux/amd64
 
 # in the `kava` folder
 git fetch
@@ -52,7 +52,7 @@ kava version --long
 # version: 0.25.0
 # commit: <commit placeholder>
 # build_tags: netgo ledger,
-# go: go version go1.20.5 linux/arm64
+# go: go version go1.20.5 linux/amd64
 # build_deps:
 #  ...
 # cosmos_sdk_version: v0.46.11
