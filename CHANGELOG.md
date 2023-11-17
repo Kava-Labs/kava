@@ -36,6 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.25.0]
+
 ### Features
 
 - (community) [#1704] Add module params
@@ -58,7 +60,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (community) [#1755] Keep funds in `x/community` in `CommunityPoolLendWithdrawProposal` handler
 - (staking) [#1761] Set validator minimum commission to 5% for all validators under 5%
 
-## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
+## [v0.24.1]
 
 ### Features
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
@@ -357,8 +359,12 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.24.0...HEAD
-[v0.24.0]: https://github.com/Kava-Labs/kava/compare/v0.24.0...v0.23.2
+
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.25.0...HEAD
+
+[v0.25.0]: https://github.com/Kava-Labs/kava/compare/v0.24.1...v0.25.0
+[v0.24.1]: https://github.com/Kava-Labs/kava/compare/v0.24.0...v0.24.1
+[v0.24.0]: https://github.com/Kava-Labs/kava/compare/v0.23.2...v0.24.0
 [v0.23.2]: https://github.com/Kava-Labs/kava/compare/v0.23.1...v0.23.2
 [v0.23.1]: https://github.com/Kava-Labs/kava/compare/v0.23.0...v0.23.1
 [v0.23.0]: https://github.com/Kava-Labs/kava/compare/v0.21.1...v0.23.0
