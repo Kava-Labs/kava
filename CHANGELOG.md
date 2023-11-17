@@ -36,30 +36,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-<<<<<<< HEAD
-=======
-### Features
-
-- (community) [#1704] Add module params
-- (community) [#1706] Add disable inflation upgrade
-- (community) [#1745] Enable params update via governance with `MsgUpdateParams`
+## [v0.24.2](https://github.com/Kava-Labs/kava/releases/tag/v0.24.2)
 
 ### Bug Fixes
 
-- (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
 - (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
   cosmos ledger app 2.34.12
-
-## State Machine Breaking
-
-- (community) [#1704] Add param to control when inflation will be disabled
-- (community) [#1707] Default staking rewards per second set to `744191`
-- (community) [#1706] Add disable inflation upgrade to begin blocker that updates x/mint and x/kavadist params
-- (community) [#1729] Consolidate community funds from `x/distribution` and `x/kavadist` to `x/community`
-- (community) [#1752] Set `x/distribution` CommunityTax to zero on inflation disable upgrade
-- (community) [#1755] Keep funds in `x/community` in `CommunityPoolLendWithdrawProposal` handler
-- (staking) [#1761] Set validator minimum commission to 5% for all validators under 5%
->>>>>>> 39146747 (fix: update ledger-cosmos-go v0.13.1 to resolve signing error with cosmos ledger app 2.34.12 (#1770))
 
 ## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
 
