@@ -75,22 +75,24 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			// set pruning options to prevent no-ops from `PruneStores`
 			multistore.SetPruning(pruningtypes.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
 
+			// rollback application state
+			fmt.Printf("rolling back application state to height %d\n", endBlock-1)
+			if err = multistore.RollbackToVersion(endBlock - 1); err != nil {
+				return fmt.Errorf("failed to rollback application state: %s", err)
+			}
+
 			// rollback tendermint db
-			for i := latest; i > endBlock; i-- {
-				fmt.Printf("rolling back state for height %d\n", i)
-				height, _, err := tmcmd.RollbackState(ctx.Config)
+			height := latest
+			for height >= endBlock {
+				fmt.Printf("rolling back state for height %d\n", height)
+				height, _, err = tmcmd.RollbackState(ctx.Config, true)
 				if err != nil {
 					return fmt.Errorf("failed to rollback tendermint state: %w", err)
 				}
 				fmt.Printf("successfully rolled back to height %d\n", height)
 			}
 
-			fmt.Printf("rolling back application state to height %d\n", endBlock-1)
-			if err = multistore.RollbackToVersion(endBlock - 1); err != nil {
-				return err
-			}
-			fmt.Printf("post-rollback height: %d\n", multistore.LatestVersion())
-
+			// prune all blocks from before start of shard
 			pruneHeights := make([]int64, 0, latest-shardSize)
 			// prune heights before start block
 			for i := int64(1); i < startBlock; i++ {
@@ -98,15 +100,13 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			}
 
 			fmt.Printf("pruning application heights: %+v\n", pruneHeights)
-			if err := multistore.PruneStores(false, pruneHeights); err != nil {
-				return err
+			if len(pruneHeights) > 0 {
+				if err := multistore.PruneStores(false, pruneHeights); err != nil {
+					return fmt.Errorf("failed to prune application state: %s", err)
+				}
 			}
 
 			fmt.Printf("post-prune height: %d\n", multistore.LatestVersion())
-
-			// application.db is bigger after pruning until node is started again (with grpc-only).
-			// TODO: can i trigger a cleanup of orphans & re-balancing of tree w/o starting node?
-			// why is state.db BIGGER after pruning?
 
 			return nil
 		},
