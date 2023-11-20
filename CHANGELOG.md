@@ -47,6 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
 - (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
   cosmos ledger app 2.34.12
+- (rockdb) [#1776] Fix resolution of rocksdb database path
 
 ## State Machine Breaking
 
@@ -304,6 +305,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1776]: https://github.com/Kava-Labs/kava/pull/1776
 [#1770]: https://github.com/Kava-Labs/kava/pull/1770
 [#1755]: https://github.com/Kava-Labs/kava/pull/1755
 [#1761]: https://github.com/Kava-Labs/kava/pull/1761
