@@ -36,37 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-<<<<<<< HEAD
-=======
-### Features
-
-- (community) [#1704] Add module params
-- (community) [#1706] Add disable inflation upgrade
-- (community) [#1745] Enable params update via governance with `MsgUpdateParams`
-
-### Bug Fixes
-
-- (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
-- (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
-  cosmos ledger app 2.34.12
-- (rockdb) [#1776] Fix resolution of rocksdb database path
-
-## State Machine Breaking
-
-- (community) [#1704] Add param to control when inflation will be disabled
-- (community) [#1707] Default staking rewards per second set to `744191`
-- (community) [#1706] Add disable inflation upgrade to begin blocker that updates x/mint and x/kavadist params
-- (community) [#1729] Consolidate community funds from `x/distribution` and `x/kavadist` to `x/community`
-- (community) [#1752] Set `x/distribution` CommunityTax to zero on inflation disable upgrade
-- (community) [#1755] Keep funds in `x/community` in `CommunityPoolLendWithdrawProposal` handler
-- (staking) [#1761] Set validator minimum commission to 5% for all validators under 5%
-
-## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
-
-### Features
->>>>>>> aca738fb (fix(rocksdb): correctly resolve rocksdb path (#1767) (#1776))
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
+- (rocksdb) [#1767] Fix resolution of rocksdb database path
 
 ## [v0.17.3](https://github.com/Kava-Labs/kava/releases/tag/v0.17.3)
 
@@ -195,20 +167,6 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
 
-<<<<<<< HEAD
-=======
-[#1776]: https://github.com/Kava-Labs/kava/pull/1776
-[#1770]: https://github.com/Kava-Labs/kava/pull/1770
-[#1755]: https://github.com/Kava-Labs/kava/pull/1755
-[#1761]: https://github.com/Kava-Labs/kava/pull/1761
-[#1752]: https://github.com/Kava-Labs/kava/pull/1752
-[#1751]: https://github.com/Kava-Labs/kava/pull/1751
-[#1745]: https://github.com/Kava-Labs/kava/pull/1745
-[#1729]: https://github.com/Kava-Labs/kava/pull/1729
-[#1707]: https://github.com/Kava-Labs/kava/pull/1707
-[#1706]: https://github.com/Kava-Labs/kava/pull/1706
-[#1704]: https://github.com/Kava-Labs/kava/pull/1704
-[#1668]: https://github.com/Kava-Labs/kava/pull/1668
->>>>>>> aca738fb (fix(rocksdb): correctly resolve rocksdb path (#1767) (#1776))
+[#1767]: https://github.com/Kava-Labs/kava/pull/1767
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
