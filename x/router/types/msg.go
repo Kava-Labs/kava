@@ -1,9 +1,9 @@
 package types
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 )
 

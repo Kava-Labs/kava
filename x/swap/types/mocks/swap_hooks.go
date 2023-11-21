@@ -3,8 +3,8 @@
 package mocks
 
 import (
-	mock "github.com/stretchr/testify/mock"
 	math "cosmossdk.io/math"
+	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/cosmos/cosmos-sdk/types"
 )
