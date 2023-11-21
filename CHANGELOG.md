@@ -36,12 +36,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
-## [v0.24.2](https://github.com/Kava-Labs/kava/releases/tag/v0.24.2)
-
-### Bug Fixes
-
-- (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
-  cosmos ledger app 2.34.12
+- (rocksdb) [#1767] Fix resolution of rocksdb database path
 
 ## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
 
@@ -287,10 +282,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
-[#1770]: https://github.com/Kava-Labs/kava/pull/1770
-[#1755]: https://github.com/Kava-Labs/kava/pull/1755
-[#1761]: https://github.com/Kava-Labs/kava/pull/1761
-[#1752]: https://github.com/Kava-Labs/kava/pull/1752
+[#1767]: https://github.com/Kava-Labs/kava/pull/1767
 [#1751]: https://github.com/Kava-Labs/kava/pull/1751
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
