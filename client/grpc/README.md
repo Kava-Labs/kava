@@ -18,7 +18,7 @@ package main
 import (
   kavaGrpc "github.com/kava-labs/kava/client/grpc"
 )
-grpcUrl := "https://grpc.data.kava.io"
+grpcUrl := "https://grpc.kava.io:443"
 client, err := kavaGrpc.NewClient(url)
 if err != nil {
   panic(err)
@@ -49,7 +49,7 @@ import (
   evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
-rsp, err := suite.Client.Query.Evmutil.Params(
+rsp, err := client.Query.Evmutil.Params(
   context.Background(), &evmutiltypes.QueryParamsRequest{},
 )
 ```
@@ -62,7 +62,7 @@ Example: Util query to get a base account
 
 ```go
 kavaAcc := "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92"
-rsp, err := suite.Client.Util.BaseAccount(kavaAcc)
+rsp, err := client.Util.BaseAccount(kavaAcc)
 if err != nil {
   panic(err)
 }
