@@ -802,12 +802,10 @@ github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8
 github.com/jung-kurt/gofpdf v1.0.3-0.20190309125859-24315acbbda5/go.mod h1:7Id9E/uU8ce6rXgefFLlgrJj/GYY22cpxn+r32jIOes=
 github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef/go.mod h1:Ct9fl0F6iIOGgxJ5npU/IUOhOhqlVrGjyIZc8/MagT0=
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
-github.com/kava-labs/cometbft v0.34.27-kava.0 h1:FUEGRkF3xtrJH+h9A5G4eA2skf7QaNoOCPaoVqHkh8k=
-github.com/kava-labs/cometbft v0.34.27-kava.0/go.mod h1:BcCbhKv7ieM0KEddnYXvQZR+pZykTKReJJYf7YC7qhw=
+github.com/kava-labs/cometbft v0.34.28-0.20231117215347-3ba44e0f4151 h1:nVlr98Aaluqk76BKYrGS8t8k5/w3wuCyIzooNfeV9h0=
+github.com/kava-labs/cometbft v0.34.28-0.20231117215347-3ba44e0f4151/go.mod h1:BcCbhKv7ieM0KEddnYXvQZR+pZykTKReJJYf7YC7qhw=
 github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1 h1:EZnZAkZ+dqK+1OM4AK+e6wYH8a5xuyg4yFTR4Ez3AXk=
 github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1/go.mod h1:mI/4J4IxRzPrXvMiwefrt0fucGwaQ5Hm9IKS7HnoJeI=
-github.com/kava-labs/cosmos-sdk v0.46.11-kava.3 h1:TOhyyW/xHso/9uIOgYdsrOWDIhXi6foORWZxVRe/wS0=
-github.com/kava-labs/cosmos-sdk v0.46.11-kava.3/go.mod h1:bSUUbmVwWkv1ZNVTWrQHa/i+73xIUvYYPsCvl5doiCs=
 github.com/kava-labs/ethermint v0.21.0-kava-v23-1 h1:5TSyCtPvFdMuSe8p2iMVqXmFBlK3lHyjaT9EqN752aI=
 github.com/kava-labs/ethermint v0.21.0-kava-v23-1/go.mod h1:rdm6AinxZ4dzPEv/cjH+/AGyTbKufJ3RE7M2MDyklH0=
 github.com/kava-labs/tm-db v0.6.7-kava.4 h1:M2RibOKmbi+k2OhAFry8z9+RJF0CYuDETB7/PrSdoro=

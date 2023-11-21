@@ -205,7 +205,8 @@ replace (
 	// Use rocksdb 7.9.2
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.11-kava.3
+	// github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.11-kava.3
+	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
@@ -217,7 +218,8 @@ replace (
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// Use cometbft fork of tendermint
-	github.com/tendermint/tendermint => github.com/kava-labs/cometbft v0.34.27-kava.0
+	// github.com/tendermint/tendermint => github.com/kava-labs/cometbft v0.34.27-kava.0
+	github.com/tendermint/tendermint => github.com/kava-labs/cometbft v0.34.28-0.20231117215347-3ba44e0f4151
 	// Indirect dependencies still use tendermint/tm-db
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.4
 )
