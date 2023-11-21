@@ -69,6 +69,6 @@ if err != nil {
 fmt.Printf("account sequence for %s: %d\n", kavaAcc, rsp.Sequence)
 ```
 
-## Adding Tests
+## Query Tests
 
-To test queries, a Kava node is required. Therefore, the e2e tests for the gRPC client can be found in the `tests/e2e` directory. Tests for new utility queries should be added as e2e tests under the `test/e2e` directory.
+To test queries, a Kava node is required. Therefore, the e2e tests for the gRPC client queries can be found in the `tests/e2e` directory. Tests for new utility queries should be added as e2e tests under the `test/e2e` directory.
