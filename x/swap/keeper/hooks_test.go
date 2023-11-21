@@ -4,8 +4,8 @@ import (
 	"github.com/kava-labs/kava/x/swap/types"
 	"github.com/kava-labs/kava/x/swap/types/mocks"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/mock"
 )
 

@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-errorsmod "cosmossdk.io/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"

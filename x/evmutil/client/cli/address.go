@@ -11,7 +11,7 @@ import (
 )
 
 // ParseAddrFromHexOrBech32 parses a string address that can be either a hex or
-//Bech32 string.
+// Bech32 string.
 func ParseAddrFromHexOrBech32(addrString string) (common.Address, error) {
 	if common.IsHexAddress(addrString) {
 		return common.HexToAddress(addrString), nil
