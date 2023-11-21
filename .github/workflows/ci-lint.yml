@@ -8,9 +8,10 @@ jobs:
   golangci-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
       - name: golangci-lint
         uses: reviewdog/action-golangci-lint@v2
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-review
+          golangci_lint_flags: --timeout 10m
