@@ -1,4 +1,4 @@
-package client
+package cmd
 
 import (
 	"bufio"
@@ -18,9 +18,9 @@ import (
 
 var ethFlag = "eth"
 
-// KeyCommands registers a sub-tree of commands to interact with
+// keyCommands registers a sub-tree of commands to interact with
 // local private key storage.
-func KeyCommands(defaultNodeHome string) *cobra.Command {
+func keyCommands(defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "keys",
 		Short: "Manage your application's keys",

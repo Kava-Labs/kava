@@ -22,7 +22,6 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
-	kavaclient "github.com/kava-labs/kava/client"
 	"github.com/kava-labs/kava/cmd/kava/opendb"
 )
 
@@ -123,6 +122,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 	rootCmd.AddCommand(
 		newQueryCmd(),
 		newTxCmd(),
-		kavaclient.KeyCommands(app.DefaultNodeHome),
+		keyCommands(app.DefaultNodeHome),
 	)
 }
