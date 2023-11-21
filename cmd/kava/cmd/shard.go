@@ -5,12 +5,19 @@ import (
 
 	"github.com/spf13/cobra"
 
+	dbm "github.com/cometbft/cometbft-db"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+
 	tmcmd "github.com/tendermint/tendermint/cmd/cometbft/commands"
+	tmconfig "github.com/tendermint/tendermint/config"
+	"github.com/tendermint/tendermint/node"
+	tmstate "github.com/tendermint/tendermint/state"
+	"github.com/tendermint/tendermint/store"
 
 	ethermintserver "github.com/evmos/ethermint/server"
 )
@@ -18,7 +25,6 @@ import (
 const (
 	flagShardStartBlock = "start"
 	flagShardEndBlock   = "end"
-	flagShardOutput     = "out"
 )
 
 func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
@@ -76,7 +82,6 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			multistore.SetPruning(pruningtypes.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
 
 			// rollback application state
-			fmt.Printf("rolling back application state to height %d\n", endBlock-1)
 			if err = multistore.RollbackToVersion(endBlock - 1); err != nil {
 				return fmt.Errorf("failed to rollback application state: %s", err)
 			}
@@ -92,21 +97,44 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				fmt.Printf("successfully rolled back to height %d\n", height)
 			}
 
-			// prune all blocks from before start of shard
+			// enumerate all heights to prune
 			pruneHeights := make([]int64, 0, latest-shardSize)
-			// prune heights before start block
 			for i := int64(1); i < startBlock; i++ {
 				pruneHeights = append(pruneHeights, i)
 			}
 
-			fmt.Printf("pruning application heights: %+v\n", pruneHeights)
 			if len(pruneHeights) > 0 {
-				if err := multistore.PruneStores(false, pruneHeights); err != nil {
+				// prune application state
+				fmt.Printf("pruning application state to height %d\n", startBlock)
+				if err := multistore.PruneStores(true, pruneHeights); err != nil {
 					return fmt.Errorf("failed to prune application state: %s", err)
 				}
 			}
 
-			fmt.Printf("post-prune height: %d\n", multistore.LatestVersion())
+			// open block store & cometbft state to manually prune blocks
+			blockStore, stateStore, err := openCometBftDbs(ctx.Config)
+			if err != nil {
+				return fmt.Errorf("failed to open cometbft dbs: %s", err)
+			}
+
+			// get starting block of block store
+			baseBlock := blockStore.Base()
+			fmt.Printf("block store base: %d\n", blockStore.Base())
+
+			// only prune if data exists, otherwise blockStore.PruneBlocks will panic
+			if baseBlock < startBlock {
+				// prune block store
+				fmt.Printf("pruning block store from %d - %d\n", baseBlock, startBlock)
+				if _, err := blockStore.PruneBlocks(startBlock); err != nil {
+					return fmt.Errorf("failed to prune block store (retainHeight=%d): %s", startBlock, err)
+				}
+
+				// prune cometbft state
+				fmt.Printf("pruning cometbft state from %d - %d\n", baseBlock, startBlock)
+				if err := stateStore.PruneStates(baseBlock, startBlock); err != nil {
+					return fmt.Errorf("failed to prune cometbft state store (%d - %d): %s", baseBlock, startBlock, err)
+				}
+			}
 
 			return nil
 		},
@@ -117,4 +145,27 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (exclusive)")
 
 	return cmd
+}
+
+// inspired by https://github.com/Kava-Labs/cometbft/blob/277b0853db3f67865a55aa1c54f59790b5f591be/node/node.go#L234
+func openCometBftDbs(config *tmconfig.Config) (blockStore *store.BlockStore, stateStore tmstate.Store, err error) {
+	dbProvider := node.DefaultDBProvider
+
+	var blockStoreDB dbm.DB
+	blockStoreDB, err = dbProvider(&node.DBContext{ID: "blockstore", Config: config})
+	if err != nil {
+		return
+	}
+	blockStore = store.NewBlockStore(blockStoreDB)
+
+	stateDB, err := dbProvider(&node.DBContext{ID: "state", Config: config})
+	if err != nil {
+		return
+	}
+
+	stateStore = tmstate.NewStore(stateDB, tmstate.StoreOptions{
+		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
+	})
+
+	return
 }
