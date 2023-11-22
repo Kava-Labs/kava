@@ -6,6 +6,7 @@ require (
 	cosmossdk.io/errors v1.0.0-beta.7
 	cosmossdk.io/math v1.0.0-beta.6.0.20230216172121-959ce49135e4
 	github.com/cenkalti/backoff/v4 v4.1.3
+	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.46.11
 	github.com/cosmos/go-bip39 v1.0.0
@@ -62,7 +63,6 @@ require (
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/coinbase/rosetta-sdk-go v0.7.9 // indirect
-	github.com/cometbft/cometbft-db v0.7.0 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/gogoproto v1.4.6 // indirect
@@ -205,8 +205,7 @@ replace (
 	// Use rocksdb 7.9.2
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	// github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.11-kava.3
-	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.12-0.20231122181930-1063a201daf8
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
@@ -218,7 +217,6 @@ replace (
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// Use cometbft fork of tendermint
-	// github.com/tendermint/tendermint => github.com/kava-labs/cometbft v0.34.27-kava.0
 	github.com/tendermint/tendermint => github.com/kava-labs/cometbft v0.34.28-0.20231117215347-3ba44e0f4151
 	// Indirect dependencies still use tendermint/tm-db
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.4

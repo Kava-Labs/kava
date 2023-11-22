@@ -29,7 +29,20 @@ const (
 
 func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "shard",
+		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block>",
+		Short: "Strip all blocks from the database outside of a given range",
+		Long: `shard opens a local kava home directory's databases and removes all blocks outside a range defined by --start and --end. The range is exclusive of the end block.
+
+It works by first rolling back the latest state to the block before the end block, and then by pruning all state before the start block.
+
+Setting the end block to -1 signals to keep the latest block (no rollbacks).
+
+WARNING: this is a destructive action.`,
+		Example: `Create a 1M block data shard (keeps blocks kava 1,000,000 to 1,999,999)
+$ kava shard --home path/to/.kava --start 1000000 --end 2000000
+
+Prune all blocks up to 5,000,000:
+$ kava shard --home path/to/.kava --start 5000000 --end -1`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// parse flags
 			startBlock, err := cmd.Flags().GetInt64(flagShardStartBlock)
@@ -40,10 +53,9 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if endBlock == 0 || endBlock <= startBlock {
+			if (endBlock == 0 || endBlock <= startBlock) && endBlock != -1 {
 				return fmt.Errorf("end block (%d) must be greater than start block (%d)", endBlock, startBlock)
 			}
-			shardSize := endBlock - startBlock
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -51,6 +63,10 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			ctx.Config.SetRoot(clientCtx.HomeDir)
 
 			home := ctx.Viper.GetString(flags.FlagHome)
+
+			//////////////////////////////
+			// Rollback state to endBlock
+			//////////////////////////////
 
 			// connect to database
 			db, err := opts.DBOpener(ctx.Viper, home, server.GetAppDBBackend(ctx.Viper))
@@ -75,6 +91,10 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 
 			latest := multistore.LatestVersion()
 			fmt.Printf("latest height: %d\n", latest)
+			if endBlock == -1 {
+				endBlock = latest + 1
+			}
+			shardSize := endBlock - startBlock
 
 			fmt.Printf("pruning data in %s down to heights %d - %d (%d blocks)\n", home, startBlock, endBlock, shardSize)
 
@@ -96,6 +116,10 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				}
 				fmt.Printf("successfully rolled back to height %d\n", height)
 			}
+
+			//////////////////////////////
+			// Prune blocks to startBlock
+			//////////////////////////////
 
 			// enumerate all heights to prune
 			pruneHeights := make([]int64, 0, latest-shardSize)
@@ -119,7 +143,6 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 
 			// get starting block of block store
 			baseBlock := blockStore.Base()
-			fmt.Printf("block store base: %d\n", blockStore.Base())
 
 			// only prune if data exists, otherwise blockStore.PruneBlocks will panic
 			if baseBlock < startBlock {
@@ -134,7 +157,11 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				if err := stateStore.PruneStates(baseBlock, startBlock); err != nil {
 					return fmt.Errorf("failed to prune cometbft state store (%d - %d): %s", baseBlock, startBlock, err)
 				}
+			} else {
+				fmt.Printf("blockstore and cometbft state begin at block %d\n", baseBlock)
 			}
+
+			// TODO: db compaction
 
 			return nil
 		},
