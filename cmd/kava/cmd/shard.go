@@ -23,13 +23,14 @@ import (
 )
 
 const (
-	flagShardStartBlock = "start"
-	flagShardEndBlock   = "end"
+	flagShardStartBlock   = "start"
+	flagShardEndBlock     = "end"
+	flagShardOnlyAppState = "only-app-state"
 )
 
 func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block>",
+		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block> [--only-app-state]",
 		Short: "Strip all blocks from the database outside of a given range",
 		Long: `shard opens a local kava home directory's databases and removes all blocks outside a range defined by --start and --end. The range is exclusive of the end block.
 
@@ -37,12 +38,16 @@ It works by first rolling back the latest state to the block before the end bloc
 
 Setting the end block to -1 signals to keep the latest block (no rollbacks).
 
+The --only-app-state flag can be used to skip the pruning of the blockstore and cometbft state. This matches the functionality of the cosmos-sdk's "prune" command. Note that rolled back blocks will still affect all stores.
+
 WARNING: this is a destructive action.`,
 		Example: `Create a 1M block data shard (keeps blocks kava 1,000,000 to 1,999,999)
 $ kava shard --home path/to/.kava --start 1000000 --end 2000000
 
 Prune all blocks up to 5,000,000:
-$ kava shard --home path/to/.kava --start 5000000 --end -1`,
+$ kava shard --home path/to/.kava --start 5000000 --end -1
+
+Prune first 1M blocks _without_ affecting blockstore or `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// parse flags
 			startBlock, err := cmd.Flags().GetInt64(flagShardStartBlock)
@@ -55,6 +60,10 @@ $ kava shard --home path/to/.kava --start 5000000 --end -1`,
 			}
 			if (endBlock == 0 || endBlock <= startBlock) && endBlock != -1 {
 				return fmt.Errorf("end block (%d) must be greater than start block (%d)", endBlock, startBlock)
+			}
+			onlyAppState, err := cmd.Flags().GetBool(flagShardOnlyAppState)
+			if err != nil {
+				return err
 			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -145,7 +154,7 @@ $ kava shard --home path/to/.kava --start 5000000 --end -1`,
 			baseBlock := blockStore.Base()
 
 			// only prune if data exists, otherwise blockStore.PruneBlocks will panic
-			if baseBlock < startBlock {
+			if !onlyAppState && baseBlock < startBlock {
 				// prune block store
 				fmt.Printf("pruning block store from %d - %d\n", baseBlock, startBlock)
 				if _, err := blockStore.PruneBlocks(startBlock); err != nil {
@@ -170,6 +179,7 @@ $ kava shard --home path/to/.kava --start 5000000 --end -1`,
 	cmd.Flags().String(flags.FlagHome, opts.DefaultNodeHome, "The application home directory")
 	cmd.Flags().Int64(flagShardStartBlock, 1, "Start block of data shard (inclusive)")
 	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (exclusive)")
+	cmd.Flags().Bool(flagShardOnlyAppState, false, "Skip pruning of blockstore & cometbft state")
 
 	return cmd
 }
