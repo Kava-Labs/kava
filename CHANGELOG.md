@@ -37,6 +37,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [Unreleased]
 
 - (rocksdb) [#1767] Fix resolution of rocksdb database path
+- (cli) [#1785] ADd `shard` CLI command
 
 ## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
 
@@ -282,7 +283,16 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+<<<<<<< HEAD
 [#1767]: https://github.com/Kava-Labs/kava/pull/1767
+=======
+[#1785]: https://github.com/Kava-Labs/kava/pull/1776
+[#1776]: https://github.com/Kava-Labs/kava/pull/1776
+[#1770]: https://github.com/Kava-Labs/kava/pull/1770
+[#1755]: https://github.com/Kava-Labs/kava/pull/1755
+[#1761]: https://github.com/Kava-Labs/kava/pull/1761
+[#1752]: https://github.com/Kava-Labs/kava/pull/1752
+>>>>>>> 3afbe05d (update changelog)
 [#1751]: https://github.com/Kava-Labs/kava/pull/1751
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
