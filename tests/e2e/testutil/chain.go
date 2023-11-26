@@ -77,7 +77,7 @@ type Chain struct {
 
 	TmSignClient tmclient.SignClient
 
-	GrpcClient *grpc.KavaGrpcClient
+	Grpc *grpc.KavaGrpcClient
 }
 
 // NewChain creates the query clients & signing account management for a chain run on a set of ports.
@@ -143,7 +143,7 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	if err != nil {
 		chain.t.Fatalf("failed to create kava grpc client: %s", err)
 	}
-	chain.GrpcClient = client
+	chain.Grpc = client
 
 	// initialize accounts map
 	chain.accounts = make(map[string]*SigningAccount)

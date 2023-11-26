@@ -10,7 +10,7 @@ func (suite *IntegrationTestSuite) TestGrpcClientUtil_Account() {
 	kavaAcc := suite.Kava.NewFundedAccount("account-test", sdk.NewCoins(ukava(1e5)))
 
 	// ACT
-	rsp, err := suite.Kava.GrpcClient.BaseAccount(kavaAcc.SdkAddress.String())
+	rsp, err := suite.Kava.Grpc.BaseAccount(kavaAcc.SdkAddress.String())
 
 	// ASSERT
 	suite.Require().NoError(err)
