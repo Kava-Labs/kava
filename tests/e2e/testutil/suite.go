@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/client/grpc"
 	"github.com/kava-labs/kava/tests/e2e/runner"
 	"github.com/kava-labs/kava/tests/util"
 )
@@ -54,8 +53,6 @@ type E2eTestSuite struct {
 
 	UpgradeHeight int64
 	DeployedErc20 DeployedErc20
-
-	GrpcClient *grpc.KavaGrpcClient
 
 	cost          costSummary
 	enableRefunds bool
@@ -122,12 +119,6 @@ func (suite *E2eTestSuite) SetupSuite() {
 			suite.T().Fatalf("failed to create ibc chain querier: %s", err)
 		}
 	}
-
-	client, err := grpc.NewClient(kavachain.GrpcUrl)
-	if err != nil {
-		suite.T().Fatalf("failed to create kava grpc client: %s", err)
-	}
-	suite.GrpcClient = client
 
 	suite.InitKavaEvmData()
 

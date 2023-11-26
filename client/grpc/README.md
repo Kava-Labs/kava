@@ -6,7 +6,7 @@ The Kava gRPC client is a tool for making gRPC queries on a Kava chain.
 
 - Easy-to-use gRPC client for the Kava chain.
 - Access all query clients for Cosmos and Kava modules using `client.Query` (e.g., `client.Query.Bank.Balance`).
-- Utilize utility functions for common queries via `client.Util` (e.g., `client.Util.BaseAccount(str)`).
+- Utilize utility functions for common queries (e.g., `client.BaseAccount(str)`).
 
 ## Usage
 
@@ -56,13 +56,13 @@ rsp, err := client.Query.Evmutil.Params(
 
 #### Query Utilities
 
-Utility functions for common queries are available via `client.Util`.
+Utility functions for common queries are available directly on the client.
 
 Example: Util query to get a base account
 
 ```go
 kavaAcc := "kava19rjk5qmmwywnzfccwzyn02jywgpwjqf60afj92"
-rsp, err := client.Util.BaseAccount(kavaAcc)
+rsp, err := client.BaseAccount(kavaAcc)
 if err != nil {
   panic(err)
 }

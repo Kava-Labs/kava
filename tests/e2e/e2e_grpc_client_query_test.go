@@ -16,7 +16,7 @@ func (suite *IntegrationTestSuite) TestGrpcClientQueryCosmosModule_Balance() {
 	kavaAcc := suite.Kava.NewFundedAccount("balance-test", sdk.NewCoins(funds))
 
 	// ACT
-	rsp, err := suite.GrpcClient.Query.Bank.Balance(context.Background(), &banktypes.QueryBalanceRequest{
+	rsp, err := suite.Kava.GrpcClient.Query.Bank.Balance(context.Background(), &banktypes.QueryBalanceRequest{
 		Address: kavaAcc.SdkAddress.String(),
 		Denom:   funds.Denom,
 	})
@@ -28,7 +28,7 @@ func (suite *IntegrationTestSuite) TestGrpcClientQueryCosmosModule_Balance() {
 
 func (suite *IntegrationTestSuite) TestGrpcClientQueryKavaModule_EvmParams() {
 	// ACT
-	rsp, err := suite.GrpcClient.Query.Evmutil.Params(
+	rsp, err := suite.Kava.GrpcClient.Query.Evmutil.Params(
 		context.Background(), &evmutiltypes.QueryParamsRequest{},
 	)
 
