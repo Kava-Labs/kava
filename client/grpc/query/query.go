@@ -18,6 +18,11 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	ibctransfertypes "github.com/cosmos/ibc-go/v6/modules/apps/transfer/types"
+	ibcclienttypes "github.com/cosmos/ibc-go/v6/modules/core/02-client/types"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
+
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
@@ -53,6 +58,13 @@ type QueryClient struct {
 	Slashing     slashingtypes.QueryClient
 	Staking      stakingtypes.QueryClient
 	Upgrade      upgradetypes.QueryClient
+
+	// 3rd party query clients
+
+	Evm         evmtypes.QueryClient
+	Feemarket   feemarkettypes.QueryClient
+	IbcClient   ibcclienttypes.QueryClient
+	IbcTransfer ibctransfertypes.QueryClient
 
 	// kava module query clients
 
@@ -94,6 +106,11 @@ func NewQueryClient(grpcEndpoint string) (*QueryClient, error) {
 		Slashing:     slashingtypes.NewQueryClient(conn),
 		Staking:      stakingtypes.NewQueryClient(conn),
 		Upgrade:      upgradetypes.NewQueryClient(conn),
+
+		Evm:         evmtypes.NewQueryClient(conn),
+		Feemarket:   feemarkettypes.NewQueryClient(conn),
+		IbcClient:   ibcclienttypes.NewQueryClient(conn),
+		IbcTransfer: ibctransfertypes.NewQueryClient(conn),
 
 		Auction:   auctiontypes.NewQueryClient(conn),
 		Bep3:      bep3types.NewQueryClient(conn),

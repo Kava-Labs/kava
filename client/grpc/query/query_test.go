@@ -47,6 +47,12 @@ func TestNewQueryClient_ValidClient(t *testing.T) {
 		require.NotNil(t, client.Staking)
 		require.NotNil(t, client.Upgrade)
 
+		// validate 3rd party clients
+		require.NotNil(t, client.Evm)
+		require.NotNil(t, client.Feemarket)
+		require.NotNil(t, client.IbcClient)
+		require.NotNil(t, client.IbcTransfer)
+
 		// validate kava clients
 		require.NotNil(t, client.Auction)
 		require.NotNil(t, client.Bep3)
