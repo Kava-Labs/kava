@@ -6,9 +6,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/ethclient"
 	rpchttpclient "github.com/tendermint/tendermint/rpc/client/http"
-	"google.golang.org/grpc"
-
-	"github.com/kava-labs/kava/tests/util"
 )
 
 var (
@@ -28,11 +25,6 @@ type ChainDetails struct {
 // EvmClient dials the underlying EVM RPC url and returns an ethclient.
 func (c ChainDetails) EvmClient() (*ethclient.Client, error) {
 	return ethclient.Dial(c.EvmRpcUrl)
-}
-
-// GrpcConn creates a new connection to the underlying Grpc url.
-func (c ChainDetails) GrpcConn() (*grpc.ClientConn, error) {
-	return util.NewGrpcConnection(c.GrpcUrl)
 }
 
 // RpcConn creates a new connection to the underlying Rpc url.

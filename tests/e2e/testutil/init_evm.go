@@ -28,7 +28,7 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 	}
 
 	// expect the erc20 to be enabled for conversion to sdk.Coin
-	params, err := suite.Kava.Evmutil.Params(context.Background(), &evmutiltypes.QueryParamsRequest{})
+	params, err := suite.Kava.Grpc.Query.Evmutil.Params(context.Background(), &evmutiltypes.QueryParamsRequest{})
 	if err != nil {
 		panic(fmt.Sprintf("failed to fetch evmutil params during init: %s", err))
 	}
@@ -46,7 +46,7 @@ func (suite *E2eTestSuite) InitKavaEvmData() {
 	suite.Kava.RegisterErc20(suite.DeployedErc20.Address)
 
 	// expect the erc20's cosmos denom to be a supported cdp collateral type
-	cdpParams, err := suite.Kava.Cdp.Params(context.Background(), &types.QueryParamsRequest{})
+	cdpParams, err := suite.Kava.Grpc.Query.Cdp.Params(context.Background(), &types.QueryParamsRequest{})
 	suite.Require().NoError(err)
 	found = false
 	for _, cp := range cdpParams.Params.CollateralParams {

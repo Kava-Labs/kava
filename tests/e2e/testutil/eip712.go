@@ -23,7 +23,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 ) client.TxBuilder {
 	// get account details
 	var accDetails authtypes.AccountI
-	a, err := chain.Auth.Account(context.Background(), &authtypes.QueryAccountRequest{
+	a, err := chain.Grpc.Query.Auth.Account(context.Background(), &authtypes.QueryAccountRequest{
 		Address: acc.SdkAddress.String(),
 	})
 	suite.NoError(err)
@@ -39,7 +39,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	suite.NoError(err)
 	ethChainId := pc.Uint64()
 
-	evmParams, err := chain.Evm.Params(context.Background(), &evmtypes.QueryParamsRequest{})
+	evmParams, err := chain.Grpc.Query.Evm.Params(context.Background(), &evmtypes.QueryParamsRequest{})
 	suite.NoError(err)
 
 	fee := legacytx.NewStdFee(gas, gasAmount)

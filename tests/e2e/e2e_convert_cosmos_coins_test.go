@@ -24,7 +24,10 @@ func setupConvertToCoinTest(
 ) (denom string, initialFunds sdk.Coins, user *testutil.SigningAccount) {
 	// we expect a denom to be registered to the allowed denoms param
 	// and for the funded account to have a balance for that denom
-	params, err := suite.Kava.Evmutil.Params(context.Background(), &evmutiltypes.QueryParamsRequest{})
+	params, err := suite.Kava.Grpc.Query.Evmutil.Params(
+		context.Background(),
+		&evmutiltypes.QueryParamsRequest{},
+	)
 	suite.NoError(err)
 	suite.GreaterOrEqual(
 		len(params.Params.AllowedCosmosDenoms), 1,
@@ -73,7 +76,7 @@ func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 	sdkBalance = sdkBalance.Sub(convertAmount)
 
 	// query for the deployed contract
-	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(
+	deployedContracts, err := suite.Kava.Grpc.Query.Evmutil.DeployedCosmosCoinContracts(
 		context.Background(),
 		&evmutiltypes.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: []string{denom}},
 	)
@@ -109,7 +112,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoinsToFromERC20() {
 	suite.NoError(res.Err)
 
 	// query for the deployed contract
-	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(
+	deployedContracts, err := suite.Kava.Grpc.Query.Evmutil.DeployedCosmosCoinContracts(
 		context.Background(),
 		&evmutiltypes.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: []string{denom}},
 	)
@@ -191,18 +194,18 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	suite.NoError(err)
 
 	// submit the eip712 message to the chain.
-	res, err := suite.Kava.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
+	res, err := suite.Kava.Grpc.Query.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
 		TxBytes: txBytes,
 		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 12*time.Second)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 12*time.Second)
 	suite.Require().NoError(err)
 
 	// query for the deployed contract
-	deployedContracts, err := suite.Kava.Evmutil.DeployedCosmosCoinContracts(
+	deployedContracts, err := suite.Kava.Grpc.Query.Evmutil.DeployedCosmosCoinContracts(
 		context.Background(),
 		&evmutiltypes.QueryDeployedCosmosCoinContractsRequest{CosmosDenoms: []string{denom}},
 	)
@@ -245,14 +248,14 @@ func (suite *IntegrationTestSuite) TestEIP712ConvertCosmosCoinsToFromERC20() {
 	suite.NoError(err)
 
 	// submit the eip712 message to the chain
-	res, err = suite.Kava.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
+	res, err = suite.Kava.Grpc.Query.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
 		TxBytes: txBytes,
 		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 6*time.Second)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 6*time.Second)
 	suite.NoError(err)
 
 	// check erc20 balance

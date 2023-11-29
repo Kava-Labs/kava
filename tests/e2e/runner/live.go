@@ -6,6 +6,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	"github.com/kava-labs/kava/client/grpc"
 )
 
 // LiveNodeRunnerConfig implements NodeRunner.
@@ -49,20 +51,19 @@ func (r LiveNodeRunner) StartChains() Chains {
 	}
 
 	// determine chain id
-	grpc, err := kavaChain.GrpcConn()
+	client, err := grpc.NewClient(kavaChain.GrpcUrl)
 	if err != nil {
-		panic(fmt.Sprintf("failed to establish grpc conn to %s: %s", r.config.KavaGrpcUrl, err))
+		panic(fmt.Sprintf("failed to create kava grpc client: %s", err))
 	}
-	tm := tmservice.NewServiceClient(grpc)
-	nodeInfo, err := tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
+
+	nodeInfo, err := client.Query.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
 	if err != nil {
 		panic(fmt.Sprintf("failed to fetch kava node info: %s", err))
 	}
 	kavaChain.ChainId = nodeInfo.DefaultNodeInfo.Network
 
 	// determine staking denom
-	staking := stakingtypes.NewQueryClient(grpc)
-	stakingParams, err := staking.Params(context.Background(), &stakingtypes.QueryParamsRequest{})
+	stakingParams, err := client.Query.Staking.Params(context.Background(), &stakingtypes.QueryParamsRequest{})
 	if err != nil {
 		panic(fmt.Sprintf("failed to fetch kava staking params: %s", err))
 	}

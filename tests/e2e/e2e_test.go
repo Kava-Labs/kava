@@ -50,7 +50,7 @@ func (suite *IntegrationTestSuite) TestChainID() {
 	suite.Equal(expectedEvmNetworkId, evmNetworkId)
 
 	// SDK query
-	nodeInfo, err := suite.Kava.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
+	nodeInfo, err := suite.Kava.Grpc.Query.Tm.GetNodeInfo(context.Background(), &tmservice.GetNodeInfoRequest{})
 	suite.NoError(err)
 	suite.Equal(suite.Kava.ChainID, nodeInfo.DefaultNodeInfo.Network)
 }
@@ -65,7 +65,7 @@ func (suite *IntegrationTestSuite) TestFundedAccount() {
 	suite.Equal(acc.EvmAddress.Hex(), util.SdkToEvmAddress(acc.SdkAddress).Hex())
 
 	// check balance via SDK query
-	res, err := suite.Kava.Bank.Balance(context.Background(), banktypes.NewQueryBalanceRequest(
+	res, err := suite.Kava.Grpc.Query.Bank.Balance(context.Background(), banktypes.NewQueryBalanceRequest(
 		acc.SdkAddress, "ukava",
 	))
 	suite.NoError(err)
