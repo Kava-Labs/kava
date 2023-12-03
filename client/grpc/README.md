@@ -19,7 +19,7 @@ import (
   kavaGrpc "github.com/kava-labs/kava/client/grpc"
 )
 grpcUrl := "https://grpc.kava.io:443"
-client, err := kavaGrpc.NewClient(url)
+client, err := kavaGrpc.NewClient(grpcUrl)
 if err != nil {
   panic(err)
 }
