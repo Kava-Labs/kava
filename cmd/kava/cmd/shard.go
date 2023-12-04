@@ -35,7 +35,7 @@ func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block> [--only-app-state]",
 		Short: "Strip all blocks from the database outside of a given range",
-		Long: `shard opens a local kava home directory's databases and removes all blocks outside a range defined by --start and --end. The range is exclusive of the end block.
+		Long: `shard opens a local kava home directory's databases and removes all blocks outside a range defined by --start and --end. The range is inclusive of the end block.
 
 It works by first rolling back the latest state to the block before the end block, and then by pruning all state before the start block.
 
@@ -44,13 +44,14 @@ Setting the end block to -1 signals to keep the latest block (no rollbacks).
 The --only-app-state flag can be used to skip the pruning of the blockstore and cometbft state. This matches the functionality of the cosmos-sdk's "prune" command. Note that rolled back blocks will still affect all stores.
 
 WARNING: this is a destructive action.`,
-		Example: `Create a 1M block data shard (keeps blocks kava 1,000,000 to 1,999,999)
+		Example: `Create a 1M block data shard (keeps blocks kava 1,000,000 to 2,000,000)
 $ kava shard --home path/to/.kava --start 1000000 --end 2000000
 
 Prune all blocks up to 5,000,000:
 $ kava shard --home path/to/.kava --start 5000000 --end -1
 
-Prune first 1M blocks _without_ affecting blockstore or `,
+Prune first 1M blocks _without_ affecting blockstore or cometBFT state:
+$ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// read & validate flags
 			startBlock, err := cmd.Flags().GetInt64(flagShardStartBlock)
@@ -61,7 +62,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			if err != nil {
 				return err
 			}
-			if (endBlock == 0 || endBlock <= startBlock) && endBlock != shardEndBlockLatest {
+			if (endBlock == 0 || endBlock < startBlock) && endBlock != shardEndBlockLatest {
 				return fmt.Errorf("end block (%d) must be greater than start block (%d)", endBlock, startBlock)
 			}
 			onlyAppState, err := cmd.Flags().GetBool(flagShardOnlyAppState)
@@ -103,9 +104,9 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			latest := multistore.LatestVersion()
 			fmt.Printf("latest height: %d\n", latest)
 			if endBlock == shardEndBlockLatest {
-				endBlock = latest + 1
+				endBlock = latest
 			}
-			shardSize := endBlock - startBlock
+			shardSize := endBlock - startBlock + 1
 
 			// error if requesting block range the database does not have
 			if endBlock > latest {
@@ -118,7 +119,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			multistore.SetPruning(pruningtypes.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
 
 			// rollback application state
-			if err = multistore.RollbackToVersion(endBlock - 1); err != nil {
+			if err = multistore.RollbackToVersion(endBlock); err != nil {
 				return fmt.Errorf("failed to rollback application state: %s", err)
 			}
 
@@ -129,7 +130,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			}
 
 			// prep for outputting progress repeatedly to same line
-			needsRollback := endBlock <= latest
+			needsRollback := endBlock < latest
 			progress := "rolling back blockstore & cometbft state to height %d"
 			numChars := len(fmt.Sprintf(progress, latest))
 			clearLine := fmt.Sprintf("\r%s\r", strings.Repeat(" ", numChars))
@@ -140,8 +141,8 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 
 			// rollback tendermint db
 			height := latest
-			for height >= endBlock {
-				printRollbackProgress(height)
+			for height > endBlock {
+				printRollbackProgress(height - 1)
 				height, _, err = tmstate.Rollback(blockStore, stateStore, true)
 				if err != nil {
 					return fmt.Errorf("failed to rollback tendermint state: %w", err)
@@ -151,7 +152,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			if needsRollback {
 				fmt.Println()
 			} else {
-				fmt.Printf("latest store height is already %d\n", endBlock)
+				fmt.Printf("latest store height is already %d\n", latest)
 			}
 
 			//////////////////////////////
@@ -200,7 +201,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 
 	cmd.Flags().String(flags.FlagHome, opts.DefaultNodeHome, "The application home directory")
 	cmd.Flags().Int64(flagShardStartBlock, 1, "Start block of data shard (inclusive)")
-	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (exclusive)")
+	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (inclusive)")
 	cmd.Flags().Bool(flagShardOnlyAppState, false, "Skip pruning of blockstore & cometbft state")
 
 	return cmd
