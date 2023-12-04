@@ -26,6 +26,9 @@ const (
 	flagShardStartBlock   = "start"
 	flagShardEndBlock     = "end"
 	flagShardOnlyAppState = "only-app-state"
+
+	// allow using -1 to mean "latest" (perform no rollbacks)
+	shardEndBlockLatest = -1
 )
 
 func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
@@ -49,7 +52,7 @@ $ kava shard --home path/to/.kava --start 5000000 --end -1
 
 Prune first 1M blocks _without_ affecting blockstore or `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// parse flags
+			// read & validate flags
 			startBlock, err := cmd.Flags().GetInt64(flagShardStartBlock)
 			if err != nil {
 				return err
@@ -58,7 +61,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			if err != nil {
 				return err
 			}
-			if (endBlock == 0 || endBlock <= startBlock) && endBlock != -1 {
+			if (endBlock == 0 || endBlock <= startBlock) && endBlock != shardEndBlockLatest {
 				return fmt.Errorf("end block (%d) must be greater than start block (%d)", endBlock, startBlock)
 			}
 			onlyAppState, err := cmd.Flags().GetBool(flagShardOnlyAppState)
@@ -71,14 +74,12 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			ctx := server.GetServerContextFromCmd(cmd)
 			ctx.Config.SetRoot(clientCtx.HomeDir)
 
-			home := ctx.Viper.GetString(flags.FlagHome)
-
 			//////////////////////////////
 			// Rollback state to endBlock
 			//////////////////////////////
 
 			// connect to database
-			db, err := opts.DBOpener(ctx.Viper, home, server.GetAppDBBackend(ctx.Viper))
+			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, server.GetAppDBBackend(ctx.Viper))
 			if err != nil {
 				return err
 			}
@@ -100,12 +101,12 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 
 			latest := multistore.LatestVersion()
 			fmt.Printf("latest height: %d\n", latest)
-			if endBlock == -1 {
+			if endBlock == shardEndBlockLatest {
 				endBlock = latest + 1
 			}
 			shardSize := endBlock - startBlock
 
-			fmt.Printf("pruning data in %s down to heights %d - %d (%d blocks)\n", home, startBlock, endBlock, shardSize)
+			fmt.Printf("pruning data in %s down to heights %d - %d (%d blocks)\n", clientCtx.HomeDir, startBlock, endBlock, shardSize)
 
 			// set pruning options to prevent no-ops from `PruneStores`
 			multistore.SetPruning(pruningtypes.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
