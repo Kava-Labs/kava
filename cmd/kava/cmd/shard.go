@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -122,14 +123,30 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 				return fmt.Errorf("failed to open cometbft dbs: %s", err)
 			}
 
+			// prep for outputting progress repeatedly to same line
+			needsRollback := endBlock <= latest
+			progress := "rolling back blockstore & cometbft state to height %d"
+			numChars := len(fmt.Sprintf(progress, latest))
+			clearLine := fmt.Sprintf("\r%s\r", strings.Repeat(" ", numChars))
+			printRollbackProgress := func(h int64) {
+				fmt.Print(clearLine)
+				fmt.Printf(progress, h)
+			}
+
 			// rollback tendermint db
 			height := latest
 			for height >= endBlock {
-				fmt.Printf("rolling back blockstore & cometbft state to height %d\n", height)
+				printRollbackProgress(height)
 				height, _, err = tmstate.Rollback(blockStore, stateStore, true)
 				if err != nil {
 					return fmt.Errorf("failed to rollback tendermint state: %w", err)
 				}
+			}
+
+			if needsRollback {
+				fmt.Println()
+			} else {
+				fmt.Printf("latest store height is already %d\n", latest)
 			}
 
 			//////////////////////////////
