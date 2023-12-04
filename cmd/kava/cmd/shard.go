@@ -107,6 +107,11 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			}
 			shardSize := endBlock - startBlock
 
+			// error if requesting block range the database does not have
+			if endBlock > latest {
+				return fmt.Errorf("data does not contain end block (%d): latest version is %d", endBlock, latest)
+			}
+
 			fmt.Printf("pruning data in %s down to heights %d - %d (%d blocks)\n", clientCtx.HomeDir, startBlock, endBlock, shardSize)
 
 			// set pruning options to prevent no-ops from `PruneStores`
@@ -146,7 +151,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 			if needsRollback {
 				fmt.Println()
 			} else {
-				fmt.Printf("latest store height is already %d\n", latest)
+				fmt.Printf("latest store height is already %d\n", endBlock)
 			}
 
 			//////////////////////////////
