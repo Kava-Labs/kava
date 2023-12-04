@@ -13,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 
-	tmcmd "github.com/tendermint/tendermint/cmd/cometbft/commands"
 	tmconfig "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/node"
 	tmstate "github.com/tendermint/tendermint/state"
@@ -99,6 +98,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 				return fmt.Errorf("only sharding of rootmulti.Store type is supported")
 			}
 
+			// handle desired endblock being latest
 			latest := multistore.LatestVersion()
 			fmt.Printf("latest height: %d\n", latest)
 			if endBlock == shardEndBlockLatest {
@@ -116,15 +116,20 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 				return fmt.Errorf("failed to rollback application state: %s", err)
 			}
 
+			// open block store & cometbft state
+			blockStore, stateStore, err := openCometBftDbs(ctx.Config)
+			if err != nil {
+				return fmt.Errorf("failed to open cometbft dbs: %s", err)
+			}
+
 			// rollback tendermint db
 			height := latest
 			for height >= endBlock {
-				fmt.Printf("rolling back state for height %d\n", height)
-				height, _, err = tmcmd.RollbackState(ctx.Config, true)
+				fmt.Printf("rolling back blockstore & cometbft state to height %d\n", height)
+				height, _, err = tmstate.Rollback(blockStore, stateStore, true)
 				if err != nil {
 					return fmt.Errorf("failed to rollback tendermint state: %w", err)
 				}
-				fmt.Printf("successfully rolled back to height %d\n", height)
 			}
 
 			//////////////////////////////
@@ -145,12 +150,6 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 				}
 			}
 
-			// open block store & cometbft state to manually prune blocks
-			blockStore, stateStore, err := openCometBftDbs(ctx.Config)
-			if err != nil {
-				return fmt.Errorf("failed to open cometbft dbs: %s", err)
-			}
-
 			// get starting block of block store
 			baseBlock := blockStore.Base()
 
@@ -168,7 +167,7 @@ Prune first 1M blocks _without_ affecting blockstore or `,
 					return fmt.Errorf("failed to prune cometbft state store (%d - %d): %s", baseBlock, startBlock, err)
 				}
 			} else {
-				fmt.Printf("blockstore and cometbft state begin at block %d\n", baseBlock)
+				fmt.Printf("blockstore and cometbft state begins at block %d\n", baseBlock)
 			}
 
 			// TODO: db compaction
