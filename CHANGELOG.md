@@ -36,11 +36,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+- (ethermint) [#1788] Fixes issue where tracing a transaction could show it's status as successful when isolated in simulation even if the tx when executed on the chain failed due to an error such as exhausting the block gas meter
 - (rocksdb) [#1767] Fix resolution of rocksdb database path
 
 ## [v0.24.1](https://github.com/Kava-Labs/kava/releases/tag/v0.24.1)
 
 ### Features
+
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 - (community) [#1751] Add `AnnualizedRewards` query endpoint
@@ -48,6 +50,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v0.24.0](https://github.com/Kava-Labs/kava/releases/tag/v0.24.0)
 
 ### Features
+
 - (evmutil) [#1590] & [#1596] Add allow list param of sdk native denoms that can be transferred to evm
 - (evmutil) [#1591] & [#1596] Configure module to support deploying ERC20KavaWrappedCosmosCoin contracts
 - (evmutil) [#1598] Track deployed ERC20 contract addresses for representing cosmos coins in module state
@@ -58,6 +61,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (evmutil) [#1610] Add new invariant checking that ERC20s are fully backed by sdk.Coins
 
 ### Client Breaking
+
 - (evmutil) [#1603] Renamed error `ErrConversionNotEnabled` to `ErrEVMConversionNotEnabled`
 - (evmutil) [#1604] Renamed event types
   - `convert_erc20_to_coin` -> `convert_evm_erc20_to_coin`
@@ -69,8 +73,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (cli) [#1624] Removes unused, no-op `migrate` CLI command.
 
 ### Bug Fixes
-- (cli) [#1624] Fix `assert-invariants` CLI command.
 
+- (cli) [#1624] Fix `assert-invariants` CLI command.
 
 ## [v0.23.2]
 
@@ -328,7 +332,6 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#780]: https://github.com/Kava-Labs/kava/pull/780
 [unreleased]: https://github.com/Kava-Labs/kava/compare/v0.23.2...HEAD
 [v0.23.2]: https://github.com/Kava-Labs/kava/compare/v0.23.1...v0.23.2
-[v0.23.1]: https://github.com/Kava-Labs/kava/compare/v0.23.0...v0.23.1
 [v0.23.0]: https://github.com/Kava-Labs/kava/compare/v0.21.1...v0.23.0
 [v0.16.1]: https://github.com/Kava-Labs/kava/compare/v0.16.0...v0.16.1
 [v0.16.0]: https://github.com/Kava-Labs/kava/compare/v0.15.2...v0.16.0
