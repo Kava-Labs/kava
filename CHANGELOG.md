@@ -44,6 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Bug Fixes
 
+- (ethermint) [#1788] Fixes issue where tracing a transaction could show it's status as successful when isolated in simulation even if the tx when executed on the chain failed due to an error such as exhausting the block gas meter
 - (evmutil) [#1655] Initialize x/evmutil module account in InitGenesis
 - (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
   cosmos ledger app 2.34.12
