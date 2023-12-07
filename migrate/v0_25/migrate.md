@@ -25,7 +25,7 @@ calculation will no longer be accurate. [Additional Details can be found here.](
 
 ### On the day of the upgrade
 
-The kava chain is expected to halt at block height **7637070**. **Do not stop your node and begin the upgrade before the upgrade height**, or you may go offline and be unable to recover until after the upgrade!
+The kava chain is expected to halt at block height **7638000**. **Do not stop your node and begin the upgrade before the upgrade height**, or you may go offline and be unable to recover until after the upgrade!
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
