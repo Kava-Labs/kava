@@ -29,14 +29,14 @@ The kava chain is expected to halt at block height **7638000**. **Do not stop yo
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
-**Ensure you are using golang 1.20.x and not a different version.** Golang 1.19 and below may cause app hash mismatches!
+**Ensure you are using golang 1.20.x and not a different version.** Golang 1.21, 1.19 and others may cause app hash mismatches!
 
 To update to v0.25.0
 
 ```sh
 # check go version - look for 1.20!
 go version
-# go version go1.20.5 linux/amd64
+# go version go1.20.12 linux/amd64
 
 # in the `kava` folder
 git fetch
@@ -50,9 +50,9 @@ kava version --long
 # name: kava
 # server_name: kava
 # version: 0.25.0
-# commit: <commit placeholder>
+# commit: 1f82949c56162159832b7ec3bcfc78f6b93a0b13
 # build_tags: netgo ledger,
-# go: go version go1.20.5 linux/amd64
+# go: go version go1.20.12 linux/amd64
 # build_deps:
 #  ...
 # cosmos_sdk_version: v0.46.11
