@@ -1,25 +1,21 @@
-package util
+package query
 
 import (
 	"context"
 	"crypto/tls"
 	"fmt"
 	"net/url"
-	"strconv"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/metadata"
-
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 )
 
-// NewGrpcConnection parses a GRPC endpoint and creates a connection to it
-func NewGrpcConnection(endpoint string) (*grpc.ClientConn, error) {
+// newGrpcConnection parses a GRPC endpoint and creates a connection to it
+func newGrpcConnection(ctx context.Context, endpoint string) (*grpc.ClientConn, error) {
 	grpcUrl, err := url.Parse(endpoint)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse grpc connection \"%s\": %v", endpoint, err)
 	}
 
 	var creds credentials.TransportCredentials
@@ -33,15 +29,10 @@ func NewGrpcConnection(endpoint string) (*grpc.ClientConn, error) {
 	}
 
 	secureOpt := grpc.WithTransportCredentials(creds)
-	grpcConn, err := grpc.Dial(grpcUrl.Host, secureOpt)
+	grpcConn, err := grpc.DialContext(ctx, grpcUrl.Host, secureOpt)
 	if err != nil {
 		return nil, err
 	}
 
 	return grpcConn, nil
-}
-
-func CtxAtHeight(height int64) context.Context {
-	heightStr := strconv.FormatInt(height, 10)
-	return metadata.AppendToOutgoingContext(context.Background(), grpctypes.GRPCBlockHeightHeader, heightStr)
 }

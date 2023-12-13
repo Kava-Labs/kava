@@ -87,18 +87,18 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 	suite.NoError(err)
 
 	// broadcast tx
-	res, err := suite.Kava.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
+	res, err := suite.Kava.Grpc.Query.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
 		TxBytes: txBytes,
 		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 6*time.Second)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 6*time.Second)
 	suite.NoError(err)
 
 	// check that the message was processed & the kava is transferred.
-	balRes, err := suite.Kava.Bank.Balance(context.Background(), &banktypes.QueryBalanceRequest{
+	balRes, err := suite.Kava.Grpc.Query.Bank.Balance(context.Background(), &banktypes.QueryBalanceRequest{
 		Address: receiver.String(),
 		Denom:   "ukava",
 	})
@@ -154,14 +154,14 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToLend() {
 	suite.NoError(err)
 
 	// broadcast tx
-	res, err := suite.Kava.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
+	res, err := suite.Kava.Grpc.Query.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
 		TxBytes: txBytes,
 		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, res.TxResponse.TxHash, 6*time.Second)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 6*time.Second)
 	suite.Require().NoError(err)
 
 	// check that depositor no longer has erc20 balance
@@ -169,7 +169,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToLend() {
 	suite.BigIntsEqual(big.NewInt(0), balance, "expected no erc20 balance")
 
 	// check that account has cdp
-	cdpRes, err := suite.Kava.Cdp.Cdp(context.Background(), &cdptypes.QueryCdpRequest{
+	cdpRes, err := suite.Kava.Grpc.Query.Cdp.Cdp(context.Background(), &cdptypes.QueryCdpRequest{
 		CollateralType: suite.DeployedErc20.CdpCollateralType,
 		Owner:          depositor.SdkAddress.String(),
 	})

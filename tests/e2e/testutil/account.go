@@ -101,8 +101,8 @@ func (chain *Chain) AddNewSigningAccountFromPrivKey(
 	kavaSigner := util.NewKavaSigner(
 		chainId,
 		chain.EncodingConfig,
-		chain.Auth,
-		chain.Tx,
+		chain.Grpc.Query.Auth,
+		chain.Grpc.Query.Tx,
 		privKey,
 		100,
 	)

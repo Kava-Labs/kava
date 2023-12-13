@@ -44,6 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (community) [#1704] Add module params
 - (community) [#1706] Add disable inflation upgrade
 - (community) [#1745] Enable params update via governance with `MsgUpdateParams`
+- (client) [#1784] Add Kava gRPC client
 
 ### Bug Fixes
 
@@ -72,6 +73,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v0.24.1]
 
 ### Features
+
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 - (community) [#1751] Add `AnnualizedRewards` query endpoint
@@ -315,6 +317,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1784]: https://github.com/Kava-Labs/kava/pull/1784
 [#1776]: https://github.com/Kava-Labs/kava/pull/1776
 [#1770]: https://github.com/Kava-Labs/kava/pull/1770
 [#1755]: https://github.com/Kava-Labs/kava/pull/1755

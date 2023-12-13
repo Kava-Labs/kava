@@ -8,18 +8,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	txtypes "github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	evmhd "github.com/evmos/ethermint/crypto/hd"
 	tmclient "github.com/tendermint/tendermint/rpc/client"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -28,18 +21,11 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 
-	evmtypes "github.com/evmos/ethermint/x/evm/types"
-
 	"github.com/kava-labs/kava/app"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/client/grpc"
 	"github.com/kava-labs/kava/tests/e2e/runner"
 	"github.com/kava-labs/kava/tests/util"
-	cdptypes "github.com/kava-labs/kava/x/cdp/types"
-	committeetypes "github.com/kava-labs/kava/x/committee/types"
-	communitytypes "github.com/kava-labs/kava/x/community/types"
-	earntypes "github.com/kava-labs/kava/x/earn/types"
-	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
-	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
 
 // Chain wraps query clients & accounts for a network
@@ -57,24 +43,9 @@ type Chain struct {
 
 	EncodingConfig kavaparams.EncodingConfig
 
-	Auth         authtypes.QueryClient
-	Bank         banktypes.QueryClient
-	Cdp          cdptypes.QueryClient
-	Committee    committeetypes.QueryClient
-	Community    communitytypes.QueryClient
-	Distribution distrtypes.QueryClient
-	Kavadist     kavadisttypes.QueryClient
-	Earn         earntypes.QueryClient
-	Evm          evmtypes.QueryClient
-	Evmutil      evmutiltypes.QueryClient
-	Gov          govv1types.QueryClient
-	Mint         minttypes.QueryClient
-	Staking      stakingtypes.QueryClient
-	Tm           tmservice.ServiceClient
-	Tx           txtypes.ServiceClient
-	Upgrade      upgradetypes.QueryClient
-
 	TmSignClient tmclient.SignClient
+
+	Grpc *grpc.KavaGrpcClient
 }
 
 // NewChain creates the query clients & signing account management for a chain run on a set of ports.
@@ -104,10 +75,11 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	}
 	chain.Keyring = kr
 
-	grpcConn, err := details.GrpcConn()
+	client, err := grpc.NewClient(details.GrpcUrl)
 	if err != nil {
-		return chain, err
+		chain.t.Fatalf("failed to create kava grpc client: %s", err)
 	}
+	chain.Grpc = client
 
 	chain.EvmClient, err = details.EvmClient()
 	if err != nil {
@@ -118,23 +90,6 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	if err != nil {
 		return chain, err
 	}
-
-	chain.Auth = authtypes.NewQueryClient(grpcConn)
-	chain.Bank = banktypes.NewQueryClient(grpcConn)
-	chain.Cdp = cdptypes.NewQueryClient(grpcConn)
-	chain.Committee = committeetypes.NewQueryClient(grpcConn)
-	chain.Community = communitytypes.NewQueryClient(grpcConn)
-	chain.Distribution = distrtypes.NewQueryClient(grpcConn)
-	chain.Kavadist = kavadisttypes.NewQueryClient(grpcConn)
-	chain.Earn = earntypes.NewQueryClient(grpcConn)
-	chain.Evm = evmtypes.NewQueryClient(grpcConn)
-	chain.Evmutil = evmutiltypes.NewQueryClient(grpcConn)
-	chain.Gov = govv1types.NewQueryClient(grpcConn)
-	chain.Mint = minttypes.NewQueryClient(grpcConn)
-	chain.Staking = stakingtypes.NewQueryClient(grpcConn)
-	chain.Tm = tmservice.NewServiceClient(grpcConn)
-	chain.Tx = txtypes.NewServiceClient(grpcConn)
-	chain.Upgrade = upgradetypes.NewQueryClient(grpcConn)
 
 	// initialize accounts map
 	chain.accounts = make(map[string]*SigningAccount)
@@ -217,7 +172,7 @@ func (chain *Chain) RegisterErc20(address common.Address) {
 
 // QuerySdkForBalances gets the balance of a particular address on this Chain.
 func (chain *Chain) QuerySdkForBalances(addr sdk.AccAddress) sdk.Coins {
-	res, err := chain.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
+	res, err := chain.Grpc.Query.Bank.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{
 		Address: addr.String(),
 	})
 	require.NoError(chain.t, err)
