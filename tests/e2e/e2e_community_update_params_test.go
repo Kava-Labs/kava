@@ -41,7 +41,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_NonAuthority() {
 	res := kavaAcc.SignAndBroadcastKavaTx(req)
 
 	// ASSERT
-	_, err := util.WaitForSdkTxCommit(suite.Kava.Tx, res.Result.TxHash, 6*time.Second)
+	_, err := util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.Result.TxHash, 6*time.Second)
 	suite.Require().Error(err)
 	suite.Require().ErrorContains(
 		err,
@@ -52,13 +52,13 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_NonAuthority() {
 
 func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	// ARRANGE
-	govParamsRes, err := suite.Kava.Gov.Params(context.Background(), &govv1.QueryParamsRequest{
+	govParamsRes, err := suite.Kava.Grpc.Query.Gov.Params(context.Background(), &govv1.QueryParamsRequest{
 		ParamsType: govv1.ParamDeposit,
 	})
 	suite.NoError(err)
 
 	// Check initial params
-	communityParamsResInitial, err := suite.Kava.Community.Params(
+	communityParamsResInitial, err := suite.Kava.Grpc.Query.Community.Params(
 		context.Background(),
 		&communitytypes.QueryParamsRequest{},
 	)
@@ -77,7 +77,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	// genesis should be set in the past so it runs immediately.
 	suite.Require().Eventually(
 		func() bool {
-			params, err := suite.Kava.Community.Params(
+			params, err := suite.Kava.Grpc.Query.Community.Params(
 				context.Background(),
 				&communitytypes.QueryParamsRequest{},
 			)
@@ -132,7 +132,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	suite.Require().NoError(res.Err)
 
 	// Wait for proposal to be submitted
-	txRes, err := util.WaitForSdkTxCommit(suite.Kava.Tx, res.Result.TxHash, 6*time.Second)
+	txRes, err := util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.Result.TxHash, 6*time.Second)
 	suite.Require().NoError(err)
 
 	// Parse tx response to get proposal id
@@ -157,12 +157,12 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	voteRes := whale.SignAndBroadcastKavaTx(voteReq)
 	suite.Require().NoError(voteRes.Err)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Tx, voteRes.Result.TxHash, 6*time.Second)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, voteRes.Result.TxHash, 6*time.Second)
 	suite.Require().NoError(err)
 
 	// 3. Wait until proposal passes
 	suite.Require().Eventually(func() bool {
-		proposalRes, err := suite.Kava.Gov.Proposal(context.Background(), &govv1.QueryProposalRequest{
+		proposalRes, err := suite.Kava.Grpc.Query.Gov.Proposal(context.Background(), &govv1.QueryProposalRequest{
 			ProposalId: govRes.ProposalId,
 		})
 		suite.NoError(err)
@@ -171,7 +171,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	}, 60*time.Second, 1*time.Second)
 
 	// Check parameters are updated
-	communityParamsRes, err := suite.Kava.Community.Params(
+	communityParamsRes, err := suite.Kava.Grpc.Query.Community.Params(
 		context.Background(),
 		&communitytypes.QueryParamsRequest{},
 	)
