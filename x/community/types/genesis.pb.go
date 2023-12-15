@@ -25,7 +25,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the community module's genesis state.
 type GenesisState struct {
-	// params defines all the paramaters related to commmunity
+	// params defines all the parameters related to commmunity
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 	// StakingRewardsState stores the internal staking reward data required to
 	// track staking rewards across blocks

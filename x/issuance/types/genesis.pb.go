@@ -31,7 +31,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the issuance module's genesis state.
 type GenesisState struct {
-	// params defines all the paramaters of the module.
+	// params defines all the parameters of the module.
 	Params   Params        `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 	Supplies []AssetSupply `protobuf:"bytes,2,rep,name=supplies,proto3" json:"supplies"`
 }

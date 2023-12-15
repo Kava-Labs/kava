@@ -9,7 +9,7 @@ option go_package = "github.com/kava-labs/kava/x/earn/types";
 
 // GenesisState defines the earn module's genesis state.
 message GenesisState {
-  // params defines all the paramaters related to earn
+  // params defines all the parameters related to earn
   Params params = 1 [(gogoproto.nullable) = false];
   // vault_records defines the available vaults
   repeated VaultRecord vault_records = 2 [

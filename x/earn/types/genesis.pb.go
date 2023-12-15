@@ -25,7 +25,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the earn module's genesis state.
 type GenesisState struct {
-	// params defines all the paramaters related to earn
+	// params defines all the parameters related to earn
 	Params Params `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 	// vault_records defines the available vaults
 	VaultRecords VaultRecords `protobuf:"bytes,2,rep,name=vault_records,json=vaultRecords,proto3,castrepeated=VaultRecords" json:"vault_records"`

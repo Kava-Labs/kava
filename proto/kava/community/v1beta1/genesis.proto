@@ -9,7 +9,7 @@ option go_package = "github.com/kava-labs/kava/x/community/types";
 
 // GenesisState defines the community module's genesis state.
 message GenesisState {
-  // params defines all the paramaters related to commmunity
+  // params defines all the parameters related to commmunity
   Params params = 1 [(gogoproto.nullable) = false];
 
   // StakingRewardsState stores the internal staking reward data required to
