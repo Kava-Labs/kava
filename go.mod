@@ -7,9 +7,9 @@ require (
 	cosmossdk.io/math v1.0.0-beta.6.0.20230216172121-959ce49135e4
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.46.11
+	github.com/cosmos/cosmos-sdk v0.47.6
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/ibc-go/v6 v6.1.1
+	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.21.0
 	github.com/go-kit/kit v0.12.0
@@ -25,7 +25,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.3
 	github.com/subosito/gotenv v1.4.2
-	github.com/tendermint/tendermint v0.34.27
+	github.com/cometbft/cometbft v0.37.2
 	github.com/tendermint/tm-db v0.6.7
 	golang.org/x/crypto v0.14.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230920204549-e6e6cdab5c13
@@ -205,11 +205,11 @@ replace (
 	// Use rocksdb 7.9.2
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.11-kava.3
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.6-kava.1-test.0.20231213172151-5a9c9c04ea67
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
-	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.0-kava-v24-0
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20231217192655-b3f4e2689f52
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// Use the cosmos modified protobufs
@@ -217,7 +217,7 @@ replace (
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// Use cometbft fork of tendermint
-	github.com/tendermint/tendermint => github.com/kava-labs/cometbft v0.34.27-kava.0
+	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.1-0.20231213172208-9a2334e6921b
 	// Indirect dependencies still use tendermint/tm-db
 	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.4
 )
