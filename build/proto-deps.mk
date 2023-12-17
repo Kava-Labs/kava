@@ -14,11 +14,11 @@ PROTOBUF_ANY_DOWNLOAD_URL = https://raw.githubusercontent.com/protocolbuffers/pr
 #
 # Proto dependencies under go.mod
 #
-GOGO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/gogo/protobuf)
+GOGO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/gogoproto)
 TENDERMINT_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cometbft/cometbft)
 COSMOS_PROTO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/cosmos-proto)
 COSMOS_SDK_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/cosmos-sdk)
-IBC_GO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/ibc-go/v6)
+IBC_GO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/ibc-go/v7)
 ETHERMINT_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/evmos/ethermint)
 
 #

@@ -113,7 +113,7 @@ message AtomicSwap {
     (gogoproto.nullable) = false
   ];
   // random_number_hash represents the hash of the random number
-  bytes random_number_hash = 2 [(gogoproto.casttype) = "github.com/tendermint/tendermint/libs/bytes.HexBytes"];
+  bytes random_number_hash = 2 [(gogoproto.casttype) = "github.com/cometbft/cometbft/libs/bytes.HexBytes"];
   // expire_height represents the height when the swap expires
   uint64 expire_height = 3;
   // timestamp represents the timestamp of the swap
