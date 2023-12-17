@@ -26,7 +26,7 @@ require (
 	github.com/stretchr/testify v1.8.3
 	github.com/subosito/gotenv v1.4.2
 	github.com/cometbft/cometbft v0.37.2
-	github.com/tendermint/tm-db v0.6.7
+	github.com/cometbft/cometbft-db v0.7.0
 	golang.org/x/crypto v0.14.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230920204549-e6e6cdab5c13
 	google.golang.org/grpc v1.58.3
@@ -218,6 +218,4 @@ replace (
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// Use cometbft fork of tendermint
 	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.1-0.20231213172208-9a2334e6921b
-	// Indirect dependencies still use tendermint/tm-db
-	github.com/tendermint/tm-db => github.com/kava-labs/tm-db v0.6.7-kava.4
 )

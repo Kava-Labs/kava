@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	db "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -20,7 +21,6 @@ import (
 	ethermintflags "github.com/evmos/ethermint/server/flags"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	db "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
