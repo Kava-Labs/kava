@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -101,10 +101,10 @@ func SimulateMsgPlaceBid(ak auth.AccountKeeper, keeper keeper.Keeper) simulation
 		// create and deliver a tx
 		msg := types.NewMsgPlaceBid(openAuction.GetID(), bidder.Address, amount)
 
-		tx := helpers.GenTx(
+		tx := sims.GenTx(
 			[]sdk.Msg{msg},
 			sdk.NewCoins(), // TODO pick a random amount fees
-			helpers.DefaultGenTxGas,
+			sims.DefaultGenTxGas,
 			chainID,
 			[]uint64{bidderAcc.GetAccountNumber()},
 			[]uint64{bidderAcc.GetSequence()},

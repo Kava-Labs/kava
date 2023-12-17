@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
@@ -570,7 +570,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 				return suite.createTestEIP712CosmosTxBuilder(
-					suite.testAddr, suite.testPrivKey, "kavatest_12-1", uint64(helpers.DefaultGenTxGas*10), gasAmt, msgs,
+					suite.testAddr, suite.testPrivKey, "kavatest_12-1", uint64(sims.DefaultGenTxGas*10), gasAmt, msgs,
 				)
 			},
 		},
@@ -583,7 +583,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 				return suite.createTestEIP712CosmosTxBuilder(
-					suite.testAddr2, suite.testPrivKey2, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, msgs,
+					suite.testAddr2, suite.testPrivKey2, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, msgs,
 				)
 			},
 		},
@@ -623,7 +623,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 
 			gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 			txBuilder := suite.createTestEIP712CosmosTxBuilder(
-				suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, msgs,
+				suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, msgs,
 			)
 			if tc.updateTx != nil {
 				txBuilder = tc.updateTx(txBuilder, msgs)
@@ -709,7 +709,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 	// deliver deposit msg
 	gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 	txBuilder := suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, depositMsgs,
+		suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, depositMsgs,
 	)
 	txBytes, err := encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
@@ -754,7 +754,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 
 	// deliver withdraw msg
 	txBuilder = suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(helpers.DefaultGenTxGas*10), gasAmt, withdrawMsgs,
+		suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, withdrawMsgs,
 	)
 	txBytes, err = encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)

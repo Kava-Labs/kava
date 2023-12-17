@@ -6,7 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
@@ -170,10 +170,10 @@ func SimulateMsgCreateAtomicSwap(ak types.AccountKeeper, k keeper.Keeper) simula
 			randomNumberHash, timestamp, coins, heightSpan,
 		)
 
-		tx := helpers.GenTx(
+		tx := sims.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			sims.DefaultGenTxGas,
 			chainID,
 			[]uint64{senderAcc.GetAccountNumber()},
 			[]uint64{senderAcc.GetSequence()},
@@ -262,10 +262,10 @@ func operationClaimAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID []
 		if err != nil {
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
-		tx := helpers.GenTx(
+		tx := sims.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			sims.DefaultGenTxGas,
 			chainID,
 			[]uint64{acc.GetAccountNumber()},
 			[]uint64{acc.GetSequence()},
@@ -309,10 +309,10 @@ func operationRefundAtomicSwap(ak types.AccountKeeper, k keeper.Keeper, swapID [
 			return simulation.NoOpMsg(types.ModuleName), nil, err
 		}
 
-		tx := helpers.GenTx(
+		tx := sims.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			sims.DefaultGenTxGas,
 			chainID,
 			[]uint64{acc.GetAccountNumber()},
 			[]uint64{acc.GetSequence()},

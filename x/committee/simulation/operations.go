@@ -6,7 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	distsim "github.com/cosmos/cosmos-sdk/x/distribution/simulation"
@@ -106,10 +106,10 @@ func SimulateMsgSubmitProposal(cdc *codec.Codec, ak AccountKeeper, k keeper.Keep
 		if !found {
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("address not in account list")
 		}
-		tx := helpers.GenTx(
+		tx := sims.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			sims.DefaultGenTxGas,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
@@ -188,10 +188,10 @@ func SimulateMsgVote(k keeper.Keeper, ak AccountKeeper, voter sdk.AccAddress, pr
 			return simulation.NoOpMsg(types.ModuleName), nil, fmt.Errorf("address not in account list")
 		}
 
-		tx := helpers.GenTx(
+		tx := sims.GenTx(
 			[]sdk.Msg{msg},
 			fees,
-			helpers.DefaultGenTxGas,
+			sims.DefaultGenTxGas,
 			chainID,
 			[]uint64{account.GetAccountNumber()},
 			[]uint64{account.GetSequence()},
