@@ -11,6 +11,7 @@ import (
 	grpcstatus "google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
+	tmmempool "github.com/cometbft/cometbft/mempool"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +20,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	tmmempool "github.com/tendermint/tendermint/mempool"
 )
 
 var (

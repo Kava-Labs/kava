@@ -8,8 +8,8 @@ package simulation
 // 	"github.com/stretchr/testify/require"
 
 // 	sdk "github.com/cosmos/cosmos-sdk/types"
-// 	"github.com/tendermint/tendermint/crypto"
-// 	"github.com/tendermint/tendermint/libs/kv"
+// 	"github.com/cometbft/cometbft/crypto"
+// 	"github.com/cometbft/cometbft/libs/kv"
 
 // 	"github.com/kava-labs/kava/x/swap/types"
 // )

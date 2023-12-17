@@ -6,7 +6,7 @@ package keeper_test
 
 // 	sdk "github.com/cosmos/cosmos-sdk/types"
 // 	"github.com/stretchr/testify/suite"
-// 	abci "github.com/tendermint/tendermint/abci/types"
+// 	abci "github.com/cometbft/cometbft/abci/types"
 
 // 	"github.com/kava-labs/kava/app"
 // 	"github.com/kava-labs/kava/x/swap/keeper"

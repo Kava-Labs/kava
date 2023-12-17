@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cometbft/cometbft/crypto"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

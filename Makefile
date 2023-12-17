@@ -28,7 +28,7 @@ VERSION := $(GIT_COMMIT_SHORT)
 VERSION_NUMBER := $(VERSION)
 endif
 
-TENDERMINT_VERSION := $(shell $(GO_BIN) list -m github.com/tendermint/tendermint | sed 's:.* ::')
+TENDERMINT_VERSION := $(shell $(GO_BIN) list -m github.com/cometbft/cometbft | sed 's:.* ::')
 COSMOS_SDK_VERSION := $(shell $(GO_BIN) list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
 
 .PHONY: print-git-info
@@ -147,7 +147,7 @@ ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=kava \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION_NUMBER) \
 		  -X github.com/cosmos/cosmos-sdk/version.Commit=$(GIT_COMMIT) \
 		  -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)" \
-		  -X github.com/tendermint/tendermint/version.TMCoreSemVer=$(TENDERMINT_VERSION)
+		  -X github.com/cometbft/cometbft/version.TMCoreSemVer=$(TENDERMINT_VERSION)
 
 # DB backend selection
 ifeq (cleveldb,$(findstring cleveldb,$(COSMOS_BUILD_OPTIONS)))

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	rpchttpclient "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/ethereum/go-ethereum/ethclient"
-	rpchttpclient "github.com/tendermint/tendermint/rpc/client/http"
 )
 
 var (

@@ -2,7 +2,7 @@ package keeper_test
 
 // import (
 // 	sdk "github.com/cosmos/cosmos-sdk/types"
-// 	abci "github.com/tendermint/tendermint/abci/types"
+// 	abci "github.com/cometbft/cometbft/abci/types"
 
 // 	"github.com/kava-labs/kava/x/kavadist/keeper"
 // 	"github.com/kava-labs/kava/x/kavadist/types"

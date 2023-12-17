@@ -1,7 +1,7 @@
 package util
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 // FilterEventsByType returns a slice of events that match the given type.

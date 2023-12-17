@@ -5,9 +5,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"

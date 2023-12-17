@@ -11,7 +11,7 @@ import (
 
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 )
 
 const SafuFund int64 = 10000000 // 10 million KAVA

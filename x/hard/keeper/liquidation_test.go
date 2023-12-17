@@ -5,9 +5,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/crypto"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"

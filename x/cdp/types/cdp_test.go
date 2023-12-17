@@ -10,8 +10,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-	tmtime "github.com/tendermint/tendermint/types/time"
+	"github.com/cometbft/cometbft/crypto/secp256k1"
+	tmtime "github.com/cometbft/cometbft/types/time"
 
 	"github.com/kava-labs/kava/x/cdp/types"
 )

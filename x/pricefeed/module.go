@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	sdkkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/kava-labs/kava/x/pricefeed/client/cli"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"

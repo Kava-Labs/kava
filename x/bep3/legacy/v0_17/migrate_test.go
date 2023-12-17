@@ -7,10 +7,10 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/bytes"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/libs/bytes"
 
 	app "github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/bep3/types"

@@ -6,11 +6,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
+	"github.com/cometbft/cometbft/crypto"
 	"github.com/kava-labs/kava/x/earn/keeper"
 	"github.com/kava-labs/kava/x/earn/testutil"
 	"github.com/kava-labs/kava/x/earn/types"
 	"github.com/stretchr/testify/suite"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 var moduleAccAddress = sdk.AccAddress(crypto.AddressHash([]byte(types.ModuleAccountName)))

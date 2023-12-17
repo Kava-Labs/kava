@@ -6,7 +6,7 @@ package simulation
 
 // 	"github.com/cosmos/cosmos-sdk/codec"
 
-// 	"github.com/tendermint/tendermint/libs/kv"
+// 	"github.com/cometbft/cometbft/libs/kv"
 
 // 	"github.com/kava-labs/kava/x/pricefeed/types"
 // )

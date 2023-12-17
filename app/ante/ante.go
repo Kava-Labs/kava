@@ -5,6 +5,7 @@ import (
 	"runtime/debug"
 
 	errorsmod "cosmossdk.io/errors"
+	tmlog "github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -14,7 +15,6 @@ import (
 	ibckeeper "github.com/cosmos/ibc-go/v6/modules/core/keeper"
 	evmante "github.com/evmos/ethermint/app/ante"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	tmlog "github.com/tendermint/tendermint/libs/log"
 )
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC

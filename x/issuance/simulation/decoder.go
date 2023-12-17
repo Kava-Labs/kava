@@ -9,7 +9,7 @@ package simulation
 
 // 	"github.com/kava-labs/kava/x/issuance/types"
 
-// 	"github.com/tendermint/tendermint/libs/kv"
+// 	"github.com/cometbft/cometbft/libs/kv"
 // )
 
 // // DecodeStore the issuance module has no store keys -- all state is stored in params

@@ -3,8 +3,8 @@ package types
 import (
 	"testing"
 
+	"github.com/cometbft/cometbft/crypto"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
