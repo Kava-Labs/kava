@@ -379,6 +379,7 @@ func NewApp(
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey, communitytypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, minttypes.StoreKey,
+		consensusparamtypes.StoreKey, crisistypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -483,11 +484,13 @@ func NewApp(
 		&app.stakingKeeper,
 		slashingSubspace,
 	)
-	app.crisisKeeper = crisiskeeper.NewKeeper(
-		crisisSubspace,
+	app.crisisKeeper = *crisiskeeper.NewKeeper(
+		appCodec,
+		keys[crisistypes.StoreKey],
 		options.InvariantCheckPeriod,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
+		authAddr,
 	)
 	app.upgradeKeeper = upgradekeeper.NewKeeper(
 		options.SkipUpgradeHeights,
@@ -862,6 +865,7 @@ func NewApp(
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
 		routertypes.ModuleName,
+		consensusparamtypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -905,6 +909,7 @@ func NewApp(
 		minttypes.ModuleName,
 		communitytypes.ModuleName,
 		metricstypes.ModuleName,
+		consensusparamtypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -938,7 +943,6 @@ func NewApp(
 		earntypes.ModuleName,
 		communitytypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
-		crisistypes.ModuleName,  // runs the invariants at genesis, should run after other modules
 		// Add all remaining modules with an empty InitGenesis below since cosmos 0.45.0 requires it
 		vestingtypes.ModuleName,
 		paramstypes.ModuleName,
@@ -947,6 +951,8 @@ func NewApp(
 		liquidtypes.ModuleName,
 		routertypes.ModuleName,
 		metricstypes.ModuleName,
+		consensusparamtypes.ModuleName,
+		crisistypes.ModuleName, // runs the invariants at genesis, should run after other modules
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
