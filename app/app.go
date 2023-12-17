@@ -40,6 +40,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisiskeeper "github.com/cosmos/cosmos-sdk/x/crisis/keeper"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -289,39 +291,40 @@ type App struct {
 	memKeys map[string]*storetypes.MemoryStoreKey
 
 	// keepers from all the modules
-	accountKeeper    authkeeper.AccountKeeper
-	bankKeeper       bankkeeper.Keeper
-	capabilityKeeper *capabilitykeeper.Keeper
-	stakingKeeper    stakingkeeper.Keeper
-	distrKeeper      distrkeeper.Keeper
-	govKeeper        govkeeper.Keeper
-	paramsKeeper     paramskeeper.Keeper
-	authzKeeper      authzkeeper.Keeper
-	crisisKeeper     crisiskeeper.Keeper
-	slashingKeeper   slashingkeeper.Keeper
-	ibcKeeper        *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	evmKeeper        *evmkeeper.Keeper
-	evmutilKeeper    evmutilkeeper.Keeper
-	feeMarketKeeper  feemarketkeeper.Keeper
-	upgradeKeeper    upgradekeeper.Keeper
-	evidenceKeeper   evidencekeeper.Keeper
-	transferKeeper   ibctransferkeeper.Keeper
-	kavadistKeeper   kavadistkeeper.Keeper
-	auctionKeeper    auctionkeeper.Keeper
-	issuanceKeeper   issuancekeeper.Keeper
-	bep3Keeper       bep3keeper.Keeper
-	pricefeedKeeper  pricefeedkeeper.Keeper
-	swapKeeper       swapkeeper.Keeper
-	cdpKeeper        cdpkeeper.Keeper
-	hardKeeper       hardkeeper.Keeper
-	committeeKeeper  committeekeeper.Keeper
-	incentiveKeeper  incentivekeeper.Keeper
-	savingsKeeper    savingskeeper.Keeper
-	liquidKeeper     liquidkeeper.Keeper
-	earnKeeper       earnkeeper.Keeper
-	routerKeeper     routerkeeper.Keeper
-	mintKeeper       mintkeeper.Keeper
-	communityKeeper  communitykeeper.Keeper
+	accountKeeper         authkeeper.AccountKeeper
+	bankKeeper            bankkeeper.Keeper
+	capabilityKeeper      *capabilitykeeper.Keeper
+	stakingKeeper         stakingkeeper.Keeper
+	distrKeeper           distrkeeper.Keeper
+	govKeeper             govkeeper.Keeper
+	paramsKeeper          paramskeeper.Keeper
+	authzKeeper           authzkeeper.Keeper
+	crisisKeeper          crisiskeeper.Keeper
+	slashingKeeper        slashingkeeper.Keeper
+	ibcKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	evmKeeper             *evmkeeper.Keeper
+	evmutilKeeper         evmutilkeeper.Keeper
+	feeMarketKeeper       feemarketkeeper.Keeper
+	upgradeKeeper         upgradekeeper.Keeper
+	evidenceKeeper        evidencekeeper.Keeper
+	transferKeeper        ibctransferkeeper.Keeper
+	kavadistKeeper        kavadistkeeper.Keeper
+	auctionKeeper         auctionkeeper.Keeper
+	issuanceKeeper        issuancekeeper.Keeper
+	bep3Keeper            bep3keeper.Keeper
+	pricefeedKeeper       pricefeedkeeper.Keeper
+	swapKeeper            swapkeeper.Keeper
+	cdpKeeper             cdpkeeper.Keeper
+	hardKeeper            hardkeeper.Keeper
+	committeeKeeper       committeekeeper.Keeper
+	incentiveKeeper       incentivekeeper.Keeper
+	savingsKeeper         savingskeeper.Keeper
+	liquidKeeper          liquidkeeper.Keeper
+	earnKeeper            earnkeeper.Keeper
+	routerKeeper          routerkeeper.Keeper
+	mintKeeper            mintkeeper.Keeper
+	communityKeeper       communitykeeper.Keeper
+	consensusParamsKeeper consensusparamkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -425,9 +428,12 @@ func NewApp(
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 	mintSubspace := app.paramsKeeper.Subspace(minttypes.ModuleName)
 
-	bApp.SetParamStore(
-		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
-	)
+	authAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+
+	// set the BaseApp's parameter store
+	app.consensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, keys[consensusparamtypes.StoreKey], authAddr)
+	bApp.SetParamStore(&app.consensusParamsKeeper)
+
 	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
