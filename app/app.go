@@ -83,8 +83,9 @@ import (
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
-	ibchost "github.com/cosmos/ibc-go/v7/modules/core/24-host"
+	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	evmante "github.com/evmos/ethermint/app/ante"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 	"github.com/evmos/ethermint/x/evm"
@@ -191,6 +192,7 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		ibc.AppModuleBasic{},
+		ibctm.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
@@ -250,8 +252,7 @@ var (
 
 // Verify app interface at compile time
 var (
-	_ servertypes.Application             = (*App)(nil)
-	_ servertypes.ApplicationQueryService = (*App)(nil)
+	_ servertypes.Application = (*App)(nil)
 )
 
 // Options bundles several configuration params for an App.
@@ -367,7 +368,7 @@ func NewApp(
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
 		distrtypes.StoreKey, slashingtypes.StoreKey,
-		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey,
+		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey,
 		upgradetypes.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		evmtypes.StoreKey, feemarkettypes.StoreKey, authzkeeper.StoreKey,
 		capabilitytypes.StoreKey, kavadisttypes.StoreKey, auctiontypes.StoreKey,
@@ -416,7 +417,7 @@ func NewApp(
 	hardSubspace := app.paramsKeeper.Subspace(hardtypes.ModuleName)
 	incentiveSubspace := app.paramsKeeper.Subspace(incentivetypes.ModuleName)
 	savingsSubspace := app.paramsKeeper.Subspace(savingstypes.ModuleName)
-	ibcSubspace := app.paramsKeeper.Subspace(ibchost.ModuleName)
+	ibcSubspace := app.paramsKeeper.Subspace(ibcexported.ModuleName)
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
@@ -428,7 +429,7 @@ func NewApp(
 		app.paramsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()),
 	)
 	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
-	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibchost.ModuleName)
+	scopedIBCKeeper := app.capabilityKeeper.ScopeToModule(ibcexported.ModuleName)
 	scopedTransferKeeper := app.capabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	app.capabilityKeeper.Seal()
 
@@ -499,7 +500,7 @@ func NewApp(
 
 	app.ibcKeeper = ibckeeper.NewKeeper(
 		appCodec,
-		keys[ibchost.StoreKey],
+		keys[ibcexported.StoreKey],
 		ibcSubspace,
 		app.stakingKeeper,
 		app.upgradeKeeper,
@@ -836,7 +837,7 @@ func NewApp(
 		hardtypes.ModuleName,
 		issuancetypes.ModuleName,
 		incentivetypes.ModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
 		// Add all remaining modules with an empty begin blocker below since cosmos 0.45.0 requires it
 		swaptypes.ModuleName,
 		vestingtypes.ModuleName,
@@ -882,7 +883,7 @@ func NewApp(
 		kavadisttypes.ModuleName,
 		swaptypes.ModuleName,
 		vestingtypes.ModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
 		validatorvestingtypes.ModuleName,
 		authtypes.ModuleName,
 		banktypes.ModuleName,
@@ -910,7 +911,7 @@ func NewApp(
 		slashingtypes.ModuleName, // iterates over validators, run after staking
 		govtypes.ModuleName,
 		minttypes.ModuleName,
-		ibchost.ModuleName,
+		ibcexported.ModuleName,
 		evidencetypes.ModuleName,
 		authz.ModuleName,
 		ibctransfertypes.ModuleName,
