@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
@@ -40,6 +41,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitykeeper "github.com/cosmos/cosmos-sdk/x/capability/keeper"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	consensus "github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
@@ -259,15 +261,15 @@ var (
 
 // Options bundles several configuration params for an App.
 type Options struct {
-	SkipLoadLatest        bool
-	SkipUpgradeHeights    map[int64]bool
-	SkipGenesisInvariants bool
-	InvariantCheckPeriod  uint
-	MempoolEnableAuth     bool
-	MempoolAuthAddresses  []sdk.AccAddress
-	EVMTrace              string
-	EVMMaxGasWanted       uint64
-	TelemetryOptions      metricstypes.TelemetryOptions
+	SkipLoadLatest             bool
+	SkipUpgradeHeights         map[int64]bool
+	SkipGenesisInvariants      bool
+	InvariantCheckPeriod       uint
+	MempoolEnableAuth          bool
+	MempoolgovAuthAddrStresses []sdk.AccAddress
+	EVMTrace                   string
+	EVMMaxGasWanted            uint64
+	TelemetryOptions           metricstypes.TelemetryOptions
 }
 
 // DefaultOptions is a sensible default Options value.
@@ -385,7 +387,8 @@ func NewApp(
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	// Authority for gov proposals, using the x/gov module account address
-	govAuthorityAddr := authtypes.NewModuleAddress(govtypes.ModuleName)
+	govAuthAddr := authtypes.NewModuleAddress(govtypes.ModuleName)
+	govAuthAddrStr := govAuthAddr.String()
 
 	app := &App{
 		BaseApp:           bApp,
@@ -429,10 +432,8 @@ func NewApp(
 	earnSubspace := app.paramsKeeper.Subspace(earntypes.ModuleName)
 	mintSubspace := app.paramsKeeper.Subspace(minttypes.ModuleName)
 
-	authAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-
 	// set the BaseApp's parameter store
-	app.consensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, keys[consensusparamtypes.StoreKey], authAddr)
+	app.consensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, keys[consensusparamtypes.StoreKey], govAuthAddrStr)
 	bApp.SetParamStore(&app.consensusParamsKeeper)
 
 	app.capabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
@@ -444,24 +445,24 @@ func NewApp(
 	app.accountKeeper = authkeeper.NewAccountKeeper(
 		appCodec,
 		keys[authtypes.StoreKey],
-		authSubspace,
 		authtypes.ProtoBaseAccount,
 		mAccPerms,
 		sdk.GetConfig().GetBech32AccountAddrPrefix(),
+		govAuthAddrStr,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec,
 		keys[banktypes.StoreKey],
 		app.accountKeeper,
-		bankSubspace,
 		app.loadBlockedMaccAddrs(),
+		govAuthAddrStr,
 	)
-	app.stakingKeeper = stakingkeeper.NewKeeper(
+	stakingKeeper := stakingkeeper.NewKeeper(
 		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
-		stakingSubspace,
+		govAuthAddrStr,
 	)
 	app.authzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey],
@@ -472,17 +473,18 @@ func NewApp(
 	app.distrKeeper = distrkeeper.NewKeeper(
 		appCodec,
 		keys[distrtypes.StoreKey],
-		distrSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		&app.stakingKeeper,
+		stakingKeeper,
 		authtypes.FeeCollectorName,
+		govAuthAddrStr,
 	)
 	app.slashingKeeper = slashingkeeper.NewKeeper(
 		appCodec,
+		app.legacyAmino,
 		keys[slashingtypes.StoreKey],
 		&app.stakingKeeper,
-		slashingSubspace,
+		govAuthAddrStr,
 	)
 	app.crisisKeeper = *crisiskeeper.NewKeeper(
 		appCodec,
@@ -490,15 +492,15 @@ func NewApp(
 		options.InvariantCheckPeriod,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
-		authAddr,
+		govAuthAddrStr,
 	)
-	app.upgradeKeeper = upgradekeeper.NewKeeper(
+	app.upgradeKeeper = *upgradekeeper.NewKeeper(
 		options.SkipUpgradeHeights,
 		keys[upgradetypes.StoreKey],
 		appCodec,
 		homePath,
 		app.BaseApp,
-		govAuthorityAddr.String(),
+		govAuthAddrStr,
 	)
 	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
@@ -519,7 +521,7 @@ func NewApp(
 	// Create Ethermint keepers
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec,
-		govAuthorityAddr,
+		govAuthAddr,
 		keys[feemarkettypes.StoreKey],
 		tkeys[feemarkettypes.TransientKey],
 		feemarketSubspace,
@@ -536,7 +538,7 @@ func NewApp(
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
-		govAuthorityAddr,
+		govAuthAddr,
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		nil, // precompiled contracts
 		geth.NewEVM,
@@ -658,11 +660,11 @@ func NewApp(
 	app.mintKeeper = mintkeeper.NewKeeper(
 		appCodec,
 		keys[minttypes.StoreKey],
-		mintSubspace,
 		app.stakingKeeper,
 		app.accountKeeper,
 		app.bankKeeper,
 		authtypes.FeeCollectorName,
+		govAuthAddrStr,
 	)
 
 	// x/community's deposit/withdraw to lend proposals depend on hard keeper.
@@ -677,7 +679,7 @@ func NewApp(
 		&app.mintKeeper,
 		&app.kavadistKeeper,
 		app.stakingKeeper,
-		govAuthorityAddr,
+		govAuthAddr,
 	)
 
 	app.incentiveKeeper = incentivekeeper.NewKeeper(
@@ -709,8 +711,7 @@ func NewApp(
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(communitytypes.RouterKey, community.NewCommunityPoolProposalHandler(app.communityKeeper)).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(&app.upgradeKeeper))
 	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
 	// Adding the committee proposal handler to the router is possible but awkward as the handler depends on the keeper which depends on the handler.
 	app.committeeKeeper = committeekeeper.NewKeeper(
@@ -724,12 +725,14 @@ func NewApp(
 
 	// register the staking hooks
 	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
-	app.stakingKeeper = *(app.stakingKeeper.SetHooks(
+	stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
 			app.incentiveKeeper.Hooks(),
-		)))
+		))
+
+	app.stakingKeeper = *stakingKeeper
 
 	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
@@ -743,26 +746,26 @@ func NewApp(
 	govRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
+		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(&app.upgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
 		AddRoute(earntypes.RouterKey, earn.NewCommunityPoolProposalHandler(app.earnKeeper)).
 		AddRoute(communitytypes.RouterKey, community.NewCommunityPoolProposalHandler(app.communityKeeper)).
 		AddRoute(committeetypes.RouterKey, committee.NewProposalHandler(app.committeeKeeper))
 
 	govConfig := govtypes.DefaultConfig()
-	app.govKeeper = govkeeper.NewKeeper(
+	govKeeper := govkeeper.NewKeeper(
 		appCodec,
 		keys[govtypes.StoreKey],
-		govSubspace,
 		app.accountKeeper,
 		app.bankKeeper,
-		&app.stakingKeeper,
-		govRouter,
+		app.stakingKeeper,
 		app.MsgServiceRouter(),
 		govConfig,
+		govAuthAddrStr,
 	)
+	govKeeper.SetLegacyRouter(govRouter)
+	app.govKeeper = *govKeeper
 
 	// override x/gov tally handler with custom implementation
 	tallyHandler := NewTallyHandler(
@@ -775,19 +778,20 @@ func NewApp(
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
-		auth.NewAppModule(appCodec, app.accountKeeper, nil),
-		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
-		capability.NewAppModule(appCodec, *app.capabilityKeeper),
-		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
-		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
-		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		auth.NewAppModule(appCodec, app.accountKeeper, authsims.RandomGenesisAccounts, authSubspace),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper, bankSubspace),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper, false), // todo: confirm if this is okay to not be sealed
+		staking.NewAppModule(appCodec, &app.stakingKeeper, app.accountKeeper, app.bankKeeper, stakingSubspace),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper, distrSubspace),
+		gov.NewAppModule(appCodec, &app.govKeeper, app.accountKeeper, app.bankKeeper, govSubspace),
 		params.NewAppModule(app.paramsKeeper),
-		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants, crisisSubspace),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper, slashingSubspace),
+		consensus.NewAppModule(appCodec, app.consensusParamsKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		feemarket.NewAppModule(app.feeMarketKeeper, feemarketSubspace),
-		upgrade.NewAppModule(app.upgradeKeeper),
+		upgrade.NewAppModule(&app.upgradeKeeper),
 		evidence.NewAppModule(app.evidenceKeeper),
 		transferModule,
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
@@ -809,7 +813,7 @@ func NewApp(
 		earn.NewAppModule(app.earnKeeper, app.accountKeeper, app.bankKeeper),
 		router.NewAppModule(app.routerKeeper),
 		// nil InflationCalculationFn, use SDK's default inflation function
-		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil, mintSubspace),
 		community.NewAppModule(app.communityKeeper, app.accountKeeper),
 		metrics.NewAppModule(options.TelemetryOptions),
 	)
@@ -956,7 +960,6 @@ func NewApp(
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
-	app.mm.RegisterRoutes(app.Router(), app.QueryRouter(), encodingConfig.Amino)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.RegisterServices(app.configurator)
@@ -991,7 +994,7 @@ func NewApp(
 	var fetchers []ante.AddressFetcher
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
-			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
+			func(sdk.Context) []sdk.AccAddress { return options.MempoolgovAuthAddrStresses },
 			app.bep3Keeper.GetAuthorizedAddresses,
 			app.pricefeedKeeper.GetAuthorizedAddresses,
 		)
