@@ -30,7 +30,7 @@ DIRS := $(BUILD_CACHE_DIR) $(BIN_DIR)
 GO_BIN ?= go
 PROTOC_VERSION ?= v21.9
 BUF_VERSION ?= v1.9.0
-PROTOC_GEN_GOCOSMOS_VERSION ?= v0.3.1
+PROTOC_GEN_GOCOSMOS_VERSION ?= $(shell $(GO_BIN) list -m -f '{{.Version}}' github.com/cosmos/gogoproto)
 PROTOC_GEN_GRPC_GATEWAY_VERSION ?= $(shell $(GO_BIN) list -m github.com/grpc-ecosystem/grpc-gateway| sed 's:.* ::')
 PROTOC_GEN_DOC_VERSION ?= v1.5.1
 SWAGGER_COMBINE_VERSION ?= v1.4.0
@@ -113,8 +113,8 @@ $(PROTOC_GEN_GOCOSMOS_VERSION_FILE):
 	@touch $(PROTOC_GEN_GOCOSMOS_VERSION_FILE)
 	@cd $(BUILD_CACHE_DIR); \
 	mkdir -p protoc-gen-gocosmos && cd protoc-gen-gocosmos; \
-	git clone -q https://github.com/regen-network/cosmos-proto.git; \
-	cd cosmos-proto; \
+	git clone -q https://github.com/cosmos/gogoproto.git; \
+	cd gogoproto; \
 	git checkout -q $(PROTOC_GEN_GOCOSMOS_VERSION); \
 	GOBIN=$(ROOT_DIR)/$(BIN_DIR) $(GO_BIN) install ./protoc-gen-gocosmos
 	@rm -rf $(BUILD_CACHE_DIR)/protoc-gen-gocosmos
