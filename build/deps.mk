@@ -28,8 +28,8 @@ DIRS := $(BUILD_CACHE_DIR) $(BIN_DIR)
 ###                             Tool Versions                                ###
 ################################################################################
 GO_BIN ?= go
-PROTOC_VERSION ?= v21.9
-BUF_VERSION ?= v1.9.0
+PROTOC_VERSION ?= v25.1
+BUF_VERSION ?= v1.28.1
 PROTOC_GEN_GOCOSMOS_VERSION ?= $(shell $(GO_BIN) list -m -f '{{.Version}}' github.com/cosmos/gogoproto)
 PROTOC_GEN_GRPC_GATEWAY_VERSION ?= $(shell $(GO_BIN) list -m github.com/grpc-ecosystem/grpc-gateway| sed 's:.* ::')
 PROTOC_GEN_DOC_VERSION ?= v1.5.1
@@ -68,7 +68,7 @@ $(PROTOC_VERSION_FILE):
 	mkdir -p protoc && cd protoc; \
 	curl -sOL $(PROTOC_DOWNLOAD_URL); \
 	unzip -q $(PROTOC_ARCHIVE_NAME) bin/protoc
-	@cp $(BUILD_CACHE_DIR)/protoc/bin/protoc $(BIN_DIR)/protoc
+	@cp -f $(BUILD_CACHE_DIR)/protoc/bin/protoc $(BIN_DIR)/protoc
 	@rm -rf $(BUILD_CACHE_DIR)/protoc
 
 PROTOC := $(BIN_DIR)/protoc
@@ -93,7 +93,7 @@ $(BUF_VERSION_FILE):
 	mkdir -p buf && cd buf; \
 	curl -sOL $(BUF_DOWNLOAD_URL); \
 	tar -xzf $(BUF_ARCHIVE_NAME) buf/bin/buf
-	@cp $(BUILD_CACHE_DIR)/buf/buf/bin/buf $(BIN_DIR)/buf
+	@cp -f $(BUILD_CACHE_DIR)/buf/buf/bin/buf $(BIN_DIR)/buf
 	@rm -rf $(BUILD_CACHE_DIR)/buf
 
 BUF := $(BIN_DIR)/buf
@@ -185,7 +185,7 @@ $(PROTOC_GEN_DOC_VERSION_FILE):
 	mkdir -p protoc-gen-doc && cd protoc-gen-doc; \
 	curl -sOL $(PROTOC_GEN_DOC_DOWNLOAD_URL); \
 	tar -xzf $(PROTOC_GEN_DOC_ARCHIVE_NAME) protoc-gen-doc
-	@cp $(BUILD_CACHE_DIR)/protoc-gen-doc/protoc-gen-doc $(BIN_DIR)/protoc-gen-doc
+	@cp -f $(BUILD_CACHE_DIR)/protoc-gen-doc/protoc-gen-doc $(BIN_DIR)/protoc-gen-doc
 	@rm -rf $(BUILD_CACHE_DIR)/protoc-gen-doc
 
 PROTOC_GEN_DOC := $(BIN_DIR)/protoc-gen-doc
