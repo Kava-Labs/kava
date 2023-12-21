@@ -261,15 +261,15 @@ var (
 
 // Options bundles several configuration params for an App.
 type Options struct {
-	SkipLoadLatest             bool
-	SkipUpgradeHeights         map[int64]bool
-	SkipGenesisInvariants      bool
-	InvariantCheckPeriod       uint
-	MempoolEnableAuth          bool
-	MempoolgovAuthAddrStresses []sdk.AccAddress
-	EVMTrace                   string
-	EVMMaxGasWanted            uint64
-	TelemetryOptions           metricstypes.TelemetryOptions
+	SkipLoadLatest        bool
+	SkipUpgradeHeights    map[int64]bool
+	SkipGenesisInvariants bool
+	InvariantCheckPeriod  uint
+	MempoolEnableAuth     bool
+	MempoolAuthAddresses  []sdk.AccAddress
+	EVMTrace              string
+	EVMMaxGasWanted       uint64
+	TelemetryOptions      metricstypes.TelemetryOptions
 }
 
 // DefaultOptions is a sensible default Options value.
@@ -994,7 +994,7 @@ func NewApp(
 	var fetchers []ante.AddressFetcher
 	if options.MempoolEnableAuth {
 		fetchers = append(fetchers,
-			func(sdk.Context) []sdk.AccAddress { return options.MempoolgovAuthAddrStresses },
+			func(sdk.Context) []sdk.AccAddress { return options.MempoolAuthAddresses },
 			app.bep3Keeper.GetAuthorizedAddresses,
 			app.pricefeedKeeper.GetAuthorizedAddresses,
 		)

@@ -171,7 +171,8 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			// test idempotence only if upgrade should have been ran
 			if tc.shouldUpgrade {
 				// reset mint and kavadist state to their initial values
-				suite.App.GetMintKeeper().SetParams(suite.Ctx, suite.genesisMintState.Params)
+				err := suite.App.GetMintKeeper().SetParams(suite.Ctx, suite.genesisMintState.Params)
+				suite.Require().NoError(err)
 				suite.App.GetKavadistKeeper().SetParams(suite.Ctx, suite.genesisKavadistState.Params)
 
 				// modify staking rewards per second to ensure they are not overridden again

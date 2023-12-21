@@ -176,6 +176,12 @@ func (h Hooks) AfterValidatorRemoved(ctx sdk.Context, consAddr sdk.ConsAddress, 
 	return nil
 }
 
+// AfterUnbondingInitiated is called when an unbonding operation
+// (validator unbonding, unbonding delegation, redelegation) was initiated
+func (h Hooks) AfterUnbondingInitiated(_ sdk.Context, _ uint64) error {
+	return nil
+}
+
 // ------------------- Swap Module Hooks -------------------
 
 func (h Hooks) AfterPoolDepositCreated(ctx sdk.Context, poolID string, depositor sdk.AccAddress, _ sdkmath.Int) {

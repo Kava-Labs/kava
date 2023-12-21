@@ -58,7 +58,9 @@ func (k Keeper) disableInflation(ctx sdk.Context) {
 	mintParams := k.mintKeeper.GetParams(ctx)
 	mintParams.InflationMin = sdk.ZeroDec()
 	mintParams.InflationMax = sdk.ZeroDec()
-	k.mintKeeper.SetParams(ctx, mintParams)
+	if err := k.mintKeeper.SetParams(ctx, mintParams); err != nil {
+		panic(err)
+	}
 	logger.Info("x/mint inflation set to 0")
 
 	// disable kavadist inflation
@@ -74,6 +76,8 @@ func (k Keeper) disableCommunityTax(ctx sdk.Context) {
 
 	distrParams := k.distrKeeper.GetParams(ctx)
 	distrParams.CommunityTax = sdk.ZeroDec()
-	k.distrKeeper.SetParams(ctx, distrParams)
+	if err := k.distrKeeper.SetParams(ctx, distrParams); err != nil {
+		panic(err)
+	}
 	logger.Info("x/distribution community tax set to 0")
 }
