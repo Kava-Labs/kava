@@ -7,9 +7,9 @@ import (
 	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
@@ -188,7 +188,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	n1, err1 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.UpgradeTimeDisableInflation, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.UpgradeTimeDisableInflation):])
+	n1, err1 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.UpgradeTimeDisableInflation, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UpgradeTimeDisableInflation):])
 	if err1 != nil {
 		return 0, err1
 	}
@@ -216,7 +216,7 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.UpgradeTimeDisableInflation)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UpgradeTimeDisableInflation)
 	n += 1 + l + sovParams(uint64(l))
 	l = m.StakingRewardsPerSecond.Size()
 	n += 1 + l + sovParams(uint64(l))
@@ -289,7 +289,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.UpgradeTimeDisableInflation, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.UpgradeTimeDisableInflation, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

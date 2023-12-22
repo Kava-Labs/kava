@@ -8,9 +8,9 @@ import (
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	io "io"
 	math "math"
@@ -264,7 +264,7 @@ func (m *BaseCommittee) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x38
 	}
-	n1, err1 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.ProposalDuration, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.ProposalDuration):])
+	n1, err1 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.ProposalDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ProposalDuration):])
 	if err1 != nil {
 		return 0, err1
 	}
@@ -445,7 +445,7 @@ func (m *BaseCommittee) Size() (n int) {
 	}
 	l = m.VoteThreshold.Size()
 	n += 1 + l + sovCommittee(uint64(l))
-	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.ProposalDuration)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ProposalDuration)
 	n += 1 + l + sovCommittee(uint64(l))
 	if m.TallyOption != 0 {
 		n += 1 + sovCommittee(uint64(m.TallyOption))
@@ -700,7 +700,7 @@ func (m *BaseCommittee) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.ProposalDuration, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.ProposalDuration, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
