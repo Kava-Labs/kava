@@ -8,7 +8,7 @@ import (
 )
 
 // RocksDBCmd defines the root command containing subcommands that assist in
-// debugging rocksdb.
+// rocksdb related tasks such as manual compaction.
 var RocksDBCmd = &cobra.Command{
 	Use:   "rocksdb",
 	Short: "RocksDB util commands",
