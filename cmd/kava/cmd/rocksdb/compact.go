@@ -23,15 +23,9 @@ import (
 
 var CompactRocksDBCmd = &cobra.Command{
 	Use:   "compact <state|blockstore>",
-	Short: "force compacts the CometBFT storage engine (only RocksDB supported)",
-	Long: `
-This is a temporary utility command that performs a force compaction on the state 
-and blockstores to reduce disk space for a pruning node. This should only be run 
-once the node has stopped. This command will likely be omitted in the future after
-the planned refactor to the storage engine.
-
-Currently, only RocksDB is supported.
-	`,
+	Short: "force compacts RocksDB",
+	Long: `This is a utility command that performs a force compaction on the state or
+blockstore. This should only be run once the node has stopped.`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
