@@ -115,14 +115,14 @@ func logColumnFamilyMetadata(
 }
 
 // startCompactionStatsOutput starts a goroutine that outputs compaction stats
-// every 10 seconds.
+// every minute.
 func startCompactionStatsOutput(
 	store *grocksdb.DB,
 	logger log.Logger,
 	done chan bool,
 ) {
 	go func() {
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(1 * time.Minute)
 
 		for {
 			select {
