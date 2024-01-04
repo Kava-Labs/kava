@@ -40,6 +40,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
+- (rocksdb) [#1767] Fix resolution of rocksdb database path
 
 ## [v0.23.2]
 
@@ -255,6 +256,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1767]: https://github.com/Kava-Labs/kava/pull/1767
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1631]: https://github.com/Kava-Labs/kava/pull/1631
