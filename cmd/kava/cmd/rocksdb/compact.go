@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -18,12 +19,18 @@ import (
 	"github.com/kava-labs/kava/cmd/kava/opendb"
 	"github.com/linxGnu/grocksdb"
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/slices"
 
 	"github.com/tendermint/tendermint/libs/log"
 )
 
+var allowedDBs = []string{"application", "blockstore", "state"}
+
 var CompactRocksDBCmd = &cobra.Command{
-	Use:   "compact <state|blockstore>",
+	Use: fmt.Sprintf(
+		"compact <%s>",
+		strings.Join(allowedDBs, "|"),
+	),
 	Short: "force compacts RocksDB",
 	Long: `This is a utility command that performs a force compaction on the state or
 blockstore. This should only be run once the node has stopped.`,
@@ -38,8 +45,11 @@ blockstore. This should only be run once the node has stopped.`,
 			return errors.New("compaction is currently only supported with rocksdb")
 		}
 
-		if args[0] != "state" && args[0] != "blockstore" {
-			return errors.New("invalid db name, must be either 'state' or 'blockstore'")
+		if !slices.Contains(allowedDBs, args[0]) {
+			return fmt.Errorf(
+				"invalid db name, must be one of the following: %s",
+				strings.Join(allowedDBs, ", "),
+			)
 		}
 
 		compactRocksDBs(clientCtx.HomeDir, logger, args[0])
