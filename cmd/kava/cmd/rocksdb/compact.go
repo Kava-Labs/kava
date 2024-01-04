@@ -84,6 +84,7 @@ func bytesToMB(bytes uint64) float64 {
 	return float64(bytes) / 1024 / 1024
 }
 
+// logColumnFamilyMetadata outputs the column family and level metadata.
 func logColumnFamilyMetadata(
 	store *grocksdb.DB,
 	logger log.Logger,
