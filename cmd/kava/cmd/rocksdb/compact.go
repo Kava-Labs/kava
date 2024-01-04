@@ -13,10 +13,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/linxGnu/grocksdb"
 	"github.com/spf13/cobra"
 
-	"github.com/tendermint/tendermint/cmd/cometbft/commands"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -35,12 +36,10 @@ Currently, only RocksDB is supported.
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-		config, err := commands.ParseConfig(cmd)
-		if err != nil {
-			return fmt.Errorf("could not parse config: %w", err)
-		}
+		clientCtx := client.GetClientContextFromCmd(cmd)
+		ctx := server.GetServerContextFromCmd(cmd)
 
-		if config.DBBackend != "rocksdb" {
+		if server.GetAppDBBackend(ctx.Viper) != "rocksdb" {
 			return errors.New("compaction is currently only supported with rocksdb")
 		}
 
@@ -48,7 +47,7 @@ Currently, only RocksDB is supported.
 			return errors.New("invalid db name, must be either 'state' or 'blockstore'")
 		}
 
-		compactRocksDBs(config.RootDir, logger, args[0])
+		compactRocksDBs(clientCtx.HomeDir, logger, args[0])
 		return nil
 	},
 }
