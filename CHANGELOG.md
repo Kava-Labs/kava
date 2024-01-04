@@ -38,6 +38,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
+- (rocksdb) [#1767] Fix resolution of rocksdb database path
 
 ## [v0.21.1](https://github.com/Kava-Labs/kava/releases/tag/v0.21.1)
 
@@ -210,6 +211,7 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
 
 
+[#1767]: https://github.com/Kava-Labs/kava/pull/1767
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
 [#1503]: https://github.com/Kava-Labs/kava/pull/1503

@@ -81,7 +81,7 @@ const (
 func OpenDB(appOpts types.AppOptions, home string, backendType dbm.BackendType) (dbm.DB, error) {
 	dataDir := filepath.Join(home, "data")
 	if backendType == dbm.RocksDBBackend {
-		return openRocksdb(filepath.Join(dataDir, "application.db"), appOpts)
+		return openRocksdb(dataDir, appOpts)
 	}
 
 	return dbm.NewDB("application", backendType, dataDir)
@@ -90,7 +90,8 @@ func OpenDB(appOpts types.AppOptions, home string, backendType dbm.BackendType) 
 // openRocksdb loads existing options, overrides some of them with appOpts and opens database
 // option will be overridden only in case if it explicitly specified in appOpts
 func openRocksdb(dir string, appOpts types.AppOptions) (dbm.DB, error) {
-	dbOpts, cfOpts, err := loadLatestOptions(dir)
+	optionsPath := filepath.Join(dir, "application.db")
+	dbOpts, cfOpts, err := loadLatestOptions(optionsPath)
 	if err != nil {
 		return nil, err
 	}
