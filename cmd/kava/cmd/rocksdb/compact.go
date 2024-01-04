@@ -15,6 +15,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/kava-labs/kava/cmd/kava/opendb"
 	"github.com/linxGnu/grocksdb"
 	"github.com/spf13/cobra"
 
@@ -51,32 +52,45 @@ func compactRocksDBs(
 	rootDir string,
 	logger log.Logger,
 	dbName string,
-) {
-	options := grocksdb.NewDefaultOptions()
-
+) error {
 	dbPath := filepath.Join(rootDir, "data", dbName+".db")
-	logger.Info("opening db", "path", dbPath)
 
-	store, err := grocksdb.OpenDb(options, dbPath)
+	dbOpts, cfOpts, err := opendb.LoadLatestOptions(dbPath)
+	if err != nil {
+		return err
+	}
+
+	logger.Info("opening db", "path", dbPath)
+	db, _, err := grocksdb.OpenDbColumnFamilies(
+		dbOpts,
+		dbPath,
+		[]string{opendb.DefaultColumnFamilyName},
+		[]*grocksdb.Options{cfOpts},
+	)
+	if err != nil {
+		return err
+	}
+
 	if err != nil {
 		logger.Error("failed to initialize cometbft db", "path", dbPath, "err", err)
-		return
+		return fmt.Errorf("failed to open db %s %w", dbPath, err)
 	}
-	defer store.Close()
+	defer db.Close()
 
-	logColumnFamilyMetadata(store, logger)
+	logColumnFamilyMetadata(db, logger)
 
 	logger.Info("starting compaction...", "db", dbPath)
 
 	done := make(chan bool, 1)
-	registerSignalHandler(store, logger, done)
-	startCompactionStatsOutput(store, logger, done)
+	registerSignalHandler(db, logger, done)
+	startCompactionStatsOutput(db, logger, done)
 
 	// Actually run the compaction
-	store.CompactRange(grocksdb.Range{Start: nil, Limit: nil})
+	db.CompactRange(grocksdb.Range{Start: nil, Limit: nil})
 	logger.Info("done compaction", "db", dbPath)
 
 	done <- true
+	return nil
 }
 
 // bytesToMB converts bytes to megabytes.
