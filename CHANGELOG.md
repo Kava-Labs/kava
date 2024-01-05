@@ -36,6 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+
+- (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
+
 ## [v0.25.0]
 
 ### Features
@@ -307,6 +311,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1785]: https://github.com/Kava-Labs/kava/pull/1785
 [#1770]: https://github.com/Kava-Labs/kava/pull/1770
 [#1755]: https://github.com/Kava-Labs/kava/pull/1755
 [#1761]: https://github.com/Kava-Labs/kava/pull/1761
