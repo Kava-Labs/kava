@@ -91,7 +91,7 @@ func compactRocksDBs(
 
 	logger.Info("starting compaction...", "db", dbPath)
 
-	done := make(chan bool, 1)
+	done := make(chan bool)
 	registerSignalHandler(db, logger, done)
 	startCompactionStatsOutput(db, logger, done)
 
@@ -100,8 +100,6 @@ func compactRocksDBs(
 	logger.Info("done compaction", "db", dbPath)
 
 	done <- true
-
-	time.Sleep(1 * time.Minute)
 	return nil
 }
 
@@ -143,15 +141,18 @@ func startCompactionStatsOutput(
 ) {
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
+		isClosed := false
 
 		for {
 			select {
+			// Make sure we don't try reading from the closed db.
+			// We continue the loop so that we can make sure the done channel
+			// does not stall indefinitely from repeated writes and no reader.
 			case <-done:
 				logger.Debug("stopping compaction stats output")
-				// Make sure we don't try reading from the closed db
-				return
+				isClosed = true
 			case <-ticker.C:
-				{
+				if !isClosed {
 					compactionStats := db.GetProperty("rocksdb.stats")
 					fmt.Printf("%s\n", compactionStats)
 				}
