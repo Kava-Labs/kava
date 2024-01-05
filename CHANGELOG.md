@@ -38,8 +38,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Features
 
+- (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
 - (metrics) [#1668] Adds non-state breaking x/metrics module for custom telemetry.
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
+
+### Bug Fixes
 - (rocksdb) [#1767] Fix resolution of rocksdb database path
 
 ## [v0.23.2]
@@ -256,6 +259,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1785]: https://github.com/Kava-Labs/kava/pull/1785
 [#1767]: https://github.com/Kava-Labs/kava/pull/1767
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
 [#1668]: https://github.com/Kava-Labs/kava/pull/1668
