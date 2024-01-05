@@ -15,5 +15,5 @@ var RocksDBCmd = &cobra.Command{
 }
 
 func init() {
-	RocksDBCmd.AddCommand(CompactRocksDBCmd)
+	RocksDBCmd.AddCommand(CompactRocksDBCmd())
 }

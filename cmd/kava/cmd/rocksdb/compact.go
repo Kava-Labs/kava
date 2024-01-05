@@ -24,37 +24,56 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
+const (
+	flagPrintStatsInterval = "print-stats-interval"
+)
+
 var allowedDBs = []string{"application", "blockstore", "state"}
 
-var CompactRocksDBCmd = &cobra.Command{
-	Use: fmt.Sprintf(
-		"compact <%s>",
-		strings.Join(allowedDBs, "|"),
-	),
-	Short: "force compacts RocksDB",
-	Long: `This is a utility command that performs a force compaction on the state or
-blockstore. This should only be run once the node has stopped.`,
-	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
+func CompactRocksDBCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: fmt.Sprintf(
+			"compact <%s>",
+			strings.Join(allowedDBs, "|"),
+		),
+		Short: "force compacts RocksDB",
+		Long: `This is a utility command that performs a force compaction on the state or
+	blockstore. This should only be run once the node has stopped.`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			logger := log.NewTMLogger(log.NewSyncWriter(os.Stdout))
 
-		clientCtx := client.GetClientContextFromCmd(cmd)
-		ctx := server.GetServerContextFromCmd(cmd)
+			statsIntervalStr, err := cmd.Flags().GetString(flagPrintStatsInterval)
+			if err != nil {
+				return err
+			}
 
-		if server.GetAppDBBackend(ctx.Viper) != "rocksdb" {
-			return errors.New("compaction is currently only supported with rocksdb")
-		}
+			statsInterval, err := time.ParseDuration(statsIntervalStr)
+			if err != nil {
+				return fmt.Errorf("failed to parse duration for --%s: %w", flagPrintStatsInterval, err)
+			}
 
-		if !slices.Contains(allowedDBs, args[0]) {
-			return fmt.Errorf(
-				"invalid db name, must be one of the following: %s",
-				strings.Join(allowedDBs, ", "),
-			)
-		}
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			ctx := server.GetServerContextFromCmd(cmd)
 
-		compactRocksDBs(clientCtx.HomeDir, logger, args[0])
-		return nil
-	},
+			if server.GetAppDBBackend(ctx.Viper) != "rocksdb" {
+				return errors.New("compaction is currently only supported with rocksdb")
+			}
+
+			if !slices.Contains(allowedDBs, args[0]) {
+				return fmt.Errorf(
+					"invalid db name, must be one of the following: %s",
+					strings.Join(allowedDBs, ", "),
+				)
+			}
+
+			return compactRocksDBs(clientCtx.HomeDir, logger, args[0], statsInterval)
+		},
+	}
+
+	cmd.Flags().String(flagPrintStatsInterval, "1m", "duration string for how often to print compaction stats")
+
+	return cmd
 }
 
 // compactRocksDBs performs a manual compaction on the given db.
@@ -62,6 +81,7 @@ func compactRocksDBs(
 	rootDir string,
 	logger log.Logger,
 	dbName string,
+	statsInterval time.Duration,
 ) error {
 	dbPath := filepath.Join(rootDir, "data", dbName+".db")
 
@@ -93,7 +113,7 @@ func compactRocksDBs(
 
 	done := make(chan bool)
 	registerSignalHandler(db, logger, done)
-	startCompactionStatsOutput(db, logger, done)
+	startCompactionStatsOutput(db, logger, done, statsInterval)
 
 	// Actually run the compaction
 	db.CompactRange(grocksdb.Range{Start: nil, Limit: nil})
@@ -138,9 +158,10 @@ func startCompactionStatsOutput(
 	db *grocksdb.DB,
 	logger log.Logger,
 	done chan bool,
+	statsInterval time.Duration,
 ) {
 	go func() {
-		ticker := time.NewTicker(1 * time.Minute)
+		ticker := time.NewTicker(statsInterval)
 		isClosed := false
 
 		for {
