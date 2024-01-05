@@ -123,5 +123,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		newQueryCmd(),
 		newTxCmd(),
 		keyCommands(app.DefaultNodeHome),
+		newShardCmd(opts),
 	)
 }
