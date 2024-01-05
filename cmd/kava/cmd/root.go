@@ -125,5 +125,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		newTxCmd(),
 		keyCommands(app.DefaultNodeHome),
 		rocksdb.RocksDBCmd,
+		newShardCmd(opts),
 	)
 }
