@@ -100,6 +100,8 @@ func compactRocksDBs(
 	logger.Info("done compaction", "db", dbPath)
 
 	done <- true
+
+	time.Sleep(1 * time.Minute)
 	return nil
 }
 
@@ -110,10 +112,10 @@ func bytesToMB(bytes uint64) float64 {
 
 // logColumnFamilyMetadata outputs the column family and level metadata.
 func logColumnFamilyMetadata(
-	store *grocksdb.DB,
+	db *grocksdb.DB,
 	logger log.Logger,
 ) {
-	metadata := store.GetColumnFamilyMetadata()
+	metadata := db.GetColumnFamilyMetadata()
 
 	logger.Info(
 		"column family metadata",
@@ -135,7 +137,7 @@ func logColumnFamilyMetadata(
 // startCompactionStatsOutput starts a goroutine that outputs compaction stats
 // every minute.
 func startCompactionStatsOutput(
-	store *grocksdb.DB,
+	db *grocksdb.DB,
 	logger log.Logger,
 	done chan bool,
 ) {
@@ -145,11 +147,12 @@ func startCompactionStatsOutput(
 		for {
 			select {
 			case <-done:
+				logger.Debug("stopping compaction stats output")
 				// Make sure we don't try reading from the closed db
 				return
 			case <-ticker.C:
 				{
-					compactionStats := store.GetProperty("rocksdb.stats")
+					compactionStats := db.GetProperty("rocksdb.stats")
 					fmt.Printf("%s\n", compactionStats)
 				}
 			}
@@ -160,7 +163,7 @@ func startCompactionStatsOutput(
 // registerSignalHandler registers a signal handler that will cancel any running
 // compaction when the user presses Ctrl+C.
 func registerSignalHandler(
-	store *grocksdb.DB,
+	db *grocksdb.DB,
 	logger log.Logger,
 	done chan bool,
 ) {
@@ -181,14 +184,11 @@ func registerSignalHandler(
 				"received %s signal, aborting running compaction... Do NOT kill me before compaction is cancelled. I will exit when compaction is cancelled.",
 				sig,
 			))
-			store.DisableManualCompaction()
+			db.DisableManualCompaction()
 			logger.Info("manual compaction disabled")
 
 			// Stop the logging
 			done <- true
-
-			logger.Info("exiting...")
-			os.Exit(0)
 		}
 	}()
 }
