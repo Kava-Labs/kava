@@ -126,5 +126,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		newQueryCmd(),
 		newTxCmd(),
 		kavaclient.KeyCommands(app.DefaultNodeHome),
+		newShardCmd(opts),
 	)
 }
