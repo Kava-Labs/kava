@@ -1,0 +1,21 @@
+name: Continuous Integration (StateDB)
+
+on:
+  push:
+    paths:
+      - './eth/statedb/**'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: eth/statedb/go.mod
+          cache-dependency-path: |
+            eth/statedb/go.sum
+      - name: run unit tests
+        working-directory: ./eth/statedb
+        run: make test
