@@ -46,3 +46,11 @@ type Keeper interface {
 	SetCode(ctx sdk.Context, codeHash []byte, code []byte)
 	DeleteAccount(ctx sdk.Context, addr common.Address) error
 }
+
+// TxConfig provides readonly information of current tx for `StateDB`.
+type TxConfig interface {
+	BlockHash() common.Hash // hash of current block
+	TxHash() common.Hash    // hash of current tx
+	TxIndex() uint          // the index of current transaction
+	LogIndex() uint         // the index of next log within current block
+}

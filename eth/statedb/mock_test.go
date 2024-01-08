@@ -112,3 +112,51 @@ func (k MockKeeper) Clone() *MockKeeper {
 	}
 	return &MockKeeper{accounts, codes}
 }
+
+type MockTxConfig struct {
+	blockHash common.Hash
+	txHash    common.Hash
+	txIndex   uint
+	logIndex  uint
+}
+
+func NewMockTxConfig(
+	blockHash common.Hash,
+	txHash common.Hash,
+	txIndex uint,
+	logIndex uint,
+) MockTxConfig {
+	return MockTxConfig{
+		blockHash: blockHash,
+		txHash:    txHash,
+		txIndex:   txIndex,
+		logIndex:  logIndex,
+	}
+}
+
+func NewEmptyMockTxConfig(blockHash common.Hash) MockTxConfig {
+	return MockTxConfig{
+		blockHash: blockHash,
+		txHash:    common.Hash{},
+		txIndex:   0,
+		logIndex:  0,
+	}
+}
+
+func (m MockTxConfig) BlockHash() common.Hash {
+	return m.blockHash
+}
+
+func (m MockTxConfig) TxHash() common.Hash {
+	return m.txHash
+}
+
+func (m MockTxConfig) TxIndex() uint {
+	return m.txIndex
+}
+
+func (m MockTxConfig) LogIndex() uint {
+	return m.logIndex
+}
+
+var _ statedb.TxConfig = &MockTxConfig{}

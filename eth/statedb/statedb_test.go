@@ -18,7 +18,7 @@ var (
 	address2      common.Address   = common.BigToAddress(big.NewInt(102))
 	address3      common.Address   = common.BigToAddress(big.NewInt(103))
 	blockHash     common.Hash      = common.BigToHash(big.NewInt(9999))
-	emptyTxConfig statedb.TxConfig = statedb.NewEmptyTxConfig(blockHash)
+	emptyTxConfig statedb.TxConfig = NewEmptyMockTxConfig(blockHash)
 )
 
 type StateDBTestSuite struct {
@@ -466,7 +466,7 @@ func (suite *StateDBTestSuite) TestAccessList() {
 func (suite *StateDBTestSuite) TestLog() {
 	txHash := common.BytesToHash([]byte("tx"))
 	// use a non-default tx config
-	txConfig := statedb.NewTxConfig(
+	txConfig := NewMockTxConfig(
 		blockHash,
 		txHash,
 		1, 1,
