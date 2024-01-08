@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - './eth/statedb/**'
+  pull_request:
+    paths:
+      - './eth/statedb/**'
 jobs:
   test:
     runs-on: ubuntu-latest
