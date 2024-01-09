@@ -10,6 +10,7 @@ import (
 	tmdb "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -56,10 +57,11 @@ func TestAppAnteHandler_AuthorizedMempool(t *testing.T) {
 			nil,
 			encodingConfig,
 			opts,
+			baseapp.SetChainID(app.TestChainId),
 		),
 	}
 
-	chainID := "kavatest_1-1"
+	chainID := app.TestChainId
 	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		chainID,
@@ -209,7 +211,7 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 		return msg
 	}
 
-	chainID := "kavatest_1-1"
+	chainID := app.TestChainId
 	encodingConfig := app.MakeEncodingConfig()
 
 	testcases := []struct {

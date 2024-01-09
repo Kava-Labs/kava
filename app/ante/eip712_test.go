@@ -43,7 +43,7 @@ import (
 )
 
 const (
-	ChainID       = "kavatest_1-1"
+	ChainID       = app.TestChainId
 	USDCCoinDenom = "erc20/usdc"
 	USDCCDPType   = "erc20-usdc"
 )
@@ -138,6 +138,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 func (suite *EIP712TestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	suite.tApp = tApp
+
 	cdc := tApp.AppCodec()
 	suite.evmutilKeeper = tApp.GetEvmutilKeeper()
 
@@ -333,6 +334,11 @@ func (suite *EIP712TestSuite) SetupTest() {
 		USDCCoinDenom,
 	)
 	suite.usdcEVMAddr = pair.GetAddress()
+
+	// update consensus params
+	cParams := tApp.GetConsensusParams(suite.ctx)
+	cParams.Block.MaxGas = sims.DefaultGenTxGas * 20
+	tApp.StoreConsensusParams(suite.ctx, cParams)
 
 	// Add a contract to evmutil conversion pair
 	evmutilParams := suite.evmutilKeeper.GetParams(suite.ctx)
@@ -541,7 +547,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 				var option *codectypes.Any
 				option, _ = codectypes.NewAnyWithValue(&etherminttypes.ExtensionOptionsWeb3Tx{
 					FeePayer:         suite.testAddr.String(),
-					TypedDataChainID: 1,
+					TypedDataChainID: 2221,
 					FeePayerSig:      []byte("sig"),
 				})
 				builder, _ := txBuilder.(authtx.ExtensionOptionsTxBuilder)
