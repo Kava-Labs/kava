@@ -173,7 +173,7 @@ var (
 	// ModuleBasics manages simple versions of full app modules.
 	// It's used for things such as codec registration and genesis file verification.
 	ModuleBasics = module.NewBasicManager(
-		genutil.AppModuleBasic{},
+		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
@@ -223,6 +223,7 @@ var (
 		mint.AppModuleBasic{},
 		community.AppModuleBasic{},
 		metrics.AppModuleBasic{},
+		consensus.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -296,7 +297,7 @@ type App struct {
 	accountKeeper         authkeeper.AccountKeeper
 	bankKeeper            bankkeeper.Keeper
 	capabilityKeeper      *capabilitykeeper.Keeper
-	stakingKeeper         stakingkeeper.Keeper
+	stakingKeeper         *stakingkeeper.Keeper
 	distrKeeper           distrkeeper.Keeper
 	govKeeper             govkeeper.Keeper
 	paramsKeeper          paramskeeper.Keeper
@@ -457,7 +458,7 @@ func NewApp(
 		app.loadBlockedMaccAddrs(),
 		govAuthAddrStr,
 	)
-	stakingKeeper := stakingkeeper.NewKeeper(
+	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.accountKeeper,
@@ -475,7 +476,7 @@ func NewApp(
 		keys[distrtypes.StoreKey],
 		app.accountKeeper,
 		app.bankKeeper,
-		stakingKeeper,
+		app.stakingKeeper,
 		authtypes.FeeCollectorName,
 		govAuthAddrStr,
 	)
@@ -483,7 +484,7 @@ func NewApp(
 		appCodec,
 		app.legacyAmino,
 		keys[slashingtypes.StoreKey],
-		&app.stakingKeeper,
+		app.stakingKeeper,
 		govAuthAddrStr,
 	)
 	app.crisisKeeper = *crisiskeeper.NewKeeper(
@@ -505,7 +506,7 @@ func NewApp(
 	app.evidenceKeeper = *evidencekeeper.NewKeeper(
 		appCodec,
 		keys[evidencetypes.StoreKey],
-		&app.stakingKeeper,
+		app.stakingKeeper,
 		app.slashingKeeper,
 	)
 
@@ -624,7 +625,7 @@ func NewApp(
 		appCodec,
 		app.accountKeeper,
 		app.bankKeeper,
-		&app.stakingKeeper,
+		app.stakingKeeper,
 		&app.distrKeeper,
 	)
 	savingsKeeper := savingskeeper.NewKeeper(
@@ -702,7 +703,7 @@ func NewApp(
 	app.routerKeeper = routerkeeper.NewKeeper(
 		&app.earnKeeper,
 		app.liquidKeeper,
-		&app.stakingKeeper,
+		app.stakingKeeper,
 	)
 
 	// create committee keeper with router
@@ -724,15 +725,12 @@ func NewApp(
 	)
 
 	// register the staking hooks
-	// NOTE: These keepers are passed by reference above, so they will contain these hooks.
-	stakingKeeper.SetHooks(
+	app.stakingKeeper.SetHooks(
 		stakingtypes.NewMultiStakingHooks(
 			app.distrKeeper.Hooks(),
 			app.slashingKeeper.Hooks(),
 			app.incentiveKeeper.Hooks(),
 		))
-
-	app.stakingKeeper = *stakingKeeper
 
 	app.swapKeeper = *swapKeeper.SetHooks(app.incentiveKeeper.Hooks())
 	app.cdpKeeper = *cdpKeeper.SetHooks(cdptypes.NewMultiCDPHooks(app.incentiveKeeper.Hooks()))
@@ -769,7 +767,7 @@ func NewApp(
 
 	// override x/gov tally handler with custom implementation
 	tallyHandler := NewTallyHandler(
-		app.govKeeper, app.stakingKeeper, app.savingsKeeper, app.earnKeeper,
+		app.govKeeper, *app.stakingKeeper, app.savingsKeeper, app.earnKeeper,
 		app.liquidKeeper, app.bankKeeper,
 	)
 	app.govKeeper.SetTallyHandler(tallyHandler)
@@ -781,7 +779,7 @@ func NewApp(
 		auth.NewAppModule(appCodec, app.accountKeeper, authsims.RandomGenesisAccounts, authSubspace),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper, bankSubspace),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper, false), // todo: confirm if this is okay to not be sealed
-		staking.NewAppModule(appCodec, &app.stakingKeeper, app.accountKeeper, app.bankKeeper, stakingSubspace),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper, stakingSubspace),
 		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper, distrSubspace),
 		gov.NewAppModule(appCodec, &app.govKeeper, app.accountKeeper, app.bankKeeper, govSubspace),
 		params.NewAppModule(app.paramsKeeper),
