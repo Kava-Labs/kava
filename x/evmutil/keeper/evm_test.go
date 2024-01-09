@@ -17,6 +17,8 @@ import (
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/evmos/ethermint/x/evm/types"
 
+	evm "github.com/evmos/ethermint/x/evm/vm"
+
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 )
 
@@ -28,8 +30,12 @@ func (suite *evmKeeperTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
 }
 
-func (suite *evmKeeperTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.Ctx, suite.App.GetEvmKeeper(), statedb.NewEmptyTxConfig(common.BytesToHash(suite.Ctx.HeaderHash().Bytes())))
+func (suite *evmKeeperTestSuite) StateDB() evm.StateDB {
+	return statedb.New(
+		suite.Ctx,
+		suite.App.GetEvmKeeper(),
+		types.NewEmptyTxConfig(common.BytesToHash(suite.Ctx.HeaderHash().Bytes())),
+	)
 }
 
 func (suite *evmKeeperTestSuite) TestEvmKeeper_SetAccount() {
@@ -43,55 +49,55 @@ func (suite *evmKeeperTestSuite) TestEvmKeeper_SetAccount() {
 	testCases := []struct {
 		name        string
 		address     common.Address
-		account     statedb.Account
+		account     types.StateDBAccount
 		expectedErr error
 	}{
 		{
 			"new account, non-contract account",
 			tests.GenerateAddress(),
-			statedb.Account{10, big.NewInt(100), types.EmptyCodeHash},
+			types.StateDBAccount{10, big.NewInt(100), types.EmptyCodeHash},
 			nil,
 		},
 		{
 			"new account, contract account",
 			tests.GenerateAddress(),
-			statedb.Account{10, big.NewInt(100), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
+			types.StateDBAccount{10, big.NewInt(100), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
 			nil,
 		},
 		{
 			"existing eth account, non-contract account",
 			ethAddr,
-			statedb.Account{10, big.NewInt(1), types.EmptyCodeHash},
+			types.StateDBAccount{10, big.NewInt(1), types.EmptyCodeHash},
 			nil,
 		},
 		{
 			"existing eth account, contract account",
 			ethAddr,
-			statedb.Account{10, big.NewInt(0), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
+			types.StateDBAccount{10, big.NewInt(0), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
 			nil,
 		},
 		{
 			"existing base account, non-contract account",
 			baseAddr,
-			statedb.Account{10, big.NewInt(10), types.EmptyCodeHash},
+			types.StateDBAccount{10, big.NewInt(10), types.EmptyCodeHash},
 			nil,
 		},
 		{
 			"existing base account, contract account",
 			baseAddr,
-			statedb.Account{10, big.NewInt(99), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
+			types.StateDBAccount{10, big.NewInt(99), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
 			nil,
 		},
 		{
 			"existing vesting account, non-contract account",
 			vestingAddr,
-			statedb.Account{10, big.NewInt(1000), types.EmptyCodeHash},
+			types.StateDBAccount{10, big.NewInt(1000), types.EmptyCodeHash},
 			nil,
 		},
 		{
 			"existing vesting account, contract account",
 			vestingAddr,
-			statedb.Account{10, big.NewInt(1001), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
+			types.StateDBAccount{10, big.NewInt(1001), crypto.Keccak256Hash([]byte("some code hash")).Bytes()},
 			types.ErrInvalidAccount,
 		},
 	}

@@ -99,6 +99,7 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/eth/statedb"
 	"github.com/kava-labs/kava/x/auction"
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
@@ -532,6 +533,7 @@ func NewApp(
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		nil, // precompiled contracts
 		geth.NewEVM,
+		statedb.New,
 		options.EVMTrace,
 		evmSubspace,
 	)
