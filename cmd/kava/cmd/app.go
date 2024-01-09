@@ -78,7 +78,7 @@ func (ac appCreator) newApp(
 		panic(fmt.Sprintf("could not get authorized address from config: %v", err))
 	}
 
-	iavlDisableFastNode := appOpts.Get(server.FlagIAVLFastNode)
+	iavlDisableFastNode := appOpts.Get(server.FlagDisableIAVLFastNode)
 	if iavlDisableFastNode == nil {
 		iavlDisableFastNode = true
 	}
