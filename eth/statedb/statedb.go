@@ -24,8 +24,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/evmos/ethermint/x/evm/vm"
 )
 
 // revision is the identifier of a version of state.
@@ -44,7 +46,7 @@ var _ vm.StateDB = &StateDB{}
 // * Contracts
 // * Accounts
 type StateDB struct {
-	keeper Keeper
+	keeper vm.StateDBKeeper
 	ctx    sdk.Context
 
 	// Journal of state modifications. This is the backbone of
@@ -55,7 +57,7 @@ type StateDB struct {
 
 	stateObjects map[common.Address]*stateObject
 
-	txConfig TxConfig
+	txConfig evmtypes.TxConfig
 
 	// The refund counter, also used by state transitioning.
 	refund uint64
@@ -68,7 +70,7 @@ type StateDB struct {
 }
 
 // New creates a new state from a given trie.
-func New(ctx sdk.Context, keeper Keeper, txConfig TxConfig) *StateDB {
+func New(ctx sdk.Context, keeper vm.StateDBKeeper, txConfig evmtypes.TxConfig) vm.StateDB {
 	return &StateDB{
 		keeper:       keeper,
 		ctx:          ctx,
@@ -81,7 +83,7 @@ func New(ctx sdk.Context, keeper Keeper, txConfig TxConfig) *StateDB {
 }
 
 // Keeper returns the underlying `Keeper`
-func (s *StateDB) Keeper() Keeper {
+func (s *StateDB) Keeper() vm.StateDBKeeper {
 	return s.keeper
 }
 
@@ -89,10 +91,10 @@ func (s *StateDB) Keeper() Keeper {
 func (s *StateDB) AddLog(log *ethtypes.Log) {
 	s.journal.append(addLogChange{})
 
-	log.TxHash = s.txConfig.TxHash()
-	log.BlockHash = s.txConfig.BlockHash()
-	log.TxIndex = s.txConfig.TxIndex()
-	log.Index = s.txConfig.LogIndex() + uint(len(s.logs))
+	log.TxHash = s.txConfig.TxHash
+	log.BlockHash = s.txConfig.BlockHash
+	log.TxIndex = s.txConfig.TxIndex
+	log.Index = s.txConfig.LogIndex + uint(len(s.logs))
 	s.logs = append(s.logs, log)
 }
 
@@ -246,7 +248,7 @@ func (s *StateDB) getOrNewStateObject(addr common.Address) *stateObject {
 func (s *StateDB) createObject(addr common.Address) (newobj, prev *stateObject) {
 	prev = s.getStateObject(addr)
 
-	newobj = newObject(s, addr, Account{})
+	newobj = newObject(s, addr, evmtypes.StateDBAccount{})
 	if prev == nil {
 		s.journal.append(createObjectChange{account: &addr})
 	} else {

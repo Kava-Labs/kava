@@ -11,14 +11,18 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/kava-labs/kava/eth/statedb"
 	"github.com/stretchr/testify/suite"
+
+	evm "github.com/evmos/ethermint/x/evm/vm"
+
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
 
 var (
-	address       common.Address   = common.BigToAddress(big.NewInt(101))
-	address2      common.Address   = common.BigToAddress(big.NewInt(102))
-	address3      common.Address   = common.BigToAddress(big.NewInt(103))
-	blockHash     common.Hash      = common.BigToHash(big.NewInt(9999))
-	emptyTxConfig statedb.TxConfig = NewEmptyMockTxConfig(blockHash)
+	address       common.Address    = common.BigToAddress(big.NewInt(101))
+	address2      common.Address    = common.BigToAddress(big.NewInt(102))
+	address3      common.Address    = common.BigToAddress(big.NewInt(103))
+	blockHash     common.Hash       = common.BigToHash(big.NewInt(9999))
+	emptyTxConfig evmtypes.TxConfig = evmtypes.NewEmptyTxConfig(blockHash)
 )
 
 type StateDBTestSuite struct {
@@ -32,9 +36,9 @@ func (suite *StateDBTestSuite) TestAccount() {
 	value2 := common.BigToHash(big.NewInt(4))
 	testCases := []struct {
 		name     string
-		malleate func(*statedb.StateDB)
+		malleate func(evm.StateDB)
 	}{
-		{"non-exist account", func(db *statedb.StateDB) {
+		{"non-exist account", func(db evm.StateDB) {
 			suite.Require().Equal(false, db.Exist(address))
 			suite.Require().Equal(true, db.Empty(address))
 			suite.Require().Equal(big.NewInt(0), db.GetBalance(address))
@@ -42,13 +46,13 @@ func (suite *StateDBTestSuite) TestAccount() {
 			suite.Require().Equal(common.Hash{}, db.GetCodeHash(address))
 			suite.Require().Equal(uint64(0), db.GetNonce(address))
 		}},
-		{"empty account", func(db *statedb.StateDB) {
+		{"empty account", func(db evm.StateDB) {
 			db.CreateAccount(address)
 			suite.Require().NoError(db.Commit())
 
 			keeper := db.Keeper().(*MockKeeper)
 			acct := keeper.accounts[address]
-			suite.Require().Equal(statedb.NewEmptyAccount(), &acct.account)
+			suite.Require().Equal(evmtypes.NewEmptyAccount(), &acct.account)
 			suite.Require().Empty(acct.states)
 			suite.Require().False(acct.account.IsContract())
 
@@ -60,7 +64,7 @@ func (suite *StateDBTestSuite) TestAccount() {
 			suite.Require().Equal(common.BytesToHash(emptyCodeHash), db.GetCodeHash(address))
 			suite.Require().Equal(uint64(0), db.GetNonce(address))
 		}},
-		{"suicide", func(db *statedb.StateDB) {
+		{"suicide", func(db evm.StateDB) {
 			// non-exist account.
 			suite.Require().False(db.Suicide(address))
 			suite.Require().False(db.HasSuicided(address))
@@ -150,22 +154,22 @@ func (suite *StateDBTestSuite) TestBalance() {
 	// NOTE: no need to test overflow/underflow, that is guaranteed by evm implementation.
 	testCases := []struct {
 		name       string
-		malleate   func(*statedb.StateDB)
+		malleate   func(evm.StateDB)
 		expBalance *big.Int
 	}{
-		{"add balance", func(db *statedb.StateDB) {
+		{"add balance", func(db evm.StateDB) {
 			db.AddBalance(address, big.NewInt(10))
 		}, big.NewInt(10)},
-		{"sub balance", func(db *statedb.StateDB) {
+		{"sub balance", func(db evm.StateDB) {
 			db.AddBalance(address, big.NewInt(10))
 			// get dirty balance
 			suite.Require().Equal(big.NewInt(10), db.GetBalance(address))
 			db.SubBalance(address, big.NewInt(2))
 		}, big.NewInt(8)},
-		{"add zero balance", func(db *statedb.StateDB) {
+		{"add zero balance", func(db evm.StateDB) {
 			db.AddBalance(address, big.NewInt(0))
 		}, big.NewInt(0)},
-		{"sub zero balance", func(db *statedb.StateDB) {
+		{"sub zero balance", func(db evm.StateDB) {
 			db.SubBalance(address, big.NewInt(0))
 		}, big.NewInt(0)},
 	}
@@ -190,19 +194,19 @@ func (suite *StateDBTestSuite) TestState() {
 	value1 := common.BigToHash(big.NewInt(1))
 	testCases := []struct {
 		name      string
-		malleate  func(*statedb.StateDB)
+		malleate  func(evm.StateDB)
 		expStates statedb.Storage
 	}{
-		{"empty state", func(db *statedb.StateDB) {
+		{"empty state", func(db evm.StateDB) {
 		}, nil},
-		{"set empty value", func(db *statedb.StateDB) {
+		{"set empty value", func(db evm.StateDB) {
 			db.SetState(address, key1, common.Hash{})
 		}, statedb.Storage{}},
-		{"noop state change", func(db *statedb.StateDB) {
+		{"noop state change", func(db evm.StateDB) {
 			db.SetState(address, key1, value1)
 			db.SetState(address, key1, common.Hash{})
 		}, statedb.Storage{}},
-		{"set state", func(db *statedb.StateDB) {
+		{"set state", func(db evm.StateDB) {
 			// check empty initial state
 			suite.Require().Equal(common.Hash{}, db.GetState(address, key1))
 			suite.Require().Equal(common.Hash{}, db.GetCommittedState(address, key1))
@@ -466,7 +470,7 @@ func (suite *StateDBTestSuite) TestAccessList() {
 func (suite *StateDBTestSuite) TestLog() {
 	txHash := common.BytesToHash([]byte("tx"))
 	// use a non-default tx config
-	txConfig := NewMockTxConfig(
+	txConfig := evmtypes.NewTxConfig(
 		blockHash,
 		txHash,
 		1, 1,
