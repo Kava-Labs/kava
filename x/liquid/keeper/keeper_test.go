@@ -29,7 +29,7 @@ type KeeperTestSuite struct {
 	Ctx           sdk.Context
 	Keeper        keeper.Keeper
 	BankKeeper    bankkeeper.Keeper
-	StakingKeeper stakingkeeper.Keeper
+	StakingKeeper *stakingkeeper.Keeper
 }
 
 // The default state used by each test

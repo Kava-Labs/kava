@@ -32,7 +32,7 @@ type Suite struct {
 	Ctx           sdk.Context
 	Keeper        keeper.Keeper
 	BankKeeper    bankkeeper.Keeper
-	StakingKeeper stakingkeeper.Keeper
+	StakingKeeper *stakingkeeper.Keeper
 	EarnKeeper    earnkeeper.Keeper
 }
 
@@ -104,7 +104,11 @@ func (suite *Suite) AccountBalanceOfEqual(addr sdk.AccAddress, denom string, amo
 // AccountSpendableBalanceEqual checks if an account has the specified coins unlocked.
 func (suite *Suite) AccountSpendableBalanceEqual(addr sdk.AccAddress, amount sdk.Coins) {
 	balance := suite.BankKeeper.SpendableCoins(suite.Ctx, addr)
-	suite.Equalf(amount, balance, "expected account spendable balance to equal coins %s, but got %s", amount, balance)
+	expectedAmt := amount
+	if expectedAmt == nil {
+		expectedAmt = sdk.NewCoins()
+	}
+	suite.Equalf(expectedAmt, balance, "expected account spendable balance to equal coins %s, but got %s", amount, balance)
 }
 
 func (suite *Suite) QueryBank_SpendableBalance(user sdk.AccAddress) sdk.Coins {
