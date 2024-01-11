@@ -10,7 +10,7 @@ require (
 	github.com/cometbft/cometbft v0.37.4
 	github.com/cometbft/cometbft-db v0.8.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.47.6
+	github.com/cosmos/cosmos-sdk v0.47.7
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/cosmos/ibc-go/v7 v7.3.1
@@ -210,15 +210,15 @@ replace (
 	// Use the cosmos keyring code
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	// Use cometbft fork of tendermint
-	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.1-0.20231213172208-9a2334e6921b
+	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.1-0.20240101201249-8f4c4b69c293
 	// Use rocksdb 7.9.2
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.6-kava.1-test.0.20231217204729-e7317105a368
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.2-0.20240101221523-62b74a63ed1b
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
-	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20231217192655-b3f4e2689f52
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240101222302-b816599d5ee4
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
