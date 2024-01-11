@@ -12,6 +12,8 @@ jobs:
     uses: ./.github/workflows/ci-default.yml
   rocksdb:
     uses: ./.github/workflows/ci-rocksdb-build.yml
+  precompile:
+    uses: ./.github/workflows/ci-precompile.yml
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes

@@ -1,0 +1,44 @@
+name: Continuous Integration (Stateful Precompiled Contracts)
+
+on:
+  workflow_call:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo from current commit
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+
+      - name: clone ethermint
+        run: |
+          git clone https://github.com/Kava-Labs/ethermint docker-deps/ethermint
+          cd docker-deps/ethermint
+          git checkout yevhenii/precompile-v2
+      - name: clone go-ethereum
+        run: |
+          git clone https://github.com/Kava-Labs/go-ethereum docker-deps/go-ethereum
+          cd docker-deps/go-ethereum
+          git checkout yevhenii/precompile-v2-backport
+      - name: build kava docker image
+        run: make docker-build-dev
+
+      - name: install kvtool
+        run: |
+          git clone https://github.com/Kava-Labs/kvtool
+          cd kvtool
+          make install
+      - name: run kava docker container
+        run: KAVA_TAG=local kvtool t bootstrap
+
+      - name: install hardhat
+        working-directory: ./contracts
+        run: npm install --save-dev hardhat
+      - name: run precompile tests
+        working-directory: ./contracts
+        run: npx hardhat --network kava test test/stateless_sum3.ts test/sum3.ts test/mul3.ts
