@@ -88,17 +88,6 @@ func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
 
-// Route returns validator-vesting module's message route.
-func (am AppModule) Route() sdk.Route { return sdk.Route{} }
-
-// QuerierRoute returns validator-vesting module's query routing key.
-func (AppModule) QuerierRoute() string { return types.QuerierRoute }
-
-// LegacyQuerierHandler returns validator-vesting module's Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return NewQuerier(am.bankKeeper, legacyQuerierCdc)
-}
-
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {}

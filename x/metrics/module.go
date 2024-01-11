@@ -84,20 +84,6 @@ func (am AppModule) Name() string {
 // RegisterInvariants register module invariants
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route module message route name
-// Deprecated: unused but necessary to fulfill AppModule interface
-func (am AppModule) Route() sdk.Route { return sdk.Route{} }
-
-// QuerierRoute module querier route name
-// Deprecated: unused but necessary to fulfill AppModule interface
-func (AppModule) QuerierRoute() string { return types.ModuleName }
-
-// LegacyQuerierHandler returns no sdk.Querier.
-// Deprecated: unused but necessary to fulfill AppModule interface
-func (am AppModule) LegacyQuerierHandler(_ *codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 1 }
 

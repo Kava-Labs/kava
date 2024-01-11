@@ -115,17 +115,6 @@ func (am AppModule) Name() string {
 	return am.AppModuleBasic.Name()
 }
 
-// Route returns evmutil module's message route.
-func (am AppModule) Route() sdk.Route { return sdk.Route{} }
-
-// QuerierRoute returns evmutil module's query routing key.
-func (AppModule) QuerierRoute() string { return "" }
-
-// LegacyQuerierHandler returns evmutil module's Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return nil
-}
-
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
 func (am AppModule) RegisterServices(cfg module.Configurator) {
