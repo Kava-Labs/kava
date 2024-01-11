@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -18,7 +19,7 @@ var _ govv1beta1.Content = CommunityPoolMultiSpendProposal{}
 
 func init() {
 	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolMultiSpend)
-	govv1beta1.ModuleCdc.Amino.RegisterConcrete(CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal", nil)
+	govcodec.ModuleCdc.Amino.RegisterConcrete(CommunityPoolMultiSpendProposal{}, "kava/CommunityPoolMultiSpendProposal", nil)
 }
 
 // NewCommunityPoolMultiSpendProposal creates a new community pool multi-spend proposal.
