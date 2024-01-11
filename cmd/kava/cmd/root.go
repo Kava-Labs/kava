@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
+	_ "github.com/ethereum/go-ethereum/precompile/registry"
 	ethermintclient "github.com/evmos/ethermint/client"
 	"github.com/evmos/ethermint/crypto/hd"
 	ethermintserver "github.com/evmos/ethermint/server"
@@ -23,6 +24,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/cmd/kava/opendb"
+	_ "github.com/kava-labs/kava/precompile/registry"
 )
 
 // EnvPrefix is the prefix environment variables must have to configure the app.
