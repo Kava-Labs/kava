@@ -145,7 +145,7 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 		1*time.Hour,
 		abci.RequestEndBlock{},
 		abci.RequestBeginBlock{
-			LastCommitInfo: abci.LastCommitInfo{
+			LastCommitInfo: abci.CommitInfo{
 				Votes: []abci.VoteInfo{{
 					Validator:       val,
 					SignedLastBlock: true,

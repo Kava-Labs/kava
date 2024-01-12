@@ -148,7 +148,7 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	distribution.BeginBlocker(
 		suite.Ctx,
 		abci.RequestBeginBlock{
-			LastCommitInfo: abci.LastCommitInfo{
+			LastCommitInfo: abci.CommitInfo{
 				Votes: []abci.VoteInfo{{
 					Validator:       val,
 					SignedLastBlock: true,
