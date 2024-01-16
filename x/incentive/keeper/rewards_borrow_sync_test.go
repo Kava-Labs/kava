@@ -479,7 +479,7 @@ func TestCalculateRewards(t *testing.T) {
 				sourceAmount: d("1000000000"),
 			},
 			expected: expected{
-				coins: nil,
+				coins: sdk.Coins{},
 			},
 		},
 		{

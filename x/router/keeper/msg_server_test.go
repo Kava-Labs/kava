@@ -234,7 +234,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	suite.Require().NoError(err)
 
 	// All spendable balance should be withdrawn
-	suite.AccountSpendableBalanceEqual(user, nil)
+	suite.AccountSpendableBalanceEqual(user, sdk.NewCoins())
 	// Since shares are newly created, the exact amount should be converted to derivatives, leaving none behind
 	suite.DelegationSharesEqual(valAddr, user, sdk.ZeroDec())
 	// All derivative coins should be deposited to earn
