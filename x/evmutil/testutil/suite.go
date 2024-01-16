@@ -108,7 +108,7 @@ func (suite *Suite) SetupTest() {
 	// InitializeFromGenesisStates commits first block so we start at 2 here
 	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
 		Height:          suite.App.LastBlockHeight() + 1,
-		ChainID:         "kavatest_1-1",
+		ChainID:         app.TestChainId,
 		Time:            time.Now().UTC(),
 		ProposerAddress: consAddress.Bytes(),
 		Version: tmversion.Consensus{

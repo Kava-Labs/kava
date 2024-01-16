@@ -38,8 +38,6 @@ import (
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
 
-var testChainID = "kavatest_1-1"
-
 type IntegrationTester struct {
 	suite.Suite
 	App app.TestApp
@@ -80,14 +78,14 @@ func (suite *IntegrationTester) StartChainWithBuilders(builders ...GenesisBuilde
 func (suite *IntegrationTester) StartChain(genesisStates ...app.GenesisState) {
 	suite.App.InitializeFromGenesisStatesWithTimeAndChainID(
 		suite.GenesisTime,
-		testChainID,
+		app.TestChainId,
 		genesisStates...,
 	)
 
 	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
 		Height:  1,
 		Time:    suite.GenesisTime,
-		ChainID: testChainID,
+		ChainID: app.TestChainId,
 	})
 }
 
@@ -132,7 +130,7 @@ func (suite *IntegrationTester) NextBlockAtWithRequest(
 	blockHeight := suite.Ctx.BlockHeight() + 1
 
 	responseEndBlock := suite.App.EndBlocker(suite.Ctx, reqEnd)
-	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(testChainID)
+	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(app.TestChainId)
 	responseBeginBlock := suite.App.BeginBlocker(suite.Ctx, reqBegin) // height and time in RequestBeginBlock are ignored by module begin blockers
 
 	return responseEndBlock, responseBeginBlock

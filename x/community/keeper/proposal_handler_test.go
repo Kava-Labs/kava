@@ -22,7 +22,7 @@ import (
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
-const chainID = "kavatest_2221-1"
+const chainID = app.TestChainId
 
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func ukava(amt int64) sdk.Coins {
