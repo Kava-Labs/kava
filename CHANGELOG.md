@@ -39,6 +39,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
+- [#1106] Upgrades app to cosmos-sdk v0.44.x and adds IBC and ICS-20 modules.
+- (cosmos-sdk) [#1811] Upgrades app to cosmos-sdk v0.47.7
 
 ## [v0.25.0]
 
@@ -68,6 +70,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v0.24.3]
 
 ### Bug Fixes
+
 - (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
 - (rocksdb) [#1767] Fix resolution of rocksdb database path introduced in v0.24.2
 
@@ -320,6 +323,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1811]: https://github.com/Kava-Labs/kava/pull/1811
 [#1785]: https://github.com/Kava-Labs/kava/pull/1785
 [#1784]: https://github.com/Kava-Labs/kava/pull/1784
 [#1776]: https://github.com/Kava-Labs/kava/pull/1776
