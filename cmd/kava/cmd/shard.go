@@ -146,7 +146,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 				printRollbackProgress(height - 1)
 				height, _, err = tmstate.Rollback(blockStore, stateStore, true)
 				if err != nil {
-					return fmt.Errorf("failed to rollback tendermint state: %w", err)
+					return fmt.Errorf("failed to rollback cometbft state: %w", err)
 				}
 			}
 
@@ -159,17 +159,10 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			//////////////////////////////
 			// Prune blocks to startBlock
 			//////////////////////////////
-
-			// enumerate all heights to prune
-			pruneHeights := make([]int64, 0, latest-shardSize)
-			for i := int64(1); i < startBlock; i++ {
-				pruneHeights = append(pruneHeights, i)
-			}
-
-			if len(pruneHeights) > 0 {
+			if startBlock > 1 {
 				// prune application state
 				fmt.Printf("pruning application state to height %d\n", startBlock)
-				if err := multistore.PruneStores(true, pruneHeights); err != nil {
+				if err := multistore.PruneStores(startBlock); err != nil {
 					return fmt.Errorf("failed to prune application state: %s", err)
 				}
 			}
