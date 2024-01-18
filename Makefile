@@ -162,6 +162,13 @@ ifeq (rocksdb,$(findstring rocksdb,$(COSMOS_BUILD_OPTIONS)))
   CGO_ENABLED=1
   BUILD_TAGS += rocksdb
   ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=rocksdb
+	# inject brew dependencies on mac
+	# this assumes that if you are building on mac, you've installed
+	# rocksdb, snappy, lz4, and zstd via brew
+	ifeq ($(NATIVE_GO_OS),darwin)
+		export CGO_CFLAGS := -I$(shell brew --prefix rocksdb)/include
+		export CGO_LDFLAGS := -L$(shell brew --prefix rocksdb)/lib -lrocksdb -lstdc++ -lm -lz -L$(shell brew --prefix snappy)/lib -L$(shell brew --prefix lz4)/lib -L$(shell brew --prefix zstd)/lib
+	endif
 endif
 # handle boltdb
 ifeq (boltdb,$(findstring boltdb,$(COSMOS_BUILD_OPTIONS)))
