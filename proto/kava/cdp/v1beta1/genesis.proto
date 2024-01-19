@@ -66,6 +66,8 @@ message Params {
     (gogoproto.nullable) = false
   ];
   bool circuit_breaker = 8;
+
+  int64 begin_blocker_execution_block_interval = 9;
 }
 
 // DebtParam defines governance params for debt assets
