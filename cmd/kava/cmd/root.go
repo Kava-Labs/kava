@@ -21,6 +21,7 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
 	kavaclient "github.com/kava-labs/kava/client"
+	"github.com/kava-labs/kava/cmd/kava/cmd/rocksdb"
 	"github.com/kava-labs/kava/cmd/kava/opendb"
 	"github.com/kava-labs/kava/migrate"
 )
@@ -120,5 +121,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		kavaclient.KeyCommands(app.DefaultNodeHome),
 		newIavlViewerCmd(opts),
 		newShardCmd(opts),
+		rocksdb.RocksDBCmd,
 	)
 }
