@@ -41,7 +41,7 @@ const (
 	// default tm-db block cache size for RocksDB
 	defaultBlockCacheSize = 1 << 30
 
-	defaultColumnFamilyName = "default"
+	DefaultColumnFamilyName = "default"
 
 	enableMetricsOptName             = "rocksdb.enable-metrics"
 	reportMetricsIntervalSecsOptName = "rocksdb.report-metrics-interval-secs"
@@ -91,7 +91,7 @@ func OpenDB(appOpts types.AppOptions, home string, backendType dbm.BackendType) 
 // option will be overridden only in case if it explicitly specified in appOpts
 func openRocksdb(dir string, appOpts types.AppOptions) (dbm.DB, error) {
 	optionsPath := filepath.Join(dir, "application.db")
-	dbOpts, cfOpts, err := loadLatestOptions(optionsPath)
+	dbOpts, cfOpts, err := LoadLatestOptions(optionsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -112,10 +112,10 @@ func openRocksdb(dir string, appOpts types.AppOptions) (dbm.DB, error) {
 	return newRocksDBWithOptions("application", dir, dbOpts, cfOpts, readOpts, enableMetrics, reportMetricsIntervalSecs)
 }
 
-// loadLatestOptions loads and returns database and column family options
+// LoadLatestOptions loads and returns database and column family options
 // if options file not found, it means database isn't created yet, in such case default tm-db options will be returned
 // if database exists it should have only one column family named default
-func loadLatestOptions(dir string) (*grocksdb.Options, *grocksdb.Options, error) {
+func LoadLatestOptions(dir string) (*grocksdb.Options, *grocksdb.Options, error) {
 	latestOpts, err := grocksdb.LoadLatestOptions(dir, grocksdb.NewDefaultEnv(), true, grocksdb.NewLRUCache(defaultBlockCacheSize))
 	if err != nil && strings.HasPrefix(err.Error(), "NotFound: ") {
 		return newDefaultOptions(), newDefaultOptions(), nil
@@ -127,7 +127,7 @@ func loadLatestOptions(dir string) (*grocksdb.Options, *grocksdb.Options, error)
 	cfNames := latestOpts.ColumnFamilyNames()
 	cfOpts := latestOpts.ColumnFamilyOpts()
 	// db should have only one column family named default
-	ok := len(cfNames) == 1 && cfNames[0] == defaultColumnFamilyName
+	ok := len(cfNames) == 1 && cfNames[0] == DefaultColumnFamilyName
 	if !ok {
 		return nil, nil, ErrUnexpectedConfiguration
 	}
@@ -312,7 +312,7 @@ func newRocksDBWithOptions(
 		dbOpts.EnableStatistics()
 	}
 
-	db, _, err := grocksdb.OpenDbColumnFamilies(dbOpts, dbPath, []string{defaultColumnFamilyName}, []*grocksdb.Options{cfOpts})
+	db, _, err := grocksdb.OpenDbColumnFamilies(dbOpts, dbPath, []string{DefaultColumnFamilyName}, []*grocksdb.Options{cfOpts})
 	if err != nil {
 		return nil, err
 	}

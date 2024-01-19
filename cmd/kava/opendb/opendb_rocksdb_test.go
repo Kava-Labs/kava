@@ -83,7 +83,7 @@ func TestOpenRocksdb(t *testing.T) {
 				require.NoError(t, err)
 				require.NoError(t, db.Close())
 
-				dbOpts, cfOpts, err := loadLatestOptions(filepath.Join(dir, "application.db"))
+				dbOpts, cfOpts, err := LoadLatestOptions(filepath.Join(dir, "application.db"))
 				require.NoError(t, err)
 				require.Equal(t, tc.maxOpenFiles, dbOpts.GetMaxOpenFiles())
 				require.Equal(t, tc.maxFileOpeningThreads, dbOpts.GetMaxFileOpeningThreads())
@@ -108,7 +108,7 @@ func TestOpenRocksdb(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, db.Close())
 
-		dbOpts, cfOpts, err := loadLatestOptions(filepath.Join(dir, "application.db"))
+		dbOpts, cfOpts, err := LoadLatestOptions(filepath.Join(dir, "application.db"))
 		require.NoError(t, err)
 		require.Equal(t, defaultOpts.GetMaxOpenFiles(), dbOpts.GetMaxOpenFiles())
 		require.Equal(t, defaultOpts.GetMaxFileOpeningThreads(), dbOpts.GetMaxFileOpeningThreads())
@@ -190,7 +190,7 @@ func TestLoadLatestOptions(t *testing.T) {
 				require.NoError(t, err)
 				require.NoError(t, db.Close())
 
-				dbOpts, cfOpts, err := loadLatestOptions(filepath.Join(dir, "application.db"))
+				dbOpts, cfOpts, err := LoadLatestOptions(filepath.Join(dir, "application.db"))
 				require.NoError(t, err)
 				require.Equal(t, tc.maxOpenFiles, dbOpts.GetMaxOpenFiles())
 				require.Equal(t, tc.maxFileOpeningThreads, dbOpts.GetMaxFileOpeningThreads())
@@ -210,7 +210,7 @@ func TestLoadLatestOptions(t *testing.T) {
 			require.NoError(t, err)
 		}()
 
-		dbOpts, cfOpts, err := loadLatestOptions(filepath.Join(dir, "application.db"))
+		dbOpts, cfOpts, err := LoadLatestOptions(filepath.Join(dir, "application.db"))
 		require.NoError(t, err)
 		require.Equal(t, defaultOpts.GetMaxOpenFiles(), dbOpts.GetMaxOpenFiles())
 		require.Equal(t, defaultOpts.GetMaxFileOpeningThreads(), dbOpts.GetMaxFileOpeningThreads())
@@ -368,7 +368,7 @@ func TestNewRocksDBWithOptions(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, db.Close())
 
-	dbOpts, cfOpts, err = loadLatestOptions(filepath.Join(dir, "application.db"))
+	dbOpts, cfOpts, err = LoadLatestOptions(filepath.Join(dir, "application.db"))
 	require.NoError(t, err)
 	require.Equal(t, 999, dbOpts.GetMaxOpenFiles())
 	require.Equal(t, defaultOpts.GetMaxFileOpeningThreads(), dbOpts.GetMaxFileOpeningThreads())
