@@ -42,6 +42,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (metrics) [#1669] Add performance timing metrics to all Begin/EndBlockers
 - (rocksdb) [#1767] Fix resolution of rocksdb database path
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
+- (cli) [#1804] Add `rocksdb compact` command for manual DB compaction of state or blockstore.
 
 ## [v0.18.2](https://github.com/Kava-Labs/kava/releases/tag/v0.18.2)
 
@@ -185,6 +186,7 @@ Bump tendermint version to 0.32.10 to address [cosmos security advisory Lavender
 
 [\#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run large-scale simulations remotely using aws-batch
 
+[#1804]: https://github.com/Kava-Labs/kava/pull/1804
 [#1785]: https://github.com/Kava-Labs/kava/pull/1785
 [#1767]: https://github.com/Kava-Labs/kava/pull/1767
 [#1669]: https://github.com/Kava-Labs/kava/pull/1669
