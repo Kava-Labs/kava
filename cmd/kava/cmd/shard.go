@@ -4,22 +4,24 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
-	dbm "github.com/cometbft/cometbft-db"
+	cmtdb "github.com/cometbft/cometbft-db"
+	dbm "github.com/tendermint/tm-db"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmconfig "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/node"
 	tmstate "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 
-	ethermintserver "github.com/evmos/ethermint/server"
+	ethermintserver "github.com/tharsis/ethermint/server"
 )
 
 const (
@@ -81,7 +83,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			//////////////////////////////
 
 			// connect to database
-			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, server.GetAppDBBackend(ctx.Viper))
+			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, getAppDBBackend(ctx.Viper))
 			if err != nil {
 				return err
 			}
@@ -102,7 +104,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			}
 
 			// handle desired endblock being latest
-			latest := multistore.LatestVersion()
+			latest := multistore.LastCommitID().Version
 			fmt.Printf("latest height: %d\n", latest)
 			if endBlock == shardEndBlockLatest {
 				endBlock = latest
@@ -117,7 +119,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			fmt.Printf("pruning data in %s down to heights %d - %d (%d blocks)\n", clientCtx.HomeDir, startBlock, endBlock, shardSize)
 
 			// set pruning options to prevent no-ops from `PruneStores`
-			multistore.SetPruning(pruningtypes.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
+			multistore.SetPruning(sdk.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
 
 			// rollback application state
 			if err = multistore.RollbackToVersion(endBlock); err != nil {
@@ -162,9 +164,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			if startBlock > 1 {
 				// prune application state
 				fmt.Printf("pruning application state to height %d\n", startBlock)
-				if err := multistore.PruneStores(startBlock); err != nil {
-					return fmt.Errorf("failed to prune application state: %s", err)
-				}
+				multistore.PruneStores(startBlock)
 			}
 
 			// get starting block of block store
@@ -203,16 +203,16 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 
 // inspired by https://github.com/Kava-Labs/cometbft/blob/277b0853db3f67865a55aa1c54f59790b5f591be/node/node.go#L234
 func openCometBftDbs(config *tmconfig.Config) (blockStore *store.BlockStore, stateStore tmstate.Store, err error) {
-	dbProvider := node.DefaultDBProvider
+	dbType := cmtdb.BackendType(config.DBBackend)
 
-	var blockStoreDB dbm.DB
-	blockStoreDB, err = dbProvider(&node.DBContext{ID: "blockstore", Config: config})
+	var blockStoreDB cmtdb.DB
+	blockStoreDB, err = cmtdb.NewDB("blockstore", dbType, config.DBDir())
 	if err != nil {
 		return
 	}
 	blockStore = store.NewBlockStore(blockStoreDB)
 
-	stateDB, err := dbProvider(&node.DBContext{ID: "state", Config: config})
+	stateDB, err := cmtdb.NewDB("state", dbType, config.DBDir())
 	if err != nil {
 		return
 	}
@@ -222,4 +222,24 @@ func openCometBftDbs(config *tmconfig.Config) (blockStore *store.BlockStore, sta
 	})
 
 	return
+}
+
+// getAppDBBackend is a server util from future cosmos-sdk versions
+// https://github.com/Kava-Labs/cosmos-sdk/blob/e048402efb13d2f422a17bbd32e4e8ca0434395b/server/util.go#L371
+func getAppDBBackend(opts servertypes.AppOptions) dbm.BackendType {
+	rv := cast.ToString(opts.Get("app-db-backend"))
+	if len(rv) == 0 {
+		rv = cast.ToString(opts.Get("db-backend"))
+	}
+
+	// Cosmos SDK has migrated to cosmos-db which does not support all the backends which tm-db supported
+	if rv == "cleveldb" || rv == "badgerdb" || rv == "boltdb" {
+		panic(fmt.Sprintf("invalid app-db-backend %q, use %q, %q instead", rv, dbm.GoLevelDBBackend, dbm.RocksDBBackend))
+	}
+
+	if len(rv) != 0 {
+		return dbm.BackendType(rv)
+	}
+
+	return dbm.GoLevelDBBackend
 }

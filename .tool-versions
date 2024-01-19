@@ -1,1 +1,5 @@
-golang 1.17.13
+<<<<<<< HEAD
+golang 1.20
+=======
+golang 1.20
+>>>>>>> c5bfec10 (update shard command for v0.21 dependencies)
