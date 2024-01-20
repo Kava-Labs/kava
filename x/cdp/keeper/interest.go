@@ -5,6 +5,7 @@ import (
 	"math"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -161,11 +162,112 @@ func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
 }
 
 // SynchronizeInterestForRiskyCDPs synchronizes the interest for the slice of cdps with the lowest collateral:debt ratio
-func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, slice sdkmath.Int, targetRatio sdk.Dec, collateralType string) error {
-	cdps := k.GetSliceOfCDPsByRatioAndType(ctx, slice, targetRatio, collateralType)
-	for _, cdp := range cdps {
-		k.hooks.BeforeCDPModified(ctx, cdp)
-		k.SynchronizeInterest(ctx, cdp)
+func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdk.Dec, collateralParams types.CollateralParams) error {
+	debtParam := k.GetParams(ctx).DebtParam
+
+	cdpStore := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
+	collateralRatioStore := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
+
+	for _, cp := range collateralParams {
+		cdpIDs := make([]uint64, 0, cp.CheckCollateralizationIndexCount.Int64())
+		iterator := k.CdpCollateralRatioIndexIterator(ctx, cp.Type, targetRatio)
+
+		for ; iterator.Valid(); iterator.Next() {
+			_, id, _ := types.SplitCollateralRatioKey(iterator.Key())
+			cdpIDs = append(cdpIDs, id)
+			if int64(len(cdpIDs)) >= cp.CheckCollateralizationIndexCount.Int64() {
+				break
+			}
+		}
+		iterator.Close()
+
+		globalInterestFactor, found := k.GetInterestFactor(ctx, cp.Type)
+		if !found {
+			panic(fmt.Sprintf("global interest factor not found for type %s", cp.Type))
+		}
+		prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cp.Type)
+		if !found {
+			panic(fmt.Sprintf("previous accrual time not found for type %s", cp.Type))
+		}
+
+		for _, cdpID := range cdpIDs {
+			//
+			// GET CDP
+			//
+			bz := cdpStore.Get(types.CdpKey(cp.Type, cdpID))
+			if bz == nil {
+				panic(fmt.Sprintf("cdp %d does not exist", cdpID))
+			}
+			var cdp types.CDP
+			k.cdc.MustUnmarshal(bz, &cdp)
+
+			if debtParam.Denom != cdp.GetTotalPrincipal().Denom {
+				panic(fmt.Sprintf("unkown debt param %s", cdp.GetTotalPrincipal().Denom))
+			}
+
+			//
+			// HOOK
+			//
+			k.hooks.BeforeCDPModified(ctx, cdp)
+
+			//
+			// CALC INTEREST
+			//
+			accumulatedInterest := sdk.ZeroInt()
+			cdpInterestFactor := globalInterestFactor.Quo(cdp.InterestFactor)
+			if !cdpInterestFactor.Equal(sdk.OneDec()) {
+				accumulatedInterest = sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+			}
+
+			if accumulatedInterest.IsZero() {
+				// accumulated interest is zero if apy is zero or are if the total fees for all cdps round to zero
+				if cdp.FeesUpdated.Equal(prevAccrualTime) {
+					// if all fees are rounding to zero, don't update FeesUpdated
+					continue
+				}
+				// if apy is zero, we need to update FeesUpdated
+				cdp.FeesUpdated = prevAccrualTime
+				bz = k.cdc.MustMarshal(&cdp)
+				cdpStore.Set(types.CdpKey(cdp.Type, cdp.ID), bz)
+			}
+
+			//
+			// GET OLD RATIO
+			//
+			previousCollateralRatio := calculateCollateralRatio(debtParam, cp, cdp)
+
+			//
+			// UPDATE CDP
+			//
+			cdp.AccumulatedFees = cdp.AccumulatedFees.Add(sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest))
+			cdp.FeesUpdated = prevAccrualTime
+			cdp.InterestFactor = globalInterestFactor
+
+			//
+			// CALC NEW RATIO
+			//
+			updatedCollateralRatio := calculateCollateralRatio(debtParam, cp, cdp)
+
+			//
+			// UPDATE STORE
+			//
+			collateralRatioStore.Delete(types.CollateralRatioKey(cdp.Type, cdp.ID, previousCollateralRatio))
+			bz = k.cdc.MustMarshal(&cdp)
+			cdpStore.Set(types.CdpKey(cdp.Type, cdp.ID), bz)
+			collateralRatioStore.Set(types.CollateralRatioKey(cdp.Type, cdp.ID, updatedCollateralRatio), types.GetCdpIDBytes(cdp.ID))
+		}
+
 	}
 	return nil
+}
+
+func calculateCollateralRatio(debtParam types.DebtParam, collateralParam types.CollateralParam, cdp types.CDP) sdk.Dec {
+	debtTotal := sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), debtParam.ConversionFactor.Int64()))
+
+	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {
+		return types.MaxSortableDec.Sub(sdk.SmallestDec())
+	} else {
+		collateralBaseUnits := sdk.NewDecFromInt(cdp.Collateral.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), collateralParam.ConversionFactor.Int64()))
+		return collateralBaseUnits.Quo(debtTotal)
+	}
 }
