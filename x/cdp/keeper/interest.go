@@ -170,8 +170,8 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdk
 
 	for _, cp := range collateralParams {
 		cdpIDs := make([]uint64, 0, cp.CheckCollateralizationIndexCount.Int64())
-		iterator := k.CdpCollateralRatioIndexIterator(ctx, cp.Type, targetRatio)
 
+		iterator := collateralRatioStore.Iterator(types.CollateralRatioIterKey(cp.Type, sdk.ZeroDec()), types.CollateralRatioIterKey(cp.Type, targetRatio))
 		for ; iterator.Valid(); iterator.Next() {
 			_, id, _ := types.SplitCollateralRatioKey(iterator.Key())
 			cdpIDs = append(cdpIDs, id)
@@ -256,8 +256,8 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdk
 			cdpStore.Set(types.CdpKey(cdp.Type, cdp.ID), bz)
 			collateralRatioStore.Set(types.CollateralRatioKey(cdp.Type, cdp.ID, updatedCollateralRatio), types.GetCdpIDBytes(cdp.ID))
 		}
-
 	}
+
 	return nil
 }
 
