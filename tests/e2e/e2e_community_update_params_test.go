@@ -120,7 +120,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		kavaAcc.SdkAddress.String(),
 		"community-update-params",
 		"title",
-		"",
+		"summary",
 	)
 	suite.NoError(err)
 
