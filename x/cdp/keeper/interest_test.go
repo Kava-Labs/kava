@@ -725,7 +725,7 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 				}
 			}
 
-			err = suite.keeper.SynchronizeInterestForRiskyCDPs(suite.ctx, sdk.MaxSortableDec, types.CollateralParams{ctype})
+			err = suite.keeper.SynchronizeInterestForRiskyCDPs(suite.ctx, sdk.MaxSortableDec, ctype)
 			suite.Require().NoError(err)
 
 			cdpsUpdatedCount := 0
