@@ -35,21 +35,19 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 		if err != nil {
 			panic(err)
 		}
-	}
 
-	err := k.SynchronizeInterestForRiskyCDPs(ctx, sdk.MaxSortableDec, params.CollateralParams)
-	if err != nil {
-		panic(err)
-	}
+		err = k.SynchronizeInterestForRiskyCDPs(ctx, sdk.MaxSortableDec, cp)
+		if err != nil {
+			panic(err)
+		}
 
-	for _, cp := range params.CollateralParams {
-		err := k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Type, cp.LiquidationRatio, cp.CheckCollateralizationIndexCount)
+		err = k.LiquidateCdps(ctx, cp.LiquidationMarketID, cp.Type, cp.LiquidationRatio, cp.CheckCollateralizationIndexCount)
 		if err != nil && !errors.Is(err, pricefeedtypes.ErrNoValidPrice) {
 			panic(err)
 		}
 	}
 
-	err = k.RunSurplusAndDebtAuctions(ctx)
+	err := k.RunSurplusAndDebtAuctions(ctx)
 	if err != nil {
 		panic(err)
 	}
