@@ -1,6 +1,6 @@
 module github.com/kava-labs/kava
 
-go 1.20
+go 1.21
 
 require (
 	cosmossdk.io/errors v1.0.0
@@ -8,7 +8,7 @@ require (
 	cosmossdk.io/simapp v0.0.0-20231127212628-044ff4d8c015
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cometbft/cometbft v0.37.4
-	github.com/cometbft/cometbft-db v0.8.0
+	github.com/cometbft/cometbft-db v0.9.1
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.47.7
 	github.com/cosmos/go-bip39 v1.0.0
@@ -21,7 +21,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/linxGnu/grocksdb v1.8.4
+	github.com/linxGnu/grocksdb v1.8.6
 	github.com/pelletier/go-toml/v2 v2.0.8
 	github.com/prometheus/client_golang v1.14.0
 	github.com/spf13/cast v1.5.1
@@ -211,7 +211,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	// Use cometbft fork of tendermint
 	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.1-0.20240101201249-8f4c4b69c293
-	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.7.0-rocksdb-v7.9.2-kava.1
+	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.8-0.20240119162102-6d8368fb58e8
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
