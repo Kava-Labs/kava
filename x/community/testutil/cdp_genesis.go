@@ -13,11 +13,12 @@ import (
 func NewCDPGenState(cdc codec.JSONCodec, denom, asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := cdptypes.GenesisState{
 		Params: cdptypes.Params{
-			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
-			SurplusAuctionThreshold: cdptypes.DefaultSurplusThreshold,
-			SurplusAuctionLot:       cdptypes.DefaultSurplusLot,
-			DebtAuctionThreshold:    cdptypes.DefaultDebtThreshold,
-			DebtAuctionLot:          cdptypes.DefaultDebtLot,
+			GlobalDebtLimit:                    sdk.NewInt64Coin("usdx", 1000000000000),
+			SurplusAuctionThreshold:            cdptypes.DefaultSurplusThreshold,
+			SurplusAuctionLot:                  cdptypes.DefaultSurplusLot,
+			DebtAuctionThreshold:               cdptypes.DefaultDebtThreshold,
+			DebtAuctionLot:                     cdptypes.DefaultDebtLot,
+			BeginBlockerExecutionBlockInterval: cdptypes.DefaultBeginBlockerExecutionBlockInterval,
 			CollateralParams: cdptypes.CollateralParams{
 				{
 					Denom:                            denom,

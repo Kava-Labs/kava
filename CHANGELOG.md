@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
+- (cdp) [#1814] Add module param and logic for running x/cdp begin blocker every `n` blocks
 - (cli) [#1804] Add `rocksdb compact` command for manual DB compaction of state or blockstore.
 
 ## [v0.25.0]
@@ -69,6 +70,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v0.24.3]
 
 ### Bug Fixes
+
 - (deps) [#1770] Bump ledger-cosmos-go to v0.13.1 to resolve signing error with
 - (rocksdb) [#1767] Fix resolution of rocksdb database path introduced in v0.24.2
 
@@ -324,7 +326,6 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#1804]: https://github.com/Kava-Labs/kava/pull/1804
 [#1785]: https://github.com/Kava-Labs/kava/pull/1785
 [#1784]: https://github.com/Kava-Labs/kava/pull/1784
-[#1776]: https://github.com/Kava-Labs/kava/pull/1776
 [#1770]: https://github.com/Kava-Labs/kava/pull/1770
 [#1755]: https://github.com/Kava-Labs/kava/pull/1755
 [#1761]: https://github.com/Kava-Labs/kava/pull/1761
@@ -384,7 +385,6 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [v0.24.1]: https://github.com/Kava-Labs/kava/compare/v0.24.1...v0.24.0
 [v0.24.0]: https://github.com/Kava-Labs/kava/compare/v0.24.0...v0.23.2
 [v0.23.2]: https://github.com/Kava-Labs/kava/compare/v0.23.1...v0.23.2
-[v0.23.1]: https://github.com/Kava-Labs/kava/compare/v0.23.0...v0.23.1
 [v0.23.0]: https://github.com/Kava-Labs/kava/compare/v0.21.1...v0.23.0
 [v0.16.1]: https://github.com/Kava-Labs/kava/compare/v0.16.0...v0.16.1
 [v0.16.0]: https://github.com/Kava-Labs/kava/compare/v0.15.2...v0.16.0
