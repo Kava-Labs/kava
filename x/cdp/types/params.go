@@ -363,7 +363,7 @@ func validateBeginBlockerExecutionBlockIntervalParam(i interface{}) error {
 	}
 
 	if bbebi <= 0 {
-		return fmt.Errorf("begin blocker execution block interval param should be positive: %s", bbebi)
+		return fmt.Errorf("begin blocker execution block interval param should be positive: %d", bbebi)
 	}
 
 	return nil

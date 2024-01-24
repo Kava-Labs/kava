@@ -33,12 +33,13 @@ func migrateParams(params v015cdp.Params) v016cdp.Params {
 			ConversionFactor: params.DebtParam.ConversionFactor,
 			DebtFloor:        params.DebtParam.DebtFloor,
 		},
-		GlobalDebtLimit:         params.GlobalDebtLimit,
-		SurplusAuctionThreshold: params.SurplusAuctionThreshold,
-		SurplusAuctionLot:       params.SurplusAuctionLot,
-		DebtAuctionThreshold:    params.DebtAuctionThreshold,
-		DebtAuctionLot:          params.DebtAuctionLot,
-		CircuitBreaker:          params.CircuitBreaker,
+		GlobalDebtLimit:                    params.GlobalDebtLimit,
+		SurplusAuctionThreshold:            params.SurplusAuctionThreshold,
+		SurplusAuctionLot:                  params.SurplusAuctionLot,
+		DebtAuctionThreshold:               params.DebtAuctionThreshold,
+		DebtAuctionLot:                     params.DebtAuctionLot,
+		CircuitBreaker:                     params.CircuitBreaker,
+		BeginBlockerExecutionBlockInterval: v016cdp.DefaultBeginBlockerExecutionBlockInterval,
 	}
 }
 

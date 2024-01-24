@@ -837,7 +837,7 @@
       "gov_denom": "ukava",
       "params": {
         "circuit_breaker": false,
-        "begin_blocker_execution_block_interval": 10,
+        "begin_blocker_execution_block_interval": 500,
         "collateral_params": [
           {
             "auction_size": "50000000000",
@@ -1076,7 +1076,7 @@
         "surplus_auction_lot": "10000000000",
         "surplus_auction_threshold": "500000000000"
       },
-      "starting_cdp_id": "1",
+      "starting_cdp_id": "1"
     },
     "committee": {
       "committees": [
