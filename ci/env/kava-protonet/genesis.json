@@ -837,6 +837,7 @@
       "gov_denom": "ukava",
       "params": {
         "circuit_breaker": false,
+        "begin_blocker_execution_block_interval": 500,
         "collateral_params": [
           {
             "auction_size": "50000000000",

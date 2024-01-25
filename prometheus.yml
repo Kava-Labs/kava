@@ -3,8 +3,7 @@ global:
   evaluation_interval: 15s
 scrape_configs:
 - job_name: proxy
-  scheme: https
   metrics_path: /
   static_configs:
     - targets:
-      - 4efb-18-207-102-158.ngrok-free.app
+      - docker-host:8888
