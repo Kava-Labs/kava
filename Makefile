@@ -330,7 +330,6 @@ start-remote-sims:
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
 
 update-kvtool:
-	git submodule init || true
 	git submodule update
 	cd tests/e2e/kvtool && make install
 

@@ -29,12 +29,11 @@ func dcs(coins ...sdk.DecCoin) sdk.DecCoins { return sdk.NewDecCoins(coins...) }
 func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	cdpGenesis := cdptypes.GenesisState{
 		Params: cdptypes.Params{
-			GlobalDebtLimit:                    sdk.NewInt64Coin("usdx", 2000000000000),
-			SurplusAuctionThreshold:            cdptypes.DefaultSurplusThreshold,
-			SurplusAuctionLot:                  cdptypes.DefaultSurplusLot,
-			DebtAuctionThreshold:               cdptypes.DefaultDebtThreshold,
-			DebtAuctionLot:                     cdptypes.DefaultDebtLot,
-			BeginBlockerExecutionBlockInterval: cdptypes.DefaultBeginBlockerExecutionBlockInterval,
+			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 2000000000000),
+			SurplusAuctionThreshold: cdptypes.DefaultSurplusThreshold,
+			SurplusAuctionLot:       cdptypes.DefaultSurplusLot,
+			DebtAuctionThreshold:    cdptypes.DefaultDebtThreshold,
+			DebtAuctionLot:          cdptypes.DefaultDebtLot,
 			CollateralParams: cdptypes.CollateralParams{
 				{
 					Denom:               "xrp",
