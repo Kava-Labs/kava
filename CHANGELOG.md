@@ -39,7 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
-- (cdp) [#1814] Add module param and logic for running x/cdp begin blocker every `n` blocks
+- (cdp) [#1818] Add module param and logic for running x/cdp begin blocker every `n` blocks
 - (cli) [#1804] Add `rocksdb compact` command for manual DB compaction of state or blockstore.
 
 ## [v0.25.0]

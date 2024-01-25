@@ -820,6 +820,42 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 				contains:   "debt auction lot should be positive",
 			},
 		},
+		{
+			name: "zero begin blocker execution interval",
+			args: args{
+				globalDebtLimit:                    types.DefaultGlobalDebt,
+				collateralParams:                   types.DefaultCollateralParams,
+				debtParam:                          types.DefaultDebtParam,
+				surplusThreshold:                   types.DefaultSurplusThreshold,
+				surplusLot:                         types.DefaultSurplusLot,
+				debtThreshold:                      types.DefaultDebtThreshold,
+				debtLot:                            types.DefaultDebtLot,
+				breaker:                            types.DefaultCircuitBreaker,
+				beginBlockerExecutionBlockInterval: 0,
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "begin blocker execution block interval param should be positive",
+			},
+		},
+		{
+			name: "negative begin blocker execution interval",
+			args: args{
+				globalDebtLimit:                    types.DefaultGlobalDebt,
+				collateralParams:                   types.DefaultCollateralParams,
+				debtParam:                          types.DefaultDebtParam,
+				surplusThreshold:                   types.DefaultSurplusThreshold,
+				surplusLot:                         types.DefaultSurplusLot,
+				debtThreshold:                      types.DefaultDebtThreshold,
+				debtLot:                            types.DefaultDebtLot,
+				breaker:                            types.DefaultCircuitBreaker,
+				beginBlockerExecutionBlockInterval: -1,
+			},
+			errArgs: errArgs{
+				expectPass: false,
+				contains:   "begin blocker execution block interval param should be positive",
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {

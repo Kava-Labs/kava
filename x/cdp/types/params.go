@@ -148,6 +148,10 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validateBeginBlockerExecutionBlockIntervalParam(p.BeginBlockerExecutionBlockInterval); err != nil {
+		return err
+	}
+
 	if err := validateSurplusAuctionThresholdParam(p.SurplusAuctionThreshold); err != nil {
 		return err
 	}
@@ -203,10 +207,6 @@ func (p Params) Validate() error {
 	if collateralParamsDebtLimit.GT(p.GlobalDebtLimit.Amount) {
 		return fmt.Errorf("sum of collateral debt limits %s exceeds global debt limit %s",
 			collateralParamsDebtLimit, p.GlobalDebtLimit)
-	}
-
-	if err := validateBeginBlockerExecutionBlockIntervalParam(p.BeginBlockerExecutionBlockInterval); err != nil {
-		return err
 	}
 
 	return nil
