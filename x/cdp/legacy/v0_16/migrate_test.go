@@ -163,12 +163,11 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 				ConversionFactor: sdkmath.NewInt(6),
 				DebtFloor:        sdkmath.NewInt(100),
 			},
-			GlobalDebtLimit:                    sdk.NewInt64Coin("usdx", 1000000000000),
-			SurplusAuctionThreshold:            sdkmath.NewInt(6),
-			SurplusAuctionLot:                  sdkmath.NewInt(7),
-			DebtAuctionThreshold:               sdkmath.NewInt(8),
-			DebtAuctionLot:                     sdkmath.NewInt(9),
-			BeginBlockerExecutionBlockInterval: v016cdp.DefaultBeginBlockerExecutionBlockInterval,
+			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
+			SurplusAuctionThreshold: sdkmath.NewInt(6),
+			SurplusAuctionLot:       sdkmath.NewInt(7),
+			DebtAuctionThreshold:    sdkmath.NewInt(8),
+			DebtAuctionLot:          sdkmath.NewInt(9),
 		},
 		CDPs: v016cdp.CDPs{
 			{

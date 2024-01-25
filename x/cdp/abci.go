@@ -20,16 +20,6 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	params := k.GetParams(ctx)
 
-	// only run CDP Begin Blocker every `BeginBlockerExecutionBlockInterval` blocks
-	blockHeight := ctx.BlockHeight()
-
-	if blockHeight%params.BeginBlockerExecutionBlockInterval != 0 {
-		ctx.Logger().Info("skipping x/cdp begin blocker")
-		return
-	}
-
-	ctx.Logger().Debug("running x/cdp begin blocker")
-
 	for _, cp := range params.CollateralParams {
 		ok := k.UpdatePricefeedStatus(ctx, cp.SpotMarketID)
 		if !ok {

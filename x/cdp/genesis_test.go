@@ -205,12 +205,11 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
 	cdpGenesis := types.GenesisState{
 		Params: types.Params{
-			GlobalDebtLimit:                    sdk.NewInt64Coin("usdx", 1000000000000),
-			SurplusAuctionThreshold:            types.DefaultSurplusThreshold,
-			SurplusAuctionLot:                  types.DefaultSurplusLot,
-			DebtAuctionThreshold:               types.DefaultDebtThreshold,
-			DebtAuctionLot:                     types.DefaultDebtLot,
-			BeginBlockerExecutionBlockInterval: types.DefaultBeginBlockerExecutionBlockInterval,
+			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
+			SurplusAuctionThreshold: types.DefaultSurplusThreshold,
+			SurplusAuctionLot:       types.DefaultSurplusLot,
+			DebtAuctionThreshold:    types.DefaultDebtThreshold,
+			DebtAuctionLot:          types.DefaultDebtLot,
 			CollateralParams: types.CollateralParams{
 				{
 					Denom:                            "xrp",
