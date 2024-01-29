@@ -17,6 +17,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -150,7 +151,7 @@ func unmarshalJSONKeys(jsonBytes []byte) ([]string, error) {
 func removeIbcTmModule(modules []string) []string {
 	var result []string
 	for _, str := range modules {
-		if str != "07-tendermint" {
+		if str != ibctm.ModuleName {
 			result = append(result, str)
 		}
 	}
