@@ -9,8 +9,8 @@ import (
 
 	cometbftdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
@@ -22,7 +22,6 @@ import (
 	ethermintflags "github.com/evmos/ethermint/server/flags"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
@@ -64,7 +63,7 @@ func (ac appCreator) newApp(
 
 	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
 	snapshotDir := filepath.Join(homeDir, "data", "snapshots") // TODO can these directory names be imported from somewhere?
-	snapshotDB, err := cometbftdb.NewGoLevelDB("metadata", snapshotDir)
+	snapshotDB, err := cometbftdb.NewDB("metadata", server.GetAppDBBackend(appOpts), snapshotDir)
 	if err != nil {
 		panic(err)
 	}
@@ -92,21 +91,14 @@ func (ac appCreator) newApp(
 	)
 
 	// Setup chainId
-	home := cast.ToString(appOpts.Get(flags.FlagHome))
 	chainID := cast.ToString(appOpts.Get(flags.FlagChainID))
 	if len(chainID) == 0 {
-		v := viper.New()
-		v.AddConfigPath(filepath.Join(home, "config"))
-		v.SetConfigName("client")
-		v.SetConfigType("toml")
-		if err := v.ReadInConfig(); err != nil {
+		// fallback to genesis chain-id
+		appGenesis, err := tmtypes.GenesisDocFromFile(filepath.Join(homeDir, "config", "genesis.json"))
+		if err != nil {
 			panic(err)
 		}
-		conf := new(config.ClientConfig)
-		if err := v.Unmarshal(conf); err != nil {
-			panic(err)
-		}
-		chainID = conf.ChainID
+		chainID = appGenesis.ChainID
 	}
 
 	return app.NewApp(
