@@ -14,12 +14,9 @@ import (
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/store/wrapper"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/spf13/cast"
+	"github.com/kava-labs/kava/cmd/kava/cmd/util"
 	"github.com/spf13/cobra"
-	tdbm "github.com/tendermint/tm-db"
 	ethermintserver "github.com/tharsis/ethermint/server"
 
 	"github.com/cosmos/iavl"
@@ -49,7 +46,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			ctx := server.GetServerContextFromCmd(cmd)
 			ctx.Config.SetRoot(clientCtx.HomeDir)
 
-			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, getAppDBBackend(ctx.Viper))
+			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, util.GetAppDBBackend(ctx.Viper))
 			if err != nil {
 				return err
 			}
@@ -206,19 +203,4 @@ func printVersions(tree *iavl.MutableTree) {
 	for _, v := range versions {
 		fmt.Printf("  %d\n", v)
 	}
-}
-
-// getAppDBBackend is a server util from future cosmos-sdk versions
-func getAppDBBackend(opts types.AppOptions) tdbm.BackendType {
-	rv := cast.ToString(opts.Get("app-db-backend"))
-	if len(rv) == 0 {
-		rv = sdk.DBBackend
-	}
-	if len(rv) == 0 {
-		rv = cast.ToString(opts.Get("db-backend"))
-	}
-	if len(rv) != 0 {
-		return tdbm.BackendType(rv)
-	}
-	return tdbm.GoLevelDBBackend
 }

@@ -16,6 +16,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/kava-labs/kava/cmd/kava/cmd/util"
 	"github.com/kava-labs/kava/cmd/kava/opendb"
 	"github.com/linxGnu/grocksdb"
 	"github.com/spf13/cobra"
@@ -56,7 +57,7 @@ func CompactRocksDBCmd() *cobra.Command {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 			ctx := server.GetServerContextFromCmd(cmd)
 
-			if server.GetAppDBBackend(ctx.Viper) != "rocksdb" {
+			if util.GetAppDBBackend(ctx.Viper) != "rocksdb" {
 				return errors.New("compaction is currently only supported with rocksdb")
 			}
 

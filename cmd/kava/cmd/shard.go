@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kava-labs/kava/cmd/kava/cmd/util"
 	"github.com/spf13/cobra"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -88,7 +89,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			//////////////////////////////
 
 			// connect to database
-			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, getAppDBBackend(ctx.Viper))
+			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, util.GetAppDBBackend(ctx.Viper))
 			if err != nil {
 				return err
 			}
