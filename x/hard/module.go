@@ -23,7 +23,6 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	// _ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic app module basics object
@@ -147,30 +146,3 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-
-//____________________________________________________________________________
-
-// // GenerateGenesisState creates a randomized GenState of the hard module
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
-
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// 	return nil
-// }
-
-// // RandomizedParams returns nil because hard has no params.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
-
-// // RegisterStoreDecoder registers a decoder for hard module's types
-// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[types.StoreKey] = simulation.DecodeStore
-// }
-
-// // WeightedOperations returns the all the hard module operations with their respective weights.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-// 	return nil
-// }

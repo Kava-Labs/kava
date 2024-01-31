@@ -23,7 +23,6 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	// _ module.AppModuleSimulation = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the incentive module.
@@ -142,30 +141,3 @@ func (am AppModule) BeginBlock(ctx sdk.Context, _ abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-
-//____________________________________________________________________________
-
-// // RegisterStoreDecoder registers a decoder for incentive module's types
-// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// sdr[types.StoreKey] = simulation.DecodeStore
-// }
-
-// // GenerateGenesisState creates a randomized GenState of the incentive module
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// simulation.RandomizedGenState(simState)
-// }
-
-// // RandomizedParams creates randomized incentive param changes for the simulator.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// return simulation.ParamChanges(r)
-// }
-
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// return nil
-// }
-
-// // WeightedOperations returns the all the incentive module operations with their respective weights.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-// return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.supplyKeeper, am.keeper)
-// }

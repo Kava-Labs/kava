@@ -27,7 +27,6 @@ const ConsensusVersion = 1
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	// _ module.AppModuleSimulation = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -145,30 +144,3 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-
-//____________________________________________________________________________
-
-// // GenerateGenesisState creates a randomized GenState of the auction module
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
-
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-// 	return simulation.ProposalContents(am.keeper, simState.ParamChanges)
-// }
-
-// RandomizedParams returns functions that generate params for the module
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return nil
-// }
-
-// // RegisterStoreDecoder registers a decoder for the module's types
-// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[StoreKey] = simulation.DecodeStore
-// }
-
-// // WeightedOperations returns the module operations for use in simulations
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper, simState.Contents)
-// }

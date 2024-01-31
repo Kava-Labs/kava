@@ -21,7 +21,6 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
-	// _ module.AppModuleSimulation = AppModule{} // TODO simulation
 )
 
 // AppModuleBasic app module basics object
@@ -140,30 +139,3 @@ func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {
 func (am AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
 }
-
-//____________________________________________________________________________
-
-// // GenerateGenesisState creates a randomized GenState of the swap module
-// func (AppModuleBasic) GenerateGenesisState(simState *module.SimulationState) {
-// 	simulation.RandomizedGenState(simState)
-// }
-
-// // ProposalContents doesn't return any content functions for governance proposals.
-// func (AppModuleBasic) ProposalContents(_ module.SimulationState) []sim.WeightedProposalContent {
-// 	return nil
-// }
-
-// // RandomizedParams returns nil because swap has no params.
-// func (AppModuleBasic) RandomizedParams(r *rand.Rand) []sim.ParamChange {
-// 	return simulation.ParamChanges(r)
-// }
-
-// // RegisterStoreDecoder registers a decoder for swap module's types
-// func (AppModuleBasic) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-// 	sdr[StoreKey] = simulation.DecodeStore
-// }
-
-// // WeightedOperations returns the all the swap module operations with their respective weights.
-// func (am AppModule) WeightedOperations(simState module.SimulationState) []sim.WeightedOperation {
-// 	return simulation.WeightedOperations(simState.AppParams, simState.Cdc, am.accountKeeper, am.keeper)
-// }
