@@ -50,15 +50,15 @@ func NewParams(
 	surplusLot, debtThreshold, debtLot sdkmath.Int, breaker bool, beginBlockerExecutionBlockInterval int64,
 ) Params {
 	return Params{
-		GlobalDebtLimit:                    debtLimit,
-		CollateralParams:                   collateralParams,
-		DebtParam:                          debtParam,
-		SurplusAuctionThreshold:            surplusThreshold,
-		SurplusAuctionLot:                  surplusLot,
-		DebtAuctionThreshold:               debtThreshold,
-		DebtAuctionLot:                     debtLot,
-		CircuitBreaker:                     breaker,
-		BeginBlockerExecutionBlockInterval: beginBlockerExecutionBlockInterval,
+		GlobalDebtLimit:          debtLimit,
+		CollateralParams:         collateralParams,
+		DebtParam:                debtParam,
+		SurplusAuctionThreshold:  surplusThreshold,
+		SurplusAuctionLot:        surplusLot,
+		DebtAuctionThreshold:     debtThreshold,
+		DebtAuctionLot:           debtLot,
+		CircuitBreaker:           breaker,
+		LiquidationBlockInterval: beginBlockerExecutionBlockInterval,
 	}
 }
 
@@ -126,7 +126,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeySurplusLot, &p.SurplusAuctionLot, validateSurplusAuctionLotParam),
 		paramtypes.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateDebtAuctionThresholdParam),
 		paramtypes.NewParamSetPair(KeyDebtLot, &p.DebtAuctionLot, validateDebtAuctionLotParam),
-		paramtypes.NewParamSetPair(KeyBeginBlockerExecutionBlockInterval, &p.BeginBlockerExecutionBlockInterval, validateBeginBlockerExecutionBlockIntervalParam),
+		paramtypes.NewParamSetPair(KeyBeginBlockerExecutionBlockInterval, &p.LiquidationBlockInterval, validateBeginBlockerExecutionBlockIntervalParam),
 	}
 }
 
@@ -148,7 +148,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateBeginBlockerExecutionBlockIntervalParam(p.BeginBlockerExecutionBlockInterval); err != nil {
+	if err := validateBeginBlockerExecutionBlockIntervalParam(p.LiquidationBlockInterval); err != nil {
 		return err
 	}
 

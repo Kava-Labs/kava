@@ -67,7 +67,7 @@ message Params {
   ];
   bool circuit_breaker = 8;
 
-  int64 begin_blocker_execution_block_interval = 9;
+  int64 liquidation_block_interval = 9;
 }
 
 // DebtParam defines governance params for debt assets

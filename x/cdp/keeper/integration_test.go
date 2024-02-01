@@ -42,12 +42,12 @@ func NewPricefeedGenState(cdc codec.JSONCodec, asset string, price sdk.Dec) app.
 func NewCDPGenState(cdc codec.JSONCodec, asset string, liquidationRatio sdk.Dec) app.GenesisState {
 	cdpGenesis := types.GenesisState{
 		Params: types.Params{
-			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 1000000000000),
-			SurplusAuctionThreshold: types.DefaultSurplusThreshold,
-			SurplusAuctionLot:       types.DefaultSurplusLot,
-			DebtAuctionThreshold:    types.DefaultDebtThreshold,
-			DebtAuctionLot:          types.DefaultDebtLot,
-			BeginBlockerExecutionBlockInterval: types.DefaultBeginBlockerExecutionBlockInterval,
+			GlobalDebtLimit:          sdk.NewInt64Coin("usdx", 1000000000000),
+			SurplusAuctionThreshold:  types.DefaultSurplusThreshold,
+			SurplusAuctionLot:        types.DefaultSurplusLot,
+			DebtAuctionThreshold:     types.DefaultDebtThreshold,
+			DebtAuctionLot:           types.DefaultDebtLot,
+			LiquidationBlockInterval: types.DefaultBeginBlockerExecutionBlockInterval,
 			CollateralParams: types.CollateralParams{
 				{
 					Denom:                            asset,
@@ -156,12 +156,12 @@ func NewPricefeedGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	cdpGenesis := types.GenesisState{
 		Params: types.Params{
-			GlobalDebtLimit:                    sdk.NewInt64Coin("usdx", 2000000000000),
-			SurplusAuctionThreshold:            types.DefaultSurplusThreshold,
-			SurplusAuctionLot:                  types.DefaultSurplusLot,
-			DebtAuctionThreshold:               types.DefaultDebtThreshold,
-			DebtAuctionLot:                     types.DefaultDebtLot,
-			BeginBlockerExecutionBlockInterval: types.DefaultBeginBlockerExecutionBlockInterval,
+			GlobalDebtLimit:          sdk.NewInt64Coin("usdx", 2000000000000),
+			SurplusAuctionThreshold:  types.DefaultSurplusThreshold,
+			SurplusAuctionLot:        types.DefaultSurplusLot,
+			DebtAuctionThreshold:     types.DefaultDebtThreshold,
+			DebtAuctionLot:           types.DefaultDebtLot,
+			LiquidationBlockInterval: types.DefaultBeginBlockerExecutionBlockInterval,
 			CollateralParams: types.CollateralParams{
 				{
 					Denom:                            "xrp",
@@ -250,12 +250,12 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 func NewCDPGenStateHighDebtLimit(cdc codec.JSONCodec) app.GenesisState {
 	cdpGenesis := types.GenesisState{
 		Params: types.Params{
-			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 100000000000000),
-			SurplusAuctionThreshold: types.DefaultSurplusThreshold,
-			SurplusAuctionLot:       types.DefaultSurplusLot,
-			DebtAuctionThreshold:    types.DefaultDebtThreshold,
-			DebtAuctionLot:          types.DefaultDebtLot,
-			BeginBlockerExecutionBlockInterval: types.DefaultBeginBlockerExecutionBlockInterval,
+			GlobalDebtLimit:          sdk.NewInt64Coin("usdx", 100000000000000),
+			SurplusAuctionThreshold:  types.DefaultSurplusThreshold,
+			SurplusAuctionLot:        types.DefaultSurplusLot,
+			DebtAuctionThreshold:     types.DefaultDebtThreshold,
+			DebtAuctionLot:           types.DefaultDebtLot,
+			LiquidationBlockInterval: types.DefaultBeginBlockerExecutionBlockInterval,
 			CollateralParams: types.CollateralParams{
 				{
 					Denom:                            "xrp",

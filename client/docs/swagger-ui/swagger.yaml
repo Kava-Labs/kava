@@ -3505,7 +3505,7 @@ paths:
                     type: string
                   circuit_breaker:
                     type: boolean
-                  begin_blocker_execution_block_interval:
+                  liquidation_block_interval:
                     type: string
                     format: int64
                 description: Params defines the parameters for the cdp module.
@@ -51631,7 +51631,7 @@ definitions:
         type: string
       circuit_breaker:
         type: boolean
-      begin_blocker_execution_block_interval:
+      liquidation_block_interval:
         type: string
         format: int64
     description: Params defines the parameters for the cdp module.
@@ -52167,7 +52167,7 @@ definitions:
             type: string
           circuit_breaker:
             type: boolean
-          begin_blocker_execution_block_interval:
+          liquidation_block_interval:
             type: string
             format: int64
         description: Params defines the parameters for the cdp module.

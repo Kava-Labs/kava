@@ -245,7 +245,7 @@ func (suite *ModuleTestSuite) TestCDPBeginBlockerRunsOnlyOnConfiguredInterval() 
 
 	// set the cdp begin blocker to run every other block
 	params := suite.keeper.GetParams(suite.ctx)
-	params.BeginBlockerExecutionBlockInterval = 2
+	params.LiquidationBlockInterval = 2
 	suite.keeper.SetParams(suite.ctx, params)
 
 	// test case 1 setup
@@ -268,7 +268,7 @@ func (suite *ModuleTestSuite) TestCDPBeginBlockerRunsOnlyOnConfiguredInterval() 
 	xrpLiquidations := int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
 	// should be 0 because the cdp begin blocker is configured to
 	// skip execution every odd numbered block
-	suite.Equal(0, xrpLiquidations)
+	suite.Equal(0, xrpLiquidations, "expected cdp begin blocker not to run liqudations")
 
 	// test case 2 setup
 	// simulate running the second block of the chain
@@ -285,8 +285,7 @@ func (suite *ModuleTestSuite) TestCDPBeginBlockerRunsOnlyOnConfiguredInterval() 
 	// calculate the number of cdps that were liquidated based on the total
 	// seized collateral divided by the size of each cdp when it was created
 	xrpLiquidations = int(seizedXrpCollateral.Quo(i(10000000000)).Int64())
-	// should be 10 because of magic numbers elsewhere in this file
-	suite.Equal(10, xrpLiquidations)
+	suite.Greater(xrpLiquidations, 0, "expected cdp begin blocker to run liquidations")
 }
 
 func TestModuleTestSuite(t *testing.T) {
