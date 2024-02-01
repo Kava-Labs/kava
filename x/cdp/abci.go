@@ -21,7 +21,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	params := k.GetParams(ctx)
 
-	// only run CDP Begin Blocker every `BeginBlockerExecutionBlockInterval` blocks
+	// only run CDP liquidations every `LiquidationBlockInterval` blocks
 	skipSyncronizeAndLiquidations := ctx.BlockHeight()%params.LiquidationBlockInterval != 0
 
 	for _, cp := range params.CollateralParams {
@@ -45,7 +45,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 			return
 		}
 
-		ctx.Logger().Debug(fmt.Sprintf("running x/cdp SynchronizeInterestForRiskyCDPs and LiquidateCdpsfor %s", cp.Type))
+		ctx.Logger().Debug(fmt.Sprintf("running x/cdp SynchronizeInterestForRiskyCDPs and LiquidateCdps for %s", cp.Type))
 
 		err = k.SynchronizeInterestForRiskyCDPs(ctx, cp.CheckCollateralizationIndexCount, sdk.MaxSortableDec, cp.Type)
 		if err != nil {

@@ -55,6 +55,7 @@ func TestStoreMigrationSetsNewParamOnExistingKeyTable(t *testing.T) {
 
 	// Make sure the new params are set.
 	require.True(t, paramstore.Has(ctx, types.KeyBeginBlockerExecutionBlockInterval))
+
 	// Assert the value is what we expect
 	result := types.DefaultBeginBlockerExecutionBlockInterval
 	paramstore.Get(ctx, types.KeyBeginBlockerExecutionBlockInterval, &result)
