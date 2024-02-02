@@ -23,11 +23,12 @@ func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amo
 func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 	cdpGenesis := cdptypes.GenesisState{
 		Params: cdptypes.Params{
-			GlobalDebtLimit:         sdk.NewInt64Coin("usdx", 2000000000000),
-			SurplusAuctionThreshold: cdptypes.DefaultSurplusThreshold,
-			SurplusAuctionLot:       cdptypes.DefaultSurplusLot,
-			DebtAuctionThreshold:    cdptypes.DefaultDebtThreshold,
-			DebtAuctionLot:          cdptypes.DefaultDebtLot,
+			GlobalDebtLimit:          sdk.NewInt64Coin("usdx", 2000000000000),
+			SurplusAuctionThreshold:  cdptypes.DefaultSurplusThreshold,
+			SurplusAuctionLot:        cdptypes.DefaultSurplusLot,
+			DebtAuctionThreshold:     cdptypes.DefaultDebtThreshold,
+			DebtAuctionLot:           cdptypes.DefaultDebtLot,
+			LiquidationBlockInterval: cdptypes.DefaultBeginBlockerExecutionBlockInterval,
 			CollateralParams: cdptypes.CollateralParams{
 				{
 					Denom:               "xrp",

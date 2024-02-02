@@ -38,10 +38,10 @@ Then restart the service with the updated settings
 
 ## Running local prometheus collector and grafana services
 
-To collect app metrics and visualize them locally, you can run the prometheus collector and grafana services with docker compose from the repo root directory
+To collect app metrics and visualize them locally, you can run the prometheus collector and grafana services with docker compose from the repo root directory (after updating `config.toml` and `app.toml` as detailed above)
 
 ```bash
-docker compose -f prometheus.docker-compose.yml
+docker compose -f prometheus.docker-compose.yml up
 ```
 
 Navigate to localhost:3000 to view the grafana unix
@@ -54,13 +54,13 @@ See [grafana docs](https://grafana.com/docs/grafana/latest/dashboards/) for info
 
 ### Collecting from local host
 
-Update [prometheus config](../prometheus.yml) to collect metrics from your local source
+Update [prometheus config](../prometheus.yml) to collect metrics from your local source, where the port matches the value set for `config.toml/instrumentation.prometheus_listen_addr`
 
 ```yaml
   metrics_path: /
   static_configs:
     - targets:
-      - localhost:8888
+      - docker-host:8888
 ```
 
 ### Collecting from remote host

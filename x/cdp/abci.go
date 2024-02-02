@@ -2,6 +2,7 @@ package cdp
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -20,6 +21,9 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 	params := k.GetParams(ctx)
 
+	// only run CDP liquidations every `LiquidationBlockInterval` blocks
+	skipSyncronizeAndLiquidations := ctx.BlockHeight()%params.LiquidationBlockInterval != 0
+
 	for _, cp := range params.CollateralParams {
 		ok := k.UpdatePricefeedStatus(ctx, cp.SpotMarketID)
 		if !ok {
@@ -35,6 +39,13 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 		if err != nil {
 			panic(err)
 		}
+
+		if skipSyncronizeAndLiquidations {
+			ctx.Logger().Debug(fmt.Sprintf("skipping x/cdp SynchronizeInterestForRiskyCDPs and LiquidateCdps for %s", cp.Type))
+			return
+		}
+
+		ctx.Logger().Debug(fmt.Sprintf("running x/cdp SynchronizeInterestForRiskyCDPs and LiquidateCdps for %s", cp.Type))
 
 		err = k.SynchronizeInterestForRiskyCDPs(ctx, cp.CheckCollateralizationIndexCount, sdk.MaxSortableDec, cp.Type)
 		if err != nil {
