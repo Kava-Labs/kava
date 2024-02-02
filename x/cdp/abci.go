@@ -42,7 +42,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 		if skipSyncronizeAndLiquidations {
 			ctx.Logger().Debug(fmt.Sprintf("skipping x/cdp SynchronizeInterestForRiskyCDPs and LiquidateCdps for %s", cp.Type))
-			return
+			continue
 		}
 
 		ctx.Logger().Debug(fmt.Sprintf("running x/cdp SynchronizeInterestForRiskyCDPs and LiquidateCdps for %s", cp.Type))
