@@ -3505,6 +3505,9 @@ paths:
                     type: string
                   circuit_breaker:
                     type: boolean
+                  liquidation_block_interval:
+                    type: string
+                    format: int64
                 description: Params defines the parameters for the cdp module.
             description: >-
               QueryParamsResponse defines the response type for the Query/Params
@@ -51628,6 +51631,9 @@ definitions:
         type: string
       circuit_breaker:
         type: boolean
+      liquidation_block_interval:
+        type: string
+        format: int64
     description: Params defines the parameters for the cdp module.
   kava.cdp.v1beta1.QueryAccountsResponse:
     type: object
@@ -52161,6 +52167,9 @@ definitions:
             type: string
           circuit_breaker:
             type: boolean
+          liquidation_block_interval:
+            type: string
+            format: int64
         description: Params defines the parameters for the cdp module.
     description: >-
       QueryParamsResponse defines the response type for the Query/Params RPC

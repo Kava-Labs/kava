@@ -1681,6 +1681,7 @@ Params defines the parameters for the cdp module.
 | `debt_auction_threshold` | [string](#string) |  |  |
 | `debt_auction_lot` | [string](#string) |  |  |
 | `circuit_breaker` | [bool](#bool) |  |  |
+| `liquidation_block_interval` | [int64](#int64) |  |  |
 
 
 

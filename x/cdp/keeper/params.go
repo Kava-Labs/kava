@@ -12,7 +12,7 @@ import (
 // GetParams returns the params from the store
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	var p types.Params
-	k.paramSubspace.GetParamSet(ctx, &p)
+	k.paramSubspace.GetParamSetIfExists(ctx, &p)
 	return p
 }
 
