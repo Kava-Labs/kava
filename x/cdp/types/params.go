@@ -13,18 +13,19 @@ import (
 
 // Parameter keys
 var (
-	KeyGlobalDebtLimit      = []byte("GlobalDebtLimit")
-	KeyCollateralParams     = []byte("CollateralParams")
-	KeyDebtParam            = []byte("DebtParam")
-	KeyCircuitBreaker       = []byte("CircuitBreaker")
-	KeyDebtThreshold        = []byte("DebtThreshold")
-	KeyDebtLot              = []byte("DebtLot")
-	KeySurplusThreshold     = []byte("SurplusThreshold")
-	KeySurplusLot           = []byte("SurplusLot")
-	DefaultGlobalDebt       = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
-	DefaultCircuitBreaker   = false
-	DefaultCollateralParams = CollateralParams{}
-	DefaultDebtParam        = DebtParam{
+	KeyGlobalDebtLimit                    = []byte("GlobalDebtLimit")
+	KeyCollateralParams                   = []byte("CollateralParams")
+	KeyDebtParam                          = []byte("DebtParam")
+	KeyCircuitBreaker                     = []byte("CircuitBreaker")
+	KeyDebtThreshold                      = []byte("DebtThreshold")
+	KeyDebtLot                            = []byte("DebtLot")
+	KeySurplusThreshold                   = []byte("SurplusThreshold")
+	KeySurplusLot                         = []byte("SurplusLot")
+	KeyBeginBlockerExecutionBlockInterval = []byte("BeginBlockerExecutionBlockInterval")
+	DefaultGlobalDebt                     = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
+	DefaultCircuitBreaker                 = false
+	DefaultCollateralParams               = CollateralParams{}
+	DefaultDebtParam                      = DebtParam{
 		Denom:            "usdx",
 		ReferenceAsset:   "usd",
 		ConversionFactor: sdkmath.NewInt(6),
@@ -39,22 +40,25 @@ var (
 	DefaultSurplusLot       = sdkmath.NewInt(10000000000)
 	DefaultDebtLot          = sdkmath.NewInt(10000000000)
 	stabilityFeeMax         = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
+	// Run every block
+	DefaultBeginBlockerExecutionBlockInterval = int64(1)
 )
 
 // NewParams returns a new params object
 func NewParams(
 	debtLimit sdk.Coin, collateralParams CollateralParams, debtParam DebtParam, surplusThreshold,
-	surplusLot, debtThreshold, debtLot sdkmath.Int, breaker bool,
+	surplusLot, debtThreshold, debtLot sdkmath.Int, breaker bool, beginBlockerExecutionBlockInterval int64,
 ) Params {
 	return Params{
-		GlobalDebtLimit:         debtLimit,
-		CollateralParams:        collateralParams,
-		DebtParam:               debtParam,
-		SurplusAuctionThreshold: surplusThreshold,
-		SurplusAuctionLot:       surplusLot,
-		DebtAuctionThreshold:    debtThreshold,
-		DebtAuctionLot:          debtLot,
-		CircuitBreaker:          breaker,
+		GlobalDebtLimit:          debtLimit,
+		CollateralParams:         collateralParams,
+		DebtParam:                debtParam,
+		SurplusAuctionThreshold:  surplusThreshold,
+		SurplusAuctionLot:        surplusLot,
+		DebtAuctionThreshold:     debtThreshold,
+		DebtAuctionLot:           debtLot,
+		CircuitBreaker:           breaker,
+		LiquidationBlockInterval: beginBlockerExecutionBlockInterval,
 	}
 }
 
@@ -63,7 +67,7 @@ func DefaultParams() Params {
 	return NewParams(
 		DefaultGlobalDebt, DefaultCollateralParams, DefaultDebtParam, DefaultSurplusThreshold,
 		DefaultSurplusLot, DefaultDebtThreshold, DefaultDebtLot,
-		DefaultCircuitBreaker,
+		DefaultCircuitBreaker, DefaultBeginBlockerExecutionBlockInterval,
 	)
 }
 
@@ -122,6 +126,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeySurplusLot, &p.SurplusAuctionLot, validateSurplusAuctionLotParam),
 		paramtypes.NewParamSetPair(KeyDebtThreshold, &p.DebtAuctionThreshold, validateDebtAuctionThresholdParam),
 		paramtypes.NewParamSetPair(KeyDebtLot, &p.DebtAuctionLot, validateDebtAuctionLotParam),
+		paramtypes.NewParamSetPair(KeyBeginBlockerExecutionBlockInterval, &p.LiquidationBlockInterval, validateBeginBlockerExecutionBlockIntervalParam),
 	}
 }
 
@@ -140,6 +145,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateCircuitBreakerParam(p.CircuitBreaker); err != nil {
+		return err
+	}
+
+	if err := validateBeginBlockerExecutionBlockIntervalParam(p.LiquidationBlockInterval); err != nil {
 		return err
 	}
 
@@ -342,6 +351,19 @@ func validateDebtAuctionLotParam(i interface{}) error {
 
 	if !dal.IsPositive() {
 		return fmt.Errorf("debt auction lot should be positive: %s", dal)
+	}
+
+	return nil
+}
+
+func validateBeginBlockerExecutionBlockIntervalParam(i interface{}) error {
+	bbebi, ok := i.(int64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if bbebi <= 0 {
+		return fmt.Errorf("begin blocker execution block interval param should be positive: %d", bbebi)
 	}
 
 	return nil

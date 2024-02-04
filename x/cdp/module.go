@@ -3,6 +3,7 @@ package cdp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -24,6 +25,9 @@ var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
 )
+
+// ConsensusVersion defines the current module consensus version.
+const ConsensusVersion = 2
 
 // AppModuleBasic app module basics object
 type AppModuleBasic struct{}
@@ -69,7 +73,7 @@ func (a AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux 
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 {
-	return 1
+	return ConsensusVersion
 }
 
 // GetTxCmd returns the root tx command for the cdp module.
@@ -117,6 +121,11 @@ func (AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
+
+	m := keeper.NewMigrator(am.keeper)
+	if err := cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2); err != nil {
+		panic(fmt.Sprintf("failed to migrate x/cdp from version 1 to 2: %v", err))
+	}
 }
 
 // InitGenesis module init-genesis
