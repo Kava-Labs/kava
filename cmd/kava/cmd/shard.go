@@ -26,9 +26,10 @@ import (
 )
 
 const (
-	flagShardStartBlock   = "start"
-	flagShardEndBlock     = "end"
-	flagShardOnlyAppState = "only-app-state"
+	flagShardStartBlock        = "start"
+	flagShardEndBlock          = "end"
+	flagShardOnlyAppState      = "only-app-state"
+	flagShardOnlyCometbftState = "only-cometbft-state"
 	// TODO: --preserve flag for creating & operating on a copy?
 
 	// allow using -1 to mean "latest" (perform no rollbacks)
@@ -73,6 +74,10 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			if err != nil {
 				return err
 			}
+			onlyCometbftState, err := cmd.Flags().GetBool(flagShardOnlyCometbftState)
+			if err != nil {
+				return err
+			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -101,44 +106,29 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 				}
 			}()
 
-			// get the multistore
-			app := opts.AppCreator(ctx.Logger, db, nil, ctx.Viper)
-			cms := app.CommitMultiStore()
-			multistore, ok := cms.(*rootmulti.Store)
-			if !ok {
-				return fmt.Errorf("only sharding of rootmulti.Store type is supported")
-			}
+			if !onlyCometbftState {
+				// get the multistore
+				app := opts.AppCreator(ctx.Logger, db, nil, ctx.Viper)
+				cms := app.CommitMultiStore()
+				multistore, ok := cms.(*rootmulti.Store)
+				if !ok {
+					return fmt.Errorf("only sharding of rootmulti.Store type is supported")
+				}
 
-			// handle desired endblock being latest
-			latest := multistore.LastCommitID().Version
-			if latest == 0 {
-				return fmt.Errorf("failed to find latest height >0")
-			}
-			fmt.Printf("latest height: %d\n", latest)
-			if endBlock == shardEndBlockLatest {
-				endBlock = latest
-			}
-			shardSize := endBlock - startBlock + 1
-
-			// error if requesting block range the database does not have
-			if endBlock > latest {
-				return fmt.Errorf("data does not contain end block (%d): latest version is %d", endBlock, latest)
-			}
-
-			fmt.Printf("pruning data in %s down to heights %d - %d (%d blocks)\n", clientCtx.HomeDir, startBlock, endBlock, shardSize)
-
-			// set pruning options to prevent no-ops from `PruneStores`
-			multistore.SetPruning(sdk.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
-
-			// rollback application state
-			if err = multistore.RollbackToVersion(endBlock); err != nil {
-				return fmt.Errorf("failed to rollback application state: %s", err)
+				if err := shardApplicationDb(multistore, startBlock, endBlock); err != nil {
+					return err
+				}
 			}
 
 			// open block store & cometbft state
 			blockStore, stateStore, err := openCometBftDbs(ctx.Config)
 			if err != nil {
 				return fmt.Errorf("failed to open cometbft dbs: %s", err)
+			}
+
+			latest := blockStore.Height()
+			if endBlock == shardEndBlockLatest {
+				endBlock = latest
 			}
 
 			// prep for outputting progress repeatedly to same line
@@ -170,12 +160,6 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			//////////////////////////////
 			// Prune blocks to startBlock
 			//////////////////////////////
-			if startBlock > 1 {
-				// prune application state
-				fmt.Printf("pruning application state to height %d\n", startBlock)
-				multistore.PruneStores(startBlock)
-			}
-
 			// get starting block of block store
 			baseBlock := blockStore.Base()
 
@@ -206,6 +190,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 	cmd.Flags().Int64(flagShardStartBlock, 1, "Start block of data shard (inclusive)")
 	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (inclusive)")
 	cmd.Flags().Bool(flagShardOnlyAppState, false, "Skip pruning of blockstore & cometbft state")
+	cmd.Flags().Bool(flagShardOnlyCometbftState, false, "Skip pruning of application state")
 
 	return cmd
 }
@@ -231,4 +216,46 @@ func openCometBftDbs(config *tmconfig.Config) (blockStore *store.BlockStore, sta
 	})
 
 	return
+}
+
+func shardApplicationDb(multistore *rootmulti.Store, startBlock, endBlock int64) error {
+	//////////////////////////////
+	// Rollback state to endBlock
+	//////////////////////////////
+	// handle desired endblock being latest
+	latest := multistore.LastCommitID().Version
+	if latest == 0 {
+		return fmt.Errorf("failed to find latest height >0")
+	}
+	fmt.Printf("latest height: %d\n", latest)
+	if endBlock == shardEndBlockLatest {
+		endBlock = latest
+	}
+	shardSize := endBlock - startBlock + 1
+
+	// error if requesting block range the database does not have
+	if endBlock > latest {
+		return fmt.Errorf("data does not contain end block (%d): latest version is %d", endBlock, latest)
+	}
+
+	fmt.Printf("pruning data down to heights %d - %d (%d blocks)\n", startBlock, endBlock, shardSize)
+
+	// set pruning options to prevent no-ops from `PruneStores`
+	multistore.SetPruning(sdk.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
+
+	// rollback application state
+	if err := multistore.RollbackToVersion(endBlock); err != nil {
+		return fmt.Errorf("failed to rollback application state: %s", err)
+	}
+
+	//////////////////////////////
+	// Prune blocks to startBlock
+	//////////////////////////////
+	if startBlock > 1 {
+		// prune application state
+		fmt.Printf("pruning application state to height %d\n", startBlock)
+		multistore.PruneStores(startBlock)
+	}
+
+	return nil
 }
