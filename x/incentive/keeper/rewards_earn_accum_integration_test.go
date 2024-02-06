@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/kava-labs/kava/app"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
@@ -143,7 +143,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		1*time.Hour,
 		abci.RequestEndBlock{},
 		abci.RequestBeginBlock{
-			LastCommitInfo: abci.LastCommitInfo{
+			LastCommitInfo: abci.CommitInfo{
 				Votes: []abci.VoteInfo{
 					{
 						Validator:       val0,
@@ -267,7 +267,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		1*time.Hour,
 		abci.RequestEndBlock{},
 		abci.RequestBeginBlock{
-			LastCommitInfo: abci.LastCommitInfo{
+			LastCommitInfo: abci.CommitInfo{
 				Votes: []abci.VoteInfo{
 					{
 						Validator:       val0,
@@ -309,7 +309,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 		},
 		{
 			CollateralType: "ukava",
-			RewardFactor:   d("4.154285714285714285").Add(stakingRewardIndexes0),
+			RewardFactor:   d("4.154285714285714286").Add(stakingRewardIndexes0),
 		},
 	})
 
@@ -455,7 +455,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSource
 		1*time.Hour,
 		abci.RequestEndBlock{},
 		abci.RequestBeginBlock{
-			LastCommitInfo: abci.LastCommitInfo{
+			LastCommitInfo: abci.CommitInfo{
 				Votes: []abci.VoteInfo{
 					{
 						Validator:       val0,
@@ -511,7 +511,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 		1*time.Hour,
 		abci.RequestEndBlock{},
 		abci.RequestBeginBlock{
-			LastCommitInfo: abci.LastCommitInfo{
+			LastCommitInfo: abci.CommitInfo{
 				Votes: []abci.VoteInfo{
 					{
 						Validator:       val0,
@@ -563,7 +563,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 		1*time.Hour,
 		abci.RequestEndBlock{},
 		abci.RequestBeginBlock{
-			LastCommitInfo: abci.LastCommitInfo{
+			LastCommitInfo: abci.CommitInfo{
 				Votes: []abci.VoteInfo{
 					{
 						Validator:       val0,

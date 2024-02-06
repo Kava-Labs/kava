@@ -7,9 +7,9 @@ import (
 	fmt "fmt"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
@@ -333,7 +333,7 @@ func (m *RewardPeriod) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x2a
-	n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.End, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.End):])
+	n2, err2 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.End, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.End):])
 	if err2 != nil {
 		return 0, err2
 	}
@@ -341,7 +341,7 @@ func (m *RewardPeriod) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i = encodeVarintParams(dAtA, i, uint64(n2))
 	i--
 	dAtA[i] = 0x22
-	n3, err3 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Start, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Start):])
+	n3, err3 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.Start, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Start):])
 	if err3 != nil {
 		return 0, err3
 	}
@@ -403,7 +403,7 @@ func (m *MultiRewardPeriod) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x2a
 		}
 	}
-	n4, err4 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.End, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.End):])
+	n4, err4 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.End, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.End):])
 	if err4 != nil {
 		return 0, err4
 	}
@@ -411,7 +411,7 @@ func (m *MultiRewardPeriod) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i = encodeVarintParams(dAtA, i, uint64(n4))
 	i--
 	dAtA[i] = 0x22
-	n5, err5 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.Start, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.Start):])
+	n5, err5 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.Start, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Start):])
 	if err5 != nil {
 		return 0, err5
 	}
@@ -576,7 +576,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x42
 		}
 	}
-	n6, err6 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.ClaimEnd, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.ClaimEnd):])
+	n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.ClaimEnd, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.ClaimEnd):])
 	if err6 != nil {
 		return 0, err6
 	}
@@ -695,9 +695,9 @@ func (m *RewardPeriod) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovParams(uint64(l))
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.Start)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Start)
 	n += 1 + l + sovParams(uint64(l))
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.End)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.End)
 	n += 1 + l + sovParams(uint64(l))
 	l = m.RewardsPerSecond.Size()
 	n += 1 + l + sovParams(uint64(l))
@@ -717,9 +717,9 @@ func (m *MultiRewardPeriod) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovParams(uint64(l))
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.Start)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.Start)
 	n += 1 + l + sovParams(uint64(l))
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.End)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.End)
 	n += 1 + l + sovParams(uint64(l))
 	if len(m.RewardsPerSecond) > 0 {
 		for _, e := range m.RewardsPerSecond {
@@ -809,7 +809,7 @@ func (m *Params) Size() (n int) {
 			n += 1 + l + sovParams(uint64(l))
 		}
 	}
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.ClaimEnd)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.ClaimEnd)
 	n += 1 + l + sovParams(uint64(l))
 	if len(m.SavingsRewardPeriods) > 0 {
 		for _, e := range m.SavingsRewardPeriods {
@@ -942,7 +942,7 @@ func (m *RewardPeriod) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.Start, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.Start, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -975,7 +975,7 @@ func (m *RewardPeriod) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.End, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.End, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1143,7 +1143,7 @@ func (m *MultiRewardPeriod) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.Start, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.Start, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1176,7 +1176,7 @@ func (m *MultiRewardPeriod) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.End, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.End, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1747,7 +1747,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.ClaimEnd, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.ClaimEnd, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

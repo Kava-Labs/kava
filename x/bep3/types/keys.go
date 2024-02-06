@@ -14,9 +14,6 @@ const (
 	// RouterKey to be used for routing msgs
 	RouterKey = ModuleName
 
-	// QuerierRoute is the querier route for bep3
-	QuerierRoute = ModuleName
-
 	// DefaultParamspace default namestore
 	DefaultParamspace = ModuleName
 

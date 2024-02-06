@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
+	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	kavadistTypes "github.com/kava-labs/kava/x/kavadist/types"
 )

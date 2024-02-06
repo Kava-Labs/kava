@@ -116,9 +116,11 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 
 	proposalMsg, err := govv1.NewMsgSubmitProposal(
 		[]sdk.Msg{&updateParamsMsg},
-		govParamsRes.DepositParams.MinDeposit,
+		govParamsRes.Params.MinDeposit,
 		kavaAcc.SdkAddress.String(),
 		"community-update-params",
+		"title",
+		"summary",
 	)
 	suite.NoError(err)
 

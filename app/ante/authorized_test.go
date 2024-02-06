@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/require"
@@ -38,7 +38,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_NotCheckTx(t *testing.T) {
 	fetcher := mockAddressFetcher(testAddresses[1:]...)
 
 	decorator := ante.NewAuthenticatedMempoolDecorator(fetcher)
-	tx, err := helpers.GenSignedMockTx(
+	tx, err := sims.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txConfig,
 		[]sdk.Msg{
@@ -49,7 +49,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_NotCheckTx(t *testing.T) {
 			),
 		},
 		sdk.NewCoins(), // no fee
-		helpers.DefaultGenTxGas,
+		sims.DefaultGenTxGas,
 		"testing-chain-id",
 		[]uint64{0},
 		[]uint64{0},
@@ -73,7 +73,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Pass(t *testing.T) {
 
 	decorator := ante.NewAuthenticatedMempoolDecorator(fetcher)
 
-	tx, err := helpers.GenSignedMockTx(
+	tx, err := sims.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txConfig,
 		[]sdk.Msg{
@@ -89,7 +89,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Pass(t *testing.T) {
 			),
 		},
 		sdk.NewCoins(), // no fee
-		helpers.DefaultGenTxGas,
+		sims.DefaultGenTxGas,
 		"testing-chain-id",
 		[]uint64{0, 123},
 		[]uint64{0, 123},
@@ -114,7 +114,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Reject(t *testing.T) {
 
 	decorator := ante.NewAuthenticatedMempoolDecorator(fetcher)
 
-	tx, err := helpers.GenSignedMockTx(
+	tx, err := sims.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),
 		txConfig,
 		[]sdk.Msg{
@@ -125,7 +125,7 @@ func TestAuthenticatedMempoolDecorator_AnteHandle_Reject(t *testing.T) {
 			),
 		},
 		sdk.NewCoins(), // no fee
-		helpers.DefaultGenTxGas,
+		sims.DefaultGenTxGas,
 		"testing-chain-id",
 		[]uint64{0},
 		[]uint64{0},

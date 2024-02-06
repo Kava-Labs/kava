@@ -10,14 +10,14 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 
-	tmconfig "github.com/tendermint/tendermint/config"
-	"github.com/tendermint/tendermint/node"
-	tmstate "github.com/tendermint/tendermint/state"
-	"github.com/tendermint/tendermint/store"
+	tmconfig "github.com/cometbft/cometbft/config"
+	"github.com/cometbft/cometbft/node"
+	tmstate "github.com/cometbft/cometbft/state"
+	"github.com/cometbft/cometbft/store"
 
 	ethermintserver "github.com/evmos/ethermint/server"
 )

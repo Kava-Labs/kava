@@ -5,7 +5,7 @@ package keeper_test
 // 	"time"
 
 // 	"github.com/stretchr/testify/suite"
-// 	abci "github.com/tendermint/tendermint/abci/types"
+// 	abci "github.com/cometbft/cometbft/abci/types"
 
 // 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 // 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"

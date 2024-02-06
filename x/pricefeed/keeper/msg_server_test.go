@@ -4,12 +4,12 @@ import (
 	"testing"
 	"time"
 
+	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 	"github.com/stretchr/testify/require"
-	tmprototypes "github.com/tendermint/tendermint/proto/tendermint/types"
 )
 
 func TestKeeper_PostPrice(t *testing.T) {

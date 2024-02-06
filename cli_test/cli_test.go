@@ -14,9 +14,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/cometbft/cometbft/crypto/ed25519"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/tests"
@@ -813,7 +813,7 @@ func TestKvCLISubmitCommunityPoolSpendProposal(t *testing.T) {
 }
 
 func TestKvCLIQueryTxPagination(t *testing.T) {
-	// Skip until https://github.com/tendermint/tendermint/issues/4432 has been
+	// Skip until https://github.com/cometbft/cometbft/issues/4432 has been
 	// resolved and included in a release.
 	t.SkipNow()
 

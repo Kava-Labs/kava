@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -72,14 +72,14 @@ func TestVestingMempoolDecorator_MsgCreateVestingAccount_Unauthorized(t *testing
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tx, err := helpers.GenSignedMockTx(
+			tx, err := sims.GenSignedMockTx(
 				rand.New(rand.NewSource(time.Now().UnixNano())),
 				txConfig,
 				[]sdk.Msg{
 					tt.msg,
 				},
 				sdk.NewCoins(),
-				helpers.DefaultGenTxGas,
+				sims.DefaultGenTxGas,
 				"testing-chain-id",
 				[]uint64{0},
 				[]uint64{0},

@@ -8,8 +8,13 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/kava-labs/kava/app"
 
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmbytes "github.com/cometbft/cometbft/libs/bytes"
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
+	jsonrpctypes "github.com/cometbft/cometbft/rpc/jsonrpc/types"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
@@ -18,10 +23,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmbytes "github.com/tendermint/tendermint/libs/bytes"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
-	jsonrpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
 )
 
 type SimulateRequestTestSuite struct {

@@ -163,6 +163,16 @@ func (k EvmBankKeeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coi
 	return k.akavaKeeper.RemoveBalance(ctx, moduleAddr, akava)
 }
 
+// IsSendEnabledCoins checks the coins provided and returns an ErrSendDisabled
+// if any of the coins are not configured for sending. Returns nil if sending is
+// enabled for all provided coins.
+func (k EvmBankKeeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
+	// IsSendEnabledCoins method is not used by the evm module, but is required by the
+	// evmtypes.BankKeeper interface. This must be updated if the evm module
+	// is updated to use IsSendEnabledCoins.
+	panic("not implemented")
+}
+
 // ConvertOneUkavaToAkavaIfNeeded converts 1 ukava to akava for an address if
 // its akava balance is smaller than the akavaNeeded amount.
 func (k EvmBankKeeper) ConvertOneUkavaToAkavaIfNeeded(ctx sdk.Context, addr sdk.AccAddress, akavaNeeded sdkmath.Int) error {

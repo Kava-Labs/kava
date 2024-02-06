@@ -14,12 +14,22 @@ PROTOBUF_ANY_DOWNLOAD_URL = https://raw.githubusercontent.com/protocolbuffers/pr
 #
 # Proto dependencies under go.mod
 #
-GOGO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/gogo/protobuf)
-TENDERMINT_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/tendermint/tendermint)
+GOGO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/gogoproto)
+TENDERMINT_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cometbft/cometbft)
 COSMOS_PROTO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/cosmos-proto)
 COSMOS_SDK_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/cosmos-sdk)
-IBC_GO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/ibc-go/v6)
+IBC_GO_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/cosmos/ibc-go/v7)
 ETHERMINT_PATH := $(shell $(GO_BIN) list -m -f '{{.Dir}}' github.com/evmos/ethermint)
+
+#
+# ICS23 Proof Proto
+#
+ICS23_VERSION := $(shell $(GO_BIN) list -m -f '{{.Version}}' github.com/cosmos/ics23/go)
+
+ICS23_PROOFS_PROTO_PATH := cosmos/ics23/v1/proofs.proto
+ICS23_PROOFS_PROTO_LOCAL_PATH := third_party/proto/$(ICS23_PROOFS_PROTO_PATH)
+
+ICS23_PROOFS_PROTO_DOWNLOAD_URL := https://raw.githubusercontent.com/cosmos/ics23/go/$(ICS23_VERSION)/proto/$(ICS23_PROOFS_PROTO_PATH)
 
 #
 # Common target directories
@@ -44,18 +54,20 @@ proto-update-deps: check-rsync ## Update all third party proto files
 	@curl -sSL $(PROTOBUF_ANY_DOWNLOAD_URL)/any.proto > $(PROTOBUF_GOOGLE_TYPES)/any.proto
 
 	@mkdir -p client/docs
-	@cp $(COSMOS_SDK_PATH)/client/docs/swagger-ui/swagger.yaml client/docs/cosmos-swagger.yml
-	@cp $(IBC_GO_PATH)/docs/client/swagger-ui/swagger.yaml client/docs/ibc-go-swagger.yml
+	@cp -f $(COSMOS_SDK_PATH)/client/docs/swagger-ui/swagger.yaml client/docs/cosmos-swagger.yml
+	@cp -f $(IBC_GO_PATH)/docs/client/swagger-ui/swagger.yaml client/docs/ibc-go-swagger.yml
 
 	@mkdir -p $(COSMOS_PROTO_TYPES)
-	@cp $(COSMOS_PROTO_PATH)/proto/cosmos_proto/cosmos.proto $(COSMOS_PROTO_TYPES)/cosmos.proto
+	@cp -f $(COSMOS_PROTO_PATH)/proto/cosmos_proto/cosmos.proto $(COSMOS_PROTO_TYPES)/cosmos.proto
+
+	@mkdir -p $(dir $(ICS23_PROOFS_PROTO_LOCAL_PATH))
+	@curl -sSL $(ICS23_PROOFS_PROTO_DOWNLOAD_URL) > $(ICS23_PROOFS_PROTO_LOCAL_PATH)
 
 	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(GOGO_PATH)/gogoproto third_party/proto
 	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(TENDERMINT_PATH)/proto third_party
 	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(COSMOS_SDK_PATH)/proto third_party
 	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(IBC_GO_PATH)/proto third_party
 	@$(RSYNC_BIN) -r --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r --include "*.proto" --include='*/' --exclude='*' $(ETHERMINT_PATH)/proto third_party
-	@cp -f $(IBC_GO_PATH)/third_party/proto/proofs.proto third_party/proto/proofs.proto
 
 .PHONY: check-proto-deps
 check-proto-deps: proto-update-deps ## Return error code 1 if proto dependencies are not changed

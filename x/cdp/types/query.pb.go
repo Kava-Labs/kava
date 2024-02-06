@@ -10,10 +10,10 @@ import (
 	types1 "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	types "github.com/cosmos/cosmos-sdk/x/auth/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	grpc1 "github.com/gogo/protobuf/grpc"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	grpc1 "github.com/cosmos/gogoproto/grpc"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -1772,7 +1772,7 @@ func (m *CDPResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x42
 	}
-	n6, err6 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.FeesUpdated, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.FeesUpdated):])
+	n6, err6 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.FeesUpdated, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.FeesUpdated):])
 	if err6 != nil {
 		return 0, err6
 	}
@@ -2073,7 +2073,7 @@ func (m *CDPResponse) Size() (n int) {
 	n += 1 + l + sovQuery(uint64(l))
 	l = m.AccumulatedFees.Size()
 	n += 1 + l + sovQuery(uint64(l))
-	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.FeesUpdated)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.FeesUpdated)
 	n += 1 + l + sovQuery(uint64(l))
 	l = len(m.InterestFactor)
 	if l > 0 {
@@ -3649,7 +3649,7 @@ func (m *CDPResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.FeesUpdated, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.FeesUpdated, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

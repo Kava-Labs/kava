@@ -47,13 +47,13 @@ type DistributionKeeper interface {
 	GetFeePool(ctx sdk.Context) distrtypes.FeePool
 	SetFeePool(ctx sdk.Context, feePool distrtypes.FeePool)
 	GetParams(ctx sdk.Context) distrtypes.Params
-	SetParams(ctx sdk.Context, params distrtypes.Params)
+	SetParams(ctx sdk.Context, params distrtypes.Params) error
 	GetCommunityTax(ctx sdk.Context) sdk.Dec
 }
 
 type MintKeeper interface {
 	GetParams(ctx sdk.Context) (params minttypes.Params)
-	SetParams(ctx sdk.Context, params minttypes.Params)
+	SetParams(ctx sdk.Context, params minttypes.Params) error
 	GetMinter(ctx sdk.Context) (minter minttypes.Minter)
 }
 

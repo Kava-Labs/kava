@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
 - (cdp) [#1818] Add module param and logic for running x/cdp begin blocker every `n` blocks
 - (cli) [#1804] Add `rocksdb compact` command for manual DB compaction of state or blockstore.
+- (cosmos-sdk) [#1811] Upgrades app to cosmos-sdk v0.47.7
 
 ## [v0.25.0]
 
@@ -323,6 +324,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1811]: https://github.com/Kava-Labs/kava/pull/1811
 [#1804]: https://github.com/Kava-Labs/kava/pull/1804
 [#1785]: https://github.com/Kava-Labs/kava/pull/1785
 [#1784]: https://github.com/Kava-Labs/kava/pull/1784

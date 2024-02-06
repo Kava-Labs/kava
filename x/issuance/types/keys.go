@@ -12,9 +12,6 @@ const (
 
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
-
-	// QuerierRoute route used for abci queries
-	QuerierRoute = ModuleName
 )
 
 // KVStore key prefixes

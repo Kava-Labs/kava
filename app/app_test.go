@@ -8,17 +8,19 @@ import (
 	"testing"
 	"time"
 
+	db "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
+	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-	db "github.com/tendermint/tm-db"
 )
 
 func TestNewApp(t *testing.T) {
@@ -36,7 +38,7 @@ func TestNewApp(t *testing.T) {
 func TestExport(t *testing.T) {
 	SetSDKConfig()
 	db := db.NewMemDB()
-	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions)
+	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions, baseapp.SetChainID(TestChainId))
 
 	genesisState := GenesisStateWithSingleValidator(&TestApp{App: *app}, NewDefaultGenesisState())
 
@@ -45,21 +47,23 @@ func TestExport(t *testing.T) {
 
 	initRequest := abci.RequestInitChain{
 		Time:            time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
-		ChainId:         "kavatest_1-1",
+		ChainId:         TestChainId,
 		InitialHeight:   1,
-		ConsensusParams: tmtypes.TM2PB.ConsensusParams(tmtypes.DefaultConsensusParams()),
+		ConsensusParams: sims.DefaultConsensusParams,
 		Validators:      nil,
 		AppStateBytes:   stateBytes,
 	}
 	app.InitChain(initRequest)
 	app.Commit()
 
-	exportedApp, err := app.ExportAppStateAndValidators(false, []string{})
+	exportedApp, err := app.ExportAppStateAndValidators(false, []string{}, []string{})
 	require.NoError(t, err)
 
 	// Assume each module is exported correctly, so only check modules in genesis are present in export
 	initialModules, err := unmarshalJSONKeys(initRequest.AppStateBytes)
 	require.NoError(t, err)
+	// note ibctm is only registered in the BasicManager and not module manager so can be ignored
+	initialModules = removeIbcTmModule(initialModules)
 	exportedModules, err := unmarshalJSONKeys(exportedApp.AppState)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, initialModules, exportedModules)
@@ -142,4 +146,14 @@ func unmarshalJSONKeys(jsonBytes []byte) ([]string, error) {
 	sort.Strings(keys)
 
 	return keys, nil
+}
+
+func removeIbcTmModule(modules []string) []string {
+	var result []string
+	for _, str := range modules {
+		if str != ibctm.ModuleName {
+			result = append(result, str)
+		}
+	}
+	return result
 }

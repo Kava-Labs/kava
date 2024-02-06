@@ -10,9 +10,6 @@ const (
 	// RouterKey Top level router key
 	RouterKey = ModuleName
 
-	// QuerierRoute is the querier route for gov
-	QuerierRoute = ModuleName
-
 	// DefaultParamspace default namestore
 	DefaultParamspace = ModuleName
 

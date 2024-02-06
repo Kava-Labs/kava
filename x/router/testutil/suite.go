@@ -5,6 +5,9 @@ import (
 	"reflect"
 
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -14,9 +17,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	"github.com/kava-labs/kava/app"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
@@ -32,7 +32,7 @@ type Suite struct {
 	Ctx           sdk.Context
 	Keeper        keeper.Keeper
 	BankKeeper    bankkeeper.Keeper
-	StakingKeeper stakingkeeper.Keeper
+	StakingKeeper *stakingkeeper.Keeper
 	EarnKeeper    earnkeeper.Keeper
 }
 
@@ -104,7 +104,11 @@ func (suite *Suite) AccountBalanceOfEqual(addr sdk.AccAddress, denom string, amo
 // AccountSpendableBalanceEqual checks if an account has the specified coins unlocked.
 func (suite *Suite) AccountSpendableBalanceEqual(addr sdk.AccAddress, amount sdk.Coins) {
 	balance := suite.BankKeeper.SpendableCoins(suite.Ctx, addr)
-	suite.Equalf(amount, balance, "expected account spendable balance to equal coins %s, but got %s", amount, balance)
+	expectedAmt := amount
+	if expectedAmt == nil {
+		expectedAmt = sdk.NewCoins()
+	}
+	suite.Equalf(expectedAmt, balance, "expected account spendable balance to equal coins %s, but got %s", amount, balance)
 }
 
 func (suite *Suite) QueryBank_SpendableBalance(user sdk.AccAddress) sdk.Coins {

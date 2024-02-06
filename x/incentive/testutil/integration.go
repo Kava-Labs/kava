@@ -6,6 +6,8 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,8 +18,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	abcitypes "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
@@ -37,8 +37,6 @@ import (
 	swapkeeper "github.com/kava-labs/kava/x/swap/keeper"
 	swaptypes "github.com/kava-labs/kava/x/swap/types"
 )
-
-var testChainID = "kavatest_1-1"
 
 type IntegrationTester struct {
 	suite.Suite
@@ -80,14 +78,14 @@ func (suite *IntegrationTester) StartChainWithBuilders(builders ...GenesisBuilde
 func (suite *IntegrationTester) StartChain(genesisStates ...app.GenesisState) {
 	suite.App.InitializeFromGenesisStatesWithTimeAndChainID(
 		suite.GenesisTime,
-		testChainID,
+		app.TestChainId,
 		genesisStates...,
 	)
 
 	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
 		Height:  1,
 		Time:    suite.GenesisTime,
-		ChainID: testChainID,
+		ChainID: app.TestChainId,
 	})
 }
 
@@ -132,7 +130,7 @@ func (suite *IntegrationTester) NextBlockAtWithRequest(
 	blockHeight := suite.Ctx.BlockHeight() + 1
 
 	responseEndBlock := suite.App.EndBlocker(suite.Ctx, reqEnd)
-	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(testChainID)
+	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(app.TestChainId)
 	responseBeginBlock := suite.App.BeginBlocker(suite.Ctx, reqBegin) // height and time in RequestBeginBlock are ignored by module begin blockers
 
 	return responseEndBlock, responseBeginBlock

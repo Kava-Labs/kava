@@ -154,7 +154,7 @@ func (th TallyHandler) Tally(
 		totalVotingPower = totalVotingPower.Add(votingPower)
 	}
 
-	tallyParams := th.gk.GetTallyParams(ctx)
+	tallyParams := th.gk.GetParams(ctx)
 	tallyResults = govv1.NewTallyResultFromMap(results)
 
 	// TODO: Upgrade the spec to cover all of these cases & remove pseudocode.
@@ -166,7 +166,7 @@ func (th TallyHandler) Tally(
 	// If there is not enough quorum of votes, the proposal fails
 	percentVoting := totalVotingPower.Quo(sdk.NewDecFromInt(th.stk.TotalBondedTokens(ctx)))
 	if percentVoting.LT(sdk.MustNewDecFromStr(tallyParams.Quorum)) {
-		return false, true, tallyResults
+		return false, tallyParams.BurnVoteQuorum, tallyResults
 	}
 
 	// If no one votes (everyone abstains), proposal fails
@@ -176,7 +176,7 @@ func (th TallyHandler) Tally(
 
 	// If more than 1/3 of voters veto, proposal fails
 	if results[govv1.OptionNoWithVeto].Quo(totalVotingPower).GT(sdk.MustNewDecFromStr(tallyParams.VetoThreshold)) {
-		return false, true, tallyResults
+		return false, tallyParams.BurnVoteVeto, tallyResults
 	}
 
 	// If more than 1/2 of non-abstaining voters vote Yes, proposal passes

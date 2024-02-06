@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -39,7 +40,7 @@ func init() {
 
 	// CommitteeChange/Delete proposals along with Permission types are
 	// registered on gov's ModuleCdc
-	RegisterLegacyAminoCodec(govv1beta1.ModuleCdc.LegacyAmino)
+	RegisterLegacyAminoCodec(govcodec.Amino)
 
 	// Register external module pubproposal types. Ideally these would be registered within the modules' types pkg init function.
 	// However registration happens here as a work-around.

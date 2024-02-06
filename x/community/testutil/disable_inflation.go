@@ -3,12 +3,12 @@ package testutil
 import (
 	"time"
 
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtime "github.com/tendermint/tendermint/types/time"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/kava-labs/kava/app"
@@ -171,7 +171,8 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			// test idempotence only if upgrade should have been ran
 			if tc.shouldUpgrade {
 				// reset mint and kavadist state to their initial values
-				suite.App.GetMintKeeper().SetParams(suite.Ctx, suite.genesisMintState.Params)
+				err := suite.App.GetMintKeeper().SetParams(suite.Ctx, suite.genesisMintState.Params)
+				suite.Require().NoError(err)
 				suite.App.GetKavadistKeeper().SetParams(suite.Ctx, suite.genesisKavadistState.Params)
 
 				// modify staking rewards per second to ensure they are not overridden again

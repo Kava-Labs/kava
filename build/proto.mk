@@ -1,7 +1,7 @@
 .PHONY: proto-lint check-proto-lint
 proto-lint check-proto-lint: install-build-deps
 	@echo "Linting proto file"
-	@$(BUF) lint
+	@$(BUF) lint proto
 
 .PHONY: proto-gen
 proto-gen: install-build-deps

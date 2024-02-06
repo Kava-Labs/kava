@@ -7,9 +7,13 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	tmdb "github.com/cometbft/cometbft-db"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/cosmos/cosmos-sdk/simapp/helpers"
+	"github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
@@ -17,9 +21,6 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/kava-labs/kava/app"
 	bep3types "github.com/kava-labs/kava/x/bep3/types"
@@ -56,10 +57,11 @@ func TestAppAnteHandler_AuthorizedMempool(t *testing.T) {
 			nil,
 			encodingConfig,
 			opts,
+			baseapp.SetChainID(app.TestChainId),
 		),
 	}
 
-	chainID := "kavatest_1-1"
+	chainID := app.TestChainId
 	tApp = tApp.InitializeFromGenesisStatesWithTimeAndChainID(
 		time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		chainID,
@@ -106,7 +108,7 @@ func TestAppAnteHandler_AuthorizedMempool(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			stdTx, err := helpers.GenSignedMockTx(
+			stdTx, err := sims.GenSignedMockTx(
 				rand.New(rand.NewSource(time.Now().UnixNano())),
 				encodingConfig.TxConfig,
 				[]sdk.Msg{
@@ -117,7 +119,7 @@ func TestAppAnteHandler_AuthorizedMempool(t *testing.T) {
 					),
 				},
 				sdk.NewCoins(), // no fee
-				helpers.DefaultGenTxGas,
+				sims.DefaultGenTxGas,
 				chainID,
 				[]uint64{0},
 				[]uint64{0}, // fixed sequence numbers will cause tests to fail sig verification if the same address is used twice
@@ -209,7 +211,7 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 		return msg
 	}
 
-	chainID := "kavatest_1-1"
+	chainID := app.TestChainId
 	encodingConfig := app.MakeEncodingConfig()
 
 	testcases := []struct {
@@ -238,12 +240,12 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 				chainID,
 			)
 
-			stdTx, err := helpers.GenSignedMockTx(
+			stdTx, err := sims.GenSignedMockTx(
 				rand.New(rand.NewSource(time.Now().UnixNano())),
 				encodingConfig.TxConfig,
 				[]sdk.Msg{tc.msg},
 				sdk.NewCoins(), // no fee
-				helpers.DefaultGenTxGas,
+				sims.DefaultGenTxGas,
 				chainID,
 				[]uint64{0},
 				[]uint64{0},

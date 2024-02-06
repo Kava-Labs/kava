@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -15,7 +16,6 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
@@ -44,12 +44,13 @@ func (suite *tallyHandlerSuite) SetupTest() {
 	genesisTime := time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC)
 	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 1, Time: genesisTime})
 
-	suite.staking = stakingHelper{suite.app.GetStakingKeeper()}
+	stakingKeeper := *suite.app.GetStakingKeeper()
+	suite.staking = stakingHelper{stakingKeeper}
 	suite.staking.setBondDenom(suite.ctx, "ukava")
 
 	suite.tallier = NewTallyHandler(
 		suite.app.GetGovKeeper(),
-		suite.app.GetStakingKeeper(),
+		stakingKeeper,
 		suite.app.GetSavingsKeeper(),
 		suite.app.GetEarnKeeper(),
 		suite.app.GetLiquidKeeper(),
@@ -215,11 +216,12 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 }
 
 func (suite *tallyHandlerSuite) setTallyParams(quorum, threshold, veto sdk.Dec) {
-	suite.app.GetGovKeeper().SetTallyParams(suite.ctx, govv1.TallyParams{
-		Quorum:        quorum.String(),
-		Threshold:     threshold.String(),
-		VetoThreshold: veto.String(),
-	})
+	params := suite.app.GetGovKeeper().GetParams(suite.ctx)
+	params.Quorum = quorum.String()
+	params.Threshold = threshold.String()
+	params.VetoThreshold = veto.String()
+	params.BurnVoteQuorum = true
+	suite.app.GetGovKeeper().SetParams(suite.ctx, params)
 }
 
 func (suite *tallyHandlerSuite) voteOnProposal(
@@ -240,7 +242,7 @@ func (suite *tallyHandlerSuite) voteOnProposal(
 
 func (suite *tallyHandlerSuite) createProposal() govv1.Proposal {
 	gk := suite.app.GetGovKeeper()
-	deposit := gk.GetDepositParams(suite.ctx).MinDeposit
+	deposit := gk.GetParams(suite.ctx).MinDeposit
 	proposer := suite.createAccount(deposit...)
 
 	msg, err := govv1beta1.NewMsgSubmitProposal(
@@ -250,7 +252,7 @@ func (suite *tallyHandlerSuite) createProposal() govv1.Proposal {
 	)
 	suite.Require().NoError(err)
 
-	msgServerv1 := govkeeper.NewMsgServerImpl(gk)
+	msgServerv1 := govkeeper.NewMsgServerImpl(&gk)
 
 	govAcct := gk.GetGovernanceAccount(suite.ctx).GetAddress()
 	msgServer := govkeeper.NewLegacyMsgServerImpl(govAcct.String(), msgServerv1)
@@ -369,7 +371,7 @@ func (h stakingHelper) createUnbondedValidator(ctx sdk.Context, address sdk.ValA
 		return nil, err
 	}
 
-	msgServer := stakingkeeper.NewMsgServerImpl(h.keeper)
+	msgServer := stakingkeeper.NewMsgServerImpl(&h.keeper)
 	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(ctx), msg)
 	if err != nil {
 		return nil, err
@@ -389,7 +391,7 @@ func (h stakingHelper) delegate(ctx sdk.Context, delegator sdk.AccAddress, valid
 		h.newBondCoin(ctx, amount),
 	)
 
-	msgServer := stakingkeeper.NewMsgServerImpl(h.keeper)
+	msgServer := stakingkeeper.NewMsgServerImpl(&h.keeper)
 	_, err := msgServer.Delegate(sdk.WrapSDKContext(ctx), msg)
 	if err != nil {
 		return sdk.Dec{}, err

@@ -8,9 +8,9 @@ import (
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
 	_ "google.golang.org/protobuf/types/known/durationpb"
 	io "io"
 	math "math"
@@ -230,7 +230,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	n2, err2 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.ReverseBidDuration, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.ReverseBidDuration):])
+	n2, err2 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.ReverseBidDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ReverseBidDuration):])
 	if err2 != nil {
 		return 0, err2
 	}
@@ -238,7 +238,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i = encodeVarintGenesis(dAtA, i, uint64(n2))
 	i--
 	dAtA[i] = 0x3a
-	n3, err3 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.ForwardBidDuration, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.ForwardBidDuration):])
+	n3, err3 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.ForwardBidDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ForwardBidDuration):])
 	if err3 != nil {
 		return 0, err3
 	}
@@ -276,7 +276,7 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x1a
-	n4, err4 := github_com_gogo_protobuf_types.StdDurationMarshalTo(m.MaxAuctionDuration, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(m.MaxAuctionDuration):])
+	n4, err4 := github_com_cosmos_gogoproto_types.StdDurationMarshalTo(m.MaxAuctionDuration, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.MaxAuctionDuration):])
 	if err4 != nil {
 		return 0, err4
 	}
@@ -324,7 +324,7 @@ func (m *Params) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.MaxAuctionDuration)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.MaxAuctionDuration)
 	n += 1 + l + sovGenesis(uint64(l))
 	l = m.IncrementSurplus.Size()
 	n += 1 + l + sovGenesis(uint64(l))
@@ -332,9 +332,9 @@ func (m *Params) Size() (n int) {
 	n += 1 + l + sovGenesis(uint64(l))
 	l = m.IncrementCollateral.Size()
 	n += 1 + l + sovGenesis(uint64(l))
-	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.ForwardBidDuration)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ForwardBidDuration)
 	n += 1 + l + sovGenesis(uint64(l))
-	l = github_com_gogo_protobuf_types.SizeOfStdDuration(m.ReverseBidDuration)
+	l = github_com_cosmos_gogoproto_types.SizeOfStdDuration(m.ReverseBidDuration)
 	n += 1 + l + sovGenesis(uint64(l))
 	return n
 }
@@ -539,7 +539,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.MaxAuctionDuration, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.MaxAuctionDuration, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -671,7 +671,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.ForwardBidDuration, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.ForwardBidDuration, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -704,7 +704,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_gogo_protobuf_types.StdDurationUnmarshal(&m.ReverseBidDuration, dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_cosmos_gogoproto_types.StdDurationUnmarshal(&m.ReverseBidDuration, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

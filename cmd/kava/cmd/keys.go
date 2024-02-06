@@ -3,12 +3,12 @@ package cmd
 import (
 	"bufio"
 
+	"github.com/cometbft/cometbft/libs/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
-	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	ethclient "github.com/evmos/ethermint/client"
@@ -100,7 +100,7 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 	eth, _ := cmd.Flags().GetBool(ethFlag)
 	if eth {
 		cmd.Print("eth flag specified: using coin-type 60 and signing algorithm eth_secp256k1\n")
-		cmd.Flags().Set(flags.FlagKeyAlgorithm, string(hd.EthSecp256k1Type))
+		cmd.Flags().Set(flags.FlagKeyType, string(hd.EthSecp256k1Type))
 		cmd.Flags().Set("coin-type", "60")
 	}
 

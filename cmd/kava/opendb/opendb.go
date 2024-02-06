@@ -6,8 +6,8 @@ package opendb
 import (
 	"path/filepath"
 
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/server/types"
-	dbm "github.com/tendermint/tm-db"
 )
 
 // OpenDB is a copy of default DBOpener function used by ethermint, see for details:

@@ -15,9 +15,6 @@ const (
 	// RouterKey Top level router key
 	RouterKey = ModuleName
 
-	// QuerierRoute Top level query string
-	QuerierRoute = ModuleName
-
 	// DefaultParamspace default name for parameter store
 	DefaultParamspace = ModuleName
 )
