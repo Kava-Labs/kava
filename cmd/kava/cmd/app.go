@@ -83,10 +83,15 @@ func (ac appCreator) newApp(
 		iavlDisableFastNode = true
 	}
 
+	skipLoadLatest := false
+	if appOpts.Get("skip-load-latest") != nil {
+		skipLoadLatest = cast.ToBool(appOpts.Get("skip-load-latest"))
+	}
+
 	return app.NewApp(
 		logger, db, homeDir, traceStore, ac.encodingConfig,
 		app.Options{
-			SkipLoadLatest:        false,
+			SkipLoadLatest:        skipLoadLatest,
 			SkipUpgradeHeights:    skipUpgradeHeights,
 			SkipGenesisInvariants: cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants)),
 			InvariantCheckPeriod:  cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),

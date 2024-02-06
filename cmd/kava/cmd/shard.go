@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/cmd/kava/cmd/util"
 	"github.com/spf13/cobra"
 
@@ -30,6 +31,7 @@ const (
 	flagShardEndBlock          = "end"
 	flagShardOnlyAppState      = "only-app-state"
 	flagShardOnlyCometbftState = "only-cometbft-state"
+	flagShardForceAppVersion   = "force-app-version"
 	// TODO: --preserve flag for creating & operating on a copy?
 
 	// allow using -1 to mean "latest" (perform no rollbacks)
@@ -78,6 +80,10 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			if err != nil {
 				return err
 			}
+			forceAppVersion, err := cmd.Flags().GetInt64(flagShardForceAppVersion)
+			if err != nil {
+				return err
+			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -108,7 +114,19 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 
 			if !onlyCometbftState {
 				// get the multistore
-				app := opts.AppCreator(ctx.Logger, db, nil, ctx.Viper)
+				ctx.Viper.Set("skip-load-latest", true)
+
+				app := opts.AppCreator(ctx.Logger, db, nil, ctx.Viper).(*app.App)
+				if forceAppVersion == shardEndBlockLatest {
+					if err := app.LoadLatestVersion(); err != nil {
+						return err
+					}
+				} else {
+					if err := app.LoadVersion(forceAppVersion); err != nil {
+						return err
+					}
+				}
+
 				cms := app.CommitMultiStore()
 				multistore, ok := cms.(*rootmulti.Store)
 				if !ok {
@@ -191,6 +209,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (inclusive)")
 	cmd.Flags().Bool(flagShardOnlyAppState, false, "Skip pruning of blockstore & cometbft state")
 	cmd.Flags().Bool(flagShardOnlyCometbftState, false, "Skip pruning of application state")
+	cmd.Flags().Int64(flagShardForceAppVersion, shardEndBlockLatest, "Instead of loading latest, force set the version of the multistore that is loaded")
 
 	return cmd
 }
