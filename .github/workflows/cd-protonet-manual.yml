@@ -10,8 +10,6 @@ jobs:
   # download updated binary and genesis
   # reset application database state (only done on internal testnet)
   reset-chain-to-zero-state:
-    # only start cd pipeline if last ci run was successful
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/cd-reset-internal-testnet.yml
     with:
       aws-region: us-east-1
