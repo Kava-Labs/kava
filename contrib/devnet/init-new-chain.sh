@@ -92,6 +92,9 @@ jq '.app_state.evm.params.chain_config.merge_netsplit_block = null' $DATA/config
 jq '.app_state.evm.params.chain_config.shanghai_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 jq '.app_state.evm.params.chain_config.cancun_block = null' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
 
+# Set consensus max_gas or Eth Tx fails: tx gas (892355) exceeds block gas limit (0): out of gas: out of gas
+jq '.consensus_params.block.max_gas = "20000000"' $DATA/config/genesis.json|sponge $DATA/config/genesis.json
+
 # Add earn vault
 jq '.app_state.earn.params.allowed_vaults =  [
     {
