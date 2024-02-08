@@ -1,6 +1,14 @@
 #!/bin/bash
 set -ex
 
+# by sleeping 1 block in between tx's
+# we can emulate the behavior of the
+# the deprecated and now removed (as of Kava 16)
+# broadcast mode of `block` in order to
+# minimize the chance tx's fail due to an
+# account sequence number mismatch
+AVG_SECONDS_BETWEEN_BLOCKS=6.5
+
 # configure kava binary to talk to the desired chain endpoint
 kava config node "${CHAIN_API_URL}"
 kava config chain-id "${CHAIN_ID}"
@@ -23,8 +31,12 @@ echo "sweet ocean blush coil mobile ten floor sample nuclear power legend where 
 # fund evm-contract-deployer account (using issuance)
 kava tx issuance issue 200000000ukava kava1van3znl6597xgwwh46jgquutnqkwvwszjg04fz --from dev-wallet --gas-prices 0.5ukava -y
 
+sleep $AVG_SECONDS_BETWEEN_BLOCKS
+
 # fund 5k kava to x/community account
 kava tx community fund-community-pool 5000000000ukava --from dev-wallet --gas-prices 0.5ukava -y
+
+sleep $AVG_SECONDS_BETWEEN_BLOCKS
 
 # deploy and fund USDC ERC20 contract
 MULTICHAIN_USDC_CONTRACT_DEPLOY=$(npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" deploy-erc20 "USD Coin" USDC 6)
@@ -89,6 +101,8 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_USDC_CON
 kava tx issuance issue 6000000000ukava kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq \
   --from dev-wallet --gas-prices 0.5ukava -y
 
+sleep $AVG_SECONDS_BETWEEN_BLOCKS
+
 # parse space seperated list of validators
 # into bash array
 read -r -a GENESIS_VALIDATOR_ADDRESS_ARRAY <<< "$GENESIS_VALIDATOR_ADDRESSES"
@@ -97,10 +111,13 @@ read -r -a GENESIS_VALIDATOR_ADDRESS_ARRAY <<< "$GENESIS_VALIDATOR_ADDRESSES"
 for validator in "${GENESIS_VALIDATOR_ADDRESS_ARRAY[@]}"
 do
   kava tx staking delegate "${validator}" 300000000ukava --from dev-wallet --gas-prices 0.5ukava -y
+  sleep $AVG_SECONDS_BETWEEN_BLOCKS
 done
 
 # create a text proposal
 kava tx gov submit-legacy-proposal --deposit 1000000000ukava --type "Text" --title "Example Proposal" --description "This is an example proposal" --gas auto --gas-adjustment 1.2 --from dev-wallet --gas-prices 0.01ukava -y
+
+sleep $AVG_SECONDS_BETWEEN_BLOCKS
 
 # setup god's wallet
 echo "${KAVA_TESTNET_GOD_MNEMONIC}" | kava keys add --recover god
@@ -150,8 +167,12 @@ printf "original evm util module params\n %s" , "$originalEvmUtilParams"
 # https://github.com/Kava-Labs/kava/pull/1556/files#diff-0bd6043650c708661f37bbe6fa5b29b52149e0ec0069103c3954168fc9f12612R900-R903
 kava tx committee submit-proposal 1 "$proposalFileName" --gas 2000000 --gas-prices 0.01ukava --from god -y
 
+sleep $AVG_SECONDS_BETWEEN_BLOCKS
+
 # vote on the proposal. this assumes no other committee proposal has ever been submitted (id=1)
 kava tx committee vote 1 yes --gas 2000000 --gas-prices 0.01ukava --from god -y
+
+sleep $AVG_SECONDS_BETWEEN_BLOCKS
 
 # fetch current module params
 updatedEvmUtilParams=$(curl https://api.app.internal.testnet.us-east.production.kava.io/kava/evmutil/v1beta1/params)
