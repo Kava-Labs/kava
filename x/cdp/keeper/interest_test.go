@@ -713,7 +713,19 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 			err = suite.keeper.AccumulateInterest(suite.ctx, tc.args.ctype)
 			suite.Require().NoError(err)
 
-			err = suite.keeper.SynchronizeInterestForRiskyCDPs(suite.ctx, i(int64(tc.args.slice)), sdk.MaxSortableDec, tc.args.ctype)
+			params := suite.keeper.GetParams(suite.ctx)
+			var ctype types.CollateralParam
+
+			for _, cp := range params.CollateralParams {
+				if cp.Type == tc.args.ctype {
+					ctype = cp
+
+					cp.CheckCollateralizationIndexCount = sdk.NewInt(int64(tc.args.slice))
+					break
+				}
+			}
+
+			err = suite.keeper.SynchronizeInterestForRiskyCDPs(suite.ctx, sdk.MaxSortableDec, ctype)
 			suite.Require().NoError(err)
 
 			cdpsUpdatedCount := 0

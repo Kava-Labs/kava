@@ -47,7 +47,7 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 
 		ctx.Logger().Debug(fmt.Sprintf("running x/cdp SynchronizeInterestForRiskyCDPs and LiquidateCdps for %s", cp.Type))
 
-		err = k.SynchronizeInterestForRiskyCDPs(ctx, cp.CheckCollateralizationIndexCount, sdk.MaxSortableDec, cp.Type)
+		err = k.SynchronizeInterestForRiskyCDPs(ctx, sdk.MaxSortableDec, cp)
 		if err != nil {
 			panic(err)
 		}
