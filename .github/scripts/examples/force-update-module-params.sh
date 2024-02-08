@@ -33,7 +33,7 @@ kava config chain-id "${CHAIN_ID}"
 kava config keyring-backend test
 
 # wait for transactions to be committed per CLI command
-kava config broadcast-mode block
+kava config broadcast-mode sync
 
 # setup god's wallet
 echo "${KAVA_TESTNET_GOD_MNEMONIC}" | kava keys add --recover god
