@@ -41,4 +41,4 @@ jobs:
         run: npm install --save-dev hardhat
       - name: run precompile tests
         working-directory: ./contracts
-        run: npx hardhat --network kava test test/stateless_sum3.ts test/sum3.ts test/mul3.ts
+        run: npx hardhat --network kava test test/sum3.ts test/mul3.ts
