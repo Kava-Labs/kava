@@ -86,7 +86,6 @@ import (
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
-	"github.com/evmos/ethermint/x/evm/statedb"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/evmos/ethermint/x/evm/vm/geth"
 	"github.com/evmos/ethermint/x/feemarket"
@@ -537,7 +536,6 @@ func NewApp(
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		nil, // precompiled contracts
 		geth.NewEVM,
-		statedb.New,
 		options.EVMTrace,
 		evmSubspace,
 	)
