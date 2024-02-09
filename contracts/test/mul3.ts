@@ -17,13 +17,13 @@ describe("Testing precompiled mul3 contract", function() {
         const mul3ContractWithSigner: BaseContract = mul3Contract.connect(signers[0]);
 
         await mul3ContractWithSigner.calcMul3(2, 3, 4);
-        await delay(1000);
+        await delay(2000);
         let actual: string = await mul3Contract.getMul3();
         let expected: string = "0x0000000000000000000000000000000000000000000000000000000000000018";
         expect(actual).to.equal(expected);
 
         await mul3ContractWithSigner.calcMul3(3, 5, 7);
-        await delay(1000);
+        await delay(2000);
         actual = await mul3Contract.getMul3();
         expected = "0x0000000000000000000000000000000000000000000000000000000000000069"
         expect(actual).to.equal(expected);
