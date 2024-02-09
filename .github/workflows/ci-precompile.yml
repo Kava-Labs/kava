@@ -24,7 +24,7 @@ jobs:
         run: |
           git clone https://github.com/Kava-Labs/go-ethereum docker-deps/go-ethereum
           cd docker-deps/go-ethereum
-          git checkout yevhenii/precompile-v2-backport
+          git checkout kava/release/1.10
       - name: build kava docker image
         run: make docker-build-dev
 
