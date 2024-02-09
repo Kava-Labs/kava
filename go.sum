@@ -214,6 +214,10 @@ github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.0/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
+github.com/Kava-Labs/ethermint v0.21.1-0.20240118144646-5d6946c756f6 h1:hM9mav+obv73o2zt711bs2vpCz5Voo5AisAd272+DVs=
+github.com/Kava-Labs/ethermint v0.21.1-0.20240118144646-5d6946c756f6/go.mod h1:XL1afIkbeMvxkdP/ij/bNniVnkwtA1EvFLnojv/f6hw=
+github.com/Kava-Labs/go-ethereum v1.10.27-0.20240209130801-e1feca3ecb4f h1:YosQj4mjRF9injhjuzImffd60Ruf9gLwTbqlpcSLyJs=
+github.com/Kava-Labs/go-ethereum v1.10.27-0.20240209130801-e1feca3ecb4f/go.mod h1:/6CsT5Ceen2WPLI/oCA3xMcZ5sWMF/D46SjM/ayY0Oo=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
 github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 h1:TngWCqHvy9oXAN6lEVMRuU21PR1EtLVZJmdB18Gu3Rw=
