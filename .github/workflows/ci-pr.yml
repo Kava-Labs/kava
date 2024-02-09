@@ -6,6 +6,7 @@ on:
       - master
       - 'release/**'
       - 'releases/**'
+      - 'feat/precompile'
 # run default ci checks against current PR
 jobs:
   default:
