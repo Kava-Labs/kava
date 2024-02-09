@@ -7,6 +7,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/precompile/contract"
+	"github.com/ethereum/go-ethereum/vmerrs"
+)
+
+const (
+	calcMul3GasCost uint64 = contract.WriteGasCostPerSlot
+	getMul3GasCost  uint64 = contract.ReadGasCostPerSlot
 )
 
 // Singleton StatefulPrecompiledContract.
@@ -44,7 +50,14 @@ func calcMul3(
 	input []byte,
 	suppliedGas uint64,
 	readOnly bool,
-) (ret []byte, err error) {
+) (ret []byte, remainingGas uint64, err error) {
+	if remainingGas, err = contract.DeductGas(suppliedGas, calcMul3GasCost); err != nil {
+		return nil, 0, err
+	}
+	if readOnly {
+		return nil, remainingGas, vmerrs.ErrWriteProtection
+	}
+
 	// Set the nonce of the precompile's address (as is done when a contract is created) to ensure
 	// that it is marked as non-empty and will not be cleaned up when the statedb is finalized.
 	accessibleState.GetStateDB().SetNonce(ContractAddress, 1)
@@ -54,7 +67,7 @@ func calcMul3(
 	accessibleState.GetStateDB().SetCode(ContractAddress, []byte{0x1})
 
 	if len(input) != 96 {
-		return nil, fmt.Errorf("unexpected input length, want: 96, got: %v", len(input))
+		return nil, remainingGas, fmt.Errorf("unexpected input length, want: 96, got: %v", len(input))
 	}
 
 	var a, b, c, rez big.Int
@@ -67,7 +80,7 @@ func calcMul3(
 	StoreProduct(accessibleState.GetStateDB(), &rez)
 
 	packedOutput := make([]byte, 0)
-	return packedOutput, nil
+	return packedOutput, remainingGas, nil
 }
 
 func getMul3(
@@ -77,14 +90,18 @@ func getMul3(
 	input []byte,
 	suppliedGas uint64,
 	readOnly bool,
-) (ret []byte, err error) {
+) (ret []byte, remainingGas uint64, err error) {
+	if remainingGas, err = contract.DeductGas(suppliedGas, getMul3GasCost); err != nil {
+		return nil, 0, err
+	}
+
 	product, err := GetProduct(accessibleState.GetStateDB())
 	if err != nil {
-		return nil, err
+		return nil, remainingGas, err
 	}
 
 	packedOutput := common.LeftPadBytes(product.Bytes(), 32)
-	return packedOutput, nil
+	return packedOutput, remainingGas, nil
 }
 
 // createMul3Precompile returns a StatefulPrecompiledContract with getters and setters for the precompile.
@@ -92,12 +109,12 @@ func createMul3Precompile() contract.StatefulPrecompiledContract {
 	var functions []*contract.StatefulPrecompileFunction
 
 	functions = append(functions, contract.NewStatefulPrecompileFunction(
-		contract.CalculateFunctionSelector("calcMul3(uint256,uint256,uint256)"),
+		contract.MustCalculateFunctionSelector("calcMul3(uint256,uint256,uint256)"),
 		calcMul3,
 	))
 
 	functions = append(functions, contract.NewStatefulPrecompileFunction(
-		contract.CalculateFunctionSelector("getMul3()"),
+		contract.MustCalculateFunctionSelector("getMul3()"),
 		getMul3,
 	))
 
