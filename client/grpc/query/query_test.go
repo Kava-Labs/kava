@@ -46,6 +46,7 @@ func TestNewQueryClient_ValidClient(t *testing.T) {
 		require.NotNil(t, client.Slashing)
 		require.NotNil(t, client.Staking)
 		require.NotNil(t, client.Upgrade)
+		require.NotNil(t, client.Consensus)
 
 		// validate 3rd party clients
 		require.NotNil(t, client.Evm)

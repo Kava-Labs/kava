@@ -8,6 +8,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	disttypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	govv1types "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
@@ -58,6 +59,7 @@ type QueryClient struct {
 	Slashing     slashingtypes.QueryClient
 	Staking      stakingtypes.QueryClient
 	Upgrade      upgradetypes.QueryClient
+	Consensus    consensustypes.QueryClient
 
 	// 3rd party query clients
 
@@ -106,6 +108,7 @@ func NewQueryClient(grpcEndpoint string) (*QueryClient, error) {
 		Slashing:     slashingtypes.NewQueryClient(conn),
 		Staking:      stakingtypes.NewQueryClient(conn),
 		Upgrade:      upgradetypes.NewQueryClient(conn),
+		Consensus:    consensustypes.NewQueryClient(conn),
 
 		Evm:         evmtypes.NewQueryClient(conn),
 		Feemarket:   feemarkettypes.NewQueryClient(conn),
