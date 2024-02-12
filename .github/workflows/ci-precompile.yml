@@ -2,6 +2,12 @@ name: Continuous Integration (Stateful Precompiled Contracts)
 
 on:
   workflow_call:
+
+env:
+  ETHERMINT_VERSION: yevhenii/precompile-v2
+  GO_ETHEREUM_VERSION: kava/release/1.10
+  KVTOOL_VERSION: e2b2900a6d3656e7cc4dcbbec3d4b84985975b6c
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,12 +25,12 @@ jobs:
         run: |
           git clone https://github.com/Kava-Labs/ethermint docker-deps/ethermint
           cd docker-deps/ethermint
-          git checkout yevhenii/precompile-v2
+          git checkout $ETHERMINT_VERSION
       - name: clone go-ethereum
         run: |
           git clone https://github.com/Kava-Labs/go-ethereum docker-deps/go-ethereum
           cd docker-deps/go-ethereum
-          git checkout kava/release/1.10
+          git checkout $GO_ETHEREUM_VERSION
       - name: build kava docker image
         run: make docker-build-dev
 
@@ -32,13 +38,16 @@ jobs:
         run: |
           git clone https://github.com/Kava-Labs/kvtool
           cd kvtool
+          git checkout $KVTOOL_VERSION
           make install
       - name: run kava docker container
         run: KAVA_TAG=local kvtool t bootstrap
+      - name: wait until kava node is ready to serve traffic
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/wait-for-node-init.sh
 
       - name: install hardhat
         working-directory: ./contracts
         run: npm install --save-dev hardhat
       - name: run precompile tests
         working-directory: ./contracts
-        run: npx hardhat --network kava test test/sum3.ts test/mul3.ts
+        run: npx hardhat --network kava test test/mul3.ts

@@ -10,6 +10,7 @@ RUN apk add bash git make libc-dev gcc linux-headers eudev-dev jq curl
 WORKDIR /root/kava
 # default home directory is /root
 
+# TODO: it's necessary only for local development, remove before merging
 COPY ./docker-deps/ethermint   /Users/yevheniishcherbina/go/src/github.com/Kava-Labs/ethermint
 COPY ./docker-deps/go-ethereum /Users/yevheniishcherbina/go/src/github.com/ethereum/go-ethereum
 
