@@ -4,11 +4,14 @@ go 1.20
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7
+	cosmossdk.io/log v1.2.0
 	cosmossdk.io/math v1.0.0-rc.0
 	github.com/cenkalti/backoff/v4 v4.1.3
+	github.com/cosmos/cosmos-db v1.0.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/go-bip39 v1.0.0
+	github.com/cosmos/iavl v1.0.0
 	github.com/cosmos/ibc-go/v6 v6.1.1
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.21.0
@@ -40,7 +43,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/iam v1.1.2 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
-	cosmossdk.io/log v1.2.0 // indirect
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.1 // indirect
@@ -73,9 +75,7 @@ require (
 	github.com/cometbft/cometbft-db v0.9.1 // indirect
 	github.com/confio/ics23/go v0.9.0 // indirect
 	github.com/cosmos/btcutil v1.0.5 // indirect
-	github.com/cosmos/cosmos-db v1.0.0 // indirect
 	github.com/cosmos/gogoproto v1.4.6 // indirect
-	github.com/cosmos/iavl v1.0.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.1 // indirect
 	github.com/creachadair/taskgroup v0.3.2 // indirect
@@ -211,7 +211,7 @@ replace (
 	// Use rocksdb 8.8.1
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.16-iavl-v1-kava.1
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.16-iavl-v1-kava.2
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
