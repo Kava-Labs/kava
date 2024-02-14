@@ -19,6 +19,7 @@ import (
 	"github.com/kava-labs/kava/x/cdp"
 	"github.com/kava-labs/kava/x/cdp/keeper"
 	"github.com/kava-labs/kava/x/cdp/types"
+	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
 
 type ModuleTestSuite struct {
@@ -119,6 +120,54 @@ func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	pp, err := pfKeeper.GetCurrentPrice(suite.ctx, market)
 	suite.NoError(err)
 	suite.Equal(price, pp.Price)
+}
+
+func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterestFactor() {
+	suite.createCdps()
+
+	// add a new collateral that does not have previous accumulation time or global interest factor set
+	params := suite.keeper.GetParams(suite.ctx)
+	newCollateral := types.CollateralParam{
+		Denom:                            "erc20/usdc",
+		Type:                             "erc20-usdc",
+		LiquidationRatio:                 sdk.MustNewDecFromStr("1.01"),
+		DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
+		StabilityFee:                     sdk.OneDec(),
+		AuctionSize:                      sdk.NewIntFromUint64(10000000000),
+		LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+		CheckCollateralizationIndexCount: sdk.NewInt(10),
+		KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+		SpotMarketID:                     "usdc:usd",
+		LiquidationMarketID:              "usdc:usd",
+		ConversionFactor:                 sdk.NewInt(18),
+	}
+	params.CollateralParams = append(params.CollateralParams, newCollateral)
+	suite.keeper.SetParams(suite.ctx, params)
+
+	// setup market for cdp collateral
+	priceFeedKeeper := suite.app.GetPriceFeedKeeper()
+	priceParams := priceFeedKeeper.GetParams(suite.ctx)
+	newMarket := pricefeedtypes.Market{
+		MarketID: "usdc:usd", BaseAsset: "usdc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true,
+	}
+	priceParams.Markets = append(priceParams.Markets, newMarket)
+	priceFeedKeeper.SetParams(suite.ctx, priceParams)
+	suite.setPrice(d("1"), "usdc:usd")
+
+	// ensure begin block does not panic due to no accumulation time or no global interest factor
+	suite.Require().NotPanics(func() {
+		cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+	}, "expected begin blocker not to panic")
+
+	// set by accumulate interest
+	previousAccrualTime, found := suite.keeper.GetPreviousAccrualTime(suite.ctx, newCollateral.Type)
+	suite.Require().True(found, "expected previous accrual time for new market to be set")
+	suite.Equal(suite.ctx.BlockTime(), previousAccrualTime, "expected previous accrual time to equal block time")
+
+	// set by syncrhonize risky cdps
+	globalInterestFactor, found := suite.keeper.GetInterestFactor(suite.ctx, newCollateral.Type)
+	suite.Require().True(found, "expected global interest factor for new collateral to be set")
+	suite.Equal(sdk.OneDec(), globalInterestFactor, "expected global interest factor to equal 1")
 }
 
 func (suite *ModuleTestSuite) TestBeginBlock() {
