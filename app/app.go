@@ -508,6 +508,25 @@ func NewApp(
 		scopedIBCKeeper,
 	)
 
+	app.transferKeeper = ibctransferkeeper.NewKeeper(
+		appCodec,
+		keys[ibctransfertypes.StoreKey],
+		ibctransferSubspace,
+		app.ibcKeeper.ChannelKeeper,
+		app.ibcKeeper.ChannelKeeper,
+		&app.ibcKeeper.PortKeeper,
+		app.accountKeeper,
+		app.bankKeeper,
+		scopedTransferKeeper,
+	)
+	transferModule := transfer.NewAppModule(app.transferKeeper)
+	transferIBCModule := transfer.NewIBCModule(app.transferKeeper)
+
+	// Create static IBC router, add transfer route, then set and seal it
+	ibcRouter := porttypes.NewRouter()
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+	app.ibcKeeper.SetRouter(ibcRouter)
+
 	// Create Ethermint keepers
 	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
 		appCodec,
@@ -529,7 +548,7 @@ func NewApp(
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
 		govAuthorityAddr,
-		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
+		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper, app.transferKeeper,
 		nil, // precompiled contracts
 		geth.NewEVM,
 		options.EVMTrace,
@@ -537,25 +556,6 @@ func NewApp(
 	)
 
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
-
-	app.transferKeeper = ibctransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibctransfertypes.StoreKey],
-		ibctransferSubspace,
-		app.ibcKeeper.ChannelKeeper,
-		app.ibcKeeper.ChannelKeeper,
-		&app.ibcKeeper.PortKeeper,
-		app.accountKeeper,
-		app.bankKeeper,
-		scopedTransferKeeper,
-	)
-	transferModule := transfer.NewAppModule(app.transferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.transferKeeper)
-
-	// Create static IBC router, add transfer route, then set and seal it
-	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
-	app.ibcKeeper.SetRouter(ibcRouter)
 
 	app.auctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,
