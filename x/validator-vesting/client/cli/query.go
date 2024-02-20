@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/spf13/cobra"
 
@@ -48,19 +48,12 @@ func queryCirculatingSupply() *cobra.Command {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupply), nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.CirculatingSupply(context.Background(), &types.QueryCirculatingSupplyRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var out int64
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal supply: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(out)
+			return cliCtx.PrintString(res.Amount.String())
 		},
 	}
 }
@@ -76,20 +69,12 @@ func queryTotalSupply() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTotalSupply), nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.TotalSupply(context.Background(), &types.QueryTotalSupplyRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var out int64
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal supply: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(out)
+			return cliCtx.PrintString(res.Amount.String())
 		},
 	}
 }
@@ -106,19 +91,12 @@ func queryCirculatingSupplyHARD() *cobra.Command {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupplyHARD), nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.CirculatingSupplyHARD(context.Background(), &types.QueryCirculatingSupplyHARDRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var out int64
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal supply: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(out)
+			return cliCtx.PrintString(res.Amount.String())
 		},
 	}
 }
@@ -135,19 +113,12 @@ func queryCirculatingSupplyUSDX() *cobra.Command {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupplyUSDX), nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.CirculatingSupplyUSDX(context.Background(), &types.QueryCirculatingSupplyUSDXRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var out int64
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal supply: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(out)
+			return cliCtx.PrintString(res.Amount.String())
 		},
 	}
 }
@@ -164,19 +135,12 @@ func queryCirculatingSupplySWP() *cobra.Command {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupplySWP), nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.CirculatingSupplySWP(context.Background(), &types.QueryCirculatingSupplySWPRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var out int64
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal supply: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(out)
+			return cliCtx.PrintString(res.Amount.String())
 		},
 	}
 }
@@ -193,19 +157,12 @@ func queryTotalSupplyHARD() *cobra.Command {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTotalSupplyHARD), nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.TotalSupplyHARD(context.Background(), &types.QueryTotalSupplyHARDRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var out int64
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal supply: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(out)
+			return cliCtx.PrintString(res.Amount.String())
 		},
 	}
 }
@@ -222,19 +179,12 @@ func queryTotalSupplyUSDX() *cobra.Command {
 				return err
 			}
 
-			// Query
-			res, height, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTotalSupplyUSDX), nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.TotalSupplyUSDX(context.Background(), &types.QueryTotalSupplyUSDXRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var out int64
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &out); err != nil {
-				return fmt.Errorf("failed to unmarshal supply: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(out)
+			return cliCtx.PrintString(res.Amount.String())
 		},
 	}
 }
