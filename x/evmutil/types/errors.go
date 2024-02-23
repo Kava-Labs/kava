@@ -11,4 +11,5 @@ var (
 	ErrUnexpectedContractEvent = errorsmod.Register(ModuleName, 6, "unexpected contract event")
 	ErrInvalidCosmosDenom      = errorsmod.Register(ModuleName, 7, "invalid cosmos denom")
 	ErrSDKConversionNotEnabled = errorsmod.Register(ModuleName, 8, "sdk.Coin not enabled to convert to ERC20 token")
+	ErrInvalidConversionAmount = errorsmod.Register(ModuleName, 8, "amount cannot be converted")
 )

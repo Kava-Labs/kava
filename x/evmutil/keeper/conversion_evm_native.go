@@ -67,11 +67,17 @@ func (k Keeper) ConvertCoinToERC20(
 		return err
 	}
 
+	// compute coin.Amount * 10^-pair.DecimalConversion
+	evmAmount, remainder := MulByPowersTen(coin.Amount.BigInt(), int64(-1*pair.DecimalConversion))
+	if remainder.Cmp(new(big.Int)) != 0 {
+		return errorsmod.Wrapf(types.ErrInvalidConversionAmount, "%s not divisble by 10^%d", coin.Amount, pair.DecimalConversion)
+	}
+
 	if err := k.BurnConversionPairCoin(ctx, pair, coin, initiatorAccount); err != nil {
 		return err
 	}
 
-	if err := k.UnlockERC20Tokens(ctx, pair, coin.Amount.BigInt(), receiverAccount); err != nil {
+	if err := k.UnlockERC20Tokens(ctx, pair, evmAmount, receiverAccount); err != nil {
 		return err
 	}
 
@@ -80,7 +86,8 @@ func (k Keeper) ConvertCoinToERC20(
 		sdk.NewAttribute(types.AttributeKeyInitiator, initiatorAccount.String()),
 		sdk.NewAttribute(types.AttributeKeyReceiver, receiverAccount.String()),
 		sdk.NewAttribute(types.AttributeKeyERC20Address, pair.GetAddress().String()),
-		sdk.NewAttribute(types.AttributeKeyAmount, coin.String()),
+		sdk.NewAttribute(types.AttributeKeyOutputAmount, evmAmount.String()),
+		sdk.NewAttribute(types.AttributeKeyInputAmount, coin.Amount.String()),
 	))
 
 	return nil
@@ -102,13 +109,22 @@ func (k Keeper) ConvertERC20ToCoin(
 		return err
 	}
 
+	// compute amount * 10^pair.DecimalConversion
+	// If DecimalConversion is negative the output will be smaller than the input, with a potential decimal part.
+	// This just errors if there is a decimal part, so users must pad their conversion amounts with zeros.
+	// Alternatively we could only transfer the non decimal part, leaving the rest on the evm side.
+	sdkamount, remainder := MulByPowersTen(amount.BigInt(), int64(pair.DecimalConversion))
+	if remainder.Cmp(new(big.Int)) != 0 {
+		return errorsmod.Wrapf(types.ErrInvalidConversionAmount, "%s not divisble by 10^%d", amount, pair.DecimalConversion)
+	}
+
 	// lock erc20 tokens
 	if err := k.LockERC20Tokens(ctx, pair, amount.BigInt(), initiator); err != nil {
 		return err
 	}
 
 	// mint conversion pair coin
-	coin, err := k.MintConversionPairCoin(ctx, pair, amount.BigInt(), receiver)
+	_, err = k.MintConversionPairCoin(ctx, pair, sdkamount, receiver)
 	if err != nil {
 		return err
 	}
@@ -118,7 +134,8 @@ func (k Keeper) ConvertERC20ToCoin(
 		sdk.NewAttribute(types.AttributeKeyERC20Address, contractAddr.String()),
 		sdk.NewAttribute(types.AttributeKeyInitiator, initiator.String()),
 		sdk.NewAttribute(types.AttributeKeyReceiver, receiver.String()),
-		sdk.NewAttribute(types.AttributeKeyAmount, coin.String()),
+		sdk.NewAttribute(types.AttributeKeyOutputAmount, sdkamount.String()),
+		sdk.NewAttribute(types.AttributeKeyInputAmount, amount.String()),
 	))
 
 	return nil
@@ -221,4 +238,20 @@ func (k Keeper) LockERC20Tokens(
 	}
 
 	return err
+}
+
+// MulByPowersTen computes i*10^power and returns integers for the part before and after the decimal point.
+func MulByPowersTen(i *big.Int, power int64) (*big.Int, *big.Int) {
+	positivePower := big.NewInt(power)
+	positivePower.Abs(positivePower)
+
+	multiple := new(big.Int).Exp(big.NewInt(10), positivePower, nil)
+
+	if power < 0 {
+		return new(big.Int).Mul(i, multiple), big.NewInt(0)
+	} else {
+		intPart := new(big.Int).Div(i, multiple)
+		decimalPart := new(big.Int).Mod(i, multiple)
+		return intPart, decimalPart
+	}
 }

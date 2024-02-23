@@ -3,9 +3,10 @@ package types_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestConversionPairValidate(t *testing.T) {
@@ -17,12 +18,32 @@ func TestConversionPairValidate(t *testing.T) {
 		name        string
 		giveAddress types.InternalEVMAddress
 		giveDenom   string
+		givDecimals int32
 		errArgs     errArgs
 	}{
 		{
 			"valid",
 			testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
 			"weth",
+			0,
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
+			"valid - negative decimals",
+			testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
+			"weth",
+			-9999999,
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
+			"valid - positive decimals",
+			testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
+			"weth",
+			9999999, // TODO limit this to the max range supported by sdk.Int and the evm
 			errArgs{
 				expectPass: true,
 			},
@@ -31,6 +52,7 @@ func TestConversionPairValidate(t *testing.T) {
 			"invalid - empty denom",
 			testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"),
 			"",
+			0,
 			errArgs{
 				expectPass: false,
 				contains:   "conversion pair denom invalid: invalid denom",
@@ -40,6 +62,7 @@ func TestConversionPairValidate(t *testing.T) {
 			"invalid - zero address",
 			testutil.MustNewInternalEVMAddressFromString("0x0000000000000000000000000000000000000000"),
 			"weth",
+			0,
 			errArgs{
 				expectPass: false,
 				contains:   "address cannot be zero value",
@@ -49,7 +72,7 @@ func TestConversionPairValidate(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			pair := types.NewConversionPair(tc.giveAddress, tc.giveDenom)
+			pair := types.NewConversionPairWithDecimal(tc.giveAddress, tc.giveDenom, tc.givDecimals)
 
 			err := pair.Validate()
 
@@ -117,6 +140,7 @@ func TestConversionPair_GetAddress(t *testing.T) {
 	pair := types.NewConversionPair(
 		addr,
 		"weth",
+		0,
 	)
 
 	require.Equal(t, types.HexBytes(addr.Bytes()), pair.KavaERC20Address, "struct address should match input bytes")

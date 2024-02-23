@@ -20,6 +20,9 @@ message ConversionPair {
 
   // Denom of the corresponding sdk.Coin
   string denom = 2;
+
+  // Decimal Conversion is the difference between the decimal precision of the ERC20 token and the sdk denom.
+  int32 decimal_conversion = 3;
 }
 
 // AllowedCosmosCoinERC20Token defines allowed cosmos-sdk denom & metadata

@@ -3890,6 +3890,7 @@ allowed to be converted between ERC20 and sdk.Coin
 | ----- | ---- | ----- | ----------- |
 | `kava_erc20_address` | [bytes](#bytes) |  | ERC20 address of the token on the Kava EVM |
 | `denom` | [string](#string) |  | Denom of the corresponding sdk.Coin |
+| `decimal_conversion` | [int32](#int32) |  | Decimal Conversion is the difference between the decimal precision of the ERC20 token and the sdk denom. |
 
 
 

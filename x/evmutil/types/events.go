@@ -12,8 +12,10 @@ const (
 	EventTypeConvertCosmosCoinFromERC20 = "convert_cosmos_coin_from_erc20"
 
 	// Event Attributes - Common
-	AttributeKeyReceiver = "receiver"
-	AttributeKeyAmount   = "amount"
+	AttributeKeyReceiver     = "receiver"
+	AttributeKeyAmount       = "amount"
+	AttributeKeyInputAmount  = "input_amount"
+	AttributeKeyOutputAmount = "output_amount"
 
 	// Event Attributes - Conversions
 	AttributeKeyInitiator    = "initiator"

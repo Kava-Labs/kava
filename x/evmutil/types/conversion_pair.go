@@ -15,11 +15,23 @@ import (
 // EVM -> Cosmos SDK
 ///////////////
 
+const defaultDecimalConversion = 0
+
 // NewConversionPair returns a new ConversionPair.
 func NewConversionPair(address InternalEVMAddress, denom string) ConversionPair {
 	return ConversionPair{
-		KavaERC20Address: address.Address.Bytes(),
-		Denom:            denom,
+		KavaERC20Address:  address.Address.Bytes(),
+		Denom:             denom,
+		DecimalConversion: defaultDecimalConversion,
+	}
+}
+
+// NewConversionPairWithDecimal returns a new ConversionPair with the decimal conversion field filled out.
+func NewConversionPairWithDecimal(address InternalEVMAddress, denom string, decimalConversion int32) ConversionPair {
+	return ConversionPair{
+		KavaERC20Address:  address.Address.Bytes(),
+		Denom:             denom,
+		DecimalConversion: decimalConversion,
 	}
 }
 
