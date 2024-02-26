@@ -2,10 +2,12 @@ package ibc
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
+	ethermint_statedb "github.com/evmos/ethermint/x/evm/statedb"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -27,6 +29,8 @@ var (
 
 	IBCPrecompile = createIBCPrecompile()
 )
+
+var ErrUnsupportedStateDB = errors.New("unsupported statedb")
 
 func transfer(
 	accessibleState contract.AccessibleState,
@@ -56,7 +60,11 @@ func transfer(
 		return nil, remainingGas, err
 	}
 
-	resp, err := accessibleState.GetStateDB().IBCTransfer(accessibleState.GetStateDB().Context(), &contract.MsgTransfer{
+	stateDB, ok := accessibleState.GetStateDB().(*ethermint_statedb.StateDB)
+	if !ok {
+		return nil, remainingGas, ErrUnsupportedStateDB
+	}
+	resp, err := stateDB.IBCTransfer(stateDB.Context(), &contract.MsgTransfer{
 		SourcePort:    transferInput.sourcePort,
 		SourceChannel: transferInput.sourceChannel,
 		Token: contract.Coin{
