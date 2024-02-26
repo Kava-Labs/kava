@@ -337,7 +337,7 @@ update-kvtool:
 	cd tests/e2e/kvtool && make install
 
 abi:
-	solc --via-ir --evm-version paris --abi --bin ./contracts/contracts/ExampleIBC.sol -o ./contracts/contracts/example_ibc --overwrite
+	solc --via-ir --evm-version paris --abi --bin ./contracts/contracts/example_ibc/ExampleIBC.sol -o ./contracts/contracts/example_ibc --overwrite
 	cp ./contracts/contracts/example_ibc/IBC.abi ./precompile/contracts/ibc/IBC.abi
 
 abigen:
