@@ -1,0 +1,131 @@
+syntax = "proto3";
+package kava.validatorvesting.v1beta1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/kava-labs/kava/x/validator-vesting/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Query defines the gRPC querier service for validator-vesting module
+service Query {
+  // CirculatingSupply returns the total amount of kava tokens in circulation
+  rpc CirculatingSupply(QueryCirculatingSupplyRequest) returns (QueryCirculatingSupplyResponse) {
+    option (google.api.http).get = "/kava/validator-vesting/v1beta1/circulating_supply";
+  }
+
+  // TotalSupply returns the total amount of kava tokens
+  rpc TotalSupply(QueryTotalSupplyRequest) returns (QueryTotalSupplyResponse) {
+    option (google.api.http).get = "/kava/validator-vesting/v1beta1/total_supply";
+  }
+
+  // CirculatingSupplyHARD returns the total amount of hard tokens in circulation
+  rpc CirculatingSupplyHARD(QueryCirculatingSupplyHARDRequest) returns (QueryCirculatingSupplyHARDResponse) {
+    option (google.api.http).get = "/kava/validator-vesting/v1beta1/circulating_supply_hard";
+  }
+
+  // CirculatingSupplyUSDX returns the total amount of usdx tokens in circulation
+  rpc CirculatingSupplyUSDX(QueryCirculatingSupplyUSDXRequest) returns (QueryCirculatingSupplyUSDXResponse) {
+    option (google.api.http).get = "/kava/validator-vesting/v1beta1/circulating_supply_usdx";
+  }
+
+  // CirculatingSupplySWP returns the total amount of swp tokens in circulation
+  rpc CirculatingSupplySWP(QueryCirculatingSupplySWPRequest) returns (QueryCirculatingSupplySWPResponse) {
+    option (google.api.http).get = "/kava/validator-vesting/v1beta1/circulating_supply_swp";
+  }
+
+  // TotalSupplyHARD returns the total amount of hard tokens
+  rpc TotalSupplyHARD(QueryTotalSupplyHARDRequest) returns (QueryTotalSupplyHARDResponse) {
+    option (google.api.http).get = "/kava/validator-vesting/v1beta1/total_supply_hard";
+  }
+
+  // TotalSupplyUSDX returns the total amount of usdx tokens
+  rpc TotalSupplyUSDX(QueryTotalSupplyUSDXRequest) returns (QueryTotalSupplyUSDXResponse) {
+    option (google.api.http).get = "/kava/validator-vesting/v1beta1/total_supply_usdx";
+  }
+}
+
+// QueryCirculatingSupplyRequest is the request type for the Query/CirculatingSupply RPC method
+message QueryCirculatingSupplyRequest {}
+
+// QueryCirculatingSupplyResponse is the response type for the Query/CirculatingSupply RPC method
+message QueryCirculatingSupplyResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryTotalSupplyRequest is the request type for the Query/TotalSupply RPC method
+message QueryTotalSupplyRequest {}
+
+// QueryTotalSupplyResponse is the response type for the Query/TotalSupply RPC method
+message QueryTotalSupplyResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryCirculatingSupplyHARDRequest is the request type for the Query/CirculatingSupplyHARD RPC method
+message QueryCirculatingSupplyHARDRequest {}
+
+// QueryCirculatingSupplyHARDResponse is the response type for the Query/CirculatingSupplyHARD RPC method
+message QueryCirculatingSupplyHARDResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryCirculatingSupplyUSDXRequest is the request type for the Query/CirculatingSupplyUSDX RPC method
+message QueryCirculatingSupplyUSDXRequest {}
+
+// QueryCirculatingSupplyUSDXResponse is the response type for the Query/CirculatingSupplyUSDX RPC method
+message QueryCirculatingSupplyUSDXResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryCirculatingSupplySWPRequest is the request type for the Query/CirculatingSupplySWP RPC method
+message QueryCirculatingSupplySWPRequest {}
+
+// QueryCirculatingSupplySWPResponse is the response type for the Query/CirculatingSupplySWP RPC method
+message QueryCirculatingSupplySWPResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryTotalSupplyHARDRequest is the request type for the Query/TotalSupplyHARD RPC method
+message QueryTotalSupplyHARDRequest {}
+
+// QueryTotalSupplyHARDResponse is the response type for the Query/TotalSupplyHARD RPC method
+message QueryTotalSupplyHARDResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// QueryTotalSupplyUSDXRequest is the request type for the Query/TotalSupplyUSDX RPC method
+message QueryTotalSupplyUSDXRequest {}
+
+// QueryTotalSupplyUSDXResponse is the response type for the Query/TotalSupplyUSDX RPC method
+message QueryTotalSupplyUSDXResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
