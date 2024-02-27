@@ -42,7 +42,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (cdp) [#1818] Add module param and logic for running x/cdp begin blocker every `n` blocks
 - (cli) [#1804] Add `rocksdb compact` command for manual DB compaction of state or blockstore.
 - (cosmos-sdk) [#1811] Upgrades app to cosmos-sdk v0.47.7
-- (validator-vesting) [#1832] Add grpc query service to replace removed legacy querier.
+- (validator-vesting) [#1832] Add grpc query service to replace removed legacy querier
+- (incentive) [#1836] Update x/incentive cli to use grpc query client
 
 ## [v0.25.0]
 
@@ -325,6 +326,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1836]: https://github.com/Kava-Labs/kava/pull/1836
 [#1832]: https://github.com/Kava-Labs/kava/pull/1832
 [#1811]: https://github.com/Kava-Labs/kava/pull/1811
 [#1804]: https://github.com/Kava-Labs/kava/pull/1804
