@@ -251,6 +251,29 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 	return acc
 }
 
+func (chain *Chain) FundAccount(address sdk.AccAddress, funds sdk.Coins) {
+	// don't attempt to fund when no funds are desired
+	if funds.IsZero() {
+		return
+	}
+
+	whale := chain.GetAccount(FundedAccountName)
+
+	// check that the whale has the necessary balance to fund account
+	bal := chain.QuerySdkForBalances(whale.SdkAddress)
+	require.Truef(chain.t,
+		bal.IsAllGT(funds),
+		"funded account lacks funds for account %s\nneeds: %s\nhas: %s", address, funds, bal,
+	)
+
+	whale.l.Printf("attempting to fund account (%s)\n", address)
+	res := whale.BankSend(address, funds)
+
+	require.NoErrorf(chain.t, res.Err, "failed to fund account %s: %s", address, res.Err)
+
+	whale.l.Printf("successfully funded [%s]\n", address)
+}
+
 // GetNonce fetches the next nonce / sequence number for the account.
 func (a *SigningAccount) NextNonce() (uint64, error) {
 	return a.evmSigner.EvmClient.PendingNonceAt(context.Background(), a.EvmAddress)
