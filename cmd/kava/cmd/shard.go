@@ -63,7 +63,9 @@ $ kava shard --home path/to/.kava --start 5000000 --end -1
 Prune first 1M blocks _without_ affecting blockstore or cometBFT state:
 $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// read & validate flags
+			//////////////////////////
+			// parse & validate flags
+			//////////////////////////
 			startBlock, err := cmd.Flags().GetInt64(flagShardStartBlock)
 			if err != nil {
 				return err
@@ -93,6 +95,9 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			ctx := server.GetServerContextFromCmd(cmd)
 			ctx.Config.SetRoot(clientCtx.HomeDir)
 
+			////////////////////////
+			// manage db connection
+			////////////////////////
 			// connect to database
 			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, server.GetAppDBBackend(ctx.Viper))
 			if err != nil {
@@ -106,6 +111,9 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 				}
 			}()
 
+			///////////////////
+			// load multistore
+			///////////////////
 			// create app in order to load the multistore
 			// skip loading the latest version so the desired height can be manually loaded
 			ctx.Viper.Set("skip-load-latest", true)
