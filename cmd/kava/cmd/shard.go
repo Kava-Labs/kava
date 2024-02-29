@@ -24,10 +24,11 @@ import (
 )
 
 const (
-	flagShardStartBlock      = "start"
-	flagShardEndBlock        = "end"
-	flagShardOnlyAppState    = "only-app-state"
-	flagShardForceAppVersion = "force-app-version"
+	flagShardStartBlock        = "start"
+	flagShardEndBlock          = "end"
+	flagShardOnlyAppState      = "only-app-state"
+	flagShardForceAppVersion   = "force-app-version"
+	flagShardOnlyCometbftState = "only-cometbft-state"
 	// TODO: --preserve flag for creating & operating on a copy?
 
 	// allow using -1 to mean "latest" (perform no rollbacks)
@@ -47,6 +48,8 @@ Setting the end block to -1 signals to keep the latest block (no rollbacks).
 The application.db can be loaded at a particular height via the --force-app-version option. This is useful if the sharding process is prematurely terminated while the application.db is being sharded.
 
 The --only-app-state flag can be used to skip the pruning of the blockstore and cometbft state. This matches the functionality of the cosmos-sdk's "prune" command. Note that rolled back blocks will still affect all stores.
+
+Similarly, the --only-cometbft-state flag skips pruning app state. This can be useful if the shard command is prematurely terminated during the shard process.
 
 The shard command only flags the iavl tree nodes for deletion. Actual removal from the databases will be performed when each database is compacted.
 
@@ -77,6 +80,10 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 				return err
 			}
 			forceAppVersion, err := cmd.Flags().GetInt64(flagShardForceAppVersion)
+			if err != nil {
+				return err
+			}
+			onlyCometbftState, err := cmd.Flags().GetBool(flagShardOnlyCometbftState)
 			if err != nil {
 				return err
 			}
@@ -123,8 +130,12 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			////////////////////////
 			// shard application.db
 			////////////////////////
-			if err := shardApplicationDb(multistore, startBlock, endBlock); err != nil {
-				return err
+			if !onlyCometbftState {
+				if err := shardApplicationDb(multistore, startBlock, endBlock); err != nil {
+					return err
+				}
+			} else {
+				fmt.Printf("[%s] skipping sharding of application.db\n", flagShardOnlyCometbftState)
 			}
 
 			//////////////////////////////////
@@ -141,8 +152,8 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 					return err
 				}
 			} else {
-				fmt.Println("skipping sharding of blockstore.db and state.db")
-				fmt.Printf("blockstore and cometbft state begins at block %d\n", blockStore.Base())
+				fmt.Printf("[%s] skipping sharding of blockstore.db and state.db\n", flagShardOnlyAppState)
+				fmt.Printf("blockstore contains blocks %d - %d\n", blockStore.Base(), blockStore.Height())
 			}
 
 			return nil
@@ -153,6 +164,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 	cmd.Flags().Int64(flagShardStartBlock, 1, "Start block of data shard (inclusive)")
 	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (inclusive)")
 	cmd.Flags().Bool(flagShardOnlyAppState, false, "Skip pruning of blockstore & cometbft state")
+	cmd.Flags().Bool(flagShardOnlyCometbftState, false, "Skip pruning of application state")
 	cmd.Flags().Int64(flagShardForceAppVersion, shardEndBlockLatest, "Instead of loading latest, force set the version of the multistore that is loaded")
 
 	return cmd
