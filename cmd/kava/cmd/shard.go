@@ -86,10 +86,6 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			ctx := server.GetServerContextFromCmd(cmd)
 			ctx.Config.SetRoot(clientCtx.HomeDir)
 
-			//////////////////////////////
-			// Rollback state to endBlock
-			//////////////////////////////
-
 			// connect to database
 			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, server.GetAppDBBackend(ctx.Viper))
 			if err != nil {
@@ -124,69 +120,29 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 				return fmt.Errorf("only sharding of rootmulti.Store type is supported")
 			}
 
+			////////////////////////
 			// shard application.db
+			////////////////////////
 			if err := shardApplicationDb(multistore, startBlock, endBlock); err != nil {
 				return err
 			}
 
+			//////////////////////////////////
+			// shard blockstore.db & state.db
+			//////////////////////////////////
 			// open block store & cometbft state
 			blockStore, stateStore, err := openCometBftDbs(ctx.Config)
 			if err != nil {
 				return fmt.Errorf("failed to open cometbft dbs: %s", err)
 			}
 
-			latest := blockStore.Height()
-			if endBlock == shardEndBlockLatest {
-				endBlock = latest
-			}
-
-			// prep for outputting progress repeatedly to same line
-			needsRollback := endBlock < latest
-			progress := "rolling back blockstore & cometbft state to height %d"
-			numChars := len(fmt.Sprintf(progress, latest))
-			clearLine := fmt.Sprintf("\r%s\r", strings.Repeat(" ", numChars))
-			printRollbackProgress := func(h int64) {
-				fmt.Print(clearLine)
-				fmt.Printf(progress, h)
-			}
-
-			// rollback tendermint db
-			height := latest
-			for height > endBlock {
-				printRollbackProgress(height - 1)
-				height, _, err = tmstate.Rollback(blockStore, stateStore, true)
-				if err != nil {
-					return fmt.Errorf("failed to rollback tendermint state: %w", err)
-				}
-			}
-
-			if needsRollback {
-				fmt.Println()
-			} else {
-				fmt.Printf("latest store height is already %d\n", latest)
-			}
-
-			//////////////////////////////
-			// Prune blocks to startBlock
-			//////////////////////////////
-			// get starting block of block store
-			baseBlock := blockStore.Base()
-
-			// only prune if data exists, otherwise blockStore.PruneBlocks will panic
-			if !onlyAppState && baseBlock < startBlock {
-				// prune block store
-				fmt.Printf("pruning block store from %d - %d\n", baseBlock, startBlock)
-				if _, err := blockStore.PruneBlocks(startBlock); err != nil {
-					return fmt.Errorf("failed to prune block store (retainHeight=%d): %s", startBlock, err)
-				}
-
-				// prune cometbft state
-				fmt.Printf("pruning cometbft state from %d - %d\n", baseBlock, startBlock)
-				if err := stateStore.PruneStates(baseBlock, startBlock); err != nil {
-					return fmt.Errorf("failed to prune cometbft state store (%d - %d): %s", baseBlock, startBlock, err)
+			if !onlyAppState {
+				if err := shardCometBftDbs(blockStore, stateStore, startBlock, endBlock); err != nil {
+					return err
 				}
 			} else {
-				fmt.Printf("blockstore and cometbft state begins at block %d\n", baseBlock)
+				fmt.Println("skipping sharding of blockstore.db and state.db")
+				fmt.Printf("blockstore and cometbft state begins at block %d\n", blockStore.Base())
 			}
 
 			return nil
@@ -197,6 +153,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 	cmd.Flags().Int64(flagShardStartBlock, 1, "Start block of data shard (inclusive)")
 	cmd.Flags().Int64(flagShardEndBlock, 0, "End block of data shard (inclusive)")
 	cmd.Flags().Bool(flagShardOnlyAppState, false, "Skip pruning of blockstore & cometbft state")
+	cmd.Flags().Int64(flagShardForceAppVersion, shardEndBlockLatest, "Instead of loading latest, force set the version of the multistore that is loaded")
 
 	return cmd
 }
@@ -247,6 +204,69 @@ func shardApplicationDb(multistore *rootmulti.Store, startBlock, endBlock int64)
 		if err := multistore.PruneStores(true, pruneHeights); err != nil {
 			return fmt.Errorf("failed to prune application state: %s", err)
 		}
+	}
+
+	return nil
+}
+
+// shardCometBftDbs shrinks blockstore.db & state.db down to the desired block range
+func shardCometBftDbs(blockStore *store.BlockStore, stateStore tmstate.Store, startBlock, endBlock int64) error {
+	var err error
+	latest := blockStore.Height()
+	if endBlock == shardEndBlockLatest {
+		endBlock = latest
+	}
+
+	//////////////////////////////
+	// Rollback state to endBlock
+	//////////////////////////////
+	// prep for outputting progress repeatedly to same line
+	needsRollback := endBlock < latest
+	progress := "rolling back blockstore & cometbft state to height %d"
+	numChars := len(fmt.Sprintf(progress, latest))
+	clearLine := fmt.Sprintf("\r%s\r", strings.Repeat(" ", numChars))
+	printRollbackProgress := func(h int64) {
+		fmt.Print(clearLine)
+		fmt.Printf(progress, h)
+	}
+
+	// rollback tendermint db
+	height := latest
+	for height > endBlock {
+		printRollbackProgress(height - 1)
+		height, _, err = tmstate.Rollback(blockStore, stateStore, true)
+		if err != nil {
+			return fmt.Errorf("failed to rollback tendermint state: %w", err)
+		}
+	}
+
+	if needsRollback {
+		fmt.Println()
+	} else {
+		fmt.Printf("latest store height is already %d\n", latest)
+	}
+
+	//////////////////////////////
+	// Prune blocks to startBlock
+	//////////////////////////////
+	// get starting block of block store
+	baseBlock := blockStore.Base()
+
+	// only prune if data exists, otherwise blockStore.PruneBlocks will panic
+	if baseBlock < startBlock {
+		// prune block store
+		fmt.Printf("pruning block store from %d - %d\n", baseBlock, startBlock)
+		if _, err := blockStore.PruneBlocks(startBlock); err != nil {
+			return fmt.Errorf("failed to prune block store (retainHeight=%d): %s", startBlock, err)
+		}
+
+		// prune cometbft state
+		fmt.Printf("pruning cometbft state from %d - %d\n", baseBlock, startBlock)
+		if err := stateStore.PruneStates(baseBlock, startBlock); err != nil {
+			return fmt.Errorf("failed to prune cometbft state store (%d - %d): %s", baseBlock, startBlock, err)
+		}
+	} else {
+		fmt.Printf("blockstore and cometbft state begins at block %d\n", baseBlock)
 	}
 
 	return nil
