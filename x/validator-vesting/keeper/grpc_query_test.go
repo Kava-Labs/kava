@@ -7,7 +7,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -38,12 +37,13 @@ func (m *mockBankKeeper) GetSupply(ctx sdk.Context, denom string) sdk.Coin {
 }
 
 func (suite *grpcQueryTestSuite) SetupTest() {
+	testTime := time.Date(2024, 2, 29, 12, 00, 00, 00, time.UTC)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: testTime})
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.bk = &mockBankKeeper{}
-	suite.queryClient = suite.queryClientWithBlockTime(tmtime.Now())
+	suite.queryClient = suite.queryClientWithBlockTime(testTime)
 }
 
 func TestGrpcQueryTestSuite(t *testing.T) {
@@ -89,9 +89,9 @@ func (suite *grpcQueryTestSuite) TestCirculatingSupplyUSDX() {
 }
 
 func (suite *grpcQueryTestSuite) TestCirculatingSupplySWP() {
-	res, err := suite.queryClient.CirculatingSupplySWP(context.Background(), &types.QueryCirculatingSupplySWPRequest{})
+	res, err := suite.queryClient.CirculatingSupplySWP(suite.ctx, &types.QueryCirculatingSupplySWPRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdkmath.NewInt(198437490), res.Amount)
+	suite.Require().Equal(sdkmath.NewInt(201302073), res.Amount)
 }
 
 func (suite *grpcQueryTestSuite) TestTotalSupplyHARD() {
