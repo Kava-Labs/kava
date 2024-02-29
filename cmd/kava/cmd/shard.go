@@ -253,10 +253,14 @@ func shardCometBftDbs(blockStore *store.BlockStore, stateStore tmstate.Store, st
 	// rollback tendermint db
 	height := latest
 	for height > endBlock {
+		beforeRollbackHeight := height
 		printRollbackProgress(height - 1)
 		height, _, err = tmstate.Rollback(blockStore, stateStore, true)
 		if err != nil {
-			return fmt.Errorf("failed to rollback tendermint state: %w", err)
+			return fmt.Errorf("failed to rollback cometbft state: %w", err)
+		}
+		if beforeRollbackHeight == height {
+			return fmt.Errorf("attempting to rollback cometbft state height %d failed (no rollback performed)", height)
 		}
 	}
 
