@@ -37,7 +37,7 @@ const (
 
 func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block> [--only-app-state] [--force-app-version <app-version>]",
+		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block> [--only-app-state] [--only-cometbft-state] [--force-app-version <app-version>]",
 		Short: "Strip all blocks from the database outside of a given range",
 		Long: `shard opens a local kava home directory's databases and removes all blocks outside a range defined by --start and --end. The range is inclusive of the end block.
 
