@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/kava-labs/kava/app"
 	"github.com/spf13/cobra"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -23,9 +24,10 @@ import (
 )
 
 const (
-	flagShardStartBlock   = "start"
-	flagShardEndBlock     = "end"
-	flagShardOnlyAppState = "only-app-state"
+	flagShardStartBlock      = "start"
+	flagShardEndBlock        = "end"
+	flagShardOnlyAppState    = "only-app-state"
+	flagShardForceAppVersion = "force-app-version"
 	// TODO: --preserve flag for creating & operating on a copy?
 
 	// allow using -1 to mean "latest" (perform no rollbacks)
@@ -34,13 +36,15 @@ const (
 
 func newShardCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block> [--only-app-state]",
+		Use:   "shard --home <path-to-home-dir> --start <start-block> --end <end-block> [--only-app-state] [--force-app-version <app-version>]",
 		Short: "Strip all blocks from the database outside of a given range",
 		Long: `shard opens a local kava home directory's databases and removes all blocks outside a range defined by --start and --end. The range is inclusive of the end block.
 
 It works by first rolling back the latest state to the block before the end block, and then by pruning all state before the start block.
 
 Setting the end block to -1 signals to keep the latest block (no rollbacks).
+
+The application.db can be loaded at a particular height via the --force-app-version option. This is useful if the sharding process is prematurely terminated while the application.db is being sharded.
 
 The --only-app-state flag can be used to skip the pruning of the blockstore and cometbft state. This matches the functionality of the cosmos-sdk's "prune" command. Note that rolled back blocks will still affect all stores.
 
@@ -70,6 +74,10 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			if err != nil {
 				return err
 			}
+			forceAppVersion, err := cmd.Flags().GetInt64(flagShardForceAppVersion)
+			if err != nil {
+				return err
+			}
 
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -93,8 +101,21 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 				}
 			}()
 
+			// create app in order to load the multistore
+			// skip loading the latest version so the desired height can be manually loaded
+			ctx.Viper.Set("skip-load-latest", true)
+
+			app := opts.AppCreator(ctx.Logger, db, nil, ctx.Viper).(*app.App)
+			if forceAppVersion == shardEndBlockLatest {
+				if err := app.LoadLatestVersion(); err != nil {
+					return err
+				}
+			} else {
+				if err := app.LoadVersion(forceAppVersion); err != nil {
+					return err
+				}
+			}
 			// get the multistore
-			app := opts.AppCreator(ctx.Logger, db, nil, ctx.Viper)
 			cms := app.CommitMultiStore()
 			multistore, ok := cms.(*rootmulti.Store)
 			if !ok {
