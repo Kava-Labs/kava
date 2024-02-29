@@ -91,7 +91,7 @@ func (suite *grpcQueryTestSuite) TestCirculatingSupplyUSDX() {
 func (suite *grpcQueryTestSuite) TestCirculatingSupplySWP() {
 	res, err := suite.queryClient.CirculatingSupplySWP(context.Background(), &types.QueryCirculatingSupplySWPRequest{})
 	suite.Require().NoError(err)
-	suite.Require().Equal(sdkmath.NewInt(198437490), res.Amount)
+	suite.Require().Equal(sdkmath.NewInt(201302073), res.Amount)
 }
 
 func (suite *grpcQueryTestSuite) TestTotalSupplyHARD() {
