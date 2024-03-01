@@ -30,6 +30,7 @@ import (
 const (
 	flagMempoolEnableAuth    = "mempool.enable-authentication"
 	flagMempoolAuthAddresses = "mempool.authorized-addresses"
+	flagSkipLoadLatest       = "skip-load-latest"
 )
 
 // appCreator holds functions used by the sdk server to control the kava app.
@@ -89,10 +90,15 @@ func (ac appCreator) newApp(
 		cast.ToUint32(appOpts.Get(server.FlagStateSyncSnapshotKeepRecent)),
 	)
 
+	skipLoadLatest := false
+	if appOpts.Get(flagSkipLoadLatest) != nil {
+		skipLoadLatest = cast.ToBool(appOpts.Get(flagSkipLoadLatest))
+	}
+
 	return app.NewApp(
 		logger, db, homeDir, traceStore, ac.encodingConfig,
 		app.Options{
-			SkipLoadLatest:        false,
+			SkipLoadLatest:        skipLoadLatest,
 			SkipUpgradeHeights:    skipUpgradeHeights,
 			SkipGenesisInvariants: cast.ToBool(appOpts.Get(crisis.FlagSkipGenesisInvariants)),
 			InvariantCheckPeriod:  cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),

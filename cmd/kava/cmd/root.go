@@ -22,11 +22,8 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
-<<<<<<< HEAD
 	kavaclient "github.com/kava-labs/kava/client"
-=======
 	"github.com/kava-labs/kava/cmd/kava/cmd/rocksdb"
->>>>>>> 37670300... feat(cli): Add `rocksdb compact` command (#1804)
 	"github.com/kava-labs/kava/cmd/kava/opendb"
 	"github.com/kava-labs/kava/migrate"
 )
