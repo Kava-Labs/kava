@@ -79,6 +79,9 @@ import (
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward"
+	packetforwardkeeper "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/keeper"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 	transfer "github.com/cosmos/ibc-go/v7/modules/apps/transfer"
 	ibctransferkeeper "github.com/cosmos/ibc-go/v7/modules/apps/transfer/keeper"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
@@ -86,7 +89,7 @@ import (
 	ibcclient "github.com/cosmos/ibc-go/v7/modules/core/02-client"
 	ibcclientclient "github.com/cosmos/ibc-go/v7/modules/core/02-client/client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
-	porttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
+	ibcporttypes "github.com/cosmos/ibc-go/v7/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
@@ -199,6 +202,7 @@ var (
 		ibc.AppModuleBasic{},
 		ibctm.AppModuleBasic{},
 		solomachine.AppModuleBasic{},
+		packetforward.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
@@ -307,6 +311,7 @@ type App struct {
 	crisisKeeper          crisiskeeper.Keeper
 	slashingKeeper        slashingkeeper.Keeper
 	ibcKeeper             *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
+	packetForwardKeeper   *packetforwardkeeper.Keeper
 	evmKeeper             *evmkeeper.Keeper
 	evmutilKeeper         evmutilkeeper.Keeper
 	feeMarketKeeper       feemarketkeeper.Keeper
@@ -375,7 +380,7 @@ func NewApp(
 
 	keys := sdk.NewKVStoreKeys(
 		authtypes.StoreKey, banktypes.StoreKey, stakingtypes.StoreKey,
-		distrtypes.StoreKey, slashingtypes.StoreKey,
+		distrtypes.StoreKey, slashingtypes.StoreKey, packetforwardtypes.StoreKey,
 		govtypes.StoreKey, paramstypes.StoreKey, ibcexported.StoreKey,
 		upgradetypes.StoreKey, evidencetypes.StoreKey, ibctransfertypes.StoreKey,
 		evmtypes.StoreKey, feemarkettypes.StoreKey, authzkeeper.StoreKey,
@@ -429,6 +434,7 @@ func NewApp(
 	savingsSubspace := app.paramsKeeper.Subspace(savingstypes.ModuleName)
 	ibcSubspace := app.paramsKeeper.Subspace(ibcexported.ModuleName)
 	ibctransferSubspace := app.paramsKeeper.Subspace(ibctransfertypes.ModuleName)
+	packetforwardSubspace := app.paramsKeeper.Subspace(packetforwardtypes.ModuleName).WithKeyTable(packetforwardtypes.ParamKeyTable())
 	feemarketSubspace := app.paramsKeeper.Subspace(feemarkettypes.ModuleName)
 	evmSubspace := app.paramsKeeper.Subspace(evmtypes.ModuleName)
 	evmutilSubspace := app.paramsKeeper.Subspace(evmutiltypes.ModuleName)
@@ -551,23 +557,49 @@ func NewApp(
 
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
 
+	// It's important to note that the PFM Keeper must be initialized before the Transfer Keeper
+	app.packetForwardKeeper = packetforwardkeeper.NewKeeper(
+		appCodec,
+		keys[packetforwardtypes.StoreKey],
+		nil, // will be zero-value here, reference is set later on with SetTransferKeeper.
+		app.ibcKeeper.ChannelKeeper,
+		app.distrKeeper,
+		app.bankKeeper,
+		app.ibcKeeper.ChannelKeeper,
+		govAuthAddrStr,
+	)
+
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
 		ibctransferSubspace,
-		app.ibcKeeper.ChannelKeeper,
+		app.packetForwardKeeper,
 		app.ibcKeeper.ChannelKeeper,
 		&app.ibcKeeper.PortKeeper,
 		app.accountKeeper,
 		app.bankKeeper,
 		scopedTransferKeeper,
 	)
+	app.packetForwardKeeper.SetTransferKeeper(app.transferKeeper)
 	transferModule := transfer.NewAppModule(app.transferKeeper)
-	transferIBCModule := transfer.NewIBCModule(app.transferKeeper)
+
+	// allow ibc packet forwarding for ibc transfers.
+	// transfer stack contains (from top to bottom):
+	// - Packet Forward Middleware
+	// - Transfer
+	var transferStack ibcporttypes.IBCModule
+	transferStack = transfer.NewIBCModule(app.transferKeeper)
+	transferStack = packetforward.NewIBCMiddleware(
+		transferStack,
+		app.packetForwardKeeper,
+		0, // retries on timeout
+		packetforwardkeeper.DefaultForwardTransferPacketTimeoutTimestamp,
+		packetforwardkeeper.DefaultRefundTransferPacketTimeoutTimestamp,
+	)
 
 	// Create static IBC router, add transfer route, then set and seal it
-	ibcRouter := porttypes.NewRouter()
-	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
+	ibcRouter := ibcporttypes.NewRouter()
+	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferStack)
 	app.ibcKeeper.SetRouter(ibcRouter)
 
 	app.auctionKeeper = auctionkeeper.NewKeeper(
@@ -789,6 +821,7 @@ func NewApp(
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper, slashingSubspace),
 		consensus.NewAppModule(appCodec, app.consensusParamsKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
+		packetforward.NewAppModule(app.packetForwardKeeper, packetforwardSubspace),
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		feemarket.NewAppModule(app.feeMarketKeeper, feemarketSubspace),
 		upgrade.NewAppModule(&app.upgradeKeeper),
@@ -870,6 +903,7 @@ func NewApp(
 		earntypes.ModuleName,
 		routertypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		packetforwardtypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -914,6 +948,7 @@ func NewApp(
 		communitytypes.ModuleName,
 		metricstypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		packetforwardtypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -956,6 +991,7 @@ func NewApp(
 		routertypes.ModuleName,
 		metricstypes.ModuleName,
 		consensusparamtypes.ModuleName,
+		packetforwardtypes.ModuleName,
 		crisistypes.ModuleName, // runs the invariants at genesis, should run after other modules
 	)
 
