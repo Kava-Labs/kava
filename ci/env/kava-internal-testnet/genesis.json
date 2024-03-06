@@ -583,6 +583,10 @@
               "amount": "1000000000"
             },
             {
+              "denom": "erc20/tether/usdt",
+              "amount": "100000000000"
+            },
+            {
               "denom": "hard",
               "amount": "1000000000"
             },
