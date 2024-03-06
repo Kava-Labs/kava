@@ -1,5 +1,6 @@
 name: Continuous Deployment (Internal Testnet)
 # run after every successful CI job of new commits to the master branch
+# if deploy version or config has changed
 on:
   workflow_run:
     workflows: [Continuous Integration (Kava Master)]
@@ -7,6 +8,23 @@ on:
       - completed
 
 jobs:
+  changed_files:
+    runs-on: ubuntu-latest
+    # define output for first job forwarding output of changedInternalTestnetConfig job
+    outputs:
+        changedInternalTestnetConfig: ${{ steps.changed-internal-testnet-config.outputs.any_changed }}
+    steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0 # OR "2" -> To retrieve the preceding commit.
+        - name: Get all changed internal testnet files
+          id: changed-internal-testnet-config
+          uses: tj-actions/changed-files@v42
+          with:
+            # Avoid using single or double quotes for multiline patterns
+            files: |
+              ci/env/kava-internal-testnet/**
+
   # in order:
   # enter standby (prevents autoscaling group from killing node during deploy)
   # stop kava
@@ -14,8 +32,9 @@ jobs:
   # download updated binary and genesis
   # reset application database state (only done on internal testnet)
   reset-chain-to-zero-state:
+    needs: [changed_files]
     # only start cd pipeline if last ci run was successful
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} && needs.changed_files.outputs.changedInternalTestnetConfig == 'true'
     uses: ./.github/workflows/cd-reset-internal-testnet.yml
     with:
       aws-region: us-east-1
