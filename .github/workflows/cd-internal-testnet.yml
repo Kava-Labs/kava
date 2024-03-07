@@ -34,7 +34,7 @@ jobs:
   reset-chain-to-zero-state:
     needs: [changed_files]
     # only start cd pipeline if last ci run was successful
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} && needs.changed_files.outputs.changedInternalTestnetConfig == 'true'
+    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.changed_files.outputs.changedInternalTestnetConfig == 'true' }}
     uses: ./.github/workflows/cd-reset-internal-testnet.yml
     with:
       aws-region: us-east-1
