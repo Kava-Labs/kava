@@ -44,6 +44,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (cosmos-sdk) [#1811] Upgrades app to cosmos-sdk v0.47.7
 - (validator-vesting) [#1832] Add grpc query service to replace removed legacy querier
 - (incentive) [#1836] Update x/incentive cli to use grpc query client
+- (ibc) [#1839] Add ibc packet forward middleware for ibc transfers
 
 ## [v0.25.0]
 
@@ -326,6 +327,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1839]: https://github.com/Kava-Labs/kava/pull/1839
 [#1836]: https://github.com/Kava-Labs/kava/pull/1836
 [#1832]: https://github.com/Kava-Labs/kava/pull/1832
 [#1811]: https://github.com/Kava-Labs/kava/pull/1811
