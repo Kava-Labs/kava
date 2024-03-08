@@ -822,6 +822,7 @@
       "gov_denom": "ukava",
       "params": {
         "circuit_breaker": false,
+        "liquidation_block_interval": 500,
         "collateral_params": [
           {
             "denom": "bnb",
@@ -1241,7 +1242,15 @@
       "votes": []
     },
     "community": {
-      "params": {}
+      "params": {
+        "upgrade_time_disable_inflation": "2023-11-01T00:00:00Z",
+        "upgrade_time_set_staking_rewards_per_second": "744191",
+        "staking_rewards_per_second": "0"
+      },
+      "staking_rewards_state": {
+        "last_accumulation_time": "0001-01-01T00:00:00Z",
+        "last_truncation_error": "0"
+      }
     },
     "crisis": {
       "constant_fee": {
@@ -2245,6 +2254,23 @@
         "quorum": "0.334000000000000000",
         "threshold": "0.500000000000000000",
         "veto_threshold": "0.334000000000000000"
+      },
+      "params": {
+        "min_deposit": [
+          {
+            "denom": "ukava",
+            "amount": "10000000"
+          }
+        ],
+        "max_deposit_period": "172800s",
+        "voting_period": "600s",
+        "quorum": "0.334000000000000000",
+        "threshold": "0.500000000000000000",
+        "veto_threshold": "0.334000000000000000",
+        "min_initial_deposit_ratio": "0.000000000000000000",
+        "burn_vote_quorum": false,
+        "burn_proposal_deposit_prevote": false,
+        "burn_vote_veto": true
       }
     },
     "hard": {
@@ -2680,54 +2706,6 @@
             "collateral_type": "erc20/axelar/wbtc",
             "start": "2022-11-11T15:00:00Z",
             "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "787"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/multichain/usdc",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "787"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/multichain/usdt",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "787"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/multichain/wbtc",
-            "start": "2022-11-11T15:00:00Z",
-            "end": "2024-11-11T15:00:00Z",
-            "rewards_per_second": [
-              {
-                "denom": "ukava",
-                "amount": "787"
-              }
-            ]
-          },
-          {
-            "active": true,
-            "collateral_type": "erc20/tether/usdt",
-            "start": "2023-06-21T15:00:00Z",
-            "end": "2024-06-21T15:00:00Z",
             "rewards_per_second": [
               {
                 "denom": "ukava",
@@ -3170,6 +3148,12 @@
       }
     },
     "params": null,
+    "packetfowardmiddleware": {
+      "params": {
+        "fee_percentage": "0.000000000000000000"
+      },
+      "in_flight_packets": {}
+    },
     "pricefeed": {
       "params": {
         "markets": [
