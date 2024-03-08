@@ -1,6 +1,7 @@
 package validator_vesting
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -15,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 
 	"github.com/kava-labs/kava/x/validator-vesting/client/cli"
+	"github.com/kava-labs/kava/x/validator-vesting/keeper"
 	"github.com/kava-labs/kava/x/validator-vesting/types"
 )
 
@@ -54,7 +56,11 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for validator-vesting module.
-func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {}
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
+}
 
 // GetTxCmd returns validator-vesting module's root tx command.
 func (a AppModuleBasic) GetTxCmd() *cobra.Command { return nil }
@@ -90,7 +96,9 @@ func (am AppModule) Name() string {
 
 // RegisterServices registers a GRPC query service to respond to the
 // module-specific GRPC queries.
-func (am AppModule) RegisterServices(cfg module.Configurator) {}
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.bankKeeper))
+}
 
 // RegisterInvariants registers validator-vesting module's invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}

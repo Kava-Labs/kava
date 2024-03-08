@@ -580,6 +580,24 @@
   
     - [Msg](#kava.swap.v1beta1.Msg)
   
+- [kava/validatorvesting/v1beta1/query.proto](#kava/validatorvesting/v1beta1/query.proto)
+    - [QueryCirculatingSupplyHARDRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyHARDRequest)
+    - [QueryCirculatingSupplyHARDResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyHARDResponse)
+    - [QueryCirculatingSupplyRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyRequest)
+    - [QueryCirculatingSupplyResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyResponse)
+    - [QueryCirculatingSupplySWPRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplySWPRequest)
+    - [QueryCirculatingSupplySWPResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplySWPResponse)
+    - [QueryCirculatingSupplyUSDXRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyUSDXRequest)
+    - [QueryCirculatingSupplyUSDXResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyUSDXResponse)
+    - [QueryTotalSupplyHARDRequest](#kava.validatorvesting.v1beta1.QueryTotalSupplyHARDRequest)
+    - [QueryTotalSupplyHARDResponse](#kava.validatorvesting.v1beta1.QueryTotalSupplyHARDResponse)
+    - [QueryTotalSupplyRequest](#kava.validatorvesting.v1beta1.QueryTotalSupplyRequest)
+    - [QueryTotalSupplyResponse](#kava.validatorvesting.v1beta1.QueryTotalSupplyResponse)
+    - [QueryTotalSupplyUSDXRequest](#kava.validatorvesting.v1beta1.QueryTotalSupplyUSDXRequest)
+    - [QueryTotalSupplyUSDXResponse](#kava.validatorvesting.v1beta1.QueryTotalSupplyUSDXResponse)
+  
+    - [Query](#kava.validatorvesting.v1beta1.Query)
+  
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -7856,6 +7874,213 @@ Msg defines the swap Msg service.
 | `Withdraw` | [MsgWithdraw](#kava.swap.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.swap.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing liquidity into a pool | |
 | `SwapExactForTokens` | [MsgSwapExactForTokens](#kava.swap.v1beta1.MsgSwapExactForTokens) | [MsgSwapExactForTokensResponse](#kava.swap.v1beta1.MsgSwapExactForTokensResponse) | SwapExactForTokens represents a message for trading exact coinA for coinB | |
 | `SwapForExactTokens` | [MsgSwapForExactTokens](#kava.swap.v1beta1.MsgSwapForExactTokens) | [MsgSwapForExactTokensResponse](#kava.swap.v1beta1.MsgSwapForExactTokensResponse) | SwapForExactTokens represents a message for trading coinA for an exact coinB | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/validatorvesting/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/validatorvesting/v1beta1/query.proto
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplyHARDRequest"></a>
+
+### QueryCirculatingSupplyHARDRequest
+QueryCirculatingSupplyHARDRequest is the request type for the Query/CirculatingSupplyHARD RPC method
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplyHARDResponse"></a>
+
+### QueryCirculatingSupplyHARDResponse
+QueryCirculatingSupplyHARDResponse is the response type for the Query/CirculatingSupplyHARD RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplyRequest"></a>
+
+### QueryCirculatingSupplyRequest
+QueryCirculatingSupplyRequest is the request type for the Query/CirculatingSupply RPC method
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplyResponse"></a>
+
+### QueryCirculatingSupplyResponse
+QueryCirculatingSupplyResponse is the response type for the Query/CirculatingSupply RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplySWPRequest"></a>
+
+### QueryCirculatingSupplySWPRequest
+QueryCirculatingSupplySWPRequest is the request type for the Query/CirculatingSupplySWP RPC method
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplySWPResponse"></a>
+
+### QueryCirculatingSupplySWPResponse
+QueryCirculatingSupplySWPResponse is the response type for the Query/CirculatingSupplySWP RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplyUSDXRequest"></a>
+
+### QueryCirculatingSupplyUSDXRequest
+QueryCirculatingSupplyUSDXRequest is the request type for the Query/CirculatingSupplyUSDX RPC method
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryCirculatingSupplyUSDXResponse"></a>
+
+### QueryCirculatingSupplyUSDXResponse
+QueryCirculatingSupplyUSDXResponse is the response type for the Query/CirculatingSupplyUSDX RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryTotalSupplyHARDRequest"></a>
+
+### QueryTotalSupplyHARDRequest
+QueryTotalSupplyHARDRequest is the request type for the Query/TotalSupplyHARD RPC method
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryTotalSupplyHARDResponse"></a>
+
+### QueryTotalSupplyHARDResponse
+QueryTotalSupplyHARDResponse is the response type for the Query/TotalSupplyHARD RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryTotalSupplyRequest"></a>
+
+### QueryTotalSupplyRequest
+QueryTotalSupplyRequest is the request type for the Query/TotalSupply RPC method
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryTotalSupplyResponse"></a>
+
+### QueryTotalSupplyResponse
+QueryTotalSupplyResponse is the response type for the Query/TotalSupply RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryTotalSupplyUSDXRequest"></a>
+
+### QueryTotalSupplyUSDXRequest
+QueryTotalSupplyUSDXRequest is the request type for the Query/TotalSupplyUSDX RPC method
+
+
+
+
+
+
+<a name="kava.validatorvesting.v1beta1.QueryTotalSupplyUSDXResponse"></a>
+
+### QueryTotalSupplyUSDXResponse
+QueryTotalSupplyUSDXResponse is the response type for the Query/TotalSupplyUSDX RPC method
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `amount` | [string](#string) |  |  |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.validatorvesting.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for validator-vesting module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `CirculatingSupply` | [QueryCirculatingSupplyRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyRequest) | [QueryCirculatingSupplyResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyResponse) | CirculatingSupply returns the total amount of kava tokens in circulation | GET|/kava/validator-vesting/v1beta1/circulating_supply|
+| `TotalSupply` | [QueryTotalSupplyRequest](#kava.validatorvesting.v1beta1.QueryTotalSupplyRequest) | [QueryTotalSupplyResponse](#kava.validatorvesting.v1beta1.QueryTotalSupplyResponse) | TotalSupply returns the total amount of kava tokens | GET|/kava/validator-vesting/v1beta1/total_supply|
+| `CirculatingSupplyHARD` | [QueryCirculatingSupplyHARDRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyHARDRequest) | [QueryCirculatingSupplyHARDResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyHARDResponse) | CirculatingSupplyHARD returns the total amount of hard tokens in circulation | GET|/kava/validator-vesting/v1beta1/circulating_supply_hard|
+| `CirculatingSupplyUSDX` | [QueryCirculatingSupplyUSDXRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyUSDXRequest) | [QueryCirculatingSupplyUSDXResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplyUSDXResponse) | CirculatingSupplyUSDX returns the total amount of usdx tokens in circulation | GET|/kava/validator-vesting/v1beta1/circulating_supply_usdx|
+| `CirculatingSupplySWP` | [QueryCirculatingSupplySWPRequest](#kava.validatorvesting.v1beta1.QueryCirculatingSupplySWPRequest) | [QueryCirculatingSupplySWPResponse](#kava.validatorvesting.v1beta1.QueryCirculatingSupplySWPResponse) | CirculatingSupplySWP returns the total amount of swp tokens in circulation | GET|/kava/validator-vesting/v1beta1/circulating_supply_swp|
+| `TotalSupplyHARD` | [QueryTotalSupplyHARDRequest](#kava.validatorvesting.v1beta1.QueryTotalSupplyHARDRequest) | [QueryTotalSupplyHARDResponse](#kava.validatorvesting.v1beta1.QueryTotalSupplyHARDResponse) | TotalSupplyHARD returns the total amount of hard tokens | GET|/kava/validator-vesting/v1beta1/total_supply_hard|
+| `TotalSupplyUSDX` | [QueryTotalSupplyUSDXRequest](#kava.validatorvesting.v1beta1.QueryTotalSupplyUSDXRequest) | [QueryTotalSupplyUSDXResponse](#kava.validatorvesting.v1beta1.QueryTotalSupplyUSDXResponse) | TotalSupplyUSDX returns the total amount of usdx tokens | GET|/kava/validator-vesting/v1beta1/total_supply_usdx|
 
  <!-- end services -->
 

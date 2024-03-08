@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
+	"github.com/kava-labs/kava/x/incentive/keeper"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
 
@@ -19,16 +21,16 @@ const (
 	flagType     = "type"
 	flagUnsynced = "unsynced"
 	flagDenom    = "denom"
-
-	typeDelegator   = "delegator"
-	typeHard        = "hard"
-	typeUSDXMinting = "usdx-minting"
-	typeSwap        = "swap"
-	typeSavings     = "savings"
-	typeEarn        = "earn"
 )
 
-var rewardTypes = []string{typeDelegator, typeHard, typeUSDXMinting, typeSwap, typeEarn}
+var rewardTypes = []string{
+	keeper.RewardTypeHard,
+	keeper.RewardTypeUSDXMinting,
+	keeper.RewardTypeDelegator,
+	keeper.RewardTypeSwap,
+	keeper.RewardTypeSavings,
+	keeper.RewardTypeEarn,
+}
 
 // GetQueryCmd returns the cli query commands for the incentive module
 func GetQueryCmd() *cobra.Command {
@@ -41,6 +43,7 @@ func GetQueryCmd() *cobra.Command {
 		queryParamsCmd(),
 		queryRewardsCmd(),
 		queryRewardFactorsCmd(),
+		queryApyCmd(),
 	}
 
 	for _, cmd := range cmds {
@@ -79,8 +82,6 @@ func queryRewardsCmd() *cobra.Command {
 				return err
 			}
 
-			page, _ := cmd.Flags().GetInt(flags.FlagPage)
-			limit, _ := cmd.Flags().GetInt(flags.FlagLimit)
 			strOwner, _ := cmd.Flags().GetString(flagOwner)
 			strType, _ := cmd.Flags().GetString(flagType)
 			boolUnsynced, _ := cmd.Flags().GetBool(flagUnsynced)
@@ -93,109 +94,18 @@ func queryRewardsCmd() *cobra.Command {
 				}
 			}
 
-			switch strings.ToLower(strType) {
-			case typeHard:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeHardRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeUSDXMinting:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeDelegator:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeDelegatorRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeSwap:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeSwapRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeSavings:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeSavingsRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			case typeEarn:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-				claims, err := executeEarnRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintObjectLegacy(claims)
-			default:
-				params := types.NewQueryRewardsParams(page, limit, owner, boolUnsynced)
-
-				hardClaims, err := executeHardRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				usdxMintingClaims, err := executeUSDXMintingRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				delegatorClaims, err := executeDelegatorRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				swapClaims, err := executeSwapRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				savingsClaims, err := executeSavingsRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-				earnClaims, err := executeEarnRewardsQuery(cliCtx, params)
-				if err != nil {
-					return err
-				}
-
-				if len(hardClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(hardClaims); err != nil {
-						return err
-					}
-				}
-				if len(usdxMintingClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(usdxMintingClaims); err != nil {
-						return err
-					}
-				}
-				if len(delegatorClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(delegatorClaims); err != nil {
-						return err
-					}
-				}
-				if len(swapClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(swapClaims); err != nil {
-						return err
-					}
-				}
-				if len(savingsClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(savingsClaims); err != nil {
-						return err
-					}
-				}
-				if len(earnClaims) > 0 {
-					if err := cliCtx.PrintObjectLegacy(earnClaims); err != nil {
-						return err
-					}
-				}
+			rewardType := strings.ToLower(strType)
+			queryClient := types.NewQueryClient(cliCtx)
+			request := types.QueryRewardsRequest{
+				RewardType:     rewardType,
+				Owner:          owner.String(),
+				Unsynchronized: boolUnsynced,
 			}
-			return nil
+			rewards, err := queryClient.Rewards(context.Background(), &request)
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintProto(rewards)
 		},
 	}
 	cmd.Flags().String(flagOwner, "", "(optional) filter by owner address")
@@ -218,20 +128,12 @@ func queryParamsCmd() *cobra.Command {
 				return err
 			}
 
-			// Query
-			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetParams)
-			res, height, err := cliCtx.QueryWithData(route, nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.Params(context.Background(), &types.QueryParamsRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var params types.Params
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &params); err != nil {
-				return fmt.Errorf("failed to unmarshal params: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(params)
+			return cliCtx.PrintProto(res)
 		},
 	}
 }
@@ -248,154 +150,36 @@ func queryRewardFactorsCmd() *cobra.Command {
 				return err
 			}
 
-			// Execute query
-			route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetRewardFactors)
-			res, height, err := cliCtx.QueryWithData(route, nil)
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.RewardFactors(context.Background(), &types.QueryRewardFactorsRequest{})
 			if err != nil {
 				return err
 			}
-			cliCtx = cliCtx.WithHeight(height)
-
-			// Decode and print results
-			var response types.QueryGetRewardFactorsResponse
-			if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &response); err != nil {
-				return fmt.Errorf("failed to unmarshal reward factors: %w", err)
-			}
-			return cliCtx.PrintObjectLegacy(response)
+			return cliCtx.PrintProto(res)
 		},
 	}
 	cmd.Flags().String(flagDenom, "", "(optional) filter reward factors by denom")
 	return cmd
 }
 
-func executeHardRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.HardLiquidityProviderClaims, error) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		return types.HardLiquidityProviderClaims{}, err
+func queryApyCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "apy",
+		Short: "queries incentive reward apy for a reward",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(cliCtx)
+			res, err := queryClient.Apy(context.Background(), &types.QueryApyRequest{})
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintProto(res)
+		},
 	}
-
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetHardRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.HardLiquidityProviderClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.HardLiquidityProviderClaims
-	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.HardLiquidityProviderClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeUSDXMintingRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.USDXMintingClaims, error) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		return types.USDXMintingClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetUSDXMintingRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.USDXMintingClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.USDXMintingClaims
-	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.USDXMintingClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeDelegatorRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.DelegatorClaims, error) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		return types.DelegatorClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetDelegatorRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.DelegatorClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.DelegatorClaims
-	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.DelegatorClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeSwapRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.SwapClaims, error) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		return types.SwapClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetSwapRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.SwapClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.SwapClaims
-	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.SwapClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeSavingsRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.SavingsClaims, error) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		return types.SavingsClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetSavingsRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.SavingsClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.SavingsClaims
-	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.SavingsClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
-}
-
-func executeEarnRewardsQuery(cliCtx client.Context, params types.QueryRewardsParams) (types.EarnClaims, error) {
-	bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-	if err != nil {
-		return types.EarnClaims{}, err
-	}
-
-	route := fmt.Sprintf("custom/%s/%s", types.ModuleName, types.QueryGetEarnRewards)
-	res, height, err := cliCtx.QueryWithData(route, bz)
-	if err != nil {
-		return types.EarnClaims{}, err
-	}
-
-	cliCtx = cliCtx.WithHeight(height)
-
-	var claims types.EarnClaims
-	if err := cliCtx.LegacyAmino.UnmarshalJSON(res, &claims); err != nil {
-		return types.EarnClaims{}, fmt.Errorf("failed to unmarshal claims: %w", err)
-	}
-
-	return claims, nil
+	return cmd
 }

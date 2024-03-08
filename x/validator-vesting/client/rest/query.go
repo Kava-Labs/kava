@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -25,37 +26,18 @@ func registerQueryRoutes(cliCtx client.Context, r *mux.Router) {
 
 func getTotalSupplyHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTotalSupply)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		queryClient := types.NewQueryClient(cliCtx)
+		res, err := queryClient.TotalSupply(context.Background(), &types.QueryTotalSupplyRequest{})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		var totalSupply int64
-		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &totalSupply)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		resBytes, err := json.Marshal(totalSupply)
+		resBytes, err := json.Marshal(res.Amount.Int64())
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -66,38 +48,18 @@ func getTotalSupplyHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 func getCirculatingSupplyHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupply)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		queryClient := types.NewQueryClient(cliCtx)
+		res, err := queryClient.CirculatingSupply(context.Background(), &types.QueryCirculatingSupplyRequest{})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
-		var circSupply int64
-		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		resBytes, err := json.Marshal(circSupply)
+		resBytes, err := json.Marshal(res.Amount.Int64())
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -108,38 +70,18 @@ func getCirculatingSupplyHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 func getCirculatingSupplyHARDHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupplyHARD)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		queryClient := types.NewQueryClient(cliCtx)
+		res, err := queryClient.CirculatingSupplyHARD(context.Background(), &types.QueryCirculatingSupplyHARDRequest{})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
-		var circSupply int64
-		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		resBytes, err := json.Marshal(circSupply)
+		resBytes, err := json.Marshal(res.Amount.Int64())
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -150,38 +92,18 @@ func getCirculatingSupplyHARDHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 func getCirculatingSupplyUSDXHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupplyUSDX)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		queryClient := types.NewQueryClient(cliCtx)
+		res, err := queryClient.CirculatingSupplyUSDX(context.Background(), &types.QueryCirculatingSupplyUSDXRequest{})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
-		var circSupply int64
-		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		resBytes, err := json.Marshal(circSupply)
+		resBytes, err := json.Marshal(res.Amount.Int64())
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -192,38 +114,18 @@ func getCirculatingSupplyUSDXHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 func getCirculatingSupplySWPHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryCirculatingSupplySWP)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		queryClient := types.NewQueryClient(cliCtx)
+		res, err := queryClient.CirculatingSupplySWP(context.Background(), &types.QueryCirculatingSupplySWPRequest{})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
-		var circSupply int64
-		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &circSupply)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		resBytes, err := json.Marshal(circSupply)
+		resBytes, err := json.Marshal(res.Amount.Int64())
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -234,37 +136,18 @@ func getCirculatingSupplySWPHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 func getTotalSupplyHARDHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTotalSupplyHARD)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		queryClient := types.NewQueryClient(cliCtx)
+		res, err := queryClient.TotalSupplyHARD(context.Background(), &types.QueryTotalSupplyHARDRequest{})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		var totalSupply int64
-		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &totalSupply)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		resBytes, err := json.Marshal(totalSupply)
+		resBytes, err := json.Marshal(res.Amount.Int64())
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
@@ -275,37 +158,18 @@ func getTotalSupplyHARDHandlerFn(cliCtx client.Context) http.HandlerFunc {
 
 func getTotalSupplyUSDXHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		params := types.NewBaseQueryParams(page, limit)
-		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("failed to marshal query params: %s", err))
-			return
-		}
-
-		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, types.QueryTotalSupplyUSDX)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		queryClient := types.NewQueryClient(cliCtx)
+		res, err := queryClient.TotalSupplyUSDX(context.Background(), &types.QueryTotalSupplyUSDXRequest{})
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		var totalSupply int64
-		err = cliCtx.LegacyAmino.UnmarshalJSON(res, &totalSupply)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		resBytes, err := json.Marshal(totalSupply)
+		resBytes, err := json.Marshal(res.Amount.Int64())
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
