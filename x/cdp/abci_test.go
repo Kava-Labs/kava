@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -44,7 +45,7 @@ func (suite *ModuleTestSuite) SetupTest() {
 	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tracker := liquidationTracker{}
 
-	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
+	coins := cs(c("btc", 100000000), c("xrp", 10000000000), c("erc20/usdc", 10000000000))
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 	tApp.InitializeFromGenesisStates(
@@ -66,7 +67,7 @@ func (suite *ModuleTestSuite) createCdps() {
 	cdps := make(types.CDPs, 100)
 	tracker := liquidationTracker{}
 
-	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
+	coins := cs(c("btc", 100000000), c("xrp", 10000000000), c("erc20/usdc", 10000000000))
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
@@ -122,12 +123,12 @@ func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
 	suite.Equal(price, pp.Price)
 }
 
-func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterestFactor() {
+func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterest() {
 	suite.createCdps()
 
 	// add a new collateral that does not have previous accumulation time or global interest factor set
 	params := suite.keeper.GetParams(suite.ctx)
-	newCollateral := types.CollateralParam{
+	usdcCollateral := types.CollateralParam{
 		Denom:                            "erc20/usdc",
 		Type:                             "erc20-usdc",
 		LiquidationRatio:                 sdk.MustNewDecFromStr("1.01"),
@@ -139,35 +140,67 @@ func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterestFactor()
 		KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
 		SpotMarketID:                     "usdc:usd",
 		LiquidationMarketID:              "usdc:usd",
+		ConversionFactor:                 sdk.NewInt(6),
+	}
+	usdtCollateral := types.CollateralParam{
+		Denom:                            "erc20/usdt",
+		Type:                             "erc20-usdt",
+		LiquidationRatio:                 sdk.MustNewDecFromStr("1.01"),
+		DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
+		StabilityFee:                     sdk.OneDec(),
+		AuctionSize:                      sdk.NewIntFromUint64(10000000000),
+		LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+		CheckCollateralizationIndexCount: sdkmath.NewInt(10),
+		KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+		SpotMarketID:                     "usdt:usd",
+		LiquidationMarketID:              "usdt:usd",
 		ConversionFactor:                 sdk.NewInt(18),
 	}
-	params.CollateralParams = append(params.CollateralParams, newCollateral)
+	newCollaterals := []types.CollateralParam{usdcCollateral, usdtCollateral}
+	params.CollateralParams = append(params.CollateralParams, newCollaterals...)
 	suite.keeper.SetParams(suite.ctx, params)
 
 	// setup market for cdp collateral
 	priceFeedKeeper := suite.app.GetPriceFeedKeeper()
 	priceParams := priceFeedKeeper.GetParams(suite.ctx)
-	newMarket := pricefeedtypes.Market{
-		MarketID: "usdc:usd", BaseAsset: "usdc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true,
+	newMarkets := []pricefeedtypes.Market{
+		{MarketID: "usdc:usd", BaseAsset: "usdc", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
+		{MarketID: "usdt:usd", BaseAsset: "usdt", QuoteAsset: "usd", Oracles: []sdk.AccAddress{}, Active: true},
 	}
-	priceParams.Markets = append(priceParams.Markets, newMarket)
+	priceParams.Markets = append(priceParams.Markets, newMarkets...)
 	priceFeedKeeper.SetParams(suite.ctx, priceParams)
 	suite.setPrice(d("1"), "usdc:usd")
+	suite.keeper.UpdatePricefeedStatus(suite.ctx, usdcCollateral.SpotMarketID)
+	suite.setPrice(d("1"), "usdt:usd")
+	suite.keeper.UpdatePricefeedStatus(suite.ctx, usdtCollateral.SpotMarketID)
+
+	// create a CDP for USDC, no CDPS for USDT
+	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], c(usdcCollateral.Denom, 100000000), c("usdx", 10000000), usdcCollateral.Type)
+	suite.Require().NoError(err)
 
 	// ensure begin block does not panic due to no accumulation time or no global interest factor
 	suite.Require().NotPanics(func() {
 		cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
 	}, "expected begin blocker not to panic")
 
-	// set by accumulate interest
-	previousAccrualTime, found := suite.keeper.GetPreviousAccrualTime(suite.ctx, newCollateral.Type)
+	// set by accumulate interest (or add cdp above)
+	// usdc has accural time set
+	previousAccrualTime, found := suite.keeper.GetPreviousAccrualTime(suite.ctx, usdcCollateral.Type)
+	suite.Require().True(found, "expected previous accrual time for new market to be set")
+	suite.Equal(suite.ctx.BlockTime(), previousAccrualTime, "expected previous accrual time to equal block time")
+	// usdt has accural time set
+	previousAccrualTime, found = suite.keeper.GetPreviousAccrualTime(suite.ctx, usdtCollateral.Type)
 	suite.Require().True(found, "expected previous accrual time for new market to be set")
 	suite.Equal(suite.ctx.BlockTime(), previousAccrualTime, "expected previous accrual time to equal block time")
 
-	// set by syncrhonize risky cdps
-	globalInterestFactor, found := suite.keeper.GetInterestFactor(suite.ctx, newCollateral.Type)
+	// set for USDC by AddCdp
+	globalInterestFactor, found := suite.keeper.GetInterestFactor(suite.ctx, usdcCollateral.Type)
 	suite.Require().True(found, "expected global interest factor for new collateral to be set")
 	suite.Equal(sdk.OneDec(), globalInterestFactor, "expected global interest factor to equal 1")
+	// not set for USDT since it has no cdps
+	globalInterestFactor, found = suite.keeper.GetInterestFactor(suite.ctx, usdtCollateral.Type)
+	suite.Require().False(found, "expected global interest factor for new collateral to not be set")
+	suite.Equal(sdk.ZeroDec(), globalInterestFactor, "expected global interest factor to equal 0")
 }
 
 func (suite *ModuleTestSuite) TestBeginBlock() {

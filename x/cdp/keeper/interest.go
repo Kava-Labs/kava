@@ -181,9 +181,8 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdk
 	iterator.Close()
 
 	globalInterestFactor, found := k.GetInterestFactor(ctx, cp.Type)
-	if !found {
-		globalInterestFactor = sdk.OneDec()
-		k.SetInterestFactor(ctx, cp.Type, globalInterestFactor)
+	if !found && len(cdpIDs) > 0 {
+		panic(fmt.Sprintf("global interest factor not found for type %s", cp.Type))
 	}
 	prevAccrualTime, found := k.GetPreviousAccrualTime(ctx, cp.Type)
 	if !found {
