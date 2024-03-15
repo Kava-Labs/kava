@@ -133,6 +133,119 @@ func (suite *MsgServerSuite) TestConvertCoinToERC20() {
 	}
 }
 
+func (suite *MsgServerSuite) TestConvertBnBCoinToERC20() {
+	senderInitialBnbBalance := int64(100000000)
+	invoker, err := sdk.AccAddressFromBech32("kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz")
+	suite.Require().NoError(err)
+
+	// fund sender with BNB to use for conversion
+	// Explicitly not doing for each denom in set
+	// {axlBNB, axlBUSD, axlXRP, axlBTC} as that
+	// would be frivolous, the application logic under test
+	// is strictly bimodal (for valid enabled conversion pair denoms)
+	// depending on if a denom is a member of DefaultBEP3ConversionDenoms
+	err = suite.App.FundAccount(suite.Ctx, invoker, sdk.NewCoins(sdk.NewCoin("bnb", sdkmath.NewInt(senderInitialBnbBalance))))
+	suite.Require().NoError(err)
+
+	axlBNBERC20ContractAddress := suite.DeployERC20()
+
+	pair := types.NewConversionPair(
+		axlBNBERC20ContractAddress,
+		"erc20/axlBNB",
+	)
+
+	// Module account should have starting balance
+	// of ERC20 to convert the coin under test to
+	pairStartingBal := big.NewInt(10000)
+	err = suite.Keeper.MintERC20(
+		suite.Ctx,
+		pair.GetAddress(), // contractAddr
+		types.NewInternalEVMAddress(types.ModuleEVMAddress), //receiver
+		pairStartingBal,
+	)
+	suite.Require().NoError(err)
+
+	type errArgs struct {
+		expectPass bool
+		contains   string
+	}
+
+	tests := []struct {
+		name    string
+		msg     types.MsgConvertCoinToERC20
+		errArgs errArgs
+	}{
+		{
+			"valid",
+			types.NewMsgConvertCoinToERC20(
+				invoker.String(),
+				axlBNBERC20ContractAddress.String(),
+				sdk.NewCoin("bnb", sdkmath.NewInt(1234)),
+			),
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
+			"invalid - odd length hex address",
+			types.NewMsgConvertCoinToERC20(
+				invoker.String(),
+				axlBNBERC20ContractAddress.String(),
+				sdk.NewCoin("bnb", sdkmath.NewInt(1234)),
+			),
+			errArgs{
+				expectPass: false,
+				contains:   "invalid Receiver address: string is not a hex address",
+			},
+		},
+		// Amount coin is not validated by msg_server, but on msg itself
+	}
+
+	for _, tc := range tests {
+		suite.Run(tc.name, func() {
+			_, err := suite.msgServer.ConvertCoinToERC20(sdk.WrapSDKContext(suite.Ctx), &tc.msg)
+
+			if tc.errArgs.expectPass {
+				suite.Require().NoError(err)
+
+				erc20Balance := suite.GetERC20BalanceOf(
+					types.ERC20MintableBurnableContract.ABI,
+					pair.GetAddress(),
+					testutil.MustNewInternalEVMAddressFromString(tc.msg.Receiver),
+				)
+
+				suite.Require().Equal(tc.msg.Amount.Amount.BigInt(), erc20Balance, "balance should match converted amount")
+
+				// test BNB coin balance decremented from sender senderInitialBnbBalance
+				coinBal := suite.App.GetBankKeeper().GetBalance(suite.Ctx, invoker, pair.Denom)
+				suite.Require().Equal(senderInitialBnbBalance-tc.msg.Amount.Amount.Int64(), coinBal.Amount, "user coin balance is invalid")
+
+				// msg server event
+				suite.EventsContains(suite.GetEvents(),
+					sdk.NewEvent(
+						sdk.EventTypeMessage,
+						sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+						sdk.NewAttribute(sdk.AttributeKeySender, tc.msg.Initiator),
+					))
+
+				// keeper event
+				suite.EventsContains(suite.GetEvents(),
+					sdk.NewEvent(
+						types.EventTypeConvertCoinToERC20,
+						sdk.NewAttribute(types.AttributeKeyInitiator, tc.msg.Initiator),
+						sdk.NewAttribute(types.AttributeKeyReceiver, tc.msg.Receiver),
+						sdk.NewAttribute(types.AttributeKeyERC20Address, pair.GetAddress().String()),
+						sdk.NewAttribute(types.AttributeKeyAmount, tc.msg.Amount.String()),
+					))
+
+			} else {
+				suite.Require().Error(err)
+				suite.Require().Contains(err.Error(), tc.errArgs.contains)
+			}
+		})
+	}
+}
+
 func (suite *MsgServerSuite) TestConvertERC20ToCoin() {
 	contractAddr := suite.DeployERC20()
 	pair := types.NewConversionPair(
