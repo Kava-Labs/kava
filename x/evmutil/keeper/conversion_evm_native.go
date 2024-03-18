@@ -117,7 +117,7 @@ func (k Keeper) ConvertERC20ToCoin(
 	// When converting bep3 erc20 assets to sdk.Coin, the following will happen
 	// 1. Convert provided 18 decimals erc20 amount to 8 decimals sdk amount, then mint those.
 	//    Dust from converting 18 decimals to 8 decimals are ignored and will
-	// 		remain in the original wallet.
+	//    remain in the original wallet.
 	// 2. Convert to-be-minted 8 decimals sdk.Coin back to 18 decimals, then lock those.
 	if IsEvmNativeBep3Conversion(pair) {
 		amountToMint, _ = ConvertBep3ERC20AmountToCoinAmount(amount.BigInt())
