@@ -50,6 +50,7 @@ func calcMul3(
 	input []byte,
 	suppliedGas uint64,
 	readOnly bool,
+	value *big.Int,
 ) (ret []byte, remainingGas uint64, err error) {
 	if remainingGas, err = contract.DeductGas(suppliedGas, calcMul3GasCost); err != nil {
 		return nil, 0, err
@@ -90,6 +91,7 @@ func getMul3(
 	input []byte,
 	suppliedGas uint64,
 	readOnly bool,
+	value *big.Int,
 ) (ret []byte, remainingGas uint64, err error) {
 	if remainingGas, err = contract.DeductGas(suppliedGas, getMul3GasCost); err != nil {
 		return nil, 0, err

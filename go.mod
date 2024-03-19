@@ -160,7 +160,7 @@ require (
 	github.com/regen-network/cosmos-proto v0.3.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rjeczalik/notify v0.9.1 // indirect
-	github.com/rogpeppe/go-internal v1.8.0 // indirect
+	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/rs/cors v1.8.3 // indirect
 	github.com/rs/zerolog v1.29.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
@@ -213,11 +213,11 @@ replace (
 
 	// Use go-ethereum fork with stateful precompiles
 	// github.com/ethereum/go-ethereum => /Users/yevheniishcherbina/go/src/github.com/ethereum/go-ethereum
-	github.com/ethereum/go-ethereum => github.com/Kava-Labs/go-ethereum v1.10.27-0.20240226143208-a66d490d3d3b
+	github.com/ethereum/go-ethereum => github.com/Kava-Labs/go-ethereum v1.10.27-0.20240308184817-2a5324cb7ce7
 
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
 	// github.com/evmos/ethermint => /Users/yevheniishcherbina/go/src/github.com/Kava-Labs/ethermint
-	github.com/evmos/ethermint => github.com/Kava-Labs/ethermint v0.21.1-0.20240226143404-638be0d0efe9
+	github.com/evmos/ethermint => github.com/Kava-Labs/ethermint v0.21.1-0.20240319172648-f6c748cc8e0c
 
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0

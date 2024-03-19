@@ -87,7 +87,6 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/evmos/ethermint/x/evm/vm/geth"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -99,6 +98,7 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/precompile/statedb"
 	"github.com/kava-labs/kava/x/auction"
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
@@ -545,17 +545,20 @@ func NewApp(
 	)
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
+	evmutilMsgServer := evmutilkeeper.NewMsgServerImpl(app.evmutilKeeper).(evmutilkeeper.MsgServer)
+	evmConstructor := statedb.GetEVMConstructor(app.transferKeeper, evmutilMsgServer)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
 		govAuthorityAddr,
-		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper, app.transferKeeper,
+		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		nil, // precompiled contracts
-		geth.NewEVM,
+		evmConstructor,
 		options.EVMTrace,
 		evmSubspace,
 	)
 
 	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
+	evmutilMsgServer.SetEvmKeeper(app.evmKeeper)
 
 	app.auctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,
