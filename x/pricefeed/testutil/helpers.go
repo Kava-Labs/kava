@@ -100,9 +100,9 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	require.NoError(t, err)
 	require.Equal(t, sdk.MustNewDecFromStr("15.0"), price.Price)
 
-	_, err = keeper.SetPrice(ctx, addrs[2], "asset1:usd", sdk.MustNewDecFromStr("3"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[2], "asset1:usd", sdk.MustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[2], "asset2:usd", sdk.MustNewDecFromStr("3"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[2], "asset2:usd", sdk.MustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
 	_, err = keeper.SetPrice(ctx, addrs[2], "asset5:usd", sdk.MustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
@@ -136,7 +136,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price should be set
 	price, err = keeper.GetCurrentPrice(ctx, "asset1:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("2.5"), price.Price)
+	require.Equal(t, sdk.MustNewDecFromStr("16"), price.Price)
 	// not an active market, so price is not set
 	price, err = keeper.GetCurrentPrice(ctx, "asset2:usd")
 	require.Equal(t, types.ErrNoValidPrice, err)
@@ -209,9 +209,9 @@ func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper
 	// post price changes
 	_, err = keeper.SetPrice(ctx, addrs[2], "asset1:usd", sdk.MustNewDecFromStr("2"), initialPriceExpiry)
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[3], "asset1:usd", sdk.MustNewDecFromStr("3"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[3], "asset1:usd", sdk.MustNewDecFromStr("10"), initialPriceExpiry)
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[4], "asset1:usd", sdk.MustNewDecFromStr("3"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[4], "asset1:usd", sdk.MustNewDecFromStr("10"), initialPriceExpiry)
 	require.NoError(t, err)
 
 	blockTime = blockTime.Add(10 * time.Second)
