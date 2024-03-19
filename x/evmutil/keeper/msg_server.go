@@ -9,14 +9,31 @@ import (
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
+type keeper interface {
+	GetEnabledConversionPairFromERC20Address(
+		ctx sdk.Context,
+		address types.InternalEVMAddress,
+	) (types.ConversionPair, error)
+}
+
+type MsgServer interface {
+	types.MsgServer
+	keeper
+	SetEvmKeeper(evmKeeper types.EvmKeeper)
+}
+
 type msgServer struct {
-	keeper Keeper
+	Keeper
 }
 
 // NewMsgServerImpl returns an implementation of the evmutil MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) types.MsgServer {
-	return &msgServer{keeper: keeper}
+	return &msgServer{Keeper: keeper}
+}
+
+func (s *msgServer) SetEvmKeeper(evmKeeper types.EvmKeeper) {
+	s.Keeper.SetEvmKeeper(evmKeeper)
 }
 
 var _ types.MsgServer = msgServer{}
@@ -43,7 +60,7 @@ func (s msgServer) ConvertCoinToERC20(
 		return nil, fmt.Errorf("invalid Receiver address: %w", err)
 	}
 
-	if err := s.keeper.ConvertCoinToERC20(
+	if err := s.Keeper.ConvertCoinToERC20(
 		ctx,
 		initiator,
 		receiver,
@@ -86,7 +103,7 @@ func (s msgServer) ConvertERC20ToCoin(
 		return nil, fmt.Errorf("invalid contract address: %w", err)
 	}
 
-	if err := s.keeper.ConvertERC20ToCoin(
+	if err := s.Keeper.ConvertERC20ToCoin(
 		ctx,
 		initiator,
 		receiver,
@@ -130,13 +147,13 @@ func (s msgServer) ConvertCosmosCoinToERC20(
 		return nil, fmt.Errorf("invalid receiver address: %w", err)
 	}
 
-	if err := s.keeper.ConvertCosmosCoinToERC20(
+	if err := s.Keeper.ConvertCosmosCoinToERC20(
 		ctx,
 		initiator,
 		receiver,
 		*msg.Amount,
 	); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't ConvertCosmosCoinToERC20: %v", err)
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -168,7 +185,7 @@ func (s msgServer) ConvertCosmosCoinFromERC20(
 		return nil, fmt.Errorf("invalid receiver address: %w", err)
 	}
 
-	if err := s.keeper.ConvertCosmosCoinFromERC20(
+	if err := s.Keeper.ConvertCosmosCoinFromERC20(
 		ctx,
 		initiator,
 		receiver,

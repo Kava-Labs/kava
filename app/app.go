@@ -87,7 +87,6 @@ import (
 	"github.com/evmos/ethermint/x/evm"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/evmos/ethermint/x/evm/vm/geth"
 	"github.com/evmos/ethermint/x/feemarket"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
@@ -99,6 +98,7 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/precompile/statedb"
 	"github.com/kava-labs/kava/x/auction"
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
@@ -508,36 +508,6 @@ func NewApp(
 		scopedIBCKeeper,
 	)
 
-	// Create Ethermint keepers
-	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
-		appCodec,
-		govAuthorityAddr,
-		keys[feemarkettypes.StoreKey],
-		tkeys[feemarkettypes.TransientKey],
-		feemarketSubspace,
-	)
-
-	app.evmutilKeeper = evmutilkeeper.NewKeeper(
-		app.appCodec,
-		keys[evmutiltypes.StoreKey],
-		evmutilSubspace,
-		app.bankKeeper,
-		app.accountKeeper,
-	)
-
-	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
-	app.evmKeeper = evmkeeper.NewKeeper(
-		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
-		govAuthorityAddr,
-		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
-		nil, // precompiled contracts
-		geth.NewEVM,
-		options.EVMTrace,
-		evmSubspace,
-	)
-
-	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
-
 	app.transferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
 		keys[ibctransfertypes.StoreKey],
@@ -556,6 +526,39 @@ func NewApp(
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferIBCModule)
 	app.ibcKeeper.SetRouter(ibcRouter)
+
+	// Create Ethermint keepers
+	app.feeMarketKeeper = feemarketkeeper.NewKeeper(
+		appCodec,
+		govAuthorityAddr,
+		keys[feemarkettypes.StoreKey],
+		tkeys[feemarkettypes.TransientKey],
+		feemarketSubspace,
+	)
+
+	app.evmutilKeeper = evmutilkeeper.NewKeeper(
+		app.appCodec,
+		keys[evmutiltypes.StoreKey],
+		evmutilSubspace,
+		app.bankKeeper,
+		app.accountKeeper,
+	)
+
+	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
+	evmutilMsgServer := evmutilkeeper.NewMsgServerImpl(app.evmutilKeeper).(evmutilkeeper.MsgServer)
+	evmConstructor := statedb.GetEVMConstructor(app.transferKeeper, evmutilMsgServer)
+	app.evmKeeper = evmkeeper.NewKeeper(
+		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
+		govAuthorityAddr,
+		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
+		nil, // precompiled contracts
+		evmConstructor,
+		options.EVMTrace,
+		evmSubspace,
+	)
+
+	app.evmutilKeeper.SetEvmKeeper(app.evmKeeper)
+	evmutilMsgServer.SetEvmKeeper(app.evmKeeper)
 
 	app.auctionKeeper = auctionkeeper.NewKeeper(
 		appCodec,

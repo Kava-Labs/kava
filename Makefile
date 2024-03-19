@@ -244,6 +244,9 @@ format:
 docker-build:
 	DOCKER_BUILDKIT=1 $(DOCKER) build -t kava/kava:local .
 
+docker-build-dev:
+	DOCKER_BUILDKIT=1 $(DOCKER) build -t kava/kava:local -f Dockerfile.dev .
+
 docker-build-rocksdb:
 	DOCKER_BUILDKIT=1 $(DOCKER) build -f Dockerfile-rocksdb -t kava/kava:local .
 
@@ -332,5 +335,16 @@ start-remote-sims:
 update-kvtool:
 	git submodule update
 	cd tests/e2e/kvtool && make install
+
+abi:
+	solc --via-ir --evm-version paris --abi --bin ./contracts/contracts/example_ibc/ExampleIBC.sol -o ./contracts/contracts/example_ibc --overwrite
+	cp ./contracts/contracts/example_ibc/IBC.abi ./precompile/contracts/ibc/IBC.abi
+
+abigen:
+	abigen \
+		--abi=./contracts/contracts/example_ibc/ExampleIBC.abi \
+		--bin=./contracts/contracts/example_ibc/ExampleIBC.bin \
+		--pkg=example_ibc \
+		--out=./contracts/contracts/example_ibc/example_ibc.go
 
 .PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic start-remote-sims
