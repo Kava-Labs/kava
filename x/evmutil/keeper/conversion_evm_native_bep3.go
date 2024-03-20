@@ -7,12 +7,12 @@ import (
 )
 
 var (
-	DefaultBEP3ConversionDenoms = []string{"bnb", "busd", "btcb", "xrpb"}
+	defaultBEP3ConversionDenoms = []string{"bnb", "busd", "btcb", "xrpb"}
 )
 
 // IsEvmNativeBep3Conversion returns true if the given pair is a BEP3 conversion pair.
 func IsEvmNativeBep3Conversion(pair types.ConversionPair) bool {
-	for _, denom := range DefaultBEP3ConversionDenoms {
+	for _, denom := range defaultBEP3ConversionDenoms {
 		if pair.Denom == denom {
 			return true
 		}
