@@ -1,47 +1,38 @@
 package v3_test
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/kava-labs/kava/app"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/x/evm/statedb"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+
 	v3 "github.com/kava-labs/kava/x/evmutil/migrations/v3"
-	"testing"
 )
 
+func getAccountCallback(ctx sdk.Context, addr common.Address) {}
+
+func mkSetAccountCallback(t *testing.T) func(ctx sdk.Context, addr common.Address, account statedb.Account) error {
+	return func(ctx sdk.Context, addr common.Address, account statedb.Account) error {
+		require.True(t, account.Nonce >= 0 && account.Nonce <= 1)
+		return nil
+	}
+}
+
 func TestMigratePrecompiles(t *testing.T) {
-	tApp := app.NewTestApp()
-	//cdc := tApp.AppCodec()
 	storeKey := sdk.NewKVStoreKey("evmutil")
 	ctx := testutil.DefaultContext(storeKey, sdk.NewTransientStoreKey("transient_test"))
-	//store := ctx.KVStore(storeKey)
 
-	//ctx sdk.Context,
-	//evmKeeper *evmkeeper.Keeper,
-	v3.Migrate(ctx)
+	ctrl := gomock.NewController(t)
+	evmKeeperMock := NewMockEvmKeeper(ctrl)
+	evmKeeperMock.EXPECT().GetAccount(gomock.Any(), v3.ContractAddress).Do(getAccountCallback).Times(2)
+	evmKeeperMock.EXPECT().SetAccount(gomock.Any(), v3.ContractAddress, gomock.Any()).DoAndReturn(mkSetAccountCallback(t)).Times(2)
 
-	//require.Nil(
-	//	t,
-	//	store.Get(types.ParamsKey),
-	//	"params shouldn't exist in store before migration",
-	//)
-	//
-	//require.NoError(t, v2.Migrate(ctx, store, cdc))
-	//
-	//paramsBytes := store.Get(types.ParamsKey)
-	//require.NotNil(t, paramsBytes, "params should be in store after migration")
-	//
-	//var params types.Params
-	//cdc.MustUnmarshal(paramsBytes, &params)
-	//
-	//t.Logf("params: %+v", params)
-	//
-	//require.Equal(
-	//	t,
-	//	types.NewParams(
-	//		time.Date(2023, 11, 1, 0, 0, 0, 0, time.UTC),
-	//		sdk.NewInt(744191),
-	//	),
-	//	params,
-	//	"params should be correct after migration",
-	//)
+	evmKeeperMock.EXPECT().SetCode(gomock.Any(), gomock.Any(), gomock.Any()).Times(1)
+
+	err := v3.Migrate(ctx, evmKeeperMock)
+	require.NoError(t, err)
 }

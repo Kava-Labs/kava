@@ -14,6 +14,7 @@ require (
 	github.com/evmos/ethermint v0.21.0
 	github.com/go-kit/kit v0.12.0
 	github.com/gogo/protobuf v1.3.3
+	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0

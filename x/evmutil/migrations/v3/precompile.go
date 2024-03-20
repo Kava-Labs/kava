@@ -3,15 +3,13 @@ package v3
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 	"github.com/evmos/ethermint/x/evm/statedb"
 	"math/big"
 )
 
 var ContractAddress = common.HexToAddress("0x0300000000000000000000000000000000000002")
 
-// Keeper provide underlying storage of StateDB
-type Keeper interface {
+type EvmKeeper interface {
 	// Read methods
 	GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account
 	GetState(ctx sdk.Context, addr common.Address, key common.Hash) common.Hash
@@ -29,7 +27,7 @@ type Keeper interface {
 
 func Migrate(
 	ctx sdk.Context,
-	evmKeeper *evmkeeper.Keeper,
+	evmKeeper statedb.Keeper,
 ) error {
 	txConfig := statedb.TxConfig{
 		BlockHash: common.Hash{},
@@ -38,6 +36,7 @@ func Migrate(
 		LogIndex:  0,
 	}
 	stateDB := statedb.New(ctx, evmKeeper, txConfig)
+	_ = stateDB
 
 	// Set the nonce of the precompile's address (as is done when a contract is created) to ensure
 	// that it is marked as non-empty and will not be cleaned up when the statedb is finalized.
