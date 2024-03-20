@@ -3,6 +3,7 @@ package evmutil
 import (
 	"context"
 	"encoding/json"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -98,15 +99,17 @@ type AppModule struct {
 	keeper       keeper.Keeper
 	accountKeeer types.AccountKeeper
 	bankKeeper   types.BankKeeper
+	evmKeeper    *evmkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper keeper.Keeper, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, evmKeeper *evmkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         keeper,
 		accountKeeer:   accountKeeper,
 		bankKeeper:     bankKeeper,
+		evmKeeper:      evmKeeper,
 	}
 }
 
@@ -132,8 +135,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 
-	m := keeper.NewMigrator(am.keeper)
+	m := keeper.NewMigrator(am.keeper, am.evmKeeper)
 	cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	err := cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // RegisterInvariants registers evmutil module's invariants.
