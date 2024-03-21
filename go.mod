@@ -14,6 +14,7 @@ require (
 	github.com/evmos/ethermint v0.21.0
 	github.com/go-kit/kit v0.12.0
 	github.com/gogo/protobuf v1.3.3
+	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -216,8 +217,8 @@ replace (
 	github.com/ethereum/go-ethereum => github.com/Kava-Labs/go-ethereum v1.10.27-0.20240308184817-2a5324cb7ce7
 
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
-	// github.com/evmos/ethermint => /Users/yevheniishcherbina/go/src/github.com/Kava-Labs/ethermint
-	github.com/evmos/ethermint => github.com/Kava-Labs/ethermint v0.21.1-0.20240319172648-f6c748cc8e0c
+	github.com/evmos/ethermint => /Users/yevheniishcherbina/go/src/github.com/Kava-Labs/ethermint
+	//github.com/evmos/ethermint => github.com/Kava-Labs/ethermint v0.21.1-0.20240319172648-f6c748cc8e0c
 
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.7.0

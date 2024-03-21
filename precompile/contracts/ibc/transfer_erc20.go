@@ -26,12 +26,17 @@ func transferERC20(
 	readOnly bool,
 	value *big.Int,
 ) (ret []byte, remainingGas uint64, err error) {
+	fmt.Printf("transferERC20: BEGIN\n")
+
 	if remainingGas, err = contract.DeductGas(suppliedGas, transferGasCost); err != nil {
 		return nil, 0, err
 	}
 	if readOnly {
 		return nil, remainingGas, vmerrs.ErrWriteProtection
 	}
+
+	code := accessibleState.GetStateDB().GetCode(ContractAddress)
+	fmt.Printf("Code: %v\n", code)
 
 	// Set the nonce of the precompile's address (as is done when a contract is created) to ensure
 	// that it is marked as non-empty and will not be cleaned up when the statedb is finalized.
@@ -40,6 +45,9 @@ func transferERC20(
 	// can be called from within Solidity contracts. Solidity adds a check before invoking a contract to ensure
 	// that it does not attempt to invoke a non-existent contract.
 	accessibleState.GetStateDB().SetCode(ContractAddress, []byte{0x1})
+
+	//code := accessibleState.GetStateDB().GetCode(ContractAddress)
+	//fmt.Printf("Code: %v\n", code)
 
 	input, err := UnpackTransferERC20Input(packedInput)
 	if err != nil {
