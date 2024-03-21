@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -15,8 +16,24 @@ type Bep3ConversionTestSuite struct {
 	testutil.Suite
 }
 
+var (
+	bep3Denoms = []string{"bnb", "busd", "btcb", "xrpb"}
+)
+
 func TestBep3ConversionTestSuite(t *testing.T) {
 	suite.Run(t, new(Bep3ConversionTestSuite))
+}
+
+func (suite *Bep3ConversionTestSuite) TestConvertCoinToERC20_Bep3() {
+	for _, denom := range bep3Denoms {
+		suite.testBep3ConvertCoinToERC20(denom)
+	}
+}
+
+func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
+	for _, denom := range bep3Denoms {
+		suite.testConvertBep3ERC20ToCoin(denom)
+	}
 }
 
 func (suite *Bep3ConversionTestSuite) setEnabledConversionPairDenom(denom string) {
@@ -25,7 +42,7 @@ func (suite *Bep3ConversionTestSuite) setEnabledConversionPairDenom(denom string
 	suite.Keeper.SetParams(suite.Ctx, params)
 }
 
-func (suite *Bep3ConversionTestSuite) TestConvertCoinToERC20_Bep3() {
+func (suite *Bep3ConversionTestSuite) testBep3ConvertCoinToERC20(denom string) {
 	invoker, err := sdk.AccAddressFromBech32("kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz")
 	receiverAddr := testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
 	suite.Require().NoError(err)
@@ -37,93 +54,112 @@ func (suite *Bep3ConversionTestSuite) TestConvertCoinToERC20_Bep3() {
 
 	tests := []struct {
 		name                  string
-		pairDenom             string
 		userBankBalance       sdkmath.Int
 		expUserErc20Balance   sdkmath.Int
 		moduleErc20Balance    sdkmath.Int
 		expModuleErc20Balance sdkmath.Int
+		disablePair           bool
+		conversionDenom       string
 		coinToConvert         sdk.Coin
 		errArgs               errArgs
 	}{
 		{
-			name:                  "success - btcb conversion",
-			pairDenom:             "btcb",
+			name:                  "success",
 			userBankBalance:       sdkmath.NewInt(1_234),
 			moduleErc20Balance:    sdkmath.NewInt(10e13),
 			expUserErc20Balance:   sdkmath.NewInt(1.234e13),
 			expModuleErc20Balance: sdkmath.NewInt(8.766e13),
-			coinToConvert:         sdk.NewCoin("btcb", sdkmath.NewInt(1_234)),
+			coinToConvert:         sdk.NewCoin(denom, sdkmath.NewInt(1_234)),
 			errArgs: errArgs{
 				expectPass: true,
 			},
 		},
 		{
-			name:                  "success - xrpb convert smallest unit",
-			pairDenom:             "xrpb",
+			name:                  "success - convert smallest unit",
 			userBankBalance:       sdkmath.NewInt(2),
 			moduleErc20Balance:    sdkmath.NewInt(10e13),
 			expUserErc20Balance:   sdkmath.NewInt(1e10),
 			expModuleErc20Balance: sdkmath.NewInt(9.999e13),
-			coinToConvert:         sdk.NewCoin("xrpb", sdkmath.NewInt(1)),
+			coinToConvert:         sdk.NewCoin(denom, sdkmath.NewInt(1)),
 			errArgs: errArgs{
 				expectPass: true,
 			},
 		},
 		{
 			name:                  "success - no change when 0 amount converted",
-			pairDenom:             "btcb",
 			userBankBalance:       sdkmath.NewInt(1234),
 			moduleErc20Balance:    sdkmath.NewInt(1e14),
 			expUserErc20Balance:   sdkmath.ZeroInt(),
 			expModuleErc20Balance: sdkmath.NewInt(1e14),
-			coinToConvert:         sdk.NewCoin("btcb", sdkmath.NewInt(0)),
+			coinToConvert:         sdk.NewCoin(denom, sdkmath.NewInt(0)),
 			errArgs: errArgs{
 				expectPass: true,
 			},
 		},
 		{
 			name:               "error - bep3 not enabled",
-			pairDenom:          "btcb",
 			userBankBalance:    sdkmath.NewInt(1_234),
 			moduleErc20Balance: sdkmath.NewInt(1e14),
-			coinToConvert:      sdk.NewCoin("bnb", sdkmath.NewInt(1_234)), // bnb is not enabled
+			disablePair:        true,
+			coinToConvert:      sdk.NewCoin(denom, sdkmath.NewInt(1_234)),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "bnb: ERC20 token not enabled to convert to sdk.Coin",
+				contains:   fmt.Sprintf("%s: ERC20 token not enabled to convert to sdk.Coin", denom),
 			},
 		},
 		{
 			name:               "error - module account does not have enough balance to unlock",
-			pairDenom:          "btcb",
 			userBankBalance:    sdkmath.NewInt(1_234),
 			moduleErc20Balance: sdkmath.NewInt(1e9),
-			coinToConvert:      sdk.NewCoin("btcb", sdkmath.NewInt(1)),
+			coinToConvert:      sdk.NewCoin(denom, sdkmath.NewInt(1)),
 			errArgs: errArgs{
 				expectPass: false,
 				contains:   "execution reverted: ERC20: transfer amount exceeds balance",
 			},
 		},
+
+		{
+			name:                  "success - not bep3 conversion",
+			conversionDenom:       "hard",
+			userBankBalance:       sdkmath.NewInt(1_234),
+			moduleErc20Balance:    sdkmath.NewInt(2_000),
+			expUserErc20Balance:   sdkmath.NewInt(1_234),
+			expModuleErc20Balance: sdkmath.NewInt(766),
+			coinToConvert:         sdk.NewCoin("hard", sdkmath.NewInt(1_234)),
+			errArgs: errArgs{
+				expectPass: true,
+			},
+		},
 		{
 			name:               "error - user converting more than user balance",
-			pairDenom:          "btcb",
 			userBankBalance:    sdkmath.NewInt(1_234),
 			moduleErc20Balance: sdkmath.NewInt(1e14),
-			coinToConvert:      sdk.NewCoin("btcb", sdkmath.NewInt(20_000)),
+			coinToConvert:      sdk.NewCoin(denom, sdkmath.NewInt(20_000)),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "spendable balance 1234btcb is smaller than 20000btcb: insufficient funds",
+				contains:   fmt.Sprintf("spendable balance 1234%s is smaller than 20000%s: insufficient funds", denom, denom),
 			},
 		},
 	}
 
 	for _, tc := range tests {
-		suite.Run(tc.name, func() {
+		suite.Run(fmt.Sprintf("%s: %s", denom, tc.name), func() {
 			suite.SetupTest()
 			contractAddr := suite.DeployERC20()
-			suite.setEnabledConversionPairDenom(tc.pairDenom)
+
+			// override conversion denom if needed
+			conversionDenom := tc.conversionDenom
+			if conversionDenom == "" {
+				conversionDenom = denom
+			}
+
+			if !tc.disablePair {
+				suite.setEnabledConversionPairDenom(conversionDenom)
+			}
+
 			pair := types.NewConversionPair(
 				contractAddr,
-				tc.pairDenom,
+				conversionDenom,
 			)
 
 			// fund user & module account
@@ -131,7 +167,7 @@ func (suite *Bep3ConversionTestSuite) TestConvertCoinToERC20_Bep3() {
 				err = suite.App.FundAccount(
 					suite.Ctx,
 					invoker,
-					sdk.NewCoins(sdk.NewCoin(tc.pairDenom, tc.userBankBalance)),
+					sdk.NewCoins(sdk.NewCoin(conversionDenom, tc.userBankBalance)),
 				)
 				suite.Require().NoError(err)
 			}
@@ -192,7 +228,7 @@ func (suite *Bep3ConversionTestSuite) TestConvertCoinToERC20_Bep3() {
 	}
 }
 
-func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
+func (suite *Bep3ConversionTestSuite) testConvertBep3ERC20ToCoin(denom string) {
 	invoker := testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
 	invokerCosmosAddr, err := sdk.AccAddressFromHexUnsafe(invoker.String()[2:])
 	suite.Require().NoError(err)
@@ -204,8 +240,9 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 
 	tests := []struct {
 		name                string
-		pairDenom           string
 		contractAddr        string
+		conversionDenom     string
+		disablePair         bool
 		userErc20Balance    sdkmath.Int
 		expUserBankBalance  sdkmath.Int
 		expUserErc20Balance sdkmath.Int
@@ -213,8 +250,7 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 		errArgs             errArgs
 	}{
 		{
-			name:                "success - btcb conversion with no dust",
-			pairDenom:           "btcb",
+			name:                "success - conversion with no dust",
 			userErc20Balance:    sdkmath.NewInt(1.12e18),
 			expUserBankBalance:  sdkmath.NewInt(1.0031e8),
 			expUserErc20Balance: sdkmath.NewInt(0.1169e18),
@@ -224,9 +260,8 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 			},
 		},
 		{
-			name:                "success - xrpb convert smallest bank unit",
-			pairDenom:           "xrpb",
-			userErc20Balance:    sdkmath.NewInt(2e18), // 2xrpb
+			name:                "success - convert smallest bank unit",
+			userErc20Balance:    sdkmath.NewInt(2e18),
 			expUserBankBalance:  sdkmath.NewInt(1),
 			expUserErc20Balance: sdkmath.NewInt(1.99999999e18),
 			convertAmount:       sdkmath.NewInt(1.12e10),
@@ -236,7 +271,6 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 		},
 		{
 			name:                "success - bnb conversion with dust",
-			pairDenom:           "bnb",
 			userErc20Balance:    sdkmath.NewInt(2e18),
 			expUserBankBalance:  sdkmath.NewInt(12),
 			expUserErc20Balance: sdkmath.NewInt(1.99999988e18),
@@ -247,17 +281,16 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 		},
 		{
 			name:             "fail - converting less than 1 bank unit",
-			pairDenom:        "bnb",
 			userErc20Balance: sdkmath.NewInt(2e18),
 			convertAmount:    sdkmath.NewInt(12e8),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "unable to convert bep3 coin due converting less than 1bnb",
+				contains:   "unable to convert bep3 coin due converting less than 1 native unit",
 			},
 		},
 		{
 			name:             "fail - contract not enabled",
-			pairDenom:        "bnb",
+			disablePair:      true,
 			contractAddr:     "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
 			userErc20Balance: sdkmath.NewInt(2e18),
 			convertAmount:    sdkmath.NewInt(2e18),
@@ -268,17 +301,16 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 		},
 		{
 			name:             "fail - converting 0 amount of bep3 erc20 token",
-			pairDenom:        "bnb",
 			userErc20Balance: sdkmath.NewInt(2e18),
 			convertAmount:    sdkmath.NewInt(0),
 			errArgs: errArgs{
 				expectPass: false,
-				contains:   "unable to convert bep3 coin due converting less than 1bnb",
+				contains:   "unable to convert bep3 coin due converting less than 1 native unit",
 			},
 		},
 		{
 			name:                "success - not bep3 conversion",
-			pairDenom:           "xrp",
+			conversionDenom:     "xrp",
 			userErc20Balance:    sdkmath.NewInt(2.5e18),
 			expUserBankBalance:  sdkmath.NewInt(2.1e18),
 			expUserErc20Balance: sdkmath.NewInt(0.4e18),
@@ -289,7 +321,6 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 		},
 		{
 			name:             "fail - user converting more than user balance",
-			pairDenom:        "bnb",
 			userErc20Balance: sdkmath.NewInt(2e18),
 			convertAmount:    sdkmath.NewInt(2.3e18),
 			errArgs: errArgs{
@@ -299,7 +330,6 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 		},
 		{
 			name:                "success - user converting more than balance but only by dust amount",
-			pairDenom:           "bnb",
 			userErc20Balance:    sdkmath.NewInt(2e18),
 			expUserBankBalance:  sdkmath.NewInt(2e8),
 			expUserErc20Balance: sdkmath.NewInt(0),
@@ -311,16 +341,27 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 	}
 
 	for _, tc := range tests {
-		suite.Run(tc.name, func() {
+		suite.Run(fmt.Sprintf("%s: %s", denom, tc.name), func() {
 			suite.SetupTest()
 			contractAddr := suite.DeployERC20()
-			suite.setEnabledConversionPairDenom(tc.pairDenom)
+
+			// override conversion denom if needed
+			conversionDenom := tc.conversionDenom
+			if conversionDenom == "" {
+				conversionDenom = denom
+			}
+
+			if !tc.disablePair {
+				suite.setEnabledConversionPairDenom(conversionDenom)
+			}
+
 			if tc.contractAddr != "" {
 				contractAddr = testutil.MustNewInternalEVMAddressFromString(tc.contractAddr)
 			}
+
 			pair := types.NewConversionPair(
 				contractAddr,
-				tc.pairDenom,
+				conversionDenom,
 			)
 
 			// fund user erc20 balance
@@ -335,7 +376,7 @@ func (suite *Bep3ConversionTestSuite) TestConvertERC20ToCoin_Bep3() {
 			}
 
 			// create user account, otherwise `CallEVMWithData` will fail due to failing to get user account when finding its sequence.
-			err = suite.App.FundAccount(suite.Ctx, invokerCosmosAddr, sdk.NewCoins(sdk.NewCoin(tc.pairDenom, sdk.ZeroInt())))
+			err = suite.App.FundAccount(suite.Ctx, invokerCosmosAddr, sdk.NewCoins(sdk.NewCoin(conversionDenom, sdk.ZeroInt())))
 			suite.Require().NoError(err)
 
 			// execute bep3 conversion
