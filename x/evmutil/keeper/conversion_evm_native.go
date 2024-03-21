@@ -75,8 +75,8 @@ func (k Keeper) ConvertCoinToERC20(
 	// when converting bep3 bank coins to erc20, we will need to unlock the 18
 	// decimals erc20 equivalent of the 8 decimals bep3 sdk.Coins
 	amountToUnlock := coin.Amount.BigInt()
-	if IsEvmNativeBep3Conversion(pair) {
-		amountToUnlock = ConvertBep3CoinAmountToERC20Amount(coin.Amount.BigInt())
+	if isBep3Asset(pair.Denom) {
+		amountToUnlock = convertBep3CoinAmountToERC20Amount(coin.Amount.BigInt())
 	}
 
 	if err := k.UnlockERC20Tokens(ctx, pair, amountToUnlock, receiverAccount); err != nil {
@@ -113,20 +113,11 @@ func (k Keeper) ConvertERC20ToCoin(
 	amountToLock := amount.BigInt()
 	amountToMint := amount.BigInt()
 
-	// handle bep3 conversion pair (18 decimals erc20 to 8 decimals sdk.Coin)
-	// When converting bep3 erc20 assets to sdk.Coin, the following will happen
-	// 1. Convert provided 18 decimals erc20 amount to 8 decimals sdk amount, then mint those.
-	//    Dust from converting 18 decimals to 8 decimals are ignored and will
-	//    remain in the original wallet.
-	// 2. Convert to-be-minted 8 decimals sdk.Coin back to 18 decimals, then lock those.
-	if IsEvmNativeBep3Conversion(pair) {
-		amountToMint, _ = ConvertBep3ERC20AmountToCoinAmount(amount.BigInt())
-
-		// make sure we have at least 1 sdk.Coin to mint
-		if amountToMint.Cmp(big.NewInt(0)) == 0 {
-			return errorsmod.Wrapf(types.ErrInsufficientConversionAmount, "unable to convert bep3 coin due converting less than 1%s", pair.Denom)
+	if isBep3Asset(pair.Denom) {
+		amountToMint, amountToLock, err = bep3ERC20AmountToCoinMintAndERC20LockAmount(amount.BigInt())
+		if err != nil {
+			return err
 		}
-		amountToLock = ConvertBep3CoinAmountToERC20Amount(amountToMint)
 	}
 
 	// lock erc20 tokens
