@@ -1,6 +1,7 @@
 package v3
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/evmos/ethermint/x/evm/statedb"
@@ -29,6 +30,8 @@ func Migrate(
 	ctx sdk.Context,
 	evmKeeper statedb.Keeper,
 ) error {
+	fmt.Printf("Migrate V3 BEGIN!\n")
+
 	txConfig := statedb.TxConfig{
 		BlockHash: common.Hash{},
 		TxHash:    common.Hash{},
@@ -45,6 +48,14 @@ func Migrate(
 	// can be called from within Solidity contracts. Solidity adds a check before invoking a contract to ensure
 	// that it does not attempt to invoke a non-existent contract.
 	stateDB.SetCode(ContractAddress, []byte{0x1})
+
+	//if err := stateDB.Commit(); err != nil {
+	//	fmt.Printf("can't commit: %v\n", err)
+	//	return err
+	//}
+	//fmt.Printf("successful commit\n")
+
+	fmt.Printf("Migrate V3 END!\n")
 
 	return nil
 }

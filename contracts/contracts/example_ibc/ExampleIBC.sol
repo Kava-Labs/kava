@@ -43,6 +43,30 @@ contract ExampleIBC {
     // - implement proper contract registration
     // - call IBC precompile methods without bypassing type-checking
 
+    function transferERC20(
+        string calldata sourcePort,
+        string calldata sourceChannel,
+        uint256 amount,
+        string calldata receiver,
+        uint64 revisionNumber,
+        uint64 revisionHeight,
+        uint64 timeoutTimestamp,
+        string calldata memo,
+        string calldata kavaERC20Address
+    ) external {
+        IBC(PRECOMPILED_IBC_CONTRACT_ADDRESS).transferERC20(
+            sourcePort,
+            sourceChannel,
+            amount,
+            receiver,
+            revisionNumber,
+            revisionHeight,
+            timeoutTimestamp,
+            memo,
+            kavaERC20Address
+        );
+    }
+
     function transferKavaCall(
         string calldata sourcePort,
         string calldata sourceChannel,
