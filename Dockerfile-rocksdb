@@ -1,4 +1,4 @@
-FROM golang:1.20-bullseye AS kava-builder
+FROM golang:1.21-bullseye AS kava-builder
 
 # Set up dependencies
 RUN apt-get update \
