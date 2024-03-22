@@ -19,6 +19,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	packetforwardtypes "github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7/packetforward/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibctmmigrations "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint/migrations"
 )
@@ -52,6 +53,7 @@ func (app App) RegisterUpgradeHandlers() {
 			Added: []string{
 				crisistypes.ModuleName,
 				consensustypes.ModuleName,
+				packetforwardtypes.ModuleName,
 			},
 		}
 
