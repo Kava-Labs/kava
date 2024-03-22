@@ -40,8 +40,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
 - (cdp) [#1818] Add module param and logic for running x/cdp begin blocker every `n` blocks
-- (cli) [#1804] Add `rocksdb compact` command for manual DB compaction of state or blockstore.
-- (cosmos-sdk) [#1811] Upgrades app to cosmos-sdk v0.47.7
+- (cli) [#1804] Add `rocksdb compact` command for manual DB compaction of state or blockstore
+- (cosmos-sdk) [#1811] [#1846] Upgrades app to cosmos-sdk v0.47.10 with iavl v1 support
 - (validator-vesting) [#1832] Add grpc query service to replace removed legacy querier
 - (incentive) [#1836] Update x/incentive cli to use grpc query client
 - (ibc) [#1839] Add ibc packet forward middleware for ibc transfers
@@ -327,6 +327,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1846]: https://github.com/Kava-Labs/kava/pull/1846
 [#1839]: https://github.com/Kava-Labs/kava/pull/1839
 [#1836]: https://github.com/Kava-Labs/kava/pull/1836
 [#1832]: https://github.com/Kava-Labs/kava/pull/1832
