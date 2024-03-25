@@ -26,7 +26,7 @@ func TestBep3ConversionTestSuite(t *testing.T) {
 
 func (suite *Bep3ConversionTestSuite) TestConvertCoinToERC20_Bep3() {
 	for _, denom := range bep3Denoms {
-		suite.testBep3ConvertCoinToERC20(denom)
+		suite.testConvertBep3CoinToERC20(denom)
 	}
 }
 
@@ -42,7 +42,7 @@ func (suite *Bep3ConversionTestSuite) setEnabledConversionPairDenom(denom string
 	suite.Keeper.SetParams(suite.Ctx, params)
 }
 
-func (suite *Bep3ConversionTestSuite) testBep3ConvertCoinToERC20(denom string) {
+func (suite *Bep3ConversionTestSuite) testConvertBep3CoinToERC20(denom string) {
 	invoker, err := sdk.AccAddressFromBech32("kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz")
 	receiverAddr := testutil.MustNewInternalEVMAddressFromString("0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")
 	suite.Require().NoError(err)
