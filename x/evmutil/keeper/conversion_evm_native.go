@@ -71,7 +71,15 @@ func (k Keeper) ConvertCoinToERC20(
 		return err
 	}
 
-	if err := k.UnlockERC20Tokens(ctx, pair, coin.Amount.BigInt(), receiverAccount); err != nil {
+	// handle bep3 conversion pair (8 decimals sdk.Coin -> 18 decimals erc20)
+	// when converting bep3 bank coins to erc20, we will need to unlock the 18
+	// decimals erc20 equivalent of the 8 decimals bep3 sdk.Coins
+	amountToUnlock := coin.Amount.BigInt()
+	if isBep3Asset(pair.Denom) {
+		amountToUnlock = convertBep3CoinAmountToERC20Amount(coin.Amount.BigInt())
+	}
+
+	if err := k.UnlockERC20Tokens(ctx, pair, amountToUnlock, receiverAccount); err != nil {
 		return err
 	}
 
@@ -102,13 +110,23 @@ func (k Keeper) ConvertERC20ToCoin(
 		return err
 	}
 
+	amountToLock := amount.BigInt()
+	amountToMint := amount.BigInt()
+
+	if isBep3Asset(pair.Denom) {
+		amountToMint, amountToLock, err = bep3ERC20AmountToCoinMintAndERC20LockAmount(amount.BigInt())
+		if err != nil {
+			return err
+		}
+	}
+
 	// lock erc20 tokens
-	if err := k.LockERC20Tokens(ctx, pair, amount.BigInt(), initiator); err != nil {
+	if err := k.LockERC20Tokens(ctx, pair, amountToLock, initiator); err != nil {
 		return err
 	}
 
 	// mint conversion pair coin
-	coin, err := k.MintConversionPairCoin(ctx, pair, amount.BigInt(), receiver)
+	coin, err := k.MintConversionPairCoin(ctx, pair, amountToMint, receiver)
 	if err != nil {
 		return err
 	}
