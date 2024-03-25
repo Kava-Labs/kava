@@ -45,6 +45,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (validator-vesting) [#1832] Add grpc query service to replace removed legacy querier
 - (incentive) [#1836] Update x/incentive cli to use grpc query client
 - (ibc) [#1839] Add ibc packet forward middleware for ibc transfers
+- (evmutil) [#1848] Update evm native conversion logic to handle bep3 assets
 
 ## [v0.25.0]
 
@@ -328,6 +329,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
   large-scale simulations remotely using aws-batch
 
 [#1846]: https://github.com/Kava-Labs/kava/pull/1846
+[#1848]: https://github.com/Kava-Labs/kava/pull/1848
 [#1839]: https://github.com/Kava-Labs/kava/pull/1839
 [#1836]: https://github.com/Kava-Labs/kava/pull/1836
 [#1832]: https://github.com/Kava-Labs/kava/pull/1832
