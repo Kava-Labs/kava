@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -11,6 +12,8 @@ import (
 	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 
 	"github.com/kava-labs/kava/app"
+	"github.com/kava-labs/kava/x/pricefeed/keeper"
+	"github.com/kava-labs/kava/x/pricefeed/testutil"
 	"github.com/kava-labs/kava/x/pricefeed/types"
 )
 
@@ -235,4 +238,34 @@ func TestKeeper_ExpiredSetCurrentPrices(t *testing.T) {
 
 	_, err = keeper.GetCurrentPrice(ctx, "tstusd")
 	require.ErrorIs(t, types.ErrNoValidPrice, err, "current prices should be invalid")
+}
+
+func TestKeeper_SetCurrentPricesForAllMarkets_PriceUpdate(t *testing.T) {
+	testutil.SetCurrentPrices_PriceCalculations(t, func(ctx sdk.Context, keeper keeper.Keeper) {
+		keeper.SetCurrentPricesForAllMarkets(ctx)
+	})
+}
+
+func TestKeeper_SetCurrentPricesForAllMarkets_EventEmission(t *testing.T) {
+	testutil.SetCurrentPrices_EventEmission(t, func(ctx sdk.Context, keeper keeper.Keeper) {
+		keeper.SetCurrentPricesForAllMarkets(ctx)
+	})
+}
+
+func TestKeeper_SetCurrentPrices_MatchesAllMarketsBehavior(t *testing.T) {
+	testFunc := func(ctx sdk.Context, k keeper.Keeper) {
+		for _, market := range k.GetMarkets(ctx) {
+			if !market.Active {
+				continue
+			}
+
+			err := k.SetCurrentPrices(ctx, market.MarketID)
+			if err != nil && !errors.Is(err, types.ErrNoValidPrice) {
+				panic(err)
+			}
+		}
+	}
+
+	testutil.SetCurrentPrices_PriceCalculations(t, testFunc)
+	testutil.SetCurrentPrices_EventEmission(t, testFunc)
 }
