@@ -37,6 +37,15 @@ func TestMsgConvertCoinToERC20(t *testing.T) {
 			},
 		},
 		{
+			"valid-bnb",
+			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
+			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+			sdk.NewCoin("bnb", sdkmath.NewInt(1234)),
+			errArgs{
+				expectPass: true,
+			},
+		},
+		{
 			"invalid - odd length hex address",
 			"kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
 			"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc",
