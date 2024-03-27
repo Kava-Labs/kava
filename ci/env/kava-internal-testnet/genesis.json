@@ -571,6 +571,10 @@
               "amount": "1000000000000000"
             },
             {
+              "denom": "erc20/axelar/bnb",
+              "amount": "1000000000000000000"
+            },
+            {
               "denom": "erc20/axelar/eth",
               "amount": "1000000000000000000"
             },
