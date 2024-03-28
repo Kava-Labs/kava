@@ -6,7 +6,7 @@ order: 2
 
 ## Parameters and genesis state
 
-`Paramaters` determine which markets are tracked by the pricefeed and which oracles are authorized to post prices for a given market. There is only one active parameter set at any given time. Updates to parameters can be made via on-chain parameter update proposals.
+`parameters` determine which markets are tracked by the pricefeed and which oracles are authorized to post prices for a given market. There is only one active parameter set at any given time. Updates to parameters can be made via on-chain parameter update proposals.
 
 ```go
 // Params params for pricefeed. Can be altered via governance

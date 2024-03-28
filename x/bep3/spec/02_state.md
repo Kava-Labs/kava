@@ -6,7 +6,7 @@ order: 2
 
 ## Parameters and genesis state
 
-`Paramaters` define the rules according to which swaps are executed. Parameter updates can be made via on-chain parameter update proposals.
+`parameters` define the rules according to which swaps are executed. Parameter updates can be made via on-chain parameter update proposals.
 
 ```go
 // Params governance parameters for bep3 module

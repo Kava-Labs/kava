@@ -6,7 +6,7 @@ order: 2
 
 ## Parameters and genesis state
 
-`Paramaters` define the rules according to which auctions are run. There is only one active parameter set at any given time. Updates to the parameter set can be made via on-chain parameter update proposals.
+`parameters` define the rules according to which auctions are run. There is only one active parameter set at any given time. Updates to the parameter set can be made via on-chain parameter update proposals.
 
 ```go
 // Params governance parameters for auction module
