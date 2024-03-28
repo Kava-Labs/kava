@@ -107,6 +107,8 @@ func upgradeHandler(
 				continue
 			}
 			if !subspace.HasKeyTable() {
+				// NOTE: This modifies the internal map used to store the key table entries
+				// which is a pointer.
 				subspace.WithKeyTable(keyTable)
 			}
 		}
