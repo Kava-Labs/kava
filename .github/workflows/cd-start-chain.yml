@@ -63,7 +63,6 @@ jobs:
             --update-playbook-filename=$PLAYBOOK_NAME \
             --chain-id=$CHAIN_ID \
             --max-upgrade-batch-size=0 \
-            --node-states=Standby \
             --wait-for-node-sync-after-upgrade=true
         env:
           SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
