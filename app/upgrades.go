@@ -27,6 +27,8 @@ import (
 const (
 	UpgradeName_Mainnet = "v0.26.0"
 	UpgradeName_Testnet = "v0.26.0-alpha.0"
+
+	CDPLiquidationBlockInterval = int64(50)
 )
 
 // RegisterUpgradeHandlers registers the upgrade handlers for the app.
@@ -130,7 +132,7 @@ func upgradeHandler(
 		// of every block.  This significantly improves performance as this cdp
 		// process is a signification porition of time spent during block execution.
 		cdpParams := app.cdpKeeper.GetParams(ctx)
-		cdpParams.LiquidationBlockInterval = int64(100)
+		cdpParams.LiquidationBlockInterval = CDPLiquidationBlockInterval
 		app.cdpKeeper.SetParams(ctx, cdpParams)
 
 		return versionMap, err

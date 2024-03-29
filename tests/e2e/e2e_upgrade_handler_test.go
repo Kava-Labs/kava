@@ -113,7 +113,7 @@ func (suite *IntegrationTestSuite) TestUpgradeParams_CDP_Interval() {
 	suite.Require().NoError(err)
 
 	expectedParams := paramsBefore.Params
-	expectedParams.LiquidationBlockInterval = int64(100)
+	expectedParams.LiquidationBlockInterval = int64(50)
 
 	suite.Require().Equal(expectedParams, paramsAfter.Params,
 		"expected cdp parameters to equal previous parameters with a liquidation block interval of 100")
