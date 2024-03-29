@@ -1,8 +1,8 @@
 # Kava 16 Release Candidate 1 (v0.26.0-alpha.0)
 
-For deployment to Kava Mainnet at height `xxxx` around 2024-04-17 15:00:00 UTC.
+For deployment to Kava Mainnet at height `xxxx` around 2024-XX-XX 15:00:00 UTC.
 
-[Click to view upgrade instructions](https://github.com/Kava-Labs/kava/blob/v0.26.0/migrate/v0_26/migrate.md)
+[Click to view upgrade instructions](https://github.com/Kava-Labs/kava/tree/release/v0.26.x/migrate/v0_26/migrate.md)
 
 | Software                       | Version  |
 | ------------------------------ | -------- |
@@ -15,7 +15,7 @@ Please note that if you run your node with `rocksdb` as the database, this updat
 
 ## Upgrade Changes
 
-For a complete list of changes, see [CHANGELOG.md](https://github.com/Kava-Labs/kava/blob/v0.26.0/CHANGELOG.md#v0260).
+For a complete list of changes, see [CHANGELOG.md](https://github.com/Kava-Labs/kava/tree/release/v0.26.xCHANGELOG.md#v0260).
 
 ### Cosmos SDK Updated to v0.47.10
 
