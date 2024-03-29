@@ -36,6 +36,8 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.26.0]
+
 ### Features
 
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
