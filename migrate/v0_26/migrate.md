@@ -4,7 +4,7 @@
 
 - The version of `kava` for Kava 16 is `v0.26.0`
 - The Kava 16 chain will be shutdown with a `SoftwareUpgradeProposal` that
-  activates at approximately 15:00 UTC on April 27th, 2024.
+  activates at approximately 15:00 UTC on TBD, 2024.
 
 ## Dependency Changes
 
@@ -74,4 +74,4 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Coordination
 
-If the Kava 16 chain does not launch by April 28th, 2024 at 00:00 UTC, the launch should be considered a failure. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the Kava 16 chain does not launch by TBD at 00:00 UTC, the launch should be considered a failure. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
