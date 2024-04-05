@@ -111,7 +111,7 @@ func queryRewardsCmd() *cobra.Command {
 	cmd.Flags().String(flagOwner, "", "(optional) filter by owner address")
 	cmd.Flags().String(flagType, "", fmt.Sprintf("(optional) filter by a reward type: %s", strings.Join(rewardTypes, "|")))
 	cmd.Flags().Bool(flagUnsynced, false, "(optional) get unsynced claims")
-	cmd.Flags().Int(flags.FlagPage, 1, "pagination page rewards of to to query for")
+	cmd.Flags().Int(flags.FlagPage, 1, "pagination page rewards of to query for")
 	cmd.Flags().Int(flags.FlagLimit, 100, "pagination limit of rewards to query for")
 	return cmd
 }
