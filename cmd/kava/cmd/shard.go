@@ -11,16 +11,16 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store/rootmulti"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmconfig "github.com/tendermint/tendermint/config"
 	"github.com/tendermint/tendermint/node"
 	tmstate "github.com/tendermint/tendermint/state"
 	"github.com/tendermint/tendermint/store"
 
-	ethermintserver "github.com/evmos/ethermint/server"
+	ethermintserver "github.com/tharsis/ethermint/server"
 )
 
 const (
@@ -99,7 +99,7 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			// manage db connection
 			////////////////////////
 			// connect to database
-			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, server.GetAppDBBackend(ctx.Viper))
+			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, getAppDBBackend(ctx.Viper))
 			if err != nil {
 				return err
 			}
@@ -202,7 +202,7 @@ func shardApplicationDb(multistore *rootmulti.Store, startBlock, endBlock int64)
 	fmt.Printf("pruning data down to heights %d - %d (%d blocks)\n", startBlock, endBlock, shardSize)
 
 	// set pruning options to prevent no-ops from `PruneStores`
-	multistore.SetPruning(pruningtypes.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
+	multistore.SetPruning(sdk.PruningOptions{KeepRecent: uint64(shardSize), Interval: 0})
 
 	// rollback application state
 	if err := multistore.RollbackToVersion(endBlock); err != nil {
@@ -221,9 +221,7 @@ func shardApplicationDb(multistore *rootmulti.Store, startBlock, endBlock int64)
 	if len(pruneHeights) > 0 {
 		// prune application state
 		fmt.Printf("pruning application state to height %d\n", startBlock)
-		if err := multistore.PruneStores(true, pruneHeights); err != nil {
-			return fmt.Errorf("failed to prune application state: %s", err)
-		}
+		multistore.PruneStores(startBlock)
 	}
 
 	return nil
