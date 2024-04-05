@@ -208,6 +208,8 @@ func printVersions(tree *iavl.MutableTree) {
 	}
 }
 
+// getAppDBBackend is a server util from future cosmos-sdk versions
+// https://github.com/Kava-Labs/cosmos-sdk/blob/e048402efb13d2f422a17bbd32e4e8ca0434395b/server/util.go#L371
 func getAppDBBackend(opts types.AppOptions) tdbm.BackendType {
 	rv := cast.ToString(opts.Get("app-db-backend"))
 	if len(rv) == 0 {
