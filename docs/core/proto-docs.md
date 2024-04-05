@@ -1122,7 +1122,7 @@ GenesisState defines the pricefeed module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.bep3.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `params` | [Params](#kava.bep3.v1beta1.Params) |  | params defines all the parameters of the module. |
 | `atomic_swaps` | [AtomicSwap](#kava.bep3.v1beta1.AtomicSwap) | repeated | atomic_swaps represents the state of stored atomic swaps |
 | `supplies` | [AssetSupply](#kava.bep3.v1beta1.AssetSupply) | repeated | supplies represents the supply information of each atomic swap |
 | `previous_block_time` | [google.protobuf.Timestamp](#google.protobuf.Timestamp) |  | previous_block_time represents the time of the previous block |
@@ -1653,7 +1653,7 @@ GenesisState defines the cdp module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.cdp.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `params` | [Params](#kava.cdp.v1beta1.Params) |  | params defines all the parameters of the module. |
 | `cdps` | [CDP](#kava.cdp.v1beta1.CDP) | repeated |  |
 | `deposits` | [Deposit](#kava.cdp.v1beta1.Deposit) | repeated |  |
 | `starting_cdp_id` | [uint64](#uint64) |  |  |
@@ -2996,7 +2996,7 @@ GenesisState defines the community module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the paramaters related to commmunity |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the parameters related to commmunity |
 | `staking_rewards_state` | [StakingRewardsState](#kava.community.v1beta1.StakingRewardsState) |  | StakingRewardsState stores the internal staking reward data required to track staking rewards across blocks |
 
 
@@ -3467,7 +3467,7 @@ GenesisState defines the earn module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the paramaters related to earn |
+| `params` | [Params](#kava.earn.v1beta1.Params) |  | params defines all the parameters related to earn |
 | `vault_records` | [VaultRecord](#kava.earn.v1beta1.VaultRecord) | repeated | vault_records defines the available vaults |
 | `vault_share_records` | [VaultShareRecord](#kava.earn.v1beta1.VaultShareRecord) | repeated | share_records defines the owned shares of each vault |
 
@@ -5908,7 +5908,7 @@ GenesisState defines the issuance module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.issuance.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `params` | [Params](#kava.issuance.v1beta1.Params) |  | params defines all the parameters of the module. |
 | `supplies` | [AssetSupply](#kava.issuance.v1beta1.AssetSupply) | repeated |  |
 
 
@@ -6724,7 +6724,7 @@ GenesisState defines the pricefeed module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.pricefeed.v1beta1.Params) |  | params defines all the paramaters of the module. |
+| `params` | [Params](#kava.pricefeed.v1beta1.Params) |  | params defines all the parameters of the module. |
 | `posted_prices` | [PostedPrice](#kava.pricefeed.v1beta1.PostedPrice) | repeated |  |
 
 
@@ -7560,7 +7560,7 @@ GenesisState defines the swap module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.swap.v1beta1.Params) |  | params defines all the paramaters related to swap |
+| `params` | [Params](#kava.swap.v1beta1.Params) |  | params defines all the parameters related to swap |
 | `pool_records` | [PoolRecord](#kava.swap.v1beta1.PoolRecord) | repeated | pool_records defines the available pools |
 | `share_records` | [ShareRecord](#kava.swap.v1beta1.ShareRecord) | repeated | share_records defines the owned shares of each pool |
 
