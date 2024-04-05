@@ -63,7 +63,7 @@ func NewKeeper(
 	}
 }
 
-// GetUSDXMintingClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
+// GetUSDXMintingClaim returns the claim in the store corresponding the input address collateral type and id and a boolean for if the claim was found
 func (k Keeper) GetUSDXMintingClaim(ctx sdk.Context, addr sdk.AccAddress) (types.USDXMintingClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingClaimKeyPrefix)
 	bz := store.Get(addr)
@@ -191,7 +191,7 @@ func (k Keeper) IterateUSDXMintingRewardFactors(ctx sdk.Context, cb func(denom s
 	}
 }
 
-// GetHardLiquidityProviderClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
+// GetHardLiquidityProviderClaim returns the claim in the store corresponding the input address collateral type and id and a boolean for if the claim was found
 func (k Keeper) GetHardLiquidityProviderClaim(ctx sdk.Context, addr sdk.AccAddress) (types.HardLiquidityProviderClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.HardLiquidityClaimKeyPrefix)
 	bz := store.Get(addr)
@@ -240,7 +240,7 @@ func (k Keeper) GetAllHardLiquidityProviderClaims(ctx sdk.Context) types.HardLiq
 	return cs
 }
 
-// GetDelegatorClaim returns the claim in the store corresponding the the input address collateral type and id and a boolean for if the claim was found
+// GetDelegatorClaim returns the claim in the store corresponding the input address collateral type and id and a boolean for if the claim was found
 func (k Keeper) GetDelegatorClaim(ctx sdk.Context, addr sdk.AccAddress) (types.DelegatorClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
 	bz := store.Get(addr)
@@ -289,7 +289,7 @@ func (k Keeper) GetAllDelegatorClaims(ctx sdk.Context) types.DelegatorClaims {
 	return cs
 }
 
-// GetSwapClaim returns the claim in the store corresponding the the input address.
+// GetSwapClaim returns the claim in the store corresponding the input address.
 func (k Keeper) GetSwapClaim(ctx sdk.Context, addr sdk.AccAddress) (types.SwapClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SwapClaimKeyPrefix)
 	bz := store.Get(addr)
@@ -338,7 +338,7 @@ func (k Keeper) GetAllSwapClaims(ctx sdk.Context) types.SwapClaims {
 	return cs
 }
 
-// GetSavingsClaim returns the claim in the store corresponding the the input address.
+// GetSavingsClaim returns the claim in the store corresponding the input address.
 func (k Keeper) GetSavingsClaim(ctx sdk.Context, addr sdk.AccAddress) (types.SavingsClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SavingsClaimKeyPrefix)
 	bz := store.Get(addr)
@@ -387,7 +387,7 @@ func (k Keeper) GetAllSavingsClaims(ctx sdk.Context) types.SavingsClaims {
 	return cs
 }
 
-// GetEarnClaim returns the claim in the store corresponding the the input address.
+// GetEarnClaim returns the claim in the store corresponding the input address.
 func (k Keeper) GetEarnClaim(ctx sdk.Context, addr sdk.AccAddress) (types.EarnClaim, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.EarnClaimKeyPrefix)
 	bz := store.Get(addr)
