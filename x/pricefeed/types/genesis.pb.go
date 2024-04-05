@@ -25,7 +25,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the pricefeed module's genesis state.
 type GenesisState struct {
-	// params defines all the paramaters of the module.
+	// params defines all the parameters of the module.
 	Params       Params       `protobuf:"bytes,1,opt,name=params,proto3" json:"params"`
 	PostedPrices PostedPrices `protobuf:"bytes,2,rep,name=posted_prices,json=postedPrices,proto3,castrepeated=PostedPrices" json:"posted_prices"`
 }
