@@ -47,7 +47,7 @@ the parameters and staking rewards state to keep track of payout between blocks.
 ```protobuf
 // GenesisState defines the community module's genesis state.
 message GenesisState {
-  // params defines all the paramaters related to commmunity
+  // params defines all the parameters related to commmunity
   Params params = 1 [(gogoproto.nullable) = false];
 
   // StakingRewardsState stores the internal staking reward data required to
