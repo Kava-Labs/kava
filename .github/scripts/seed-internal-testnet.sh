@@ -113,7 +113,7 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$MULTICHAIN_U
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$TETHER_USDT_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_BNB_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_BUSD_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
-npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_XPRB_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_XRPB_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_BTCB_CONTRACT_ADDRESS" "$DEV_TEST_WALLET_ADDRESS" 1000000000000000000000
 # seed webapp E2E whale account
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_WBTC_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 100000000000000
@@ -126,7 +126,7 @@ npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$TETHER_USDT_
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_BNB_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_BUSD_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000000000000
 npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_BTCB_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000000000000
-npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_XPRB_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000000000000
+npx hardhat --network "${ERC20_DEPLOYER_NETWORK_NAME}" mint-erc20 "$AXL_XRPB_CONTRACT_ADDRESS" "$WEBAPP_E2E_WHALE_ADDRESS" 10000000000000000000000
 
 # give dev-wallet enough delegation power to pass proposals by itself
 
@@ -166,7 +166,7 @@ PARAM_CHANGE_PROP_TEMPLATE=$(
         {
             "subspace": "evmutil",
             "key": "EnabledConversionPairs",
-            "value": "[{\"kava_erc20_address\":\"MULTICHAIN_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdc\"},{\"kava_erc20_address\":\"MULTICHAIN_USDT_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdt\"},{\"kava_erc20_address\":\"MULTICHAIN_wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/wbtc\"},{\"kava_erc20_address\":\"AXL_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/usdc\"},{\"kava_erc20_address\":\"AXL_WBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/wbtc\"},{\"kava_erc20_address\":\"wETH_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/eth\"},{\"kava_erc20_address\":\"TETHER_USDT_CONTRACT_ADDRESS\",\"denom\":\"erc20/tether/usdt\"},{\"kava_erc20_address\":\"AXL_BNB_CONTRACT_ADDRESS\",\"denom\":\"bnb\"},{\"kava_erc20_address\":\"AXL_BUSD_CONTRACT_ADDRESS\",\"denom\":\"busd\"},{\"kava_erc20_address\":\"AXL_BTCB_CONTRACT_ADDRESS\",\"denom\":\"btcb\"},{\"kava_erc20_address\":\"AXL_XPRB_CONTRACT_ADDRESS\",\"denom\":\"xrpb\"}]"
+            "value": "[{\"kava_erc20_address\":\"MULTICHAIN_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdc\"},{\"kava_erc20_address\":\"MULTICHAIN_USDT_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/usdt\"},{\"kava_erc20_address\":\"MULTICHAIN_wBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/multichain/wbtc\"},{\"kava_erc20_address\":\"AXL_USDC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/usdc\"},{\"kava_erc20_address\":\"AXL_WBTC_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/wbtc\"},{\"kava_erc20_address\":\"wETH_CONTRACT_ADDRESS\",\"denom\":\"erc20/axelar/eth\"},{\"kava_erc20_address\":\"TETHER_USDT_CONTRACT_ADDRESS\",\"denom\":\"erc20/tether/usdt\"},{\"kava_erc20_address\":\"AXL_BNB_CONTRACT_ADDRESS\",\"denom\":\"bnb\"},{\"kava_erc20_address\":\"AXL_BUSD_CONTRACT_ADDRESS\",\"denom\":\"busd\"},{\"kava_erc20_address\":\"AXL_BTCB_CONTRACT_ADDRESS\",\"denom\":\"btcb\"},{\"kava_erc20_address\":\"AXL_XRPB_CONTRACT_ADDRESS\",\"denom\":\"xrpb\"}]"
         }
     ]
 }
