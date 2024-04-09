@@ -196,6 +196,14 @@ endif
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
+# build on rocksdb-backed kava on macOS with shared libs from brew
+# this assumes you are on macOS & these deps have been installed with brew:
+# rocksdb, snappy, lz4, and zstd
+# use like `make build-rocksdb-brew COSMOS_BUILD_OPTIONS=rocksdb`
+build-rocksdb-brew:
+	export CGO_CFLAGS := -I$(shell brew --prefix rocksdb)/include
+	export CGO_LDFLAGS := -L$(shell brew --prefix rocksdb)/lib -lrocksdb -lstdc++ -lm -lz -L$(shell brew --prefix snappy)/lib -L$(shell brew --prefix lz4)/lib -L$(shell brew --prefix zstd)/lib
+
 install: go.sum
 	$(GO_BIN) install -mod=readonly $(BUILD_FLAGS) ./cmd/kava
 
