@@ -4,16 +4,15 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/spf13/cobra"
-
 	abci "github.com/cometbft/cometbft/abci/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/spf13/cobra"
 
 	"github.com/kava-labs/kava/x/evmutil/client/cli"
 	"github.com/kava-labs/kava/x/evmutil/keeper"
@@ -98,15 +97,17 @@ type AppModule struct {
 	keeper       keeper.Keeper
 	accountKeeer types.AccountKeeper
 	bankKeeper   types.BankKeeper
+	evmKeeper    *evmkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper keeper.Keeper, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper) AppModule {
+func NewAppModule(keeper keeper.Keeper, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, evmKeeper *evmkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: NewAppModuleBasic(),
 		keeper:         keeper,
 		accountKeeer:   accountKeeper,
 		bankKeeper:     bankKeeper,
+		evmKeeper:      evmKeeper,
 	}
 }
 
@@ -137,7 +138,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, gs json.Ra
 	// Initialize global index to index in genesis state
 	cdc.MustUnmarshalJSON(gs, &genState)
 
-	InitGenesis(ctx, am.keeper, &genState, am.accountKeeer)
+	InitGenesis(ctx, am.keeper, &genState, am.accountKeeer, am.evmKeeper)
 	return []abci.ValidatorUpdate{}
 }
 

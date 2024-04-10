@@ -38,6 +38,7 @@ import (
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	evmkeeper "github.com/evmos/ethermint/x/evm/keeper"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarketkeeper "github.com/evmos/ethermint/x/feemarket/keeper"
 	"github.com/stretchr/testify/require"
 
@@ -312,6 +313,11 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	// Create a default genesis state and overwrite with provided values
 	genesisState := NewDefaultGenesisState()
 	modifiedStates := make(map[string]bool)
+
+	evmGenesisState := evmtypes.DefaultGenesisState()
+	// Ethermint's EVM Module has default denom "aphoton" - replace it with akava
+	evmGenesisState.Params.EvmDenom = "akava"
+	genesisState[evmtypes.ModuleName] = tApp.appCodec.MustMarshalJSON(evmGenesisState)
 
 	for _, state := range genesisStates {
 		for k, v := range state {

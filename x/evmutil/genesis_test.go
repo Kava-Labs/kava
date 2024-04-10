@@ -3,10 +3,13 @@ package evmutil_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/evmos/ethermint/x/evm/statedb"
 	"github.com/stretchr/testify/suite"
 
-	sdkmath "cosmossdk.io/math"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/evmutil"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -20,6 +23,36 @@ func (suite *genesisTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
 }
 
+type mockEvmKeeper struct{}
+
+func (m *mockEvmKeeper) GetAccount(ctx sdk.Context, addr common.Address) *statedb.Account {
+	return nil
+}
+
+func (m *mockEvmKeeper) GetState(ctx sdk.Context, addr common.Address, key common.Hash) common.Hash {
+	return common.Hash{}
+}
+
+func (m *mockEvmKeeper) GetCode(ctx sdk.Context, codeHash common.Hash) []byte {
+	return nil
+}
+
+func (m *mockEvmKeeper) ForEachStorage(ctx sdk.Context, addr common.Address, cb func(key, value common.Hash) bool) {
+}
+
+func (m *mockEvmKeeper) SetAccount(ctx sdk.Context, addr common.Address, account statedb.Account) error {
+	return nil
+}
+
+func (m *mockEvmKeeper) SetState(ctx sdk.Context, addr common.Address, key common.Hash, value []byte) {
+}
+
+func (m *mockEvmKeeper) SetCode(ctx sdk.Context, codeHash []byte, code []byte) {}
+
+func (m *mockEvmKeeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
+	return nil
+}
+
 func (s *genesisTestSuite) TestInitGenesis_SetAccounts() {
 	gs := types.NewGenesisState(
 		[]types.Account{
@@ -29,7 +62,7 @@ func (s *genesisTestSuite) TestInitGenesis_SetAccounts() {
 	)
 	accounts := s.Keeper.GetAllAccounts(s.Ctx)
 	s.Require().Len(accounts, 0)
-	evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper)
+	evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper, &mockEvmKeeper{})
 	accounts = s.Keeper.GetAllAccounts(s.Ctx)
 	s.Require().Len(accounts, 1)
 	account := s.Keeper.GetAccount(s.Ctx, s.Addrs[0])
@@ -48,7 +81,7 @@ func (s *genesisTestSuite) TestInitGenesis_SetParams() {
 		[]types.Account{},
 		params,
 	)
-	evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper)
+	evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper, &mockEvmKeeper{})
 	params = s.Keeper.GetParams(s.Ctx)
 	s.Require().Len(params.EnabledConversionPairs, 1)
 	s.Require().Equal(conversionPair, params.EnabledConversionPairs[0])
@@ -62,7 +95,7 @@ func (s *genesisTestSuite) TestInitGenesis_ValidateFail() {
 		types.DefaultParams(),
 	)
 	s.Require().Panics(func() {
-		evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper)
+		evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper, &mockEvmKeeper{})
 	})
 }
 
@@ -72,7 +105,7 @@ func (s *genesisTestSuite) TestInitGenesis_ModuleAccount() {
 		types.DefaultParams(),
 	)
 	s.Require().NotPanics(func() {
-		evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper)
+		evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper, &mockEvmKeeper{})
 	})
 	// check for module account this way b/c GetModuleAccount creates if not existing.
 	acc := s.AccountKeeper.GetAccount(s.Ctx, s.AccountKeeper.GetModuleAddress(types.ModuleName))

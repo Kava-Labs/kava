@@ -27,6 +27,8 @@ import (
 	"github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/cmd/kava/cmd/rocksdb"
 	"github.com/kava-labs/kava/cmd/kava/opendb"
+	// import precompile registry
+	_ "github.com/kava-labs/kava/precompile/registry"
 )
 
 // EnvPrefix is the prefix environment variables must have to configure the app.

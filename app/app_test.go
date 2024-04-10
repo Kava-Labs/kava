@@ -41,7 +41,14 @@ func TestExport(t *testing.T) {
 	db := db.NewMemDB()
 	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions, baseapp.SetChainID(TestChainId))
 
-	genesisState := GenesisStateWithSingleValidator(&TestApp{App: *app}, NewDefaultGenesisState())
+	genesisState := NewDefaultGenesisState()
+
+	evmGenesisState := evmtypes.DefaultGenesisState()
+	// Ethermint's EVM Module has default denom "aphoton" - replace it with akava
+	evmGenesisState.Params.EvmDenom = "akava"
+	genesisState[evmtypes.ModuleName] = app.appCodec.MustMarshalJSON(evmGenesisState)
+
+	genesisState = GenesisStateWithSingleValidator(&TestApp{App: *app}, genesisState)
 
 	stateBytes, err := json.Marshal(genesisState)
 	require.NoError(t, err)
