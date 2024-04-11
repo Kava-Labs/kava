@@ -790,6 +790,7 @@ func (suite *keeperTestSuite) TestBurnLoss() {
 		expectedBals expectedBalances
 	}{
 		{
+			// TODO: Test is currently failing due to evm bug
 			"aggregate 1.2ukava transfer",
 			func(ebk keeper.EvmBankKeeper) []int {
 				// Vanilla - set the total net instead of each transfer separately
@@ -823,7 +824,7 @@ func (suite *keeperTestSuite) TestBurnLoss() {
 			},
 		},
 		{
-			"reverse after send",
+			"send and reverse send",
 			func(ebk keeper.EvmBankKeeper) []int {
 				return []int{
 					suite.addBalance(ebk, addr1, amt0_6), // 10.6 - mint 0ukava - no convert
@@ -845,6 +846,30 @@ func (suite *keeperTestSuite) TestBurnLoss() {
 				addr3: "10000000000000",
 			},
 		},
+		{
+			// TODO: This should FAIL - module account balance should not decrease
+			"repeated mints under 1ukava",
+			func(ebk keeper.EvmBankKeeper) []int {
+				var deltas []int
+
+				amt := keeper.ConversionMultiplier.QuoRaw(10)
+
+				// Repeat 10 times
+				for i := 0; i < 10; i++ {
+					// Mint 0.1ukava to the account
+					// If current akava balance < 0.9ukava - just add to akava balance
+					// If current akava balance >= 0.9ukava - convert akava -> 1ukava
+					deltas = append(deltas, suite.addBalance(ebk, addr1, amt))
+				}
+
+				return deltas
+			},
+			expectedBalances{
+				addr1: "11000000000000",
+				addr2: "10000000000000",
+				addr3: "10000000000000",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -859,7 +884,9 @@ func (suite *keeperTestSuite) TestBurnLoss() {
 
 			// Return value is a slice of ints:
 			//  +1 for expected ukava -> akava conversion (user -> module 1ukava for akava)
+			//  +n for any ukava mints
 			//  -1 for expected akava -> ukava conversion (module -> user 1ukava for akava)
+			//  -n for any ukava burns
 			// Use this instead of manually setting a hardcoded expected value
 			// since it's quite complex and confusing to calculate.
 			moduleDeltas := tt.run(ebk)
@@ -979,6 +1006,9 @@ func (suite *keeperTestSuite) addBalance(
 		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
 	)
 	suite.Require().NoError(err)
+
+	// TODO: This does **not** account for minting ukava to back akava. ONLY
+	// includes the balance transfers for exchanging ukava <-> akava.
 
 	// Whole ukava will be minted.
 	// User converted akava to 1ukava, so module ukava bal decreases by 1
