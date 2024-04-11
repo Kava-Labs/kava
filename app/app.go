@@ -528,6 +528,7 @@ func NewApp(
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
+		keys[banktypes.StoreKey], keys[evmutiltypes.StoreKey],
 		govAuthorityAddr,
 		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		nil, // precompiled contracts
