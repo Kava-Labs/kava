@@ -555,17 +555,6 @@ func (suite *keeperTestSuite) TestMintBurnOrder() {
 	// # Unbacked akava
 	// Mint 0.9ukava x10 -> 0ukava minted, 9ukava unbacked
 	//
-	// # Burning more than necessary
-	// - Transfer 10.1ukava from addr1 -> addr2
-	// - If current module akava balance == 0
-	//
-	// 1. Burn 10ukava
-	// 2. 0akava in module balance, so convert another 1ukava to akava
-	// 3. Subtract 0.1ukava (0.9ukava worth of akava)
-	//    Total of 11ukava subtracted from balance
-	// 4. Mint 10ukava for addr2
-	// 5. Add 0.1ukava for addr2 (no ukava mint)
-	//
 	// What is expected?
 	// Mint and burns in any order should result in the same balance in both
 	// accounts and backed module balance. akava balance should also be fully
@@ -620,7 +609,92 @@ func (suite *keeperTestSuite) TestMintBurnOrder() {
 	suite.Require().Equal(expAkava, akavaBal.String())
 }
 
-func (suite *keeperTestSuite) TestBurnLoss() {
+func (suite *keeperTestSuite) TestTransferMintBurn() {
+	addr1 := sdk.AccAddress{1}
+	addr2 := sdk.AccAddress{2}
+
+	ek := suite.App.GetEvmutilKeeper()
+	ebk := keeper.NewEvmBankKeeper(ek, suite.BankKeeper, suite.AccountKeeper)
+	moduleAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+	// Mint & send 10.1ukava for addr1 - 10ukava + 0.1ukava
+	amt := keeper.ConversionMultiplier.MulRaw(10).
+		Add(keeper.ConversionMultiplier.QuoRaw(10))
+	err := ebk.MintCoins(
+		suite.Ctx,
+		types.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	// Send from module account to addr1
+	err = ebk.SendCoinsFromModuleToAccount(
+		suite.Ctx,
+		types.ModuleName,
+		addr1,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	// ------------------------
+	// Transfer addr1 -> addr2
+	// 1. Transfer addr1 -> module
+	// 2. Burn 10.1ukava
+	err = ebk.SendCoinsFromAccountToModule(
+		suite.Ctx,
+		addr1,
+		types.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	err = ebk.BurnCoins(
+		suite.Ctx,
+		types.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	// 3. Mint 10.1ukava
+	// 4. Transfer module -> addr2
+	err = ebk.MintCoins(
+		suite.Ctx,
+		types.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	err = ebk.SendCoinsFromModuleToAccount(
+		suite.Ctx,
+		types.ModuleName,
+		addr2,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	// Check balances
+	bal1 := suite.BankKeeper.GetBalance(suite.Ctx, addr1, "ukava")
+	bal2 := suite.BankKeeper.GetBalance(suite.Ctx, addr2, "ukava")
+
+	akavaBal1 := suite.Keeper.GetBalance(suite.Ctx, addr1)
+	akavaBal2 := suite.Keeper.GetBalance(suite.Ctx, addr2)
+
+	kavaBalModule := suite.BankKeeper.GetBalance(suite.Ctx, moduleAddr, "ukava")
+	akavaBalModule := suite.Keeper.GetBalance(suite.Ctx, moduleAddr)
+
+	suite.Require().Equal("0", bal1.Amount.String())
+	suite.Require().Equal("10", bal2.Amount.String())
+
+	suite.Require().Equal("0", akavaBal1.String())
+	suite.Require().Equal("100000000000", akavaBal2.String())
+
+	suite.Require().Equal("0", kavaBalModule.Amount.String())
+	suite.Require().Equal("0", akavaBalModule.String())
+}
+
+func (suite *keeperTestSuite) TestBurnUnbacked() {
+	// burn an unbound amount of akava, as long as it is < 1ukava
+
 	ek := suite.App.GetEvmutilKeeper()
 	ebk := keeper.NewEvmBankKeeper(ek, suite.BankKeeper, suite.AccountKeeper)
 	moduleAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
@@ -661,6 +735,258 @@ func (suite *keeperTestSuite) TestBurnLoss() {
 		"10 ukava should be burned",
 	)
 	suite.Require().Equal("0", akavaBal.String())
+}
+
+func (suite *keeperTestSuite) TestBurnLoss() {
+	// x/evmutil ukava bank balance loss
+
+	// ----------------------------------------
+	// # Extra burn than it should?
+	// Two separate transfers:
+	// 0.6ukava addr1 -> addr2
+	// 0.6ukava addr1 -> addr3
+	// Total account sent is 1.2ukava
+	//
+	// Vanilla (transfer amounts merged)
+	// -1.2ukava from addr1 (burn 1)
+	// +0.6ukava to addr2 (mint 0)
+	// +0.6ukava to addr3 (mint 0)
+	// Burn and mints are unbalanced with a zero sum transfer
+	//
+	// Hybrid (transfer amounts kept separate)
+	// -0.6ukava from addr1 (burn 0)
+	// -0.6ukava from addr1 (burn 0)
+	// +0.6ukava to addr2 (mint 0)
+	// +0.6ukava to addr3 (mint 0)
+
+	addr1 := sdk.AccAddress{1}
+	addr2 := sdk.AccAddress{2}
+	addr3 := sdk.AccAddress{3}
+	moduleAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+	initialAmt := keeper.ConversionMultiplier.MulRaw(10)
+
+	setupFn := func() {
+		ek := suite.App.GetEvmutilKeeper()
+		ebk := keeper.NewEvmBankKeeper(ek, suite.BankKeeper, suite.AccountKeeper)
+		// Start with 10ukava for module, addr1, addr2
+		suite.BankKeeper.MintCoins(suite.Ctx, types.ModuleName, sdk.NewCoins(sdk.NewInt64Coin("ukava", 10)))
+		suite.addBalance(ebk, addr1, initialAmt)
+		suite.addBalance(ebk, addr2, initialAmt)
+		suite.addBalance(ebk, addr3, initialAmt)
+	}
+
+	type expectedBalances struct {
+		addr1 string
+		addr2 string
+		addr3 string
+	}
+
+	amt0_6 := keeper.ConversionMultiplier.QuoRaw(10).MulRaw(6)
+
+	tests := []struct {
+		name         string
+		run          func(ebk keeper.EvmBankKeeper) []int // return list of expected module balance changes
+		expectedBals expectedBalances
+	}{
+		{
+			"aggregate 1.2ukava transfer",
+			func(ebk keeper.EvmBankKeeper) []int {
+				// Vanilla - set the total net instead of each transfer separately
+				return []int{
+					suite.subBalance(ebk, addr1, amt0_6.MulRaw(2)), // -1.2ukava (burn 1, convert 1ukava, total module decrease 2ukava)
+					suite.addBalance(ebk, addr2, amt0_6),           // +0.6ukava (mint 0)
+					suite.addBalance(ebk, addr3, amt0_6),           // +0.6ukava (mint 0)
+				}
+			},
+			expectedBalances{
+				addr1: "8800000000000",
+				addr2: "10600000000000",
+				addr3: "10600000000000",
+			},
+		},
+		{
+			"split 1.2ukava transfer",
+			func(ebk keeper.EvmBankKeeper) []int {
+
+				return []int{
+					suite.subBalance(ebk, addr1, amt0_6), // -0.6ukava (burn 0)
+					suite.subBalance(ebk, addr1, amt0_6), // -0.6ukava (burn 0)
+					suite.addBalance(ebk, addr2, amt0_6), // +0.6ukava (mint 0) - convert 1ukava -> akava
+					suite.addBalance(ebk, addr3, amt0_6), // +0.6ukava (mint 0) - convert 1ukava -> akava
+				}
+			},
+			expectedBalances{
+				addr1: initialAmt.Sub(amt0_6.MulRaw(2)).String(),
+				addr2: initialAmt.Add(amt0_6).String(),
+				addr3: initialAmt.Add(amt0_6).String(),
+			},
+		},
+		{
+			"reverse after send",
+			func(ebk keeper.EvmBankKeeper) []int {
+				return []int{
+					suite.addBalance(ebk, addr1, amt0_6), // 10.6 - mint 0ukava - no convert
+					suite.addBalance(ebk, addr1, amt0_6), // 11.2 - mint 0ukava - convert akava -> ukava
+					suite.subBalance(ebk, addr2, amt0_6), // 9.4 - burn 0ukava - convert ukava -> akava
+					suite.subBalance(ebk, addr3, amt0_6), // 9.4 - burn 0ukava - convert ukava -> akava
+
+					// Send the same values back
+					suite.subBalance(ebk, addr1, amt0_6), // 10.6 - burn 0.6ukava - convert ukava -> akava
+					suite.subBalance(ebk, addr1, amt0_6), // 10.0 - burn 0.6ukava - no convert
+					suite.addBalance(ebk, addr2, amt0_6), // 10.0 - mint 0.6ukava - convert akava -> ukava
+					suite.addBalance(ebk, addr3, amt0_6), // 10.0 - mint 0.6ukava - convert akava -> ukava
+				}
+			},
+			expectedBalances{
+				// Should end in the same initial balance
+				addr1: "10000000000000",
+				addr2: "10000000000000",
+				addr3: "10000000000000",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			// Rest test state
+			suite.SetupTest()
+			// Add initial balances
+			setupFn()
+
+			// Run test
+			ebk := keeper.NewEvmBankKeeper(suite.App.GetEvmutilKeeper(), suite.BankKeeper, suite.AccountKeeper)
+
+			// Return value is a slice of ints:
+			//  +1 for expected ukava -> akava conversion (user -> module 1ukava for akava)
+			//  -1 for expected akava -> ukava conversion (module -> user 1ukava for akava)
+			// Use this instead of manually setting a hardcoded expected value
+			// since it's quite complex and confusing to calculate.
+			moduleDeltas := tt.run(ebk)
+
+			moduleDeltaSum := 0
+			for _, delta := range moduleDeltas {
+				moduleDeltaSum += delta
+			}
+
+			// Check module balance
+			moduleBal := ebk.GetBalance(suite.Ctx, moduleAddr, keeper.EvmDenom)
+			suite.T().Logf("module bal: %v", moduleBal.Amount.String())
+
+			expectedAmt := initialAmt.
+				Add(keeper.ConversionMultiplier.MulRaw(int64(moduleDeltaSum)))
+
+			suite.Assert().Equalf(
+				expectedAmt.String(),
+				moduleBal.Amount.String(),
+				"incorrect module balance, expected %s, got %s - conversion deltas: %v",
+				expectedAmt,
+				moduleBal.Amount.String(),
+				moduleDeltas,
+			)
+
+			// Check user address balances
+			addrs := []struct {
+				name        string
+				addr        sdk.AccAddress
+				expectedBal string
+			}{
+				{"addr1", addr1, tt.expectedBals.addr1},
+				{"addr2", addr2, tt.expectedBals.addr2},
+				{"addr3", addr3, tt.expectedBals.addr3},
+			}
+
+			for _, addr := range addrs {
+				bal := ebk.GetBalance(suite.Ctx, addr.addr, keeper.EvmDenom)
+
+				suite.T().Logf("%s bal: %v", addr.name, bal.Amount.String())
+				suite.Assert().Equalf(
+					addr.expectedBal,
+					bal.Amount.String(),
+					"incorrect balance for %s, expected %s, got %s",
+					addr.name,
+					addr.expectedBal,
+					bal.Amount.String(),
+				)
+			}
+		})
+	}
+}
+
+func (suite *keeperTestSuite) subBalance(
+	ebk keeper.EvmBankKeeper,
+	from sdk.AccAddress,
+	amt sdkmath.Int,
+) int {
+	ukava, akava, err := keeper.SplitAkavaCoins(sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)))
+	suite.Require().NoError(err)
+
+	// Check if this balance sub will convert 1ukava -> akava
+	prevAkava := suite.Keeper.GetBalance(suite.Ctx, from)
+	// e.g. 9 > 8, 8-9 will need borrow
+	willConvertToAkava := prevAkava.LT(akava)
+
+	// Transfer by burning and minting
+	err = ebk.SendCoinsFromAccountToModule(
+		suite.Ctx,
+		from,
+		types.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	err = ebk.BurnCoins(
+		suite.Ctx,
+		types.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	// decrease by burn regular ukava amount
+	// User converted 1ukava to akava, so module ukava bal also increases by 1
+	if willConvertToAkava {
+		return int(ukava.Amount.Int64()) + 1
+	}
+
+	return int(ukava.Amount.Int64())
+}
+
+func (suite *keeperTestSuite) addBalance(
+	ebk keeper.EvmBankKeeper,
+	to sdk.AccAddress,
+	amt sdkmath.Int,
+) int {
+	ukava, akava, err := keeper.SplitAkavaCoins(sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)))
+	suite.Require().NoError(err)
+
+	// Check if this balance add will convert akava -> 1ukava (rollover)
+	prevAkava := suite.Keeper.GetBalance(suite.Ctx, to)
+	// if current_akava + new_akava => 1ukava, akava will be converted back to 1ukava
+	willConvertToUkava := akava.Add(prevAkava).GTE(keeper.ConversionMultiplier)
+
+	// Mint and transfer
+	err = ebk.MintCoins(
+		suite.Ctx,
+		types.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	err = ebk.SendCoinsFromModuleToAccount(
+		suite.Ctx,
+		types.ModuleName,
+		to,
+		sdk.NewCoins(sdk.NewCoin(keeper.EvmDenom, amt)),
+	)
+	suite.Require().NoError(err)
+
+	// Whole ukava will be minted.
+	// User converted akava to 1ukava, so module ukava bal decreases by 1
+	if willConvertToUkava {
+		return int(ukava.Amount.Int64()) - 1
+	}
+
+	return int(ukava.Amount.Int64())
 }
 
 func TestKeeperTestSuite(t *testing.T) {

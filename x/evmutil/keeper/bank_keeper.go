@@ -127,7 +127,10 @@ func (k EvmBankKeeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coi
 		return err
 	}
 
+	fmt.Printf("MintCoins(%v): ukava: %v, akava: %v\n", amt, ukava, akava)
+
 	if ukava.IsPositive() {
+		fmt.Printf("Minting ukava: %v\n", ukava)
 		if err := k.bk.MintCoins(ctx, moduleName, sdk.NewCoins(ukava)); err != nil {
 			return err
 		}
@@ -149,7 +152,10 @@ func (k EvmBankKeeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coi
 		return err
 	}
 
+	// fmt.Printf("BurnCoins(%v): ukava: %v, akava: %v\n", amt, ukava, akava)
+
 	if ukava.IsPositive() {
+		fmt.Printf("Burning ukava: %v\n", ukava)
 		if err := k.bk.BurnCoins(ctx, moduleName, sdk.NewCoins(ukava)); err != nil {
 			return err
 		}
@@ -170,6 +176,8 @@ func (k EvmBankKeeper) ConvertOneUkavaToAkavaIfNeeded(ctx sdk.Context, addr sdk.
 	if akavaBal.GTE(akavaNeeded) {
 		return nil
 	}
+
+	// fmt.Printf("ConvertOneUkavaToAkavaIfNeeded: addr: %v, akavaBal: %v, akavaNeeded: %v\n", addr, akavaBal, akavaNeeded)
 
 	ukavaToStore := sdk.NewCoins(sdk.NewCoin(CosmosDenom, sdk.OneInt()))
 	if err := k.bk.SendCoinsFromAccountToModule(ctx, addr, types.ModuleName, ukavaToStore); err != nil {
