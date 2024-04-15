@@ -4,7 +4,7 @@
 
 - The version of `kava` for Kava 16 is `v0.26.0`
 - The Kava 16 chain will be shutdown with a `SoftwareUpgradeProposal` that
-  activates at approximately 15:00 UTC on TBD, 2024.
+  activates at approximately 15:00 UTC on April 24th, 2024.
 
 ## Dependency Changes
 
@@ -33,7 +33,7 @@ To update to v0.26.0
 ```sh
 # check go version - look for 1.21!
 go version
-# go version go1.21.6 linux/amd64
+# go version go1.21.9 linux/amd64
 
 # in the `kava` folder
 git fetch
@@ -47,9 +47,9 @@ kava version --long
 # name: kava
 # server_name: kava
 # version: 0.26.0
-# commit: <commit placeholder>
+# commit: 667e532aaafaab216d874ff670fb299d9b951375
 # build_tags: netgo ledger,
-# go: go version go1.21.6 linux/amd64
+# go: go version go1.21.9 linux/amd64
 # build_deps:
 #  ...
 # cosmos_sdk_version: v0.47.10
@@ -74,4 +74,4 @@ In the event that the upgrade does not succeed, validators and operators must do
 
 ### Coordination
 
-If the Kava 16 chain does not launch by TBD at 00:00 UTC, the launch should be considered a failure. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
+If the Kava 16 chain does not launch by April 25th at 00:00 UTC, the launch should be considered a failure. In the event of launch failure, coordination will occur in the [Kava discord](https://discord.com/invite/kQzh3Uv).
