@@ -136,7 +136,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to fail, tally: %v", tally)
-		suite.Truef(burns, "expected desposit to be burned, tally: %v", tally)
+		suite.Truef(burns, "expected deposit to be burned, tally: %v", tally)
 	})
 	suite.Run("VetoedFails", func() {
 		suite.SetupTest()
@@ -151,7 +151,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to fail, tally: %v", tally)
-		suite.Truef(burns, "expected desposit to be burned, tally: %v", tally)
+		suite.Truef(burns, "expected deposit to be burned, tally: %v", tally)
 	})
 	suite.Run("UnvetoedAndYesAboveThresholdPasses", func() {
 		suite.SetupTest()
@@ -168,7 +168,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Truef(passes, "expected proposal to pass, tally: %v", tally)
-		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+		suite.Falsef(burns, "expected deposit to not burn, tally: %v", tally)
 	})
 	suite.Run("UnvetoedAndYesBelowThresholdFails", func() {
 		suite.SetupTest()
@@ -185,7 +185,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
-		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+		suite.Falsef(burns, "expected deposit to not burn, tally: %v", tally)
 	})
 	suite.Run("NotEnoughStakeFails", func() {
 		suite.SetupTest()
@@ -197,7 +197,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
-		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+		suite.Falsef(burns, "expected deposit to not burn, tally: %v", tally)
 	})
 	suite.Run("UnvetoedAndAllAbstainedFails", func() {
 		suite.SetupTest()
@@ -210,7 +210,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 		passes, burns, tally := suite.tallier.Tally(suite.ctx, proposal)
 		suite.Falsef(passes, "expected proposal to pass, tally: %v", tally)
-		suite.Falsef(burns, "expected desposit to not burn, tally: %v", tally)
+		suite.Falsef(burns, "expected deposit to not burn, tally: %v", tally)
 	})
 
 }
