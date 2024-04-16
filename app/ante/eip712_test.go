@@ -493,7 +493,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  99,
 		},
 		{
-			name:           "fails when convertion more erc20 usdc than balance",
+			name:           "fails when conversion more erc20 usdc than balance",
 			usdcDepositAmt: 51_000,
 			usdxToMintAmt:  100,
 			errMsg:         "transfer amount exceeds balance",
