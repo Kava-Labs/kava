@@ -104,6 +104,37 @@ func getMul3(
 	return packedOutput, remainingGas, nil
 }
 
+func calcMul3WithError(
+	accessibleState contract.AccessibleState,
+	caller common.Address,
+	addr common.Address,
+	input []byte,
+	suppliedGas uint64,
+	readOnly bool,
+) (ret []byte, remainingGas uint64, err error) {
+	if remainingGas, err = contract.DeductGas(suppliedGas, calcMul3GasCost); err != nil {
+		return nil, 0, err
+	}
+	if readOnly {
+		return nil, remainingGas, vmerrs.ErrWriteProtection
+	}
+
+	if len(input) != 96 {
+		return nil, remainingGas, fmt.Errorf("unexpected input length, want: 96, got: %v", len(input))
+	}
+
+	var a, b, c, rez big.Int
+	a.SetBytes(input[:32])
+	b.SetBytes(input[32:64])
+	c.SetBytes(input[64:96])
+	rez.Mul(&a, &b)
+	rez.Mul(&rez, &c)
+
+	StoreProduct(accessibleState.GetStateDB(), &rez)
+
+	return nil, remainingGas, fmt.Errorf("calculation error")
+}
+
 // createMul3Precompile returns a StatefulPrecompiledContract with getters and setters for the precompile.
 func createMul3Precompile() contract.StatefulPrecompiledContract {
 	var functions []*contract.StatefulPrecompileFunction
@@ -116,6 +147,11 @@ func createMul3Precompile() contract.StatefulPrecompiledContract {
 	functions = append(functions, contract.NewStatefulPrecompileFunction(
 		contract.MustCalculateFunctionSelector("getMul3()"),
 		getMul3,
+	))
+
+	functions = append(functions, contract.NewStatefulPrecompileFunction(
+		contract.MustCalculateFunctionSelector("calcMul3WithError(uint256,uint256,uint256)"),
+		calcMul3WithError,
 	))
 
 	// Construct the contract with no fallback function.

@@ -116,14 +116,6 @@ func (suite *IntegrationTestSuite) TestMul3Precompile_EOAToPrecompile_Success() 
 	mul3Caller, err := mul3_caller.NewMul3Caller(mul3.ContractAddress, ethClient)
 	suite.Require().NoError(err)
 
-	// wait until contract is deployed
-	suite.Eventually(func() bool {
-		code, err := ethClient.CodeAt(context.Background(), mul3.ContractAddress, nil)
-		suite.Require().NoError(err)
-
-		return len(code) != 0
-	}, 20*time.Second, 1*time.Second)
-
 	suite.Run("regular type-safe call", func() {
 		for _, tc := range []struct {
 			desc string
@@ -159,4 +151,57 @@ func (suite *IntegrationTestSuite) TestMul3Precompile_EOAToPrecompile_Success() 
 			}, 10*time.Second, 1*time.Second)
 		}
 	})
+}
+
+func (suite *IntegrationTestSuite) TestMul3Precompile_EOAToPrecompile_Failure() {
+	// setup helper account
+	helperAcc := suite.Kava.NewFundedAccount("mul3-precompile-eoa->precompile-failure-helper-account", sdk.NewCoins(ukava(1e6))) // 1 KAVA
+
+	ethClient, err := ethclient.Dial("http://127.0.0.1:8545")
+	suite.Require().NoError(err)
+
+	mul3Caller, err := mul3_caller.NewMul3Caller(mul3.ContractAddress, ethClient)
+	suite.Require().NoError(err)
+
+	// successful scenario, after execution we'll have mul=24 in the state
+	{
+		_, err = mul3Caller.CalcMul3(helperAcc.EvmAuth, big.NewInt(2), big.NewInt(3), big.NewInt(4))
+		suite.Require().NoError(err)
+
+		suite.Eventually(func() bool {
+			rez, err := mul3Caller.GetMul3(nil)
+			suite.Require().NoError(err)
+
+			equal := rez.Cmp(big.NewInt(24)) == 0
+			return equal
+		}, 10*time.Second, 1*time.Second)
+	}
+
+	// revert scenario, after execution we'll still have mul=24 in the state
+	{
+		_, err = mul3Caller.CalcMul3WithError(helperAcc.EvmAuth, big.NewInt(3), big.NewInt(5), big.NewInt(7))
+		suite.Require().Error(err)
+		suite.Require().Contains(err.Error(), "calculation error")
+
+		// wait for few blocks, and make sure that failed transaction didn't change the state
+		suite.waitForNewBlocks(ethClient, 3)
+
+		rez, err := mul3Caller.GetMul3(nil)
+		suite.Require().NoError(err)
+
+		equal := rez.Cmp(big.NewInt(24)) == 0
+		suite.Require().True(equal)
+	}
+}
+
+func (suite *IntegrationTestSuite) waitForNewBlocks(ethClient *ethclient.Client, n uint64) {
+	beginHeight, err := ethClient.BlockNumber(context.Background())
+	suite.Require().NoError(err)
+
+	suite.Eventually(func() bool {
+		curHeight, err := ethClient.BlockNumber(context.Background())
+		suite.Require().NoError(err)
+
+		return curHeight >= beginHeight+n
+	}, 10*time.Second, 1*time.Second)
 }

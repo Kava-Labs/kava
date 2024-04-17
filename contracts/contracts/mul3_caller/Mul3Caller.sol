@@ -8,6 +8,8 @@ interface IMul3 {
     function calcMul3(uint256 a, uint256 b, uint256 c) external;
     // getMul3 gets previously stored result from storage
     function getMul3() external view returns (uint256 result);
+
+    function calcMul3WithError(uint256 a, uint256 b, uint256 c) external;
 }
 
 // Mul3Caller is a contract which interacts with mul3 precompile either by using IMul3 interface or
@@ -23,6 +25,10 @@ contract Mul3Caller {
     // getMul3 simply calls getMul3 method of precompile
     function getMul3() public view returns (uint256 result) {
         return IMul3(PRECOMPILED_MUL3_CONTRACT_ADDRESS).getMul3();
+    }
+
+    function calcMul3WithError(uint256 a, uint256 b, uint256 c) public {
+        IMul3(PRECOMPILED_MUL3_CONTRACT_ADDRESS).calcMul3WithError(a, b, c);
     }
 
     // calcMul3Call calls calcMul3 method of precompile by using call opcode
