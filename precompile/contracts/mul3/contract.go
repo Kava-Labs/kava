@@ -1,9 +1,11 @@
 package mul3
 
 import (
+	_ "embed"
 	"fmt"
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/precompile/contract"
@@ -17,6 +19,12 @@ const (
 
 // Singleton StatefulPrecompiledContract.
 var (
+	// Mul3RawABI contains the raw ABI of Mul3 contract.
+	//go:embed IMul3.abi
+	Mul3RawABI string
+
+	Mul3ABI = contract.MustParseABI(Mul3RawABI)
+
 	Mul3Precompile = createMul3Precompile()
 )
 
@@ -116,4 +124,31 @@ func createMul3Precompile() contract.StatefulPrecompiledContract {
 		panic(err)
 	}
 	return statefulContract
+}
+
+type CalcMul3Input struct {
+	A *big.Int
+	B *big.Int
+	C *big.Int
+}
+
+// PackCalcMul3 packs [inputStruct] of type CalcMul3Input into the appropriate arguments for calcMul3.
+func PackCalcMul3(inputStruct CalcMul3Input) ([]byte, error) {
+	return Mul3ABI.Pack("calcMul3", inputStruct.A, inputStruct.B, inputStruct.C)
+}
+
+// PackGetMul3 packs the include selector (first 4 func signature bytes).
+func PackGetMul3() ([]byte, error) {
+	return Mul3ABI.Pack("getMul3")
+}
+
+// UnpackGetMul3Output attempts to unpack given [output] into the *big.Int type output
+// assumes that [output] does not include selector (omits first 4 func signature bytes)
+func UnpackGetMul3Output(output []byte) (*big.Int, error) {
+	res, err := Mul3ABI.Unpack("getMul3", output)
+	if err != nil {
+		return new(big.Int), err
+	}
+	unpacked := *abi.ConvertType(res[0], new(*big.Int)).(**big.Int)
+	return unpacked, nil
 }

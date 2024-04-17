@@ -6,6 +6,7 @@ on:
       - master
       - 'release/**'
       - 'releases/**'
+      - 'yevhenii/boilerplate-precompile'
 # run default ci checks against current PR
 jobs:
   default:
