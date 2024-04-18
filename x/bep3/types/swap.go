@@ -67,7 +67,7 @@ func (a AtomicSwap) Validate() error {
 	if a.Recipient.Empty() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "recipient cannot be empty")
 	}
-	// NOTE: These adresses may not have a bech32 prefix.
+	// NOTE: These addresses may not have a bech32 prefix.
 	if strings.TrimSpace(a.SenderOtherChain) == "" {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "sender other chain cannot be blank")
 	}
