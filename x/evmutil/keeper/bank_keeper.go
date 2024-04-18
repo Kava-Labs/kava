@@ -30,7 +30,7 @@ var _ evmtypes.BankKeeper = EvmBankKeeper{}
 // x/evm consumes gas and send coins by minting and burning akava coins in its module
 // account and then sending the funds to the target account.
 // This keeper uses both the ukava coin and a separate akava balance to manage the
-// extra percision needed by the evm.
+// extra precision needed by the evm.
 type EvmBankKeeper struct {
 	akavaKeeper Keeper
 	bk          types.BankKeeper

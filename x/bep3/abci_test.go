@@ -132,7 +132,7 @@ func (suite *ABCITestSuite) TestBeginBlocker_UpdateExpiredAtomicSwaps() {
 			// Run the second begin blocker
 			bep3.BeginBlocker(tc.secondCtx, suite.keeper)
 
-			// Check each swap's availibility and status
+			// Check each swap's availability and status
 			for _, swapID := range suite.swapIDs {
 				storedSwap, found := suite.keeper.GetAtomicSwap(tc.secondCtx, swapID)
 				if tc.expectInStorage {
