@@ -84,7 +84,7 @@ func TestNewWeightedAddresses(t *testing.T) {
 		},
 	}
 
-	// Run NewWeightedAdresses tests
+	// Run NewWeightedAddresses tests
 	for _, tc := range tests {
 		// Attempt to instantiate new WeightedAddresses
 		weightedAddresses, err := NewWeightedAddresses(tc.addresses, tc.weights)
