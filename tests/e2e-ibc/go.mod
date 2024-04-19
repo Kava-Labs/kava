@@ -259,5 +259,3 @@ require (
 	pgregory.net/rapid v1.1.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-// replace github.com/strangelove-ventures/interchaintest/v8 => ../../../interchaintest
