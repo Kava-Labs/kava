@@ -3,6 +3,7 @@ package main_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -19,6 +20,11 @@ import (
 )
 
 func TestInterchainIBC(t *testing.T) {
+	kavaImageTag := os.Getenv("KAVA_TAG")
+	if kavaImageTag == "" {
+		kavaImageTag = "v0.26.0-rocksdb"
+	}
+
 	ctx := context.Background()
 
 	// setup chains
@@ -28,7 +34,7 @@ func TestInterchainIBC(t *testing.T) {
 			ChainConfig: ibc.ChainConfig{
 				Type:           "cosmos",
 				ChainID:        "kava_8888-1",
-				Images:         []ibc.DockerImage{{Repository: "ghcr.io/strangelove-ventures/heighliner/kava", Version: "v0.26.0", UidGid: "1025:1025"}},
+				Images:         []ibc.DockerImage{{Repository: "kava/kava", Version: kavaImageTag, UidGid: "0:0"}},
 				Bin:            "kava",
 				Bech32Prefix:   "kava",
 				Denom:          "ukava",
