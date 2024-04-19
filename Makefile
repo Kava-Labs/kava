@@ -306,6 +306,11 @@ test-basic: test
 test-e2e: docker-build
 	$(GO_BIN) test -failfast -count=1 -v ./tests/e2e/...
 
+# run interchaintest tests (./tests/e2e-ibc)
+test-ibc:
+	cd tests/e2e-ibc && $(GO_BIN) test .
+.PHONY: test-ibc
+
 test:
 	@$(GO_BIN) test $$($(GO_BIN) list ./... | grep -v 'contrib' | grep -v 'tests/e2e')
 

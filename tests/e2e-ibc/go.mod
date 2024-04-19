@@ -11,6 +11,7 @@ replace (
 
 require (
 	cosmossdk.io/math v1.3.0
+	github.com/cosmos/ibc-go/v8 v8.1.0
 	github.com/strangelove-ventures/interchaintest/v8 v8.2.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
@@ -72,7 +73,6 @@ require (
 	github.com/cosmos/gogoproto v1.4.11 // indirect
 	github.com/cosmos/iavl v1.0.1 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.0 // indirect
-	github.com/cosmos/ibc-go/v8 v8.1.0 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.3 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
@@ -260,4 +260,4 @@ require (
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
 
-replace github.com/strangelove-ventures/interchaintest/v8 => ../../../interchaintest
+// replace github.com/strangelove-ventures/interchaintest/v8 => ../../../interchaintest

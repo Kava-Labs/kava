@@ -35,7 +35,7 @@ func TestInterchainIBC(t *testing.T) {
 				GasPrices:      "0ukava", // 0 gas price makes calculating expected balances simpler
 				GasAdjustment:  1.5,
 				TrustingPeriod: "168h0m0s",
-				// ModifyGenesis:  cosmos.ModifyGenesis(genesis),
+				// ModifyGenesis:  cosmos.ModifyGenesis(genesis), // TODO: configure evm things for internal bridge testing
 				// CoinType: "60", // might need this to sign evm txs. will need to override decimals to be 6 again.
 			},
 		},
@@ -165,6 +165,7 @@ func TestInterchainIBC(t *testing.T) {
 		require.True(t, gaiaUserBalNew.Equal(amountToSend))
 	})
 
+	// use coins IBC'd to cosmoshub, send them to osmosis using pfm
 	t.Run("packet forwarding middleware: cosmoshub -> kava -> osmosis", func(t *testing.T) {
 		dstAddress := osmosisUser.FormattedAddress()
 		transfer := ibc.WalletAmount{
