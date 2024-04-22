@@ -33,7 +33,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 		Long:  "View iavl tree data, shape, and versions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			version := 0
-			if len(args) == 3 {
+			if len(args) >= 3 {
 				var err error
 				version, err = strconv.Atoi(args[2])
 				if err != nil {
@@ -56,6 +56,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				}
 			}()
 
+			fmt.Printf("Using version: %d\n", version)
 			tree, err := readTree(db, version, []byte(args[1]))
 			if err != nil {
 				return err
