@@ -10,12 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/types"
-	"github.com/cosmos/cosmos-sdk/store/wrapper"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cast"
@@ -59,9 +56,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				}
 			}()
 
-			cosmosdb := wrapper.NewCosmosDB(db)
-
-			tree, err := readTree(cosmosdb, version, []byte(args[1]))
+			tree, err := readTree(db, version, []byte(args[1]))
 			if err != nil {
 				return err
 			}
@@ -69,7 +64,11 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			switch args[0] {
 			case "data":
 				printKeys(tree)
-				hash := tree.Hash()
+				hash, err := tree.Hash()
+				if err != nil {
+					return err
+				}
+
 				fmt.Printf("Hash: %X\n", hash)
 				fmt.Printf("Size: %X\n", tree.Size())
 			case "shape":
@@ -109,7 +108,7 @@ func parseDBArgs(dir string) (string, string, error) {
 	return dir[cut+1:], dir[:cut], nil
 }
 
-func PrintDBStats(db dbm.DB) {
+func PrintDBStats(db tdbm.DB) {
 	count := 0
 	prefix := map[string]int{}
 	itr, err := db.Iterator(nil, nil)
@@ -135,12 +134,16 @@ func PrintDBStats(db dbm.DB) {
 // ReadTree loads an iavl tree from the directory
 // If version is 0, load latest, otherwise, load named version
 // The prefix represents which iavl tree you want to read. The iaviwer will always set a prefix.
-func readTree(db dbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) {
+func readTree(db tdbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) {
 	if len(prefix) != 0 {
-		db = dbm.NewPrefixDB(db, prefix)
+		db = tdbm.NewPrefixDB(db, prefix)
 	}
 
-	tree := iavl.NewMutableTree(db, DefaultCacheSize, false, log.NewLogger(os.Stdout))
+	tree, err := iavl.NewMutableTree(db, DefaultCacheSize, false)
+	if err != nil {
+		return nil, err
+	}
+
 	ver, err := tree.LoadVersion(int64(version))
 	if err != nil {
 		return nil, err
