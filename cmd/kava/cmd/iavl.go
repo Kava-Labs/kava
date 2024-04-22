@@ -214,15 +214,20 @@ func printShape(tree *iavl.MutableTree) {
 	fmt.Println(strings.Join(shape, "\n"))
 }
 
-func nodeEncoder(id []byte, depth int, isLeaf bool) string {
+func nodeEncoder(hash []byte, key []byte, depth int, isLeaf bool) string {
 	prefix := fmt.Sprintf("-%d ", depth)
 	if isLeaf {
 		prefix = fmt.Sprintf("*%d ", depth)
 	}
-	if len(id) == 0 {
+	if len(hash) == 0 {
 		return fmt.Sprintf("%s<nil>", prefix)
 	}
-	return fmt.Sprintf("%s%s", prefix, parseWeaveKey(id))
+
+	if isLeaf {
+		return fmt.Sprintf("%s%s", prefix, parseWeaveKey(key))
+	}
+
+	return fmt.Sprintf("%s%x (key: %x)", prefix, hash, key)
 }
 
 func printVersions(tree *iavl.MutableTree) {
