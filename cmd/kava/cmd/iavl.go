@@ -80,7 +80,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 
 				node, err := tree.ImmutableTree.GetNode(key)
 				if node == nil {
-					fmt.Println("Key %x not found, trying as hash...", key)
+					fmt.Printf("Key %x not found, trying as hash...\n", key)
 
 					node, err = tree.GetNode(key)
 					if err != nil {
@@ -88,7 +88,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 					}
 
 					if node == nil {
-						fmt.Println("Hash %x not found", key)
+						fmt.Printf("Hash %x not found\n", key)
 						return nil
 					}
 				}
