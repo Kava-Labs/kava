@@ -73,7 +73,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 					return fmt.Errorf("Error decoding key: %w\n", err)
 				}
 
-				node, err := tree.GetNode(key)
+				node, err := tree.ImmutableTree.GetNode(key)
 				if err != nil {
 					return fmt.Errorf("Error getting value: %w\n", err)
 				}
