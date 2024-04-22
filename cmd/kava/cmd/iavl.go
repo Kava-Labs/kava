@@ -62,6 +62,28 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			}
 
 			switch args[0] {
+			case "get":
+				if len(args) < 4 {
+					return fmt.Errorf("Usage: iaviewer get <prefix> <version number> <key>")
+				}
+				keyStr := args[3]
+
+				key, err := hex.DecodeString(keyStr)
+				if err != nil {
+					return fmt.Errorf("Error decoding key: %w\n", err)
+				}
+
+				node, err := tree.GetNode(key)
+				if err != nil {
+					return fmt.Errorf("Error getting value: %w\n", err)
+				}
+
+				if node == nil {
+					fmt.Println("Key %x not found", key)
+					return nil
+				}
+
+				fmt.Printf(node.FullString())
 			case "data":
 				printKeys(tree)
 				hash, err := tree.Hash()
