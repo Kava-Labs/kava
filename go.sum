@@ -808,8 +808,8 @@ github.com/kava-labs/cosmos-sdk v0.46.11-kava.3 h1:TOhyyW/xHso/9uIOgYdsrOWDIhXi6
 github.com/kava-labs/cosmos-sdk v0.46.11-kava.3/go.mod h1:bSUUbmVwWkv1ZNVTWrQHa/i+73xIUvYYPsCvl5doiCs=
 github.com/kava-labs/ethermint v0.21.0-kava-v23-1 h1:5TSyCtPvFdMuSe8p2iMVqXmFBlK3lHyjaT9EqN752aI=
 github.com/kava-labs/ethermint v0.21.0-kava-v23-1/go.mod h1:rdm6AinxZ4dzPEv/cjH+/AGyTbKufJ3RE7M2MDyklH0=
-github.com/kava-labs/iavl v0.19.6-0.20240422193815-d6414757c163 h1:PBNwpABtwegiOfhhpzqmuCQdj6wD27bDAnQ0gXni8vw=
-github.com/kava-labs/iavl v0.19.6-0.20240422193815-d6414757c163/go.mod h1:X9PKD3J0iFxdmgNLa7b2LYWdsGd90ToV5cAONApkEPw=
+github.com/kava-labs/iavl v0.19.6-0.20240422204822-71ca76be8d6d h1:3w4Je+2/omLd4RSpcf9vAUBMPNBA4YMeZKnL13QgmUE=
+github.com/kava-labs/iavl v0.19.6-0.20240422204822-71ca76be8d6d/go.mod h1:X9PKD3J0iFxdmgNLa7b2LYWdsGd90ToV5cAONApkEPw=
 github.com/kava-labs/tm-db v0.6.7-kava.4 h1:M2RibOKmbi+k2OhAFry8z9+RJF0CYuDETB7/PrSdoro=
 github.com/kava-labs/tm-db v0.6.7-kava.4/go.mod h1:70tpLhNfwCP64nAlq+bU+rOiVfWr3Nnju1D1nhGDGKs=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=

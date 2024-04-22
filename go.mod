@@ -207,7 +207,7 @@ replace (
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.11-kava.3
 
-	github.com/cosmos/iavl => github.com/kava-labs/iavl v0.19.6-0.20240422193815-d6414757c163
+	github.com/cosmos/iavl => github.com/kava-labs/iavl v0.19.6-0.20240422204822-71ca76be8d6d
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
