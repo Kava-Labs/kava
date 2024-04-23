@@ -484,7 +484,7 @@ func (tApp TestApp) SetInflation(ctx sdk.Context, value sdk.Dec) {
 	mk.SetParams(ctx, mintParams)
 }
 
-// GeneratePrivKeyAddressPairsFromRand generates (deterministically) a total of n private keys and addresses.
+// GeneratePrivKeyAddressPairs generates (deterministically) a total of n private keys and addresses.
 func GeneratePrivKeyAddressPairs(n int) (keys []cryptotypes.PrivKey, addrs []sdk.AccAddress) {
 	r := rand.New(rand.NewSource(12345)) // make the generation deterministic
 	keys = make([]cryptotypes.PrivKey, n)

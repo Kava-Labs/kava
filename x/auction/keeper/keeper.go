@@ -172,7 +172,7 @@ func (k Keeper) removeFromByTimeIndex(ctx sdk.Context, endTime time.Time, auctio
 	store.Delete(types.GetAuctionByTimeKey(endTime, auctionID))
 }
 
-// IterateAuctionByTime provides an iterator over auctions ordered by auction.EndTime.
+// IterateAuctionsByTime provides an iterator over auctions ordered by auction.EndTime.
 // For each auction cb will be callled. If cb returns true the iterator will close and stop.
 func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.Time, cb func(auctionID uint64) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
