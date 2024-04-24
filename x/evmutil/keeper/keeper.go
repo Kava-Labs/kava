@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/precompile/contract"
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -44,6 +45,14 @@ func NewKeeper(
 		bankKeeper:    bk,
 		accountKeeper: ak,
 	}
+}
+
+func (k *Keeper) IsEnabled(blockHeight uint64, address string) bool {
+	return true
+}
+
+func (k *Keeper) GetEnabledPrecompiles() []contract.StatefulPrecompiledContract {
+	return []contract.StatefulPrecompiledContract{}
 }
 
 func (k *Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) {

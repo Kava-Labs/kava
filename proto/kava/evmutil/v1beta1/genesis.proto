@@ -51,4 +51,12 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "AllowedCosmosCoinERC20Tokens"
   ];
+
+  repeated Precompile precompiles = 5;
+}
+
+message Precompile {
+  string name = 1;
+  string address = 2;
+  bool is_enabled = 3;
 }
