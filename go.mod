@@ -1,6 +1,8 @@
 module github.com/kava-labs/kava
 
-go 1.20
+go 1.21
+
+toolchain go1.21.6
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7
@@ -212,7 +214,7 @@ replace (
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.16-iavl-v1-kava.1
-	github.com/cosmos/iavl => github.com/kava-labs/iavl v1.0.1-0.20240422213122-d4352dcd1090
+	github.com/cosmos/iavl => github.com/kava-labs/iavl v1.0.1-0.20240424201543-6db50239f44d
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
