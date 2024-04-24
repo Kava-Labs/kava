@@ -1,17 +1,15 @@
 package keeper
 
 import (
-	"fmt"
-	"github.com/ethereum/go-ethereum/precompile/contract"
-
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
@@ -51,8 +49,14 @@ func (k *Keeper) IsEnabled(blockHeight uint64, address string) bool {
 	return true
 }
 
-func (k *Keeper) GetEnabledPrecompiles() []contract.StatefulPrecompiledContract {
-	return []contract.StatefulPrecompiledContract{}
+func (k *Keeper) GetPrecompilesMetadata() []*vm.PrecompileMetadata {
+	return []*vm.PrecompileMetadata{
+		{
+			Name:      "mul3",
+			Address:   "0x0300000000000000000000000000000000000000",
+			IsEnabled: true,
+		},
+	}
 }
 
 func (k *Keeper) SetEvmKeeper(evmKeeper types.EvmKeeper) {
