@@ -36,6 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Improvements
+- (pricefeed) [#1851] optimize EndBlocker to iterate all markets only once
+
 ## [v0.26.0]
 
 ### Features
@@ -330,6 +333,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1851]: https://github.com/Kava-Labs/kava/pull/1851
 [#1846]: https://github.com/Kava-Labs/kava/pull/1846
 [#1848]: https://github.com/Kava-Labs/kava/pull/1848
 [#1839]: https://github.com/Kava-Labs/kava/pull/1839
