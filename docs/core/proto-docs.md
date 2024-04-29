@@ -476,6 +476,12 @@
   
     - [Msg](#kava.liquid.v1beta1.Msg)
   
+- [kava/precompile/v1beta1/genesis.proto](#kava/precompile/v1beta1/genesis.proto)
+    - [GenesisState](#kava.precompile.v1beta1.GenesisState)
+  
+- [kava/precompile/v1beta1/query.proto](#kava/precompile/v1beta1/query.proto)
+    - [Query](#kava.precompile.v1beta1.Query)
+  
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
@@ -6619,6 +6625,57 @@ Msg defines the liquid Msg service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `MintDerivative` | [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative) | [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse) | MintDerivative defines a method for converting a delegation into staking deriviatives. | |
 | `BurnDerivative` | [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative) | [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse) | BurnDerivative defines a method for converting staking deriviatives into a delegation. | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/precompile/v1beta1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/precompile/v1beta1/genesis.proto
+
+
+
+<a name="kava.precompile.v1beta1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the precompile module's genesis state.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/precompile/v1beta1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/precompile/v1beta1/query.proto
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.precompile.v1beta1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for precompile module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
 
  <!-- end services -->
 

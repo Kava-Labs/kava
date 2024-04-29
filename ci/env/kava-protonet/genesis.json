@@ -3652,6 +3652,7 @@
         "receive_enabled": true
       }
     },
+    "precompile": {},
     "upgrade": {},
     "validatorvesting": null,
     "vesting": {}

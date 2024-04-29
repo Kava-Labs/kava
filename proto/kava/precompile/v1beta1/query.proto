@@ -1,0 +1,7 @@
+syntax = "proto3";
+package kava.precompile.v1beta1;
+
+option go_package = "github.com/kava-labs/kava/x/precompile/types";
+
+// Query defines the gRPC querier service for precompile module
+service Query {}

@@ -149,6 +149,9 @@ import (
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	metrics "github.com/kava-labs/kava/x/metrics"
 	metricstypes "github.com/kava-labs/kava/x/metrics/types"
+	"github.com/kava-labs/kava/x/precompile"
+	precompilekeeper "github.com/kava-labs/kava/x/precompile/keeper"
+	precompiletypes "github.com/kava-labs/kava/x/precompile/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -230,6 +233,7 @@ var (
 		community.AppModuleBasic{},
 		metrics.AppModuleBasic{},
 		consensus.AppModuleBasic{},
+		precompile.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -335,6 +339,7 @@ type App struct {
 	mintKeeper            mintkeeper.Keeper
 	communityKeeper       communitykeeper.Keeper
 	consensusParamsKeeper consensusparamkeeper.Keeper
+	precompileKeeper      precompilekeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -389,7 +394,7 @@ func NewApp(
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey, communitytypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, minttypes.StoreKey,
-		consensusparamtypes.StoreKey, crisistypes.StoreKey,
+		consensusparamtypes.StoreKey, crisistypes.StoreKey, precompiletypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -806,6 +811,11 @@ func NewApp(
 	)
 	app.govKeeper.SetTallyHandler(tallyHandler)
 
+	app.precompileKeeper = precompilekeeper.NewKeeper(
+		app.appCodec,
+		keys[precompiletypes.StoreKey],
+	)
+
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
@@ -849,6 +859,7 @@ func NewApp(
 		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil, mintSubspace),
 		community.NewAppModule(app.communityKeeper, app.accountKeeper),
 		metrics.NewAppModule(options.TelemetryOptions),
+		precompile.NewAppModule(app.precompileKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -898,6 +909,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
+		precompiletypes.ModuleName,
 		savingstypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
@@ -940,6 +952,7 @@ func NewApp(
 		paramstypes.ModuleName,
 		authz.ModuleName,
 		evmutiltypes.ModuleName,
+		precompiletypes.ModuleName,
 		savingstypes.ModuleName,
 		liquidtypes.ModuleName,
 		earntypes.ModuleName,
@@ -979,6 +992,7 @@ func NewApp(
 		incentivetypes.ModuleName, // reads cdp params, so must run after cdp genesis
 		committeetypes.ModuleName,
 		evmutiltypes.ModuleName,
+		precompiletypes.ModuleName,
 		earntypes.ModuleName,
 		communitytypes.ModuleName,
 		genutiltypes.ModuleName, // runs arbitrary txs included in genisis state, so run after modules have been initialized
