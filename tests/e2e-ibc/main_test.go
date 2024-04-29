@@ -3,13 +3,14 @@ package main_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
 	"cosmossdk.io/math"
 	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
 	"github.com/strangelove-ventures/interchaintest/v8/ibc"
@@ -17,34 +18,21 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
+
+	kavainterchain "github.com/kava-labs/kava/tests/interchain"
+)
+
+const (
+	kavaChainId    = "kava_8888-1"
+	kavaEvmChainId = int64(8888)
 )
 
 func TestInterchainIBC(t *testing.T) {
-	kavaImageTag := os.Getenv("KAVA_TAG")
-	if kavaImageTag == "" {
-		kavaImageTag = "v0.26.0-rocksdb"
-	}
-
 	ctx := context.Background()
 
 	// setup chains
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
-		{
-			Name: "kava",
-			ChainConfig: ibc.ChainConfig{
-				Type:           "cosmos",
-				ChainID:        "kava_8888-1",
-				Images:         []ibc.DockerImage{{Repository: "kava/kava", Version: kavaImageTag, UidGid: "0:0"}},
-				Bin:            "kava",
-				Bech32Prefix:   "kava",
-				Denom:          "ukava",
-				GasPrices:      "0ukava", // 0 gas price makes calculating expected balances simpler
-				GasAdjustment:  1.5,
-				TrustingPeriod: "168h0m0s",
-				// ModifyGenesis:  cosmos.ModifyGenesis(genesis), // TODO: configure evm things for internal bridge testing
-				// CoinType: "60", // might need this to sign evm txs. will need to override decimals to be 6 again.
-			},
-		},
+		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavaChainId)},
 		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom"}},
 		{Name: "osmosis", Version: "v24.0.1"},
 	})
@@ -183,12 +171,12 @@ func TestInterchainIBC(t *testing.T) {
 		tx, err := gaia.SendIBCTransfer(ctx, gaiaToKavaChannelID, gaiaUser.KeyName(), transfer, ibc.TransferOptions{
 			// packet forwarding middleware!
 			Memo: fmt.Sprintf(`{
-	"forward": {
-		"receiver": "%s",
-		"port": "transfer",
-		"channel": "%s"
-	}
-}`, dstAddress, kavaToOsmoChannelID),
+		"forward": {
+			"receiver": "%s",
+			"port": "transfer",
+			"channel": "%s"
+		}
+	}`, dstAddress, kavaToOsmoChannelID),
 		})
 		require.NoError(t, err)
 		require.NoError(t, tx.Validate())
@@ -204,5 +192,20 @@ func TestInterchainIBC(t *testing.T) {
 		gaiaUserBalNew, err := gaia.GetBalance(ctx, gaiaUser.FormattedAddress(), kavaOnGaiaDenom)
 		require.NoError(t, err)
 		require.True(t, gaiaUserBalNew.Equal(math.ZeroInt()))
+	})
+
+	t.Run("query evm data", func(t *testing.T) {
+		evmUrl, err := kava.FullNodes[0].GetHostAddress(ctx, "8545/tcp")
+		require.NoError(t, err)
+
+		evmClient, err := ethclient.Dial(evmUrl)
+		require.NoError(t, err, "failed to connect to evm")
+
+		bal, err := evmClient.BalanceAt(ctx, common.BytesToAddress(kavaUser.Address()), nil)
+		require.NoError(t, err)
+
+		// convert ukava to akava
+		expected := fundAmount.Sub(amountToSend).MulRaw(1e12)
+		require.Equal(t, expected.BigInt().String(), bal.String())
 	})
 }
