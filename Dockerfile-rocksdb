@@ -1,23 +1,6 @@
-FROM golang:1.21-bullseye AS kava-builder
+FROM kava/rocksdb:v8.10.1-go1.21 AS kava-builder
 
-# Set up dependencies
-RUN apt-get update \
-    && apt-get install -y git make gcc libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set working directory for the build
-WORKDIR /root
-# default home directory is /root
-
-# install rocksdb
-ARG rocksdb_version=v8.10.0
-ENV ROCKSDB_VERSION=$rocksdb_version
-
-RUN git clone https://github.com/facebook/rocksdb.git \
-    && cd rocksdb \
-    && git checkout $ROCKSDB_VERSION \
-    && make -j$(nproc) install-shared \
-    && ldconfig
+RUN apt-get update
 
 WORKDIR /root/kava
 # Copy dependency files first to facilitate dependency caching
