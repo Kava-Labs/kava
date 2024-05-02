@@ -50,6 +50,17 @@ jobs:
           username: ${{ inputs.dockerhub-username }}
           password: ${{ secrets.CI_DOCKERHUB_TOKEN }}
 
+      - name: Go Build Cache for Docker
+        uses: actions/cache@v3
+        with:
+          path: go-build-cache
+          key: ${{ runner.os }}-go-build-cache-${{ hashFiles('**/go.sum') }}
+
+      - name: inject go-build-cache into docker
+        uses: reproducible-containers/buildkit-cache-dance@v2.1.2
+        with:
+          cache-source: go-build-cache
+
       # publish to docker hub, tag with short git hash
       - name: Build and push (goleveldb)
         uses: docker/build-push-action@v5
@@ -88,6 +99,17 @@ jobs:
         with:
           username: ${{ inputs.dockerhub-username }}
           password: ${{ secrets.CI_DOCKERHUB_TOKEN }}
+
+      - name: Go Build Cache for Docker
+        uses: actions/cache@v3
+        with:
+          path: go-build-cache
+          key: ${{ runner.os }}-go-build-cache-${{ hashFiles('**/go.sum') }}
+
+      - name: inject go-build-cache into docker
+        uses: reproducible-containers/buildkit-cache-dance@v2.1.2
+        with:
+          cache-source: go-build-cache
 
       # publish to docker hub, tag with short git hash
       - name: Build and push (rocksdb)
