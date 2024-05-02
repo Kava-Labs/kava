@@ -1,0 +1,22 @@
+# published to https://hub.docker.com/repository/docker/kava/rocksdb/tags
+# docker buildx build --platform linux/amd64,linux/arm64 -t kava/rocksdb:v8.10.1-go1.21 -f Dockerfile-rocksdb-base . --push
+FROM golang:1.21-bullseye
+
+# Set up dependencies
+RUN apt-get update \
+    && apt-get install -y git make gcc libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory for the build
+WORKDIR /root
+# default home directory is /root
+
+# install rocksdb
+ARG rocksdb_version=v8.10.0
+ENV ROCKSDB_VERSION=$rocksdb_version
+
+RUN git clone https://github.com/facebook/rocksdb.git \
+    && cd rocksdb \
+    && git checkout $ROCKSDB_VERSION \
+    && make -j$(nproc) install-shared \
+    && ldconfig
