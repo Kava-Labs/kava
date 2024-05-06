@@ -8,6 +8,11 @@ import (
 	"github.com/strangelove-ventures/interchaintest/v7/testutil"
 )
 
+const (
+	KavaTestChainId    = "kava_8888-1"
+	KavaEvmTestChainId = int64(8888)
+)
+
 func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 	kavaImageTag := os.Getenv("KAVA_TAG")
 	if kavaImageTag == "" {
@@ -26,9 +31,10 @@ func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 	}
 
 	return ibc.ChainConfig{
-		Type:                  "cosmos",
-		ChainID:               chainId,
-		Images:                []ibc.DockerImage{{Repository: "kava/kava", Version: kavaImageTag, UidGid: "0:0"}},
+		Type:    "cosmos",
+		ChainID: chainId,
+		Images:  []ibc.DockerImage{{Repository: "kava/kava", Version: kavaImageTag, UidGid: "0:0"}},
+		// Images:                []ibc.DockerImage{{Repository: "ghcr.io/strangelove-ventures/heighliner/kava", Version: "v0.26.0", UidGid: "1025:1025"}},
 		Bin:                   "kava",
 		Bech32Prefix:          "kava",
 		Denom:                 "ukava",

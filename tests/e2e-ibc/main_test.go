@@ -22,17 +22,12 @@ import (
 	kavainterchain "github.com/kava-labs/kava/tests/interchain"
 )
 
-const (
-	kavaChainId    = "kava_8888-1"
-	kavaEvmChainId = int64(8888)
-)
-
 func TestInterchainIBC(t *testing.T) {
 	ctx := context.Background()
 
 	// setup chains
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
-		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavaChainId)},
+		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
 		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom"}},
 		{Name: "osmosis", Version: "v24.0.1"},
 	})
