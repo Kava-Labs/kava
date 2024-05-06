@@ -17,8 +17,13 @@ import (
 	kavainterchain "github.com/kava-labs/kava/tests/interchain"
 )
 
+var (
+	zero = 0
+	one  = 1
+)
+
 func TestIbcConformance(t *testing.T) {
-	t.Skip("skipping conformance test")
+	// t.Skip("skipping conformance test")
 
 	ctx := context.Background()
 
@@ -26,8 +31,16 @@ func TestIbcConformance(t *testing.T) {
 	cfs := make([]interchaintest.ChainFactory, 0)
 	cfs = append(cfs,
 		interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
-			{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
-			{Name: "osmosis", Version: "v24.0.1"},
+			{
+				Name:        "kava",
+				ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId),
+				// override default number of nodes to limit the number of ports we need to bind to
+				// running conformance tests without these limits result in errors that look like
+				// tendermint rpc client status: post failed: Post "http://127.0.0.1:<port>": dial tcp 127.0.0.1:<port>: connect: can't assign requested address
+				NumValidators: &one,
+				NumFullNodes:  &zero,
+			},
+			{Name: "osmosis", Version: "v24.0.1", NumValidators: &one, NumFullNodes: &zero},
 		}),
 	)
 
