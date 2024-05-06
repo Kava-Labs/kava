@@ -10,7 +10,7 @@ require (
 	go.uber.org/zap v1.26.0
 )
 
-require github.com/strangelove-ventures/interchaintest/v7 v7.0.1-0.20240501203553-8d9730c1b0c4
+require github.com/strangelove-ventures/interchaintest/v7 v7.0.1-0.20240506191732-71a15c29f2b7
 
 require (
 	cloud.google.com/go v0.111.0 // indirect
@@ -265,29 +265,13 @@ replace (
 	// Use cometbft fork of tendermint
 	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.4-kava.1
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.1
-
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-kava.2
-	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
-	// TODO: remove it: https://github.com/cosmos/cosmos-sdk/issues/13134
-	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
-
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
 	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.0-kava-v26.3
-	// Fix upstream GHSA-h395-qcrw-5vmq and GHSA-3vp4-m3rf-835h vulnerabilities.
-	// TODO Remove it: https://github.com/cosmos/cosmos-sdk/issues/10409
-	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-
 	// github.com/ComposableFi/go-subkey/v2 => github.com/vedhavyas/go-subkey/v2 v2.0.0
 	github.com/misko9/go-substrate-rpc-client/v4 => github.com/faddat/go-substrate-rpc-client/v4 v4.0.1-0.20240402155230-48db8c110afe
-
-	github.com/strangelove-ventures/interchaintest/v7 => ../../../interchaintest
-
-	// replace broken goleveldb
-	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// stick with compatible version or x/exp in v0.47.x line
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
-	// stick with compatible version of rapid in v0.47.x line
-	pgregory.net/rapid => pgregory.net/rapid v0.5.5
 )
