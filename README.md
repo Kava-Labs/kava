@@ -24,13 +24,13 @@ Reference implementation of Kava, a blockchain for cross-chain DeFi. Built using
 
 ## Mainnet
 
-The current recommended version of the software for mainnet is [v0.25.0](https://github.com/Kava-Labs/kava/releases/tag/v0.25.0) The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
+The current recommended version of the software for mainnet is [v0.26.0](https://github.com/Kava-Labs/kava/releases/tag/v0.26.0) The master branch of this repository often contains considerable development work since the last mainnet release and is __not__ runnable on mainnet.
 
 ### Installation and Setup
 For detailed instructions see [the Kava docs](https://docs.kava.io/docs/participate/validator-node).
 
 ```bash
-git checkout v0.25.0
+git checkout v0.26.0
 make install
 ```
 
