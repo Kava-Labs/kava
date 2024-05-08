@@ -10,7 +10,7 @@ WORKDIR /root
 # default home directory is /root
 
 # install rocksdb
-ARG rocksdb_version=v8.1.1
+ARG rocksdb_version=v8.10.0
 ENV ROCKSDB_VERSION=$rocksdb_version
 
 RUN git clone https://github.com/facebook/rocksdb.git \
