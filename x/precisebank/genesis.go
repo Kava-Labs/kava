@@ -13,8 +13,8 @@ import (
 func InitGenesis(
 	ctx sdk.Context,
 	keeper keeper.Keeper,
-	gs *types.GenesisState,
 	ak types.AccountKeeper,
+	gs *types.GenesisState,
 ) {
 	if err := gs.Validate(); err != nil {
 		panic(fmt.Sprintf("failed to validate %s genesis state: %s", types.ModuleName, err))
