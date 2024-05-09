@@ -151,10 +151,11 @@ func TestInterchainErc20(t *testing.T) {
 	// (assumes there are none pre-configured!)
 	////////////////////////////////////////////
 	// 1. Submit Proposal
+	sdkDenom := "tether/usdt"
 	rawCps, err := json.Marshal(evmutiltypes.NewConversionPairs(
 		evmutiltypes.NewConversionPair(
 			evmutiltypes.NewInternalEVMAddress(usdtAddr),
-			"tether/usdt",
+			sdkDenom,
 		),
 	))
 	require.NoError(t, err)
@@ -188,7 +189,7 @@ func TestInterchainErc20(t *testing.T) {
 
 	// fund a user & mint them some usdt
 	user := kava.NewFundedAccount("tether-user", sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(1e7))))
-	erc20FundAmt := big.NewInt(1e12)
+	erc20FundAmt := big.NewInt(100e6)
 	tx, err = usdt.Mint(deployer.EvmAuth, user.EvmAddress, erc20FundAmt)
 	require.NoError(t, err)
 
@@ -198,6 +199,27 @@ func TestInterchainErc20(t *testing.T) {
 	bal, err := usdt.BalanceOf(nil, user.EvmAddress)
 	require.NoError(t, err)
 	require.Equal(t, erc20FundAmt, bal)
+
+	// convert the erc20 to sdk.Coin!
+	amountToConvert := math.NewInt(50e6)
+	msg := evmutiltypes.NewMsgConvertERC20ToCoin(
+		evmutiltypes.NewInternalEVMAddress(user.EvmAddress),
+		user.SdkAddress,
+		evmutiltypes.NewInternalEVMAddress(usdtAddr),
+		amountToConvert,
+	)
+	convertTx := util.KavaMsgRequest{
+		Msgs:      []sdk.Msg{&msg},
+		GasLimit:  4e5,
+		FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(400))),
+		Data:      "converting sdk coin to erc20",
+	}
+	res := user.SignAndBroadcastKavaTx(convertTx)
+	require.NoError(t, res.Err)
+
+	// check balance!
+	sdkBalance := kava.QuerySdkForBalances(user.SdkAddress)
+	require.Equal(t, amountToConvert, sdkBalance.AmountOf(sdkDenom))
 }
 
 func newMnemonic() (string, error) {
