@@ -39,6 +39,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 - (cli) [#1954] Add `--unsafe-remove-modules` parameter flag to `rollback`
 
+### Improvements
+- (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
+
 ## [v0.26.1]
 
 ### Features
@@ -344,6 +347,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 
 [#1954]: https://github.com/Kava-Labs/kava/pull/1954
 [#1922]: https://github.com/Kava-Labs/kava/pull/1922
+[#1903]: https://github.com/Kava-Labs/kava/pull/1903
 [#1851]: https://github.com/Kava-Labs/kava/pull/1851
 [#1846]: https://github.com/Kava-Labs/kava/pull/1846
 [#1848]: https://github.com/Kava-Labs/kava/pull/1848
