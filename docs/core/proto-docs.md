@@ -6659,7 +6659,7 @@ GenesisState defines the precisebank module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `balances` | [FractionalBalance](#kava.precisebank.v1.FractionalBalance) | repeated |  |
+| `balances` | [FractionalBalance](#kava.precisebank.v1.FractionalBalance) | repeated | balances is a list of all the balances in the precisebank module. |
 
 
 

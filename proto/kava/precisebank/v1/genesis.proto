@@ -8,7 +8,11 @@ option go_package = "github.com/kava-labs/kava/x/precisebank/types";
 
 // GenesisState defines the precisebank module's genesis state.
 message GenesisState {
-  repeated FractionalBalance balances = 1 [(gogoproto.nullable) = false];
+  // balances is a list of all the balances in the precisebank module.
+  repeated FractionalBalance balances = 1 [
+    (gogoproto.castrepeated) = "FractionalBalances",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // FractionalBalance defines the fractional portion of an account balance

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
@@ -56,8 +57,14 @@ func TestFractionalBalance_Validate(t *testing.T) {
 		{
 			"valid - max balance",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
-			types.MAX_AMOUNT,
+			types.MAX_FRACTIONAL_AMOUNT,
 			"",
+		},
+		{
+			"invalid - uppercase letter",
+			"kava1gpxd677pP8zr97xvy3pmgk70a9vcpagsakv0tx",
+			sdkmath.NewInt(100),
+			"decoding bech32 failed: string not all lowercase or all uppercase",
 		},
 		{
 			"invalid - non-bech32 address",
@@ -80,7 +87,7 @@ func TestFractionalBalance_Validate(t *testing.T) {
 		{
 			"invalid - max amount + 1",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
-			types.MAX_AMOUNT.AddRaw(1),
+			types.MAX_FRACTIONAL_AMOUNT.AddRaw(1),
 			"amount exceeds max of 999999999999: 1000000000000",
 		},
 		{
@@ -98,10 +105,36 @@ func TestFractionalBalance_Validate(t *testing.T) {
 
 			if tt.wantErr == "" {
 				require.NoError(t, err)
-			} else {
-				require.Error(t, err)
-				require.EqualError(t, err, tt.wantErr)
+				return
 			}
+
+			require.Error(t, err)
+			require.EqualError(t, err, tt.wantErr)
+		})
+	}
+}
+
+func TestFractionalBalance_GetAddress(t *testing.T) {
+	tests := []struct {
+		name        string
+		giveAddress string
+		giveAmount  sdkmath.Int
+		wantAddr    sdk.AccAddress
+	}{
+		{
+			"correctly returns address",
+			sdk.AccAddress{1}.String(),
+			sdkmath.NewInt(100),
+			sdk.AccAddress{1},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fb := types.NewFractionalBalance(tt.giveAddress, tt.giveAmount)
+
+			addr := fb.GetAddress()
+			require.Equal(t, tt.wantAddr, addr)
 		})
 	}
 }
