@@ -4,5 +4,4 @@ package kava.precisebank.v1;
 option go_package = "github.com/kava-labs/kava/x/precisebank/types";
 
 // GenesisState defines the precisebank module's genesis state.
-message GenesisState {
-}
+message GenesisState {}
