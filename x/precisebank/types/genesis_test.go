@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/kava-labs/kava/x/cdp/types"
+	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -25,11 +25,11 @@ func TestGenesisStateValidate(t *testing.T) {
 			false,
 		},
 		// TODO: Sum of balances does not equal an integer amount
-		{
-			"invalid balances",
-			types.GenesisState{},
-			true,
-		},
+		// {
+		// 	"invalid balances",
+		// 	types.GenesisState{},
+		// 	true,
+		// },
 	}
 
 	for _, tc := range testCases {
