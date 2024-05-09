@@ -262,7 +262,7 @@ var (
 		kavadisttypes.FundModuleAccount: nil,
 		minttypes.ModuleName:            {authtypes.Minter},
 		communitytypes.ModuleName:       nil,
-		precisebanktypes.ModuleName:     {authtypes.Minter, authtypes.Burner},
+		precisebanktypes.ModuleName:     {authtypes.Minter, authtypes.Burner}, // used for reserve account to back fractional amounts
 	}
 )
 
