@@ -22,13 +22,13 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/gorilla/mux v1.8.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/linxGnu/grocksdb v1.8.6
+	github.com/linxGnu/grocksdb v1.8.13
 	github.com/pelletier/go-toml/v2 v2.0.8
 	github.com/prometheus/client_golang v1.14.0
 	github.com/spf13/cast v1.5.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/subosito/gotenv v1.4.2
 	golang.org/x/crypto v0.16.0
 	golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
@@ -183,7 +183,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/status-im/keycard-go v0.2.0 // indirect
-	github.com/stretchr/objx v0.5.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20220721030215-126854af5e6d // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
@@ -220,7 +220,7 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	// Use cometbft fork of tendermint
 	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.4-kava.1
-	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.1
+	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.2
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-kava.2
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093

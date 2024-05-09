@@ -36,6 +36,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Improvements
+- (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
+
+## [v0.26.0]
+
 ### Features
 
 - (cli) [#1785] Add `shard` CLI command to support creating partitions of data for standalone nodes
@@ -328,6 +333,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1903]: https://github.com/Kava-Labs/kava/pull/1903
 [#1846]: https://github.com/Kava-Labs/kava/pull/1846
 [#1848]: https://github.com/Kava-Labs/kava/pull/1848
 [#1839]: https://github.com/Kava-Labs/kava/pull/1839
@@ -390,8 +396,9 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.25.0...HEAD
-[v0.25.0]: https://github.com/Kava-Labs/kava/compare/v0.25.0...v0.24.3
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.0...HEAD
+[v0.26.0]: https://github.com/Kava-Labs/kava/compare/v0.25.0...v0.26.0
+[v0.25.0]: https://github.com/Kava-Labs/kava/compare/v0.24.3...v0.25.0
 [v0.24.3]: https://github.com/Kava-Labs/kava/compare/v0.24.3...v0.24.1
 [v0.24.1]: https://github.com/Kava-Labs/kava/compare/v0.24.1...v0.24.0
 [v0.24.0]: https://github.com/Kava-Labs/kava/compare/v0.24.0...v0.23.2
