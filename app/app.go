@@ -1007,7 +1007,7 @@ func NewApp(
 		metricstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		packetforwardtypes.ModuleName,
-		precisebanktypes.ModuleName, // Must be run after x/bank as it relies on account balances
+		precisebanktypes.ModuleName, // Must be run after x/bank to verify reserve balance
 		crisistypes.ModuleName,      // runs the invariants at genesis, should run after other modules
 	)
 
