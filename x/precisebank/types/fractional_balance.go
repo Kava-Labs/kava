@@ -23,13 +23,6 @@ func NewFractionalBalance(address string, amount sdkmath.Int) FractionalBalance 
 	}
 }
 
-// GetAddress returns the sdk.AccAddress of the FractionalBalance. Assumes that
-// the FractionalBalance is valid.
-func (fb FractionalBalance) GetAddress() sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromBech32(fb.Address)
-	return addr
-}
-
 // Validate returns an error if the FractionalBalance has an invalid address or
 // negative amount.
 func (fb FractionalBalance) Validate() error {

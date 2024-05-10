@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
@@ -122,31 +121,6 @@ func TestFractionalBalance_Validate(t *testing.T) {
 
 			require.Error(t, err)
 			require.EqualError(t, err, tt.wantErr)
-		})
-	}
-}
-
-func TestFractionalBalance_GetAddress(t *testing.T) {
-	tests := []struct {
-		name        string
-		giveAddress string
-		giveAmount  sdkmath.Int
-		wantAddr    sdk.AccAddress
-	}{
-		{
-			"correctly returns address",
-			sdk.AccAddress{1}.String(),
-			sdkmath.NewInt(100),
-			sdk.AccAddress{1},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			fb := types.NewFractionalBalance(tt.giveAddress, tt.giveAmount)
-
-			addr := fb.GetAddress()
-			require.Equal(t, tt.wantAddr, addr)
 		})
 	}
 }
