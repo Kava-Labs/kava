@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"math/rand"
 	"strings"
 	"testing"
 
@@ -81,6 +82,56 @@ func TestFractionalBalances_Validate(t *testing.T) {
 
 			require.Error(t, err)
 			require.EqualError(t, err, tt.wantErr)
+		})
+	}
+}
+
+func TestFractionalBalances_SumAmount(t *testing.T) {
+	generateRandomFractionalBalances := func(n int) (types.FractionalBalances, sdkmath.Int) {
+		balances := make(types.FractionalBalances, n)
+		sum := sdkmath.ZeroInt()
+
+		for i := 0; i < n; i++ {
+			addr := sdk.AccAddress{byte(i)}.String()
+			amount := sdkmath.NewInt(rand.Int63())
+			balances[i] = types.NewFractionalBalance(addr, amount)
+
+			sum = sum.Add(amount)
+		}
+
+		return balances, sum
+	}
+
+	multiBalances, sum := generateRandomFractionalBalances(10)
+
+	tests := []struct {
+		name     string
+		balances types.FractionalBalances
+		wantSum  sdkmath.Int
+	}{
+		{
+			"empty",
+			types.FractionalBalances{},
+			sdkmath.ZeroInt(),
+		},
+		{
+			"single",
+			types.FractionalBalances{
+				types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
+			},
+			sdkmath.NewInt(100),
+		},
+		{
+			"multiple",
+			multiBalances,
+			sum,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sum := tt.balances.SumAmount()
+			require.Equal(t, tt.wantSum, sum)
 		})
 	}
 }

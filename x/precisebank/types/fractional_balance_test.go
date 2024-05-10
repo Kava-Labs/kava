@@ -41,6 +41,21 @@ func TestMaxFractionalAmount_Copied(t *testing.T) {
 	require.NotSame(t, max1, max2, "max fractional amount should be copied")
 }
 
+func TestMaxFractionalAmount(t *testing.T) {
+	require.Equal(
+		t,
+		sdkmath.NewInt(999_999_999_999),
+		types.MaxFractionalAmount(),
+		"max fractional amount should have 12 decimal points",
+	)
+	require.Equal(
+		t,
+		types.ConversionFactor().SubRaw(1),
+		types.MaxFractionalAmount(),
+		"max fractional amount should be 1 less than the conversion factor",
+	)
+}
+
 func TestNewFractionalBalance(t *testing.T) {
 	tests := []struct {
 		name        string

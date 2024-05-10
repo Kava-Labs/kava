@@ -3,6 +3,7 @@ package precisebank
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/precisebank/keeper"
@@ -33,5 +34,5 @@ func InitGenesis(
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-	return types.NewGenesisState(nil)
+	return types.NewGenesisState(nil, sdkmath.ZeroInt())
 }

@@ -13,6 +13,14 @@ message GenesisState {
     (gogoproto.castrepeated) = "FractionalBalances",
     (gogoproto.nullable) = false
   ];
+
+  // remainder is an internal value of how much extra fractional digits are
+  // still backed by the reserve, but not assigned to any account.
+  string remainder = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // FractionalBalance defines the fractional portion of an account balance

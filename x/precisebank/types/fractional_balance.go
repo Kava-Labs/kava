@@ -7,9 +7,20 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// maxFractionalAmount is the largest valid value in a FractionalBalance amount.
-// This is for direct internal use so that there are no extra allocations.
-var maxFractionalAmount = sdkmath.NewInt(1_000_000_000_000).SubRaw(1)
+var (
+	// conversionFactor is used to convert the fractional balance to integer
+	// balances.
+	conversionFactor = sdkmath.NewInt(1_000_000_000_000)
+	// maxFractionalAmount is the largest valid value in a FractionalBalance amount.
+	// This is for direct internal use so that there are no extra allocations.
+	maxFractionalAmount = sdkmath.NewInt(1_000_000_000_000).SubRaw(1)
+)
+
+// ConversionFactor returns a copy of the conversionFactor used to convert the
+// fractional balance to integer balances.
+func ConversionFactor() sdkmath.Int {
+	return sdkmath.NewIntFromBigIntMut(conversionFactor.BigInt())
+}
 
 // MaxFractionalAmount returns the largest valid value in a FractionalBalance
 // amount.
