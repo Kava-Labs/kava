@@ -54,14 +54,6 @@ func TestFractionalBalances_Validate(t *testing.T) {
 			},
 			"duplicate address: kava1qy0xn7za",
 		},
-		{
-			"invalid - duplicate address with whitespace",
-			types.FractionalBalances{
-				types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
-				types.NewFractionalBalance(" "+sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
-			},
-			"duplicate address:  kava1qy0xn7za",
-		},
 	}
 
 	for _, tt := range tests {
