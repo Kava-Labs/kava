@@ -48,6 +48,12 @@ func TestFractionalBalance_Validate(t *testing.T) {
 			"",
 		},
 		{
+			"valid - uppercase address",
+			"KAVA1GPXD677PP8ZR97XVY3PMGK70A9VCPAGSAKV0TX",
+			sdkmath.NewInt(100),
+			"",
+		},
+		{
 			"valid - min balance",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
 			sdkmath.NewInt(1),
@@ -72,7 +78,7 @@ func TestFractionalBalance_Validate(t *testing.T) {
 			"nil amount",
 		},
 		{
-			"invalid - uppercase letter",
+			"invalid - mixed case address",
 			"kava1gpxd677pP8zr97xvy3pmgk70a9vcpagsakv0tx",
 			sdkmath.NewInt(100),
 			"decoding bech32 failed: string not all lowercase or all uppercase",

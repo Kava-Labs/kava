@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"strings"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -51,6 +52,20 @@ func TestFractionalBalances_Validate(t *testing.T) {
 			types.FractionalBalances{
 				types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
 				types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
+			},
+			"duplicate address kava1qy0xn7za",
+		},
+		{
+			"invalid - duplicate address upper/lower case",
+			types.FractionalBalances{
+				types.NewFractionalBalance(
+					strings.ToLower(sdk.AccAddress{1}.String()),
+					sdkmath.NewInt(100),
+				),
+				types.NewFractionalBalance(
+					strings.ToUpper(sdk.AccAddress{1}.String()),
+					sdkmath.NewInt(100),
+				),
 			},
 			"duplicate address kava1qy0xn7za",
 		},
