@@ -2,6 +2,7 @@ package types
 
 import (
 	fmt "fmt"
+	"strings"
 )
 
 // FractionalBalances is a slice of FractionalBalance
@@ -17,13 +18,17 @@ func (fbs FractionalBalances) Validate() error {
 			return fmt.Errorf("invalid fractional balance for %s: %w", fb.Address, err)
 		}
 
+		// Make addresses all lowercase for unique check, as ALL UPPER is also
+		// a valid address.
+		lowerAddr := strings.ToLower(fb.Address)
+
 		// If this is a duplicate address, return an error
-		if _, found := seenAddresses[fb.Address]; found {
-			return fmt.Errorf("duplicate address %v", fb.Address)
+		if _, found := seenAddresses[lowerAddr]; found {
+			return fmt.Errorf("duplicate address %v", lowerAddr)
 		}
 
 		// Mark it as seen
-		seenAddresses[fb.Address] = struct{}{}
+		seenAddresses[lowerAddr] = struct{}{}
 	}
 
 	return nil
