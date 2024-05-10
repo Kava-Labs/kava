@@ -26,5 +26,5 @@ func NewGenesisState(balances FractionalBalances) *GenesisState {
 
 // DefaultGenesisState returns a default genesis state.
 func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(nil)
+	return NewGenesisState(FractionalBalances{})
 }
