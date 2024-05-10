@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"math/big"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -8,6 +9,29 @@ import (
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
 )
+
+func TestMaxFractionalAmount_Immutable(t *testing.T) {
+	max1 := types.MaxFractionalAmount()
+	origInt64 := max1.Int64()
+
+	// Get the internal pointer to the big.Int without copying
+	internalBigInt := max1.BigIntMut()
+
+	// Mutate the big.Int -- .Add() mutates in place
+	internalBigInt.Add(internalBigInt, big.NewInt(5))
+	// Ensure bigInt was actually mutated
+	require.Equal(t, origInt64+5, internalBigInt.Int64())
+
+	// Fetch the max amount again
+	max2 := types.MaxFractionalAmount()
+
+	require.Equal(
+		t,
+		origInt64,
+		max2.Int64(),
+		"max amount should be immutable",
+	)
+}
 
 func TestNewFractionalBalance(t *testing.T) {
 	tests := []struct {
