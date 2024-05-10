@@ -37,7 +37,7 @@ func GenerateEqualFractionalBalances(
 		// Random 0 < amt < CONVERSION_FACTOR
 		// POSITIVE and less than CONVERSION_FACTOR
 		// If it's 0, Validate() will error
-		amt := randRange(1, types.CONVERSION_FACTOR.Int64())
+		amt := randRange(1, types.ConversionFactor().Int64())
 		amtInt := sdkmath.NewInt(amt)
 
 		fb := types.NewFractionalBalance(addr, amtInt)
@@ -55,8 +55,8 @@ func GenerateEqualFractionalBalances(
 	// aka
 	// CONVERSION_FACTOR - (sum % CONVERSION_FACTOR) = lastAmt
 	addr := sdk.AccAddress{byte(count - 1)}.String()
-	amt := types.CONVERSION_FACTOR.
-		Sub(sum.Mod(types.CONVERSION_FACTOR))
+	amt := types.ConversionFactor().
+		Sub(sum.Mod(types.ConversionFactor()))
 
 	fb := types.NewFractionalBalance(addr, amt)
 	require.NoError(t, fb.Validate())
@@ -68,7 +68,7 @@ func GenerateEqualFractionalBalances(
 	for _, fb := range fbs {
 		verificationSum = verificationSum.Add(fb.Amount)
 	}
-	require.True(t, verificationSum.Mod(types.CONVERSION_FACTOR).IsZero())
+	require.True(t, verificationSum.Mod(types.ConversionFactor()).IsZero())
 
 	// Also make sure no duplicate addresses
 	require.NoError(t, fbs.Validate())

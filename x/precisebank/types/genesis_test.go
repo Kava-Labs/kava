@@ -1,7 +1,6 @@
 package types_test
 
 import (
-	"math/rand"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -10,86 +9,43 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func generateEqualFractionalBalances(
-	t *testing.T,
-	count int,
-) types.FractionalBalances {
-	t.Helper()
-
-	fbs := make(types.FractionalBalances, count)
-	sum := sdkmath.ZeroInt()
-
-	// Random amounts for count - 1 FractionalBalances
-	for i := 0; i < count-1; i++ {
-		addr := sdk.AccAddress{byte(i)}.String()
-
-		// Random 0 <= amt < CONVERSION_FACTOR
-		amt := rand.Int63n(types.ConversionFactor().Int64())
-		amtInt := sdkmath.NewInt(amt)
-
-		fb := types.NewFractionalBalance(addr, amtInt)
-		require.NoError(t, fb.Validate())
-
-		fbs[i] = fb
-
-		sum = sum.Add(amtInt)
-	}
-
-	// Last FractionalBalance must make sum of all balances equal to have 0
-	// fractional remainder. Effectively the amount needed to round up to the
-	// nearest integer amount to make this true.
-	// (sum + lastAmt) % CONVERSION_FACTOR = 0
-	// aka
-	// CONVERSION_FACTOR - (sum % CONVERSION_FACTOR) = lastAmt
-	addr := sdk.AccAddress{byte(count - 1)}.String()
-	amt := types.ConversionFactor().
-		Sub(sum.Mod(types.ConversionFactor()))
-
-	fb := types.NewFractionalBalance(addr, amt)
-	require.NoError(t, fb.Validate())
-
-	fbs[count-1] = fb
-
-	// Lets double check this before returning
-	verificationSum := sdkmath.ZeroInt()
-	for _, fb := range fbs {
-		verificationSum = verificationSum.Add(fb.Amount)
-	}
-	require.True(t, verificationSum.Mod(types.ConversionFactor()).IsZero())
-
-	// Also make sure no duplicate addresses
-	require.NoError(t, fbs.Validate())
-
-	return fbs
-}
-
-func TestGenesisStateValidate(t *testing.T) {
+func TestGenesisStateValidate_Basic(t *testing.T) {
 	testCases := []struct {
 		name         string
 		genesisState *types.GenesisState
-		expErr       bool
+		wantErr      string
 	}{
 		{
-			"default genesisState",
+			"valid - default genesisState",
 			types.DefaultGenesisState(),
-			false,
+			"",
 		},
 		{
 			"valid - empty balances, zero remainder",
 			&types.GenesisState{
 				Remainder: sdkmath.ZeroInt(),
 			},
-			false,
+			"",
 		},
 		{
 			"valid - nil balances",
 			types.NewGenesisState(nil, sdkmath.ZeroInt()),
-			false,
+			"",
+		},
+		{
+			"valid - max remainder amount",
+			types.NewGenesisState(
+				types.FractionalBalances{
+					types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(1)),
+				},
+				types.MaxFractionalAmount(),
+			),
+			"",
 		},
 		{
 			"invalid - empty genesisState (nil remainder)",
 			&types.GenesisState{},
-			true,
+			"nil remainder amount",
 		},
 		{
 			"valid - balances add up",
@@ -100,7 +56,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 				sdkmath.ZeroInt(),
 			),
-			true,
+			"invalid balances: duplicate address cosmos1qyfkm2y3",
 		},
 		{
 			"invalid - calls (single) FractionalBalance.Validate()",
@@ -111,7 +67,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 				sdkmath.ZeroInt(),
 			),
-			true,
+			"invalid balances: invalid fractional balance for cosmos1qgcgaq4k: non-positive amount -1",
 		},
 		{
 			"invalid - calls (slice) FractionalBalances.Validate()",
@@ -122,7 +78,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 				sdkmath.ZeroInt(),
 			),
-			true,
+			"invalid balances: duplicate address cosmos1qyfkm2y3",
 		},
 		{
 			"invalid - negative remainder",
@@ -133,17 +89,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 				sdkmath.NewInt(-1),
 			),
-			true,
-		},
-		{
-			"valid - max remainder amount",
-			types.NewGenesisState(
-				types.FractionalBalances{
-					types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(1)),
-				},
-				types.MaxFractionalAmount(),
-			),
-			false,
+			"negative remainder amount -1",
 		},
 		{
 			"invalid - too large remainder",
@@ -154,7 +100,7 @@ func TestGenesisStateValidate(t *testing.T) {
 				},
 				types.MaxFractionalAmount().AddRaw(1),
 			),
-			true,
+			"remainder 1000000000000 exceeds max of 999999999999",
 		},
 	}
 
@@ -163,10 +109,41 @@ func TestGenesisStateValidate(t *testing.T) {
 		t.Run(tc.name, func(tt *testing.T) {
 			err := tc.genesisState.Validate()
 
-			if tc.expErr {
-				require.Error(tt, err)
-			} else {
+			if tc.wantErr == "" {
 				require.NoError(tt, err)
+			} else {
+				require.Error(tt, err)
+				require.EqualError(tt, err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestGenesisStateValidate_Total(t *testing.T) {
+	testCases := []struct {
+		name           string
+		genesisStateFn func() *types.GenesisState
+		wantErr        string
+	}{
+		{
+			"valid - empty balances, zero remainder",
+			func() *types.GenesisState {
+				return types.NewGenesisState(nil, sdkmath.ZeroInt())
+			},
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(tt *testing.T) {
+			err := tc.genesisStateFn().Validate()
+
+			if tc.wantErr == "" {
+				require.NoError(tt, err)
+			} else {
+				require.Error(tt, err)
+				require.EqualError(tt, err, tc.wantErr)
 			}
 		})
 	}

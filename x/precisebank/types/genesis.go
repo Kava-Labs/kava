@@ -20,11 +20,11 @@ func (gs *GenesisState) Validate() error {
 
 	// Validate remainder, 0 <= remainder <= maxFractionalAmount
 	if gs.Remainder.IsNegative() {
-		return fmt.Errorf("negative remainder amount: %s", gs.Remainder)
+		return fmt.Errorf("negative remainder amount %s", gs.Remainder)
 	}
 
 	if gs.Remainder.GT(MaxFractionalAmount()) {
-		return fmt.Errorf("remainder exceeds max of %v: %v", MaxFractionalAmount(), gs.Remainder)
+		return fmt.Errorf("remainder %v exceeds max of %v", gs.Remainder, MaxFractionalAmount())
 	}
 
 	// Determine if sum(fractionalBalances) + remainder = whole integer value
@@ -34,9 +34,9 @@ func (gs *GenesisState) Validate() error {
 
 	if !total.Mod(ConversionFactor()).IsZero() {
 		return fmt.Errorf(
-			"sum of fractional balances + remainder is not a whole integer value: %v + %v == %v, but expected to end in 12 zeros",
-			sum, gs.Remainder,
+			"sum of fractional balances %v + remainder %v is not a whole integer value %v",
 			total,
+			sum, gs.Remainder,
 		)
 	}
 
