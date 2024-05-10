@@ -1,16 +1,23 @@
 package precisebank_test
 
 import (
+	"testing"
+
 	"github.com/kava-labs/kava/x/precisebank"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
 	"github.com/kava-labs/kava/x/precisebank/types"
+	"github.com/stretchr/testify/suite"
 )
 
-type KeeperTestSuite struct {
+type GenesisTestSuite struct {
 	testutil.Suite
 }
 
-func (suite *KeeperTestSuite) TestInitGenesis() {
+func TestGenesisTestSuite(t *testing.T) {
+	suite.Run(t, new(GenesisTestSuite))
+}
+
+func (suite *GenesisTestSuite) TestInitGenesis() {
 	tests := []struct {
 		name         string
 		genesisState *types.GenesisState
@@ -65,7 +72,16 @@ func (suite *KeeperTestSuite) TestInitGenesis() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestExportGenesis_Valid() {
+func (suite *GenesisTestSuite) TestImportGenesis_ModuleAccountCreated() {
+	suite.Require().NotPanics(func() {
+		precisebank.InitGenesis(suite.Ctx, suite.Keeper, suite.AccountKeeper, types.DefaultGenesisState())
+	})
+
+	moduleAcc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)
+	suite.NotNil(moduleAcc, "module account should be created")
+}
+
+func (suite *GenesisTestSuite) TestExportGenesis_Valid() {
 	// ExportGenesis(moduleState) should return a valid genesis state
 
 	tests := []struct {
@@ -96,7 +112,7 @@ func (suite *KeeperTestSuite) TestExportGenesis_Valid() {
 	}
 }
 
-func (suite *KeeperTestSuite) TestExportImportedState() {
+func (suite *GenesisTestSuite) TestExportImportedState() {
 	// ExportGenesis(InitGenesis(genesisState)) == genesisState
 
 	tests := []struct {
