@@ -149,6 +149,9 @@ import (
 	liquidtypes "github.com/kava-labs/kava/x/liquid/types"
 	metrics "github.com/kava-labs/kava/x/metrics"
 	metricstypes "github.com/kava-labs/kava/x/metrics/types"
+	"github.com/kava-labs/kava/x/precisebank"
+	precisebankkeeper "github.com/kava-labs/kava/x/precisebank/keeper"
+	precisebanktypes "github.com/kava-labs/kava/x/precisebank/types"
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
@@ -230,6 +233,7 @@ var (
 		community.AppModuleBasic{},
 		metrics.AppModuleBasic{},
 		consensus.AppModuleBasic{},
+		precisebank.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -258,6 +262,7 @@ var (
 		kavadisttypes.FundModuleAccount: nil,
 		minttypes.ModuleName:            {authtypes.Minter},
 		communitytypes.ModuleName:       nil,
+		precisebanktypes.ModuleName:     {authtypes.Minter, authtypes.Burner}, // used for reserve account to back fractional amounts
 	}
 )
 
@@ -335,6 +340,7 @@ type App struct {
 	mintKeeper            mintkeeper.Keeper
 	communityKeeper       communitykeeper.Keeper
 	consensusParamsKeeper consensusparamkeeper.Keeper
+	precisebankKeeper     precisebankkeeper.Keeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
@@ -389,7 +395,7 @@ func NewApp(
 		swaptypes.StoreKey, cdptypes.StoreKey, hardtypes.StoreKey, communitytypes.StoreKey,
 		committeetypes.StoreKey, incentivetypes.StoreKey, evmutiltypes.StoreKey,
 		savingstypes.StoreKey, earntypes.StoreKey, minttypes.StoreKey,
-		consensusparamtypes.StoreKey, crisistypes.StoreKey,
+		consensusparamtypes.StoreKey, crisistypes.StoreKey, precisebanktypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey, feemarkettypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -542,6 +548,12 @@ func NewApp(
 		evmutilSubspace,
 		app.bankKeeper,
 		app.accountKeeper,
+	)
+
+	// TODO: Pass this to evmkeeper.NewKeeper() instead of evmutilKeeper
+	app.precisebankKeeper = precisebankkeeper.NewKeeper(
+		app.appCodec,
+		keys[precisebanktypes.StoreKey],
 	)
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
@@ -849,6 +861,7 @@ func NewApp(
 		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper, nil, mintSubspace),
 		community.NewAppModule(app.communityKeeper, app.accountKeeper),
 		metrics.NewAppModule(options.TelemetryOptions),
+		precisebank.NewAppModule(app.precisebankKeeper, app.bankKeeper, app.accountKeeper),
 	)
 
 	// Warning: Some begin blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -904,6 +917,7 @@ func NewApp(
 		routertypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		precisebanktypes.ModuleName,
 	)
 
 	// Warning: Some end blockers must run before others. Ensure the dependencies are understood before modifying this list.
@@ -949,6 +963,7 @@ func NewApp(
 		metricstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		packetforwardtypes.ModuleName,
+		precisebanktypes.ModuleName,
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
@@ -992,7 +1007,8 @@ func NewApp(
 		metricstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		packetforwardtypes.ModuleName,
-		crisistypes.ModuleName, // runs the invariants at genesis, should run after other modules
+		precisebanktypes.ModuleName, // Must be run after x/bank to verify reserve balance
+		crisistypes.ModuleName,      // runs the invariants at genesis, should run after other modules
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

@@ -36,6 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Features
+- (precisebank) [#1906] Add new `x/precisebank` module with bank decimal extension for EVM usage.
+
 ### Improvements
 - (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
 
@@ -333,6 +336,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1906]: https://github.com/Kava-Labs/kava/pull/1906
 [#1903]: https://github.com/Kava-Labs/kava/pull/1903
 [#1846]: https://github.com/Kava-Labs/kava/pull/1846
 [#1848]: https://github.com/Kava-Labs/kava/pull/1848

@@ -476,6 +476,9 @@
   
     - [Msg](#kava.liquid.v1beta1.Msg)
   
+- [kava/precisebank/v1/genesis.proto](#kava/precisebank/v1/genesis.proto)
+    - [GenesisState](#kava.precisebank.v1.GenesisState)
+  
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
@@ -6619,6 +6622,32 @@ Msg defines the liquid Msg service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `MintDerivative` | [MsgMintDerivative](#kava.liquid.v1beta1.MsgMintDerivative) | [MsgMintDerivativeResponse](#kava.liquid.v1beta1.MsgMintDerivativeResponse) | MintDerivative defines a method for converting a delegation into staking deriviatives. | |
 | `BurnDerivative` | [MsgBurnDerivative](#kava.liquid.v1beta1.MsgBurnDerivative) | [MsgBurnDerivativeResponse](#kava.liquid.v1beta1.MsgBurnDerivativeResponse) | BurnDerivative defines a method for converting staking deriviatives into a delegation. | |
+
+ <!-- end services -->
+
+
+
+<a name="kava/precisebank/v1/genesis.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/precisebank/v1/genesis.proto
+
+
+
+<a name="kava.precisebank.v1.GenesisState"></a>
+
+### GenesisState
+GenesisState defines the precisebank module's genesis state.
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
 
  <!-- end services -->
 
