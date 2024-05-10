@@ -33,6 +33,14 @@ func TestMaxFractionalAmount_Immutable(t *testing.T) {
 	)
 }
 
+func TestMaxFractionalAmount_Copied(t *testing.T) {
+	max1 := types.MaxFractionalAmount().BigIntMut()
+	max2 := types.MaxFractionalAmount().BigIntMut()
+
+	// Checks that the returned two pointers do not reference the same object
+	require.NotSame(t, max1, max2, "max fractional amount should be copied")
+}
+
 func TestNewFractionalBalance(t *testing.T) {
 	tests := []struct {
 		name        string
