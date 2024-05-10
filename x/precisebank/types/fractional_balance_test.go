@@ -56,7 +56,7 @@ func TestFractionalBalance_Validate(t *testing.T) {
 		{
 			"valid - max balance",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
-			types.MAX_FRACTIONAL_AMOUNT,
+			types.GetMaxFractionalAmount(),
 			"",
 		},
 		{
@@ -98,7 +98,7 @@ func TestFractionalBalance_Validate(t *testing.T) {
 		{
 			"invalid - max amount + 1",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
-			types.MAX_FRACTIONAL_AMOUNT.AddRaw(1),
+			types.GetMaxFractionalAmount().AddRaw(1),
 			"amount 1000000000000 exceeds max of 999999999999",
 		},
 		{

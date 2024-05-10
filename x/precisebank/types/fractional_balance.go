@@ -12,7 +12,12 @@ import (
 // digits are added to the fractional balance. With 12 digits, the maximum
 // value of the fractional balance is 1_000_000_000_000 - 1.
 // We subtract 1, as 1 more will roll over to the integer balance.
-var MAX_FRACTIONAL_AMOUNT = sdkmath.NewInt(1_000_000_000_000).SubRaw(1)
+var maxFractionalAmount = sdkmath.NewInt(1_000_000_000_000).SubRaw(1)
+
+// GetMaxFractionalAmount returns the maximum value of a FractionalBalance.
+func GetMaxFractionalAmount() sdkmath.Int {
+	return maxFractionalAmount
+}
 
 // FractionalBalance returns a new FractionalBalance with the given address and
 // amount.
@@ -38,8 +43,8 @@ func (fb FractionalBalance) Validate() error {
 		return fmt.Errorf("non-positive amount %v", fb.Amount)
 	}
 
-	if fb.Amount.GT(MAX_FRACTIONAL_AMOUNT) {
-		return fmt.Errorf("amount %v exceeds max of %v", fb.Amount, MAX_FRACTIONAL_AMOUNT)
+	if fb.Amount.GT(maxFractionalAmount) {
+		return fmt.Errorf("amount %v exceeds max of %v", fb.Amount, maxFractionalAmount)
 	}
 
 	return nil
