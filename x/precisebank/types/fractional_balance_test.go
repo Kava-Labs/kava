@@ -49,9 +49,9 @@ func TestFractionalBalance_Validate(t *testing.T) {
 			"",
 		},
 		{
-			"valid - 0 balance",
+			"valid - min balance",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
-			sdkmath.NewInt(0),
+			sdkmath.NewInt(1),
 			"",
 		},
 		{
@@ -82,7 +82,7 @@ func TestFractionalBalance_Validate(t *testing.T) {
 			"invalid - negative amount",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
 			sdkmath.NewInt(-100),
-			"negative amount: -100",
+			"non-positive amount: -100",
 		},
 		{
 			"invalid - max amount + 1",
