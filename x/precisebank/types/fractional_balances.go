@@ -7,11 +7,6 @@ import (
 // FractionalBalances is a slice of FractionalBalance
 type FractionalBalances []FractionalBalance
 
-// Len returns the length of the slice.
-func (fbs FractionalBalances) Len() int {
-	return len(fbs)
-}
-
 // Validate returns an error if any FractionalBalance in the slice is invalid.
 func (fbs FractionalBalances) Validate() error {
 	seenAddresses := make(map[string]struct{})
