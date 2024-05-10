@@ -5,6 +5,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/x/precisebank/testutil"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
 )
@@ -121,9 +122,9 @@ func TestGenesisStateValidate_Basic(t *testing.T) {
 
 func TestGenesisStateValidate_Total(t *testing.T) {
 	testCases := []struct {
-		name           string
-		genesisStateFn func() *types.GenesisState
-		wantErr        string
+		name              string
+		buildGenesisState func() *types.GenesisState
+		containsErr       string
 	}{
 		{
 			"valid - empty balances, zero remainder",
@@ -132,19 +133,104 @@ func TestGenesisStateValidate_Total(t *testing.T) {
 			},
 			"",
 		},
+		{
+			"valid - non-zero balances, zero remainder",
+			func() *types.GenesisState {
+				fbs := testutil.GenerateEqualFractionalBalances(t, 100)
+				require.Len(t, fbs, 100)
+
+				return types.NewGenesisState(fbs, sdkmath.ZeroInt())
+			},
+			"",
+		},
+		{
+			"valid - non-zero balances, non-zero remainder",
+			func() *types.GenesisState {
+				fbs, remainder := testutil.GenerateEqualFractionalBalancesWithRemainder(t, 100)
+
+				require.Len(t, fbs, 100)
+				require.NotZero(t, remainder.Int64())
+
+				t.Log("remainder:", remainder)
+
+				return types.NewGenesisState(fbs, remainder)
+			},
+			"",
+		},
+		{
+			"invalid - non-zero balances, invalid remainder",
+			func() *types.GenesisState {
+				fbs, remainder := testutil.GenerateEqualFractionalBalancesWithRemainder(t, 100)
+
+				require.Len(t, fbs, 100)
+				require.NotZero(t, remainder.Int64())
+
+				// Wrong remainder - should be non-zero
+				return types.NewGenesisState(fbs, sdkmath.ZeroInt())
+			},
+			// balances are randomly generated so we can't set the exact value in the error message
+			// "sum of fractional balances 52885778295370 ... "
+			"+ remainder 0 is not a multiple of 1000000000000",
+		},
+		{
+			"invalid - empty balances, non-zero remainder",
+			func() *types.GenesisState {
+				return types.NewGenesisState(types.FractionalBalances{}, sdkmath.NewInt(1))
+			},
+			"sum of fractional balances 0 + remainder 1 is not a multiple of 1000000000000",
+		},
 	}
 
 	for _, tc := range testCases {
 		tc := tc
 		t.Run(tc.name, func(tt *testing.T) {
-			err := tc.genesisStateFn().Validate()
+			err := tc.buildGenesisState().Validate()
 
-			if tc.wantErr == "" {
+			if tc.containsErr == "" {
 				require.NoError(tt, err)
 			} else {
 				require.Error(tt, err)
-				require.EqualError(tt, err, tc.wantErr)
+				require.ErrorContains(tt, err, tc.containsErr)
 			}
 		})
 	}
+}
+
+func FuzzGenesisStateValidate_NonZeroRemainder(f *testing.F) {
+	f.Add(5)
+	f.Add(100)
+	f.Add(30)
+
+	f.Fuzz(func(t *testing.T, count int) {
+		// Need at least 2 so we can generate both balances and remainder
+		if count < 2 {
+			t.Skip("count < 2")
+		}
+
+		fbs, remainder := testutil.GenerateEqualFractionalBalancesWithRemainder(t, count)
+
+		t.Logf("count: %v", count)
+		t.Logf("remainder: %v", remainder)
+
+		gs := types.NewGenesisState(fbs, remainder)
+		require.NoError(t, gs.Validate())
+	})
+}
+
+func FuzzGenesisStateValidate_ZeroRemainder(f *testing.F) {
+	f.Add(5)
+	f.Add(100)
+	f.Add(30)
+
+	f.Fuzz(func(t *testing.T, count int) {
+		// Need at least 2 as 1 account is not valid
+		if count < 2 {
+			t.Skip("count < 2")
+		}
+
+		fbs := testutil.GenerateEqualFractionalBalances(t, count)
+
+		gs := types.NewGenesisState(fbs, sdkmath.ZeroInt())
+		require.NoError(t, gs.Validate())
+	})
 }
