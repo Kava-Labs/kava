@@ -42,11 +42,11 @@ func (fb FractionalBalance) Validate() error {
 	}
 
 	if !fb.Amount.IsPositive() {
-		return fmt.Errorf("non-positive amount: %v", fb.Amount)
+		return fmt.Errorf("non-positive amount %v", fb.Amount)
 	}
 
 	if fb.Amount.GT(MAX_FRACTIONAL_AMOUNT) {
-		return fmt.Errorf("amount exceeds max of %v: %v", MAX_FRACTIONAL_AMOUNT, fb.Amount)
+		return fmt.Errorf("amount %v exceeds max of %v", fb.Amount, MAX_FRACTIONAL_AMOUNT)
 	}
 
 	return nil

@@ -61,6 +61,18 @@ func TestFractionalBalance_Validate(t *testing.T) {
 			"",
 		},
 		{
+			"invalid - 0 balance",
+			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
+			sdkmath.NewInt(0),
+			"non-positive amount 0",
+		},
+		{
+			"invalid - empty",
+			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
+			sdkmath.Int{},
+			"nil amount",
+		},
+		{
 			"invalid - uppercase letter",
 			"kava1gpxd677pP8zr97xvy3pmgk70a9vcpagsakv0tx",
 			sdkmath.NewInt(100),
@@ -82,19 +94,19 @@ func TestFractionalBalance_Validate(t *testing.T) {
 			"invalid - negative amount",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
 			sdkmath.NewInt(-100),
-			"non-positive amount: -100",
+			"non-positive amount -100",
 		},
 		{
 			"invalid - max amount + 1",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
 			types.MAX_FRACTIONAL_AMOUNT.AddRaw(1),
-			"amount exceeds max of 999999999999: 1000000000000",
+			"amount 1000000000000 exceeds max of 999999999999",
 		},
 		{
 			"invalid - much more than max amount",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
 			sdkmath.NewInt(100000000000_000),
-			"amount exceeds max of 999999999999: 100000000000000",
+			"amount 100000000000000 exceeds max of 999999999999",
 		},
 	}
 

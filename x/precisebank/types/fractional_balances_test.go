@@ -44,7 +44,7 @@ func TestFractionalBalances_Validate(t *testing.T) {
 				types.NewFractionalBalance(sdk.AccAddress{2}.String(), sdkmath.NewInt(-1)),
 				types.NewFractionalBalance(sdk.AccAddress{3}.String(), sdkmath.NewInt(100)),
 			},
-			"invalid fractional balance for kava1qg7c45n6: negative amount: -1",
+			"invalid fractional balance for kava1qg7c45n6: non-positive amount -1",
 		},
 		{
 			"invalid - duplicate address",
@@ -52,7 +52,7 @@ func TestFractionalBalances_Validate(t *testing.T) {
 				types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
 				types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
 			},
-			"duplicate address: kava1qy0xn7za",
+			"duplicate address kava1qy0xn7za",
 		},
 	}
 
