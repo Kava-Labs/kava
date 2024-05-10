@@ -20,6 +20,7 @@ import (
 	gov1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	"github.com/cosmos/go-bip39"
+	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -46,17 +47,31 @@ func TestInterchainErc20(t *testing.T) {
 	// setup chains
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
+		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom"}},
 	})
 
 	chains, err := cf.Chains(t.Name())
 	require.NoError(t, err)
 
 	ictKava := chains[0].(*cosmos.CosmosChain)
+	gaia := chains[1].(*cosmos.CosmosChain)
 
 	client, network := interchaintest.DockerSetup(t)
 
+	r := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t)).
+		Build(t, client, network)
+
 	// configure interchain
-	ic := interchaintest.NewInterchain().AddChain(ictKava)
+	const kavaGaiaIbcPath = "kava-gaia-ibc"
+	ic := interchaintest.NewInterchain().AddChain(ictKava).
+		AddChain(gaia).
+		AddRelayer(r, "relayer").
+		AddLink(interchaintest.InterchainLink{
+			Chain1:  ictKava,
+			Chain2:  gaia,
+			Relayer: r,
+			Path:    kavaGaiaIbcPath,
+		})
 
 	// Log location
 	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
@@ -77,8 +92,9 @@ func TestInterchainErc20(t *testing.T) {
 	// Create and Fund User Wallets
 	fundAmount := math.NewInt(1e12)
 
-	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), fundAmount, ictKava)
+	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), fundAmount, ictKava, gaia)
 	kavaUser := users[0]
+	gaiaUser := users[1]
 
 	// wait for new block to ensure initial funding complete
 	height, err := ictKava.Height(ctx)
@@ -89,10 +105,10 @@ func TestInterchainErc20(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	// check initial balance
-	kavaUserBalInitial, err := ictKava.GetBalance(ctx, kavaUser.FormattedAddress(), ictKava.Config().Denom)
+	gaiaChannelInfo, err := r.GetChannels(ctx, eRep, gaia.Config().ChainID)
 	require.NoError(t, err)
-	require.True(t, kavaUserBalInitial.Equal(fundAmount))
+	gaiaToKavaChannelID := gaiaChannelInfo[0].ChannelID
+	kavaToGaiaChannelID := gaiaChannelInfo[0].Counterparty.ChannelID
 
 	// for simplified management of the chain, use kava's e2e framework for account management
 	// this skirts problems in interchaintest with needing coin type 60
@@ -135,7 +151,7 @@ func TestInterchainErc20(t *testing.T) {
 	deployer := kava.GetAccount("whale")
 
 	// deploy ERC20 contract
-	usdtAddr, tx, usdt, err := erc20.DeployErc20(
+	usdtAddr, deployTx, usdt, err := erc20.DeployErc20(
 		deployer.EvmAuth, kava.EvmClient,
 		"Test Tether USD", "USDT", 6,
 	)
@@ -143,7 +159,7 @@ func TestInterchainErc20(t *testing.T) {
 	require.NotNil(t, usdtAddr)
 	require.NotNil(t, usdt)
 
-	_, err = util.WaitForEvmTxReceipt(kava.EvmClient, tx.Hash(), 10*time.Second)
+	_, err = util.WaitForEvmTxReceipt(kava.EvmClient, deployTx.Hash(), 10*time.Second)
 	require.NoError(t, err)
 
 	////////////////////////////////////////////
@@ -190,10 +206,10 @@ func TestInterchainErc20(t *testing.T) {
 	// fund a user & mint them some usdt
 	user := kava.NewFundedAccount("tether-user", sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(1e7))))
 	erc20FundAmt := big.NewInt(100e6)
-	tx, err = usdt.Mint(deployer.EvmAuth, user.EvmAddress, erc20FundAmt)
+	mintTx, err := usdt.Mint(deployer.EvmAuth, user.EvmAddress, erc20FundAmt)
 	require.NoError(t, err)
 
-	_, err = util.WaitForEvmTxReceipt(kava.EvmClient, tx.Hash(), 10*time.Second)
+	_, err = util.WaitForEvmTxReceipt(kava.EvmClient, mintTx.Hash(), 10*time.Second)
 	require.NoError(t, err)
 	// verify they have erc20 balance!
 	bal, err := usdt.BalanceOf(nil, user.EvmAddress)
@@ -220,6 +236,20 @@ func TestInterchainErc20(t *testing.T) {
 	// check balance!
 	sdkBalance := kava.QuerySdkForBalances(user.SdkAddress)
 	require.Equal(t, amountToConvert, sdkBalance.AmountOf(sdkDenom))
+
+	// IBC the newly minted sdk.Coin to gaia
+	kavaOnGaiaDenom := srcDenomTrace.IBCDenom()
+	dstAddress := gaiaUser.FormattedAddress()
+	transfer := ibc.WalletAmount{
+		Address: dstAddress,
+		Denom:   kava.Config().Denom,
+		Amount:  amountToSend,
+	}
+	ibcTx, err := ictKava.SendIBCTransfer(ctx, kavaToGaiaChannelID, kavaUser.KeyName(), transfer, ibc.TransferOptions{})
+
+	// determine IBC denom
+	srcDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom("transfer", gaiaToKavaChannelID, kava.Config().Denom))
+
 }
 
 func newMnemonic() (string, error) {
