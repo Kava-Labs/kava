@@ -6644,7 +6644,7 @@ FractionalBalance defines the fractional portion of an account balance
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `address` | [string](#string) |  | address is the address of the balance holder. |
-| `amount` | [string](#string) |  | amount indicates amount of only the fractional balance owned by the address. |
+| `amount` | [string](#string) |  | amount indicates amount of only the fractional balance owned by the address. FractionalBalance currently only supports tracking 1 single asset, e.g. fractional balances of ukava. |
 
 
 

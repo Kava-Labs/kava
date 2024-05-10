@@ -75,7 +75,9 @@ func (m *GenesisState) GetBalances() FractionalBalances {
 type FractionalBalance struct {
 	// address is the address of the balance holder.
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// amount indicates amount of only the fractional balance owned by the address.
+	// amount indicates amount of only the fractional balance owned by the
+	// address. FractionalBalance currently only supports tracking 1 single asset,
+	// e.g. fractional balances of ukava.
 	Amount cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=amount,proto3,customtype=cosmossdk.io/math.Int" json:"amount"`
 }
 
