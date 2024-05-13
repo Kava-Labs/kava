@@ -422,6 +422,8 @@ github.com/cosmos/gogogateway v1.2.0/go.mod h1:iQpLkGWxYcnCdz5iAdLcRBSw3h7NXeOkZ
 github.com/cosmos/gogoproto v1.4.2/go.mod h1:cLxOsn1ljAHSV527CHOtaIP91kK6cCrZETRBrkzItWU=
 github.com/cosmos/gogoproto v1.4.10 h1:QH/yT8X+c0F4ZDacDv3z+xE3WU1P1Z3wQoLMBRJoKuI=
 github.com/cosmos/gogoproto v1.4.10/go.mod h1:3aAZzeRWpAwr+SS/LLkICX2/kDFyaYVzckBDzygIxek=
+github.com/cosmos/iavl v1.1.3-0.20240508141442-4ad064ece06e h1:XsqaeADjXcUTxNVIH2lUCukHnBwRLNE0INyNDtwDCQw=
+github.com/cosmos/iavl v1.1.3-0.20240508141442-4ad064ece06e/go.mod h1:vCYmRQUJU1wwj0oRD3wMEtOM9sJNDP+GFMaXmIxZ/rU=
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3 h1:MZGDMETv72suFpTAD6VPGqSIm1FJcChtk2HmVh9D+Bo=
 github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3/go.mod h1:UvDmcGIWJPIytq+Q78/ff5NTOsuX/7IrNgEugTW5i0s=
 github.com/cosmos/ibc-go/v7 v7.4.0 h1:8FqYMptvksgMvlbN4UW9jFxTXzsPyfAzEZurujXac8M=
@@ -885,12 +887,10 @@ github.com/kava-labs/cometbft v0.37.4-kava.1 h1:QRuyBieWdUBpe4pcXgzu1SdMH2lkTaqX
 github.com/kava-labs/cometbft v0.37.4-kava.1/go.mod h1:Cmg5Hp4sNpapm7j+x0xRyt2g0juQfmB752ous+pA0G8=
 github.com/kava-labs/cometbft-db v0.9.1-kava.2 h1:ZQaio886ifvml9XtJB4IYHhlArgA3+/a5Zwidg7H2J8=
 github.com/kava-labs/cometbft-db v0.9.1-kava.2/go.mod h1:PvUZbx7zeR7I4CAvtKBoii/5ia5gXskKjDjIVpt7gDw=
-github.com/kava-labs/cosmos-sdk v0.47.10-kava.2 h1:S7NLuxlZLs3ZCBnRO0MKCrk2ycE2mV4f1lAKFYAY5Ig=
-github.com/kava-labs/cosmos-sdk v0.47.10-kava.2/go.mod h1:cHG71LpN66kix5O1B7MdK1ePeXCNk0xBMWEJRzkoAc8=
+github.com/kava-labs/cosmos-sdk v0.47.10-kava.2.0.20240513211054-6307579aa7c3 h1:yoG126VtO/+iy37FP9qk25YfGE20hIsuHOgsFyMspSs=
+github.com/kava-labs/cosmos-sdk v0.47.10-kava.2.0.20240513211054-6307579aa7c3/go.mod h1:fiz4npziw4VCqQetip5RGyK2FVFqjyiBvrPgWrSVkPY=
 github.com/kava-labs/ethermint v0.21.0-kava-v26.3 h1:25fl1iNjI+eESaF4AlCpIXBn9YNPlLLjOfwe+HHAp8M=
 github.com/kava-labs/ethermint v0.21.0-kava-v26.3/go.mod h1:4nqiVLy8H8UFtgpnmNwX+bbh5QMGLALZ0awUZLCOCMo=
-github.com/kava-labs/iavl v1.0.1-0.20240424201543-6db50239f44d h1:TY6t8VJE6MqWboTpWIxEcwnZZX6+79akbvVzWeiMzAQ=
-github.com/kava-labs/iavl v1.0.1-0.20240424201543-6db50239f44d/go.mod h1:CmTGqMnRnucjxbjduneZXT+0vPgNElYvdefjX2q9tYc=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=

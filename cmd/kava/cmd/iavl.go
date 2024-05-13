@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store/wrapper"
+	iavldb "github.com/cosmos/iavl/db"
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 
@@ -111,7 +112,9 @@ func readTree(db dbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) 
 		db = dbm.NewPrefixDB(db, prefix)
 	}
 
-	tree := iavl.NewMutableTree(db, DefaultCacheSize, false, log.NewLogger(os.Stdout))
+	iavldb := iavldb.NewWrapper(db)
+
+	tree := iavl.NewMutableTree(iavldb, DefaultCacheSize, false, log.NewLogger(os.Stdout))
 	ver, err := tree.LoadVersion(int64(version))
 	if err != nil {
 		return nil, err
