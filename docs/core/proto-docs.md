@@ -477,6 +477,7 @@
     - [Msg](#kava.liquid.v1beta1.Msg)
   
 - [kava/precisebank/v1/genesis.proto](#kava/precisebank/v1/genesis.proto)
+    - [FractionalBalance](#kava.precisebank.v1.FractionalBalance)
     - [GenesisState](#kava.precisebank.v1.GenesisState)
   
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
@@ -6634,10 +6635,31 @@ Msg defines the liquid Msg service.
 
 
 
+<a name="kava.precisebank.v1.FractionalBalance"></a>
+
+### FractionalBalance
+FractionalBalance defines the fractional portion of an account balance
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the address of the balance holder. |
+| `amount` | [string](#string) |  | amount indicates amount of only the fractional balance owned by the address. FractionalBalance currently only supports tracking 1 single asset, e.g. fractional balances of ukava. |
+
+
+
+
+
+
 <a name="kava.precisebank.v1.GenesisState"></a>
 
 ### GenesisState
 GenesisState defines the precisebank module's genesis state.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `balances` | [FractionalBalance](#kava.precisebank.v1.FractionalBalance) | repeated | balances is a list of all the balances in the precisebank module. |
 
 
 

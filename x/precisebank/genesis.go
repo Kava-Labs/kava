@@ -33,5 +33,5 @@ func InitGenesis(
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-	return types.NewGenesisState()
+	return types.NewGenesisState(nil)
 }
