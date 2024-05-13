@@ -25,22 +25,40 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 		name         string
 		setupFn      func()
 		genesisState *types.GenesisState
-		shouldPanic  bool
 		panicMsg     string
 	}{
 		{
-			"default genesisState",
+			"valid - default genesisState",
 			func() {},
 			types.DefaultGenesisState(),
-			false,
 			"",
 		},
 		{
-			"empty genesisState",
+			"valid - empty genesisState",
 			func() {},
 			&types.GenesisState{},
-			true,
 			"failed to validate precisebank genesis state: nil remainder amount",
+		},
+		{
+			"valid - module balance matches non-zero amount",
+			func() {
+				// Set module account balance to expected amount
+				err := suite.BankKeeper.MintCoins(
+					suite.Ctx,
+					types.ModuleName,
+					sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(2))),
+				)
+				suite.Require().NoError(err)
+			},
+			types.NewGenesisState(
+				types.FractionalBalances{
+					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.MaxFractionalAmount()),
+					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.MaxFractionalAmount()),
+				},
+				// 2 leftover from 0.999... + 0.999...
+				sdkmath.NewInt(2),
+			),
+			"",
 		},
 		{
 			// Other GenesisState.Validate() tests are in types/genesis_test.go
@@ -53,8 +71,40 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				},
 				sdkmath.ZeroInt(),
 			),
-			true,
 			"failed to validate precisebank genesis state: invalid balances: duplicate address kava1qy0xn7za",
+		},
+		{
+			"invalid - module balance insufficient",
+			func() {},
+			types.NewGenesisState(
+				types.FractionalBalances{
+					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.MaxFractionalAmount()),
+					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.MaxFractionalAmount()),
+				},
+				// 2 leftover from 0.999... + 0.999...
+				sdkmath.NewInt(2),
+			),
+			"module account balance does not match sum of fractional balances and remainder, balance is 0 but expected 2",
+		},
+		{
+			"invalid - module balance excessive",
+			func() {
+				// Set module account balance to greater than expected amount
+				err := suite.BankKeeper.MintCoins(
+					suite.Ctx,
+					types.ModuleName,
+					sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100))),
+				)
+				suite.Require().NoError(err)
+			},
+			types.NewGenesisState(
+				types.FractionalBalances{
+					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.MaxFractionalAmount()),
+					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.MaxFractionalAmount()),
+				},
+				sdkmath.NewInt(2),
+			),
+			"module account balance does not match sum of fractional balances and remainder, balance is 100 but expected 2",
 		},
 		{
 			"sets module account",
@@ -69,14 +119,16 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				suite.Require().Nil(suite.AccountKeeper.GetAccount(suite.Ctx, moduleAcc.GetAddress()))
 			},
 			types.DefaultGenesisState(),
-			false,
 			"",
 		},
 	}
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			if tc.shouldPanic {
+			suite.SetupTest()
+			tc.setupFn()
+
+			if tc.panicMsg != "" {
 				suite.Require().PanicsWithValue(
 					tc.panicMsg,
 					func() {

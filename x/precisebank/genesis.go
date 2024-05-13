@@ -28,15 +28,25 @@ func InitGenesis(
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
-	// Additional validations that requires checking balances
+	// Check module balance matches sum of fractional balances + remainder
+	totalAmt := gs.TotalAmountWithRemainder()
+	splitAmt := types.NewSplitBalanceFromFullAmount(totalAmt)
 
-	// TODO:
-	// - Set balances
-	// - Ensure reserve account exists
-	// - Ensure reserve balance matches sum of all fractional balances
+	moduleAddr := ak.GetModuleAddress(types.ModuleName)
+	moduleBal := bk.GetBalance(ctx, moduleAddr, "ukava")
+
+	if !moduleBal.Amount.Equal(splitAmt.IntegerAmount) {
+		panic(fmt.Sprintf(
+			"module account balance does not match sum of fractional balances and remainder, balance is %s but expected %s",
+			moduleBal.Amount, splitAmt.IntegerAmount,
+		))
+	}
+
+	// TODO: After keeper methods are implemented
+	// - Set account FractionalBalances
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-	return types.NewGenesisState(nil, sdkmath.ZeroInt())
+	return types.NewGenesisState(types.FractionalBalances{}, sdkmath.ZeroInt())
 }

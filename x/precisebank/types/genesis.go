@@ -6,6 +6,22 @@ import (
 	sdkmath "cosmossdk.io/math"
 )
 
+// NewGenesisState creates a new genesis state.
+func NewGenesisState(
+	balances FractionalBalances,
+	remainder sdkmath.Int,
+) *GenesisState {
+	return &GenesisState{
+		Balances:  balances,
+		Remainder: remainder,
+	}
+}
+
+// DefaultGenesisState returns a default genesis state.
+func DefaultGenesisState() *GenesisState {
+	return NewGenesisState(FractionalBalances{}, sdkmath.ZeroInt())
+}
+
 // Validate performs basic validation of genesis data returning an  error for
 // any failed validation criteria.
 func (gs *GenesisState) Validate() error {
@@ -46,18 +62,9 @@ func (gs *GenesisState) Validate() error {
 	return nil
 }
 
-// NewGenesisState creates a new genesis state.
-func NewGenesisState(
-	balances FractionalBalances,
-	remainder sdkmath.Int,
-) *GenesisState {
-	return &GenesisState{
-		Balances:  balances,
-		Remainder: remainder,
-	}
-}
-
-// DefaultGenesisState returns a default genesis state.
-func DefaultGenesisState() *GenesisState {
-	return NewGenesisState(FractionalBalances{}, sdkmath.ZeroInt())
+// TotalAmountWithRemainder returns the total amount of all balances in the
+// genesis state, including both fractional balances and the remainder. A bit
+// more verbose WithRemainder to ensure its clearly different from SumAmount().
+func (gs *GenesisState) TotalAmountWithRemainder() sdkmath.Int {
+	return gs.Balances.SumAmount().Add(gs.Remainder)
 }

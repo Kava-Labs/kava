@@ -5,12 +5,15 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGenesisStateValidate_Basic(t *testing.T) {
+	app.SetSDKConfig()
+
 	testCases := []struct {
 		name         string
 		genesisState *types.GenesisState
@@ -57,7 +60,7 @@ func TestGenesisStateValidate_Basic(t *testing.T) {
 				},
 				sdkmath.ZeroInt(),
 			),
-			"invalid balances: duplicate address cosmos1qyfkm2y3",
+			"invalid balances: duplicate address kava1qy0xn7za",
 		},
 		{
 			"invalid - calls (single) FractionalBalance.Validate()",
@@ -68,7 +71,7 @@ func TestGenesisStateValidate_Basic(t *testing.T) {
 				},
 				sdkmath.ZeroInt(),
 			),
-			"invalid balances: invalid fractional balance for cosmos1qgcgaq4k: non-positive amount -1",
+			"invalid balances: invalid fractional balance for kava1qg7c45n6: non-positive amount -1",
 		},
 		{
 			"invalid - calls (slice) FractionalBalances.Validate()",
@@ -79,7 +82,7 @@ func TestGenesisStateValidate_Basic(t *testing.T) {
 				},
 				sdkmath.ZeroInt(),
 			),
-			"invalid balances: duplicate address cosmos1qyfkm2y3",
+			"invalid balances: duplicate address kava1qy0xn7za",
 		},
 		{
 			"invalid - negative remainder",
@@ -196,6 +199,62 @@ func TestGenesisStateValidate_Total(t *testing.T) {
 	}
 }
 
+func TestGenesisState_TotalAmountWithRemainder(t *testing.T) {
+	tests := []struct {
+		name                         string
+		giveBalances                 types.FractionalBalances
+		giveRemainder                sdkmath.Int
+		wantTotalAmountWithRemainder sdkmath.Int
+	}{
+		{
+			"empty balances, zero remainder",
+			types.FractionalBalances{},
+			sdkmath.ZeroInt(),
+			sdkmath.ZeroInt(),
+		},
+		{
+			"non-empty balances, zero remainder",
+			types.FractionalBalances{
+				types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.ConversionFactor().QuoRaw(2)),
+				types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.ConversionFactor().QuoRaw(2)),
+			},
+			sdkmath.ZeroInt(),
+			types.ConversionFactor(),
+		},
+		{
+			"non-empty balances, 1 remainder",
+			types.FractionalBalances{
+				types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.ConversionFactor().QuoRaw(2)),
+				types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.ConversionFactor().QuoRaw(2).SubRaw(1)),
+			},
+			sdkmath.OneInt(),
+			types.ConversionFactor(),
+		},
+		{
+			"non-empty balances, max remainder",
+			types.FractionalBalances{
+				types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.OneInt()),
+			},
+			types.ConversionFactor().SubRaw(1),
+			types.ConversionFactor(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gs := types.NewGenesisState(
+				tt.giveBalances,
+				tt.giveRemainder,
+			)
+
+			require.NoError(t, gs.Validate(), "genesis state should be valid before testing total amount")
+
+			totalAmt := gs.TotalAmountWithRemainder()
+			require.Equal(t, tt.wantTotalAmountWithRemainder, totalAmt, "total amount should be balances + remainder")
+		})
+	}
+}
+
 func FuzzGenesisStateValidate_NonZeroRemainder(f *testing.F) {
 	f.Add(5)
 	f.Add(100)
@@ -223,7 +282,7 @@ func FuzzGenesisStateValidate_ZeroRemainder(f *testing.F) {
 	f.Add(30)
 
 	f.Fuzz(func(t *testing.T, count int) {
-		// Need at least 2 as 1 account is not valid
+		// Need at least 2 as 1 account with non-zero balance & no remainder is not valid
 		if count < 2 {
 			t.Skip("count < 2")
 		}
