@@ -79,7 +79,8 @@ func (k *Keeper) IterateFractionalBalances(
 
 // GetAggregateSumFractionalBalances returns the sum of all fractional balances.
 func (k *Keeper) GetAggregateSumFractionalBalances(ctx sdk.Context) sdkmath.Int {
-	var sum sdkmath.Int
+	sum := sdkmath.ZeroInt()
+
 	k.IterateFractionalBalances(ctx, func(_ sdk.AccAddress, amount sdkmath.Int) bool {
 		sum = sum.Add(amount)
 		return false

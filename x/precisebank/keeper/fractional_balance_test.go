@@ -13,13 +13,20 @@ import (
 	"github.com/kava-labs/kava/x/precisebank/types"
 )
 
-func TestSetGetFractionalBalance(t *testing.T) {
+func NewTestKeeper() (sdk.Context, keeper.Keeper) {
 	storeKey := sdk.NewKVStoreKey(types.ModuleName)
 	tKey := sdk.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
+
 	tApp := app.NewTestApp()
 	cdc := tApp.AppCodec()
 	k := keeper.NewKeeper(cdc, storeKey)
+
+	return ctx, k
+}
+
+func TestSetGetFractionalBalance(t *testing.T) {
+	ctx, k := NewTestKeeper()
 
 	addr := sdk.AccAddress([]byte("test-address"))
 
@@ -87,4 +94,51 @@ func TestSetGetFractionalBalance(t *testing.T) {
 			require.Equal(t, tt.amount, gotAmount)
 		})
 	}
+}
+
+func TestIterateFractionalBalances(t *testing.T) {
+	ctx, k := NewTestKeeper()
+
+	addrs := []sdk.AccAddress{}
+
+	for i := 1; i < 10; i++ {
+		addr := sdk.AccAddress([]byte{byte(i)})
+		addrs = append(addrs, addr)
+
+		// Set balance same as their address byte
+		k.SetFractionalBalance(ctx, addr, sdkmath.NewInt(int64(i)))
+	}
+
+	seenAddrs := []sdk.AccAddress{}
+
+	k.IterateFractionalBalances(ctx, func(addr sdk.AccAddress, bal sdkmath.Int) bool {
+		seenAddrs = append(seenAddrs, addr)
+
+		// Balance is same as first address byte
+		require.Equal(t, int64(addr.Bytes()[0]), bal.Int64())
+
+		return false
+	})
+
+	require.ElementsMatch(t, addrs, seenAddrs, "all addresses should be seen")
+}
+
+func TestGetAggregateSumFractionalBalances(t *testing.T) {
+	ctx, k := NewTestKeeper()
+
+	// Set balances from 1 to 10
+	sum := sdkmath.ZeroInt()
+	for i := 1; i < 10; i++ {
+		addr := sdk.AccAddress([]byte{byte(i)})
+		amt := sdkmath.NewInt(int64(i))
+
+		sum = sum.Add(amt)
+
+		require.NotPanics(t, func() {
+			k.SetFractionalBalance(ctx, addr, amt)
+		})
+	}
+
+	gotSum := k.GetAggregateSumFractionalBalances(ctx)
+	require.Equal(t, sum, gotSum)
 }
