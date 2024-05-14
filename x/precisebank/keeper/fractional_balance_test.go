@@ -55,10 +55,10 @@ func TestSetGetFractionalBalance(t *testing.T) {
 			"",
 		},
 		{
-			"invalid - zero amount",
+			"valid - zero amount (deletes)",
 			addr,
 			sdkmath.ZeroInt(),
-			"amount is invalid: non-positive amount 0",
+			"",
 		},
 		{
 			"invalid - negative amount",
@@ -92,8 +92,33 @@ func TestSetGetFractionalBalance(t *testing.T) {
 			gotAmount, exists := k.GetFractionalBalance(ctx, tt.address)
 			require.True(t, exists)
 			require.Equal(t, tt.amount, gotAmount)
+
+			// Delete balance
+			k.DeleteFractionalBalance(ctx, tt.address)
+
+			_, exists = k.GetFractionalBalance(ctx, tt.address)
+			require.False(t, exists)
 		})
 	}
+}
+
+func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
+	ctx, k := NewTestKeeper()
+
+	addr := sdk.AccAddress([]byte("test-address"))
+
+	// Set balance
+	k.SetFractionalBalance(ctx, addr, sdkmath.NewInt(100))
+
+	bal, exists := k.GetFractionalBalance(ctx, addr)
+	require.True(t, exists)
+	require.Equal(t, sdkmath.NewInt(100), bal)
+
+	// Set zero balance
+	k.SetFractionalBalance(ctx, addr, sdkmath.ZeroInt())
+
+	_, exists = k.GetFractionalBalance(ctx, addr)
+	require.False(t, exists)
 }
 
 func TestIterateFractionalBalances(t *testing.T) {

@@ -36,6 +36,11 @@ func (k *Keeper) SetFractionalBalance(
 	address sdk.AccAddress,
 	amount sdkmath.Int,
 ) {
+	if amount.IsZero() {
+		k.DeleteFractionalBalance(ctx, address)
+		return
+	}
+
 	// Ensure the fractional balance is valid before setting it. Use the
 	// NewFractionalAmountFromInt wrapper to use its Validate() method.
 	if err := types.NewFractionalAmountFromInt(amount).Validate(); err != nil {
@@ -50,6 +55,15 @@ func (k *Keeper) SetFractionalBalance(
 	}
 
 	store.Set(types.FractionalBalanceKey(address), amountBytes)
+}
+
+// DeleteFractionalBalance deletes the fractional balance for an address.
+func (k *Keeper) DeleteFractionalBalance(
+	ctx sdk.Context,
+	address sdk.AccAddress,
+) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FractionalBalancePrefix)
+	store.Delete(types.FractionalBalanceKey(address))
 }
 
 // IterateFractionalBalances iterates over all fractional balances in the store
