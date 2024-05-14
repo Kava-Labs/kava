@@ -1,6 +1,7 @@
 package types_test
 
 import (
+	"math/big"
 	"math/rand"
 	"strings"
 	"testing"
@@ -134,4 +135,25 @@ func TestFractionalBalances_SumAmount(t *testing.T) {
 			require.Equal(t, tt.wantSum, sum)
 		})
 	}
+}
+
+func TestFractionalBalances_SumAmount_Overflow(t *testing.T) {
+	// 2^256 - 1
+	maxInt := new(big.Int).Sub(
+		new(big.Int).Exp(big.NewInt(2), big.NewInt(256), nil),
+		big.NewInt(1),
+	)
+
+	fbs := types.FractionalBalances{
+		types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(100)),
+		// This is NOT valid, but just to test overflows will panic
+		types.NewFractionalBalance(
+			sdk.AccAddress{2}.String(),
+			sdkmath.NewIntFromBigInt(maxInt),
+		),
+	}
+
+	require.PanicsWithError(t, sdkmath.ErrIntOverflow.Error(), func() {
+		_ = fbs.SumAmount()
+	})
 }
