@@ -89,6 +89,14 @@ func TestSetGetFractionalBalance(t *testing.T) {
 				k.SetFractionalBalance(ctx, tt.address, tt.amount)
 			})
 
+			// If its zero balance, check it was deleted
+			if tt.amount.IsZero() {
+				_, exists := k.GetFractionalBalance(ctx, tt.address)
+				require.False(t, exists)
+
+				return
+			}
+
 			gotAmount, exists := k.GetFractionalBalance(ctx, tt.address)
 			require.True(t, exists)
 			require.Equal(t, tt.amount, gotAmount)

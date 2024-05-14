@@ -12,12 +12,12 @@ import (
 // GetRemainderAmount returns the internal remainder amount.
 func (k *Keeper) GetRemainderAmount(
 	ctx sdk.Context,
-) (sdkmath.Int, bool) {
+) sdkmath.Int {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.RemainderBalanceKey)
 	if bz == nil {
-		return sdkmath.ZeroInt(), false
+		return sdkmath.ZeroInt()
 	}
 
 	var bal sdkmath.Int
@@ -25,7 +25,7 @@ func (k *Keeper) GetRemainderAmount(
 		panic(fmt.Errorf("failed to unmarshal fractional balance: %w", err))
 	}
 
-	return bal, true
+	return bal
 }
 
 // SetRemainderAmount sets the internal remainder amount.
