@@ -4,29 +4,15 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kava-labs/kava/app"
-	"github.com/kava-labs/kava/x/precisebank/keeper"
 	"github.com/kava-labs/kava/x/precisebank/types"
 )
 
-func NewTestKeeper() (sdk.Context, keeper.Keeper) {
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
-	tKey := sdk.NewTransientStoreKey("transient_test")
-	ctx := testutil.DefaultContext(storeKey, tKey)
-
-	tApp := app.NewTestApp()
-	cdc := tApp.AppCodec()
-	k := keeper.NewKeeper(cdc, storeKey)
-
-	return ctx, k
-}
-
 func TestSetGetFractionalBalance(t *testing.T) {
-	ctx, k := NewTestKeeper()
+	tk := NewTestKeeper()
+	ctx, k := tk.ctx, tk.keeper
 
 	addr := sdk.AccAddress([]byte("test-address"))
 
@@ -111,7 +97,8 @@ func TestSetGetFractionalBalance(t *testing.T) {
 }
 
 func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
-	ctx, k := NewTestKeeper()
+	tk := NewTestKeeper()
+	ctx, k := tk.ctx, tk.keeper
 
 	addr := sdk.AccAddress([]byte("test-address"))
 
@@ -130,7 +117,8 @@ func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
 }
 
 func TestIterateFractionalBalances(t *testing.T) {
-	ctx, k := NewTestKeeper()
+	tk := NewTestKeeper()
+	ctx, k := tk.ctx, tk.keeper
 
 	addrs := []sdk.AccAddress{}
 
@@ -157,7 +145,8 @@ func TestIterateFractionalBalances(t *testing.T) {
 }
 
 func TestGetAggregateSumFractionalBalances(t *testing.T) {
-	ctx, k := NewTestKeeper()
+	tk := NewTestKeeper()
+	ctx, k := tk.ctx, tk.keeper
 
 	// Set balances from 1 to 10
 	sum := sdkmath.ZeroInt()

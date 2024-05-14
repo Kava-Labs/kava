@@ -33,6 +33,19 @@ func (k *Keeper) SetRemainderAmount(
 	ctx sdk.Context,
 	amount sdkmath.Int,
 ) {
+	// Prevent storing zero amounts. In practice, the remainder amount should
+	// only be non-zero during transactions as mint and burns should net zero
+	// due to only being used for EVM transfers.
+	if amount.IsZero() {
+		k.DeleteRemainderAmount(ctx)
+		return
+	}
+
+	// Ensure the fractional balance is valid before setting it.
+	if err := types.NewFractionalAmountFromInt(amount).Validate(); err != nil {
+		panic(fmt.Errorf("remainder amount is invalid: %w", err))
+	}
+
 	store := ctx.KVStore(k.storeKey)
 
 	amountBytes, err := amount.Marshal()
@@ -41,4 +54,12 @@ func (k *Keeper) SetRemainderAmount(
 	}
 
 	store.Set(types.RemainderBalanceKey, amountBytes)
+}
+
+// DeleteRemainderAmount deletes the internal remainder amount.
+func (k *Keeper) DeleteRemainderAmount(
+	ctx sdk.Context,
+) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.RemainderBalanceKey)
 }
