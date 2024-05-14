@@ -13,7 +13,7 @@ var (
 	conversionFactor = sdkmath.NewInt(1_000_000_000_000)
 	// maxFractionalAmount is the largest valid value in a FractionalBalance amount.
 	// This is for direct internal use so that there are no extra allocations.
-	maxFractionalAmount = sdkmath.NewInt(1_000_000_000_000).SubRaw(1)
+	maxFractionalAmount = conversionFactor.SubRaw(1)
 )
 
 // ConversionFactor returns a copy of the conversionFactor used to convert the
