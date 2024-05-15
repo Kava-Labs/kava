@@ -84,7 +84,7 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				// 2 leftover from 0.999... + 0.999...
 				sdkmath.NewInt(2),
 			),
-			"module account balance does not match sum of fractional balances and remainder, balance is 0ukava but expected 2ukava",
+			"module account balance does not match sum of fractional balances and remainder, balance is 0ukava but expected 2000000000000akava (2ukava)",
 		},
 		{
 			"invalid - module balance excessive",
@@ -104,7 +104,7 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				},
 				sdkmath.NewInt(2),
 			),
-			"module account balance does not match sum of fractional balances and remainder, balance is 100ukava but expected 2ukava",
+			"module account balance does not match sum of fractional balances and remainder, balance is 100ukava but expected 2000000000000akava (2ukava)",
 		},
 		{
 			"sets module account",

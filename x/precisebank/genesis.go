@@ -32,17 +32,18 @@ func InitGenesis(
 	// This is always a whole integer amount, as previously verified in
 	// GenesisState.Validate()
 	totalAmt := gs.TotalAmountWithRemainder()
-	totalInteger := totalAmt.Quo(types.ConversionFactor())
 
 	moduleAddr := ak.GetModuleAddress(types.ModuleName)
 	moduleBal := bk.GetBalance(ctx, moduleAddr, types.IntegerCoinDenom)
+	moduleBalExtended := moduleBal.Amount.Mul(types.ConversionFactor())
 
 	// Compare balances in full precise extended amounts
-	if !totalInteger.Equal(moduleBal.Amount) {
+	if !totalAmt.Equal(moduleBalExtended) {
 		panic(fmt.Sprintf(
-			"module account balance does not match sum of fractional balances and remainder, balance is %s but expected %v%s",
+			"module account balance does not match sum of fractional balances and remainder, balance is %s but expected %v%s (%v%s)",
 			moduleBal,
-			totalInteger, types.IntegerCoinDenom,
+			totalAmt, types.ExtendedCoinDenom,
+			totalAmt.Quo(types.ConversionFactor()), types.IntegerCoinDenom,
 		))
 	}
 
