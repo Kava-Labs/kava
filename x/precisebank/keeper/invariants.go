@@ -33,7 +33,7 @@ func AllInvariants(k Keeper) sdk.Invariant {
 // leftover amount.
 func BalancedFractionalTotalInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		fractionalBalSum := k.GetAggregateSumFractionalBalances(ctx)
+		fractionalBalSum := k.GetTotalSumFractionalBalances(ctx)
 		remainderAmount := k.GetRemainderAmount(ctx)
 
 		total := fractionalBalSum.Add(remainderAmount)

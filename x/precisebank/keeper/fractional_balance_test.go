@@ -161,6 +161,6 @@ func TestGetAggregateSumFractionalBalances(t *testing.T) {
 		})
 	}
 
-	gotSum := k.GetAggregateSumFractionalBalances(ctx)
+	gotSum := k.GetTotalSumFractionalBalances(ctx)
 	require.Equal(t, sum, gotSum)
 }
