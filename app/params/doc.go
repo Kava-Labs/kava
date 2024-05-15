@@ -3,7 +3,7 @@ Package params defines the simulation parameters for the Kava app.
 
 It contains the default weights used for each transaction used on the module's
 simulation. These weights define the chance for a transaction to be simulated at
-any gived operation.
+any given operation.
 
 You can replace the default values for the weights by providing a params.json
 file with the weights defined for each of the transaction operations:
