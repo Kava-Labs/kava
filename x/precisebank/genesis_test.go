@@ -52,8 +52,8 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 			},
 			types.NewGenesisState(
 				types.FractionalBalances{
-					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.MaxFractionalAmount()),
-					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.MaxFractionalAmount()),
+					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.ConversionFactor().SubRaw(1)),
+					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.ConversionFactor().SubRaw(1)),
 				},
 				// 2 leftover from 0.999... + 0.999...
 				sdkmath.NewInt(2),
@@ -78,13 +78,13 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 			func() {},
 			types.NewGenesisState(
 				types.FractionalBalances{
-					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.MaxFractionalAmount()),
-					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.MaxFractionalAmount()),
+					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.ConversionFactor().SubRaw(1)),
+					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.ConversionFactor().SubRaw(1)),
 				},
 				// 2 leftover from 0.999... + 0.999...
 				sdkmath.NewInt(2),
 			),
-			"module account balance does not match sum of fractional balances and remainder, balance is 0 but expected 2",
+			"module account balance does not match sum of fractional balances and remainder, balance is 0ukava but expected 2ukava",
 		},
 		{
 			"invalid - module balance excessive",
@@ -99,12 +99,12 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 			},
 			types.NewGenesisState(
 				types.FractionalBalances{
-					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.MaxFractionalAmount()),
-					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.MaxFractionalAmount()),
+					types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.ConversionFactor().SubRaw(1)),
+					types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.ConversionFactor().SubRaw(1)),
 				},
 				sdkmath.NewInt(2),
 			),
-			"module account balance does not match sum of fractional balances and remainder, balance is 100 but expected 2",
+			"module account balance does not match sum of fractional balances and remainder, balance is 100ukava but expected 2ukava",
 		},
 		{
 			"sets module account",

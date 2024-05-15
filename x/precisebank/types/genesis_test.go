@@ -42,7 +42,7 @@ func TestGenesisStateValidate_Basic(t *testing.T) {
 				types.FractionalBalances{
 					types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(1)),
 				},
-				types.MaxFractionalAmount(),
+				types.ConversionFactor().SubRaw(1),
 			),
 			"",
 		},
@@ -102,7 +102,7 @@ func TestGenesisStateValidate_Basic(t *testing.T) {
 					types.NewFractionalBalance(sdk.AccAddress{1}.String(), sdkmath.NewInt(1)),
 					types.NewFractionalBalance(sdk.AccAddress{2}.String(), sdkmath.NewInt(1)),
 				},
-				types.MaxFractionalAmount().AddRaw(1),
+				types.ConversionFactor(),
 			),
 			"remainder 1000000000000 exceeds max of 999999999999",
 		},

@@ -39,7 +39,7 @@ func (gs *GenesisState) Validate() error {
 		return fmt.Errorf("negative remainder amount %s", gs.Remainder)
 	}
 
-	if gs.Remainder.GT(MaxFractionalAmount()) {
+	if gs.Remainder.GTE(conversionFactor) {
 		return fmt.Errorf("remainder %v exceeds max of %v", gs.Remainder, maxFractionalAmount)
 	}
 
@@ -48,7 +48,7 @@ func (gs *GenesisState) Validate() error {
 	sum := gs.Balances.SumAmount()
 	sumWithRemainder := sum.Add(gs.Remainder)
 
-	offBy := sumWithRemainder.Mod(ConversionFactor())
+	offBy := sumWithRemainder.Mod(conversionFactor)
 
 	if !offBy.IsZero() {
 		return fmt.Errorf(

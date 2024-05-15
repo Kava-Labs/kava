@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMaxFractionalAmount_Immutable(t *testing.T) {
-	max1 := types.MaxFractionalAmount()
-	origInt64 := max1.Int64()
+func TestConversionFactor_Immutable(t *testing.T) {
+	cf1 := types.ConversionFactor()
+	origInt64 := cf1.Int64()
 
 	// Get the internal pointer to the big.Int without copying
-	internalBigInt := max1.BigIntMut()
+	internalBigInt := cf1.BigIntMut()
 
 	// Mutate the big.Int -- .Add() mutates in place
 	internalBigInt.Add(internalBigInt, big.NewInt(5))
@@ -23,36 +23,30 @@ func TestMaxFractionalAmount_Immutable(t *testing.T) {
 	require.Equal(t, origInt64+5, internalBigInt.Int64())
 
 	// Fetch the max amount again
-	max2 := types.MaxFractionalAmount()
+	cf2 := types.ConversionFactor()
 
 	require.Equal(
 		t,
 		origInt64,
-		max2.Int64(),
-		"max amount should be immutable",
+		cf2.Int64(),
+		"conversion factor should be immutable",
 	)
 }
 
-func TestMaxFractionalAmount_Copied(t *testing.T) {
-	max1 := types.MaxFractionalAmount().BigIntMut()
-	max2 := types.MaxFractionalAmount().BigIntMut()
+func TestConversionFactor_Copied(t *testing.T) {
+	max1 := types.ConversionFactor().BigIntMut()
+	max2 := types.ConversionFactor().BigIntMut()
 
 	// Checks that the returned two pointers do not reference the same object
 	require.NotSame(t, max1, max2, "max fractional amount should be copied")
 }
 
-func TestMaxFractionalAmount(t *testing.T) {
+func TestConversionFactor(t *testing.T) {
 	require.Equal(
 		t,
-		sdkmath.NewInt(999_999_999_999),
-		types.MaxFractionalAmount(),
-		"max fractional amount should have 12 decimal points",
-	)
-	require.Equal(
-		t,
-		types.ConversionFactor().SubRaw(1),
-		types.MaxFractionalAmount(),
-		"max fractional amount should be 1 less than the conversion factor",
+		sdkmath.NewInt(1_000_000_000_000),
+		types.ConversionFactor(),
+		"conversion factor should have 12 decimal points",
 	)
 }
 
@@ -109,7 +103,7 @@ func TestFractionalBalance_Validate(t *testing.T) {
 		{
 			"valid - max balance",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
-			types.MaxFractionalAmount(),
+			types.ConversionFactor().SubRaw(1),
 			"",
 		},
 		{
@@ -151,7 +145,7 @@ func TestFractionalBalance_Validate(t *testing.T) {
 		{
 			"invalid - max amount + 1",
 			"kava1gpxd677pp8zr97xvy3pmgk70a9vcpagsakv0tx",
-			types.MaxFractionalAmount().AddRaw(1),
+			types.ConversionFactor(),
 			"amount 1000000000000 exceeds max of 999999999999",
 		},
 		{
