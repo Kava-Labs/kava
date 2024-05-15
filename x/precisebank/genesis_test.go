@@ -46,7 +46,7 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				err := suite.BankKeeper.MintCoins(
 					suite.Ctx,
 					types.ModuleName,
-					sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(2))),
+					sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(2))),
 				)
 				suite.Require().NoError(err)
 			},
@@ -93,7 +93,7 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				err := suite.BankKeeper.MintCoins(
 					suite.Ctx,
 					types.ModuleName,
-					sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100))),
+					sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(100))),
 				)
 				suite.Require().NoError(err)
 			},
