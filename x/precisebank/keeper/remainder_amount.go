@@ -22,7 +22,7 @@ func (k *Keeper) GetRemainderAmount(
 
 	var bal sdkmath.Int
 	if err := bal.Unmarshal(bz); err != nil {
-		panic(fmt.Errorf("failed to unmarshal fractional balance: %w", err))
+		panic(fmt.Errorf("failed to unmarshal remainder amount: %w", err))
 	}
 
 	return bal
@@ -41,7 +41,8 @@ func (k *Keeper) SetRemainderAmount(
 		return
 	}
 
-	// Ensure the fractional balance is valid before setting it.
+	// Ensure the remainder is valid before setting it. Follows the same
+	// validation as FractionalBalance with the same value range.
 	if err := types.NewFractionalAmountFromInt(amount).Validate(); err != nil {
 		panic(fmt.Errorf("remainder amount is invalid: %w", err))
 	}
@@ -50,7 +51,7 @@ func (k *Keeper) SetRemainderAmount(
 
 	amountBytes, err := amount.Marshal()
 	if err != nil {
-		panic(fmt.Errorf("failed to marshal fractional balance: %w", err))
+		panic(fmt.Errorf("failed to marshal remainder amount: %w", err))
 	}
 
 	store.Set(types.RemainderBalanceKey, amountBytes)
