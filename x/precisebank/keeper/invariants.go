@@ -37,16 +37,16 @@ func BalancedFractionalTotalInvariant(k Keeper) sdk.Invariant {
 		remainderAmount := k.GetRemainderAmount(ctx)
 
 		total := fractionalBalSum.Add(remainderAmount)
-		splitBal := types.NewSplitBalanceFromFullAmount(total)
+		fractionalAmount := total.Mod(types.ConversionFactor())
 
 		broken := false
 		msg := ""
 
-		if !splitBal.FractionalAmount.IsZero() {
+		if !fractionalAmount.IsZero() {
 			broken = true
 			msg = fmt.Sprintf(
 				"(sum(FractionalBalances) + remainder) %% conversionFactor should be 0 but got %v",
-				splitBal.FractionalAmount,
+				fractionalAmount,
 			)
 		}
 
