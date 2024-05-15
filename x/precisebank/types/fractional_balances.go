@@ -3,6 +3,8 @@ package types
 import (
 	fmt "fmt"
 	"strings"
+
+	sdkmath "cosmossdk.io/math"
 )
 
 // FractionalBalances is a slice of FractionalBalance
@@ -32,4 +34,15 @@ func (fbs FractionalBalances) Validate() error {
 	}
 
 	return nil
+}
+
+// SumAmount returns the sum of all the amounts in the slice.
+func (fbs FractionalBalances) SumAmount() sdkmath.Int {
+	sum := sdkmath.ZeroInt()
+
+	for _, fb := range fbs {
+		sum = sum.Add(fb.Amount)
+	}
+
+	return sum
 }

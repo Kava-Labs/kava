@@ -6660,6 +6660,7 @@ GenesisState defines the precisebank module's genesis state.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `balances` | [FractionalBalance](#kava.precisebank.v1.FractionalBalance) | repeated | balances is a list of all the balances in the precisebank module. |
+| `remainder` | [string](#string) |  | remainder is an internal value of how much extra fractional digits are still backed by the reserve, but not assigned to any account. |
 
 
 

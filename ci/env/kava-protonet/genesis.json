@@ -3006,7 +3006,9 @@
       },
       "in_flight_packets": {}
     },
-    "precisebank": {},
+    "precisebank": {
+      "remainder": "0"
+    },
     "pricefeed": {
       "params": {
         "markets": [
