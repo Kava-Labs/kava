@@ -15,7 +15,11 @@ const (
 // key prefixes for store
 var (
 	FractionalBalancePrefix = []byte{0x01} // address -> fractional balance
-	RemainderBalanceKey     = []byte{0x02} // fractional balance remainder
+)
+
+// Keys for store that are not prefixed
+var (
+	RemainderBalanceKey = []byte{0x02} // fractional balance remainder
 )
 
 // FractionalBalanceKey returns a key from an address
