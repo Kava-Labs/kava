@@ -41,9 +41,8 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
-// BalancedFractionalTotalInvariant checks that the sum of fractional balances
-// and the remainder amount is divisible by the conversion factor without any
-// leftover amount.
+// ValidFractionalAmountsInvariant checks that all individual fractional
+// balances are valid.
 func ValidFractionalAmountsInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
@@ -69,9 +68,7 @@ func ValidFractionalAmountsInvariant(k Keeper) sdk.Invariant {
 	}
 }
 
-// BalancedFractionalTotalInvariant checks that the sum of fractional balances
-// and the remainder amount is divisible by the conversion factor without any
-// leftover amount.
+// ValidRemainderAmountInvariant checks that the remainder amount is valid.
 func ValidRemainderAmountInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
