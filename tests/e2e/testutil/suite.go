@@ -217,7 +217,7 @@ func (suite *E2eTestSuite) SkipIfIbcDisabled() {
 }
 
 // SkipIfUpgradeDisabled should be called at the start of tests that require automated upgrades.
-// It gracefully skips the current test if upgrades are dissabled.
+// It gracefully skips the current test if upgrades are disabled.
 // Note: automated upgrade tests are currently only enabled for Kvtool suite runs.
 func (suite *E2eTestSuite) SkipIfUpgradeDisabled() {
 	if suite.config.Kvtool != nil && !suite.config.Kvtool.IncludeAutomatedUpgrade {

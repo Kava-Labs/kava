@@ -358,7 +358,7 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 						currentRequest = nil
 					}
 
-					// immediatley response to channel
+					// immediately response to channel
 					responses <- *response
 					// go to next request
 					broadcastTxSeq++
