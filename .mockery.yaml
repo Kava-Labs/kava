@@ -1,0 +1,16 @@
+# Generate EXPECT() methods, type-safe methods to generate call expectations
+with-expecter: true
+
+# Generate mocks in adjacent mocks directory to the interfaces
+dir: "{{.InterfaceDir}}/mocks"
+mockname: "Mock{{.InterfaceName}}"
+outpkg: "mocks"
+filename: "Mock{{.InterfaceName}}.go"
+
+packages:
+  github.com/kava-labs/kava/x/precisebank/types:
+    # package-specific config
+    config:
+    interfaces:
+      AccountKeeper:
+      BankKeeper:
