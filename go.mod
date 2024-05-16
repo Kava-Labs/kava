@@ -224,7 +224,7 @@ replace (
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-kava.2.0.20240513211054-6307579aa7c3
 	// use patched iavl v1 to see if it solves v0.26 upgrade block app hash
-	github.com/cosmos/iavl => github.com/cosmos/iavl v1.1.3-0.20240508141442-4ad064ece06e
+	github.com/cosmos/iavl => github.com/kava-labs/iavl v1.1.3-0.20240516221048-790339a1811e
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
