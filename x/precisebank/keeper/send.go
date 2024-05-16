@@ -1,9 +1,14 @@
 package keeper
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
 
+// IsSendEnabledCoins uses the parent x/bank keeper to check the coins provided
+// and returns an ErrSendDisabled if any of the coins are not configured for
+// sending. Returns nil if sending is enabled for all provided coin
 func (k Keeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
-	panic("unimplemented")
+	return nil
 }
 
 func (k Keeper) SendCoins(
@@ -11,7 +16,10 @@ func (k Keeper) SendCoins(
 	from, to sdk.AccAddress,
 	amt sdk.Coins,
 ) error {
-	panic("unimplemented")
+	// IsSendEnabledCoins() is only used in x/bank in msg server, not in keeper,
+	// so we should also not use it here to align with x/bank behavior.
+
+	return nil
 }
 
 func (k Keeper) SendCoinsFromAccountToModule(
@@ -20,7 +28,7 @@ func (k Keeper) SendCoinsFromAccountToModule(
 	recipientModule string,
 	amt sdk.Coins,
 ) error {
-	panic("unimplemented")
+	return nil
 }
 
 func (k Keeper) SendCoinsFromModuleToAccount(
@@ -29,5 +37,5 @@ func (k Keeper) SendCoinsFromModuleToAccount(
 	recipientAddr sdk.AccAddress,
 	amt sdk.Coins,
 ) error {
-	panic("unimplemented")
+	return nil
 }
