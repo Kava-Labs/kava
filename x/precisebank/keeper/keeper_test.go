@@ -26,7 +26,7 @@ func NewTestKeeper() testKeeper {
 
 	tApp := app.NewTestApp()
 	cdc := tApp.AppCodec()
-	k := keeper.NewKeeper(cdc, storeKey)
+	k := keeper.NewKeeper(cdc, storeKey, nil, nil)
 
 	return testKeeper{
 		ctx:      ctx,
