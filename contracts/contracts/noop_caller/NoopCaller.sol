@@ -11,6 +11,8 @@ interface Noop {
 // It's helpful in EOA -> NoopCaller -> Precompile test scenarios, meaning: EOA calls NoopCaller,
 // NoopCaller calls precompile.
 contract NoopCaller {
+    event Event(string indexed indexedParam, string param);
+
     address private target;
 
     constructor(address _target) {
@@ -30,5 +32,9 @@ contract NoopCaller {
         require(ok, "call to precompiled contract failed");
 
         return data;
+    }
+
+    function emitEvent() external {
+        emit Event("test-indexed-param", "test-param");
     }
 }
