@@ -96,6 +96,20 @@ func TestSetGetFractionalBalance(t *testing.T) {
 	}
 }
 
+func TestSetFractionalBalance_InvalidAddr(t *testing.T) {
+	tk := NewTestKeeper()
+	ctx, k := tk.ctx, tk.keeper
+
+	require.PanicsWithError(
+		t,
+		"address cannot be empty",
+		func() {
+			k.SetFractionalBalance(ctx, sdk.AccAddress{}, sdkmath.NewInt(100))
+		},
+		"setting balance with empty address should panic",
+	)
+}
+
 func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
 	tk := NewTestKeeper()
 	ctx, k := tk.ctx, tk.keeper
@@ -114,6 +128,15 @@ func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
 
 	_, exists = k.GetFractionalBalance(ctx, addr)
 	require.False(t, exists)
+
+	// Set zero balance again on non-existent balance
+	require.NotPanics(
+		t,
+		func() {
+			k.SetFractionalBalance(ctx, addr, sdkmath.ZeroInt())
+		},
+		"deleting non-existent balance should not panic",
+	)
 }
 
 func TestIterateFractionalBalances(t *testing.T) {

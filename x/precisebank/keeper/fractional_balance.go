@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
@@ -36,6 +37,10 @@ func (k *Keeper) SetFractionalBalance(
 	address sdk.AccAddress,
 	amount sdkmath.Int,
 ) {
+	if address.Empty() {
+		panic(errors.New("address cannot be empty"))
+	}
+
 	if amount.IsZero() {
 		k.DeleteFractionalBalance(ctx, address)
 		return
