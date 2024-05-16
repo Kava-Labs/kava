@@ -17,6 +17,7 @@ func RegisterInvariants(
 	ir.RegisterRoute(types.ModuleName, "balance-remainder-total", BalancedFractionalTotalInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "valid-fractional-balances", ValidFractionalAmountsInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "valid-remainder-amount", ValidRemainderAmountInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "fractional-denom-not-in-bank", FractionalDenomNotInBankInvariant(k))
 }
 
 // AllInvariants runs all invariants of the X/precisebank module.
@@ -33,6 +34,11 @@ func AllInvariants(k Keeper) sdk.Invariant {
 		}
 
 		res, stop = ValidRemainderAmountInvariant(k)(ctx)
+		if stop {
+			return res, stop
+		}
+
+		res, stop = FractionalDenomNotInBankInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -117,6 +123,31 @@ func BalancedFractionalTotalInvariant(k Keeper) sdk.Invariant {
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "balance-remainder-total",
+			msg,
+		), broken
+	}
+}
+
+// FractionalDenomNotInBankInvariant checks that the bank does not hold any
+// fractional balances. These assets, e.g. akava, should only exist in the
+// x/precisebank module and shouldn't be "real" assets managed by x/bank.
+func FractionalDenomNotInBankInvariant(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		extBankSupply := k.bk.GetSupply(ctx, types.ExtendedCoinDenom)
+
+		broken := !extBankSupply.IsZero()
+		msg := ""
+
+		if broken {
+			msg = fmt.Sprintf(
+				"x/bank should not hold any %v but has supply of %v",
+				types.ExtendedCoinDenom,
+				extBankSupply,
+			)
+		}
+
+		return sdk.FormatInvariant(
+			types.ModuleName, "fractional-denom-not-in-bank",
 			msg,
 		), broken
 	}

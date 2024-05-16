@@ -22,7 +22,8 @@ func TestKeeper_GetBalance(t *testing.T) {
 		{
 			"extended denom - no fractional balance",
 			types.ExtendedCoinDenom,
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))), // bank balance in ukava
+			// queried bank balance in ukava when querying for akava
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
 			sdkmath.ZeroInt(),
 			// integer + fractional
 			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_000_000_000_000)),
@@ -30,7 +31,7 @@ func TestKeeper_GetBalance(t *testing.T) {
 		{
 			"extended denom - with fractional balance",
 			types.ExtendedCoinDenom,
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))), // bank balance in ukava
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
 			sdkmath.NewInt(100),
 			// integer + fractional
 			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_000_000_000_100)),
@@ -38,15 +39,15 @@ func TestKeeper_GetBalance(t *testing.T) {
 		{
 			"extended denom - max fractional balance",
 			types.ExtendedCoinDenom,
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))), // bank balance in ukava
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
 			types.ConversionFactor().SubRaw(1),
 			// integer + fractional
 			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_999_999_999_999)),
 		},
 		{
 			"non-extended denom - ukava returns ukava",
-			"ukava",
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))),
+			types.IntegerCoinDenom,
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
 			sdk.ZeroInt(),
 			sdk.NewCoin("ukava", sdk.NewInt(1000)),
 		},
