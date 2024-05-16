@@ -47,11 +47,30 @@ func InitGenesis(
 		))
 	}
 
-	// TODO: After keeper methods are implemented
-	// - Set account FractionalBalances
+	// Set FractionalBalances in state
+	for _, bal := range gs.Balances {
+		addr, err := sdk.AccAddressFromBech32(bal.Address)
+		if err != nil {
+			panic(fmt.Errorf("failed to convert address from bech32: %w", err))
+		}
+
+		keeper.SetFractionalBalance(ctx, addr, bal.Amount)
+	}
+
+	// Set remainder amount in state
+	keeper.SetRemainderAmount(ctx, gs.Remainder)
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper.
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) *types.GenesisState {
-	return types.NewGenesisState(types.FractionalBalances{}, sdkmath.ZeroInt())
+	balances := types.FractionalBalances{}
+	keeper.IterateFractionalBalances(ctx, func(addr sdk.AccAddress, amount sdkmath.Int) bool {
+		balances = append(balances, types.NewFractionalBalance(addr.String(), amount))
+
+		return false
+	})
+
+	remainder := keeper.GetRemainderAmount(ctx)
+
+	return types.NewGenesisState(balances, remainder)
 }
