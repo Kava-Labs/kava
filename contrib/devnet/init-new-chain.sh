@@ -26,7 +26,7 @@ rm -rf $DATA
 
 BINARY=kava
 
-# Create new data directory, overwriting any that alread existed
+# Create new data directory, overwriting any that already existed
 chainID="kavalocalnet_8888-1"
 $BINARY init validator --chain-id $chainID
 
