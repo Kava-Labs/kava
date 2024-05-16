@@ -67,6 +67,8 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				hash := tree.Hash()
 				fmt.Printf("Hash: %X\n", hash)
 				fmt.Printf("Size: %X\n", tree.Size())
+			case "hash":
+				fmt.Printf("Hash: %X\n", tree.Hash())
 			case "shape":
 				printShape(tree)
 			case "versions":
