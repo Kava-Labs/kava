@@ -14,7 +14,7 @@ import (
 )
 
 // testData defines necessary fields for testing keeper store methods and mocks
-// that don't require a full app setup.
+// for unit tests without full app setup.
 type testData struct {
 	ctx      sdk.Context
 	keeper   keeper.Keeper
@@ -23,6 +23,8 @@ type testData struct {
 	ak       *mocks.MockAccountKeeper
 }
 
+// NewMockedTestData creates a new testData instance with mocked bank and
+// account keepers.
 func NewMockedTestData(t *testing.T) testData {
 	storeKey := sdk.NewKVStoreKey(types.ModuleName)
 	// Not required by module, but needs to be non-nil for context

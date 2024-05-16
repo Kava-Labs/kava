@@ -58,10 +58,17 @@ func TestKeeper_GetBalance(t *testing.T) {
 			sdk.NewCoin("ukava", sdk.NewInt(1000)),
 		},
 		{
-			"unaffected/unmanaged denom",
+			"unrelated denom - no fractional",
 			"busd",
 			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
 			sdk.ZeroInt(),
+			sdk.NewCoin("busd", sdk.NewInt(1000)),
+		},
+		{
+			"unrelated denom - unaffected by fractional balance",
+			"busd",
+			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
+			sdkmath.NewInt(100),
 			sdk.NewCoin("busd", sdk.NewInt(1000)),
 		},
 	}
