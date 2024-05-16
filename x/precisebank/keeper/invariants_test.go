@@ -83,7 +83,7 @@ func TestBalancedFractionalTotalInvariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset each time
-			tk := NewTestKeeper()
+			tk := NewMockedTestData(t)
 			ctx, k = tk.ctx, tk.keeper
 
 			tt.setupFn()
@@ -151,7 +151,7 @@ func TestValidFractionalAmountsInvariant(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset each time
-			tk := NewTestKeeper()
+			tk := NewMockedTestData(t)
 			ctx, k, storeKey = tk.ctx, tk.keeper, tk.storeKey
 
 			tt.setupFn()
