@@ -97,7 +97,7 @@ func TestSetGetFractionalBalance(t *testing.T) {
 }
 
 func TestSetFractionalBalance_InvalidAddr(t *testing.T) {
-	tk := NewTestKeeper()
+	tk := NewMockedTestData(t)
 	ctx, k := tk.ctx, tk.keeper
 
 	require.PanicsWithError(
