@@ -8,7 +8,9 @@ import (
 // and returns an ErrSendDisabled if any of the coins are not configured for
 // sending. Returns nil if sending is enabled for all provided coin
 func (k Keeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
-	panic("unimplemented")
+	// TODO: This does not actually seem to be used by x/evm, so it should be
+	// removed from the expected_interface in x/evm.
+	return k.bk.IsSendEnabledCoins(ctx, coins...)
 }
 
 func (k Keeper) SendCoins(
