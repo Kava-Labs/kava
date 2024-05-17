@@ -16,7 +16,7 @@
 
 <div align="center">
 
-### [Telegram](https://t.me/kavalabs) | [Medium](https://medium.com/kava-labs) | [Discord](https://discord.gg/JJYnuCx)
+### [Telegram](https://t.me/kavalabs) | [Medium](https://medium.com/@kava_labs) | [Discord](https://discord.gg/JJYnuCx)
 
 </div>
 
