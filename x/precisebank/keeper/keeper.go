@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 
 	"github.com/kava-labs/kava/x/precisebank/types"
@@ -34,10 +35,6 @@ func NewKeeper(
 		bk:       bk,
 		ak:       ak,
 	}
-}
-
-func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
-	panic("unimplemented")
 }
 
 func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {

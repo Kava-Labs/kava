@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -46,3 +47,7 @@ func NewMockedTestData(t *testing.T) testData {
 		ak:       ak,
 	}
 }
+
+func c(denom string, amount int64) sdk.Coin        { return sdk.NewInt64Coin(denom, amount) }
+func ci(denom string, amount sdkmath.Int) sdk.Coin { return sdk.NewCoin(denom, amount) }
+func cs(coins ...sdk.Coin) sdk.Coins               { return sdk.NewCoins(coins...) }
