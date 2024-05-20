@@ -165,15 +165,12 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 		// MintCoins() doesn't care about the previous integer balance.
 		startFractionalBalance sdkmath.Int
 		mintAmount             sdk.Coins
-		// account x/bank balance (integer & unrelated denoms)
-		wantBankBalance sdk.Coins
 		// account x/precisebank balance (fractional amount)
 		wantPreciseBalance sdkmath.Int
 	}{
 		{
 			"passthrough mint - integer denom",
 			sdkmath.ZeroInt(),
-			cs(c("ukava", 1000)),
 			cs(c("ukava", 1000)),
 			sdkmath.ZeroInt(),
 		},
@@ -182,21 +179,18 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			"passthrough mint - unrelated denom",
 			sdkmath.ZeroInt(),
 			cs(c("meow", 1000)),
-			cs(c("meow", 1000)),
 			sdkmath.ZeroInt(),
 		},
 		{
 			"no carry - 0 starting fractional",
 			sdkmath.ZeroInt(),
 			cs(c(types.ExtendedCoinDenom, 1000)),
-			cs(), // still empty
 			sdkmath.NewInt(1000),
 		},
 		{
 			"no carry - non-zero fractional",
 			sdkmath.NewInt(1_000_000),
 			cs(c(types.ExtendedCoinDenom, 1000)),
-			cs(c(types.IntegerCoinDenom, 5)), // unchanged
 			sdkmath.NewInt(1_001_000),
 		},
 		{
@@ -204,7 +198,6 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			// max fractional amount
 			types.ConversionFactor().SubRaw(1),
 			cs(c(types.ExtendedCoinDenom, 1)), // +1 to carry
-			cs(c(types.IntegerCoinDenom, 1)),  // +1 from carry
 			sdkmath.ZeroInt(),
 		},
 		{
@@ -212,7 +205,6 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			// max fractional amount + max fractional amount
 			types.ConversionFactor().SubRaw(1),
 			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1))),
-			cs(c(types.IntegerCoinDenom, 1)), // +1 from carry
 			types.ConversionFactor().SubRaw(2),
 		},
 		{
@@ -220,7 +212,6 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			sdkmath.NewInt(1234),
 			// mint 100 fractional
 			cs(c(types.ExtendedCoinDenom, 100)),
-			cs(c(types.IntegerCoinDenom, 5)), // same integer amount 5
 			sdkmath.NewInt(1234 + 100),
 		},
 		{
@@ -228,7 +219,6 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			types.ConversionFactor().SubRaw(100),
 			// mint 105 fractional to carry
 			cs(c(types.ExtendedCoinDenom, 105)),
-			cs(c(types.IntegerCoinDenom, 6)),
 			sdkmath.NewInt(5),
 		},
 	}
@@ -262,6 +252,8 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 				)).
 				Once()
 
+			// ----------------------------------------
+			// Separate passthrough and extended coins
 			// Determine how much is passed through to x/bank
 			passthroughCoins := tt.mintAmount
 
@@ -281,6 +273,8 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 				types.ExtendedCoinDenom,
 			)
 
+			// ----------------------------------------
+			// Set expectations for minting passthrough coins
 			// Only expect MintCoins to be called with passthrough coins with non-zero amount
 			if !passthroughCoins.Empty() {
 				t.Logf("Expecting MintCoins(%v)", passthroughCoins)
@@ -291,6 +285,8 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 					Once()
 			}
 
+			// ----------------------------------------
+			// Set expectations for minting fractional coins
 			if !extCoins.IsNil() && extCoins.IsPositive() {
 				td.ak.EXPECT().
 					GetModuleAddress(minttypes.ModuleName).
@@ -304,7 +300,8 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 				mintCoins := cs(ci(types.IntegerCoinDenom, mintIntegerAmount))
 
 				// Only expect MintCoins to be called with mint coins with
-				// non-zero amount
+				// non-zero amount.
+				// Will fail if x/bank MintCoins is called with empty coins
 				if !mintCoins.Empty() {
 					t.Logf("Expecting MintCoins(%v)", mintCoins)
 
@@ -317,11 +314,14 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 
 			// ----------------------------------------
 			// Actual call after all setup and expectations
-
 			require.NotPanics(t, func() {
 				err := td.keeper.MintCoins(td.ctx, minttypes.ModuleName, tt.mintAmount)
 				require.NoError(t, err)
 			})
+
+			// Check final fractional balance
+			fBal, _ = td.keeper.GetFractionalBalance(td.ctx, moduleAddr)
+			require.Equal(t, tt.wantPreciseBalance, fBal)
 		})
 	}
 }

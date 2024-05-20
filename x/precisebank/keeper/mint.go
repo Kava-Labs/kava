@@ -92,7 +92,7 @@ func (k Keeper) mintExtendedCoin(
 	}
 
 	// Mint new integer amounts in x/bank
-	if !integerMintAmount.IsZero() {
+	if integerMintAmount.IsPositive() {
 		integerMintCoin := sdk.NewCoin(types.IntegerCoinDenom, integerMintAmount)
 
 		if err := k.bk.MintCoins(
