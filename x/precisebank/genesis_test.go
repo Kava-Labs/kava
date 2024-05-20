@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/precisebank"
+	"github.com/kava-labs/kava/x/precisebank/keeper"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/suite"
@@ -163,34 +164,78 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 				"module account should be created & stored in account store",
 			)
 
-			// TODO: Check module state once implemented
+			// Verify balances are set in state, get full list of balances in
+			// state to ensure they are set AND no extra balances are set
+			var bals []types.FractionalBalance
+			suite.Keeper.IterateFractionalBalances(suite.Ctx, func(addr sdk.AccAddress, bal sdkmath.Int) bool {
+				bals = append(bals, types.NewFractionalBalance(addr.String(), bal))
 
-			// Verify balances
-			// IterateBalances() or something
+				return false
+			})
 
-			// Ensure reserve balance matches sum of all fractional balances
-			// sum up IterateBalances()
+			suite.Require().ElementsMatch(tc.genesisState.Balances, bals, "balances should be set in state")
 
-			// - etc
+			remainder := suite.Keeper.GetRemainderAmount(suite.Ctx)
+			suite.Require().Equal(tc.genesisState.Remainder, remainder, "remainder should be set in state")
+
+			// Additional verification of state via invariants
+			invariantFn := keeper.AllInvariants(suite.Keeper)
+			msg, broken := invariantFn(suite.Ctx)
+			suite.Require().False(broken, "invariants should not be broken after InitGenesis")
+			suite.Require().Empty(msg, "invariants should not return a message after InitGenesis")
 		})
 	}
 }
 
-func (suite *GenesisTestSuite) TestExportGenesis_Valid() {
-	// ExportGenesis(moduleState) should return a valid genesis state
+func (suite *GenesisTestSuite) TestExportGenesis() {
+	// ExportGenesis(InitGenesis(genesisState)) == genesisState
+	// Must also be valid.
+
 	tests := []struct {
-		name    string
-		maleate func()
+		name             string
+		initGenesisState func() *types.GenesisState
 	}{
 		{
 			"InitGenesis(DefaultGenesisState)",
-			func() {
-				precisebank.InitGenesis(
+			func() *types.GenesisState {
+				return types.DefaultGenesisState()
+			},
+		},
+		{
+			"balances, no remainder",
+			func() *types.GenesisState {
+				err := suite.BankKeeper.MintCoins(
 					suite.Ctx,
-					suite.Keeper,
-					suite.AccountKeeper,
-					suite.BankKeeper,
-					types.DefaultGenesisState(),
+					types.ModuleName,
+					sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1))),
+				)
+				suite.Require().NoError(err)
+
+				return types.NewGenesisState(
+					types.FractionalBalances{
+						types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.ConversionFactor().QuoRaw(2)),
+						types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.ConversionFactor().QuoRaw(2)),
+					},
+					sdkmath.ZeroInt(),
+				)
+			},
+		},
+		{
+			"balances, remainder",
+			func() *types.GenesisState {
+				err := suite.BankKeeper.MintCoins(
+					suite.Ctx,
+					types.ModuleName,
+					sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1))),
+				)
+				suite.Require().NoError(err)
+
+				return types.NewGenesisState(
+					types.FractionalBalances{
+						types.NewFractionalBalance(sdk.AccAddress{1}.String(), types.ConversionFactor().QuoRaw(2)),
+						types.NewFractionalBalance(sdk.AccAddress{2}.String(), types.ConversionFactor().QuoRaw(2).SubRaw(1)),
+					},
+					sdkmath.OneInt(),
 				)
 			},
 		},
@@ -198,37 +243,18 @@ func (suite *GenesisTestSuite) TestExportGenesis_Valid() {
 
 	for _, tc := range tests {
 		suite.Run(tc.name, func() {
-			tc.maleate()
+			// Reset state
+			suite.SetupTest()
 
-			genesisState := precisebank.ExportGenesis(suite.Ctx, suite.Keeper)
+			initGs := tc.initGenesisState()
 
-			suite.Require().NoError(genesisState.Validate(), "exported genesis state should be valid")
-		})
-	}
-}
-
-func (suite *GenesisTestSuite) TestExportImportedState() {
-	// ExportGenesis(InitGenesis(genesisState)) == genesisState
-
-	tests := []struct {
-		name             string
-		initGenesisState *types.GenesisState
-	}{
-		{
-			"InitGenesis(DefaultGenesisState)",
-			types.DefaultGenesisState(),
-		},
-	}
-
-	for _, tc := range tests {
-		suite.Run(tc.name, func() {
 			suite.Require().NotPanics(func() {
 				precisebank.InitGenesis(
 					suite.Ctx,
 					suite.Keeper,
 					suite.AccountKeeper,
 					suite.BankKeeper,
-					tc.initGenesisState,
+					initGs,
 				)
 			})
 
@@ -236,7 +262,7 @@ func (suite *GenesisTestSuite) TestExportImportedState() {
 			suite.Require().NoError(genesisState.Validate(), "exported genesis state should be valid")
 
 			suite.Require().Equal(
-				tc.initGenesisState,
+				initGs,
 				genesisState,
 				"exported genesis state should equal initial genesis state",
 			)
