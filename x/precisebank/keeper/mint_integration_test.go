@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/kava-labs/kava/x/precisebank/keeper"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/suite"
@@ -167,20 +168,26 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 					denoms = append(denoms, coin.Denom)
 				}
 
-				// Add the extended denom to the list of denoms to check
+				// Add the extended denom to the list of denoms to balance check
 				denoms = append(denoms, types.ExtendedCoinDenom)
 
-				gotCoins := sdk.NewCoins()
+				afterBalance := sdk.NewCoins()
 				for _, denom := range denoms {
 					coin := suite.Keeper.GetBalance(suite.Ctx, recipientAddr, denom)
-					gotCoins = gotCoins.Add(coin)
+					afterBalance = afterBalance.Add(coin)
 				}
 
 				suite.Require().Equal(
 					mt.wantBalance.String(),
-					gotCoins.String(),
+					afterBalance.String(),
 					"unexpected balance after minting %s to %s",
 				)
+
+				// Ensure reserve is backing all minted fractions
+				allInvariantsFn := keeper.AllInvariants(suite.Keeper)
+				res, stop := allInvariantsFn(suite.Ctx)
+				suite.Require().False(stop, "invariant broken: %s", res)
+				suite.Require().Empty(res, "unexpected invariant message: %s", res)
 			}
 		})
 	}
@@ -226,5 +233,10 @@ func FuzzMintCoins(f *testing.F) {
 		)
 
 		// TODO: Check remainder
+
+		allInvariantsFn := keeper.AllInvariants(suite.Keeper)
+		res, stop := allInvariantsFn(suite.Ctx)
+		suite.Require().False(stop, "invariant broken: %s", res)
+		suite.Require().Empty(res, "unexpected invariant message: %s", res)
 	})
 }

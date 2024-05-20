@@ -313,6 +313,22 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			}
 
 			// ----------------------------------------
+			// Set expectations for reserve minting when fractional amounts
+			// are minted & remainder is insufficient
+			mintFractionalAmount := extCoins.Amount.Mod(types.ConversionFactor())
+			currentRemainder := td.keeper.GetRemainderAmount(td.ctx)
+
+			remainderEnough := currentRemainder.GTE(mintFractionalAmount)
+			if !remainderEnough {
+				reserveMintCoins := cs(ci(types.IntegerCoinDenom, sdkmath.OneInt()))
+				td.bk.EXPECT().
+					// Mints to x/precisebank
+					MintCoins(td.ctx, types.ModuleName, reserveMintCoins).
+					Return(nil).
+					Once()
+			}
+
+			// ----------------------------------------
 			// Actual call after all setup and expectations
 			require.NotPanics(t, func() {
 				err := td.keeper.MintCoins(td.ctx, minttypes.ModuleName, tt.mintAmount)

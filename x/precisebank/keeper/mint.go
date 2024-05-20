@@ -107,7 +107,31 @@ func (k Keeper) mintExtendedCoin(
 	// Assign new fractional balance in x/precisebank
 	k.SetFractionalBalance(ctx, moduleAddr, newFractionalBalance)
 
-	// TODO: Update remainder
+	// ----------------------------------------
+	// Update remainder & reserves to back minted fractional coins
+	currentRemainder := k.GetRemainderAmount(ctx)
+	if currentRemainder.GTE(fractionalMintAmount) {
+		// Reserve backs an additional currentRemainder amount, sufficient
+		// for this minted fractional amount so no additional integer minting
+		// is necessary to back fractionalMintAmount.
+
+		// Update remainder to deduct minted fractional amount
+		newRemainder := currentRemainder.Sub(fractionalMintAmount)
+		k.SetRemainderAmount(ctx, newRemainder)
+	} else {
+		// Need additional 1 integer coin in reserve to back minted fractional
+		reserveMintCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
+		k.bk.MintCoins(ctx, types.ModuleName, reserveMintCoins)
+
+		// Update remainder with new integer coin.
+		// .Mod(conversionFactor) after the Add & Sub is not necessary as it
+		// will always be < conversionFactor
+		newRemainder := currentRemainder.
+			Add(types.ConversionFactor()). // 1 integer coin worth of fractional amount added to reserve
+			Sub(fractionalMintAmount)      // deduct remainder with additional minted fractional amount
+
+		k.SetRemainderAmount(ctx, newRemainder)
+	}
 
 	return nil
 }
