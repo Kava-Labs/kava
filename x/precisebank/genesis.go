@@ -49,10 +49,7 @@ func InitGenesis(
 
 	// Set FractionalBalances in state
 	for _, bal := range gs.Balances {
-		addr, err := sdk.AccAddressFromBech32(bal.Address)
-		if err != nil {
-			panic(fmt.Errorf("failed to convert address from bech32: %w", err))
-		}
+		addr := sdk.MustAccAddressFromBech32(bal.Address)
 
 		keeper.SetFractionalBalance(ctx, addr, bal.Amount)
 	}
