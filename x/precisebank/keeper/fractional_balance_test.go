@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -11,9 +12,6 @@ import (
 )
 
 func TestSetGetFractionalBalance(t *testing.T) {
-	tk := NewMockedTestData(t)
-	ctx, k := tk.ctx, tk.keeper
-
 	addr := sdk.AccAddress([]byte("test-address"))
 
 	tests := []struct {
@@ -63,6 +61,9 @@ func TestSetGetFractionalBalance(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			td := NewMockedTestData(t)
+			ctx, k := td.ctx, td.keeper
+
 			if tt.setPanicMsg != "" {
 				require.PanicsWithError(t, tt.setPanicMsg, func() {
 					k.SetFractionalBalance(ctx, tt.address, tt.amount)
@@ -75,23 +76,24 @@ func TestSetGetFractionalBalance(t *testing.T) {
 				k.SetFractionalBalance(ctx, tt.address, tt.amount)
 			})
 
-			// If its zero balance, check it was deleted
+			// If its zero balance, check it was deleted in store
 			if tt.amount.IsZero() {
-				_, exists := k.GetFractionalBalance(ctx, tt.address)
-				require.False(t, exists)
+				store := prefix.NewStore(ctx.KVStore(td.storeKey), types.FractionalBalancePrefix)
+				bz := store.Get(types.FractionalBalanceKey(tt.address))
+				require.Nil(t, bz)
 
 				return
 			}
 
-			gotAmount, exists := k.GetFractionalBalance(ctx, tt.address)
-			require.True(t, exists)
+			gotAmount := k.GetFractionalBalance(ctx, tt.address)
 			require.Equal(t, tt.amount, gotAmount)
 
 			// Delete balance
 			k.DeleteFractionalBalance(ctx, tt.address)
 
-			_, exists = k.GetFractionalBalance(ctx, tt.address)
-			require.False(t, exists)
+			store := prefix.NewStore(ctx.KVStore(td.storeKey), types.FractionalBalancePrefix)
+			bz := store.Get(types.FractionalBalanceKey(tt.address))
+			require.Nil(t, bz)
 		})
 	}
 }
@@ -111,23 +113,24 @@ func TestSetFractionalBalance_InvalidAddr(t *testing.T) {
 }
 
 func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
-	tk := NewMockedTestData(t)
-	ctx, k := tk.ctx, tk.keeper
+	td := NewMockedTestData(t)
+	ctx, k := td.ctx, td.keeper
 
 	addr := sdk.AccAddress([]byte("test-address"))
 
 	// Set balance
 	k.SetFractionalBalance(ctx, addr, sdkmath.NewInt(100))
 
-	bal, exists := k.GetFractionalBalance(ctx, addr)
-	require.True(t, exists)
+	bal := k.GetFractionalBalance(ctx, addr)
 	require.Equal(t, sdkmath.NewInt(100), bal)
 
 	// Set zero balance
 	k.SetFractionalBalance(ctx, addr, sdkmath.ZeroInt())
 
-	_, exists = k.GetFractionalBalance(ctx, addr)
-	require.False(t, exists)
+	// Check balance was deleted
+	store := prefix.NewStore(ctx.KVStore(td.storeKey), types.FractionalBalancePrefix)
+	bz := store.Get(types.FractionalBalanceKey(addr))
+	require.Nil(t, bz)
 
 	// Set zero balance again on non-existent balance
 	require.NotPanics(

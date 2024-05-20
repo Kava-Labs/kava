@@ -234,7 +234,7 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 				moduleAddr,
 				tt.startFractionalBalance,
 			)
-			fBal, _ := td.keeper.GetFractionalBalance(td.ctx, moduleAddr)
+			fBal := td.keeper.GetFractionalBalance(td.ctx, moduleAddr)
 			require.Equal(t, tt.startFractionalBalance, fBal)
 
 			// Always calls GetModuleAccount() to check if module exists &
@@ -336,7 +336,7 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			})
 
 			// Check final fractional balance
-			fBal, _ = td.keeper.GetFractionalBalance(td.ctx, moduleAddr)
+			fBal = td.keeper.GetFractionalBalance(td.ctx, moduleAddr)
 			require.Equal(t, tt.wantPreciseBalance, fBal)
 		})
 	}

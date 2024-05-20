@@ -69,13 +69,8 @@ func (k Keeper) mintExtendedCoin(
 ) error {
 	moduleAddr := k.ak.GetModuleAddress(moduleName)
 
-	// Get current fractional amount
-	// TODO: GetFractionalBalance should just return 0 if not found and not return a bool
-	// since we don't actually need to know if it was found or not.
-	fractionalAmount, found := k.GetFractionalBalance(ctx, moduleAddr)
-	if !found {
-		fractionalAmount = sdk.ZeroInt()
-	}
+	// Get current fractional amount - 0 if not found
+	fractionalAmount := k.GetFractionalBalance(ctx, moduleAddr)
 
 	// Get mint amounts
 	integerMintAmount := amt.Quo(types.ConversionFactor())
