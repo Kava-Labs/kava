@@ -37,6 +37,14 @@ func TestKeeper_GetBalance(t *testing.T) {
 			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_000_000_000_100)),
 		},
 		{
+			"extended denom - only fractional balance",
+			types.ExtendedCoinDenom,
+			// no coins in bank, only fractional balance
+			sdk.NewCoins(),
+			sdkmath.NewInt(100),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(100)),
+		},
+		{
 			"extended denom - max fractional balance",
 			types.ExtendedCoinDenom,
 			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
