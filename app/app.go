@@ -554,6 +554,8 @@ func NewApp(
 	app.precisebankKeeper = precisebankkeeper.NewKeeper(
 		app.appCodec,
 		keys[precisebanktypes.StoreKey],
+		app.bankKeeper,
+		app.accountKeeper,
 	)
 
 	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)

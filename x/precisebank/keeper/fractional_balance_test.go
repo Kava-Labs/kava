@@ -11,7 +11,7 @@ import (
 )
 
 func TestSetGetFractionalBalance(t *testing.T) {
-	tk := NewTestKeeper()
+	tk := NewMockedTestData(t)
 	ctx, k := tk.ctx, tk.keeper
 
 	addr := sdk.AccAddress([]byte("test-address"))
@@ -97,7 +97,7 @@ func TestSetGetFractionalBalance(t *testing.T) {
 }
 
 func TestSetFractionalBalance_InvalidAddr(t *testing.T) {
-	tk := NewTestKeeper()
+	tk := NewMockedTestData(t)
 	ctx, k := tk.ctx, tk.keeper
 
 	require.PanicsWithError(
@@ -111,7 +111,7 @@ func TestSetFractionalBalance_InvalidAddr(t *testing.T) {
 }
 
 func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
-	tk := NewTestKeeper()
+	tk := NewMockedTestData(t)
 	ctx, k := tk.ctx, tk.keeper
 
 	addr := sdk.AccAddress([]byte("test-address"))
@@ -140,7 +140,7 @@ func TestSetFractionalBalance_ZeroDeletes(t *testing.T) {
 }
 
 func TestIterateFractionalBalances(t *testing.T) {
-	tk := NewTestKeeper()
+	tk := NewMockedTestData(t)
 	ctx, k := tk.ctx, tk.keeper
 
 	addrs := []sdk.AccAddress{}
@@ -168,7 +168,7 @@ func TestIterateFractionalBalances(t *testing.T) {
 }
 
 func TestGetAggregateSumFractionalBalances(t *testing.T) {
-	tk := NewTestKeeper()
+	tk := NewMockedTestData(t)
 	ctx, k := tk.ctx, tk.keeper
 
 	// Set balances from 1 to 10
