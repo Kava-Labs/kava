@@ -15,7 +15,7 @@ import (
 // added to the module state.
 // It will panic if the module account does not exist or is unauthorized.
 func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
-	// TODO: Disallow minting to x/precisebank module
+	// Disallow minting to x/precisebank module
 	if moduleName == types.ModuleName {
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s cannot be minted to", moduleName))
 	}

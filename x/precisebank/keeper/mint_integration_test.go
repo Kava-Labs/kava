@@ -1,10 +1,14 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+
 	"github.com/kava-labs/kava/x/precisebank/keeper"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
 	"github.com/kava-labs/kava/x/precisebank/types"
@@ -21,6 +25,29 @@ func (suite *mintIntegrationTestSuite) SetupTest() {
 
 func TestMintIntegrationTest(t *testing.T) {
 	suite.Run(t, new(mintIntegrationTestSuite))
+}
+
+func (suite *mintIntegrationTestSuite) TestBlockedRecipient() {
+	// Tests that sending funds to x/precisebank is disallowed.
+	// x/precisebank balance is used as the reserve funds and should not be
+	// directly interacted with by external modules or users.
+	msgServer := bankkeeper.NewMsgServerImpl(suite.BankKeeper)
+
+	fromAddr := sdk.AccAddress{1}
+
+	// To x/precisebank
+	toAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
+	amount := cs(c("ukava", 1000))
+
+	msg := banktypes.NewMsgSend(fromAddr, toAddr, amount)
+
+	_, err := msgServer.Send(sdk.WrapSDKContext(suite.Ctx), msg)
+	suite.Require().Error(err)
+
+	suite.Require().EqualError(
+		err,
+		fmt.Sprintf("%s is not allowed to receive funds: unauthorized", toAddr.String()),
+	)
 }
 
 func (suite *mintIntegrationTestSuite) TestMintCoins() {

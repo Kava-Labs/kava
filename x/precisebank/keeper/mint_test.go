@@ -76,7 +76,7 @@ func TestMintCoins_PanicValidations(t *testing.T) {
 			"",
 		},
 		{
-			"disallow x/precisebank",
+			"disallow minting to x/precisebank",
 			types.ModuleName,
 			func(td testData) {
 				// No mock setup needed since this is checked before module
