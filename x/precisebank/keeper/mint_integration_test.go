@@ -156,8 +156,13 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 				err := suite.Keeper.MintCoins(suite.Ctx, tt.recipientModule, mt.mintAmount)
 				suite.Require().NoError(err)
 
+				// -------------------------------------------------------------
 				// Check FULL balances
+				// x/bank balances + x/precisebank balance
+				// Exclude "ukava" as x/precisebank balance will include it
 				bankCoins := suite.BankKeeper.GetAllBalances(suite.Ctx, recipientAddr)
+
+				// Only use x/bank balances for denoms
 				var denoms []string
 				for _, coin := range bankCoins {
 					// Ignore integer coins, query the extended denom instead
@@ -169,8 +174,11 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 				}
 
 				// Add the extended denom to the list of denoms to balance check
+				// Will be included in balance check even if x/bank doesn't have
+				// ukava.
 				denoms = append(denoms, types.ExtendedCoinDenom)
 
+				// All balance queries through x/precisebank
 				afterBalance := sdk.NewCoins()
 				for _, denom := range denoms {
 					coin := suite.Keeper.GetBalance(suite.Ctx, recipientAddr, denom)
@@ -186,7 +194,7 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 				// Ensure reserve is backing all minted fractions
 				allInvariantsFn := keeper.AllInvariants(suite.Keeper)
 				res, stop := allInvariantsFn(suite.Ctx)
-				suite.Require().False(stop, "invariant broken: %s", res)
+				suite.Require().False(stop, "invariant should not be broken")
 				suite.Require().Empty(res, "unexpected invariant message: %s", res)
 			}
 		})
@@ -206,13 +214,16 @@ func FuzzMintCoins(f *testing.F) {
 			amount = -amount
 		}
 
+		// Manually setup test suite since no direct Fuzz support in test suites
 		suite := new(mintIntegrationTestSuite)
 		suite.SetT(t)
 		suite.SetS(suite)
 		suite.SetupTest()
 
-		// Mint 5 times to include mints from non-zero balances
-		for i := 0; i < 5; i++ {
+		mintCount := int64(10)
+
+		// Mint 10 times to include mints from non-zero balances
+		for i := int64(0); i < mintCount; i++ {
 			err := suite.Keeper.MintCoins(
 				suite.Ctx,
 				minttypes.ModuleName,
@@ -226,17 +237,17 @@ func FuzzMintCoins(f *testing.F) {
 		bal := suite.Keeper.GetBalance(suite.Ctx, recipientAddr, types.ExtendedCoinDenom)
 
 		suite.Require().Equalf(
-			amount*5,
+			amount*mintCount,
 			bal.Amount.Int64(),
 			"unexpected balance after minting %d 5 times",
 			amount,
 		)
 
-		// TODO: Check remainder
-
+		// Run Invariants to ensure remainder is backing all minted fractions
+		// and in a valid state
 		allInvariantsFn := keeper.AllInvariants(suite.Keeper)
 		res, stop := allInvariantsFn(suite.Ctx)
-		suite.Require().False(stop, "invariant broken: %s", res)
+		suite.Require().False(stop, "invariant should not be broken")
 		suite.Require().Empty(res, "unexpected invariant message: %s", res)
 	})
 }

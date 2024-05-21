@@ -14,6 +14,8 @@ import (
 )
 
 func TestMintCoins_PanicValidations(t *testing.T) {
+	// panic tests for invalid inputs
+
 	tests := []struct {
 		name            string
 		recipientModule string
@@ -106,6 +108,8 @@ func TestMintCoins_PanicValidations(t *testing.T) {
 }
 
 func TestMinCoins_Errors(t *testing.T) {
+	// returned errors, not panics
+
 	tests := []struct {
 		name            string
 		recipientModule string
