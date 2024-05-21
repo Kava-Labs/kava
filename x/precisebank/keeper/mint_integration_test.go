@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -48,6 +50,83 @@ func (suite *mintIntegrationTestSuite) TestBlockedRecipient() {
 		err,
 		fmt.Sprintf("%s is not allowed to receive funds: unauthorized", toAddr.String()),
 	)
+}
+
+func (suite *mintIntegrationTestSuite) TestMintCoins_MatchingErrors() {
+	// x/precisebank MintCoins should be identical to x/bank MintCoins to
+	// consumers. This test ensures that the panics & errors returned by
+	// x/precisebank are identical to x/bank.
+
+	tests := []struct {
+		name            string
+		recipientModule string
+		mintAmount      sdk.Coins
+		wantErr         string
+		wantPanic       string
+	}{
+		{
+			"invalid module",
+			"notamodule",
+			cs(c("ukava", 1000)),
+			"",
+			"module account notamodule does not exist: unknown address",
+		},
+		{
+			"no mint permissions",
+			// Check app.go to ensure this module has no mint permissions
+			authtypes.FeeCollectorName,
+			cs(c("ukava", 1000)),
+			"",
+			"module account fee_collector does not have permissions to mint tokens: unauthorized",
+		},
+		{
+			"invalid amount",
+			minttypes.ModuleName,
+			sdk.Coins{sdk.Coin{Denom: "ukava", Amount: sdkmath.NewInt(-100)}},
+			"-100ukava: invalid coins",
+			"",
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			// Reset
+			suite.SetupTest()
+
+			if tt.wantErr == "" && tt.wantPanic == "" {
+				suite.Fail("test must specify either wantErr or wantPanic")
+			}
+
+			if tt.wantErr != "" {
+				// Check x/bank MintCoins for identical error
+				bankErr := suite.BankKeeper.MintCoins(suite.Ctx, tt.recipientModule, tt.mintAmount)
+				suite.Require().Error(bankErr)
+				suite.Require().EqualError(bankErr, tt.wantErr, "expected error should match x/bank MintCoins error")
+
+				pbankErr := suite.Keeper.MintCoins(suite.Ctx, tt.recipientModule, tt.mintAmount)
+				suite.Require().Error(pbankErr)
+				// Compare strings instead of errors, as error stack is still different
+				suite.Require().Equal(
+					bankErr.Error(),
+					pbankErr.Error(),
+					"x/precisebank error should match x/bank MintCoins error",
+				)
+			}
+
+			if tt.wantPanic != "" {
+				// First check the wantPanic string is correct.
+				// Actually specify the panic string in the test since it makes
+				// it more clear we are testing specific and different cases.
+				suite.Require().PanicsWithError(tt.wantPanic, func() {
+					_ = suite.BankKeeper.MintCoins(suite.Ctx, tt.recipientModule, tt.mintAmount)
+				}, "expected panic error should match x/bank MintCoins")
+
+				suite.Require().PanicsWithError(tt.wantPanic, func() {
+					_ = suite.Keeper.MintCoins(suite.Ctx, tt.recipientModule, tt.mintAmount)
+				}, "x/precisebank panic should match x/bank MintCoins")
+			}
+		})
+	}
 }
 
 func (suite *mintIntegrationTestSuite) TestMintCoins() {

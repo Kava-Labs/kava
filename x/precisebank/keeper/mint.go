@@ -120,7 +120,7 @@ func (k Keeper) mintExtendedCoin(
 
 		// Update remainder with new integer coin.
 		// .Mod(conversionFactor) after the Add & Sub is not necessary as it
-		// will always be < conversionFactor
+		// will always be < conversionFactor because fractionalMintAmount > currentRemainder
 		newRemainder := currentRemainder.
 			Add(types.ConversionFactor()). // 1 integer coin worth of fractional amount added to reserve
 			Sub(fractionalMintAmount)      // deduct remainder with additional minted fractional amount
