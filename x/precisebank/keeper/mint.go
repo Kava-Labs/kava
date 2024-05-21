@@ -69,20 +69,26 @@ func (k Keeper) mintExtendedCoin(
 ) error {
 	moduleAddr := k.ak.GetModuleAddress(moduleName)
 
-	// Get current fractional amount - 0 if not found
+	// Get current module account fractional balance - 0 if not found
 	fractionalAmount := k.GetFractionalBalance(ctx, moduleAddr)
 
-	// Get mint amounts
+	// Get separated mint amounts
 	integerMintAmount := amt.Quo(types.ConversionFactor())
 	fractionalMintAmount := amt.Mod(types.ConversionFactor())
 
-	// Get new fractional balance
+	// Get new fractional balance after minting
 	newFractionalBalance := fractionalAmount.Add(fractionalMintAmount)
 
 	// If it carries over, add 1 to integer mint amount. In this case, it will
-	// always be 1 as two fractional amounts can only add up < 2
+	// always be 1:
+	// fractional amounts x and y
+	//   where x < ConversionFactor and y < ConversionFactor
+	// x + y < (2 * ConversionFactor) - 2
+	// x + y < 2 integer amounts
 	if newFractionalBalance.GTE(types.ConversionFactor()) {
+		// carry over to integer mint amount
 		integerMintAmount = integerMintAmount.AddRaw(1)
+		// keep the fractional balance that was not carried over
 		newFractionalBalance = newFractionalBalance.Mod(types.ConversionFactor())
 	}
 
