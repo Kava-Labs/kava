@@ -129,8 +129,12 @@ func BalancedFractionalTotalInvariant(k Keeper) sdk.Invariant {
 }
 
 // FractionalDenomNotInBankInvariant checks that the bank does not hold any
-// fractional balances. These assets, e.g. akava, should only exist in the
-// x/precisebank module and shouldn't be "real" assets managed by x/bank.
+// fractional denoms. These assets, e.g. akava, should only exist in the
+// x/precisebank module as this is a decimal extension of ukava that shares
+// the same total supply and is effectively the same asset. ukava held by this
+// module in x/bank backs all fractional balances in x/precisebank. If akava
+// somehow ends up in x/bank, then it would both break all expectations of this
+// module as well as be double-counted in the total supply.
 func FractionalDenomNotInBankInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		extBankSupply := k.bk.GetSupply(ctx, types.ExtendedCoinDenom)
