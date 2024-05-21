@@ -37,9 +37,9 @@ func NewKeeper(
 }
 
 func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
-	return nil
+	panic("unimplemented")
 }
 
 func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
-	return nil
+	panic("unimplemented")
 }
