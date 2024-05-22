@@ -22,10 +22,59 @@ func TestSendIntegrationTestSuite(t *testing.T) {
 	suite.Run(t, new(sendIntegrationTestSuite))
 }
 
+func (suite *sendIntegrationTestSuite) TestSendCoinsFromAccountToModule_MatchingErrors() {
+	// No specific errors for SendCoinsFromAccountToModule, only 1 panic if
+	// the module account does not exist
+
+	tests := []struct {
+		name            string
+		sender          sdk.AccAddress
+		recipientModule string
+		sendAmount      sdk.Coins
+		wantPanic       string
+	}{
+		// SendCoinsFromAccountToModule specific errors/panics
+		{
+			"missing module account - passthrough",
+			sdk.AccAddress([]byte{2}),
+			"cat",
+			cs(c("usdc", 1000)),
+			"module account cat does not exist: unknown address",
+		},
+		{
+			"missing module account - extended",
+			sdk.AccAddress([]byte{2}),
+			"cat",
+			cs(c(types.ExtendedCoinDenom, 1000)),
+			"module account cat does not exist: unknown address",
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			// Reset
+			suite.SetupTest()
+
+			suite.Require().NotEmpty(tt.wantPanic, "test case must have a wantPanic")
+
+			suite.Require().PanicsWithError(tt.wantPanic, func() {
+				suite.BankKeeper.SendCoinsFromAccountToModule(suite.Ctx, tt.sender, tt.recipientModule, tt.sendAmount)
+			}, "wantPanic should match x/bank SendCoinsFromAccountToModule panic")
+
+			suite.Require().PanicsWithError(tt.wantPanic, func() {
+				suite.Keeper.SendCoinsFromAccountToModule(suite.Ctx, tt.sender, tt.recipientModule, tt.sendAmount)
+			}, "x/precisebank panic should match x/bank SendCoinsFromAccountToModule panic")
+		})
+	}
+}
+
 func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_MatchingErrors() {
 	// Ensure errors match x/bank errors AND panics. This needs to be well
 	// tested before SendCoins as all send tests rely on this to initialize
 	// account balances.
+	// No unit test with mock x/bank for SendCoinsFromModuleToAccount since
+	// we only are testing the errors/panics specific to the method and
+	// remaining logic is the same as SendCoins.
 
 	blockedMacAddrs := suite.App.GetBlockedMaccAddrs()
 
@@ -95,8 +144,8 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 			types.ModuleName,
 			sdk.AccAddress([]byte{2}),
 			cs(c(types.IntegerCoinDenom, 1000)),
-			"",
 			"spendable balance  is smaller than 1000ukava: insufficient funds",
+			"",
 		},
 		{
 			"insufficient balance - extended",

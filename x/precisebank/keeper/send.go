@@ -32,7 +32,12 @@ func (k Keeper) SendCoinsFromAccountToModule(
 	recipientModule string,
 	amt sdk.Coins,
 ) error {
-	panic("unimplemented")
+	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
+	if recipientAcc == nil {
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
+	}
+
+	return k.SendCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
 }
 
 func (k Keeper) SendCoinsFromModuleToAccount(
