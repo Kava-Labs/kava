@@ -76,7 +76,9 @@ func (k Keeper) mintExtendedCoin(
 	integerMintAmount := amt.Quo(types.ConversionFactor())
 	fractionalMintAmount := amt.Mod(types.ConversionFactor())
 
-	// Get new fractional balance after minting
+	// Get new fractional balance after minting, this could be greater than
+	// the conversion factor and must be checked for carry over to integer mint
+	// amount as being set as-is may cause fractional balance exceeding max.
 	newFractionalBalance := fractionalAmount.Add(fractionalMintAmount)
 
 	// If it carries over, add 1 to integer mint amount. In this case, it will
@@ -92,7 +94,8 @@ func (k Keeper) mintExtendedCoin(
 		newFractionalBalance = newFractionalBalance.Mod(types.ConversionFactor())
 	}
 
-	// Mint new integer amounts in x/bank
+	// Mint new integer amounts in x/bank - including carry over from fractional
+	// amount if any.
 	if integerMintAmount.IsPositive() {
 		integerMintCoin := sdk.NewCoin(types.IntegerCoinDenom, integerMintAmount)
 
