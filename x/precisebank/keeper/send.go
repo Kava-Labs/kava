@@ -1,7 +1,9 @@
 package keeper
 
 import (
+	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // IsSendEnabledCoins uses the parent x/bank keeper to check the coins provided
@@ -39,5 +41,16 @@ func (k Keeper) SendCoinsFromModuleToAccount(
 	recipientAddr sdk.AccAddress,
 	amt sdk.Coins,
 ) error {
-	panic("unimplemented")
+	// Identical panics to x/bank
+	senderAddr := k.ak.GetModuleAddress(senderModule)
+	if senderAddr == nil {
+		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
+	}
+
+	// Uses x/bank BlockedAddr, no need to modify
+	if k.bk.BlockedAddr(recipientAddr) {
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", recipientAddr)
+	}
+
+	return k.SendCoins(ctx, senderAddr, recipientAddr, amt)
 }
