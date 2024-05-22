@@ -12,6 +12,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/suite"
 
@@ -86,4 +87,21 @@ func (suite *Suite) Commit() {
 
 	// update ctx
 	suite.Ctx = suite.App.NewContext(false, header)
+}
+
+// MintToAccount mints coins to an account with the x/precisebank methods. This
+// must be used when minting extended coins, ie. akava coins. This depends on
+// the methods to be properly tested to be implemented correctly.
+func (suite *Suite) MintToAccount(addr sdk.AccAddress, amt sdk.Coins) {
+	err := suite.Keeper.MintCoins(suite.Ctx, minttypes.ModuleName, amt)
+	suite.Require().NoError(err)
+
+	err = suite.Keeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, addr, amt)
+	suite.Require().NoError(err)
+
+	// Double check balances are correctly minted and sent to account
+	for _, coin := range amt {
+		bal := suite.Keeper.GetBalance(suite.Ctx, addr, coin.Denom)
+		suite.Require().Equal(coin.Amount, bal)
+	}
 }
