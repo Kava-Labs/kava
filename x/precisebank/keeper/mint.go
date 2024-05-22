@@ -83,10 +83,9 @@ func (k Keeper) mintExtendedCoin(
 
 	// If it carries over, add 1 to integer mint amount. In this case, it will
 	// always be 1:
-	// fractional amounts x and y
-	//   where x < ConversionFactor and y < ConversionFactor
+	// fractional amounts x and y where both x and y < ConversionFactor
 	// x + y < (2 * ConversionFactor) - 2
-	// x + y < 2 integer amounts
+	// x + y < 1 integer amount + fractional amount
 	if newFractionalBalance.GTE(types.ConversionFactor()) {
 		// carry over to integer mint amount
 		integerMintAmount = integerMintAmount.AddRaw(1)
