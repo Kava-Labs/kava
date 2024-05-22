@@ -74,6 +74,39 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				printShape(tree)
 			case "versions":
 				printVersions(tree)
+
+			case "force-delete-prefix":
+				{
+					prefixDb := dbm.NewPrefixDB(cosmosdb, []byte(args[1]))
+					itr, err := prefixDb.Iterator(nil, nil)
+					if err != nil {
+						return err
+					}
+
+					// collect all keys
+					allKeys := [][]byte{}
+					for itr.Valid() {
+						allKeys = append(allKeys, itr.Value())
+					}
+					if err := itr.Close(); err != nil {
+						return err
+					}
+
+					// delete all keys
+					fmt.Printf("preparing to delete %d keys with prefix %s\n", len(allKeys), args[1])
+					batch := db.NewBatch()
+					defer batch.Close()
+					for _, k := range allKeys {
+						err := batch.Delete(k)
+						if err != nil {
+							return err
+						}
+					}
+					fmt.Println("writing & flushing deletes to disk")
+					if err := batch.WriteSync(); err != nil {
+						return err
+					}
+				}
 			}
 
 			return nil
