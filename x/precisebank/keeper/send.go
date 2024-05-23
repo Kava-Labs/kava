@@ -17,6 +17,10 @@ func (k Keeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
 	return k.bk.IsSendEnabledCoins(ctx, coins...)
 }
 
+// SendCoins transfers amt coins from a sending account to a receiving account.
+// An error is returned upon failure. This handles transfers including
+// ExtendedCoinDenom and supports non-ExtendedCoinDenom transfers by passing
+// through to x/bank.
 func (k Keeper) SendCoins(
 	ctx sdk.Context,
 	from, to sdk.AccAddress,
@@ -54,6 +58,9 @@ func (k Keeper) SendCoins(
 	return k.sendExtendedCoins(ctx, from, to, extendedCoinAmount)
 }
 
+// sendExtendedCoins transfers amt extended coins from a sending account to a
+// receiving account. An error is returned upon failure. This function is
+// called by SendCoins() and should not be called directly.
 func (k Keeper) sendExtendedCoins(
 	ctx sdk.Context,
 	from, to sdk.AccAddress,
@@ -154,6 +161,10 @@ func (k Keeper) sendExtendedCoins(
 	return nil
 }
 
+// SendCoinsFromModuleToModule transfers coins from a ModuleAccount to another.
+// It will panic if either module account does not exist. An error is returned
+// if the recipient module is the x/precisebank module account or if sending the
+// tokens fails.
 func (k Keeper) SendCoinsFromAccountToModule(
 	ctx sdk.Context,
 	senderAddr sdk.AccAddress,
@@ -172,6 +183,10 @@ func (k Keeper) SendCoinsFromAccountToModule(
 	return k.SendCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
 }
 
+// SendCoinsFromModuleToAccount transfers coins from a ModuleAccount to an AccAddress.
+// It will panic if the module account does not exist. An error is returned if
+// the recipient address is blocked, if the sender is the x/precisebank module
+// account, or if sending the tokens fails.
 func (k Keeper) SendCoinsFromModuleToAccount(
 	ctx sdk.Context,
 	senderModule string,
