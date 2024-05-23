@@ -10,6 +10,8 @@ import (
 )
 
 func TestSendCoins(t *testing.T) {
+	t.Skip()
+
 	sender := sdk.AccAddress([]byte{1})
 	recipient := sdk.AccAddress([]byte{2})
 

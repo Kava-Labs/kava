@@ -18,6 +18,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/keeper"
+	"github.com/kava-labs/kava/x/precisebank/types"
 )
 
 type Suite struct {
@@ -102,6 +103,28 @@ func (suite *Suite) MintToAccount(addr sdk.AccAddress, amt sdk.Coins) {
 	// Double check balances are correctly minted and sent to account
 	for _, coin := range amt {
 		bal := suite.Keeper.GetBalance(suite.Ctx, addr, coin.Denom)
-		suite.Require().Equal(coin.Amount, bal)
+		suite.Require().Equal(coin, bal)
 	}
+
+	suite.T().Logf("minted %s to %s", amt, addr)
+}
+
+// GetAllBalances returns all the account balances for the given account address.
+// This returns the extended coin balance if the account has a non-zero balance,
+// WITHOUT the integer coin balance.
+func (suite *Suite) GetAllBalances(addr sdk.AccAddress) sdk.Coins {
+	// Get all balances for an account
+	bankBalances := suite.BankKeeper.GetAllBalances(suite.Ctx, addr)
+
+	// Remove integer coins from the balance
+	for _, coin := range bankBalances {
+		if coin.Denom == types.IntegerCoinDenom {
+			bankBalances = bankBalances.Sub(coin)
+		}
+	}
+
+	// Replace the integer coin with the extended coin, from x/precisebank
+	extendedBal := suite.Keeper.GetBalance(suite.Ctx, addr, types.ExtendedCoinDenom)
+
+	return bankBalances.Add(extendedBal)
 }
