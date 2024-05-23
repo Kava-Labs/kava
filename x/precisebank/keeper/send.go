@@ -165,6 +165,10 @@ func (k Keeper) SendCoinsFromAccountToModule(
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
 	}
 
+	if recipientModule == types.ModuleName {
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s is not allowed to receive funds", types.ModuleName)
+	}
+
 	return k.SendCoins(ctx, senderAddr, recipientAcc.GetAddress(), amt)
 }
 
@@ -180,7 +184,15 @@ func (k Keeper) SendCoinsFromModuleToAccount(
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", senderModule))
 	}
 
-	// Uses x/bank BlockedAddr, no need to modify
+	// Custom error to prevent external modules from modifying x/precisebank
+	// balances. x/precisebank module account balance is for internal reserve
+	// use only.
+	if senderModule == types.ModuleName {
+		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s is not allowed to send funds", types.ModuleName)
+	}
+
+	// Uses x/bank BlockedAddr, no need to modify. x/precisebank should be
+	// blocked.
 	if k.bk.BlockedAddr(recipientAddr) {
 		return errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "%s is not allowed to receive funds", recipientAddr)
 	}

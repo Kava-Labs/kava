@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/keeper"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
 	"github.com/kava-labs/kava/x/precisebank/types"
@@ -78,17 +79,35 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 	// remaining logic is the same as SendCoins.
 
 	blockedMacAddrs := suite.App.GetBlockedMaccAddrs()
+	precisebankAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
 
 	var blockedAddr sdk.AccAddress
 	// Get the first blocked address
 	for addr, isBlocked := range blockedMacAddrs {
+		// Skip x/precisebank module account
+		if addr == precisebankAddr.String() {
+			continue
+		}
+
 		if isBlocked {
 			blockedAddr = sdk.MustAccAddressFromBech32(addr)
 			break
 		}
 	}
 
+	// We need a ModuleName of another module account to send funds from.
+	// x/precisebank is blocked from use with SendCoinsFromModuleToAccount as we
+	// don't want external modules to modify x/precisebank balances.
+	var senderModuleName string
+	macPerms := app.GetMaccPerms()
+	for moduleName := range macPerms {
+		if moduleName != types.ModuleName {
+			senderModuleName = moduleName
+		}
+	}
+
 	suite.Require().NotEmpty(blockedAddr, "no blocked addresses found")
+	suite.Require().NotEmpty(senderModuleName, "no sender module name found")
 
 	tests := []struct {
 		name         string
@@ -117,7 +136,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 		},
 		{
 			"blocked recipient address - passthrough",
-			types.ModuleName,
+			senderModuleName,
 			blockedAddr,
 			cs(c("usdc", 1000)),
 			fmt.Sprintf("%s is not allowed to receive funds: unauthorized", blockedAddr.String()),
@@ -125,7 +144,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 		},
 		{
 			"blocked recipient address - extended",
-			types.ModuleName,
+			senderModuleName,
 			blockedAddr,
 			cs(c(types.ExtendedCoinDenom, 1000)),
 			fmt.Sprintf("%s is not allowed to receive funds: unauthorized", blockedAddr.String()),
@@ -134,7 +153,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 		// SendCoins specific errors/panics
 		{
 			"invalid coins",
-			types.ModuleName,
+			senderModuleName,
 			sdk.AccAddress([]byte{2}),
 			sdk.Coins{sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)}},
 			"-1ukava: invalid coins",
@@ -142,7 +161,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 		},
 		{
 			"insufficient balance - passthrough",
-			types.ModuleName,
+			senderModuleName,
 			sdk.AccAddress([]byte{2}),
 			cs(c(types.IntegerCoinDenom, 1000)),
 			"spendable balance  is smaller than 1000ukava: insufficient funds",
@@ -150,7 +169,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 		},
 		{
 			"insufficient balance - extended",
-			types.ModuleName,
+			senderModuleName,
 			sdk.AccAddress([]byte{2}),
 			// We can still test insufficient bal errors with "akava" since
 			// we also expect it to not exist in x/bank
