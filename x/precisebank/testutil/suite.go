@@ -94,6 +94,8 @@ func (suite *Suite) Commit() {
 // must be used when minting extended coins, ie. akava coins. This depends on
 // the methods to be properly tested to be implemented correctly.
 func (suite *Suite) MintToAccount(addr sdk.AccAddress, amt sdk.Coins) {
+	accBalancesBefore := suite.GetAllBalances(addr)
+
 	err := suite.Keeper.MintCoins(suite.Ctx, minttypes.ModuleName, amt)
 	suite.Require().NoError(err)
 
@@ -101,10 +103,10 @@ func (suite *Suite) MintToAccount(addr sdk.AccAddress, amt sdk.Coins) {
 	suite.Require().NoError(err)
 
 	// Double check balances are correctly minted and sent to account
-	for _, coin := range amt {
-		bal := suite.Keeper.GetBalance(suite.Ctx, addr, coin.Denom)
-		suite.Require().Equal(coin, bal)
-	}
+	accBalancesAfter := suite.GetAllBalances(addr)
+
+	netIncrease := accBalancesAfter.Sub(accBalancesBefore...)
+	suite.Require().Equal(ConvertCoinsToExtendedCoinDenom(amt), netIncrease)
 
 	suite.T().Logf("minted %s to %s", amt, addr)
 }
@@ -127,4 +129,23 @@ func (suite *Suite) GetAllBalances(addr sdk.AccAddress) sdk.Coins {
 	extendedBal := suite.Keeper.GetBalance(suite.Ctx, addr, types.ExtendedCoinDenom)
 
 	return bankBalances.Add(extendedBal)
+}
+
+// ConvertCoinsToExtendedCoinDenom converts sdk.Coins that includes Integer denoms
+// to sdk.Coins that includes Extended denoms of the same amount. This is useful
+// for testing to make sure only extended amounts are compared instead of double
+// counting balances.
+func ConvertCoinsToExtendedCoinDenom(coins sdk.Coins) sdk.Coins {
+	integerCoinAmt := coins.AmountOf(types.IntegerCoinDenom)
+	if integerCoinAmt.IsZero() {
+		return coins
+	}
+
+	// Remove the integer coin from the coins
+	integerCoin := sdk.NewCoin(types.IntegerCoinDenom, integerCoinAmt)
+
+	// Add the equivalent extended coin to the coins
+	extendedCoin := sdk.NewCoin(types.ExtendedCoinDenom, integerCoinAmt.Mul(types.ConversionFactor()))
+
+	return coins.Sub(integerCoin).Add(extendedCoin)
 }

@@ -318,6 +318,13 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 			"",
 		},
 		{
+			"passthrough & extended",
+			cs(c(types.IntegerCoinDenom, 1000)),
+			cs(),
+			cs(c(types.IntegerCoinDenom, 10), c(types.ExtendedCoinDenom, 1)),
+			"",
+		},
+		{
 			"akava send - 1akava to 0 balance",
 			// Starting balances
 			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().MulRaw(5))),
@@ -420,6 +427,125 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 			suite.Require().Empty(res, "invariants should not return any messages")
 		})
 	}
+}
+
+func (suite *sendIntegrationTestSuite) TestSendCoins_Matrix() {
+	// SendCoins is tested mostly in this integration test, as a unit test with
+	// mocked BankKeeper overcomplicates expected keepers and makes initializing
+	// balances very complex.
+
+	type startBalance struct {
+		name string
+		bal  sdk.Coins
+	}
+
+	// Run through each combination of start sender/recipient balance & send amt
+	// Test matrix fields:
+	startBalances := []startBalance{
+		{"empty", cs()},
+		{"integer only", cs(c(types.IntegerCoinDenom, 1000))},
+		{"extended only", cs(c(types.ExtendedCoinDenom, 1000))},
+		{"integer & extended", cs(c(types.IntegerCoinDenom, 1000), c(types.ExtendedCoinDenom, 1000))},
+		{"integer & extended - max fractional", cs(c(types.IntegerCoinDenom, 1000), ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1)))},
+		{"integer & extended - min fractional", cs(c(types.IntegerCoinDenom, 1000), c(types.ExtendedCoinDenom, 1))},
+	}
+
+	sendAmts := []struct {
+		name string
+		amt  sdk.Coins
+	}{
+		{
+			"empty",
+			cs(),
+		},
+		{
+			"integer only",
+			cs(c(types.IntegerCoinDenom, 10)),
+		},
+		{
+			"extended only",
+			cs(c(types.ExtendedCoinDenom, 10)),
+		},
+		{
+			"integer & extended",
+			cs(c(types.IntegerCoinDenom, 10), c(types.ExtendedCoinDenom, 1000)),
+		},
+		{
+			"integer & extended - max fractional",
+			cs(c(types.IntegerCoinDenom, 10), ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1))),
+		},
+		{
+			"integer & extended - min fractional",
+			cs(c(types.IntegerCoinDenom, 10), c(types.ExtendedCoinDenom, 1)),
+		},
+	}
+
+	for _, senderStartBal := range startBalances {
+		for _, recipientStartBal := range startBalances {
+			for _, sendAmt := range sendAmts {
+				testName := fmt.Sprintf(
+					"%s -> %s (%s -> %s), send %s (%s)",
+					senderStartBal.name, senderStartBal.bal,
+					recipientStartBal.name, recipientStartBal.bal,
+					sendAmt.name, sendAmt.amt,
+				)
+
+				suite.Run(testName, func() {
+					suite.SetupTest()
+
+					sender := sdk.AccAddress([]byte{1})
+					recipient := sdk.AccAddress([]byte{2})
+
+					// Initialize balances
+					suite.MintToAccount(sender, senderStartBal.bal)
+					suite.MintToAccount(recipient, recipientStartBal.bal)
+
+					// balances & send amount will only contain total equivalent
+					// extended coins and no integer coins so its easier to compare
+					senderBalBefore := suite.GetAllBalances(sender)
+					recipientBalBefore := suite.GetAllBalances(recipient)
+
+					sendAmtNormalized := testutil.ConvertCoinsToExtendedCoinDenom(sendAmt.amt)
+
+					err := suite.Keeper.SendCoins(suite.Ctx, sender, recipient, sendAmt.amt)
+
+					hasSufficientBal := senderBalBefore.IsAllGTE(sendAmtNormalized)
+
+					if hasSufficientBal {
+						suite.Require().NoError(err)
+					} else {
+						suite.Require().Error(err, "expected insufficient funds error")
+						// No balance checks if insufficient funds
+						return
+					}
+
+					// Check balances
+					senderBalAfter := suite.GetAllBalances(sender)
+					recipientBalAfter := suite.GetAllBalances(recipient)
+
+					// Convert send amount coins to extended coins. i.e. if send coins
+					// includes ukava, convert it so that its the equivalent akava
+					// amount so its easier to compare. Compare extended coins only.
+
+					suite.Require().Equal(
+						senderBalBefore.Sub(sendAmtNormalized...),
+						senderBalAfter,
+					)
+
+					suite.Require().Equal(
+						recipientBalBefore.Add(sendAmtNormalized...),
+						recipientBalAfter,
+					)
+
+					invariantFn := keeper.AllInvariants(suite.Keeper)
+					res, stop := invariantFn(suite.Ctx)
+					suite.Require().False(stop, "invariants should not stop")
+					suite.Require().Empty(res, "invariants should not return any messages")
+				})
+			}
+		}
+	}
+
 }
 
 func FuzzSendCoins(f *testing.F) {
