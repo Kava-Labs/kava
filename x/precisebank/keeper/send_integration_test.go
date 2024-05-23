@@ -404,34 +404,21 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 }
 
 func FuzzSendCoins(f *testing.F) {
-	f.Add(int64(100), int64(0), int64(2))
-	f.Add(int64(100), int64(100), int64(5))
-	f.Add(types.ConversionFactor().Int64(), int64(0), int64(500))
+	f.Add(uint64(100), uint64(0), uint64(2))
+	f.Add(uint64(100), uint64(100), uint64(5))
+	f.Add(types.ConversionFactor().Uint64(), uint64(0), uint64(500))
 	f.Add(
-		types.ConversionFactor().MulRaw(2).AddRaw(123948723).Int64(),
-		types.ConversionFactor().MulRaw(2).Int64(),
-		types.ConversionFactor().Int64(),
+		types.ConversionFactor().MulRaw(2).AddRaw(123948723).Uint64(),
+		types.ConversionFactor().MulRaw(2).Uint64(),
+		types.ConversionFactor().Uint64(),
 	)
 
 	f.Fuzz(func(
 		t *testing.T,
-		startBalSender int64,
-		startBalReceiver int64,
-		sendAmount int64,
+		startBalSender uint64,
+		startBalReceiver uint64,
+		sendAmount uint64,
 	) {
-		// No negative amounts
-		if startBalSender < 0 {
-			startBalSender = -startBalSender
-		}
-
-		if startBalReceiver < 0 {
-			startBalReceiver = -startBalReceiver
-		}
-
-		if sendAmount < 0 {
-			sendAmount = -sendAmount
-		}
-
 		// Manually setup test suite since no direct Fuzz support in test suites
 		suite := new(sendIntegrationTestSuite)
 		suite.SetT(t)
@@ -442,11 +429,11 @@ func FuzzSendCoins(f *testing.F) {
 		recipient := sdk.AccAddress([]byte{2})
 
 		// Initial balances
-		suite.MintToAccount(sender, cs(c(types.ExtendedCoinDenom, startBalSender)))
-		suite.MintToAccount(recipient, cs(c(types.ExtendedCoinDenom, startBalReceiver)))
+		suite.MintToAccount(sender, cs(c(types.ExtendedCoinDenom, int64(startBalSender))))
+		suite.MintToAccount(recipient, cs(c(types.ExtendedCoinDenom, int64(startBalReceiver))))
 
 		// Send amount
-		sendCoins := cs(c(types.ExtendedCoinDenom, sendAmount))
+		sendCoins := cs(c(types.ExtendedCoinDenom, int64(sendAmount)))
 		err := suite.Keeper.SendCoins(suite.Ctx, sender, recipient, sendCoins)
 		if startBalSender < sendAmount {
 			suite.Require().Error(err, "expected insufficient funds error")
@@ -461,11 +448,11 @@ func FuzzSendCoins(f *testing.F) {
 
 		suite.Require().Equal(
 			startBalSender-sendAmount,
-			balSender.AmountOf(types.ExtendedCoinDenom).Int64(),
+			balSender.AmountOf(types.ExtendedCoinDenom).Uint64(),
 		)
 		suite.Require().Equal(
 			startBalReceiver+sendAmount,
-			balReceiver.AmountOf(types.ExtendedCoinDenom).Int64(),
+			balReceiver.AmountOf(types.ExtendedCoinDenom).Uint64(),
 		)
 
 		// Run Invariants to ensure remainder is backing all minted fractions
