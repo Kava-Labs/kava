@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -124,7 +126,9 @@ func (k Keeper) mintExtendedCoin(
 	} else {
 		// Need additional 1 integer coin in reserve to back minted fractional
 		reserveMintCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
-		k.bk.MintCoins(ctx, types.ModuleName, reserveMintCoins)
+		if err := k.bk.MintCoins(ctx, types.ModuleName, reserveMintCoins); err != nil {
+			return fmt.Errorf("failed to mint %s for reserve: %w", reserveMintCoins, err)
+		}
 
 		// Update remainder with new integer coin.
 		// .Mod(conversionFactor) after the Add & Sub is not necessary as it
