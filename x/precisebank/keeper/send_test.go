@@ -23,13 +23,6 @@ func TestSendCoins(t *testing.T) {
 		wantErr               string
 	}{
 		{
-			"passthrough - ukava",
-			cs(c(types.IntegerCoinDenom, 1000)),
-			cs(c(types.IntegerCoinDenom, 1000)),
-			cs(c(types.IntegerCoinDenom, 1000)),
-			"",
-		},
-		{
 			"passthrough - busd",
 			cs(c("busd", 1000)),
 			cs(),
@@ -39,7 +32,7 @@ func TestSendCoins(t *testing.T) {
 		{
 			"akava send - 1akava to 0 balance",
 			// Starting balances
-			cs(c(types.IntegerCoinDenom, 1000)),
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().MulRaw(5))),
 			cs(),
 			// Send amount
 			cs(c(types.ExtendedCoinDenom, 1)), // akava
@@ -48,7 +41,7 @@ func TestSendCoins(t *testing.T) {
 		{
 			"sender borrow from integer",
 			// 1ukava, 0 fractional
-			cs(ci(types.IntegerCoinDenom, types.ConversionFactor())),
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor())),
 			cs(),
 			// Send 1 with 0 fractional
 			cs(c(types.ExtendedCoinDenom, 1)),
@@ -56,9 +49,9 @@ func TestSendCoins(t *testing.T) {
 		},
 		{
 			"receiver carry",
-			cs(c(types.IntegerCoinDenom, 1000)),
+			cs(c(types.ExtendedCoinDenom, 1000)),
 			// max fractional amount, carries over to integer
-			cs(ci(types.IntegerCoinDenom, types.ConversionFactor().SubRaw(1))),
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1))),
 			cs(c(types.ExtendedCoinDenom, 1)),
 			"",
 		},
@@ -67,6 +60,12 @@ func TestSendCoins(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			td := NewMockedTestData(t)
+
+			require.Zero(
+				t,
+				tt.giveStartBalSender.AmountOf(types.IntegerCoinDenom).Int64(),
+				"giveStartBalSender should use extended denom instead of integer",
+			)
 
 			// -------------------------------
 			// Passthrough SendCoins x/bank expectations
@@ -92,18 +91,78 @@ func TestSendCoins(t *testing.T) {
 			// balance an integer borrow will be made from the integer balance
 			// by transferring 1 integer unit to x/precisebank module account
 			// in exchange for equivalent fractional units.
-			senderIntBal, senderFracBal := splitExtendedAmount(tt.giveStartBalSender.AmountOf(types.ExtendedCoinDenom))
-			_, sendFracAmt := splitExtendedAmount(tt.giveAmt.AmountOf(types.ExtendedCoinDenom))
+			_, senderFracBal := splitExtendedAmount(tt.giveStartBalSender.AmountOf(types.ExtendedCoinDenom))
+			sendIntAmt, sendFracAmt := splitExtendedAmount(tt.giveAmt.AmountOf(types.ExtendedCoinDenom))
 
-			if senderFracBal.LT(sendFracAmt) {
-				// Insufficient fractional balance, borrow from integer balance.
-				// But only if there is an integer balance to borrow from.
-				if !senderIntBal.IsZero() {
-					td.bk.EXPECT().
-						SendCoins(td.ctx, sender, types.ModuleName, cs(c(types.IntegerCoinDenom, 1))).
-						Return(nil).
-						Once()
-				}
+			_, receiverFracBal := splitExtendedAmount(tt.giveStartBalRecipient.AmountOf(types.ExtendedCoinDenom))
+
+			// 4 cases:
+			// 1. only sender borrow from integer (send 1ukava to reserve)
+			// 2. only receiver carry (receive 1akava from reserve)
+			// 3. both sender borrow and receiver carry
+			// 4. neither sender borrow nor receiver carry
+
+			senderBorrows := senderFracBal.Sub(sendFracAmt).IsNegative()
+			receiverCarries := receiverFracBal.Add(sendFracAmt).GTE(types.ConversionFactor())
+
+			if senderBorrows && !receiverCarries {
+				// Sender borrows from integer balance.
+				borrowCoin := c(types.IntegerCoinDenom, 1)
+				td.bk.EXPECT().
+					SendCoinsFromAccountToModule(td.ctx, sender, types.ModuleName, cs(borrowCoin)).
+					Return(nil).
+					Once()
+
+				transferCoin := ci(types.IntegerCoinDenom, sendIntAmt)
+				td.bk.EXPECT().
+					SendCoins(td.ctx, sender, recipient, cs(transferCoin)).
+					Return(nil).
+					Once()
+			} else if !senderBorrows && receiverCarries {
+				// Receiver carries to integer balance.
+				carryCoin := c(types.IntegerCoinDenom, 1)
+				td.bk.EXPECT().
+					SendCoinsFromModuleToAccount(td.ctx, types.ModuleName, recipient, cs(carryCoin)).
+					Return(nil).
+					Once()
+
+				transferCoin := ci(types.IntegerCoinDenom, sendIntAmt)
+				td.bk.EXPECT().
+					SendCoins(td.ctx, sender, recipient, cs(transferCoin)).
+					Return(nil).
+					Once()
+			} else if senderBorrows && receiverCarries {
+				// Both sender borrows and receiver carries - direct transfer
+				// between accounts.
+				sendCoin := c(types.IntegerCoinDenom, 1)
+				sendCoin = sendCoin.AddAmount(sendIntAmt)
+
+				td.bk.EXPECT().
+					SendCoins(td.ctx, sender, recipient, cs(sendCoin)).
+					Return(nil).
+					Once()
+			}
+
+			// -------------------------------------------
+			// x/precisebank send extended coins expectations
+			if extendedAmount.IsPositive() {
+				td.bk.EXPECT().
+					SpendableCoins(td.ctx, sender).
+					Return(tt.giveStartBalSender).
+					Once()
+
+				// Set fractional balances
+				td.keeper.SetFractionalBalance(
+					td.ctx,
+					sender,
+					senderFracBal,
+				)
+
+				td.keeper.SetFractionalBalance(
+					td.ctx,
+					recipient,
+					receiverFracBal,
+				)
 			}
 
 			// -------------------------------------------
