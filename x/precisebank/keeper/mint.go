@@ -112,14 +112,14 @@ func (k Keeper) mintExtendedCoin(
 
 	// ----------------------------------------
 	// Update remainder & reserves to back minted fractional coins
-	currentRemainder := k.GetRemainderAmount(ctx)
-	if currentRemainder.GTE(fractionalMintAmount) {
+	prevRemainder := k.GetRemainderAmount(ctx)
+	if prevRemainder.GTE(fractionalMintAmount) {
 		// Reserve backs an additional currentRemainder amount, sufficient
 		// for this minted fractional amount so no additional integer minting
 		// is necessary to back fractionalMintAmount.
 
 		// Update remainder to deduct minted fractional amount
-		newRemainder := currentRemainder.Sub(fractionalMintAmount)
+		newRemainder := prevRemainder.Sub(fractionalMintAmount)
 		k.SetRemainderAmount(ctx, newRemainder)
 	} else {
 		// Need additional 1 integer coin in reserve to back minted fractional
@@ -129,7 +129,7 @@ func (k Keeper) mintExtendedCoin(
 		// Update remainder with new integer coin.
 		// .Mod(conversionFactor) after the Add & Sub is not necessary as it
 		// will always be < conversionFactor because fractionalMintAmount > currentRemainder
-		newRemainder := currentRemainder.
+		newRemainder := prevRemainder.
 			Add(types.ConversionFactor()). // 1 integer coin worth of fractional amount added to reserve
 			Sub(fractionalMintAmount)      // deduct remainder with additional minted fractional amount
 
