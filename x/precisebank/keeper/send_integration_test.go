@@ -312,8 +312,17 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 			// 1ukava, 0 fractional
 			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor())),
 			cs(),
-			// Send 1 with 0 fractional
+			// Send 1 with 0 fractional balance
 			cs(c(types.ExtendedCoinDenom, 1)),
+			"",
+		},
+		{
+			"sender borrow from integer - max fractional amount",
+			// 1ukava, 0 fractional
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor())),
+			cs(),
+			// Max fractional amount
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1))),
 			"",
 		},
 		{
@@ -322,6 +331,14 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 			// max fractional amount, carries over to integer
 			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1))),
 			cs(c(types.ExtendedCoinDenom, 1)),
+			"",
+		},
+		{
+			"receiver carry - max fractional amount",
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().MulRaw(5))),
+			// max fractional amount, carries over to integer
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1))),
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(1))),
 			"",
 		},
 	}
