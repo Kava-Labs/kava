@@ -56,7 +56,7 @@ If you have technical questions or concerns, ask a developer or community member
 
 ## Security
 
-If you find a security issue, please report it to security [at] kava.io. Depending on the verification and severity, a bug bounty may be available.
+If you find a security issue, please report it to security [at] kavalabs.io. Depending on the verification and severity, a bug bounty may be available.
 
 ## License
 
