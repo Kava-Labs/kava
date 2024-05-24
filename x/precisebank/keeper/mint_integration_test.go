@@ -268,7 +268,7 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 				// Exclude "ukava" as x/precisebank balance will include it
 				bankCoins := suite.BankKeeper.GetAllBalances(suite.Ctx, recipientAddr)
 
-				// Only use x/bank balances for denoms
+				// Only use x/bank balances for non-ukava denoms
 				var denoms []string
 				for _, coin := range bankCoins {
 					// Ignore integer coins, query the extended denom instead
