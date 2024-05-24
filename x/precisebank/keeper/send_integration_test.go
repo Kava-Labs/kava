@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/keeper"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
@@ -545,7 +546,79 @@ func (suite *sendIntegrationTestSuite) TestSendCoins_Matrix() {
 			}
 		}
 	}
+}
 
+func (suite *sendIntegrationTestSuite) TestSendCoinsFromAccountToModule() {
+	// Ensure recipient correctly matches the specified module account. Specific
+	// send amount and cases are handled by SendCoins() tests, so we are only
+	// checking SendCoinsFromAccountToModule specific behavior here.
+
+	sender := sdk.AccAddress([]byte{1})
+	recipientModule := minttypes.ModuleName
+	recipientAddr := suite.AccountKeeper.GetModuleAddress(recipientModule)
+
+	sendAmt := cs(c(types.ExtendedCoinDenom, 1000))
+
+	suite.MintToAccount(sender, sendAmt)
+
+	err := suite.Keeper.SendCoinsFromAccountToModule(
+		suite.Ctx,
+		sender,
+		recipientModule,
+		sendAmt,
+	)
+	suite.Require().NoError(err)
+
+	// Check balances
+	senderBalAfter := suite.GetAllBalances(sender)
+	recipientBalAfter := suite.GetAllBalances(recipientAddr)
+
+	suite.Require().Equal(
+		cs(),
+		senderBalAfter,
+	)
+
+	suite.Require().Equal(
+		sendAmt,
+		recipientBalAfter,
+	)
+}
+
+func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount() {
+	// Ensure sender correctly matches the specified module account. Opposite
+	// of SendCoinsFromAccountToModule, so we are only checking the correct
+	// addresses are being used.
+
+	senderModule := "community"
+	senderAddr := suite.AccountKeeper.GetModuleAddress(senderModule)
+
+	recipient := sdk.AccAddress([]byte{1})
+
+	sendAmt := cs(c(types.ExtendedCoinDenom, 1000))
+
+	suite.MintToAccount(senderAddr, sendAmt)
+
+	err := suite.Keeper.SendCoinsFromModuleToAccount(
+		suite.Ctx,
+		senderModule,
+		recipient,
+		sendAmt,
+	)
+	suite.Require().NoError(err)
+
+	// Check balances
+	senderBalAfter := suite.GetAllBalances(senderAddr)
+	recipientBalAfter := suite.GetAllBalances(recipient)
+
+	suite.Require().Equal(
+		cs(),
+		senderBalAfter,
+	)
+
+	suite.Require().Equal(
+		sendAmt,
+		recipientBalAfter,
+	)
 }
 
 func FuzzSendCoins(f *testing.F) {
