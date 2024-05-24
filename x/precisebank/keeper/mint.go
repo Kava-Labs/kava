@@ -89,10 +89,11 @@ func (k Keeper) mintExtendedCoin(
 	// x + y < (2 * ConversionFactor) - 2
 	// x + y < 1 integer amount + fractional amount
 	if newFractionalBalance.GTE(types.ConversionFactor()) {
-		// carry over to integer mint amount
+		// Carry over to integer mint amount
 		integerMintAmount = integerMintAmount.AddRaw(1)
-		// keep the fractional balance that was not carried over
-		newFractionalBalance = newFractionalBalance.Mod(types.ConversionFactor())
+		// Subtract 1 integer equivalent amount of fractional balance. Same
+		// behavior as using .Mod() in this case.
+		newFractionalBalance = newFractionalBalance.Sub(types.ConversionFactor())
 	}
 
 	// Mint new integer amounts in x/bank - including carry over from fractional
