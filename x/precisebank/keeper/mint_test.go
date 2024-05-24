@@ -107,7 +107,7 @@ func TestMintCoins_PanicValidations(t *testing.T) {
 	}
 }
 
-func TestMinCoins_Errors(t *testing.T) {
+func TestMintCoins_Errors(t *testing.T) {
 	// returned errors, not panics
 
 	tests := []struct {
