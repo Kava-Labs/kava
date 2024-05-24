@@ -26,17 +26,18 @@ const (
 
 func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "iavlviewer <data|shape|versions> <prefix> [version number]",
-		Short: "View iavl tree data, shape, and versions.",
-		Long:  "View iavl tree data, shape, and versions.",
+		Use:   "iavlviewer <data|hash|shape|versions> <prefix> [version number]",
+		Short: "View iavl tree data, hash, shape, and versions.",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 2 {
+				return fmt.Errorf("must include subcommand and tree prefix")
+			}
 			version := 0
 			if len(args) == 3 {
 				var err error
 				version, err = strconv.Atoi(args[2])
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Invalid version number: %s\n", err)
-					os.Exit(1)
+					return fmt.Errorf("Invalid version number: %s", err)
 				}
 			}
 
@@ -46,7 +47,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 
 			db, err := opts.DBOpener(ctx.Viper, clientCtx.HomeDir, server.GetAppDBBackend(ctx.Viper))
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to open database at %s: %s", clientCtx.HomeDir, err)
 			}
 			defer func() {
 				if err := db.Close(); err != nil {
@@ -58,7 +59,7 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 
 			tree, err := readTree(cosmosdb, version, []byte(args[1]))
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to read tree with prefix %s: %s", args[1], err)
 			}
 
 			switch args[0] {
@@ -67,10 +68,14 @@ func newIavlViewerCmd(opts ethermintserver.StartOptions) *cobra.Command {
 				hash := tree.Hash()
 				fmt.Printf("Hash: %X\n", hash)
 				fmt.Printf("Size: %X\n", tree.Size())
+			case "hash":
+				fmt.Printf("Hash: %X\n", tree.Hash())
 			case "shape":
 				printShape(tree)
 			case "versions":
 				printVersions(tree)
+			default:
+				return fmt.Errorf("unknown subcommand: %s", args[0])
 			}
 
 			return nil
