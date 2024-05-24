@@ -23,10 +23,7 @@ func (k Keeper) GetBalance(
 	integerAmount := spendableCoins.AmountOf(types.IntegerCoinDenom)
 
 	// x/precisebank for fractional balance
-	fractionalAmount, found := k.GetFractionalBalance(ctx, addr)
-	if !found {
-		fractionalAmount = sdk.ZeroInt()
-	}
+	fractionalAmount := k.GetFractionalBalance(ctx, addr)
 
 	// (Integer * ConversionFactor) + Fractional
 	fullAmount := integerAmount.

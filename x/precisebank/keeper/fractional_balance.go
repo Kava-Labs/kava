@@ -15,12 +15,12 @@ import (
 func (k *Keeper) GetFractionalBalance(
 	ctx sdk.Context,
 	address sdk.AccAddress,
-) (sdkmath.Int, bool) {
+) sdkmath.Int {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FractionalBalancePrefix)
 
 	bz := store.Get(types.FractionalBalanceKey(address))
 	if bz == nil {
-		return sdkmath.ZeroInt(), false
+		return sdkmath.ZeroInt()
 	}
 
 	var bal sdkmath.Int
@@ -28,7 +28,7 @@ func (k *Keeper) GetFractionalBalance(
 		panic(fmt.Errorf("failed to unmarshal fractional balance: %w", err))
 	}
 
-	return bal, true
+	return bal
 }
 
 // SetFractionalBalance sets the fractional balance for an address.

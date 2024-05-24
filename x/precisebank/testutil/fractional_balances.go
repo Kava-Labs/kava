@@ -135,7 +135,7 @@ func GenerateEqualFractionalBalancesWithRemainder(
 ) (types.FractionalBalances, sdkmath.Int) {
 	t.Helper()
 
-	require.GreaterOrEqual(t, count, 3, "count must be at least 3 to generate both balances and remainder")
+	require.GreaterOrEqual(t, count, 2, "count must be at least 2 to generate both balances and remainder")
 
 	countWithRemainder := count + 1
 
