@@ -25,6 +25,7 @@ import (
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
+	"github.com/kava-labs/kava/cmd/kava/cmd/iavlviewer"
 	"github.com/kava-labs/kava/cmd/kava/cmd/rocksdb"
 	"github.com/kava-labs/kava/cmd/kava/opendb"
 )
@@ -134,5 +135,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		keyCommands(app.DefaultNodeHome),
 		rocksdb.RocksDBCmd,
 		newShardCmd(opts),
+		iavlviewer.NewCmd(opts),
 	)
 }
