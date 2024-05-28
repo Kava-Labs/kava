@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/iavl"
+	iavldb "github.com/cosmos/iavl/db"
 )
 
 const (
@@ -74,7 +75,7 @@ func readTree(db dbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) 
 		db = dbm.NewPrefixDB(db, prefix)
 	}
 
-	tree := iavl.NewMutableTree(db, DefaultCacheSize, false, log.NewLogger(os.Stdout))
+	tree := iavl.NewMutableTree(iavldb.NewWrapper(db), DefaultCacheSize, false, log.NewLogger(os.Stdout))
 	ver, err := tree.LoadVersion(int64(version))
 	if err != nil {
 		return nil, err
