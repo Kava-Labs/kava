@@ -168,35 +168,65 @@ func (suite *IntegrationTestSuite) TestNoopCallerEvents() {
 
 	noopCallerAddr, noopCaller := suite.deployNoopCaller("noop-caller-events", noop.ContractAddress)
 
-	_, err := noopCaller.EmitEvent(whale.EvmAuth)
+	tx, err := noopCaller.EmitEvent(whale.EvmAuth)
 	suite.Require().NoError(err)
 	suite.waitForNewBlocks(1)
+
+	//var receipt *types.Receipt
+	//suite.Eventually(func() bool {
+	//	receipt, err = suite.Kava.EvmClient.TransactionReceipt(context.Background(), tx.Hash())
+	//	return err == nil
+	//}, 10*time.Second, 1*time.Second)
+
+	receipt, err := suite.Kava.EvmClient.TransactionReceipt(context.Background(), tx.Hash())
+	suite.Require().NoError(err)
 
 	eventSig := []byte("Event(string,string)")
 	eventSigHash := crypto.Keccak256Hash(eventSig)
 
-	logs, err := suite.Kava.EvmClient.FilterLogs(context.Background(), ethereum.FilterQuery{
+	events, err := suite.Kava.EvmClient.FilterLogs(context.Background(), ethereum.FilterQuery{
 		Addresses: []common.Address{noopCallerAddr},
 		Topics: [][]common.Hash{
 			{eventSigHash},
 		},
 	})
 	suite.Require().NoError(err)
-	suite.Require().Len(logs, 1)
+	suite.Require().Len(events, 1)
+	event := events[0]
 
-	contractAbi, err := abi.JSON(strings.NewReader(noop_caller.NoopCallerMetaData.ABI))
+	noopCallerABI, err := abi.JSON(strings.NewReader(noop_caller.NoopCallerMetaData.ABI))
 	suite.Require().NoError(err)
 
-	//logsInJSON, err := json.Marshal(logs)
-	//suite.Require().NoError(err)
-	//fmt.Printf("logsInJSON: %s\n", logsInJSON)
+	eventsInJSON, err := json.Marshal(event)
+	suite.Require().NoError(err)
+	fmt.Printf("eventsInJSON: %s\n", eventsInJSON)
 
-	event := struct {
+	// check event address
+	suite.Require().Equal(noopCallerAddr, event.Address)
+
+	// check event topics
+	testIndexedParamHash := crypto.Keccak256Hash([]byte("test-indexed-param"))
+	suite.Require().Equal(
+		[]common.Hash{eventSigHash, testIndexedParamHash},
+		event.Topics,
+	)
+
+	// check event data
+	eventData := struct {
 		Param string `abi:"param"`
 	}{}
-	err = contractAbi.UnpackIntoInterface(&event, "Event", logs[0].Data)
+	err = noopCallerABI.UnpackIntoInterface(&eventData, "Event", event.Data)
 	suite.Require().NoError(err)
-	suite.Require().Equal("test-param", event.Param)
+	suite.Require().Equal("test-param", eventData.Param)
+	// TODO(yevhenii): check other data
+
+	// check block number, tx hash, etc...
+	suite.Require().Equal(receipt.BlockNumber.Uint64(), event.BlockNumber)
+	suite.Require().Equal(receipt.TxHash, event.TxHash)
+	suite.Require().Equal(receipt.TransactionIndex, event.TxIndex)
+	suite.Require().Equal(receipt.BlockHash, event.BlockHash)
+	suite.Require().Equal(uint(0), event.Index)
+	suite.Require().Equal(false, event.Removed)
 }
 
 func (suite *IntegrationTestSuite) deployNoopCaller(name string, target common.Address) (common.Address, *noop_caller.NoopCaller) {
