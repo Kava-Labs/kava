@@ -2,6 +2,13 @@ package e2e_test
 
 import (
 	"context"
+	_ "embed"
+	"encoding/json"
+	"fmt"
+	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/crypto"
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,7 +60,7 @@ func (suite *IntegrationTestSuite) TestNoopPrecompileInitialization() {
 // - Static call opcode doesn't return an error.
 func (suite *IntegrationTestSuite) TestNoopPrecompileIndirectCall() {
 	suite.Run("enabled precompile", func() {
-		enabledNoopCaller := suite.deployNoopCaller("noop-precompile-indirect-call-enabled-precompile", noop.ContractAddress)
+		_, enabledNoopCaller := suite.deployNoopCaller("noop-precompile-indirect-call-enabled-precompile", noop.ContractAddress)
 
 		suite.Run("regular type-safe call", func() {
 			err := enabledNoopCaller.Noop(nil)
@@ -67,7 +74,7 @@ func (suite *IntegrationTestSuite) TestNoopPrecompileIndirectCall() {
 	})
 
 	suite.Run("disabled precompile", func() {
-		disabledNoopCaller := suite.deployNoopCaller("noop-precompile-indirect-call-disabled-precompile", noop.ContractAddress2)
+		_, disabledNoopCaller := suite.deployNoopCaller("noop-precompile-indirect-call-disabled-precompile", noop.ContractAddress2)
 
 		suite.Run("regular type-safe call", func() {
 			err := disabledNoopCaller.Noop(nil)
@@ -103,7 +110,107 @@ func (suite *IntegrationTestSuite) TestNoopPrecompileDirectCall() {
 	})
 }
 
-func (suite *IntegrationTestSuite) deployNoopCaller(name string, target common.Address) *noop_caller.NoopCaller {
+func (suite *IntegrationTestSuite) TestNoopPrecompileEvents() {
+	whale := suite.Kava.NewFundedAccount("noop-caller-events-whale-account", sdk.NewCoins(ukava(1e6))) // 1 KAVA
+
+	ethClient, err := ethclient.Dial("http://127.0.0.1:8545")
+	suite.Require().NoError(err)
+
+	noopPrecompile := suite.newNoopCaller(noop.ContractAddress)
+
+	_, err = noopPrecompile.EmitEvent(whale.EvmAuth)
+	suite.Require().NoError(err)
+	suite.waitForNewBlocks(1)
+
+	eventSig := []byte("Event(string,string)")
+	eventSigHash := crypto.Keccak256Hash(eventSig)
+
+	// TODO(yevhenii): specify block range?
+	events, err := ethClient.FilterLogs(context.Background(), ethereum.FilterQuery{
+		Addresses: []common.Address{noop.ContractAddress},
+		Topics: [][]common.Hash{
+			{eventSigHash},
+		},
+	})
+	suite.Require().NoError(err)
+	suite.Require().Len(events, 1)
+	event := events[0]
+
+	eventsInJSON, err := json.Marshal(events)
+	suite.Require().NoError(err)
+	fmt.Printf("eventsInJSON: %s\n", eventsInJSON)
+
+	// check event address
+	suite.Require().Equal(noop.ContractAddress, event.Address)
+
+	// check event topics
+	testIndexedParamHash := crypto.Keccak256Hash([]byte("test-indexed-param"))
+	suite.Require().Equal(
+		[]common.Hash{eventSigHash, testIndexedParamHash},
+		event.Topics,
+	)
+
+	// check event data
+	suite.Require().Equal([]byte("test-param"), event.Data)
+}
+
+func (suite *IntegrationTestSuite) TestNoopCallerEvents() {
+	whale := suite.Kava.NewFundedAccount("noop-caller-events-whale-account", sdk.NewCoins(ukava(1e6))) // 1 KAVA
+
+	noopCallerAddr, noopCaller := suite.deployNoopCaller("noop-caller-events", noop.ContractAddress)
+
+	tx, err := noopCaller.EmitEvent(whale.EvmAuth)
+	suite.Require().NoError(err)
+	suite.waitForNewBlocks(1)
+
+	receipt, err := suite.Kava.EvmClient.TransactionReceipt(context.Background(), tx.Hash())
+	suite.Require().NoError(err)
+
+	eventSig := []byte("Event(string,string)")
+	eventSigHash := crypto.Keccak256Hash(eventSig)
+
+	// TODO(yevhenii): specify block range?
+	events, err := suite.Kava.EvmClient.FilterLogs(context.Background(), ethereum.FilterQuery{
+		Addresses: []common.Address{noopCallerAddr},
+		Topics: [][]common.Hash{
+			{eventSigHash},
+		},
+	})
+	suite.Require().NoError(err)
+	suite.Require().Len(events, 1)
+	event := events[0]
+
+	noopCallerABI, err := abi.JSON(strings.NewReader(noop_caller.NoopCallerMetaData.ABI))
+	suite.Require().NoError(err)
+
+	// check event address
+	suite.Require().Equal(noopCallerAddr, event.Address)
+
+	// check event topics
+	testIndexedParamHash := crypto.Keccak256Hash([]byte("test-indexed-param"))
+	suite.Require().Equal(
+		[]common.Hash{eventSigHash, testIndexedParamHash},
+		event.Topics,
+	)
+
+	// check event data
+	eventData := struct {
+		Param string `abi:"param"`
+	}{}
+	err = noopCallerABI.UnpackIntoInterface(&eventData, "Event", event.Data)
+	suite.Require().NoError(err)
+	suite.Require().Equal("test-param", eventData.Param)
+
+	// check block number, tx hash, etc...
+	suite.Require().Equal(receipt.BlockNumber.Uint64(), event.BlockNumber)
+	suite.Require().Equal(receipt.TxHash, event.TxHash)
+	suite.Require().Equal(receipt.TransactionIndex, event.TxIndex)
+	suite.Require().Equal(receipt.BlockHash, event.BlockHash)
+	suite.Require().Equal(uint(0), event.Index)
+	suite.Require().Equal(false, event.Removed)
+}
+
+func (suite *IntegrationTestSuite) deployNoopCaller(name string, target common.Address) (common.Address, *noop_caller.NoopCaller) {
 	helperAcc := suite.Kava.NewFundedAccount(name, sdk.NewCoins(ukava(1e6))) // 1 KAVA
 
 	ethClient, err := ethclient.Dial("http://127.0.0.1:8545")
@@ -120,7 +227,7 @@ func (suite *IntegrationTestSuite) deployNoopCaller(name string, target common.A
 		return len(code) != 0
 	}, 20*time.Second, 1*time.Second)
 
-	return noopCaller
+	return noopCallerAddr, noopCaller
 }
 
 func (suite *IntegrationTestSuite) newNoopCaller(target common.Address) *noop_caller.NoopCaller {
@@ -131,4 +238,16 @@ func (suite *IntegrationTestSuite) newNoopCaller(target common.Address) *noop_ca
 	suite.Require().NoError(err)
 
 	return noopCaller
+}
+
+func (suite *IntegrationTestSuite) waitForNewBlocks(n uint64) {
+	beginHeight, err := suite.Kava.EvmClient.BlockNumber(context.Background())
+	suite.Require().NoError(err)
+
+	suite.Eventually(func() bool {
+		curHeight, err := suite.Kava.EvmClient.BlockNumber(context.Background())
+		suite.Require().NoError(err)
+
+		return curHeight >= beginHeight+n
+	}, 10*time.Second, 1*time.Second)
 }

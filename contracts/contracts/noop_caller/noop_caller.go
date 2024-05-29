@@ -31,8 +31,8 @@ var (
 
 // NoopCallerMetaData contains all meta data concerning the NoopCaller contract.
 var NoopCallerMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[],\"name\":\"noop\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"noop_static_call\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
-	Bin: "0x60806040523461002f576100196100146100fa565b610196565b610021610034565b6104bc6101a482396104bc90f35b61003a565b60405190565b600080fd5b601f801991011690565b634e487b7160e01b600052604160045260246000fd5b906100699061003f565b810190811060018060401b0382111761008157604052565b610049565b90610099610092610034565b928361005f565b565b600080fd5b60018060a01b031690565b6100b4906100a0565b90565b6100c0816100ab565b036100c757565b600080fd5b905051906100d9826100b7565b565b906020828203126100f5576100f2916000016100cc565b90565b61009b565b6101186106608038038061010d81610086565b9283398101906100db565b90565b60001b90565b9061013260018060a01b039161011b565b9181191691161790565b90565b61015361014e610158926100a0565b61013c565b6100a0565b90565b6101649061013f565b90565b6101709061015b565b90565b90565b9061018b61018661019292610167565b610173565b8254610121565b9055565b6101a1906000610176565b56fe60806040526004361015610013575b610157565b61001e60003561003d565b80635dfc2e4a146100385763a79ad1a50361000e57610122565b610069565b60e01c90565b60405190565b600080fd5b600080fd5b600091031261005e57565b61004e565b60000190565b3461009757610079366004610053565b610081610253565b610089610043565b8061009381610063565b0390f35b610049565b5190565b60209181520190565b60005b8381106100bd575050906000910152565b8060209183015181850152016100ac565b601f801991011690565b6100f7610100602093610105936100ee8161009c565b938480936100a0565b958691016100a9565b6100ce565b0190565b61011f91602082019160008184039101526100d8565b90565b3461015257610132366004610053565b61014e61013d61041c565b610145610043565b91829182610109565b0390f35b610049565b600080fd5b60001c90565b60018060a01b031690565b61017961017e9161015c565b610162565b90565b61018b905461016d565b90565b60018060a01b031690565b90565b6101b06101ab6101b59261018e565b610199565b61018e565b90565b6101c19061019c565b90565b6101cd906101b8565b90565b6101d99061019c565b90565b6101e5906101d0565b90565b600080fd5b634e487b7160e01b600052604160045260246000fd5b9061020d906100ce565b810190811067ffffffffffffffff82111761022757604052565b6101ed565b60e01b90565b600091031261023d57565b61004e565b61024a610043565b3d6000823e3d90fd5b61026d6102686102636000610181565b6101c4565b6101dc565b635dfc2e4a90803b156102e55761029191600091610289610043565b93849261022c565b825281806102a160048201610063565b03915afa80156102e0576102b3575b50565b6102d39060003d81116102d9575b6102cb8183610203565b810190610232565b386102b0565b503d6102c1565b610242565b6101e8565b606090565b906103026102fb610043565b9283610203565b565b67ffffffffffffffff81116103225761031e6020916100ce565b0190565b6101ed565b9061033961033483610304565b6102ef565b918252565b3d60001461035b5761034f3d610327565b903d6000602084013e5b565b6103636102ea565b90610359565b60209181520190565b60207f6c65640000000000000000000000000000000000000000000000000000000000917f63616c6c20746f20707265636f6d70696c656420636f6e74726163742066616960008201520152565b6103cd6023604092610369565b6103d681610372565b0190565b6103f090602081019060008183039101526103c0565b90565b156103fa57565b610402610043565b62461bcd60e51b815280610418600482016103da565b0390fd5b6104246102ea565b50600080600461045f632efe172560e11b610450610440610043565b9384926020840190815201610063565b60208201810382520382610203565b61046882610181565b90602081019051915afa61048361047d61033e565b916103f3565b9056fea26469706673582212201949af946f01415abf551272444f438e8c4bf54581b4d4006ae0452c7b08fdf864736f6c63430008190033",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_target\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"string\",\"name\":\"indexedParam\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"param\",\"type\":\"string\"}],\"name\":\"Event\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"emitEvent\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"noop\",\"outputs\":[],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"noop_static_call\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	Bin: "0x60806040523461002f576100196100146100fa565b610196565b610021610034565b6106056101a4823961060590f35b61003a565b60405190565b600080fd5b601f801991011690565b634e487b7160e01b600052604160045260246000fd5b906100699061003f565b810190811060018060401b0382111761008157604052565b610049565b90610099610092610034565b928361005f565b565b600080fd5b60018060a01b031690565b6100b4906100a0565b90565b6100c0816100ab565b036100c757565b600080fd5b905051906100d9826100b7565b565b906020828203126100f5576100f2916000016100cc565b90565b61009b565b6101186107a98038038061010d81610086565b9283398101906100db565b90565b60001b90565b9061013260018060a01b039161011b565b9181191691161790565b90565b61015361014e610158926100a0565b61013c565b6100a0565b90565b6101649061013f565b90565b6101709061015b565b90565b90565b9061018b61018661019292610167565b610173565b8254610121565b9055565b6101a1906000610176565b56fe60806040526004361015610013575b61019a565b61001e60003561004d565b80635dfc2e4a146100485780637b0cb839146100435763a79ad1a50361000e57610165565b6100ac565b610079565b60e01c90565b60405190565b600080fd5b600080fd5b600091031261006e57565b61005e565b60000190565b346100a757610089366004610063565b610091610296565b610099610053565b806100a381610073565b0390f35b610059565b346100da576100bc366004610063565b6100c46103fb565b6100cc610053565b806100d681610073565b0390f35b610059565b5190565b60209181520190565b60005b838110610100575050906000910152565b8060209183015181850152016100ef565b601f801991011690565b61013a61014360209361014893610131816100df565b938480936100e3565b958691016100ec565b610111565b0190565b610162916020820191600081840391015261011b565b90565b3461019557610175366004610063565b610191610180610565565b610188610053565b9182918261014c565b0390f35b610059565b600080fd5b60001c90565b60018060a01b031690565b6101bc6101c19161019f565b6101a5565b90565b6101ce90546101b0565b90565b60018060a01b031690565b90565b6101f36101ee6101f8926101d1565b6101dc565b6101d1565b90565b610204906101df565b90565b610210906101fb565b90565b61021c906101df565b90565b61022890610213565b90565b600080fd5b634e487b7160e01b600052604160045260246000fd5b9061025090610111565b810190811067ffffffffffffffff82111761026a57604052565b610230565b60e01b90565b600091031261028057565b61005e565b61028d610053565b3d6000823e3d90fd5b6102b06102ab6102a660006101c4565b610207565b61021f565b635dfc2e4a90803b15610328576102d4916000916102cc610053565b93849261026f565b825281806102e460048201610073565b03915afa8015610323576102f6575b50565b6103169060003d811161031c575b61030e8183610246565b810190610275565b386102f3565b503d610304565b610285565b61022b565b905090565b60007f746573742d696e64657865642d706172616d0000000000000000000000000000910152565b6103666012809261032d565b61036f81610332565b0190565b61037c9061035a565b90565b610387610053565b8061039181610373565b03902090565b60209181520190565b60007f746573742d706172616d00000000000000000000000000000000000000000000910152565b6103d5600a602092610397565b6103de816103a0565b0190565b6103f890602081019060008183039101526103c8565b90565b7f39b8d23135cdeca3f85b347e5285f40c9b1de764cf9f8126e7f3b34d77ff0cf061042461037f565b9061042d610053565b80610437816103e2565b0390a2565b606090565b9061045461044d610053565b9283610246565b565b67ffffffffffffffff811161047457610470602091610111565b0190565b610230565b9061048b61048683610456565b610441565b918252565b3d6000146104ad576104a13d610479565b903d6000602084013e5b565b6104b561043c565b906104ab565b60207f6c65640000000000000000000000000000000000000000000000000000000000917f63616c6c20746f20707265636f6d70696c656420636f6e74726163742066616960008201520152565b6105166023604092610397565b61051f816104bb565b0190565b6105399060208101906000818303910152610509565b90565b1561054357565b61054b610053565b62461bcd60e51b81528061056160048201610523565b0390fd5b61056d61043c565b5060008060046105a8632efe172560e11b610599610589610053565b9384926020840190815201610073565b60208201810382520382610246565b6105b1826101c4565b90602081019051915afa6105cc6105c6610490565b9161053c565b9056fea2646970667358221220e4d3cbed0cd366decd5e1ca30677504172ecd37e64c24cdea36ea8f5e08b221d64736f6c63430008190033",
 }
 
 // NoopCallerABI is the input ABI used to generate the binding from.
@@ -260,4 +260,170 @@ func (_NoopCaller *NoopCallerSession) NoopStaticCall() ([]byte, error) {
 // Solidity: function noop_static_call() view returns(bytes)
 func (_NoopCaller *NoopCallerCallerSession) NoopStaticCall() ([]byte, error) {
 	return _NoopCaller.Contract.NoopStaticCall(&_NoopCaller.CallOpts)
+}
+
+// EmitEvent is a paid mutator transaction binding the contract method 0x7b0cb839.
+//
+// Solidity: function emitEvent() returns()
+func (_NoopCaller *NoopCallerTransactor) EmitEvent(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _NoopCaller.contract.Transact(opts, "emitEvent")
+}
+
+// EmitEvent is a paid mutator transaction binding the contract method 0x7b0cb839.
+//
+// Solidity: function emitEvent() returns()
+func (_NoopCaller *NoopCallerSession) EmitEvent() (*types.Transaction, error) {
+	return _NoopCaller.Contract.EmitEvent(&_NoopCaller.TransactOpts)
+}
+
+// EmitEvent is a paid mutator transaction binding the contract method 0x7b0cb839.
+//
+// Solidity: function emitEvent() returns()
+func (_NoopCaller *NoopCallerTransactorSession) EmitEvent() (*types.Transaction, error) {
+	return _NoopCaller.Contract.EmitEvent(&_NoopCaller.TransactOpts)
+}
+
+// NoopCallerEventIterator is returned from FilterEvent and is used to iterate over the raw logs and unpacked data for Event events raised by the NoopCaller contract.
+type NoopCallerEventIterator struct {
+	Event *NoopCallerEvent // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *NoopCallerEventIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(NoopCallerEvent)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(NoopCallerEvent)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *NoopCallerEventIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *NoopCallerEventIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// NoopCallerEvent represents a Event event raised by the NoopCaller contract.
+type NoopCallerEvent struct {
+	IndexedParam common.Hash
+	Param        string
+	Raw          types.Log // Blockchain specific contextual infos
+}
+
+// FilterEvent is a free log retrieval operation binding the contract event 0x39b8d23135cdeca3f85b347e5285f40c9b1de764cf9f8126e7f3b34d77ff0cf0.
+//
+// Solidity: event Event(string indexed indexedParam, string param)
+func (_NoopCaller *NoopCallerFilterer) FilterEvent(opts *bind.FilterOpts, indexedParam []string) (*NoopCallerEventIterator, error) {
+
+	var indexedParamRule []interface{}
+	for _, indexedParamItem := range indexedParam {
+		indexedParamRule = append(indexedParamRule, indexedParamItem)
+	}
+
+	logs, sub, err := _NoopCaller.contract.FilterLogs(opts, "Event", indexedParamRule)
+	if err != nil {
+		return nil, err
+	}
+	return &NoopCallerEventIterator{contract: _NoopCaller.contract, event: "Event", logs: logs, sub: sub}, nil
+}
+
+// WatchEvent is a free log subscription operation binding the contract event 0x39b8d23135cdeca3f85b347e5285f40c9b1de764cf9f8126e7f3b34d77ff0cf0.
+//
+// Solidity: event Event(string indexed indexedParam, string param)
+func (_NoopCaller *NoopCallerFilterer) WatchEvent(opts *bind.WatchOpts, sink chan<- *NoopCallerEvent, indexedParam []string) (event.Subscription, error) {
+
+	var indexedParamRule []interface{}
+	for _, indexedParamItem := range indexedParam {
+		indexedParamRule = append(indexedParamRule, indexedParamItem)
+	}
+
+	logs, sub, err := _NoopCaller.contract.WatchLogs(opts, "Event", indexedParamRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(NoopCallerEvent)
+				if err := _NoopCaller.contract.UnpackLog(event, "Event", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseEvent is a log parse operation binding the contract event 0x39b8d23135cdeca3f85b347e5285f40c9b1de764cf9f8126e7f3b34d77ff0cf0.
+//
+// Solidity: event Event(string indexed indexedParam, string param)
+func (_NoopCaller *NoopCallerFilterer) ParseEvent(log types.Log) (*NoopCallerEvent, error) {
+	event := new(NoopCallerEvent)
+	if err := _NoopCaller.contract.UnpackLog(event, "Event", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
 }
