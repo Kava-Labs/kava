@@ -110,57 +110,48 @@ func (suite *IntegrationTestSuite) TestNoopPrecompileDirectCall() {
 	})
 }
 
-// call directly via JSON-RPC: expect CALL Context
-// regular type-safe call via NoopCaller: expect CALL Context
-
-// call opcode
-// staticcall
-// delegatecall
-// callcode
-//
-// read-only flag
-func (suite *IntegrationTestSuite) TestNoopPrecompileCallContext() {
+func (suite *IntegrationTestSuite) TestNoopPrecompileEvents() {
 	whale := suite.Kava.NewFundedAccount("noop-caller-events-whale-account", sdk.NewCoins(ukava(1e6))) // 1 KAVA
 
 	ethClient, err := ethclient.Dial("http://127.0.0.1:8545")
 	suite.Require().NoError(err)
 
-	noopCaller := suite.newNoopCaller(noop.ContractAddress)
+	noopPrecompile := suite.newNoopCaller(noop.ContractAddress)
 
-	_, err = noopCaller.EmitEvent(whale.EvmAuth)
+	_, err = noopPrecompile.EmitEvent(whale.EvmAuth)
 	suite.Require().NoError(err)
 	suite.waitForNewBlocks(1)
 
-	// TODO(yevhenii):
-	// - specify block range?
-	// - specify NoopPrecompile contract address
-	logs, err := ethClient.FilterLogs(context.Background(), ethereum.FilterQuery{
-		//BlockHash *common.Hash     // used by eth_getLogs, return logs only from block with this hash
-		//FromBlock *big.Int         // beginning of the queried range, nil means genesis block
-		//ToBlock   *big.Int         // end of the range, nil means latest block
-		//Addresses []common.Address // restricts matches to events created by specific contracts
+	eventSig := []byte("Event(string,string)")
+	eventSigHash := crypto.Keccak256Hash(eventSig)
 
-		// The Topic list restricts matches to particular event topics. Each event has a list
-		// of topics. Topics matches a prefix of that list. An empty element slice matches any
-		// topic. Non-empty elements represent an alternative that matches any of the
-		// contained topics.
-		//
-		// Examples:
-		// {} or nil          matches any topic list
-		// {{A}}              matches topic A in first position
-		// {{}, {B}}          matches any topic in first position AND B in second position
-		// {{A}, {B}}         matches topic A in first position AND B in second position
-		// {{A, B}, {C, D}}   matches topic (A OR B) in first position AND (C OR D) in second position
-		//Topics [][]common.Hash
+	// TODO(yevhenii): specify block range?
+	events, err := ethClient.FilterLogs(context.Background(), ethereum.FilterQuery{
+		Addresses: []common.Address{noop.ContractAddress},
+		Topics: [][]common.Hash{
+			{eventSigHash},
+		},
 	})
 	suite.Require().NoError(err)
-	fmt.Printf("logs: %v\n", logs)
+	suite.Require().Len(events, 1)
+	event := events[0]
 
-	logsInJSON, err := json.Marshal(logs)
+	eventsInJSON, err := json.Marshal(events)
 	suite.Require().NoError(err)
-	fmt.Printf("logsInJSON: %s\n", logsInJSON)
+	fmt.Printf("eventsInJSON: %s\n", eventsInJSON)
 
-	suite.Require().Len(logs, 1)
+	// check event address
+	suite.Require().Equal(noop.ContractAddress, event.Address)
+
+	// check event topics
+	testIndexedParamHash := crypto.Keccak256Hash([]byte("test-indexed-param"))
+	suite.Require().Equal(
+		[]common.Hash{eventSigHash, testIndexedParamHash},
+		event.Topics,
+	)
+
+	// check event data
+	suite.Require().Equal([]byte("test-param"), event.Data)
 }
 
 func (suite *IntegrationTestSuite) TestNoopCallerEvents() {
@@ -172,18 +163,13 @@ func (suite *IntegrationTestSuite) TestNoopCallerEvents() {
 	suite.Require().NoError(err)
 	suite.waitForNewBlocks(1)
 
-	//var receipt *types.Receipt
-	//suite.Eventually(func() bool {
-	//	receipt, err = suite.Kava.EvmClient.TransactionReceipt(context.Background(), tx.Hash())
-	//	return err == nil
-	//}, 10*time.Second, 1*time.Second)
-
 	receipt, err := suite.Kava.EvmClient.TransactionReceipt(context.Background(), tx.Hash())
 	suite.Require().NoError(err)
 
 	eventSig := []byte("Event(string,string)")
 	eventSigHash := crypto.Keccak256Hash(eventSig)
 
+	// TODO(yevhenii): specify block range?
 	events, err := suite.Kava.EvmClient.FilterLogs(context.Background(), ethereum.FilterQuery{
 		Addresses: []common.Address{noopCallerAddr},
 		Topics: [][]common.Hash{
@@ -196,10 +182,6 @@ func (suite *IntegrationTestSuite) TestNoopCallerEvents() {
 
 	noopCallerABI, err := abi.JSON(strings.NewReader(noop_caller.NoopCallerMetaData.ABI))
 	suite.Require().NoError(err)
-
-	eventsInJSON, err := json.Marshal(event)
-	suite.Require().NoError(err)
-	fmt.Printf("eventsInJSON: %s\n", eventsInJSON)
 
 	// check event address
 	suite.Require().Equal(noopCallerAddr, event.Address)
@@ -218,7 +200,6 @@ func (suite *IntegrationTestSuite) TestNoopCallerEvents() {
 	err = noopCallerABI.UnpackIntoInterface(&eventData, "Event", event.Data)
 	suite.Require().NoError(err)
 	suite.Require().Equal("test-param", eventData.Param)
-	// TODO(yevhenii): check other data
 
 	// check block number, tx hash, etc...
 	suite.Require().Equal(receipt.BlockNumber.Uint64(), event.BlockNumber)

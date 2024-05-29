@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/precompile/contract"
 
 	"github.com/evmos/ethermint/x/evm/statedb"
@@ -28,40 +29,6 @@ func noop(
 		return nil, 0, err
 	}
 
-	accessibleState.GetStateDB().AddLog(&types.Log{
-		//// Consensus fields:
-		//// address of the contract that generated the event
-		//Address common.Address
-		//// list of topics provided by the contract.
-		//Topics []common.Hash
-		//// supplied by the contract, usually ABI-encoded
-		//Data []byte
-		//
-		//// Derived fields. These fields are filled in by the node
-		//// but not secured by consensus.
-		//// block in which the transaction was included
-		//BlockNumber uint64
-		//// hash of the transaction
-		//TxHash common.Hash
-		//// index of the transaction in the block
-		//TxIndex uint
-		//// hash of the block in which the transaction was included
-		//BlockHash common.Hash
-		//// index of the log in the block
-		//Index uint
-		//
-		//// The Removed field is true if this log was reverted due to a chain reorganisation.
-		//// You must pay attention to this field if you receive logs through a filter query.
-		//Removed bool
-	})
-	ethermintStateDB := accessibleState.GetStateDB().(*statedb.StateDB)
-
-	err = ethermintStateDB.Commit()
-	fmt.Printf("Commit Error: %v\n", err)
-	if err != nil {
-		return nil, 0, err
-	}
-
 	return []byte{}, remainingGas, nil
 }
 
@@ -77,27 +44,17 @@ func emitEvent(
 		return nil, 0, err
 	}
 
+	eventSig := []byte("Event(string,string)")
+	eventSigHash := crypto.Keccak256Hash(eventSig)
+	testIndexedParamHash := crypto.Keccak256Hash([]byte("test-indexed-param"))
+
 	accessibleState.GetStateDB().AddLog(&types.Log{
-		//// Consensus fields:
-		//// address of the contract that generated the event
-		//Address common.Address
-		//// list of topics provided by the contract.
-		//Topics []common.Hash
-		//// supplied by the contract, usually ABI-encoded
-		//Data []byte
-		//
-		//// Derived fields. These fields are filled in by the node
-		//// but not secured by consensus.
-		//// block in which the transaction was included
-		//BlockNumber uint64
-		//// hash of the transaction
-		//TxHash common.Hash
-		//// index of the transaction in the block
-		//TxIndex uint
-		//// hash of the block in which the transaction was included
-		//BlockHash common.Hash
-		//// index of the log in the block
-		//Index uint
+		Address: addr,
+		Topics: []common.Hash{
+			eventSigHash,
+			testIndexedParamHash,
+		},
+		Data: []byte("test-param"),
 	})
 	ethermintStateDB := accessibleState.GetStateDB().(*statedb.StateDB)
 
@@ -106,6 +63,10 @@ func emitEvent(
 	if err != nil {
 		return nil, 0, err
 	}
+
+	fmt.Printf("ContractAddress: %v\n", ContractAddress)
+	fmt.Printf("caller         : %v\n", caller)
+	fmt.Printf("addr           : %v\n", addr)
 
 	return []byte{}, remainingGas, nil
 }
