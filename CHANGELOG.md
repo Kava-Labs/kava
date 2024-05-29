@@ -36,6 +36,9 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+### Improvements
+- (cdp) [#1822] optimize BeginBlocker by removing unnecessary/redundant checks & calculations
+
 ## [v0.26.0]
 
 ### Features
@@ -335,6 +338,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#1839]: https://github.com/Kava-Labs/kava/pull/1839
 [#1836]: https://github.com/Kava-Labs/kava/pull/1836
 [#1832]: https://github.com/Kava-Labs/kava/pull/1832
+[#1822]: https://github.com/Kava-Labs/kava/pull/1822
 [#1811]: https://github.com/Kava-Labs/kava/pull/1811
 [#1804]: https://github.com/Kava-Labs/kava/pull/1804
 [#1785]: https://github.com/Kava-Labs/kava/pull/1785
