@@ -131,6 +131,74 @@ func (k Keeper) SetCurrentPrices(ctx sdk.Context, marketID string) error {
 	return nil
 }
 
+// SetCurrentPricesForAllMarkets updates the price of an asset to the median of all valid oracle inputs
+func (k Keeper) SetCurrentPricesForAllMarkets(ctx sdk.Context) {
+	orderedMarkets := []string{}
+	marketPricesByID := make(map[string]types.CurrentPrices)
+
+	for _, market := range k.GetMarkets(ctx) {
+		if market.Active {
+			orderedMarkets = append(orderedMarkets, market.MarketID)
+			marketPricesByID[market.MarketID] = types.CurrentPrices{}
+		}
+	}
+
+	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.RawPriceFeedPrefix)
+	for ; iterator.Valid(); iterator.Next() {
+		var postedPrice types.PostedPrice
+		k.cdc.MustUnmarshal(iterator.Value(), &postedPrice)
+
+		prices, found := marketPricesByID[postedPrice.MarketID]
+		if !found {
+			continue
+		}
+
+		// filter out expired prices
+		if postedPrice.Expiry.After(ctx.BlockTime()) {
+			marketPricesByID[postedPrice.MarketID] = append(prices, types.NewCurrentPrice(postedPrice.MarketID, postedPrice.Price))
+		}
+	}
+	iterator.Close()
+
+	for _, marketID := range orderedMarkets {
+		// store current price
+		validPrevPrice := true
+		prevPrice, err := k.GetCurrentPrice(ctx, marketID)
+		if err != nil {
+			validPrevPrice = false
+		}
+
+		notExpiredPrices, _ := marketPricesByID[marketID]
+
+		if len(notExpiredPrices) == 0 {
+			// NOTE: The current price stored will continue storing the most recent (expired)
+			// price if this is not set.
+			// This zero's out the current price stored value for that market and ensures
+			// that CDP methods that GetCurrentPrice will return error.
+			k.setCurrentPrice(ctx, marketID, types.CurrentPrice{})
+			continue
+		}
+
+		medianPrice := k.CalculateMedianPrice(notExpiredPrices)
+
+		// check case that market price was not set in genesis
+		//if validPrevPrice && !medianPrice.Equal(prevPrice.Price) {
+		if validPrevPrice && !medianPrice.Equal(prevPrice.Price) {
+			// only emit event if price has changed
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeMarketPriceUpdated,
+					sdk.NewAttribute(types.AttributeMarketID, marketID),
+					sdk.NewAttribute(types.AttributeMarketPrice, medianPrice.String()),
+				),
+			)
+		}
+
+		currentPrice := types.NewCurrentPrice(marketID, medianPrice)
+		k.setCurrentPrice(ctx, marketID, currentPrice)
+	}
+}
+
 func (k Keeper) setCurrentPrice(ctx sdk.Context, marketID string, currentPrice types.CurrentPrice) {
 	store := ctx.KVStore(k.key)
 	store.Set(types.CurrentPriceKey(marketID), k.cdc.MustMarshal(&currentPrice))
