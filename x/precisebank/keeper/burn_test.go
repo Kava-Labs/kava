@@ -1,14 +1,17 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
 )
+
+// Testing module name for mocked GetModuleAccount()
+const burnerModuleName = "burner-module"
 
 func TestBurnCoins_PanicValidations(t *testing.T) {
 	// panic tests for invalid inputs
@@ -35,29 +38,29 @@ func TestBurnCoins_PanicValidations(t *testing.T) {
 		},
 		{
 			"no permission",
-			minttypes.ModuleName,
+			burnerModuleName,
 			func(td testData) {
 				td.ak.EXPECT().
-					GetModuleAccount(td.ctx, minttypes.ModuleName).
+					GetModuleAccount(td.ctx, burnerModuleName).
 					Return(authtypes.NewModuleAccount(
 						authtypes.NewBaseAccountWithAddress(sdk.AccAddress{1}),
-						minttypes.ModuleName,
+						burnerModuleName,
 						// no burn permission
 					)).
 					Once()
 			},
 			cs(c("ukava", 1000)),
-			"module account mint does not have permissions to mint tokens: unauthorized",
+			fmt.Sprintf("module account %s does not have permissions to burn tokens: unauthorized", burnerModuleName),
 		},
 		{
-			"has mint permission",
-			minttypes.ModuleName,
+			"has burn permission",
+			burnerModuleName,
 			func(td testData) {
 				td.ak.EXPECT().
-					GetModuleAccount(td.ctx, minttypes.ModuleName).
+					GetModuleAccount(td.ctx, burnerModuleName).
 					Return(authtypes.NewModuleAccount(
 						authtypes.NewBaseAccountWithAddress(sdk.AccAddress{1}),
-						minttypes.ModuleName,
+						burnerModuleName,
 						// includes burner permission
 						authtypes.Burner,
 					)).
@@ -65,7 +68,7 @@ func TestBurnCoins_PanicValidations(t *testing.T) {
 
 				// Will call x/bank BurnCoins coins
 				td.bk.EXPECT().
-					BurnCoins(td.ctx, minttypes.ModuleName, cs(c("ukava", 1000))).
+					BurnCoins(td.ctx, burnerModuleName, cs(c("ukava", 1000))).
 					Return(nil).
 					Once()
 			},
@@ -116,16 +119,16 @@ func TestBurnCoins_Errors(t *testing.T) {
 	}{
 		{
 			"invalid coins",
-			minttypes.ModuleName,
+			burnerModuleName,
 			func(td testData) {
 				// Valid module account minter
 				td.ak.EXPECT().
-					GetModuleAccount(td.ctx, minttypes.ModuleName).
+					GetModuleAccount(td.ctx, burnerModuleName).
 					Return(authtypes.NewModuleAccount(
 						authtypes.NewBaseAccountWithAddress(sdk.AccAddress{1}),
-						minttypes.ModuleName,
+						burnerModuleName,
 						// includes minter permission
-						authtypes.Minter,
+						authtypes.Burner,
 					)).
 					Once()
 			},
