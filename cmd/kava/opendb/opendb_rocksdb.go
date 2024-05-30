@@ -308,19 +308,19 @@ func newRocksDBWithOptions(
 	}
 
 	// EnableStatistics adds overhead so shouldn't be enabled in production
-	if enableMetrics {
-		dbOpts.EnableStatistics()
-	}
+	// if enableMetrics {
+	// 	dbOpts.EnableStatistics()
+	// }
 
 	db, _, err := grocksdb.OpenDbColumnFamilies(dbOpts, dbPath, []string{DefaultColumnFamilyName}, []*grocksdb.Options{cfOpts})
 	if err != nil {
 		return nil, err
 	}
 
-	if enableMetrics {
-		registerMetrics()
-		go reportMetrics(db, time.Second*time.Duration(reportMetricsIntervalSecs))
-	}
+	// if enableMetrics {
+	// 	registerMetrics()
+	// 	go reportMetrics(db, time.Second*time.Duration(reportMetricsIntervalSecs))
+	// }
 
 	wo := grocksdb.NewDefaultWriteOptions()
 	woSync := grocksdb.NewDefaultWriteOptions()
