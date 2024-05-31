@@ -64,54 +64,67 @@ func (k Keeper) SendCoins(
 // sendExtendedCoins transfers amt extended coins from a sending account to a
 // receiving account. An error is returned upon failure. This function is
 // called by SendCoins() and should not be called directly.
+//
+// This method covers 4 cases between two accounts - sender and receiver.
+// Depending on the fractional balance and the amount being transferred:
+// Sender account:
+//  1. Arithmetic borrow 1 integer equivalent amount of fractional coins if the
+//     fractional balance is insufficient.
+//  2. No borrow if fractional balance is sufficient.
+//
+// Receiver account:
+//  1. Arithmetic carry 1 integer equivalent amount of fractional coins if the
+//     received amount exceeds max fractional balance.
+//  2. No carry if received amount does not exceed max fractional balance.
+//
+// The 4 cases are:
+// 1. Sender borrow, receiver carry
+// 2. Sender borrow, NO receiver carry
+// 3. NO sender borrow, receiver carry
+// 4. NO sender borrow, NO receiver carry
+//
+// Truth table:
+// | Sender Borrow | Receiver Carry | Direct Transfer |
+// | --------------|----------------|-----------------|
+// | T             | T              | T               |
+// | T             | F              | F               |
+// | F             | T              | F               |
+// | F             | F              | F               |
 func (k Keeper) sendExtendedCoins(
 	ctx sdk.Context,
 	from, to sdk.AccAddress,
 	amt sdkmath.Int,
 ) error {
 	// Sufficient balance check is done by bankkeeper.SendCoins(), for both
-	// integer and fractional amounts.
+	// integer and fractional-only sends. E.g. If fractional balance is
+	// insufficient, it will still incur a integer borrow which will fail if the
+	// sender does not have sufficient integer balance.
 
+	// Load required state: Account old balances
+	senderFracBal := k.GetFractionalBalance(ctx, from)
+	recipientFracBal := k.GetFractionalBalance(ctx, to)
+
+	// -------------------------------------------------------------------------
+	// Pure stateless calculations
 	integerAmt := amt.Quo(types.ConversionFactor())
 	fractionalAmt := amt.Mod(types.ConversionFactor())
 
-	// Account old balances
-	senderFractionalBal := k.GetFractionalBalance(ctx, from)
-	recipientFractionalBal := k.GetFractionalBalance(ctx, to)
+	// Account new fractional balances
+	senderNewFracBal, senderNeedsBorrow := subFromFractionalBalance(senderFracBal, fractionalAmt)
+	recipientNewFracBal, recipientNeedsCarry := addToFractionalBalance(recipientFracBal, fractionalAmt)
 
-	// Account new fractional balances (NOT YET carried)
-	senderNewFractionalBal := senderFractionalBal.Sub(fractionalAmt)
-	recipientNewFractionalBal := recipientFractionalBal.Add(fractionalAmt)
-
-	// Check if sender needs to borrow and recipient needs to carry
-	senderNeedsBorrow := senderNewFractionalBal.IsNegative()
-	recipientNeedsCarry := recipientNewFractionalBal.GTE(types.ConversionFactor())
-
-	// Update fractional balances to account for carried and borrowed integer
-	// amounts. This needs to be always done after the integer transfer, no
-	// matter if we used direct transfer or reserve exchange.
-	if senderNeedsBorrow {
-		// Increase fractional balance by 1 integer equivalent amount.
-		// No longer negative after adding. SetFractionalBalance will panic
-		// if the amount is invalid.
-		senderNewFractionalBal = senderNewFractionalBal.Add(types.ConversionFactor())
-	}
-
-	if recipientNeedsCarry {
-		// Decrease fractional balance by 1 integer equivalent amount.
-		// No longer > conversionFactor after subtracting
-		recipientNewFractionalBal = recipientNewFractionalBal.Sub(types.ConversionFactor())
-	}
-
-	// Integer balance needs to be deducted from sender and increased for
-	// recipient. Instead of using reserve exchange, we can directly transfer
-	// between the account
-	canDirectTransferCarry := senderNeedsBorrow && recipientNeedsCarry
-	if canDirectTransferCarry {
+	// Case #1: Sender borrow, recipient carry
+	if senderNeedsBorrow && recipientNeedsCarry {
+		// Can directly transfer borrow/carry - increase the direct transfer by 1
 		integerAmt = integerAmt.AddRaw(1)
 	}
 
-	// Direct integer transfer, including carry if possible.
+	// -------------------------------------------------------------------------
+	// Stateful operations for transfers
+
+	// This includes ALL transfers of >= conversionFactor AND Case #1
+	// Full integer amount transfer, including direct transfer of borrow/carry
+	// if any.
 	if integerAmt.IsPositive() {
 		transferCoin := sdk.NewCoin(types.IntegerCoinDenom, integerAmt)
 		if err := k.bk.SendCoins(ctx, from, to, sdk.NewCoins(transferCoin)); err != nil {
@@ -119,35 +132,106 @@ func (k Keeper) sendExtendedCoins(
 		}
 	}
 
-	// ------------------------------------------------
-	// Use reserve to borrow and carry fractional coins if we there is no direct
-	// transfer from sender to recipient.
-	if !canDirectTransferCarry {
-		// Send to reserve if sender needs to borrow
-		if senderNeedsBorrow {
-			borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
-			if err := k.bk.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(borrowCoin)); err != nil {
-				return k.wrapError(ctx, from, amt, err)
-			}
+	// Case #2: Sender borrow, NO recipient carry
+	// Sender borrows by transferring 1 integer amount to reserve to account for
+	// lack of fractional balance.
+	if senderNeedsBorrow && !recipientNeedsCarry {
+		borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
+		if err := k.bk.SendCoinsFromAccountToModule(
+			ctx,
+			from, // sender borrowing
+			types.ModuleName,
+			sdk.NewCoins(borrowCoin),
+		); err != nil {
+			return k.wrapError(ctx, from, amt, err)
 		}
+	}
 
-		// Always send from module to account last to ensure reserve has enough.
-		if recipientNeedsCarry {
-			carryCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
-			if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, to, sdk.NewCoins(carryCoin)); err != nil {
-				// Panic instead of returning error, as this will only error
-				// with invalid state or logic. Reserve should always have
-				// sufficient balance to carry fractional coins.
-				panic(fmt.Sprintf("failed to carry fractional coins to %s: %s", to, err))
-			}
+	// Case #3: NO sender borrow, recipient carry.
+	// Recipient's fractional balance carries over to integer balance by 1.
+	// Always send carry from reserve before receiving borrow from sender to
+	// ensure reserve always has sufficient balance starting from 0.
+	if !senderNeedsBorrow && recipientNeedsCarry {
+		carryCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
+		if err := k.bk.SendCoinsFromModuleToAccount(
+			ctx,
+			types.ModuleName,
+			to, // recipient carrying
+			sdk.NewCoins(carryCoin),
+		); err != nil {
+			// Panic instead of returning error, as this will only error
+			// with invalid state or logic. Reserve should always have
+			// sufficient balance to carry fractional coins.
+			panic(fmt.Errorf("failed to carry fractional coins to %s: %w", to, err))
 		}
 	}
 
 	// Update fractional balances
-	k.SetFractionalBalance(ctx, from, senderNewFractionalBal)
-	k.SetFractionalBalance(ctx, to, recipientNewFractionalBal)
+	k.SetFractionalBalance(ctx, from, senderNewFracBal)
+	k.SetFractionalBalance(ctx, to, recipientNewFracBal)
 
 	return nil
+}
+
+// subFromFractionalBalance subtracts a fractional amount from the provided
+// current fractional balance, returning the new fractional balance and true if
+// an integer borrow is required.
+func subFromFractionalBalance(
+	currentFractionalBalance sdkmath.Int,
+	amountToSub sdkmath.Int,
+) (sdkmath.Int, bool) {
+	// Enforce that currentFractionalBalance is not a full balance.
+	if currentFractionalBalance.GTE(types.ConversionFactor()) {
+		panic("currentFractionalBalance must be less than ConversionFactor")
+	}
+
+	if amountToSub.GTE(types.ConversionFactor()) {
+		panic("amountToSub must be less than ConversionFactor")
+	}
+
+	newFractionalBalance := currentFractionalBalance.Sub(amountToSub)
+
+	// Insufficient fractional balance, so we need to borrow.
+	borrowRequired := newFractionalBalance.IsNegative()
+
+	if borrowRequired {
+		// Borrowing 1 integer equivalent amount of fractional coins. We need to
+		// add 1 integer equivalent amount to the fractional balance otherwise
+		// the new fractional balance will be negative.
+		newFractionalBalance = newFractionalBalance.Add(types.ConversionFactor())
+	}
+
+	return newFractionalBalance, borrowRequired
+}
+
+// addToFractionalBalance adds a fractional amount to the provided current
+// fractional balance, returning the new fractional balance and true if a carry
+// is required.
+func addToFractionalBalance(
+	currentFractionalBalance sdkmath.Int,
+	amountToAdd sdkmath.Int,
+) (sdkmath.Int, bool) {
+	// Enforce that currentFractionalBalance is not a full balance.
+	if currentFractionalBalance.GTE(types.ConversionFactor()) {
+		panic("currentFractionalBalance must be less than ConversionFactor")
+	}
+
+	if amountToAdd.GTE(types.ConversionFactor()) {
+		panic("amountToAdd must be less than ConversionFactor")
+	}
+
+	newFractionalBalance := currentFractionalBalance.Add(amountToAdd)
+
+	// New balance exceeds max fractional balance, so we need to carry it over
+	// to the integer balance.
+	carryRequired := newFractionalBalance.GTE(types.ConversionFactor())
+
+	if carryRequired {
+		// Carry over to integer amount
+		newFractionalBalance = newFractionalBalance.Sub(types.ConversionFactor())
+	}
+
+	return newFractionalBalance, carryRequired
 }
 
 // SendCoinsFromModuleToModule transfers coins from a ModuleAccount to another.
