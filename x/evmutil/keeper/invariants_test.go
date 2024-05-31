@@ -96,7 +96,7 @@ func (suite *invariantTestSuite) SetupValidState() {
 	suite.NoError(err)
 }
 
-// RegisterRoutes implements sdk.InvariantRegistry
+// RegisterRoute implements sdk.InvariantRegistry
 func (suite *invariantTestSuite) RegisterRoute(moduleName string, route string, invariant sdk.Invariant) {
 	_, exists := suite.invariants[moduleName]
 

@@ -199,7 +199,7 @@ func (p *CommunityCDPRepayDebtProposal) ValidateBasic() error {
 	return nil
 }
 
-// NewCommunityCDPRepayDebtProposal creates a new community pool cdp debt repay proposal.
+// NewCommunityCDPWithdrawCollateralProposal creates a new community pool cdp debt repay proposal.
 func NewCommunityCDPWithdrawCollateralProposal(
 	title string,
 	description string,
