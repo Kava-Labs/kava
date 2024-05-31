@@ -1,6 +1,9 @@
 package keeper
 
 import (
+	"errors"
+	"fmt"
+
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,26 +69,8 @@ func (k Keeper) sendExtendedCoins(
 	from, to sdk.AccAddress,
 	amt sdkmath.Int,
 ) error {
-	// Check balance is sufficient
-	bal := k.GetBalance(ctx, from, types.ExtendedCoinDenom)
-	if bal.Amount.LT(amt) {
-		coin := sdk.NewCoin(types.ExtendedCoinDenom, amt)
-
-		// TODO: This checks spendable coins and returns error with spendable
-		// coins, not full balance. If GetBalance() is modified to return the
-		// full, including locked, balance then this should be updated to deduct
-		// locked coins.
-
-		// Use sdk.NewCoins() so that it removes empty balances - ie. prints
-		// empty string if balance is 0. This is to match x/bank behavior.
-		spendable := sdk.NewCoins(bal)
-
-		return errorsmod.Wrapf(
-			sdkerrors.ErrInsufficientFunds,
-			"spendable balance %s is smaller than %s",
-			spendable, coin,
-		)
-	}
+	// Sufficient balance check is done by bankkeeper.SendCoins(), for both
+	// integer and fractional amounts.
 
 	integerAmt := amt.Quo(types.ConversionFactor())
 	fractionalAmt := amt.Mod(types.ConversionFactor())
@@ -130,7 +115,7 @@ func (k Keeper) sendExtendedCoins(
 	if integerAmt.IsPositive() {
 		transferCoin := sdk.NewCoin(types.IntegerCoinDenom, integerAmt)
 		if err := k.bk.SendCoins(ctx, from, to, sdk.NewCoins(transferCoin)); err != nil {
-			return err
+			return k.wrapError(ctx, from, amt, err)
 		}
 	}
 
@@ -142,14 +127,18 @@ func (k Keeper) sendExtendedCoins(
 		if senderNeedsBorrow {
 			borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
 			if err := k.bk.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, sdk.NewCoins(borrowCoin)); err != nil {
-				return err
+				return k.wrapError(ctx, from, amt, err)
 			}
 		}
 
+		// Always send from module to account last to ensure reserve has enough.
 		if recipientNeedsCarry {
 			carryCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
 			if err := k.bk.SendCoinsFromModuleToAccount(ctx, types.ModuleName, to, sdk.NewCoins(carryCoin)); err != nil {
-				return err
+				// Panic instead of returning error, as this will only error
+				// with invalid state or logic. Reserve should always have
+				// sufficient balance to carry fractional coins.
+				panic(fmt.Sprintf("failed to carry fractional coins to %s: %s", to, err))
 			}
 		}
 	}
@@ -213,4 +202,37 @@ func (k Keeper) SendCoinsFromModuleToAccount(
 	}
 
 	return k.SendCoins(ctx, senderAddr, recipientAddr, amt)
+}
+
+// wrapError returns a modified ErrInsufficientFunds with extended coin amounts
+// if the error is due to insufficient funds. Otherwise, it returns the original
+// error.
+func (k Keeper) wrapError(
+	ctx sdk.Context,
+	addr sdk.AccAddress,
+	amt sdkmath.Int,
+	err error,
+) error {
+	if !errors.Is(err, sdkerrors.ErrInsufficientFunds) {
+		return err
+	}
+
+	// Check balance is sufficient
+	bal := k.GetBalance(ctx, addr, types.ExtendedCoinDenom)
+	coin := sdk.NewCoin(types.ExtendedCoinDenom, amt)
+
+	// TODO: This checks spendable coins and returns error with spendable
+	// coins, not full balance. If GetBalance() is modified to return the
+	// full, including locked, balance then this should be updated to deduct
+	// locked coins.
+
+	// Use sdk.NewCoins() so that it removes empty balances - ie. prints
+	// empty string if balance is 0. This is to match x/bank behavior.
+	spendable := sdk.NewCoins(bal)
+
+	return errorsmod.Wrapf(
+		sdkerrors.ErrInsufficientFunds,
+		"spendable balance %s is smaller than %s",
+		spendable, coin,
+	)
 }
