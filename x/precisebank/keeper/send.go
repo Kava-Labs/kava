@@ -128,7 +128,7 @@ func (k Keeper) sendExtendedCoins(
 	if integerAmt.IsPositive() {
 		transferCoin := sdk.NewCoin(types.IntegerCoinDenom, integerAmt)
 		if err := k.bk.SendCoins(ctx, from, to, sdk.NewCoins(transferCoin)); err != nil {
-			return k.wrapError(ctx, from, amt, err)
+			return k.updateInsufficientFundsError(ctx, from, amt, err)
 		}
 	}
 
@@ -143,7 +143,7 @@ func (k Keeper) sendExtendedCoins(
 			types.ModuleName,
 			sdk.NewCoins(borrowCoin),
 		); err != nil {
-			return k.wrapError(ctx, from, amt, err)
+			return k.updateInsufficientFundsError(ctx, from, amt, err)
 		}
 	}
 
@@ -166,7 +166,7 @@ func (k Keeper) sendExtendedCoins(
 		}
 	}
 
-	// Update fractional balances
+	// Persist new fractional balances to store.
 	k.SetFractionalBalance(ctx, from, senderNewFracBal)
 	k.SetFractionalBalance(ctx, to, recipientNewFracBal)
 
@@ -288,10 +288,12 @@ func (k Keeper) SendCoinsFromModuleToAccount(
 	return k.SendCoins(ctx, senderAddr, recipientAddr, amt)
 }
 
-// wrapError returns a modified ErrInsufficientFunds with extended coin amounts
-// if the error is due to insufficient funds. Otherwise, it returns the original
-// error.
-func (k Keeper) wrapError(
+// updateInsufficientFundsError returns a modified ErrInsufficientFunds with
+// extended coin amounts if the error is due to insufficient funds. Otherwise,
+// it returns the original error. This is used since x/bank transfers will
+// return errors with integer coins, but we want the more accurate error that
+// contains the full extended coin balance and send amounts.
+func (k Keeper) updateInsufficientFundsError(
 	ctx sdk.Context,
 	addr sdk.AccAddress,
 	amt sdkmath.Int,
