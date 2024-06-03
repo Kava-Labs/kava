@@ -107,7 +107,7 @@ func (suite *invariantsIntegrationTestSuite) TestReserveBackingFractionalInvaria
 
 			tt.setupFn(suite.Ctx, suite.Keeper)
 
-			invariantFn := keeper.ReserveBackingFractionalInvariant(suite.Keeper)
+			invariantFn := keeper.ReserveBacksFractionsInvariant(suite.Keeper)
 			msg, broken := invariantFn(suite.Ctx)
 
 			if tt.wantBroken {

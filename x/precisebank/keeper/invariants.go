@@ -14,7 +14,7 @@ func RegisterInvariants(
 	k Keeper,
 	bk types.BankKeeper,
 ) {
-	ir.RegisterRoute(types.ModuleName, "reserve-backing-fractional", ReserveBackingFractionalInvariant(k))
+	ir.RegisterRoute(types.ModuleName, "reserve-backs-fractions", ReserveBacksFractionsInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "balance-remainder-total", BalancedFractionalTotalInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "valid-fractional-balances", ValidFractionalAmountsInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "valid-remainder-amount", ValidRemainderAmountInvariant(k))
@@ -24,7 +24,7 @@ func RegisterInvariants(
 // AllInvariants runs all invariants of the X/precisebank module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		res, stop := ReserveBackingFractionalInvariant(k)(ctx)
+		res, stop := ReserveBacksFractionsInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -53,12 +53,12 @@ func AllInvariants(k Keeper) sdk.Invariant {
 	}
 }
 
-// ReserveBackingFractionalInvariant checks that the total amount of backing
+// ReserveBacksFractionsInvariant checks that the total amount of backing
 // coins in the reserve is equal to the total amount of fractional balances,
 // such that the backing is always available to redeem all fractional balances
 // and there are no extra coins in the reserve that are not backing any
 // fractional balances.
-func ReserveBackingFractionalInvariant(k Keeper) sdk.Invariant {
+func ReserveBacksFractionsInvariant(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
 		var (
 			msg    string
