@@ -14,6 +14,7 @@ func RegisterInvariants(
 	k Keeper,
 	bk types.BankKeeper,
 ) {
+	ir.RegisterRoute(types.ModuleName, "reserve-backing-fractional", ReserveBackingFractionalInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "balance-remainder-total", BalancedFractionalTotalInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "valid-fractional-balances", ValidFractionalAmountsInvariant(k))
 	ir.RegisterRoute(types.ModuleName, "valid-remainder-amount", ValidRemainderAmountInvariant(k))
@@ -23,7 +24,12 @@ func RegisterInvariants(
 // AllInvariants runs all invariants of the X/precisebank module.
 func AllInvariants(k Keeper) sdk.Invariant {
 	return func(ctx sdk.Context) (string, bool) {
-		res, stop := BalancedFractionalTotalInvariant(k)(ctx)
+		res, stop := ReserveBackingFractionalInvariant(k)(ctx)
+		if stop {
+			return res, stop
+		}
+
+		res, stop = BalancedFractionalTotalInvariant(k)(ctx)
 		if stop {
 			return res, stop
 		}
@@ -44,6 +50,49 @@ func AllInvariants(k Keeper) sdk.Invariant {
 		}
 
 		return "", false
+	}
+}
+
+// ReserveBackingFractionalInvariant checks that the total amount of backing
+// coins in the reserve is equal to the total amount of fractional balances,
+// such that the backing is always available to redeem all fractional balances
+// and there are no extra coins in the reserve that are not backing any
+// fractional balances.
+func ReserveBackingFractionalInvariant(k Keeper) sdk.Invariant {
+	return func(ctx sdk.Context) (string, bool) {
+		var (
+			msg    string
+			broken bool
+		)
+
+		fractionalBalSum := k.GetTotalSumFractionalBalances(ctx)
+		remainderAmount := k.GetRemainderAmount(ctx)
+
+		// Get the total amount of backing coins in the reserve
+		moduleAddr := k.ak.GetModuleAddress(types.ModuleName)
+		reserveIntegerBalance := k.bk.GetBalance(ctx, moduleAddr, types.IntegerCoinDenom)
+		reserveExtendedBalance := reserveIntegerBalance.Amount.Mul(types.ConversionFactor())
+
+		// The total amount of backing coins in the reserve should be equal to
+		// fractional balances + remainder amount
+		totalRequiredBacking := fractionalBalSum.Add(remainderAmount)
+
+		if !reserveExtendedBalance.Equal(totalRequiredBacking) {
+			msg = fmt.Sprintf(
+				"%s reserve balance %s mismatches %s (fractional balances %s + remainder %s)\n",
+				types.ExtendedCoinDenom,
+				reserveExtendedBalance,
+				totalRequiredBacking,
+				fractionalBalSum,
+				remainderAmount,
+			)
+			broken = true
+		}
+
+		return sdk.FormatInvariant(
+			types.ModuleName, "reserve-backing-fractional",
+			msg,
+		), broken
 	}
 }
 
