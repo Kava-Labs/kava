@@ -66,10 +66,10 @@ func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 // mintExtendedCoin manages the minting of extended coins, and no other coins.
 func (k Keeper) mintExtendedCoin(
 	ctx sdk.Context,
-	moduleName string,
+	recipientModuleName string,
 	amt sdkmath.Int,
 ) error {
-	moduleAddr := k.ak.GetModuleAddress(moduleName)
+	moduleAddr := k.ak.GetModuleAddress(recipientModuleName)
 
 	// Get current module account fractional balance - 0 if not found
 	fractionalAmount := k.GetFractionalBalance(ctx, moduleAddr)
@@ -88,9 +88,26 @@ func (k Keeper) mintExtendedCoin(
 	// fractional amounts x and y where both x and y < ConversionFactor
 	// x + y < (2 * ConversionFactor) - 2
 	// x + y < 1 integer amount + fractional amount
-	if newFractionalBalance.GTE(types.ConversionFactor()) {
+	hasIntegerCarry := newFractionalBalance.GTE(types.ConversionFactor())
+	if hasIntegerCarry {
+		// Carry should send from reserve -> account, instead of minting an
+		// extra integer coin. Otherwise doing an extra mint will require a burn
+		// from reserves to maintain exact backing.
+		carryCoin := sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt())
+
+		// SendCoinsFromModuleToModule allows for sending coins even if the
+		// recipient module account is blocked.
+		if err := k.bk.SendCoinsFromModuleToModule(
+			ctx,
+			types.ModuleName,
+			recipientModuleName,
+			sdk.NewCoins(carryCoin),
+		); err != nil {
+			return err
+		}
+
 		// Carry over to integer mint amount
-		integerMintAmount = integerMintAmount.AddRaw(1)
+
 		// Subtract 1 integer equivalent amount of fractional balance. Same
 		// behavior as using .Mod() in this case.
 		newFractionalBalance = newFractionalBalance.Sub(types.ConversionFactor())
@@ -103,7 +120,7 @@ func (k Keeper) mintExtendedCoin(
 
 		if err := k.bk.MintCoins(
 			ctx,
-			moduleName,
+			recipientModuleName,
 			sdk.NewCoins(integerMintCoin),
 		); err != nil {
 			return err
@@ -119,16 +136,29 @@ func (k Keeper) mintExtendedCoin(
 	// Deduct new remainder with minted fractional amount
 	newRemainder := prevRemainder.Sub(fractionalMintAmount)
 
+	// Only mint an additional reserve integer coin if ALL are true:
+	// - Minted fractional amounts is less than previous remainder.
+	// - Account fractional balance does NOT carry to integer balance.
+	//   Example:
+	//   - acc bal: 0.6, remainder: 0.4, reserve: 1
+	//   - mint: 0.5
+	//   - acc bal: 1.1 + remainder: 0.9, reserve: 1 (unchanged)
+	//
+	//   - Reserve does not change since fractional balance actually decreased.
+	//   - The 1 integer carry was already minted earlier so no need to mint
+	//     again.
 	if prevRemainder.LT(fractionalMintAmount) {
 		// Need additional 1 integer coin in reserve to back minted fractional
 		reserveMintCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
 		if err := k.bk.MintCoins(ctx, types.ModuleName, reserveMintCoins); err != nil {
 			return fmt.Errorf("failed to mint %s for reserve: %w", reserveMintCoins, err)
 		}
+	}
 
-		// Update remainder with value of minted integer coin. newRemainder is
-		// currently negative at this point. This also means that it will always
-		// be < conversionFactor after this operation and not require a Mod().
+	// newRemainder will be negative if prevRemainder < fractionalMintAmount.
+	// This needs to be adjusted back to the corresponding positive value. The
+	// remainder will be always < conversionFactor after add if it is negative.
+	if newRemainder.IsNegative() {
 		newRemainder = newRemainder.Add(types.ConversionFactor())
 	}
 

@@ -178,6 +178,39 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 			},
 		},
 		{
+			"fractional only with carry",
+			minttypes.ModuleName,
+			[]mintTest{
+				{
+					// Start with (1/4 * 3) = 0.75
+					mintAmount:  cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().QuoRaw(4).MulRaw(3))),
+					wantBalance: cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().QuoRaw(4).MulRaw(3))),
+				},
+				{
+					// Add another 0.50 to incur carry to test reserve on carry
+					mintAmount:  cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().QuoRaw(2))),
+					wantBalance: cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().QuoRaw(4).MulRaw(5))),
+				},
+			},
+		},
+		{
+			"fractional only, resulting in exact carry and 0 remainder",
+			minttypes.ModuleName,
+			[]mintTest{
+				// mint 0.5, acc = 0.5, reserve = 1
+				{
+					mintAmount:  cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().QuoRaw(2))),
+					wantBalance: cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().QuoRaw(2))),
+				},
+				// mint another 0.5, acc = 1, reserve = 0
+				// Reserve actually goes down by 1 for integer carry
+				{
+					mintAmount:  cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().QuoRaw(2))),
+					wantBalance: cs(ci(types.ExtendedCoinDenom, types.ConversionFactor())),
+				},
+			},
+		},
+		{
 			"exact carry",
 			minttypes.ModuleName,
 			[]mintTest{
@@ -299,9 +332,8 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 
 				// Ensure reserve is backing all minted fractions
 				allInvariantsFn := keeper.AllInvariants(suite.Keeper)
-				res, stop := allInvariantsFn(suite.Ctx)
-				suite.Require().False(stop, "invariant should not be broken")
-				suite.Require().Empty(res, "unexpected invariant message: %s", res)
+				msg, stop := allInvariantsFn(suite.Ctx)
+				suite.Require().Falsef(stop, "invariant should not be broken: %s", msg)
 			}
 		})
 	}
@@ -311,6 +343,7 @@ func FuzzMintCoins(f *testing.F) {
 	f.Add(int64(0))
 	f.Add(int64(100))
 	f.Add(types.ConversionFactor().Int64())
+	f.Add(types.ConversionFactor().QuoRaw(2).Int64())
 	f.Add(types.ConversionFactor().MulRaw(5).Int64())
 	f.Add(types.ConversionFactor().MulRaw(2).AddRaw(123948723).Int64())
 
@@ -327,6 +360,8 @@ func FuzzMintCoins(f *testing.F) {
 		suite.SetupTest()
 
 		mintCount := int64(10)
+
+		suite.T().Logf("minting %d %d times", amount, mintCount)
 
 		// Mint 10 times to include mints from non-zero balances
 		for i := int64(0); i < mintCount; i++ {
@@ -345,15 +380,15 @@ func FuzzMintCoins(f *testing.F) {
 		suite.Require().Equalf(
 			amount*mintCount,
 			bal.Amount.Int64(),
-			"unexpected balance after minting %d 5 times",
+			"unexpected balance after minting %d %d times",
 			amount,
+			mintCount,
 		)
 
 		// Run Invariants to ensure remainder is backing all minted fractions
 		// and in a valid state
-		allInvariantsFn := keeper.AllInvariants(suite.Keeper)
-		res, stop := allInvariantsFn(suite.Ctx)
-		suite.Require().False(stop, "invariant should not be broken")
-		suite.Require().Empty(res, "unexpected invariant message: %s", res)
+		res, stop := keeper.AllInvariants(suite.Keeper)(suite.Ctx)
+		suite.False(stop, "invariant should not be broken")
+		suite.Empty(res, "unexpected invariant message")
 	})
 }
