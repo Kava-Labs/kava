@@ -34,7 +34,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [Unreleased]
+## [unreleased]
+
+
+## [v0.26.1]
 
 ### Features
 - (cli) [#1922] Add `iavlviewer` CLI command for low-level iavl db debugging.
@@ -402,7 +405,9 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.25.0...HEAD
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.1...release/v0.26.x
+[v0.26.1]: https://github.com/Kava-Labs/kava/compare/v0.26.1...v0.26.0
+[v0.26.0]: https://github.com/Kava-Labs/kava/compare/v0.26.0...v0.25.1
 [v0.25.0]: https://github.com/Kava-Labs/kava/compare/v0.25.0...v0.24.3
 [v0.24.3]: https://github.com/Kava-Labs/kava/compare/v0.24.3...v0.24.1
 [v0.24.1]: https://github.com/Kava-Labs/kava/compare/v0.24.1...v0.24.0
