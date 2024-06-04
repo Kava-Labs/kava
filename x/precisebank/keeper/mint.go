@@ -88,8 +88,7 @@ func (k Keeper) mintExtendedCoin(
 	// fractional amounts x and y where both x and y < ConversionFactor
 	// x + y < (2 * ConversionFactor) - 2
 	// x + y < 1 integer amount + fractional amount
-	hasIntegerCarry := newFractionalBalance.GTE(types.ConversionFactor())
-	if hasIntegerCarry {
+	if newFractionalBalance.GTE(types.ConversionFactor()) {
 		// Carry should send from reserve -> account, instead of minting an
 		// extra integer coin. Otherwise doing an extra mint will require a burn
 		// from reserves to maintain exact backing.
