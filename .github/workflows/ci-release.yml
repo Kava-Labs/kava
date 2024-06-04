@@ -4,9 +4,6 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+*"
 jobs:
-  # run per commit ci checks against released version
-  lint-checks:
-    uses: ./.github/workflows/ci-lint.yml
   # run default ci checks against released version
   default-checks:
     uses: ./.github/workflows/ci-default.yml
@@ -14,7 +11,7 @@ jobs:
   # get the version tag that triggered this workflow
   get-version-tag:
     # prep version release only if all checks pass
-    needs: [lint-checks, default-checks]
+    needs: default-checks
     runs-on: ubuntu-latest
     outputs:
       git-tag: ${{ steps.git-tag.outputs.tag }}
