@@ -136,7 +136,15 @@ func (k Keeper) mintExtendedCoin(
 	// ----------------------------------------
 	// Update remainder & reserves to back minted fractional coins
 	prevRemainder := k.GetRemainderAmount(ctx)
-	// Deduct new remainder with minted fractional amount
+
+	// Deduct new remainder with minted fractional amount. This will result in
+	// two cases:
+	// 1. Zero or positive remainder: remainder is sufficient to back the minted
+	//   fractional amount. Reserve is also sufficient to back the minted amount
+	//   so no additional reserve integer coin is needed.
+	// 2. Negative remainder: remainder is insufficient to back the minted
+	//   fractional amount. Reserve will need to be increased to back the mint
+	//   amount.
 	newRemainder := prevRemainder.Sub(fractionalMintAmount)
 
 	// Mint an additional reserve integer coin if remainder is insufficient.
