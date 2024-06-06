@@ -63,7 +63,11 @@ func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 	return k.mintExtendedCoin(ctx, moduleName, extendedAmount)
 }
 
-// mintExtendedCoin manages the minting of extended coins, and no other coins.
+// mintExtendedCoin manages the minting of only extended coins. This also
+// handles integer carry over from fractional balance to integer balance if
+// necessary depending on the fractional balance and minting amount. Ensures
+// that the reserve fully backs the additional minted amount, minting any extra
+// reserve integer coins if necessary.
 func (k Keeper) mintExtendedCoin(
 	ctx sdk.Context,
 	recipientModuleName string,
@@ -135,19 +139,13 @@ func (k Keeper) mintExtendedCoin(
 	// Deduct new remainder with minted fractional amount
 	newRemainder := prevRemainder.Sub(fractionalMintAmount)
 
-	// Only mint an additional reserve integer coin if ALL are true:
-	// - Minted fractional amounts is less than previous remainder.
-	// - Account fractional balance does NOT carry to integer balance.
-	//   Example:
-	//   - acc bal: 0.6, remainder: 0.4, reserve: 1
-	//   - mint: 0.5
-	//   - acc bal: 1.1 + remainder: 0.9, reserve: 1 (unchanged)
-	//
-	//   - Reserve does not change since fractional balance actually decreased.
-	//   - The 1 integer carry was already minted earlier so no need to mint
-	//     again.
+	// Mint an additional reserve integer coin if remainder is insufficient.
+	// The remainder is the amount of fractional coins that can be minted and
+	// still be fully backed by reserve. If the remainder is less than the
+	// minted fractional amount, then the reserve needs to be increased to
+	// back the additional fractional amount.
 	if prevRemainder.LT(fractionalMintAmount) {
-		// Need additional 1 integer coin in reserve to back minted fractional
+		// Always only 1 integer coin, as fractionalMintAmount < ConversionFactor
 		reserveMintCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
 		if err := k.bk.MintCoins(ctx, types.ModuleName, reserveMintCoins); err != nil {
 			return fmt.Errorf("failed to mint %s for reserve: %w", reserveMintCoins, err)
