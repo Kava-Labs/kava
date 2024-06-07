@@ -140,6 +140,7 @@ func (k Keeper) burnExtendedCoin(
 	return nil
 }
 
+// TODO: Duplicated method from SendCoins - deduplicate when both merged
 // updateInsufficientFundsError returns a modified ErrInsufficientFunds with
 // extended coin amounts if the error is due to insufficient funds. Otherwise,
 // it returns the original error. This is used since x/bank transfers will

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -145,10 +146,18 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins() {
 			"",
 		},
 		{
+			"fractional burn - borrows",
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().AddRaw(100))),
+			cs(c(types.ExtendedCoinDenom, 500)),
+			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(400))),
+			"",
+		},
+		{
 			"error - insufficient integer balance",
 			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor())),
 			cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().MulRaw(2))),
 			cs(),
+			// Returns correct error with akava balance (rewrites Bank BurnCoins err)
 			"spendable balance 1000000000000akava is smaller than 2000000000000akava: insufficient funds",
 		},
 		{
@@ -156,6 +165,7 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins() {
 			cs(c(types.ExtendedCoinDenom, 1000)),
 			cs(c(types.ExtendedCoinDenom, 2000)),
 			cs(),
+			// Error from SendCoins to reserve
 			"spendable balance 1000akava is smaller than 2000akava: insufficient funds",
 		},
 	}
@@ -166,7 +176,6 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins() {
 			suite.SetupTest()
 
 			moduleName := ibctransfertypes.ModuleName
-
 			recipientAddr := suite.AccountKeeper.GetModuleAddress(moduleName)
 
 			// Start balance
@@ -201,6 +210,213 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins() {
 			suite.Require().False(stop, "invariant should not be broken")
 			suite.Require().Empty(res, "unexpected invariant message: %s", res)
 		})
+	}
+}
+
+func (suite *burnIntegrationTestSuite) TestBurnCoins_Remainder() {
+	// This tests a series of small burns to ensure the remainder is both
+	// updated correctly and reserve is correctly updated.
+
+	reserveAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
+
+	moduleName := ibctransfertypes.ModuleName
+	moduleAddr := suite.AccountKeeper.GetModuleAddress(moduleName)
+
+	startCoins := cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().MulRaw(5)))
+
+	// Start balance
+	err := suite.Keeper.MintCoins(
+		suite.Ctx,
+		moduleName,
+		startCoins,
+	)
+	suite.Require().NoError(err)
+
+	burnAmt := types.ConversionFactor().QuoRaw(10)
+	burnCoins := cs(ci(types.ExtendedCoinDenom, burnAmt))
+
+	// Burn 0.1 until balance is 0
+	for {
+		reserveBalBefore := suite.Keeper.GetBalance(
+			suite.Ctx,
+			reserveAddr,
+			types.IntegerCoinDenom,
+		)
+
+		balBefore := suite.Keeper.GetBalance(
+			suite.Ctx,
+			moduleAddr,
+			types.ExtendedCoinDenom,
+		)
+		remainderBefore := suite.Keeper.GetRemainderAmount(suite.Ctx)
+
+		// ----------------------------------------
+		// Burn
+		err := suite.Keeper.BurnCoins(
+			suite.Ctx,
+			moduleName,
+			burnCoins,
+		)
+		suite.Require().NoError(err)
+
+		// ----------------------------------------
+		// Checks
+		remainderAfter := suite.Keeper.GetRemainderAmount(suite.Ctx)
+		balAfter := suite.Keeper.GetBalance(
+			suite.Ctx,
+			moduleAddr,
+			types.ExtendedCoinDenom,
+		)
+		reserveBalAfter := suite.Keeper.GetBalance(
+			suite.Ctx,
+			reserveAddr,
+			types.IntegerCoinDenom,
+		)
+
+		suite.Require().Equal(
+			balBefore.Amount.Sub(burnAmt).String(),
+			balAfter.Amount.String(),
+			"balance should decrease by burn amount",
+		)
+
+		// Remainder should be updated correctly
+		suite.Require().Equal(
+			remainderBefore.Add(burnAmt).Mod(types.ConversionFactor()),
+			remainderAfter,
+		)
+
+		// If remainder has exceeded (then rolled over), reserve should be updated
+		if remainderAfter.LT(remainderBefore) {
+			suite.Require().Equal(
+				reserveBalBefore.Amount.SubRaw(1).String(),
+				reserveBalAfter.Amount.String(),
+				"reserve should decrease by 1 if remainder exceeds ConversionFactor",
+			)
+		}
+
+		// No more to burn
+		if balAfter.Amount.IsZero() {
+			break
+		}
+	}
+
+	// Run Invariants to ensure remainder is backing all fractions correctly
+	res, stop := keeper.AllInvariants(suite.Keeper)(suite.Ctx)
+	suite.Require().False(stop, "invariant should not be broken")
+	suite.Require().Empty(res, "unexpected invariant message: %s", res)
+}
+
+func (suite *burnIntegrationTestSuite) TestBurnCoins_Spread_Remainder() {
+	// This tests a series of small burns to ensure the remainder is both
+	// updated correctly and reserve is correctly updated.
+
+	reserveAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
+	burnerModuleName := ibctransfertypes.ModuleName
+	burnerAddr := suite.AccountKeeper.GetModuleAddress(burnerModuleName)
+
+	accCount := 20
+	startCoins := cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().MulRaw(5)))
+
+	addrs := []sdk.AccAddress{}
+
+	for i := 0; i < accCount; i++ {
+		addr := sdk.AccAddress(fmt.Sprintf("addr%d", i))
+		suite.MintToAccount(addr, startCoins)
+
+		addrs = append(addrs, addr)
+	}
+
+	burnAmt := types.ConversionFactor().QuoRaw(10)
+	burnCoins := cs(ci(types.ExtendedCoinDenom, burnAmt))
+
+	// Burn 0.1 from each account
+	for _, addr := range addrs {
+		reserveBalBefore := suite.Keeper.GetBalance(
+			suite.Ctx,
+			reserveAddr,
+			types.IntegerCoinDenom,
+		)
+
+		balBefore := suite.Keeper.GetBalance(
+			suite.Ctx,
+			addr,
+			types.ExtendedCoinDenom,
+		)
+		remainderBefore := suite.Keeper.GetRemainderAmount(suite.Ctx)
+
+		// ----------------------------------------
+		// Send & Burn
+		err := suite.Keeper.SendCoins(
+			suite.Ctx,
+			addr,
+			burnerAddr,
+			burnCoins,
+		)
+		suite.Require().NoError(err)
+
+		err = suite.Keeper.BurnCoins(
+			suite.Ctx,
+			burnerModuleName,
+			burnCoins,
+		)
+		suite.Require().NoError(err)
+
+		// ----------------------------------------
+		// Checks
+		remainderAfter := suite.Keeper.GetRemainderAmount(suite.Ctx)
+		balAfter := suite.Keeper.GetBalance(
+			suite.Ctx,
+			addr,
+			types.ExtendedCoinDenom,
+		)
+		reserveBalAfter := suite.Keeper.GetBalance(
+			suite.Ctx,
+			reserveAddr,
+			types.IntegerCoinDenom,
+		)
+
+		suite.Require().Equal(
+			balBefore.Amount.Sub(burnAmt).String(),
+			balAfter.Amount.String(),
+			"balance should decrease by burn amount",
+		)
+
+		// Remainder should be updated correctly
+		suite.Require().Equal(
+			remainderBefore.Add(burnAmt).Mod(types.ConversionFactor()),
+			remainderAfter,
+		)
+
+		suite.T().Logf("acc: %s", string(addr.Bytes()))
+		suite.T().Logf("acc bal: %s -> %s", balBefore, balAfter)
+		suite.T().Logf("remainder: %s -> %s", remainderBefore, remainderAfter)
+		suite.T().Logf("reserve: %v -> %v", reserveBalBefore, reserveBalAfter)
+
+		// Reserve will change when:
+		// 1. Account needs to borrow from integer (transfers to reserve)
+		// 2. Remainder meets or exceeds conversion factor (burn 1 from reserve)
+		reserveIncrease := sdkmath.ZeroInt()
+
+		// Does account need to borrow from integer?
+		if balBefore.Amount.Mod(types.ConversionFactor()).LT(burnAmt) {
+			reserveIncrease = reserveIncrease.AddRaw(1)
+		}
+
+		// If remainder has exceeded (then rolled over), burn additional 1
+		if remainderBefore.Add(burnAmt).GTE(types.ConversionFactor()) {
+			reserveIncrease = reserveIncrease.SubRaw(1)
+		}
+
+		suite.Require().Equal(
+			reserveBalBefore.Amount.Add(reserveIncrease).String(),
+			reserveBalAfter.Amount.String(),
+			"reserve should be updated by remainder and borrowing",
+		)
+
+		// Run Invariants to ensure remainder is backing all fractions correctly
+		res, stop := keeper.AllInvariants(suite.Keeper)(suite.Ctx)
+		suite.Require().False(stop, "invariant should not be broken")
+		suite.Require().Empty(res, "unexpected invariant message: %s", res)
 	}
 }
 

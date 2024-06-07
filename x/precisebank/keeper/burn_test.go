@@ -20,7 +20,7 @@ func TestBurnCoins_PanicValidations(t *testing.T) {
 		name            string
 		recipientModule string
 		setupFn         func(td testData)
-		mintAmount      sdk.Coins
+		burnAmount      sdk.Coins
 		wantPanic       string
 	}{
 		{
@@ -94,14 +94,14 @@ func TestBurnCoins_PanicValidations(t *testing.T) {
 
 			if tt.wantPanic != "" {
 				require.PanicsWithError(t, tt.wantPanic, func() {
-					_ = td.keeper.BurnCoins(td.ctx, tt.recipientModule, tt.mintAmount)
+					_ = td.keeper.BurnCoins(td.ctx, tt.recipientModule, tt.burnAmount)
 				})
 				return
 			}
 
 			require.NotPanics(t, func() {
 				// Not testing errors, only panics for this test
-				_ = td.keeper.BurnCoins(td.ctx, tt.recipientModule, tt.mintAmount)
+				_ = td.keeper.BurnCoins(td.ctx, tt.recipientModule, tt.burnAmount)
 			})
 		})
 	}
@@ -114,20 +114,20 @@ func TestBurnCoins_Errors(t *testing.T) {
 		name            string
 		recipientModule string
 		setupFn         func(td testData)
-		mintAmount      sdk.Coins
+		burnAmount      sdk.Coins
 		wantError       string
 	}{
 		{
 			"invalid coins",
 			burnerModuleName,
 			func(td testData) {
-				// Valid module account minter
+				// Valid module account burner
 				td.ak.EXPECT().
 					GetModuleAccount(td.ctx, burnerModuleName).
 					Return(authtypes.NewModuleAccount(
 						authtypes.NewBaseAccountWithAddress(sdk.AccAddress{1}),
 						burnerModuleName,
-						// includes minter permission
+						// includes burner permission
 						authtypes.Burner,
 					)).
 					Once()
@@ -146,7 +146,7 @@ func TestBurnCoins_Errors(t *testing.T) {
 			tt.setupFn(td)
 
 			require.NotPanics(t, func() {
-				err := td.keeper.BurnCoins(td.ctx, tt.recipientModule, tt.mintAmount)
+				err := td.keeper.BurnCoins(td.ctx, tt.recipientModule, tt.burnAmount)
 
 				if tt.wantError != "" {
 					require.Error(t, err)
