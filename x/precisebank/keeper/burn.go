@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -69,51 +70,44 @@ func (k Keeper) burnExtendedCoin(
 	// Get the module address
 	moduleAddr := k.ak.GetModuleAddress(moduleName)
 
-	prevBalance := k.GetBalance(ctx, moduleAddr, types.ExtendedCoinDenom)
-
-	// Check if the balance is sufficient
-	if prevBalance.Amount.LT(amt) {
-		coin := sdk.NewCoin(types.ExtendedCoinDenom, amt)
-		spendable := sdk.NewCoins(prevBalance)
-
-		return errorsmod.Wrapf(
-			sdkerrors.ErrInsufficientFunds,
-			"spendable balance %s is smaller than %s",
-			spendable, coin,
-		)
-	}
-
-	// Determine burn amounts
-	prevFractionalBalance := prevBalance.Amount.Mod(types.ConversionFactor())
+	// We only need the fractional balance to burn coins, as integer burns will
+	// return errors on insufficient funds.
+	prevFractionalBalance := k.GetFractionalBalance(ctx, moduleAddr)
 
 	integerBurnAmount := amt.Quo(types.ConversionFactor())
 	fractionalBurnAmount := amt.Mod(types.ConversionFactor())
 
+	// newFractionalBalance can be negative if fractional balance is insufficient.
 	newFractionalBalance := prevFractionalBalance.Sub(fractionalBurnAmount)
 
-	// Not enough fractional balance, need to "borrow" from the integer balance
-	// by adding an additional burn amount
-	if fractionalBurnAmount.GT(prevFractionalBalance) {
-		// Burn additional integer amount to borrow. In this case the account
-		// will always have enough integer balance to cover the additional burn
-		// as we checked the full balance above.
-		integerBurnAmount = integerBurnAmount.AddRaw(1)
+	// Not enough fractional balance, need to arithmetic borrow from the integer
+	// balance.
+	if newFractionalBalance.IsNegative() {
+		// Transfer 1 integer coin to reserve to cover the borrowed fractional
+		// amount. SendCoinsFromModuleToModule will return an error if the
+		// module account has insufficient funds and an error with the full
+		// extended balance will be returned.
+		borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt())
+		if err := k.bk.SendCoinsFromModuleToModule(
+			ctx,
+			moduleName,
+			types.ModuleName,
+			sdk.NewCoins(borrowCoin),
+		); err != nil {
+			return k.updateInsufficientFundsError(ctx, moduleAddr, amt, err)
+		}
 
-		// Add the borrowed amount to fractional balance, Sub(fractionalBurnAmount)
-		// is already done earlier. So this will always be 0 < newFractionalBalance < ConversionFactor
-		// Example with 2 fractional digits:
-		// prevFBal: .00, Burn: .01
-		// =  .00 - .01
-		// = -.01 + 1.00
-		// = .99
+		// Add the borrowed amount to negative fractional balance.
+		// This will always be 0 < newFractionalBalance < ConversionFactor
+		// as we are adding ConversionFactor to a negative amount.
 		newFractionalBalance = newFractionalBalance.Add(types.ConversionFactor())
 	}
 
 	// Burn the integer amount
 	if !integerBurnAmount.IsZero() {
-		coin := sdk.NewCoin(types.ExtendedCoinDenom, integerBurnAmount.Mul(types.ConversionFactor()))
+		coin := sdk.NewCoin(types.IntegerCoinDenom, integerBurnAmount)
 		if err := k.bk.BurnCoins(ctx, moduleName, sdk.NewCoins(coin)); err != nil {
-			return err
+			return k.updateInsufficientFundsError(ctx, moduleAddr, amt, err)
 		}
 	}
 
@@ -144,4 +138,39 @@ func (k Keeper) burnExtendedCoin(
 	k.SetRemainderAmount(ctx, newRemainder)
 
 	return nil
+}
+
+// updateInsufficientFundsError returns a modified ErrInsufficientFunds with
+// extended coin amounts if the error is due to insufficient funds. Otherwise,
+// it returns the original error. This is used since x/bank transfers will
+// return errors with integer coins, but we want the more accurate error that
+// contains the full extended coin balance and send amounts.
+func (k Keeper) updateInsufficientFundsError(
+	ctx sdk.Context,
+	addr sdk.AccAddress,
+	amt sdkmath.Int,
+	err error,
+) error {
+	if !errors.Is(err, sdkerrors.ErrInsufficientFunds) {
+		return err
+	}
+
+	// Check balance is sufficient
+	bal := k.GetBalance(ctx, addr, types.ExtendedCoinDenom)
+	coin := sdk.NewCoin(types.ExtendedCoinDenom, amt)
+
+	// TODO: This checks spendable coins and returns error with spendable
+	// coins, not full balance. If GetBalance() is modified to return the
+	// full, including locked, balance then this should be updated to deduct
+	// locked coins.
+
+	// Use sdk.NewCoins() so that it removes empty balances - ie. prints
+	// empty string if balance is 0. This is to match x/bank behavior.
+	spendable := sdk.NewCoins(bal)
+
+	return errorsmod.Wrapf(
+		sdkerrors.ErrInsufficientFunds,
+		"spendable balance %s is smaller than %s",
+		spendable, coin,
+	)
 }
