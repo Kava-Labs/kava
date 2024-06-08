@@ -215,7 +215,8 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins() {
 
 func (suite *burnIntegrationTestSuite) TestBurnCoins_Remainder() {
 	// This tests a series of small burns to ensure the remainder is both
-	// updated correctly and reserve is correctly updated.
+	// updated correctly and reserve is correctly updated. This only burns from
+	// 1 single account.
 
 	reserveAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
 
@@ -308,7 +309,9 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins_Remainder() {
 
 func (suite *burnIntegrationTestSuite) TestBurnCoins_Spread_Remainder() {
 	// This tests a series of small burns to ensure the remainder is both
-	// updated correctly and reserve is correctly updated.
+	// updated correctly and reserve is correctly updated. This burns from
+	// a series of multiple accounts, to test when the remainder is modified
+	// by multiple accounts.
 
 	reserveAddr := suite.AccountKeeper.GetModuleAddress(types.ModuleName)
 	burnerModuleName := ibctransfertypes.ModuleName
