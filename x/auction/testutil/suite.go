@@ -78,7 +78,7 @@ func (suite *Suite) SetupTest(numAddrs int) {
 	suite.AccountKeeper = tApp.GetAccountKeeper()
 }
 
-// AddCoinsToModule adds coins to a named module account
+// AddCoinsToNamedModule adds coins to a named module account
 func (suite *Suite) AddCoinsToNamedModule(moduleName string, amount sdk.Coins) {
 	// Does not use suite.BankKeeper.MintCoins as module account would not have permission to mint
 	err := suite.App.FundModuleAccount(suite.Ctx, moduleName, amount)
