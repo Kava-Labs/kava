@@ -2780,7 +2780,7 @@
           },
           {
             "active": true,
-            "collateral_type": "erc20/binance/wbtc",
+            "collateral_type": "erc20/bitgo/wbtc",
             "start": "2022-11-11T15:00:00Z",
             "end": "2025-11-11T15:00:00Z",
             "rewards_per_second": [
