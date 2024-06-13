@@ -530,6 +530,10 @@
               "amount": "1000000000"
             },
             {
+              "denom": "erc20/bitgo/wbtc",
+              "amount": "200000000"
+            },
+            {
               "denom": "erc20/multichain/usdc",
               "amount": "1000000000000000000"
             },
@@ -565,10 +569,6 @@
             {
               "denom": "xrpb",
               "amount": "1000000000000000"
-            },
-            {
-              "denom": "erc20/bitgo/wbtc",
-              "amount": "200000000"
             }
           ]
         },
@@ -600,6 +600,10 @@
               "amount": "1000000000"
             },
             {
+              "denom": "erc20/bitgo/wbtc",
+              "amount": "200000000"
+            },
+            {
               "denom": "erc20/tether/usdt",
               "amount": "100000000000"
             },
@@ -622,10 +626,6 @@
             {
               "denom": "xrpb",
               "amount": "103000000000"
-            },
-            {
-              "denom": "erc20/bitgo/wbtc",
-              "amount": "200000000"
             }
           ]
         },
