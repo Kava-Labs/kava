@@ -456,7 +456,7 @@ func FuzzBurnCoins(f *testing.F) {
 		)
 		suite.Require().NoError(err)
 
-		// Burn 10 times to include mints from non-zero balances
+		// Burn multiple times to ensure different balance scenarios
 		for i := int64(0); i < burnCount; i++ {
 			err := suite.Keeper.BurnCoins(
 				suite.Ctx,
