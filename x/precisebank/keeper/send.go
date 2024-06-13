@@ -166,6 +166,11 @@ func (k Keeper) sendExtendedCoins(
 		}
 	}
 
+	// Case #4: NO sender borrow, NO recipient carry
+	// No additional operations required, as the transfer of fractional coins
+	// does not incur any integer borrow or carry. New fractional balances
+	// already calculated and just need to be set.
+
 	// Persist new fractional balances to store.
 	k.SetFractionalBalance(ctx, from, senderNewFracBal)
 	k.SetFractionalBalance(ctx, to, recipientNewFracBal)
