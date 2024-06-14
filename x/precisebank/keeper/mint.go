@@ -68,6 +68,17 @@ func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 // necessary depending on the fractional balance and minting amount. Ensures
 // that the reserve fully backs the additional minted amount, minting any extra
 // reserve integer coins if necessary.
+// 4 Cases:
+// 1. NO integer carry over, >= 0 remainder - no reserve mint
+// 2. NO integer carry over, negative remainder - mint 1 to reserve
+// 3. Integer carry over, >= 0 remainder
+//   - Transfer 1 integer from reserve -> account
+//
+// 4. Integer carry over, negative remainder
+//   - Transfer 1 integer from reserve -> account
+//   - Mint 1 to reserve
+//     Optimization:
+//   - Increase direct account mint amount by 1, no extra reserve mint
 func (k Keeper) mintExtendedCoin(
 	ctx sdk.Context,
 	recipientModuleName string,
@@ -82,17 +93,27 @@ func (k Keeper) mintExtendedCoin(
 	integerMintAmount := amt.Quo(types.ConversionFactor())
 	fractionalMintAmount := amt.Mod(types.ConversionFactor())
 
+	// Get previous remainder amount, as we need to it before carry calculation
+	// for the optimization path.
+	prevRemainder := k.GetRemainderAmount(ctx)
+
+	// Deduct new remainder with minted fractional amount. This will result in
+	// two cases:
+	// 1. Zero or positive remainder: remainder is sufficient to back the minted
+	//   fractional amount. Reserve is also sufficient to back the minted amount
+	//   so no additional reserve integer coin is needed.
+	// 2. Negative remainder: remainder is insufficient to back the minted
+	//   fractional amount. Reserve will need to be increased to back the mint
+	//   amount.
+	newRemainder := prevRemainder.Sub(fractionalMintAmount)
+
 	// Get new fractional balance after minting, this could be greater than
 	// the conversion factor and must be checked for carry over to integer mint
 	// amount as being set as-is may cause fractional balance exceeding max.
 	newFractionalBalance := fractionalAmount.Add(fractionalMintAmount)
 
-	// If it carries over, add 1 to integer mint amount. In this case, it will
-	// always be 1:
-	// fractional amounts x and y where both x and y < ConversionFactor
-	// x + y < (2 * ConversionFactor) - 2
-	// x + y < 1 integer amount + fractional amount
-	if newFractionalBalance.GTE(types.ConversionFactor()) {
+	// Case #3 - Integer carry, remainder is sufficient (0 or positive)
+	if newFractionalBalance.GTE(types.ConversionFactor()) && newRemainder.GTE(sdkmath.ZeroInt()) {
 		// Carry should send from reserve -> account, instead of minting an
 		// extra integer coin. Otherwise doing an extra mint will require a burn
 		// from reserves to maintain exact backing.
@@ -108,9 +129,21 @@ func (k Keeper) mintExtendedCoin(
 		); err != nil {
 			return err
 		}
+	}
 
-		// Carry over to integer mint amount
+	// Case #4 - Integer carry, remainder is insufficient
+	// This is the optimization path where the integer mint amount is increased
+	// by 1, instead of doing both a reserve -> account transfer and reserve mint.
+	if newFractionalBalance.GTE(types.ConversionFactor()) && newRemainder.IsNegative() {
+		integerMintAmount = integerMintAmount.AddRaw(1)
+	}
 
+	// If it carries over, adjust the fractional balance to account for the
+	// previously added 1 integer amount.
+	// fractional amounts x and y where both x and y < ConversionFactor
+	// x + y < (2 * ConversionFactor) - 2
+	// x + y < 1 integer amount + fractional amount
+	if newFractionalBalance.GTE(types.ConversionFactor()) {
 		// Subtract 1 integer equivalent amount of fractional balance. Same
 		// behavior as using .Mod() in this case.
 		newFractionalBalance = newFractionalBalance.Sub(types.ConversionFactor())
@@ -135,24 +168,17 @@ func (k Keeper) mintExtendedCoin(
 
 	// ----------------------------------------
 	// Update remainder & reserves to back minted fractional coins
-	prevRemainder := k.GetRemainderAmount(ctx)
-
-	// Deduct new remainder with minted fractional amount. This will result in
-	// two cases:
-	// 1. Zero or positive remainder: remainder is sufficient to back the minted
-	//   fractional amount. Reserve is also sufficient to back the minted amount
-	//   so no additional reserve integer coin is needed.
-	// 2. Negative remainder: remainder is insufficient to back the minted
-	//   fractional amount. Reserve will need to be increased to back the mint
-	//   amount.
-	newRemainder := prevRemainder.Sub(fractionalMintAmount)
 
 	// Mint an additional reserve integer coin if remainder is insufficient.
 	// The remainder is the amount of fractional coins that can be minted and
 	// still be fully backed by reserve. If the remainder is less than the
 	// minted fractional amount, then the reserve needs to be increased to
 	// back the additional fractional amount.
-	if prevRemainder.LT(fractionalMintAmount) {
+	// Optimization: This is only done when the integer amount does NOT carry,
+	// as a direct account mint is done instead of integer carry transfer +
+	// insufficient remainder reserve mint.
+	wasCarried := fractionalAmount.Add(fractionalMintAmount).GTE(types.ConversionFactor())
+	if prevRemainder.LT(fractionalMintAmount) && !wasCarried {
 		// Always only 1 integer coin, as fractionalMintAmount < ConversionFactor
 		reserveMintCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
 		if err := k.bk.MintCoins(ctx, types.ModuleName, reserveMintCoins); err != nil {
