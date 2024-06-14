@@ -74,15 +74,39 @@ func (k Keeper) burnExtendedCoin(
 	// return errors on insufficient funds.
 	prevFractionalBalance := k.GetFractionalBalance(ctx, moduleAddr)
 
+	// Get remainder amount first to optimize direct burn.
+	prevRemainder := k.GetRemainderAmount(ctx)
+
+	// -------------------------------------------------------------------------
+	// Pure stateless calculations
+
 	integerBurnAmount := amt.Quo(types.ConversionFactor())
 	fractionalBurnAmount := amt.Mod(types.ConversionFactor())
 
 	// newFractionalBalance can be negative if fractional balance is insufficient.
 	newFractionalBalance := prevFractionalBalance.Sub(fractionalBurnAmount)
 
-	// Not enough fractional balance, need to arithmetic borrow from the integer
-	// balance.
-	if newFractionalBalance.IsNegative() {
+	// Add to new remainder with burned fractional amount.
+	newRemainder := prevRemainder.Add(fractionalBurnAmount)
+
+	// -------------------------------------------------------------------------
+	// Stateful operations for burn
+
+	// Not enough fractional balance:
+	// 1. If the new remainder incurs an additional reserve burn, we can just
+	//    burn an additional integer coin from the account directly instead as
+	//    an optimization.
+	// 2. If the new remainder is still under conversion factor (no extra
+	//    reserve burn) then we need to transfer 1 integer coin to the reserve
+	//    for the integer borrow.
+
+	// Case #1 - optimization path, direct burn instead of reserve transfer & reserve burn
+	if newFractionalBalance.IsNegative() && newRemainder.GTE(types.ConversionFactor()) {
+		integerBurnAmount = integerBurnAmount.AddRaw(1)
+	}
+
+	// Case #2 - transfer 1 integer coin to reserve for integer borrow.
+	if newFractionalBalance.IsNegative() && newRemainder.LT(types.ConversionFactor()) {
 		// Transfer 1 integer coin to reserve to cover the borrowed fractional
 		// amount. SendCoinsFromModuleToModule will return an error if the
 		// module account has insufficient funds and an error with the full
@@ -96,7 +120,11 @@ func (k Keeper) burnExtendedCoin(
 		); err != nil {
 			return k.updateInsufficientFundsError(ctx, moduleAddr, amt, err)
 		}
+	}
 
+	// Adjustment for negative fractional balance after either integer borrow
+	// case above.
+	if newFractionalBalance.IsNegative() {
 		// Add the borrowed amount to negative fractional balance.
 		// This will always be 0 < newFractionalBalance < ConversionFactor
 		// as we are adding ConversionFactor to a negative amount.
@@ -116,19 +144,21 @@ func (k Keeper) burnExtendedCoin(
 
 	// ----------------------------------------
 	// Update remainder & reserves for burned fractional coins
-	prevRemainder := k.GetRemainderAmount(ctx)
-	// Add to new remainder with burned fractional amount.
-	newRemainder := prevRemainder.Add(fractionalBurnAmount)
 
 	// If remainder is greater than or equal to the conversion factor, burn
 	// additional integer coin to make reserve just enough to back fractional
 	// amounts and nothing more.
-	if newRemainder.GTE(types.ConversionFactor()) {
+	// Optimization: Only burn when BOTH:
+	// - remainder > conversion factor
+	// - fractional balance is not incur an integer borrow
+	if newRemainder.GTE(types.ConversionFactor()) && prevFractionalBalance.Sub(fractionalBurnAmount).GTE(sdkmath.ZeroInt()) {
 		reserveBurnCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
 		if err := k.bk.BurnCoins(ctx, types.ModuleName, reserveBurnCoins); err != nil {
 			return fmt.Errorf("failed to burn %s for reserve: %w", reserveBurnCoins, err)
 		}
+	}
 
+	if newRemainder.GTE(types.ConversionFactor()) {
 		// Update remainder with leftover fractional amount.
 		// newRemainder > ConversionFactor, and we need to subtract the burned
 		// 1 integer coin amount. This is equivalent to .Mod() in this case.
