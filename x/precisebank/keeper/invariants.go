@@ -88,7 +88,7 @@ func ReserveBacksFractionsInvariant(k Keeper) sdk.Invariant {
 		)
 
 		return sdk.FormatInvariant(
-			types.ModuleName, "reserve-backing-fractional",
+			types.ModuleName, "module reserve backing total fractional balances",
 			msg,
 		), broken
 	}
