@@ -77,17 +77,15 @@ func ReserveBacksFractionsInvariant(k Keeper) sdk.Invariant {
 		// fractional balances + remainder amount
 		totalRequiredBacking := fractionalBalSum.Add(remainderAmount)
 
-		if !reserveExtendedBalance.Equal(totalRequiredBacking) {
-			msg = fmt.Sprintf(
-				"%s reserve balance %s mismatches %s (fractional balances %s + remainder %s)\n",
-				types.ExtendedCoinDenom,
-				reserveExtendedBalance,
-				totalRequiredBacking,
-				fractionalBalSum,
-				remainderAmount,
-			)
-			broken = true
-		}
+		broken = !reserveExtendedBalance.Equal(totalRequiredBacking)
+		msg = fmt.Sprintf(
+			"%s reserve balance %s mismatches %s (fractional balances %s + remainder %s)\n",
+			types.ExtendedCoinDenom,
+			reserveExtendedBalance,
+			totalRequiredBacking,
+			fractionalBalSum,
+			remainderAmount,
+		)
 
 		return sdk.FormatInvariant(
 			types.ModuleName, "reserve-backing-fractional",
