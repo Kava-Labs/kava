@@ -12,11 +12,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/keeper"
+	"github.com/kava-labs/kava/x/precisebank/types"
 )
 
 type Suite struct {
@@ -86,4 +88,64 @@ func (suite *Suite) Commit() {
 
 	// update ctx
 	suite.Ctx = suite.App.NewContext(false, header)
+}
+
+// MintToAccount mints coins to an account with the x/precisebank methods. This
+// must be used when minting extended coins, ie. akava coins. This depends on
+// the methods to be properly tested to be implemented correctly.
+func (suite *Suite) MintToAccount(addr sdk.AccAddress, amt sdk.Coins) {
+	accBalancesBefore := suite.GetAllBalances(addr)
+
+	err := suite.Keeper.MintCoins(suite.Ctx, minttypes.ModuleName, amt)
+	suite.Require().NoError(err)
+
+	err = suite.Keeper.SendCoinsFromModuleToAccount(suite.Ctx, minttypes.ModuleName, addr, amt)
+	suite.Require().NoError(err)
+
+	// Double check balances are correctly minted and sent to account
+	accBalancesAfter := suite.GetAllBalances(addr)
+
+	netIncrease := accBalancesAfter.Sub(accBalancesBefore...)
+	suite.Require().Equal(ConvertCoinsToExtendedCoinDenom(amt), netIncrease)
+
+	suite.T().Logf("minted %s to %s", amt, addr)
+}
+
+// GetAllBalances returns all the account balances for the given account address.
+// This returns the extended coin balance if the account has a non-zero balance,
+// WITHOUT the integer coin balance.
+func (suite *Suite) GetAllBalances(addr sdk.AccAddress) sdk.Coins {
+	// Get all balances for an account
+	bankBalances := suite.BankKeeper.GetAllBalances(suite.Ctx, addr)
+
+	// Remove integer coins from the balance
+	for _, coin := range bankBalances {
+		if coin.Denom == types.IntegerCoinDenom {
+			bankBalances = bankBalances.Sub(coin)
+		}
+	}
+
+	// Replace the integer coin with the extended coin, from x/precisebank
+	extendedBal := suite.Keeper.GetBalance(suite.Ctx, addr, types.ExtendedCoinDenom)
+
+	return bankBalances.Add(extendedBal)
+}
+
+// ConvertCoinsToExtendedCoinDenom converts sdk.Coins that includes Integer denoms
+// to sdk.Coins that includes Extended denoms of the same amount. This is useful
+// for testing to make sure only extended amounts are compared instead of double
+// counting balances.
+func ConvertCoinsToExtendedCoinDenom(coins sdk.Coins) sdk.Coins {
+	integerCoinAmt := coins.AmountOf(types.IntegerCoinDenom)
+	if integerCoinAmt.IsZero() {
+		return coins
+	}
+
+	// Remove the integer coin from the coins
+	integerCoin := sdk.NewCoin(types.IntegerCoinDenom, integerCoinAmt)
+
+	// Add the equivalent extended coin to the coins
+	extendedCoin := sdk.NewCoin(types.ExtendedCoinDenom, integerCoinAmt.Mul(types.ConversionFactor()))
+
+	return coins.Sub(integerCoin).Add(extendedCoin)
 }

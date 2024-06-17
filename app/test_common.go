@@ -142,6 +142,10 @@ func (tApp TestApp) GetKVStoreKey(key string) *storetypes.KVStoreKey {
 	return tApp.keys[key]
 }
 
+func (tApp TestApp) GetBlockedMaccAddrs() map[string]bool {
+	return tApp.loadBlockedMaccAddrs()
+}
+
 // LegacyAmino returns the app's amino codec.
 func (app *App) LegacyAmino() *codec.LegacyAmino {
 	return app.legacyAmino
