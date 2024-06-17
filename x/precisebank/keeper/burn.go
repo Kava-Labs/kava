@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -168,40 +167,4 @@ func (k Keeper) burnExtendedCoin(
 	k.SetRemainderAmount(ctx, newRemainder)
 
 	return nil
-}
-
-// TODO: Duplicated method from SendCoins - deduplicate when both merged
-// updateInsufficientFundsError returns a modified ErrInsufficientFunds with
-// extended coin amounts if the error is due to insufficient funds. Otherwise,
-// it returns the original error. This is used since x/bank transfers will
-// return errors with integer coins, but we want the more accurate error that
-// contains the full extended coin balance and send amounts.
-func (k Keeper) updateInsufficientFundsError(
-	ctx sdk.Context,
-	addr sdk.AccAddress,
-	amt sdkmath.Int,
-	err error,
-) error {
-	if !errors.Is(err, sdkerrors.ErrInsufficientFunds) {
-		return err
-	}
-
-	// Check balance is sufficient
-	bal := k.GetBalance(ctx, addr, types.ExtendedCoinDenom)
-	coin := sdk.NewCoin(types.ExtendedCoinDenom, amt)
-
-	// TODO: This checks spendable coins and returns error with spendable
-	// coins, not full balance. If GetBalance() is modified to return the
-	// full, including locked, balance then this should be updated to deduct
-	// locked coins.
-
-	// Use sdk.NewCoins() so that it removes empty balances - ie. prints
-	// empty string if balance is 0. This is to match x/bank behavior.
-	spendable := sdk.NewCoins(bal)
-
-	return errorsmod.Wrapf(
-		sdkerrors.ErrInsufficientFunds,
-		"spendable balance %s is smaller than %s",
-		spendable, coin,
-	)
 }
