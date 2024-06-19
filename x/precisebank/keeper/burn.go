@@ -85,8 +85,16 @@ func (k Keeper) burnExtendedCoin(
 	// newFractionalBalance can be negative if fractional balance is insufficient.
 	newFractionalBalance := prevFractionalBalance.Sub(fractionalBurnAmount)
 
+	// If true, fractional balance is insufficient and will require an integer
+	// borrow.
+	requiresBorrow := newFractionalBalance.IsNegative()
+
 	// Add to new remainder with burned fractional amount.
 	newRemainder := prevRemainder.Add(fractionalBurnAmount)
+
+	// If true, remainder has accumulated enough fractional amounts to burn 1
+	// integer coin.
+	overflowingRemainder := newRemainder.GTE(types.ConversionFactor())
 
 	// -------------------------------------------------------------------------
 	// Stateful operations for burn
@@ -99,13 +107,20 @@ func (k Keeper) burnExtendedCoin(
 	//    reserve burn) then we need to transfer 1 integer coin to the reserve
 	//    for the integer borrow.
 
-	// Case #1 - optimization path, direct burn instead of reserve transfer & reserve burn
-	if newFractionalBalance.IsNegative() && newRemainder.GTE(types.ConversionFactor()) {
+	// Case #1: (optimization) direct burn instead of borrow (reserve transfer)
+	// & reserve burn. No additional reserve burn would be necessary after this.
+	if requiresBorrow && overflowingRemainder {
+		newFractionalBalance = newFractionalBalance.Add(types.ConversionFactor())
+		newRemainder = newRemainder.Sub(types.ConversionFactor())
+
 		integerBurnAmount = integerBurnAmount.AddRaw(1)
 	}
 
-	// Case #2 - transfer 1 integer coin to reserve for integer borrow.
-	if newFractionalBalance.IsNegative() && newRemainder.LT(types.ConversionFactor()) {
+	// Case #2: Transfer 1 integer coin to reserve for integer borrow to ensure
+	// reserve fully backs the fractional amount.
+	if requiresBorrow && !overflowingRemainder {
+		newFractionalBalance = newFractionalBalance.Add(types.ConversionFactor())
+
 		// Transfer 1 integer coin to reserve to cover the borrowed fractional
 		// amount. SendCoinsFromModuleToModule will return an error if the
 		// module account has insufficient funds and an error with the full
@@ -114,23 +129,29 @@ func (k Keeper) burnExtendedCoin(
 		if err := k.bk.SendCoinsFromModuleToModule(
 			ctx,
 			moduleName,
-			types.ModuleName,
+			types.ModuleName, // borrowed integer is transferred to reserve
 			sdk.NewCoins(borrowCoin),
 		); err != nil {
 			return k.updateInsufficientFundsError(ctx, moduleAddr, amt, err)
 		}
 	}
 
-	// Adjustment for negative fractional balance after either integer borrow
-	// case above.
-	if newFractionalBalance.IsNegative() {
-		// Add the borrowed amount to negative fractional balance.
-		// This will always be 0 < newFractionalBalance < ConversionFactor
-		// as we are adding ConversionFactor to a negative amount.
-		newFractionalBalance = newFractionalBalance.Add(types.ConversionFactor())
+	// Case #3: Does not require borrow, but remainder has accumulated enough
+	// fractional amounts to burn 1 integer coin.
+	if !requiresBorrow && overflowingRemainder {
+		reserveBurnCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
+		if err := k.bk.BurnCoins(ctx, types.ModuleName, reserveBurnCoins); err != nil {
+			return fmt.Errorf("failed to burn %s for reserve: %w", reserveBurnCoins, err)
+		}
+
+		newRemainder = newRemainder.Sub(types.ConversionFactor())
 	}
 
-	// Burn the integer amount
+	// Case #4: No additional work required, no borrow needed and no additional
+	// reserve burn
+
+	// Burn the integer amount - this may include the extra optimization burn
+	// from case #1
 	if !integerBurnAmount.IsZero() {
 		coin := sdk.NewCoin(types.IntegerCoinDenom, integerBurnAmount)
 		if err := k.bk.BurnCoins(ctx, moduleName, sdk.NewCoins(coin)); err != nil {
@@ -141,29 +162,7 @@ func (k Keeper) burnExtendedCoin(
 	// Assign new fractional balance in x/precisebank
 	k.SetFractionalBalance(ctx, moduleAddr, newFractionalBalance)
 
-	// ----------------------------------------
-	// Update remainder & reserves for burned fractional coins
-
-	// If remainder is greater than or equal to the conversion factor, burn
-	// additional integer coin to make reserve just enough to back fractional
-	// amounts and nothing more.
-	// Optimization: Only burn when BOTH:
-	// - remainder > conversion factor
-	// - fractional balance is not incur an integer borrow
-	if newRemainder.GTE(types.ConversionFactor()) && prevFractionalBalance.Sub(fractionalBurnAmount).GTE(sdkmath.ZeroInt()) {
-		reserveBurnCoins := sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.OneInt()))
-		if err := k.bk.BurnCoins(ctx, types.ModuleName, reserveBurnCoins); err != nil {
-			return fmt.Errorf("failed to burn %s for reserve: %w", reserveBurnCoins, err)
-		}
-	}
-
-	if newRemainder.GTE(types.ConversionFactor()) {
-		// Update remainder with leftover fractional amount.
-		// newRemainder > ConversionFactor, and we need to subtract the burned
-		// 1 integer coin amount. This is equivalent to .Mod() in this case.
-		newRemainder = newRemainder.Sub(types.ConversionFactor())
-	}
-
+	// Update remainder for burned fractional coins
 	k.SetRemainderAmount(ctx, newRemainder)
 
 	return nil
