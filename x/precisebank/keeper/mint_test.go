@@ -290,6 +290,20 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 			}
 
 			// ----------------------------------------
+			// Set expectations for reserve minting when fractional amounts
+			// are minted & remainder is insufficient
+			mintFractionalAmount := extCoins.Amount.Mod(types.ConversionFactor())
+			currentRemainder := td.keeper.GetRemainderAmount(td.ctx)
+
+			causesIntegerCarry := fBal.Add(mintFractionalAmount).GTE(types.ConversionFactor())
+			remainderEnough := currentRemainder.GTE(mintFractionalAmount)
+
+			// Optimization: Carry & insufficient remainder is directly minted
+			if causesIntegerCarry && !remainderEnough {
+				extCoins = extCoins.AddAmount(types.ConversionFactor())
+			}
+
+			// ----------------------------------------
 			// Set expectations for minting fractional coins
 			if !extCoins.IsNil() && extCoins.IsPositive() {
 				td.ak.EXPECT().
@@ -298,9 +312,9 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 					Once()
 
 				// Initial integer balance is always 0 for this test
-				totalNewBalance := tt.startFractionalBalance.Add(extCoins.Amount)
-				mintIntegerAmount := totalNewBalance.Quo(types.ConversionFactor())
+				mintIntegerAmount := extCoins.Amount.Quo(types.ConversionFactor())
 
+				// Minted coins does NOT include roll-over, simply excludes
 				mintCoins := cs(ci(types.IntegerCoinDenom, mintIntegerAmount))
 
 				// Only expect MintCoins to be called with mint coins with
@@ -316,15 +330,20 @@ func TestMintCoins_ExpectedCalls(t *testing.T) {
 				}
 			}
 
-			// ----------------------------------------
-			// Set expectations for reserve minting when fractional amounts
-			// are minted & remainder is insufficient
-			mintFractionalAmount := extCoins.Amount.Mod(types.ConversionFactor())
-			currentRemainder := td.keeper.GetRemainderAmount(td.ctx)
+			if causesIntegerCarry && remainderEnough {
+				td.bk.EXPECT().
+					SendCoinsFromModuleToModule(
+						td.ctx,
+						types.ModuleName,
+						minttypes.ModuleName,
+						cs(c(types.IntegerCoinDenom, 1)),
+					).
+					Return(nil).
+					Once()
+			}
 
-			remainderEnough := currentRemainder.GTE(mintFractionalAmount)
-			if !remainderEnough {
-				reserveMintCoins := cs(ci(types.IntegerCoinDenom, sdkmath.OneInt()))
+			if !remainderEnough && !causesIntegerCarry {
+				reserveMintCoins := cs(c(types.IntegerCoinDenom, 1))
 				td.bk.EXPECT().
 					// Mints to x/precisebank
 					MintCoins(td.ctx, types.ModuleName, reserveMintCoins).
