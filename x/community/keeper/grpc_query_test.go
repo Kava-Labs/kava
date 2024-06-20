@@ -266,7 +266,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 	}
 }
 
-// adjustBondRatio changes the ratio of bonded coins
+// adjustBondedRatio changes the ratio of bonded coins
 // it leverages the fact that there is a constant number of bonded tokens
 // and adjusts the total supply to make change the bonded ratio.
 // returns the new total supply of the bond denom

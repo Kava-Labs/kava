@@ -535,7 +535,7 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 	}
 }
 
-// TestSynchronizeInterest tests the functionality of synchronizing the accumulated interest for CDPs
+// TestCalculateCDPInterest tests the functionality of synchronizing the accumulated interest for CDPs
 func (suite *InterestTestSuite) TestCalculateCDPInterest() {
 	type args struct {
 		ctype             string
