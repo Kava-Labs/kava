@@ -149,11 +149,3 @@ func ConvertCoinsToExtendedCoinDenom(coins sdk.Coins) sdk.Coins {
 
 	return coins.Sub(integerCoin).Add(extendedCoin)
 }
-
-func (suite *Suite) LogReserves() {
-	fractionalBalSum := suite.Keeper.GetTotalSumFractionalBalances(suite.Ctx)
-	remainderAmount := suite.Keeper.GetRemainderAmount(suite.Ctx)
-
-	suite.T().Logf("fractional balances sum: %s", fractionalBalSum.String())
-	suite.T().Logf("remainder amount: %s", remainderAmount.String())
-}
