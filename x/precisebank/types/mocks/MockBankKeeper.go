@@ -466,6 +466,55 @@ func (_c *MockBankKeeper_SendCoinsFromModuleToAccount_Call) RunAndReturn(run fun
 	return _c
 }
 
+// SendCoinsFromModuleToModule provides a mock function with given fields: ctx, senderModule, recipientModule, amt
+func (_m *MockBankKeeper) SendCoinsFromModuleToModule(ctx types.Context, senderModule string, recipientModule string, amt types.Coins) error {
+	ret := _m.Called(ctx, senderModule, recipientModule, amt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendCoinsFromModuleToModule")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(types.Context, string, string, types.Coins) error); ok {
+		r0 = rf(ctx, senderModule, recipientModule, amt)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// MockBankKeeper_SendCoinsFromModuleToModule_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendCoinsFromModuleToModule'
+type MockBankKeeper_SendCoinsFromModuleToModule_Call struct {
+	*mock.Call
+}
+
+// SendCoinsFromModuleToModule is a helper method to define mock.On call
+//   - ctx types.Context
+//   - senderModule string
+//   - recipientModule string
+//   - amt types.Coins
+func (_e *MockBankKeeper_Expecter) SendCoinsFromModuleToModule(ctx interface{}, senderModule interface{}, recipientModule interface{}, amt interface{}) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
+	return &MockBankKeeper_SendCoinsFromModuleToModule_Call{Call: _e.mock.On("SendCoinsFromModuleToModule", ctx, senderModule, recipientModule, amt)}
+}
+
+func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) Run(run func(ctx types.Context, senderModule string, recipientModule string, amt types.Coins)) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(types.Context), args[1].(string), args[2].(string), args[3].(types.Coins))
+	})
+	return _c
+}
+
+func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) Return(_a0 error) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) RunAndReturn(run func(types.Context, string, string, types.Coins) error) *MockBankKeeper_SendCoinsFromModuleToModule_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SpendableCoins provides a mock function with given fields: ctx, addr
 func (_m *MockBankKeeper) SpendableCoins(ctx types.Context, addr types.AccAddress) types.Coins {
 	ret := _m.Called(ctx, addr)
