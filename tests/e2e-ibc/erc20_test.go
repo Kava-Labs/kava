@@ -19,7 +19,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gov1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
-	"github.com/cosmos/go-bip39"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
 	"github.com/ethereum/go-ethereum/crypto"
@@ -233,35 +232,35 @@ func TestInterchainErc20(t *testing.T) {
 	res := user.SignAndBroadcastKavaTx(convertTx)
 	require.NoError(t, res.Err)
 
-	// check balance!
+	// check balance of cosmos coin!
 	sdkBalance := kava.QuerySdkForBalances(user.SdkAddress)
 	require.Equal(t, amountToConvert, sdkBalance.AmountOf(sdkDenom))
 
 	// IBC the newly minted sdk.Coin to gaia
-	kavaOnGaiaDenom := srcDenomTrace.IBCDenom()
 	dstAddress := gaiaUser.FormattedAddress()
 	transfer := ibc.WalletAmount{
 		Address: dstAddress,
-		Denom:   kava.Config().Denom,
-		Amount:  amountToSend,
+		Denom:   ictKava.Config().Denom,
+		Amount:  amountToConvert,
 	}
-	ibcTx, err := ictKava.SendIBCTransfer(ctx, kavaToGaiaChannelID, kavaUser.KeyName(), transfer, ibc.TransferOptions{})
+	_, err = ictKava.SendIBCTransfer(ctx, kavaToGaiaChannelID, kavaUser.KeyName(), transfer, ibc.TransferOptions{})
+	require.NoError(t, err)
 
-	// determine IBC denom
-	srcDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom("transfer", gaiaToKavaChannelID, kava.Config().Denom))
+	// manually flush packets so we don't need to wait for the relayer
+	require.NoError(t, r.Flush(ctx, eRep, kavaGaiaIbcPath, kavaToGaiaChannelID))
 
-}
+	// determine IBC denom & check gaia balance
+	srcDenomTrace := transfertypes.ParseDenomTrace(transfertypes.GetPrefixedDenom("transfer", gaiaToKavaChannelID, ictKava.Config().Denom))
+	erc20OnGaiaDenom := srcDenomTrace.IBCDenom()
 
-func newMnemonic() (string, error) {
-	entropy, err := bip39.NewEntropy(128)
-	if err != nil {
-		return "", fmt.Errorf("failed to generate entropy for new mnemonic: %s", err)
-	}
-	return bip39.NewMnemonic(entropy)
+	gaiaBal, err := gaia.GetBalance(ctx, dstAddress, erc20OnGaiaDenom)
+	require.NoError(t, err)
+
+	require.Equal(t, amountToConvert, gaiaBal)
 }
 
 func newEvmAccount(evmClient *ethclient.Client, chainId int64) (string, *util.EvmSigner, error) {
-	mnemonic, err := newMnemonic()
+	mnemonic, err := util.RandomMnemonic()
 	if err != nil {
 		return mnemonic, nil, err
 	}
@@ -281,7 +280,7 @@ func newEvmAccount(evmClient *ethclient.Client, chainId int64) (string, *util.Ev
 	return mnemonic, signer, err
 }
 
-// copied from https://github.com/strangelove-ventures/interchaintest/blob/v7/chain/cosmos/chain_node.go#L1270
+// copied from https://github.com/strangelove-ventures/interchaintest/blob/7272afc780da6e2c99b2d2b3d084d5a3b1c6895f/chain/cosmos/chain_node.go#L1292
 // but changed "submit-proposal" to "submit-legacy-proposal"
 func legacyParamChangeProposal(tn *cosmos.ChainNode, ctx context.Context, keyName string, prop *paramsutils.ParamChangeProposalJSON) (string, error) {
 	content, err := json.Marshal(prop)
