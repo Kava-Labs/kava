@@ -13,11 +13,9 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/cosmos/go-bip39"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -208,17 +206,15 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 
 // SignRawEvmData signs raw evm data with the SigningAccount's private key.
 // It does not broadcast the signed data.
-func (a *SigningAccount) SignRawEvmData(msg []byte) ([]byte, types.PubKey, error) {
+func (a *SigningAccount) SignRawEvmData(msg []byte) ([]byte, cryptotypes.PubKey, error) {
 	keyringSigner := emtests.NewSigner(a.evmPrivKey)
 	return keyringSigner.SignByAddress(a.SdkAddress, msg)
 }
 
 // NewFundedAccount creates a SigningAccount for a random account & funds the account from the whale.
 func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccount {
-	entropy, err := bip39.NewEntropy(128)
-	require.NoErrorf(chain.t, err, "failed to generate entropy for account %s: %s", name, err)
-	mnemonic, err := bip39.NewMnemonic(entropy)
-	require.NoErrorf(chain.t, err, "failed to create new mnemonic for account %s: %s", name, err)
+	mnemonic, err := util.RandomMnemonic()
+	require.NoError(chain.t, err)
 
 	acc := chain.AddNewSigningAccount(
 		name,
