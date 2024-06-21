@@ -12,8 +12,6 @@ require (
 
 require (
 	github.com/cosmos/cosmos-sdk v0.47.10
-	github.com/cosmos/go-bip39 v1.0.0
-	github.com/evmos/ethermint v0.21.0
 	github.com/kava-labs/kava v0.0.0-00010101000000-000000000000
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.1-0.20240506191732-71a15c29f2b7
 )
@@ -68,6 +66,7 @@ require (
 	github.com/cosmos/btcutil v1.0.5 // indirect
 	github.com/cosmos/cosmos-db v1.0.0 // indirect
 	github.com/cosmos/cosmos-proto v1.0.0-beta.4 // indirect
+	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.4.10 // indirect
 	github.com/cosmos/iavl v1.0.0 // indirect
@@ -97,6 +96,7 @@ require (
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
 	github.com/edsrzf/mmap-go v1.0.0 // indirect
 	github.com/emicklei/dot v1.4.2 // indirect
+	github.com/evmos/ethermint v0.21.0 // indirect
 	github.com/felixge/httpsnoop v1.0.2 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gballet/go-libpcsclite v0.0.0-20190607065134-2772fd86a8ff // indirect

@@ -3,7 +3,6 @@ package main_test
 import (
 	"context"
 	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -15,15 +14,12 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gov1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsutils "github.com/cosmos/cosmos-sdk/x/params/client/utils"
 	transfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 
 	"github.com/strangelove-ventures/interchaintest/v7"
 	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
@@ -39,11 +35,16 @@ import (
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 )
 
+// This test does the following:
+// - set up a network with kava & cosmoshub w/ IBC channels between them
+// - deploy an ERC20 to Kava EVM
+// - configure Kava to support conversion of ERC20 to Cosmos Coin
+// - IBC the sdk.Coin representation of the ERC20 to cosmoshub
 func TestInterchainErc20(t *testing.T) {
 	app.SetSDKConfig()
 	ctx := context.Background()
 
-	// setup chains
+	// Configure & run chains with interchaintest
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
 		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom"}},
@@ -125,8 +126,11 @@ func TestInterchainErc20(t *testing.T) {
 	evmClient, err := ethclient.Dial(evmUrl)
 	require.NoError(t, err, "failed to connect to evm")
 
-	// create a funded evm accountto initialize the testutil.Chain
-	deployerMnemonic, evmDeployer, err := newEvmAccount(evmClient, kavainterchain.KavaEvmTestChainId)
+	// create a funded evm account to initialize the testutil.Chain
+	// use testutil.Chain for account management because the accounts play nicely with EVM & SDK sides
+	deployerMnemonic, err := util.RandomMnemonic()
+	require.NoError(t, err)
+	evmDeployer, err := util.NewEvmSignerFromMnemonic(evmClient, big.NewInt(kavainterchain.KavaEvmTestChainId), deployerMnemonic)
 	require.NoError(t, err)
 
 	deployerKavaAddr := util.EvmToSdkAddress(evmDeployer.Address())
@@ -257,27 +261,6 @@ func TestInterchainErc20(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, amountToConvert, gaiaBal)
-}
-
-func newEvmAccount(evmClient *ethclient.Client, chainId int64) (string, *util.EvmSigner, error) {
-	mnemonic, err := util.RandomMnemonic()
-	if err != nil {
-		return mnemonic, nil, err
-	}
-
-	hdPath := hd.CreateHDPath(60, 0, 0)
-	privKeyBytes, err := hd.Secp256k1.Derive()(mnemonic, "", hdPath.String())
-	if err != nil {
-		return mnemonic, nil, fmt.Errorf("failed to derive private key from mnemonic: %s", err)
-	}
-	privKey := &ethsecp256k1.PrivKey{Key: privKeyBytes}
-	ecdsaPrivKey, err := crypto.HexToECDSA(hex.EncodeToString(privKey.Bytes()))
-	if err != nil {
-		return mnemonic, nil, err
-	}
-
-	signer, err := util.NewEvmSigner(evmClient, ecdsaPrivKey, big.NewInt(chainId))
-	return mnemonic, signer, err
 }
 
 // copied from https://github.com/strangelove-ventures/interchaintest/blob/7272afc780da6e2c99b2d2b3d084d5a3b1c6895f/chain/cosmos/chain_node.go#L1292
