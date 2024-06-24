@@ -308,7 +308,7 @@ test-e2e: docker-build
 
 # run interchaintest tests (./tests/e2e-ibc)
 test-ibc: docker-build
-	cd tests/e2e-ibc && go mod tidy && KAVA_TAG=local $(GO_BIN) test -timeout 10m .
+	cd tests/e2e-ibc && KAVA_TAG=local $(GO_BIN) test -timeout 10m .
 .PHONY: test-ibc
 
 test:
