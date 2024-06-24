@@ -56,12 +56,12 @@ jobs:
       - name: checkout repo from current commit
         uses: actions/checkout@v4
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version-file: tests/e2e-ibc/go.mod
           cache-dependency-path: |
-            go.sum
             tests/e2e-ibc/go.sum
+            go.sum
       - name: run ibc e2e tests
         run: make test-ibc
   validate-internal-testnet-genesis:
