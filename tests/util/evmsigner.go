@@ -3,17 +3,21 @@ package util
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
 	"time"
 
+	errorsmod "cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 )
 
 var (
@@ -75,6 +79,21 @@ func NewEvmSigner(
 		signerAddress: crypto.PubkeyToAddress(*publicKeyECDSA),
 		EvmClient:     evmClient,
 	}, nil
+}
+
+func NewEvmSignerFromMnemonic(evmClient *ethclient.Client, evmChainId *big.Int, mnemonic string) (*EvmSigner, error) {
+	hdPath := hd.CreateHDPath(60, 0, 0)
+	privKeyBytes, err := hd.Secp256k1.Derive()(mnemonic, "", hdPath.String())
+	if err != nil {
+		return nil, errorsmod.Wrap(err, "failed to derive private key from mnemonic")
+	}
+	privKey := &ethsecp256k1.PrivKey{Key: privKeyBytes}
+	ecdsaPrivKey, err := crypto.HexToECDSA(hex.EncodeToString(privKey.Bytes()))
+	if err != nil {
+		return nil, err
+	}
+
+	return NewEvmSigner(evmClient, ecdsaPrivKey, evmChainId)
 }
 
 func (s *EvmSigner) Run(requests <-chan EvmTxRequest) <-chan EvmTxResponse {

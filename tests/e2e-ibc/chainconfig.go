@@ -27,7 +27,11 @@ func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 
 	// genesis param overrides
 	genesis := []cosmos.GenesisKV{
+		cosmos.NewGenesisKV("consensus_params.block.max_gas", "20000000"),
 		cosmos.NewGenesisKV("app_state.evm.params.evm_denom", "akava"),
+		// update for fast voting periods
+		cosmos.NewGenesisKV("app_state.gov.params.voting_period", "10s"),
+		cosmos.NewGenesisKV("app_state.gov.params.min_deposit.0.denom", "ukava"),
 	}
 
 	return ibc.ChainConfig{
