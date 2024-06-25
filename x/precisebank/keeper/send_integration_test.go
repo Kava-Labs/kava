@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/precisebank/keeper"
@@ -400,25 +401,25 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 			// Convert send amount coins to extended coins. i.e. if send coins
 			// includes ukava, convert it so that its the equivalent akava
 			// amount so its easier to compare. Compare extended coins only.
-			sendAmountExtended := tt.giveAmt
+			sendAmountFullExtended := tt.giveAmt
 			sendAmountInteger := tt.giveAmt.AmountOf(types.IntegerCoinDenom)
 			if !sendAmountInteger.IsZero() {
 				integerCoin := sdk.NewCoin(types.IntegerCoinDenom, sendAmountInteger)
-				sendAmountExtended = sendAmountExtended.Sub(integerCoin)
+				sendAmountFullExtended = sendAmountFullExtended.Sub(integerCoin)
 
 				// Add equivalent extended coin
 				extendedCoinAmount := sendAmountInteger.Mul(types.ConversionFactor())
 				extendedCoin := sdk.NewCoin(types.ExtendedCoinDenom, extendedCoinAmount)
-				sendAmountExtended = sendAmountExtended.Add(extendedCoin)
+				sendAmountFullExtended = sendAmountFullExtended.Add(extendedCoin)
 			}
 
 			suite.Require().Equal(
-				senderBalBefore.Sub(sendAmountExtended...),
+				senderBalBefore.Sub(sendAmountFullExtended...),
 				senderBalAfter,
 			)
 
 			suite.Require().Equal(
-				recipientBalBefore.Add(sendAmountExtended...),
+				recipientBalBefore.Add(sendAmountFullExtended...),
 				recipientBalAfter,
 			)
 
@@ -426,6 +427,28 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 			res, stop := invariantFn(suite.Ctx)
 			suite.Require().False(stop, "invariants should not stop")
 			suite.Require().Empty(res, "invariants should not return any messages")
+
+			// Check events
+
+			// FULL akava equivalent, including ukava only/mixed sends
+			sendExtendedAmount := sdk.NewCoin(
+				types.ExtendedCoinDenom,
+				sendAmountFullExtended.AmountOf(types.ExtendedCoinDenom),
+			)
+
+			// No extra events if not sending akava
+			if sendExtendedAmount.IsZero() {
+				return
+			}
+
+			extendedEvent := sdk.NewEvent(
+				banktypes.EventTypeTransfer,
+				sdk.NewAttribute(banktypes.AttributeKeyRecipient, recipient.String()),
+				sdk.NewAttribute(banktypes.AttributeKeySender, sender.String()),
+				sdk.NewAttribute(sdk.AttributeKeyAmount, sendExtendedAmount.String()),
+			)
+
+			suite.Require().Contains(suite.Ctx.EventManager().Events(), extendedEvent)
 		})
 	}
 }

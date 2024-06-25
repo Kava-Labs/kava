@@ -8,15 +8,18 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/kava-labs/kava/x/precisebank/types"
 )
 
 // IsSendEnabledCoins uses the parent x/bank keeper to check the coins provided
 // and returns an ErrSendDisabled if any of the coins are not configured for
-// sending. Returns nil if sending is enabled for all provided coin
+// sending. Returns nil if sending is enabled for all provided coin.
+// Note: This method is not used directly by x/evm, but is still required as
+// part of authtypes.BankKeeper. x/evm uses auth methods that require this
+// interface.
 func (k Keeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
-	// TODO: This does not actually seem to be used by x/evm, so it should be
-	// removed from the expected_interface in x/evm.
+	// Simply pass through to x/bank
 	return k.bk.IsSendEnabledCoins(ctx, coins...)
 }
 
@@ -52,13 +55,41 @@ func (k Keeper) SendCoins(
 		}
 	}
 
-	// If there is no extended coin amount, we are done
-	if extendedCoinAmount.IsZero() {
+	// Send the extended coin amount through x/precisebank
+	if extendedCoinAmount.IsPositive() {
+		if err := k.sendExtendedCoins(ctx, from, to, extendedCoinAmount); err != nil {
+			return err
+		}
+	}
+
+	// Get a full extended coin amount (passthrough integer + fractional) ONLY
+	// for event attributes.
+	fullEmissionCoin := sdk.NewCoin(
+		types.ExtendedCoinDenom,
+		amt.AmountOf(types.ExtendedCoinDenom),
+	)
+
+	integerAmount := amt.AmountOf(types.IntegerCoinDenom)
+	fullEmissionCoin.Amount = fullEmissionCoin.Amount.Add(integerAmount.Mul(types.ConversionFactor()))
+
+	// If no passthrough integer nor fractional coins, then no event emission.
+	// We also want to emit the event with the whole equivalent extended coin
+	// if only integer coins are sent.
+	if fullEmissionCoin.IsZero() {
 		return nil
 	}
 
-	// Send the extended coin amount through x/precisebank
-	return k.sendExtendedCoins(ctx, from, to, extendedCoinAmount)
+	// Emit transfer event of extended denom for the FULL equivalent value.
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			banktypes.EventTypeTransfer,
+			sdk.NewAttribute(banktypes.AttributeKeyRecipient, to.String()),
+			sdk.NewAttribute(banktypes.AttributeKeySender, from.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, fullEmissionCoin.String()),
+		),
+	})
+
+	return nil
 }
 
 // sendExtendedCoins transfers amt extended coins from a sending account to a
