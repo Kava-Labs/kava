@@ -7,6 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	"github.com/kava-labs/kava/x/precisebank/keeper"
 	"github.com/kava-labs/kava/x/precisebank/testutil"
@@ -209,6 +210,28 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins() {
 			res, stop := allInvariantsFn(suite.Ctx)
 			suite.Require().False(stop, "invariant should not be broken")
 			suite.Require().Empty(res, "unexpected invariant message: %s", res)
+
+			intCoinAmt := tt.burnCoins.AmountOf(types.IntegerCoinDenom).
+				Mul(types.ConversionFactor())
+
+			fraCoinAmt := tt.burnCoins.AmountOf(types.ExtendedCoinDenom)
+
+			totalExtCoinAmt := intCoinAmt.Add(fraCoinAmt)
+
+			events := suite.Ctx.EventManager().Events()
+			extendedEvent := banktypes.NewCoinBurnEvent(
+				recipientAddr,
+				sdk.NewCoins(sdk.NewCoin(
+					types.ExtendedCoinDenom,
+					totalExtCoinAmt,
+				)),
+			)
+
+			if totalExtCoinAmt.IsZero() {
+				suite.Require().NotContains(events, extendedEvent)
+			} else {
+				suite.Require().Contains(events, extendedEvent)
+			}
 		})
 	}
 }
