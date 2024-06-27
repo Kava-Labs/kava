@@ -64,7 +64,7 @@ func (k Keeper) SendCoins(
 
 	// Get a full extended coin amount (passthrough integer + fractional) ONLY
 	// for event attributes.
-	fullEmissionCoin := getFullExtendedValueAmount(amt)
+	fullEmissionCoin := types.SumExtendedCoin(amt)
 
 	// If no passthrough integer nor fractional coins, then no event emission.
 	// We also want to emit the event with the whole equivalent extended coin
@@ -351,21 +351,4 @@ func (k Keeper) updateInsufficientFundsError(
 		"spendable balance %s is smaller than %s",
 		spendable, coin,
 	)
-}
-
-// getFullExtendedValueAmount returns a sdk.Coin of extended coin denomination
-// with all integer and fractional amounts combined. e.g. if amount contains
-// both coins of integer denom and extended denom, this will return the total
-// amount in extended coins. This is intended to get the full value to emit in
-// events.
-func getFullExtendedValueAmount(amt sdk.Coins) sdk.Coin {
-	fullEmissionCoin := sdk.NewCoin(
-		types.ExtendedCoinDenom,
-		amt.AmountOf(types.ExtendedCoinDenom),
-	)
-
-	integerAmount := amt.AmountOf(types.IntegerCoinDenom)
-	fullEmissionCoin.Amount = fullEmissionCoin.Amount.Add(integerAmount.Mul(types.ConversionFactor()))
-
-	return fullEmissionCoin
 }

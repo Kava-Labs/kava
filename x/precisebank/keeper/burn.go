@@ -60,7 +60,7 @@ func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 		}
 	}
 
-	fullEmissionCoin := getFullExtendedValueAmount(amt)
+	fullEmissionCoin := types.SumExtendedCoin(amt)
 	if fullEmissionCoin.IsZero() {
 		return nil
 	}
