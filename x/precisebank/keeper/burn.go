@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/kava-labs/kava/x/precisebank/types"
 )
 
@@ -52,12 +53,23 @@ func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 		}
 	}
 
-	// No more processing required if no ExtendedCoinDenom
-	if extendedAmount.IsZero() {
+	// Only burn extended coin if the amount is positive
+	if extendedAmount.IsPositive() {
+		if err := k.burnExtendedCoin(ctx, moduleName, extendedAmount); err != nil {
+			return err
+		}
+	}
+
+	fullEmissionCoin := types.SumExtendedCoin(amt)
+	if fullEmissionCoin.IsZero() {
 		return nil
 	}
 
-	return k.burnExtendedCoin(ctx, moduleName, extendedAmount)
+	ctx.EventManager().EmitEvent(
+		banktypes.NewCoinBurnEvent(acc.GetAddress(), sdk.NewCoins(fullEmissionCoin)),
+	)
+
+	return nil
 }
 
 // burnExtendedCoin burns the fractional amount of the ExtendedCoinDenom from the module account.

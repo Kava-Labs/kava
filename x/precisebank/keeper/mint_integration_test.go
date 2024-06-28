@@ -334,6 +334,30 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 				allInvariantsFn := keeper.AllInvariants(suite.Keeper)
 				msg, stop := allInvariantsFn(suite.Ctx)
 				suite.Require().Falsef(stop, "invariant should not be broken: %s", msg)
+
+				// Get event for minted coins
+				intCoinAmt := mt.mintAmount.AmountOf(types.IntegerCoinDenom).
+					Mul(types.ConversionFactor())
+
+				fraCoinAmt := mt.mintAmount.AmountOf(types.ExtendedCoinDenom)
+
+				totalExtCoinAmt := intCoinAmt.Add(fraCoinAmt)
+
+				// Check for mint event
+				events := suite.Ctx.EventManager().Events()
+				extendedEvent := banktypes.NewCoinMintEvent(
+					recipientAddr,
+					sdk.NewCoins(sdk.NewCoin(
+						types.ExtendedCoinDenom,
+						totalExtCoinAmt,
+					)),
+				)
+
+				if totalExtCoinAmt.IsZero() {
+					suite.Require().NotContains(events, extendedEvent)
+				} else {
+					suite.Require().Contains(events, extendedEvent)
+				}
 			}
 		})
 	}

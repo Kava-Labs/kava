@@ -8,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/kava-labs/kava/x/precisebank/types"
 )
@@ -55,12 +56,23 @@ func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 		}
 	}
 
-	// No more processing required if no ExtendedCoinDenom
-	if extendedAmount.IsZero() {
+	// Only mint extended coin if the amount is positive
+	if extendedAmount.IsPositive() {
+		if err := k.mintExtendedCoin(ctx, moduleName, extendedAmount); err != nil {
+			return err
+		}
+	}
+
+	fullEmissionCoin := types.SumExtendedCoin(amt)
+	if fullEmissionCoin.IsZero() {
 		return nil
 	}
 
-	return k.mintExtendedCoin(ctx, moduleName, extendedAmount)
+	ctx.EventManager().EmitEvent(
+		banktypes.NewCoinMintEvent(acc.GetAddress(), sdk.NewCoins(fullEmissionCoin)),
+	)
+
+	return nil
 }
 
 // mintExtendedCoin manages the minting of only extended coins. This also
