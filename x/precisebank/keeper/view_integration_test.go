@@ -66,7 +66,16 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 			"non-extended denom - ukava returns ukava",
 			types.IntegerCoinDenom,
 			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(10))),
+			sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(990)),
+		},
+		{
+			"non-extended denom, with fractional - ukava returns ukava",
+			types.IntegerCoinDenom,
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			// does not affect balance
+			sdkmath.NewInt(100),
 			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(10))),
 			sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(990)),
 		},
