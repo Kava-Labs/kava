@@ -93,9 +93,10 @@ func TestKeeper_GetBalance(t *testing.T) {
 			if tt.giveDenom == types.ExtendedCoinDenom {
 				// No balance pass through
 				tk.bk.EXPECT().
-					SpendableCoins(tk.ctx, addr).
-					RunAndReturn(func(_ sdk.Context, _ sdk.AccAddress) sdk.Coins {
-						return tt.giveBankBal
+					GetBalance(tk.ctx, addr, types.IntegerCoinDenom).
+					RunAndReturn(func(_ sdk.Context, _ sdk.AccAddress, _ string) sdk.Coin {
+						amt := tt.giveBankBal.AmountOf(types.IntegerCoinDenom)
+						return sdk.NewCoin(types.IntegerCoinDenom, amt)
 					}).
 					Once()
 			} else {

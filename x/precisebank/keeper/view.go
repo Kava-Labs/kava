@@ -18,15 +18,15 @@ func (k Keeper) GetBalance(
 		return k.bk.GetBalance(ctx, addr, denom)
 	}
 
-	// x/bank for integer balance - spendable balance only
-	spendableCoins := k.bk.SpendableCoins(ctx, addr)
-	integerAmount := spendableCoins.AmountOf(types.IntegerCoinDenom)
+	// x/bank for integer balance - full balance, including locked
+	integerCoins := k.bk.GetBalance(ctx, addr, types.IntegerCoinDenom)
 
 	// x/precisebank for fractional balance
 	fractionalAmount := k.GetFractionalBalance(ctx, addr)
 
 	// (Integer * ConversionFactor) + Fractional
-	fullAmount := integerAmount.
+	fullAmount := integerCoins.
+		Amount.
 		Mul(types.ConversionFactor()).
 		Add(fractionalAmount)
 
