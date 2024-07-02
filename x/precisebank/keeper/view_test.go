@@ -91,10 +91,12 @@ func TestKeeper_GetBalance(t *testing.T) {
 			// Set fractional balance in store before query
 			tk.keeper.SetFractionalBalance(tk.ctx, addr, tt.giveFractionalBal)
 
-			// Always checks address before anything else
-			tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
-				Return(authtypes.NewModuleAddress(types.ModuleName)).
-				Once()
+			// Checks address if its a reserve denom
+			if tt.giveDenom == types.ExtendedCoinDenom || tt.giveDenom == types.IntegerCoinDenom {
+				tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
+					Return(authtypes.NewModuleAddress(types.ModuleName)).
+					Once()
+			}
 
 			if tt.giveDenom == types.ExtendedCoinDenom {
 				// No balance pass through
@@ -204,9 +206,12 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			// Set fractional balance in store before query
 			tk.keeper.SetFractionalBalance(tk.ctx, addr, tt.giveFractionalBal)
 
-			tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
-				Return(authtypes.NewModuleAddress(types.ModuleName)).
-				Once()
+			// If its a reserve denom, module address is checked
+			if tt.giveDenom == types.ExtendedCoinDenom || tt.giveDenom == types.IntegerCoinDenom {
+				tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
+					Return(authtypes.NewModuleAddress(types.ModuleName)).
+					Once()
+			}
 
 			if tt.giveDenom == types.ExtendedCoinDenom {
 				// No balance pass through
@@ -243,21 +248,48 @@ func TestHiddenReserve(t *testing.T) {
 
 	moduleAddr := authtypes.NewModuleAddress(types.ModuleName)
 
-	// 2 calls for GetBalance and SpendableCoin
-	tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
-		Return(moduleAddr).
-		Twice()
-
 	// No mock bankkeeper expectations, which means the zero coin is returned
 	// directly for reserve address. So the mock bankkeeper doesn't need to have
 	// a handler for getting underlying balance.
 
-	denom := types.ExtendedCoinDenom
-	coin := tk.keeper.GetBalance(tk.ctx, moduleAddr, denom)
-	require.Equal(t, denom, coin.Denom)
-	require.Equal(t, sdkmath.ZeroInt(), coin.Amount)
+	tests := []struct {
+		name  string
+		denom string
+	}{
+		{"akava", types.ExtendedCoinDenom},
+		{"ukava", types.IntegerCoinDenom},
+		{"unrelated denom", "cat"},
+	}
 
-	spendableCoin := tk.keeper.SpendableCoin(tk.ctx, moduleAddr, denom)
-	require.Equal(t, denom, spendableCoin.Denom)
-	require.Equal(t, sdkmath.ZeroInt(), spendableCoin.Amount)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 2 calls for GetBalance and SpendableCoin, only for reserve coins
+			if tt.denom == "akava" || tt.denom == "ukava" {
+				tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
+					Return(moduleAddr).
+					Twice()
+			} else {
+				// Passthrough to x/bank for non-reserve denoms
+				tk.bk.EXPECT().
+					GetBalance(tk.ctx, moduleAddr, tt.denom).
+					Return(sdk.NewCoin(tt.denom, sdkmath.ZeroInt())).
+					Once()
+
+				tk.bk.EXPECT().
+					SpendableCoin(tk.ctx, moduleAddr, tt.denom).
+					Return(sdk.NewCoin(tt.denom, sdkmath.ZeroInt())).
+					Once()
+			}
+
+			// GetBalance should return zero balance for reserve address
+			coin := tk.keeper.GetBalance(tk.ctx, moduleAddr, tt.denom)
+			require.Equal(t, tt.denom, coin.Denom)
+			require.Equal(t, sdkmath.ZeroInt(), coin.Amount)
+
+			// SpendableCoin should return zero balance for reserve address
+			spendableCoin := tk.keeper.SpendableCoin(tk.ctx, moduleAddr, tt.denom)
+			require.Equal(t, tt.denom, spendableCoin.Denom)
+			require.Equal(t, sdkmath.ZeroInt(), spendableCoin.Amount)
+		})
+	}
 }

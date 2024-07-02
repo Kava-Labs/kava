@@ -14,13 +14,18 @@ func (k Keeper) GetBalance(
 	addr sdk.AccAddress,
 	denom string,
 ) sdk.Coin {
-	// Module balance should display as empty. Module balances are **only** for
-	// the reserve which backs the fractional balances. This showing the backing
-	// balances would result in a double counting of the fractional balances.
+	// Module balance should display as empty for reserve denoms. Module
+	// balances are **only** for the reserve which backs the fractional
+	// balances. Returning the backing balances would result in a double
+	// counting of the fractional balances.
+	// While it should not be possible for x/precisebank to receive any coins
+	// of any denoms, we still check for the reserve denom to be safe.
 	// The reserve should be transparent to consumers and x/bank is to be used
 	// for fetching the **true** underlying balances.
-	if addr.Equals(k.ak.GetModuleAddress(types.ModuleName)) {
-		return sdk.NewCoin(denom, sdkmath.ZeroInt())
+	if denom == types.ExtendedCoinDenom || denom == types.IntegerCoinDenom {
+		if addr.Equals(k.ak.GetModuleAddress(types.ModuleName)) {
+			return sdk.NewCoin(denom, sdkmath.ZeroInt())
+		}
 	}
 
 	// Pass through to x/bank for denoms except ExtendedCoinDenom
@@ -52,8 +57,10 @@ func (k Keeper) SpendableCoin(
 	denom string,
 ) sdk.Coin {
 	// Same as GetBalance, reserve balances are transparent to consumers.
-	if addr.Equals(k.ak.GetModuleAddress(types.ModuleName)) {
-		return sdk.NewCoin(denom, sdkmath.ZeroInt())
+	if denom == types.ExtendedCoinDenom || denom == types.IntegerCoinDenom {
+		if addr.Equals(k.ak.GetModuleAddress(types.ModuleName)) {
+			return sdk.NewCoin(denom, sdkmath.ZeroInt())
+		}
 	}
 
 	// Pass through to x/bank for denoms except ExtendedCoinDenom
