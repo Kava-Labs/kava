@@ -129,3 +129,30 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 		})
 	}
 }
+
+func (suite *viewIntegrationTestSuite) TestKeeper_HiddenReserve() {
+	// Reserve balances should not be shown to consumers of x/precisebank, as it
+	// represents the fractional balances of accounts.
+
+	moduleAddr := authtypes.NewModuleAddress(types.ModuleName)
+	addr1 := sdk.AccAddress{1}
+
+	// Make the reserve hold a non-zero balance
+	// Mint fractional coins to an account, which should cause a mint of 1
+	// integer coin to the reserve to back it.
+	suite.MintToAccount(addr1, sdk.NewCoins(sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000))))
+
+	// Check underlying x/bank balance for reserve
+	reserveIntCoin := suite.BankKeeper.GetBalance(suite.Ctx, moduleAddr, types.IntegerCoinDenom)
+	suite.Require().Equal(sdkmath.NewInt(1), reserveIntCoin.Amount, "reserve should hold 1 integer coin")
+
+	// x/precisebank queries for reserve show as 0
+	denom := types.ExtendedCoinDenom
+	coin := suite.Keeper.GetBalance(suite.Ctx, moduleAddr, denom)
+	suite.Require().Equal(denom, coin.Denom)
+	suite.Require().Equal(sdkmath.ZeroInt(), coin.Amount)
+
+	spendableCoin := suite.Keeper.SpendableCoin(suite.Ctx, moduleAddr, denom)
+	suite.Require().Equal(denom, spendableCoin.Denom)
+	suite.Require().Equal(sdkmath.ZeroInt(), spendableCoin.Amount)
+}

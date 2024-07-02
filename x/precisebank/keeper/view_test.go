@@ -5,6 +5,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
 )
@@ -89,6 +90,11 @@ func TestKeeper_GetBalance(t *testing.T) {
 
 			// Set fractional balance in store before query
 			tk.keeper.SetFractionalBalance(tk.ctx, addr, tt.giveFractionalBal)
+
+			// Always checks address before anything else
+			tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
+				Return(authtypes.NewModuleAddress(types.ModuleName)).
+				Once()
 
 			if tt.giveDenom == types.ExtendedCoinDenom {
 				// No balance pass through
@@ -198,6 +204,10 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			// Set fractional balance in store before query
 			tk.keeper.SetFractionalBalance(tk.ctx, addr, tt.giveFractionalBal)
 
+			tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
+				Return(authtypes.NewModuleAddress(types.ModuleName)).
+				Once()
+
 			if tt.giveDenom == types.ExtendedCoinDenom {
 				// No balance pass through
 				tk.bk.EXPECT().
@@ -223,4 +233,31 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			require.Equal(t, tt.wantBal, bal)
 		})
 	}
+}
+
+func TestHiddenReserve(t *testing.T) {
+	// Reserve balances should not be shown to consumers of x/precisebank, as it
+	// represents the fractional balances of accounts.
+
+	tk := NewMockedTestData(t)
+
+	moduleAddr := authtypes.NewModuleAddress(types.ModuleName)
+
+	// 2 calls for GetBalance and SpendableCoin
+	tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
+		Return(moduleAddr).
+		Twice()
+
+	// No mock bankkeeper expectations, which means the zero coin is returned
+	// directly for reserve address. So the mock bankkeeper doesn't need to have
+	// a handler for getting underlying balance.
+
+	denom := types.ExtendedCoinDenom
+	coin := tk.keeper.GetBalance(tk.ctx, moduleAddr, denom)
+	require.Equal(t, denom, coin.Denom)
+	require.Equal(t, sdkmath.ZeroInt(), coin.Amount)
+
+	spendableCoin := tk.keeper.SpendableCoin(tk.ctx, moduleAddr, denom)
+	require.Equal(t, denom, spendableCoin.Denom)
+	require.Equal(t, sdkmath.ZeroInt(), spendableCoin.Amount)
 }
