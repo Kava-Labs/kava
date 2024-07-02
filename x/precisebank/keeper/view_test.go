@@ -92,7 +92,7 @@ func TestKeeper_GetBalance(t *testing.T) {
 			tk.keeper.SetFractionalBalance(tk.ctx, addr, tt.giveFractionalBal)
 
 			// Checks address if its a reserve denom
-			if tt.giveDenom == types.ExtendedCoinDenom || tt.giveDenom == types.IntegerCoinDenom {
+			if tt.giveDenom == types.ExtendedCoinDenom {
 				tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
 					Return(authtypes.NewModuleAddress(types.ModuleName)).
 					Once()
@@ -207,7 +207,7 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			tk.keeper.SetFractionalBalance(tk.ctx, addr, tt.giveFractionalBal)
 
 			// If its a reserve denom, module address is checked
-			if tt.giveDenom == types.ExtendedCoinDenom || tt.giveDenom == types.IntegerCoinDenom {
+			if tt.giveDenom == types.ExtendedCoinDenom {
 				tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
 					Return(authtypes.NewModuleAddress(types.ModuleName)).
 					Once()
@@ -253,18 +253,19 @@ func TestHiddenReserve(t *testing.T) {
 	// a handler for getting underlying balance.
 
 	tests := []struct {
-		name  string
-		denom string
+		name            string
+		denom           string
+		expectedBalance sdk.Coin
 	}{
-		{"akava", types.ExtendedCoinDenom},
-		{"ukava", types.IntegerCoinDenom},
-		{"unrelated denom", "cat"},
+		{"akava", types.ExtendedCoinDenom, sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.ZeroInt())},
+		{"ukava", types.IntegerCoinDenom, sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1))},
+		{"unrelated denom", "cat", sdk.NewCoin("cat", sdkmath.ZeroInt())},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// 2 calls for GetBalance and SpendableCoin, only for reserve coins
-			if tt.denom == "akava" || tt.denom == "ukava" {
+			if tt.denom == "akava" {
 				tk.ak.EXPECT().GetModuleAddress(types.ModuleName).
 					Return(moduleAddr).
 					Twice()
