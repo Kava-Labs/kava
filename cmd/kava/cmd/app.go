@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 
+	"github.com/Kava-Labs/opendb"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
 	metricstypes "github.com/kava-labs/kava/x/metrics/types"
@@ -64,7 +65,7 @@ func (ac appCreator) newApp(
 
 	homeDir := cast.ToString(appOpts.Get(flags.FlagHome))
 	snapshotDir := filepath.Join(homeDir, "data", "snapshots") // TODO can these directory names be imported from somewhere?
-	snapshotDB, err := cometbftdb.NewDB("metadata", server.GetAppDBBackend(appOpts), snapshotDir)
+	snapshotDB, err := opendb.OpenDB(appOpts, snapshotDir, "metadata", server.GetAppDBBackend(appOpts))
 	if err != nil {
 		panic(err)
 	}
