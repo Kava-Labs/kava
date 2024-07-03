@@ -18,12 +18,17 @@ message Params {
   repeated int64 extra_eips = 4 [(gogoproto.customname) = "ExtraEIPs", (gogoproto.moretags) = "yaml:\"extra_eips\""];
   // chain_config defines the EVM chain configuration parameters
   ChainConfig chain_config = 5 [(gogoproto.moretags) = "yaml:\"chain_config\"", (gogoproto.nullable) = false];
-  // list of allowed eip712 msgs and their types
+  // eip712_allowed_msgs contains list of allowed eip712 msgs and their types
   repeated EIP712AllowedMsg eip712_allowed_msgs = 6
       [(gogoproto.customname) = "EIP712AllowedMsgs", (gogoproto.nullable) = false];
   // allow_unprotected_txs defines if replay-protected (i.e non EIP155
   // signed) transactions can be executed on the state machine.
   bool allow_unprotected_txs = 7;
+  // enabled_precompiles contains list of hex-encoded evm addresses of enabled precompiled contracts.
+  // Precompile must be registered before it can be enabled.
+  // enabled_precompiles should be sorted in ascending order and unique.
+  // sorting and uniqueness are checked against bytes representation of addresses
+  repeated string enabled_precompiles = 8;
 }
 
 // ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values
@@ -246,20 +251,20 @@ message TraceConfig {
 
 // EIP712AllowedMsg stores an allowed legacy msg and its eip712 type.
 message EIP712AllowedMsg {
-  // msg's proto type name. ie "/cosmos.bank.v1beta1.MsgSend"
+  // msg_type_url is a msg's proto type name. ie "/cosmos.bank.v1beta1.MsgSend"
   string msg_type_url = 1;
 
-  // name of the eip712 value type. ie "MsgValueSend"
+  // msg_value_type_name is a name of the eip712 value type. ie "MsgValueSend"
   string msg_value_type_name = 2;
 
-  // types of the msg value
+  // value_types is a list of msg value types
   repeated EIP712MsgAttrType value_types = 3 [(gogoproto.nullable) = false];
 
-  // nested types of the msg value
+  // nested_types is a list of msg value nested types
   repeated EIP712NestedMsgType nested_types = 4 [(gogoproto.nullable) = false];
 }
 
-// EIP712MsgType is the eip712 type of a single message.
+// EIP712NestedMsgType is the eip712 type of a single message.
 message EIP712NestedMsgType {
   // name of the nested type. ie "Fee", "Coin"
   string name = 1;
@@ -270,6 +275,8 @@ message EIP712NestedMsgType {
 
 // EIP712MsgAttrType is the eip712 type of a single message attribute.
 message EIP712MsgAttrType {
+  // name
   string name = 1;
+  // type
   string type = 2;
 }
