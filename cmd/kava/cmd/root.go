@@ -3,15 +3,17 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
+	dbm "github.com/cometbft/cometbft-db"
+	tmcfg "github.com/cometbft/cometbft/config"
+	tmcli "github.com/cometbft/cometbft/libs/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
-
-	tmcfg "github.com/cometbft/cometbft/config"
-	tmcli "github.com/cometbft/cometbft/libs/cli"
+	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -23,11 +25,11 @@ import (
 	servercfg "github.com/evmos/ethermint/server/config"
 	"github.com/spf13/cobra"
 
+	"github.com/Kava-Labs/opendb"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/app/params"
 	"github.com/kava-labs/kava/cmd/kava/cmd/iavlviewer"
 	"github.com/kava-labs/kava/cmd/kava/cmd/rocksdb"
-	"github.com/kava-labs/kava/cmd/kava/opendb"
 )
 
 // EnvPrefix is the prefix environment variables must have to configure the app.
@@ -88,6 +90,13 @@ func NewRootCmd() *cobra.Command {
 	return rootCmd
 }
 
+// dbOpener is a function to open `application.db`, potentially with customized options.
+// dbOpener sets dataDir to "data", dbName to "application" and calls generic OpenDB function.
+func dbOpener(opts servertypes.AppOptions, rootDir string, backend dbm.BackendType) (dbm.DB, error) {
+	dataDir := filepath.Join(rootDir, "data")
+	return opendb.OpenDB(opts, dataDir, "application", backend)
+}
+
 // addSubCmds registers all the sub commands used by kava.
 func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, defaultNodeHome string) {
 	gentxModule, ok := app.ModuleBasics[genutiltypes.ModuleName].(genutil.AppModuleBasic)
@@ -118,7 +127,7 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 	opts := ethermintserver.StartOptions{
 		AppCreator:      ac.newApp,
 		DefaultNodeHome: app.DefaultNodeHome,
-		DBOpener:        opendb.OpenDB,
+		DBOpener:        dbOpener,
 	}
 	// ethermintserver adds additional flags to start the JSON-RPC server for evm support
 	ethermintserver.AddCommands(
