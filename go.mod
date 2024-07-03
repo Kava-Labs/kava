@@ -6,6 +6,7 @@ require (
 	cosmossdk.io/errors v1.0.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/simapp v0.0.0-20231127212628-044ff4d8c015
+	github.com/Kava-Labs/opendb v0.0.0-20240703151529-8197d03e2a25
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cometbft/cometbft v0.37.4
 	github.com/cometbft/cometbft-db v0.9.1
@@ -54,7 +55,6 @@ require (
 	github.com/99designs/keyring v1.2.1 // indirect
 	github.com/ChainSafe/go-schnorrkel v1.0.0 // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
-	github.com/Kava-Labs/opendb v0.0.0-20240703151529-8197d03e2a25 // indirect
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/VictoriaMetrics/fastcache v1.6.0 // indirect
 	github.com/allegro/bigcache v1.2.1 // indirect
