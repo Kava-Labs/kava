@@ -1,6 +1,8 @@
 package types
 
 import (
+	fmt "fmt"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -39,5 +41,24 @@ func (fb FractionalBalance) Validate() error {
 	}
 
 	// Validate the amount with the FractionalAmount wrapper
-	return NewFractionalAmountFromInt(fb.Amount).Validate()
+	return ValidateFractionalAmount(fb.Amount)
+}
+
+// ValidateFractionalAmount checks if an sdkmath.Int is a valid fractional
+// amount, ensuring it is positive and less than or equal to the maximum
+// fractional amount.
+func ValidateFractionalAmount(amt sdkmath.Int) error {
+	if amt.IsNil() {
+		return fmt.Errorf("nil amount")
+	}
+
+	if !amt.IsPositive() {
+		return fmt.Errorf("non-positive amount %v", amt)
+	}
+
+	if amt.GT(maxFractionalAmount) {
+		return fmt.Errorf("amount %v exceeds max of %v", amt, maxFractionalAmount)
+	}
+
+	return nil
 }
