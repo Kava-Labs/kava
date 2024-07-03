@@ -140,7 +140,14 @@ func (suite *viewIntegrationTestSuite) TestKeeper_HiddenReserve() {
 	// Make the reserve hold a non-zero balance
 	// Mint fractional coins to an account, which should cause a mint of 1
 	// integer coin to the reserve to back it.
-	suite.MintToAccount(addr1, sdk.NewCoins(sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000))))
+	unrelatedCoin := sdk.NewCoin("unrelated", sdk.NewInt(1000))
+	suite.MintToAccount(
+		addr1,
+		sdk.NewCoins(
+			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000)),
+			unrelatedCoin,
+		),
+	)
 
 	// Check underlying x/bank balance for reserve
 	reserveIntCoin := suite.BankKeeper.GetBalance(suite.Ctx, moduleAddr, types.IntegerCoinDenom)
@@ -148,11 +155,38 @@ func (suite *viewIntegrationTestSuite) TestKeeper_HiddenReserve() {
 
 	// x/precisebank queries for reserve show as 0
 	denom := types.ExtendedCoinDenom
-	coin := suite.Keeper.GetBalance(suite.Ctx, moduleAddr, denom)
-	suite.Require().Equal(denom, coin.Denom)
-	suite.Require().Equal(sdkmath.ZeroInt(), coin.Amount)
 
-	spendableCoin := suite.Keeper.SpendableCoin(suite.Ctx, moduleAddr, denom)
-	suite.Require().Equal(denom, spendableCoin.Denom)
-	suite.Require().Equal(sdkmath.ZeroInt(), spendableCoin.Amount)
+	suite.Run("GetBalance()", func() {
+		coin := suite.Keeper.GetBalance(suite.Ctx, moduleAddr, denom)
+		suite.Require().Equal(denom, coin.Denom)
+		suite.Require().Equal(sdkmath.ZeroInt(), coin.Amount)
+	})
+
+	suite.Run("SpendableCoin()", func() {
+		spendableCoin := suite.Keeper.SpendableCoin(suite.Ctx, moduleAddr, denom)
+		suite.Require().Equal(denom, spendableCoin.Denom)
+		suite.Require().Equal(sdkmath.ZeroInt(), spendableCoin.Amount)
+	})
+
+	suite.Run("GetBalance() unrelated denom", func() {
+		// Not affecting module account
+		moduleCoin := suite.Keeper.GetBalance(suite.Ctx, moduleAddr, "unrelated")
+		suite.Require().Equal(unrelatedCoin.Denom, moduleCoin.Denom)
+		suite.Require().Equal(sdkmath.ZeroInt(), moduleCoin.Amount)
+
+		// Still visible in user account balance
+		accCoin := suite.Keeper.GetBalance(suite.Ctx, addr1, "unrelated")
+		suite.Require().Equal(unrelatedCoin, accCoin)
+	})
+
+	suite.Run("SpendableCoin() unrelated denom", func() {
+		// Not affecting module account
+		moduleCoin := suite.Keeper.SpendableCoin(suite.Ctx, moduleAddr, "unrelated")
+		suite.Require().Equal(unrelatedCoin.Denom, moduleCoin.Denom)
+		suite.Require().Equal(sdkmath.ZeroInt(), moduleCoin.Amount)
+
+		// Still visible in user account balance
+		accCoin := suite.Keeper.SpendableCoin(suite.Ctx, addr1, "unrelated")
+		suite.Require().Equal(unrelatedCoin, accCoin)
+	})
 }
