@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	sdkmath "cosmossdk.io/math"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/evmutil"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
@@ -20,23 +19,6 @@ func (suite *genesisTestSuite) SetupTest() {
 	suite.Suite.SetupTest()
 }
 
-func (s *genesisTestSuite) TestInitGenesis_SetAccounts() {
-	gs := types.NewGenesisState(
-		[]types.Account{
-			{Address: s.Addrs[0], Balance: sdkmath.NewInt(100)},
-		},
-		types.DefaultParams(),
-	)
-	accounts := s.Keeper.GetAllAccounts(s.Ctx)
-	s.Require().Len(accounts, 0)
-	evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper)
-	accounts = s.Keeper.GetAllAccounts(s.Ctx)
-	s.Require().Len(accounts, 1)
-	account := s.Keeper.GetAccount(s.Ctx, s.Addrs[0])
-	s.Require().Equal(account.Address, s.Addrs[0])
-	s.Require().Equal(account.Balance, sdkmath.NewInt(100))
-}
-
 func (s *genesisTestSuite) TestInitGenesis_SetParams() {
 	params := types.DefaultParams()
 	conversionPair := types.ConversionPair{
@@ -45,7 +27,6 @@ func (s *genesisTestSuite) TestInitGenesis_SetParams() {
 	}
 	params.EnabledConversionPairs = []types.ConversionPair{conversionPair}
 	gs := types.NewGenesisState(
-		[]types.Account{},
 		params,
 	)
 	evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper)
@@ -56,9 +37,6 @@ func (s *genesisTestSuite) TestInitGenesis_SetParams() {
 
 func (s *genesisTestSuite) TestInitGenesis_ValidateFail() {
 	gs := types.NewGenesisState(
-		[]types.Account{
-			{Address: s.Addrs[0], Balance: sdkmath.NewInt(-100)},
-		},
 		types.DefaultParams(),
 	)
 	s.Require().Panics(func() {
@@ -68,7 +46,6 @@ func (s *genesisTestSuite) TestInitGenesis_ValidateFail() {
 
 func (s *genesisTestSuite) TestInitGenesis_ModuleAccount() {
 	gs := types.NewGenesisState(
-		[]types.Account{},
 		types.DefaultParams(),
 	)
 	s.Require().NotPanics(func() {
@@ -82,13 +59,6 @@ func (s *genesisTestSuite) TestInitGenesis_ModuleAccount() {
 }
 
 func (s *genesisTestSuite) TestExportGenesis() {
-	accounts := []types.Account{
-		{Address: s.Addrs[0], Balance: sdkmath.NewInt(10)},
-		{Address: s.Addrs[1], Balance: sdkmath.NewInt(20)},
-	}
-	for _, account := range accounts {
-		s.Keeper.SetAccount(s.Ctx, account)
-	}
 	params := types.DefaultParams()
 	params.EnabledConversionPairs = []types.ConversionPair{
 		{
@@ -105,7 +75,6 @@ func (s *genesisTestSuite) TestExportGenesis() {
 	}
 	s.Keeper.SetParams(s.Ctx, params)
 	gs := evmutil.ExportGenesis(s.Ctx, s.Keeper)
-	s.Require().Equal(gs.Accounts, accounts)
 	s.Require().Equal(params, gs.Params)
 }
 

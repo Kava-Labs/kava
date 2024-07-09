@@ -50,7 +50,6 @@ type Suite struct {
 	BankKeeper     bankkeeper.Keeper
 	AccountKeeper  authkeeper.AccountKeeper
 	Keeper         keeper.Keeper
-	EvmBankKeeper  keeper.EvmBankKeeper
 	Addrs          []sdk.AccAddress
 	EvmModuleAddr  sdk.AccAddress
 	QueryClient    types.QueryClient
@@ -68,7 +67,6 @@ func (suite *Suite) SetupTest() {
 	suite.BankKeeper = tApp.GetBankKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
 	suite.Keeper = tApp.GetEvmutilKeeper()
-	suite.EvmBankKeeper = keeper.NewEvmBankKeeper(tApp.GetEvmutilKeeper(), suite.BankKeeper, suite.AccountKeeper)
 	suite.EvmModuleAddr = suite.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
 
 	// test evm user keys that have no minting permissions
@@ -190,23 +188,12 @@ func (suite *Suite) FundAccountWithKava(addr sdk.AccAddress, coins sdk.Coins) {
 		err := suite.App.FundAccount(suite.Ctx, addr, sdk.NewCoins(sdk.NewCoin("ukava", ukava)))
 		suite.Require().NoError(err)
 	}
-	akava := coins.AmountOf("akava")
-	if akava.IsPositive() {
-		err := suite.Keeper.SetBalance(suite.Ctx, addr, akava)
-		suite.Require().NoError(err)
-	}
 }
 
 func (suite *Suite) FundModuleAccountWithKava(moduleName string, coins sdk.Coins) {
 	ukava := coins.AmountOf("ukava")
 	if ukava.IsPositive() {
 		err := suite.App.FundModuleAccount(suite.Ctx, moduleName, sdk.NewCoins(sdk.NewCoin("ukava", ukava)))
-		suite.Require().NoError(err)
-	}
-	akava := coins.AmountOf("akava")
-	if akava.IsPositive() {
-		addr := suite.AccountKeeper.GetModuleAddress(moduleName)
-		err := suite.Keeper.SetBalance(suite.Ctx, addr, akava)
 		suite.Require().NoError(err)
 	}
 }

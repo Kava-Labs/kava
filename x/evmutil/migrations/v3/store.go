@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	v3types "github.com/kava-labs/kava/x/evmutil/migrations/v3/types"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
@@ -20,9 +21,7 @@ func MigrateStore(
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		// TODO: Change types package to v3types once moved to v3/types and
-		// removed from evmutil/types
-		var acc types.Account
+		var acc v3types.Account
 		if err := cdc.Unmarshal(iterator.Value(), &acc); err != nil {
 			panic(err)
 		}
