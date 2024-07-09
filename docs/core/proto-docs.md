@@ -261,9 +261,6 @@
   
     - [Msg](#kava.earn.v1beta1.Msg)
   
-- [kava/evmutil/v1beta1/account.proto](#kava/evmutil/v1beta1/account.proto)
-    - [Account](#kava.evmutil.v1beta1.Account)
-  
 - [kava/evmutil/v1beta1/conversion_pair.proto](#kava/evmutil/v1beta1/conversion_pair.proto)
     - [AllowedCosmosCoinERC20Token](#kava.evmutil.v1beta1.AllowedCosmosCoinERC20Token)
     - [ConversionPair](#kava.evmutil.v1beta1.ConversionPair)
@@ -3870,38 +3867,6 @@ Msg defines the earn Msg service.
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `Deposit` | [MsgDeposit](#kava.earn.v1beta1.MsgDeposit) | [MsgDepositResponse](#kava.earn.v1beta1.MsgDepositResponse) | Deposit defines a method for depositing assets into a vault | |
 | `Withdraw` | [MsgWithdraw](#kava.earn.v1beta1.MsgWithdraw) | [MsgWithdrawResponse](#kava.earn.v1beta1.MsgWithdrawResponse) | Withdraw defines a method for withdrawing assets into a vault | |
-
- <!-- end services -->
-
-
-
-<a name="kava/evmutil/v1beta1/account.proto"></a>
-<p align="right"><a href="#top">Top</a></p>
-
-## kava/evmutil/v1beta1/account.proto
-
-
-
-<a name="kava.evmutil.v1beta1.Account"></a>
-
-### Account
-Account defines an account with fractional balance in the evmutil module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `address` | [bytes](#bytes) |  |  |
-| `balance` | [string](#string) |  | balance indicates the amount of akava owned by the address. |
-
-
-
-
-
- <!-- end messages -->
-
- <!-- end enums -->
-
- <!-- end HasExtensions -->
 
  <!-- end services -->
 
