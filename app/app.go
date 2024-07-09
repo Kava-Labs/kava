@@ -550,7 +550,6 @@ func NewApp(
 		app.accountKeeper,
 	)
 
-	// TODO: Pass this to evmkeeper.NewKeeper() instead of evmutilKeeper
 	app.precisebankKeeper = precisebankkeeper.NewKeeper(
 		app.appCodec,
 		keys[precisebanktypes.StoreKey],
@@ -558,11 +557,10 @@ func NewApp(
 		app.accountKeeper,
 	)
 
-	evmBankKeeper := evmutilkeeper.NewEvmBankKeeper(app.evmutilKeeper, app.bankKeeper, app.accountKeeper)
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tkeys[evmtypes.TransientKey],
 		govAuthAddr,
-		app.accountKeeper, evmBankKeeper, app.stakingKeeper, app.feeMarketKeeper,
+		app.accountKeeper, app.precisebankKeeper, app.stakingKeeper, app.feeMarketKeeper,
 		nil, // precompiled contracts
 		geth.NewEVM,
 		options.EVMTrace,
