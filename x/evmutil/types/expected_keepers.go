@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/core"
@@ -31,4 +32,12 @@ type EvmKeeper interface {
 	// This is actually a gRPC query method
 	EstimateGas(ctx context.Context, req *evmtypes.EthCallRequest) (*evmtypes.EstimateGasResponse, error)
 	ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*evmtypes.MsgEthereumTxResponse, error)
+}
+
+type PreciseBankKeeper interface {
+	SetFractionalBalance(
+		ctx sdk.Context,
+		address sdk.AccAddress,
+		amount sdkmath.Int,
+	)
 }
