@@ -10,7 +10,6 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
 	v3 "github.com/kava-labs/kava/x/evmutil/migrations/v3"
-	v3types "github.com/kava-labs/kava/x/evmutil/migrations/v3/types"
 	"github.com/kava-labs/kava/x/evmutil/types"
 	"github.com/kava-labs/kava/x/evmutil/types/mocks"
 )
@@ -26,10 +25,10 @@ func TestStoreMigrationToPreciseBank(t *testing.T) {
 
 	preciseBankKeeper := mocks.NewMockPreciseBankKeeper(t)
 
-	accounts := []*v3types.Account{}
+	accounts := []*types.Account{}
 	for i := 0; i < 10; i++ {
 		bal := sdk.NewInt(1000 * int64(i))
-		acc := v3types.NewAccount(
+		acc := types.NewAccount(
 			sdk.AccAddress([]byte{byte(i)}),
 			bal,
 		)
