@@ -4,10 +4,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	v3types "github.com/kava-labs/kava/x/evmutil/migrations/v3/types"
 	"github.com/kava-labs/kava/x/evmutil/types"
 )
 
-// MigrateStore
+// MigrateStore performs in-place store migrations for consensus version 3.
+// V3 moves all account balances to x/precisebank and deletes it from x/evmutil.
 func MigrateStore(
 	ctx sdk.Context,
 	cdc codec.BinaryCodec,
@@ -15,11 +17,11 @@ func MigrateStore(
 	precisebankkeeper types.PreciseBankKeeper,
 ) error {
 	store := ctx.KVStore(storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.AccountStoreKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, AccountStoreKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var acc types.Account
+		var acc v3types.Account
 		if err := cdc.Unmarshal(iterator.Value(), &acc); err != nil {
 			panic(err)
 		}

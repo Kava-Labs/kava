@@ -9,7 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 
-	v3evmutil "github.com/kava-labs/kava/x/evmutil/migrations/v3"
+	v3 "github.com/kava-labs/kava/x/evmutil/migrations/v3"
+	v3types "github.com/kava-labs/kava/x/evmutil/migrations/v3/types"
 	"github.com/kava-labs/kava/x/evmutil/types"
 	"github.com/kava-labs/kava/x/evmutil/types/mocks"
 )
@@ -25,10 +26,10 @@ func TestStoreMigrationToPreciseBank(t *testing.T) {
 
 	preciseBankKeeper := mocks.NewMockPreciseBankKeeper(t)
 
-	accounts := []*types.Account{}
+	accounts := []*v3types.Account{}
 	for i := 0; i < 10; i++ {
 		bal := sdk.NewInt(1000 * int64(i))
-		acc := types.NewAccount(
+		acc := v3types.NewAccount(
 			sdk.AccAddress([]byte{byte(i)}),
 			bal,
 		)
@@ -37,7 +38,7 @@ func TestStoreMigrationToPreciseBank(t *testing.T) {
 
 		// Set in store
 		bz := encCfg.Codec.MustMarshal(acc)
-		accountKey := types.AccountStoreKey(acc.Address)
+		accountKey := v3.AccountStoreKey(acc.Address)
 		store.Set(accountKey, bz)
 
 		// Register expectation call for precise bank
@@ -47,7 +48,7 @@ func TestStoreMigrationToPreciseBank(t *testing.T) {
 	}
 
 	// Run migrations
-	err := v3evmutil.MigrateStore(ctx, encCfg.Codec, evmutilKey, preciseBankKeeper)
+	err := v3.MigrateStore(ctx, encCfg.Codec, evmutilKey, preciseBankKeeper)
 	require.NoError(t, err)
 
 	// Check removed from store
@@ -57,7 +58,7 @@ func TestStoreMigrationToPreciseBank(t *testing.T) {
 	}
 
 	// Check all accounts are removed
-	iterator := sdk.KVStorePrefixIterator(store, types.AccountStoreKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, v3.AccountStoreKeyPrefix)
 	defer iterator.Close()
 	require.False(t, iterator.Valid(), "there should be no accounts left in the store")
 }

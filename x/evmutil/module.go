@@ -95,18 +95,25 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper       keeper.Keeper
-	accountKeeer types.AccountKeeper
-	bankKeeper   types.BankKeeper
+	keeper            keeper.Keeper
+	accountKeeer      types.AccountKeeper
+	bankKeeper        types.BankKeeper
+	preciseBankKeeper types.PreciseBankKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(keeper keeper.Keeper, bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper) AppModule {
+func NewAppModule(
+	keeper keeper.Keeper,
+	bankKeeper types.BankKeeper,
+	accountKeeper types.AccountKeeper,
+	preciseBankKeeper types.PreciseBankKeeper,
+) AppModule {
 	return AppModule{
-		AppModuleBasic: NewAppModuleBasic(),
-		keeper:         keeper,
-		accountKeeer:   accountKeeper,
-		bankKeeper:     bankKeeper,
+		AppModuleBasic:    NewAppModuleBasic(),
+		keeper:            keeper,
+		accountKeeer:      accountKeeper,
+		bankKeeper:        bankKeeper,
+		preciseBankKeeper: preciseBankKeeper,
 	}
 }
 
@@ -121,8 +128,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
 	types.RegisterQueryServer(cfg.QueryServer(), keeper.NewQueryServerImpl(am.keeper))
 
-	m := keeper.NewMigrator(am.keeper)
+	m := keeper.NewMigrator(am.keeper, am.preciseBankKeeper)
 	cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	cfg.RegisterMigration(types.ModuleName, 2, m.Migrate2to3)
 }
 
 // RegisterInvariants registers evmutil module's invariants.
