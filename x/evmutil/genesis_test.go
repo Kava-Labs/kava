@@ -3,6 +3,7 @@ package evmutil_test
 import (
 	"testing"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stretchr/testify/suite"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -37,7 +38,12 @@ func (s *genesisTestSuite) TestInitGenesis_SetParams() {
 
 func (s *genesisTestSuite) TestInitGenesis_ValidateFail() {
 	gs := types.NewGenesisState(
-		types.DefaultParams(),
+		types.NewParams(
+			types.NewConversionPairs(
+				types.NewConversionPair(types.NewInternalEVMAddress(common.HexToAddress("0xinvalidaddress")), "weth"),
+			),
+			types.NewAllowedCosmosCoinERC20Tokens(),
+		),
 	)
 	s.Require().Panics(func() {
 		evmutil.InitGenesis(s.Ctx, s.Keeper, gs, s.AccountKeeper)
