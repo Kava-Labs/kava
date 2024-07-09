@@ -261,12 +261,14 @@
   
     - [Msg](#kava.earn.v1beta1.Msg)
   
+- [kava/evmutil/v1beta1/account.proto](#kava/evmutil/v1beta1/account.proto)
+    - [Account](#kava.evmutil.v1beta1.Account)
+  
 - [kava/evmutil/v1beta1/conversion_pair.proto](#kava/evmutil/v1beta1/conversion_pair.proto)
     - [AllowedCosmosCoinERC20Token](#kava.evmutil.v1beta1.AllowedCosmosCoinERC20Token)
     - [ConversionPair](#kava.evmutil.v1beta1.ConversionPair)
   
 - [kava/evmutil/v1beta1/genesis.proto](#kava/evmutil/v1beta1/genesis.proto)
-    - [Account](#kava.evmutil.v1beta1.Account)
     - [GenesisState](#kava.evmutil.v1beta1.GenesisState)
     - [Params](#kava.evmutil.v1beta1.Params)
   
@@ -3873,6 +3875,38 @@ Msg defines the earn Msg service.
 
 
 
+<a name="kava/evmutil/v1beta1/account.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/evmutil/v1beta1/account.proto
+
+
+
+<a name="kava.evmutil.v1beta1.Account"></a>
+
+### Account
+Account defines an account with fractional balance in the evmutil module.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [bytes](#bytes) |  |  |
+| `balance` | [string](#string) |  | balance indicates the amount of akava owned by the address. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
 <a name="kava/evmutil/v1beta1/conversion_pair.proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
@@ -3934,22 +3968,6 @@ allowed to be converted between ERC20 and sdk.Coin
 
 
 
-<a name="kava.evmutil.v1beta1.Account"></a>
-
-### Account
-BalanceAccount defines an account in the evmutil module.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| `address` | [bytes](#bytes) |  |  |
-| `balance` | [string](#string) |  | balance indicates the amount of akava owned by the address. |
-
-
-
-
-
-
 <a name="kava.evmutil.v1beta1.GenesisState"></a>
 
 ### GenesisState
@@ -3958,7 +3976,6 @@ GenesisState defines the evmutil module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `accounts` | [Account](#kava.evmutil.v1beta1.Account) | repeated |  |
 | `params` | [Params](#kava.evmutil.v1beta1.Params) |  | params defines all the parameters of the module. |
 
 

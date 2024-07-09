@@ -1,7 +1,6 @@
 syntax = "proto3";
 package kava.evmutil.v1beta1;
 
-import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "kava/evmutil/v1beta1/conversion_pair.proto";
 
