@@ -261,7 +261,7 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins_Remainder() {
 
 	// Burn 0.1 until balance is 0
 	for {
-		reserveBalBefore := suite.Keeper.GetBalance(
+		reserveBalBefore := suite.BankKeeper.GetBalance(
 			suite.Ctx,
 			reserveAddr,
 			types.IntegerCoinDenom,
@@ -291,7 +291,7 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins_Remainder() {
 			moduleAddr,
 			types.ExtendedCoinDenom,
 		)
-		reserveBalAfter := suite.Keeper.GetBalance(
+		reserveBalAfter := suite.BankKeeper.GetBalance(
 			suite.Ctx,
 			reserveAddr,
 			types.IntegerCoinDenom,
@@ -357,7 +357,7 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins_Spread_Remainder() {
 
 	// Burn 0.1 from each account
 	for _, addr := range addrs {
-		reserveBalBefore := suite.Keeper.GetBalance(
+		reserveBalBefore := suite.BankKeeper.GetBalance(
 			suite.Ctx,
 			reserveAddr,
 			types.IntegerCoinDenom,
@@ -395,7 +395,7 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins_Spread_Remainder() {
 			addr,
 			types.ExtendedCoinDenom,
 		)
-		reserveBalAfter := suite.Keeper.GetBalance(
+		reserveBalAfter := suite.BankKeeper.GetBalance(
 			suite.Ctx,
 			reserveAddr,
 			types.IntegerCoinDenom,

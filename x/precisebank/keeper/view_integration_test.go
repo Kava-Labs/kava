@@ -129,3 +129,74 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 		})
 	}
 }
+
+func (suite *viewIntegrationTestSuite) TestKeeper_HiddenReserve() {
+	// Reserve balances should not be shown to consumers of x/precisebank, as it
+	// represents the fractional balances of accounts.
+
+	moduleAddr := authtypes.NewModuleAddress(types.ModuleName)
+	addr1 := sdk.AccAddress{1}
+
+	// Make the reserve hold a non-zero balance
+	// Mint fractional coins to an account, which should cause a mint of 1
+	// integer coin to the reserve to back it.
+	extCoin := sdk.NewCoin(types.ExtendedCoinDenom, types.ConversionFactor().AddRaw(1000))
+	unrelatedCoin := sdk.NewCoin("unrelated", sdk.NewInt(1000))
+	suite.MintToAccount(
+		addr1,
+		sdk.NewCoins(
+			extCoin,
+			unrelatedCoin,
+		),
+	)
+
+	// Check underlying x/bank balance for reserve
+	reserveIntCoin := suite.BankKeeper.GetBalance(suite.Ctx, moduleAddr, types.IntegerCoinDenom)
+	suite.Require().Equal(
+		sdkmath.NewInt(1),
+		reserveIntCoin.Amount,
+		"reserve should hold 1 integer coin",
+	)
+
+	tests := []struct {
+		name       string
+		giveAddr   sdk.AccAddress
+		giveDenom  string
+		wantAmount sdkmath.Int
+	}{
+		{
+			"reserve account - hidden extended denom",
+			moduleAddr,
+			types.ExtendedCoinDenom,
+			sdkmath.ZeroInt(),
+		},
+		{
+			"reserve account - visible integer denom",
+			moduleAddr,
+			types.IntegerCoinDenom,
+			sdkmath.OneInt(),
+		},
+		{
+			"user account - visible extended denom",
+			addr1,
+			types.ExtendedCoinDenom,
+			extCoin.Amount,
+		},
+		{
+			"user account - visible integer denom",
+			addr1,
+			types.IntegerCoinDenom,
+			extCoin.Amount.Quo(types.ConversionFactor()),
+		},
+	}
+
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			coin := suite.Keeper.GetBalance(suite.Ctx, tt.giveAddr, tt.giveDenom)
+			suite.Require().Equal(tt.wantAmount.Int64(), coin.Amount.Int64())
+
+			spendableCoin := suite.Keeper.SpendableCoin(suite.Ctx, tt.giveAddr, tt.giveDenom)
+			suite.Require().Equal(tt.wantAmount.Int64(), spendableCoin.Amount.Int64())
+		})
+	}
+}
