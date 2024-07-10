@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
+	precisebankkeeper "github.com/kava-labs/kava/x/precisebank/keeper"
 	precisebanktypes "github.com/kava-labs/kava/x/precisebank/types"
 	"github.com/stretchr/testify/require"
 )
@@ -131,6 +132,9 @@ func TestReserveMigration(t *testing.T) {
 				newReserveBalanceAfter.Amount.Mul(precisebanktypes.ConversionFactor()),
 				"new reserve should equal total fractional balances",
 			)
+
+			_, stop := precisebankkeeper.AllInvariants(pbk)(ctx)
+			require.False(t, stop, "invariants should pass")
 		})
 	}
 }
