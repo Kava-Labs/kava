@@ -70,6 +70,9 @@ func upgradeHandler(
 		}
 
 		// Migrate fractional balance reserve from x/evmutil to x/precisebank.
+		// This should be done **after** store migrations are completed in
+		// app.mm.RunMigrations, which migrates fractional balances to
+		// x/precisebank.
 		if err := MigrateFractionalBalanceReserve(
 			ctx,
 			app.Logger(),
@@ -108,16 +111,24 @@ func MigrateFractionalBalanceReserve(
 	// Ensure x/precisebank reserve fully backs all fractional balances.
 	totalFractionalBalances := precisebankKeeper.GetTotalSumFractionalBalances(ctx)
 
-	if !totalFractionalBalances.Mod(precisebanktypes.ConversionFactor()).IsZero() {
-		panic("invalid state, total fractional balances should be a multiple of the conversion factor")
+	// Ensure state is correct:
+	// - Non-zero total: Balances have been migrated to x/precisebank
+	// - Multiple of conversion factor
+	if totalFractionalBalances.IsZero() {
+		return fmt.Errorf("invalid state, total fractional balances should not be zero")
 	}
 
-	totalIntegerEquivalent := totalFractionalBalances.Quo(precisebanktypes.ConversionFactor())
+	if !totalFractionalBalances.Mod(precisebanktypes.ConversionFactor()).IsZero() {
+		return fmt.Errorf(
+			"invalid state, total fractional balances should be a multiple of the conversion factor but is %s",
+			totalFractionalBalances,
+		)
+	}
 
+	// Determine how much the reserve is off by, e.g. unbacked amount
+	expectedReserveBalance := totalFractionalBalances.Quo(precisebanktypes.ConversionFactor())
+	unbackedAmount := expectedReserveBalance.Sub(reserveBalance.Amount)
 	logger.Info(fmt.Sprintf("total account fractional balances: %s", totalFractionalBalances))
-
-	// Get amount that is unbacked
-	unbackedAmount := totalIntegerEquivalent.Sub(reserveBalance.Amount)
 
 	if unbackedAmount.IsPositive() {
 		logger.Info(fmt.Sprintf("unbacked amount to be minted: %s", unbackedAmount))
