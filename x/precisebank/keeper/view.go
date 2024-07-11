@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/precisebank/types"
 )
@@ -13,6 +14,14 @@ func (k Keeper) GetBalance(
 	addr sdk.AccAddress,
 	denom string,
 ) sdk.Coin {
+	// Module balance should display as empty for extended denom. Module
+	// balances are **only** for the reserve which backs the fractional
+	// balances. Returning the backing balances if querying extended denom would
+	// result in a double counting of the fractional balances.
+	if denom == types.ExtendedCoinDenom && addr.Equals(k.ak.GetModuleAddress(types.ModuleName)) {
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
+	}
+
 	// Pass through to x/bank for denoms except ExtendedCoinDenom
 	if denom != types.ExtendedCoinDenom {
 		return k.bk.GetBalance(ctx, addr, denom)
@@ -41,6 +50,11 @@ func (k Keeper) SpendableCoin(
 	addr sdk.AccAddress,
 	denom string,
 ) sdk.Coin {
+	// Same as GetBalance, extended denom balances are transparent to consumers.
+	if denom == types.ExtendedCoinDenom && addr.Equals(k.ak.GetModuleAddress(types.ModuleName)) {
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
+	}
+
 	// Pass through to x/bank for denoms except ExtendedCoinDenom
 	if denom != types.ExtendedCoinDenom {
 		return k.bk.SpendableCoin(ctx, addr, denom)

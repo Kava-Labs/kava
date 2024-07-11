@@ -40,7 +40,7 @@ func (gs *GenesisState) Validate() error {
 	}
 
 	if gs.Remainder.GTE(conversionFactor) {
-		return fmt.Errorf("remainder %v exceeds max of %v", gs.Remainder, maxFractionalAmount)
+		return fmt.Errorf("remainder %v exceeds max of %v", gs.Remainder, conversionFactor.SubRaw(1))
 	}
 
 	// Determine if sum(fractionalBalances) + remainder = whole integer value

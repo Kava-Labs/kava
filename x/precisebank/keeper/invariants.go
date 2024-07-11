@@ -104,7 +104,7 @@ func ValidFractionalAmountsInvariant(k Keeper) sdk.Invariant {
 		)
 
 		k.IterateFractionalBalances(ctx, func(addr sdk.AccAddress, amount sdkmath.Int) bool {
-			if err := types.NewFractionalAmountFromInt(amount).Validate(); err != nil {
+			if err := types.ValidateFractionalAmount(amount); err != nil {
 				count++
 				msg += fmt.Sprintf("\t%s has an invalid fractional amount of %s\n", addr, amount)
 			}
@@ -133,7 +133,7 @@ func ValidRemainderAmountInvariant(k Keeper) sdk.Invariant {
 
 		if !remainderAmount.IsZero() {
 			// Only validate if non-zero, as zero is default value
-			if err := types.NewFractionalAmountFromInt(remainderAmount).Validate(); err != nil {
+			if err := types.ValidateFractionalAmount(remainderAmount); err != nil {
 				broken = true
 				msg = fmt.Sprintf("remainder amount is invalid: %s", err)
 			}
