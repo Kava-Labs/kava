@@ -22,14 +22,6 @@ func TestReserveMigration(t *testing.T) {
 		wantErr            string
 	}{
 		{
-			"error - zero fractional balances",
-			sdk.NewCoin(precisebanktypes.IntegerCoinDenom, sdk.NewInt(10)),
-			[]sdkmath.Int{
-				// No accounts
-			},
-			"invalid state, total fractional balances should not be zero",
-		},
-		{
 			"error - unbalanced fractional balances",
 			sdk.NewCoin(precisebanktypes.IntegerCoinDenom, sdk.NewInt(1)),
 			[]sdkmath.Int{

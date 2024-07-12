@@ -95,15 +95,16 @@ func MigrateFractionalBalanceReserve(
 	precisebankKeeper precisebankkeeper.Keeper,
 ) error {
 	// Transfer x/evmutil reserve to x/precisebank.
-	moduleAddr := accountKeeper.GetModuleAddress(evmutiltypes.ModuleName)
-	reserveBalance := bankKeeper.GetBalance(ctx, moduleAddr, precisebanktypes.IntegerCoinDenom)
+	evmutilAddr := accountKeeper.GetModuleAddress(evmutiltypes.ModuleName)
+	reserveBalance := bankKeeper.GetBalance(ctx, evmutilAddr, precisebanktypes.IntegerCoinDenom)
+
 	if err := bankKeeper.SendCoinsFromModuleToModule(
 		ctx,
-		evmutiltypes.ModuleName,
-		precisebanktypes.ModuleName,
+		evmutiltypes.ModuleName,     // from x/evmutil
+		precisebanktypes.ModuleName, // to x/precisebank
 		sdk.NewCoins(reserveBalance),
 	); err != nil {
-		return fmt.Errorf("failed to transfer x/evmutil reserve to x/precisebank: %w", err)
+		return fmt.Errorf("failed to transfer reserve from x/evmutil to x/precisebank: %w", err)
 	}
 
 	logger.Info(fmt.Sprintf("transferred reserve balance: %s", reserveBalance))
@@ -111,13 +112,8 @@ func MigrateFractionalBalanceReserve(
 	// Ensure x/precisebank reserve fully backs all fractional balances.
 	totalFractionalBalances := precisebankKeeper.GetTotalSumFractionalBalances(ctx)
 
-	// Ensure state is correct:
-	// - Non-zero total: Balances have been migrated to x/precisebank
-	// - Multiple of conversion factor
-	if totalFractionalBalances.IsZero() {
-		return fmt.Errorf("invalid state, total fractional balances should not be zero")
-	}
-
+	// Ensure state is correct, total fractional balances should be a
+	// multiple of conversion factor.
 	if !totalFractionalBalances.Mod(precisebanktypes.ConversionFactor()).IsZero() {
 		return fmt.Errorf(
 			"invalid state, total fractional balances should be a multiple of the conversion factor but is %s",
@@ -130,26 +126,26 @@ func MigrateFractionalBalanceReserve(
 	unbackedAmount := expectedReserveBalance.Sub(reserveBalance.Amount)
 	logger.Info(fmt.Sprintf("total account fractional balances: %s", totalFractionalBalances))
 
+	// Three possible cases:
+	// 1. Reserve is not enough, mint coins to back the fractional balances
+	// 2. Reserve is too much, burn coins to back the fractional balances exactly
+	// 3. Reserve is exactly enough, no action needed
 	if unbackedAmount.IsPositive() {
-		logger.Info(fmt.Sprintf("unbacked amount to be minted: %s", unbackedAmount))
-
-		// Reserve is not enough, we can mint some
-		// Mint the unbacked amount
 		coins := sdk.NewCoins(sdk.NewCoin(precisebanktypes.IntegerCoinDenom, unbackedAmount))
 		if err := bankKeeper.MintCoins(ctx, precisebanktypes.ModuleName, coins); err != nil {
 			return fmt.Errorf("failed to mint extra reserve coins: %w", err)
 		}
-	} else if unbackedAmount.IsNegative() {
-		logger.Info(fmt.Sprintf("extra reserve amount to be burned: %s", unbackedAmount.Neg()))
 
-		// Reserve is too much, we can burn some
-		// Burn the unbacked amount
+		logger.Info(fmt.Sprintf("unbacked amount minted to reserve: %s", unbackedAmount))
+	} else if unbackedAmount.IsNegative() {
 		coins := sdk.NewCoins(sdk.NewCoin(precisebanktypes.IntegerCoinDenom, unbackedAmount.Neg()))
 		if err := bankKeeper.BurnCoins(ctx, precisebanktypes.ModuleName, coins); err != nil {
 			return fmt.Errorf("failed to burn extra reserve coins: %w", err)
 		}
+
+		logger.Info(fmt.Sprintf("extra reserve amount burned: %s", unbackedAmount.Neg()))
 	} else {
-		logger.Info("no extra reserve coins needed")
+		logger.Info("reserve exactly backs fractional balances, no mint/burn needed")
 	}
 
 	return nil
