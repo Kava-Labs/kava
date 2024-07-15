@@ -7,7 +7,7 @@ require (
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/simapp v0.0.0-20231127212628-044ff4d8c015
-	github.com/Kava-Labs/opendb v0.0.0-20240703151529-8197d03e2a25
+	github.com/Kava-Labs/opendb v0.0.0-20240715194257-36fd81dc1423
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cometbft/cometbft v0.37.4
 	github.com/cometbft/cometbft-db v0.9.1
@@ -232,7 +232,7 @@ replace (
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/ethereum/go-ethereum => github.com/Kava-Labs/go-ethereum v1.10.27-0.20240308170502-da7973e5eee0
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
-	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240703152838-badab86e5aba
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240715204006-82ad83234dd8
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
