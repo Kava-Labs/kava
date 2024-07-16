@@ -8,6 +8,30 @@ The precisebank module is responsible for extending the precision of `x/bank`, i
 
 This module is used only by `x/evm` where 18 decimal points are expected.
 
+## Contents
+
+- [Background](#background)
+  - [Adding](#adding)
+  - [Subtracting](#subtracting)
+  - [Transfer](#transfer)
+    - [Setup](#setup)
+    - [Remainder does not change](#remainder-does-not-change)
+    - [Reserve](#reserve)
+  - [Burn](#burn)
+  - [Mint](#mint)
+- [State](#state)
+- [Keepers](#keepers)
+- [Messages](#messages)
+- [Events](#events)
+  - [Keeper Events](#keeper-events)
+    - [SendCoins](#sendcoins)
+    - [MintCoins](#mintcoins)
+    - [BurnCoins](#burncoins)
+- [Client](#client)
+  - [gRPC](#grpc)
+    - [Remainder](#remainder)
+    - [FractionalBalance](#fractionalbalance)
+
 ## Background
 
 The standard unit of currency on the Kava Chain is `KAVA`.  This is denominated by the atomic unit `ukava`, which represents $10^{-6}$ `KAVA` and there are $10^6$ `ukava` per `KAVA`.
@@ -354,3 +378,184 @@ $$b'(R) - b(R) = \begin{cases} 0 & r' > r \land f'(1) < f(1) \\
 1 & r' > r \land f'(1) \geq f(1) \\
 0 & r' \leq r \land f'(1) \geq f(1) \\
 \end{cases}$$
+
+## State
+
+The `x/precisebank` keeps state of the following:
+1. Account fractional balances.
+2. Remainder amount. This amount represents the fractional amount that is backed
+   by the reserve account but not yet in circulation. This can be non-zero if
+   a fractional amount less than `1ukava` is minted.
+
+The `x/precisebank` module does not keep track of the reserve as it is stored in
+the `x/bank` module.
+
+## Keepers
+
+The precisebank module only exposes one keeper that wraps the bank module keeper
+and implements bank keeper compatible methods to support extended coin.
+
+## Messages
+
+The precisebank module does not have any messages and is intended to be used by
+other modules as a replacement of the bank module.
+
+## Events
+
+### Keeper Events
+
+The `x/precisebank` module emits the following events, that are meant to be
+match the events emitted by the `x/bank` module. Events emitted by
+`x/precisebank` will only contain `akava` amounts, as the `x/bank` module will
+emit events with all other denoms. This means if an account transfers multiple
+coins including `akava`, the `x/precisebank` module will emit an event with the
+full `akava` amount. If `ukava` is included in a transfer, mint, or burn, the
+`x/precisebank` module will emit an event with the full equivalent `akava`
+amount.
+
+#### SendCoins
+
+```json
+{
+  "type": "transfer",
+  "attributes": [
+    {
+      "key": "recipient",
+      "value": "{{sdk.AccAddress of the recipient}}",
+      "index": true
+    },
+    {
+      "key": "sender",
+      "value": "{{sdk.AccAddress of the sender}}",
+      "index": true
+    },
+    {
+      "key": "amount",
+      "value": "{{sdk.Coins being transferred}}",
+      "index": true
+    }
+  ]
+}
+```
+
+#### MintCoins
+
+```json
+{
+  "type": "mint",
+  "attributes": [
+    {
+      "key": "minter",
+      "value": "{{sdk.AccAddress of the module minting coins}}",
+      "index": true
+    },
+    {
+      "key": "amount",
+      "value": "{{sdk.Coins being minted}}",
+      "index": true
+    }
+  ]
+}
+```
+
+#### BurnCoins
+
+```json
+{
+  "type": "burn",
+  "attributes": [
+    {
+      "key": "burner",
+      "value": "{{sdk.AccAddress of the module burning coins}}",
+      "index": true
+    },
+    {
+      "key": "amount",
+      "value": "{{sdk.Coins being burned}}",
+      "index": true
+    }
+  ]
+}
+```
+
+## Client
+
+### gRPC
+
+A user can query the precisebank module using gRPC endpoints.
+
+#### TotalFractionalBalances
+
+The `TotalFractionalBalances` endpoint allows users to query the aggregate sum
+of all fractional balances. This is primarily used for external verification of
+the module state against the reserve balance.
+
+```shell
+kava.precisebank.v1.Query/TotalFractionalBalances
+```
+
+Example:
+
+```shell
+grpcurl -plaintext \
+  localhost:9090 \
+  kava.precisebank.v1.Query/TotalFractionalBalances
+```
+
+Example Output:
+
+```json
+{
+  "total": "2000000000000akava"
+}
+```
+
+#### Remainder
+
+The `Remainder` endpoint allows users to query the current remainder amount.
+
+```shell
+kava.precisebank.v1.Query/Remainder
+```
+
+Example:
+
+```shell
+grpcurl -plaintext \
+  localhost:9090 \
+  kava.precisebank.v1.Query/Remainder
+```
+
+Example Output:
+
+```json
+{
+  "remainder": "100akava"
+}
+```
+
+#### FractionalBalance
+
+The `FractionalBalance` endpoint allows users to query the fractional balance of
+a specific account.
+
+```shell
+kava.precisebank.v1.Query/FractionalBalance
+```
+
+Example:
+
+```shell
+grpcurl -plaintext \
+  -d '{"address": "kava1..."}' \
+  localhost:9090 \
+  kava.precisebank.v1.Query/FractionalBalance
+```
+
+Example Output:
+
+```json
+{
+  "fractional_balance": "10000akava"
+}
+```
