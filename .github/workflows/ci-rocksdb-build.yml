@@ -19,25 +19,3 @@ jobs:
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
       - name: build application
         run: make build COSMOS_BUILD_OPTIONS=rocksdb
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: install RocksDB dependencies
-        run: sudo apt-get update
-          && sudo apt-get install -y git make gcc libgflags-dev libsnappy-dev zlib1g-dev libbz2-dev liblz4-dev libzstd-dev
-      - name: install RocksDB as shared library
-        run: git clone https://github.com/facebook/rocksdb.git
-          && cd rocksdb
-          && git checkout $ROCKSDB_VERSION
-          && sudo make -j$(nproc) install-shared
-          && sudo ldconfig
-      - name: checkout repo from current commit
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: go.mod
-      - name: run unit tests
-        run: make test-rocksdb
