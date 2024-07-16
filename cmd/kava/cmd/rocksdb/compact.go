@@ -14,14 +14,14 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/kava-labs/kava/cmd/kava/opendb"
 	"github.com/linxGnu/grocksdb"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"github.com/Kava-Labs/opendb"
 )
 
 const (
