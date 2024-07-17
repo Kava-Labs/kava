@@ -1,0 +1,32 @@
+syntax = "proto3";
+package kava.precisebank.v1;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/kava-labs/kava/x/precisebank/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Query defines the gRPC querier service for precisebank module
+service Query {
+  // TotalFractionalBalances returns the total sum of all fractional balances
+  // managed by the precisebank module.
+  rpc TotalFractionalBalances(QueryTotalFractionalBalancesRequest) returns (QueryTotalFractionalBalancesResponse) {
+    option (google.api.http).get = "/kava/precisebank/v1/total_fractional_balances";
+  }
+}
+
+// QueryTotalFractionalBalancesRequest defines the request type for Query/TotalFractionalBalances method.
+message QueryTotalFractionalBalancesRequest {}
+
+// QueryTotalFractionalBalancesResponse defines the response type for Query/TotalFractionalBalances method.
+message QueryTotalFractionalBalancesResponse {
+  // total is the total sum of all fractional balances managed by the precisebank
+  // module.
+  string total = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
+    (gogoproto.nullable) = false
+  ];
+}
