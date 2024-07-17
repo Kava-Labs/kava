@@ -42,7 +42,7 @@ This is the quotient-remainder theorm and any $a(n)$ can be represented by uniqu
 
 $$b(n) = \lfloor b(n)/C \rfloor$$
 
-$$f(n) = a(n)\mod{C}$$.
+$$f(n) = a(n)\mod{C}$$
 
 With this definition in mind we will refer to `b(n)` units as integer units, and `f(n)` as fractional units.
 
