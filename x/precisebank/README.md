@@ -35,11 +35,13 @@ $$a(n) = b(n) \cdot C + f(n)$$
 where
 
 $$0 \le f(n) < C$$
-$$a(n), b(n) \ge 0$$.
+
+$$a(n), b(n) \ge 0$$
 
 This is the quotient-remainder theorm and any $a(n)$ can be represented by unique integers $b(n)$, $f(n)$ where
 
 $$b(n) = \lfloor b(n)/C \rfloor$$
+
 $$f(n) = a(n)\mod{C}$$.
 
 With this definition in mind we will refer to `b(n)` units as integer units, and `f(n)` as fractional units.
@@ -47,11 +49,13 @@ With this definition in mind we will refer to `b(n)` units as integer units, and
 Now since `f(n)` is stored in the `x/precisebank` and not tracked by the `x/bank` keeper, these are not counted in the `ukava` supply, so we define
 
 $$T_a = \sum_{n \in \mathcal{A}}{a(n)}$$
+
 $$T_b = \sum_{n \in \mathcal{A}}{b(n)}$$
 
 where $T_a$ is the total `akava` supply and $T_b$ is the total `ukava` supply, then a reserve account is added such that
 
 $$a(R) = 0$$
+
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
 where R is the reserve account or module account of the `x/precisebank`, and `r` is the reminader or fractional amount backed by `b(R)`, but not yet in circulation such that
@@ -71,49 +75,65 @@ If we didn't add these constraints, then the total supply of `ukava` reported by
 When adding we have
 
 $$a'(n) = a(n) + a$$
+
 $$b'(n) \cdot C + f'(n) = b(n) \cdot C + f(n) + a$$
 
 and
 
 $$f'(n) = f(n) + a \mod{C}$$
 
-$$b'(n) = \begin{cases} b(n) + \lfloor a/C \rfloor & f'(n) \geq f(n) \\ b(n) + \lfloor a/C \rfloor + 1 & f'(n) < f(n) \end{cases}$$
+$$b'(n) = \begin{cases} b(n) + \lfloor a/C \rfloor & f'(n) \geq f(n) \\
+b(n) + \lfloor a/C \rfloor + 1 & f'(n) < f(n) \end{cases}$$
 
 ### Subtracting
 
 When adding we have
 
 $$a'(n) = a(n) - a$$
+
 $$b'(n) \cdot C + f'(n) = b(n) \cdot C + f(n) - a$$
 
 and
 
 $$f'(n) = f(n) - a \mod{C}$$
 
-$$b'(n) = \begin{cases} b(n) - \lfloor a/C \rfloor & f'(n) \leq f(n) \\ b(n) - \lfloor a/C \rfloor - 1 & f'(n) > f(n) \end{cases}$$
+$$b'(n) = \begin{cases} b(n) - \lfloor a/C \rfloor & f'(n) \leq f(n) \\
+b(n) - \lfloor a/C \rfloor - 1 & f'(n) > f(n) \end{cases}$$
 
 ### Transfer
 
 #### Setup
+
 $$a'(1) = a(1) + a$$
+
 $$a'(2) = a(2) - a$$
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
+
 $$b'(R) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} + r'$$
 
 $$(b'(R)-b(R)) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} - \sum_{n \in \mathcal{A}}{f(n)} + r' - r$$
+
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2) + r' - r$$
 
 #### Remainder does not change
 
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2) + r' - r \mod{C}$$
+
 $$0 = (f(1) - a)\bmod{C} - f(1) + (f(2) + a)\bmod{C} - f(2) + r' - r \mod{C}$$
+
 $$0 = f(1) - a - f(1) + f(2) + a - f(2) + r' - r \mod{C}$$
+
 $$0 = r' - r \mod{C}$$
+
 $$q * C = r' - r$$
+
 $$0 \leq r' < C, 0 \leq r < C$$
+
 $$ -C < r' - r < C$$
+
 $$q = 0$$
+
 $$ r' - r = 0$$
 
 #### Reserve
@@ -121,14 +141,22 @@ $$ r' - r = 0$$
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2)$$
 
 $$f'(1) = f(1) - a \mod{C}$$
+
 $$f'(1)\bmod{C}= f(1)\bmod{C} - a \bmod{C} \mod{C}$$
+
 $$f'(1) = f(1) - a \bmod{C} \mod{C}$$
-$$f'(1) = \begin{cases} f(1) - a\bmod{C} & f'(1) \leq f(1) \\ f(1) - a\bmod{C} + C & f'(1) > f(1) \end{cases}$$
+
+$$f'(1) = \begin{cases} f(1) - a\bmod{C} & f'(1) \leq f(1) \\
+f(1) - a\bmod{C} + C & f'(1) > f(1) \end{cases}$$
 
 $$f'(2) = f(2) + a \mod{C}$$
+
 $$f'(2)\bmod{C}= f(2)\bmod{C} + a \bmod{C} \mod{C}$$
+
 $$f'(2) = f(2) + a \bmod{C} \mod{C}$$
-$$f'(2) = \begin{cases} f(2) + a\bmod{C} & f'(2) \geq f(2) \\ f(2) + a\bmod{C} - C & f'(2) < f(2) \end{cases}$$
+
+$$f'(2) = \begin{cases} f(2) + a\bmod{C} & f'(2) \geq f(2) \\
+f(2) + a\bmod{C} - C & f'(2) < f(2) \end{cases}$$
 
 $$b'(R) - b(R) \cdot C = \begin{cases} f(1) - a\bmod{C} + C - f(1) + f(2) + a\bmod{C} - C + f(2) & f'(1) > f(1) \land f'(2) < f(2) \\
 f(1) - a\bmod{C} - f(1) + f(2) + a\bmod{C} - C + f(2) & f'(1) \leq f(1) \land f'(2) < f(2) \\
@@ -151,17 +179,26 @@ $$b'(R) - b(R) = \begin{cases} 0 & f'(1) > f(1) \land f'(2) < f(2) \\
 ### Burn
 
 $$a'(1) = a(1) + a$$
+
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + r' - r$$
 
 $$f'(1) = f(1) - a \mod{C}$$
+
 $$f'(1)\bmod{C}= f(1)\bmod{C} - a \bmod{C} \mod{C}$$
+
 $$f'(1) = f(1) - a \bmod{C} \mod{C}$$
-$$f'(1) = \begin{cases} f(1) - a\bmod{C} & f'(1) \leq f(1) \\ f(1) - a\bmod{C} + C & f'(1) > f(1) \end{cases}$$
+
+$$f'(1) = \begin{cases} f(1) - a\bmod{C} & f'(1) \leq f(1) \\
+f(1) - a\bmod{C} + C & f'(1) > f(1) \end{cases}$$
 
 $$r' = r + a \mod{C}$$
+
 $$r'\bmod{C}= r\bmod{C} + a \bmod{C} \mod{C}$$
+
 $$r' = r + a \bmod{C} \mod{C}$$
-$$r' = \begin{cases} r + a\bmod{C} & r' \geq r \\ r + a\bmod{C} - C & r' < r \end{cases}$$
+
+$$r' = \begin{cases} r + a\bmod{C} & r' \geq r \\
+r + a\bmod{C} - C & r' < r \end{cases}$$
 
 $$b'(R) - b(R) = \begin{cases} 0 & f'(1) > f(1) \land r' < r \\
 -1 & f'(1) \leq f(1) \land r' < r \\
@@ -172,17 +209,26 @@ $$b'(R) - b(R) = \begin{cases} 0 & f'(1) > f(1) \land r' < r \\
 ### Mint
 
 $$a'(1) = a(1) + a$$
+
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + r' - r$$
 
 $$f'(1) = f(1) + a \mod{C}$$
+
 $$f'(1)\bmod{C}= f(1)\bmod{C} + a \bmod{C} \mod{C}$$
+
 $$f'(1) = f(1) + a \bmod{C} \mod{C}$$
-$$f'(1) = \begin{cases} f(1) + a\bmod{C} & f'(1) \geq f(1) \\ f(1) + a\bmod{C} - C & f'(1) < f(1) \end{cases}$$
+
+$$f'(1) = \begin{cases} f(1) + a\bmod{C} & f'(1) \geq f(1) \\
+f(1) + a\bmod{C} - C & f'(1) < f(1) \end{cases}$$
 
 $$r' = r - a \mod{C}$$
+
 $$r'\bmod{C}= r\bmod{C} - a \bmod{C} \mod{C}$$
+
 $$r' = r - a \bmod{C} \mod{C}$$
-$$r' = \begin{cases} r - a\bmod{C} & r' \leq r \\ r - a\bmod{C} + C & r' > r \end{cases}$$
+
+$$r' = \begin{cases} r - a\bmod{C} & r' \leq r \\
+r - a\bmod{C} + C & r' > r \end{cases}$$
 
 $$b'(R) - b(R) = \begin{cases} 0 & r' > r \land f'(1) < f(1) \\
 -1 & r' \leq r \land f'(1) < f(1) \\
