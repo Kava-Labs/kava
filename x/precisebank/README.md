@@ -40,7 +40,7 @@ $$a(n), b(n) \ge 0$$
 
 This is the quotient-remainder theorm and any $a(n)$ can be represented by unique integers $b(n)$, $f(n)$ where
 
-$$b(n) = \lfloor b(n)/C \rfloor$$
+$$b(n) = \lfloor a(n)/C \rfloor$$
 
 $$f(n) = a(n)\mod{C}$$
 
