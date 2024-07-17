@@ -143,9 +143,12 @@ func TestMigrateEvmutilToPrecisebank(t *testing.T) {
 			// Check new reserve fully backs fractional balances
 			newReserveBalanceAfter := bk.GetBalance(ctx, newReserveAddr, precisebanktypes.IntegerCoinDenom)
 			fractionalBalanceTotal := pbk.GetTotalSumFractionalBalances(ctx)
+			remainder := pbk.GetRemainderAmount(ctx)
+
+			expectedReserveBal := fractionalBalanceTotal.Add(remainder)
 			require.Equal(
 				t,
-				fractionalBalanceTotal,
+				expectedReserveBal,
 				newReserveBalanceAfter.Amount.Mul(precisebanktypes.ConversionFactor()),
 				"new reserve should equal total fractional balances",
 			)
