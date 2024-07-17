@@ -87,7 +87,7 @@ b(n) + \lfloor a/C \rfloor + 1 & f'(n) < f(n) \end{cases}$$
 
 ### Subtracting
 
-When adding we have
+When subtracting we have
 
 $$a'(n) = a(n) - a$$
 
@@ -104,9 +104,9 @@ b(n) - \lfloor a/C \rfloor - 1 & f'(n) > f(n) \end{cases}$$
 
 #### Setup
 
-$$a'(1) = a(1) + a$$
+$$a'(1) = a(1) - a$$
 
-$$a'(2) = a(2) - a$$
+$$a'(2) = a(2) + a$$
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
@@ -178,7 +178,7 @@ $$b'(R) - b(R) = \begin{cases} 0 & f'(1) > f(1) \land f'(2) < f(2) \\
 
 ### Burn
 
-$$a'(1) = a(1) + a$$
+$$a'(1) = a(1) - a$$
 
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + r' - r$$
 
