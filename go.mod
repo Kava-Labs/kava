@@ -7,7 +7,7 @@ require (
 	cosmossdk.io/log v1.3.1
 	cosmossdk.io/math v1.3.0
 	cosmossdk.io/simapp v0.0.0-20231127212628-044ff4d8c015
-	github.com/Kava-Labs/opendb v0.0.0-20240718125701-de5594194ac7
+	github.com/Kava-Labs/opendb v0.0.0-20240718171925-4807503fa027
 	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/cometbft/cometbft v0.37.4
 	github.com/cometbft/cometbft-db v0.9.1
