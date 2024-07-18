@@ -38,27 +38,27 @@ $$0 \le f(n) < C$$
 
 $$a(n), b(n) \ge 0$$
 
-This is the quotient-remainder theorm and any $a(n)$ can be represented by unique integers $b(n)$, $f(n)$ where
+This is the quotient-remainder theorem and any $a(n)$ can be represented by unique integers $b(n)$, $f(n)$ where
 
 $$b(n) = \lfloor a(n)/C \rfloor$$
 
 $$f(n) = a(n)\bmod{C}$$
 
-With this definition in mind we will refer to `b(n)` units as integer units, and `f(n)` as fractional units.
+With this definition in mind we will refer to $b(n)$ units as integer units, and $f(n)$ as fractional units.
 
-Now since `f(n)` is stored in the `x/precisebank` and not tracked by the `x/bank` keeper, these are not counted in the `ukava` supply, so we define
+Now since $f(n)$ is stored in the `x/precisebank` and not tracked by the `x/bank` keeper, these are not counted in the `ukava` supply, so we define
 
 $$T_a = \sum_{n \in \mathcal{A}}{a(n)}$$
 
 $$T_b = \sum_{n \in \mathcal{A}}{b(n)}$$
 
-where $T_a$ is the total `akava` supply and $T_b$ is the total `ukava` supply, then a reserve account is added such that
+where $\mathcal{A}$ is the set of all accounts and $T_a$ is the total `akava` supply and $T_b$ is the total `ukava` supply, then a reserve account is added such that
 
 $$a(R) = 0$$
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
-where R is the reserve account or module account of the `x/precisebank`, and `r` is the reminader or fractional amount backed by `b(R)`, but not yet in circulation such that
+where R is the reserve account or module account of the `x/precisebank`, and $r$ is the remainder or fractional amount backed by $b(R)$, but not yet in circulation such that
 
 $$T_a = T_b \cdot C - r$$
 
@@ -66,7 +66,7 @@ and
 
 $$ 0 <= r < C$$
 
-We see that $0 <= T_b \cdot C - T_a < C$, and if we mint, burn , or transfer `akava` such that this inequality would be invalid after updates to account balances, we adjust the $T_b$ supply by minting or burning to a reserve account which holds `ukava` equal to that of all `akava` balances less than `C` plus the remaining `akava` balance not in ciruclation.
+We see that $0 <= T_b \cdot C - T_a < C$, and if we mint, burn, or transfer `akava` such that this inequality would be invalid after updates to account balances, we adjust the $T_b$ supply by minting or burning to a reserve account which holds `ukava` equal to that of all `akava` balances less than `C` plus the remaining `akava` balance not in circulation.
 
 If we didn't add these constraints, then the total supply of `ukava` reported by the bank keeper would not account for the `akava` units.  We could increase the supply of `akava` without increasing the reported total supply of KAVA.
 
@@ -78,12 +78,18 @@ $$a'(n) = a(n) + a$$
 
 $$b'(n) \cdot C + f'(n) = b(n) \cdot C + f(n) + a$$
 
-and
+where $a'(n)$ is the new `akava` balance after adding `akava` amount $a$. These
+must hold true for all $a$. We can determine the new $b'(n)$ and $f'(n)$ by
+solving the below.
 
 $$f'(n) = f(n) + a \mod{C}$$
 
 $$b'(n) = \begin{cases} b(n) + \lfloor a/C \rfloor & f'(n) \geq f(n) \\
 b(n) + \lfloor a/C \rfloor + 1 & f'(n) < f(n) \end{cases}$$
+
+We can see that $b'(n)$ is incremented by an additional 1 integer unit if
+$f'(n) < f(n)$ because the new balance requires an arithmetic carry from the
+fractional to the integer unit.
 
 ### Subtracting
 
@@ -100,13 +106,29 @@ $$f'(n) = f(n) - a \mod{C}$$
 $$b'(n) = \begin{cases} b(n) - \lfloor a/C \rfloor & f'(n) \leq f(n) \\
 b(n) - \lfloor a/C \rfloor - 1 & f'(n) > f(n) \end{cases}$$
 
+Similar to the adding case, we subtract $b'(n)$ by an additional 1 if
+$f'(n) > f(n)$ because $f(n)$ is insufficient on its own and requires an
+arithmetic borrow from the integer units.
+
 ### Transfer
 
+A transfer is a combination of adding and subtracting of a single amount between
+two different accounts. The transfer is valid if both the subtraction for the
+sender and the addition for the receiver are valid.
+
 #### Setup
+
+Let two accounts $1$ and $2$ have balances $a(1)$ and $a(2)$, and $a$ is the
+amount to transfer. Assume that $a(1) \ge a$ to ensure that the transfer is
+valid. We initiate a transfer by subtracting $a$ from account $1$ and adding $a$
+to account $2$, yielding
 
 $$a'(1) = a(1) - a$$
 
 $$a'(2) = a(2) + a$$
+
+The reserve account and remainder must also be updated to reflect the change in
+the total supply of fractional units
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
