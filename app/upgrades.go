@@ -84,6 +84,8 @@ func upgradeHandler(
 			return nil, err
 		}
 
+		logger.Info("completed x/evmutil to x/precisebank migration")
+
 		return versionMap, nil
 	}
 }
@@ -120,10 +122,8 @@ func MigrateEvmutilToPrecisebank(
 	remainder := InitializeRemainder(ctx, precisebankKeeper, aggregateSum)
 	logger.Info("remainder amount initialized in x/precisebank", "remainder", remainder)
 
-	// Migrate fractional balance reserve from x/evmutil to x/precisebank.
-	// This should be done **after** store migrations are completed in
-	// app.mm.RunMigrations, which migrates fractional balances to
-	// x/precisebank.
+	// Migrate fractional balances, reserve, and ensure reserve fully backs all
+	// fractional balances.
 	if err := TransferFractionalBalanceReserve(
 		ctx,
 		accountKeeper,
