@@ -8,6 +8,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/precisebank/keeper"
@@ -81,6 +82,90 @@ func (suite *grpcQueryTestSuite) TestQueryTotalFractionalBalance() {
 			suite.Require().NoError(err)
 
 			suite.Require().Equal(total, res.Total)
+		})
+	}
+}
+
+func (suite *grpcQueryTestSuite) TestQueryRemainder() {
+	res, err := suite.queryClient.Remainder(
+		context.Background(),
+		&types.QueryRemainderRequest{},
+	)
+	suite.Require().NoError(err)
+
+	expRemainder := sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.ZeroInt())
+	suite.Require().Equal(expRemainder, res.Remainder)
+
+	// Mint fractional coins to create non-zero remainder
+
+	pbk := suite.App.GetPrecisebankKeeper()
+
+	coin := sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.OneInt())
+	err = pbk.MintCoins(
+		suite.Ctx,
+		minttypes.ModuleName,
+		sdk.NewCoins(coin),
+	)
+	suite.Require().NoError(err)
+
+	res, err = suite.queryClient.Remainder(
+		context.Background(),
+		&types.QueryRemainderRequest{},
+	)
+	suite.Require().NoError(err)
+
+	expRemainder.Amount = types.ConversionFactor().Sub(coin.Amount)
+	suite.Require().Equal(expRemainder, res.Remainder)
+}
+
+func (suite *grpcQueryTestSuite) TestQueryFractionalBalance() {
+	testCases := []struct {
+		name        string
+		giveBalance sdkmath.Int
+	}{
+		{
+			"zero",
+			sdkmath.ZeroInt(),
+		},
+		{
+			"min amount",
+			sdkmath.OneInt(),
+		},
+		{
+			"max amount",
+			types.ConversionFactor().SubRaw(1),
+		},
+		{
+			"multiple integer amounts, 0 fractional",
+			types.ConversionFactor().MulRaw(5),
+		},
+		{
+			"multiple integer amounts, non-zero fractional",
+			types.ConversionFactor().MulRaw(5).Add(types.ConversionFactor().QuoRaw(2)),
+		},
+	}
+
+	for _, tc := range testCases {
+		suite.Run(tc.name, func() {
+			suite.SetupTest()
+
+			addr := sdk.AccAddress([]byte("test"))
+
+			coin := sdk.NewCoin(types.ExtendedCoinDenom, tc.giveBalance)
+			suite.MintToAccount(addr, sdk.NewCoins(coin))
+
+			res, err := suite.queryClient.FractionalBalance(
+				context.Background(),
+				&types.QueryFractionalBalanceRequest{
+					Address: addr.String(),
+				},
+			)
+			suite.Require().NoError(err)
+
+			// Only fractional amount, even if minted more than conversion factor
+			expAmount := tc.giveBalance.Mod(types.ConversionFactor())
+			expFractionalBalance := sdk.NewCoin(types.ExtendedCoinDenom, expAmount)
+			suite.Require().Equal(expFractionalBalance, res.FractionalBalance)
 		})
 	}
 }

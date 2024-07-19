@@ -15,6 +15,18 @@ service Query {
   rpc TotalFractionalBalances(QueryTotalFractionalBalancesRequest) returns (QueryTotalFractionalBalancesResponse) {
     option (google.api.http).get = "/kava/precisebank/v1/total_fractional_balances";
   }
+
+  // Remainder returns the amount backed by the reserve, but not yet owned by
+  // any account, i.e. not in circulation.
+  rpc Remainder(QueryRemainderRequest) returns (QueryRemainderResponse) {
+    option (google.api.http).get = "/kava/precisebank/v1/remainder";
+  }
+
+  // FractionalBalance returns only the fractional balance of an address. This
+  // does not include any integer balance.
+  rpc FractionalBalance(QueryFractionalBalanceRequest) returns (QueryFractionalBalanceResponse) {
+    option (google.api.http).get = "/kava/precisebank/v1/fractional_balance/{address}";
+  }
 }
 
 // QueryTotalFractionalBalancesRequest defines the request type for Query/TotalFractionalBalances method.
@@ -25,4 +37,26 @@ message QueryTotalFractionalBalancesResponse {
   // total is the total sum of all fractional balances managed by the precisebank
   // module.
   cosmos.base.v1beta1.Coin total = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryRemainderRequest defines the request type for Query/Remainder method.
+message QueryRemainderRequest {}
+
+// QueryRemainderResponse defines the response type for Query/Remainder method.
+message QueryRemainderResponse {
+  // remainder is the amount backed by the reserve, but not yet owned by any
+  // account, i.e. not in circulation.
+  cosmos.base.v1beta1.Coin remainder = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryFractionalBalanceRequest defines the request type for Query/FractionalBalance method.
+message QueryFractionalBalanceRequest {
+  // address is the account address to query  fractional balance for.
+  string address = 1;
+}
+
+// QueryFractionalBalanceResponse defines the response type for Query/FractionalBalance method.
+message QueryFractionalBalanceResponse {
+  // fractional_balance is the fractional balance of the address.
+  cosmos.base.v1beta1.Coin fractional_balance = 1 [(gogoproto.nullable) = false];
 }
