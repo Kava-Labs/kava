@@ -33,7 +33,7 @@ func TestGrpcQueryTestSuite(t *testing.T) {
 	suite.Run(t, new(grpcQueryTestSuite))
 }
 
-func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
+func (suite *grpcQueryTestSuite) TestQueryTotalFractionalBalance() {
 	testCases := []struct {
 		name         string
 		giveBalances []sdkmath.Int
