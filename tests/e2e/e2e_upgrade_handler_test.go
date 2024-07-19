@@ -77,7 +77,7 @@ func (suite *IntegrationTestSuite) TestUpgrade_PreciseBankReserveTransfer() {
 	suite.Require().NoError(err)
 
 	suite.Require().Equal(
-		sumFractional.Total,
+		sumFractional.Total.Amount,
 		afterPrecisebankBalRes.Balance.Amount.Mul(precisebanktypes.ConversionFactor()),
 		"reserve should match exactly sum fractional balances",
 	)
