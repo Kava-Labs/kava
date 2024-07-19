@@ -79,8 +79,7 @@ $$a'(n) = a(n) + a$$
 $$b'(n) \cdot C + f'(n) = b(n) \cdot C + f(n) + a$$
 
 where $a'(n)$ is the new `akava` balance after adding `akava` amount $a$. These
-must hold true for all $a$. We can determine the new $b'(n)$ and $f'(n)$ by
-solving the below.
+must hold true for all $a$. We can determine the new $b'(n)$ and $f'(n)$ with the following formula.
 
 $$f'(n) = f(n) + a \mod{C}$$
 
@@ -127,14 +126,19 @@ $$a'(1) = a(1) - a$$
 
 $$a'(2) = a(2) + a$$
 
-The reserve account and remainder must also be updated to reflect the change in
-the total supply of fractional units
+The reserve account must also be updated to reflect the change in the total
+supply of fractional units.
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
+
 $$b'(R) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} + r'$$
 
+With these two formulas, we can determine the new remainder and reserve.
+
 $$(b'(R)-b(R)) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} - \sum_{n \in \mathcal{A}}{f(n)} + r' - r$$
+
+Since only two accounts are involved in the transfer, the total supply of fractional units is updated as
 
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2) + r' - r$$
 
@@ -147,6 +151,8 @@ $$0 = (f(1) - a)\bmod{C} - f(1) + (f(2) + a)\bmod{C} - f(2) + r' - r \mod{C}$$
 $$0 = f(1) - a - f(1) + f(2) + a - f(2) + r' - r \mod{C}$$
 
 $$0 = r' - r \mod{C}$$
+
+By the quotient remainder theorem, we can rewrite it with the following formula.
 
 $$q * C = r' - r$$
 
