@@ -480,6 +480,12 @@
     - [FractionalBalance](#kava.precisebank.v1.FractionalBalance)
     - [GenesisState](#kava.precisebank.v1.GenesisState)
   
+- [kava/precisebank/v1/query.proto](#kava/precisebank/v1/query.proto)
+    - [QueryTotalFractionalBalancesRequest](#kava.precisebank.v1.QueryTotalFractionalBalancesRequest)
+    - [QueryTotalFractionalBalancesResponse](#kava.precisebank.v1.QueryTotalFractionalBalancesResponse)
+  
+    - [Query](#kava.precisebank.v1.Query)
+  
 - [kava/pricefeed/v1beta1/store.proto](#kava/pricefeed/v1beta1/store.proto)
     - [CurrentPrice](#kava.pricefeed.v1beta1.CurrentPrice)
     - [Market](#kava.pricefeed.v1beta1.Market)
@@ -6671,6 +6677,57 @@ GenesisState defines the precisebank module's genesis state.
  <!-- end enums -->
 
  <!-- end HasExtensions -->
+
+ <!-- end services -->
+
+
+
+<a name="kava/precisebank/v1/query.proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## kava/precisebank/v1/query.proto
+
+
+
+<a name="kava.precisebank.v1.QueryTotalFractionalBalancesRequest"></a>
+
+### QueryTotalFractionalBalancesRequest
+QueryTotalFractionalBalancesRequest defines the request type for Query/TotalFractionalBalances method.
+
+
+
+
+
+
+<a name="kava.precisebank.v1.QueryTotalFractionalBalancesResponse"></a>
+
+### QueryTotalFractionalBalancesResponse
+QueryTotalFractionalBalancesResponse defines the response type for Query/TotalFractionalBalances method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `total` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | total is the total sum of all fractional balances managed by the precisebank module. |
+
+
+
+
+
+ <!-- end messages -->
+
+ <!-- end enums -->
+
+ <!-- end HasExtensions -->
+
+
+<a name="kava.precisebank.v1.Query"></a>
+
+### Query
+Query defines the gRPC querier service for precisebank module
+
+| Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
+| ----------- | ------------ | ------------- | ------------| ------- | -------- |
+| `TotalFractionalBalances` | [QueryTotalFractionalBalancesRequest](#kava.precisebank.v1.QueryTotalFractionalBalancesRequest) | [QueryTotalFractionalBalancesResponse](#kava.precisebank.v1.QueryTotalFractionalBalancesResponse) | TotalFractionalBalances returns the total sum of all fractional balances managed by the precisebank module. | GET|/kava/precisebank/v1/total_fractional_balances|
 
  <!-- end services -->
 

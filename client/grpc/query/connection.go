@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/kava-labs/kava/app"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -28,8 +30,20 @@ func newGrpcConnection(ctx context.Context, endpoint string) (*grpc.ClientConn, 
 		return nil, fmt.Errorf("unknown grpc url scheme: %s", grpcUrl.Scheme)
 	}
 
+	// Ensure the encoding config is set up correctly with the query client
+	// otherwise it will produce panics like:
+	// invalid Go type math.Int for field ...
+	encodingConfig := app.MakeEncodingConfig()
+	protoCodec := codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
+	grpcCodec := protoCodec.GRPCCodec()
+
 	secureOpt := grpc.WithTransportCredentials(creds)
-	grpcConn, err := grpc.DialContext(ctx, grpcUrl.Host, secureOpt)
+	grpcConn, err := grpc.DialContext(
+		ctx,
+		grpcUrl.Host,
+		secureOpt,
+		grpc.WithDefaultCallOptions(grpc.ForceCodec(grpcCodec)),
+	)
 	if err != nil {
 		return nil, err
 	}
