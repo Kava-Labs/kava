@@ -65,7 +65,9 @@ func (suite *IntegrationTestSuite) TestUpgrade_PreciseBankReserveTransfer() {
 	})
 	suite.Require().NoError(err)
 	suite.Require().NotNil(afterPrecisebankBalRes.Balance)
-	suite.Require().True(afterPrecisebankBalRes.Balance.Amount.IsPositive())
+	// 2 total in reserve- genesis.json has 5 accounts with fractional balances
+	// totalling 2 integer coins
+	suite.Require().Equal(int64(2), afterPrecisebankBalRes.Balance.Amount.Int64())
 
 	suite.T().Logf("x/evmutil balances after upgrade: %s", afterEvmutilBalRes.Balance)
 	suite.T().Logf("x/precisebank balances after upgrade: %s", afterPrecisebankBalRes.Balance)
@@ -80,5 +82,21 @@ func (suite *IntegrationTestSuite) TestUpgrade_PreciseBankReserveTransfer() {
 		sumFractional.Total.Amount,
 		afterPrecisebankBalRes.Balance.Amount.Mul(precisebanktypes.ConversionFactor()),
 		"reserve should match exactly sum fractional balances",
+	)
+
+	// Check remainder + total fractional balances = reserve balance
+	remainderRes, err := grpcClient.Query.Precisebank.Remainder(
+		afterUpgradeCtx,
+		&precisebanktypes.QueryRemainderRequest{},
+	)
+	suite.Require().NoError(err)
+
+	sumFractionalAndRemainder := sumFractional.Total.Add(remainderRes.Remainder)
+	reserveBalanceExtended := afterPrecisebankBalRes.Balance.Amount.Mul(precisebanktypes.ConversionFactor())
+
+	suite.Require().Equal(
+		sumFractionalAndRemainder.Amount,
+		reserveBalanceExtended,
+		"remainder + sum(fractional balances) should be = reserve balance",
 	)
 }
