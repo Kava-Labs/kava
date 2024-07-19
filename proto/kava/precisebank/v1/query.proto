@@ -1,7 +1,7 @@
 syntax = "proto3";
 package kava.precisebank.v1;
 
-import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
@@ -24,9 +24,5 @@ message QueryTotalFractionalBalancesRequest {}
 message QueryTotalFractionalBalancesResponse {
   // total is the total sum of all fractional balances managed by the precisebank
   // module.
-  string total = 1 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "cosmossdk.io/math.Int",
-    (gogoproto.nullable) = false
-  ];
+  cosmos.base.v1beta1.Coin total = 1 [(gogoproto.nullable) = false];
 }

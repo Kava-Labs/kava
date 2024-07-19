@@ -65,12 +65,12 @@ func (suite *grpcQueryTestSuite) TestQueryTotalFractionalBalance() {
 		suite.Run(tc.name, func() {
 			suite.SetupTest()
 
-			total := sdkmath.ZeroInt()
+			total := sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.ZeroInt())
 			for i, balance := range tc.giveBalances {
 				addr := sdk.AccAddress([]byte{byte(i)})
 				suite.Keeper.SetFractionalBalance(suite.Ctx, addr, balance)
 
-				total = total.Add(balance)
+				total.Amount = total.Amount.Add(balance)
 			}
 
 			res, err := suite.queryClient.TotalFractionalBalances(

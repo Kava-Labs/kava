@@ -28,7 +28,11 @@ func (s queryServer) TotalFractionalBalances(
 ) (*types.QueryTotalFractionalBalancesResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	totalAmount := s.keeper.GetTotalSumFractionalBalances(ctx)
+
+	totalCoin := sdk.NewCoin(types.ExtendedCoinDenom, totalAmount)
+
 	return &types.QueryTotalFractionalBalancesResponse{
-		Total: s.keeper.GetTotalSumFractionalBalances(ctx),
+		Total: totalCoin,
 	}, nil
 }

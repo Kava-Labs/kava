@@ -6707,7 +6707,7 @@ QueryTotalFractionalBalancesResponse defines the response type for Query/TotalFr
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `total` | [string](#string) |  | total is the total sum of all fractional balances managed by the precisebank module. |
+| `total` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | total is the total sum of all fractional balances managed by the precisebank module. |
 
 
 
