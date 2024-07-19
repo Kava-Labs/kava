@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"context"
+	"strconv"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -67,7 +68,7 @@ func (suite *grpcQueryTestSuite) TestQueryTotalFractionalBalance() {
 
 			total := sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.ZeroInt())
 			for i, balance := range tc.giveBalances {
-				addr := sdk.AccAddress([]byte{byte(i)})
+				addr := sdk.AccAddress([]byte(strconv.Itoa(i)))
 				suite.Keeper.SetFractionalBalance(suite.Ctx, addr, balance)
 
 				total.Amount = total.Amount.Add(balance)
