@@ -134,33 +134,59 @@ $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
 $$b'(R) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} + r'$$
 
-With these two formulas, we can determine the new remainder and reserve.
+With these two formulas, we can determine the new remainder and reserve by using
+the delta of the sum of fractional units and the remainder.
 
 $$(b'(R)-b(R)) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} - \sum_{n \in \mathcal{A}}{f(n)} + r' - r$$
 
-Since only two accounts are involved in the transfer, the total supply of fractional units is updated as
+Since only two accounts are involved in the transfer, we can use the two account
+balances in place of the fractional sum delta.
 
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2) + r' - r$$
 
 #### Remainder does not change
 
-$$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2) + r' - r \mod{C}$$
+Take $\mod{C}$ of both sides of the equation.
+
+$$(b'(R)-b(R)) \cdot C \mod{C} = f'(1) - f(1) + f'(2) - f(2) + r' - r \mod{C}$$
+
+Since $C$ is a multiple of $C$, the left side of the equation is $0$.
+
+$$0 = f'(1) - f(1) + f'(2) - f(2) + r' - r \mod{C}$$
+
+Replacing $f'(1)$ and $f'(2)$ with their definitions in terms of $f(1)$ and $f(2)$.
 
 $$0 = (f(1) - a)\bmod{C} - f(1) + (f(2) + a)\bmod{C} - f(2) + r' - r \mod{C}$$
 
+TODO: How does $(f(1) - a)\bmod{C}$ become $f(1) - a$? $f(1) < C$ but $a$ can be greater than $C$.
+
 $$0 = f(1) - a - f(1) + f(2) + a - f(2) + r' - r \mod{C}$$
+
+Canceling out terms $a$, $f(1)$ and $f(2)$.
 
 $$0 = r' - r \mod{C}$$
 
-By the quotient remainder theorem, we can rewrite it with the following formula.
+By the quotient remainder theorem, we can express $r' - r$ as:
 
 $$q * C = r' - r$$
 
+for some integer $q$.
+
+With our known range of $r$:
+
 $$0 \leq r' < C, 0 \leq r < C$$
+
+We can see that $r' - r$ must be in the range
 
 $$ -C < r' - r < C$$
 
+This implies that $q$ must be $0$ as there is no integer $q$ that satisfies the inequality.
+
+$$ -C < q * C < C$$
+
 $$q = 0$$
+
+Therefore, the remainder does not change during a transfer.
 
 $$ r' - r = 0$$
 
