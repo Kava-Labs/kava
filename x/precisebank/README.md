@@ -131,7 +131,6 @@ supply of fractional units.
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
-
 $$b'(R) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} + r'$$
 
 With these two formulas, we can determine the new remainder and reserve by using
@@ -172,7 +171,7 @@ $$q * C = r' - r$$
 
 for some integer $q$.
 
-With our known range of $r$:
+With our known range of $r$ and $r'$:
 
 $$0 \leq r' < C, 0 \leq r < C$$
 
