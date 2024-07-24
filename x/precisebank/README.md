@@ -207,6 +207,17 @@ $$f'(1) = f(1) - a \bmod{C} \mod{C}$$
 
 This results in two cases for $f'(1)$:
 
+$$f'(1) = \begin{cases} f(1) - a\bmod{C} & 0 \leq f(1) - a\bmod{C} \\
+f(1) - a\bmod{C} + C & 0 > f(1) - a\bmod{C} \end{cases}$$
+
+Since we can identify the following:
+
+$$f'(1) \leq f(1) \Longleftrightarrow  f'(1) = f(1) - a\bmod{C} $$
+
+$$f'(1) > f(1) \Longleftrightarrow  f'(1) = f(1) - a\bmod{C} + C$$
+
+We can simplify the two cases for $f'(1)$:
+
 $$f'(1) = \begin{cases} f(1) - a\bmod{C} & f'(1) \leq f(1) \\
 f(1) - a\bmod{C} + C & f'(1) > f(1) \end{cases}$$
 
