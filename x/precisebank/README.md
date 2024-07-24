@@ -393,7 +393,18 @@ the `x/bank` module.
 ## Keepers
 
 The precisebank module only exposes one keeper that wraps the bank module keeper
-and implements bank keeper compatible methods to support extended coin.
+and implements bank keeper compatible methods to support extended coin. This
+complies with the `x/evm` module interface for `BankKeeper`.
+
+```go
+type BankKeeper interface {
+	authtypes.BankKeeper
+	SpendableCoin(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+	BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
+}
+```
 
 ## Messages
 
