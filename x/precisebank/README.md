@@ -381,7 +381,7 @@ $$b'(R) - b(R) = \begin{cases} 0 & r' > r \land f'(1) < f(1) \\
 
 ## State
 
-The `x/precisebank` keeps state of the following:
+The `x/precisebank` module keeps state of the following:
 1. Account fractional balances.
 2. Remainder amount. This amount represents the fractional amount that is backed
    by the reserve account but not yet in circulation. This can be non-zero if
@@ -392,9 +392,9 @@ the `x/bank` module.
 
 ## Keepers
 
-The precisebank module only exposes one keeper that wraps the bank module keeper
-and implements bank keeper compatible methods to support extended coin. This
-complies with the `x/evm` module interface for `BankKeeper`.
+The `x/precisebank module only exposes one keeper that wraps the bank module`
+keeper and implements bank keeper compatible methods to support extended coin.
+This complies with the `x/evm` module interface for `BankKeeper`.
 
 ```go
 type BankKeeper interface {
@@ -408,8 +408,8 @@ type BankKeeper interface {
 
 ## Messages
 
-The precisebank module does not have any messages and is intended to be used by
-other modules as a replacement of the bank module.
+The `x/precisebank` module does not have any messages and is intended to be used
+by other modules as a replacement of the bank module.
 
 ## Events
 
