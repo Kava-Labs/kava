@@ -79,8 +79,7 @@ $$a'(n) = a(n) + a$$
 $$b'(n) \cdot C + f'(n) = b(n) \cdot C + f(n) + a$$
 
 where $a'(n)$ is the new `akava` balance after adding `akava` amount $a$. These
-must hold true for all $a$. We can determine the new $b'(n)$ and $f'(n)$ by
-solving the below.
+must hold true for all $a$. We can determine the new $b'(n)$ and $f'(n)$ with the following formula.
 
 $$f'(n) = f(n) + a \mod{C}$$
 
@@ -127,40 +126,78 @@ $$a'(1) = a(1) - a$$
 
 $$a'(2) = a(2) + a$$
 
-The reserve account and remainder must also be updated to reflect the change in
-the total supply of fractional units
+The reserve account must also be updated to reflect the change in the total
+supply of fractional units.
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
 $$b'(R) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} + r'$$
 
+With these two formulas, we can determine the new remainder and reserve by using
+the delta of the sum of fractional units and the remainder.
+
 $$(b'(R)-b(R)) \cdot C = \sum_{n \in \mathcal{A}}{f'(n)} - \sum_{n \in \mathcal{A}}{f(n)} + r' - r$$
+
+Since only two accounts are involved in the transfer, we can use the two account
+balances in place of the fractional sum delta.
 
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2) + r' - r$$
 
 #### Remainder does not change
 
-$$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2) + r' - r \mod{C}$$
+Take $\mod{C}$ of both sides of the equation.
+
+$$(b'(R)-b(R)) \cdot C \mod{C} = [f'(1) - f(1) + f'(2) - f(2) + r' - r] \mod{C}$$
+
+Since $C$ is a multiple of $C$, the left side of the equation is $0$.
+
+$$0 = f'(1) - f(1) + f'(2) - f(2) + r' - r \mod{C}$$
+
+Replace $f'(1)$ and $f'(2)$ with their definitions in terms of $f(1)$ and $f(2)$.
 
 $$0 = (f(1) - a)\bmod{C} - f(1) + (f(2) + a)\bmod{C} - f(2) + r' - r \mod{C}$$
 
+This can be simplified to:
+
 $$0 = f(1) - a - f(1) + f(2) + a - f(2) + r' - r \mod{C}$$
+
+Canceling out terms $a$, $f(1)$ and $f(2)$.
 
 $$0 = r' - r \mod{C}$$
 
+By the quotient remainder theorem, we can express $r' - r$ as:
+
 $$q * C = r' - r$$
+
+for some integer $q$.
+
+With our known range of $r$ and $r'$:
 
 $$0 \leq r' < C, 0 \leq r < C$$
 
+We can see that $r' - r$ must be in the range
+
 $$ -C < r' - r < C$$
+
+This implies that $q$ must be $0$ as there is no other integer $q$ that satisfies the inequality.
+
+$$ -C < q * C < C$$
 
 $$q = 0$$
 
 $$ r' - r = 0$$
 
+Therefore, the remainder does not change during a transfer.
+
 #### Reserve
 
+The reserve account must be updated to reflect the change in the total supply of fractional units.
+
+The change in reserve is determined by the change in the fractional units of the two accounts.
+
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + f'(2) - f(2)$$
+
+For $f'(1)$, we can represent the new fractional balance as:
 
 $$f'(1) = f(1) - a \mod{C}$$
 
@@ -168,8 +205,23 @@ $$f'(1)\bmod{C}= f(1)\bmod{C} - a \bmod{C} \mod{C}$$
 
 $$f'(1) = f(1) - a \bmod{C} \mod{C}$$
 
+This results in two cases for $f'(1)$:
+
+$$f'(1) = \begin{cases} f(1) - a\bmod{C} & 0 \leq f(1) - a\bmod{C} \\
+f(1) - a\bmod{C} + C & 0 > f(1) - a\bmod{C} \end{cases}$$
+
+Since we can identify the following:
+
+$$f'(1) \leq f(1) \Longleftrightarrow  f'(1) = f(1) - a\bmod{C} $$
+
+$$f'(1) > f(1) \Longleftrightarrow  f'(1) = f(1) - a\bmod{C} + C$$
+
+We can simplify the two cases for $f'(1)$:
+
 $$f'(1) = \begin{cases} f(1) - a\bmod{C} & f'(1) \leq f(1) \\
 f(1) - a\bmod{C} + C & f'(1) > f(1) \end{cases}$$
+
+The same for $f'(2)$:
 
 $$f'(2) = f(2) + a \mod{C}$$
 
@@ -180,11 +232,15 @@ $$f'(2) = f(2) + a \bmod{C} \mod{C}$$
 $$f'(2) = \begin{cases} f(2) + a\bmod{C} & f'(2) \geq f(2) \\
 f(2) + a\bmod{C} - C & f'(2) < f(2) \end{cases}$$
 
+Bringing the two cases for the two accounts together to determine the change in the reserve account:
+
 $$b'(R) - b(R) \cdot C = \begin{cases} f(1) - a\bmod{C} + C - f(1) + f(2) + a\bmod{C} - C + f(2) & f'(1) > f(1) \land f'(2) < f(2) \\
 f(1) - a\bmod{C} - f(1) + f(2) + a\bmod{C} - C + f(2) & f'(1) \leq f(1) \land f'(2) < f(2) \\
 f(1) - a\bmod{C} + C - f(1) + f(2) + a\bmod{C} + f(2) & f'(1) > f(1) \land f'(2) \geq f(2) \\
 f(1) - a\bmod{C} - f(1) + f(2) + a\bmod{C} + f(2) & f'(1) \leq f(1) \land f'(2) \geq f(2) \\
 \end{cases}$$
+
+This simplifies to:
 
 $$b'(R) - b(R) \cdot C = \begin{cases} 0 & f'(1) > f(1) \land f'(2) < f(2) \\
 -C & f'(1) \leq f(1) \land f'(2) < f(2) \\
@@ -192,26 +248,46 @@ C & f'(1) > f(1) \land f'(2) \geq f(2) \\
 0 & f'(1) \leq f(1) \land f'(2) \geq f(2) \\
 \end{cases}$$
 
+Simplifying further by dividing by $C$:
+
 $$b'(R) - b(R) = \begin{cases} 0 & f'(1) > f(1) \land f'(2) < f(2) \\
 -1 & f'(1) \leq f(1) \land f'(2) < f(2) \\
 1 & f'(1) > f(1) \land f'(2) \geq f(2) \\
 0 & f'(1) \leq f(1) \land f'(2) \geq f(2) \\
 \end{cases}$$
 
+Thus the reserve account is updated based on the changes in the fractional units of the two accounts.
+
 ### Burn
+
+When burning, we change only 1 account. Assume we are burning an amount $a$ from account $1$.
 
 $$a'(1) = a(1) - a$$
 
+The change in reserve is determined by the change in the fractional units of the account and the remainder.
+
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + r' - r$$
+
+The new fractional balance is:
 
 $$f'(1) = f(1) - a \mod{C}$$
 
+Apply modulo $C$ to both sides of the equation.
+
 $$f'(1)\bmod{C}= f(1)\bmod{C} - a \bmod{C} \mod{C}$$
+
+This simplifies to:
 
 $$f'(1) = f(1) - a \bmod{C} \mod{C}$$
 
+We can see two cases for $f'(1)$, depending on whether the new fractional balance is less than the old fractional balance.
+
 $$f'(1) = \begin{cases} f(1) - a\bmod{C} & f'(1) \leq f(1) \\
 f(1) - a\bmod{C} + C & f'(1) > f(1) \end{cases}$$
+
+The second case occurs when we need to borrow from the integer units.
+
+We update the remainder by adding $a$ to $r$ as burning increases the amount no longer in circulation but still backed by the reserve.
 
 $$r' = r + a \mod{C}$$
 
@@ -219,8 +295,12 @@ $$r'\bmod{C}= r\bmod{C} + a \bmod{C} \mod{C}$$
 
 $$r' = r + a \bmod{C} \mod{C}$$
 
+We can see two cases for $r'$, depending on whether the new remainder is less than the old remainder.
+
 $$r' = \begin{cases} r + a\bmod{C} & r' \geq r \\
 r + a\bmod{C} - C & r' < r \end{cases}$$
+
+The reserve account is updated based on the changes in the fractional units of the account and remainder.
 
 $$b'(R) - b(R) = \begin{cases} 0 & f'(1) > f(1) \land r' < r \\
 -1 & f'(1) \leq f(1) \land r' < r \\
@@ -230,18 +310,33 @@ $$b'(R) - b(R) = \begin{cases} 0 & f'(1) > f(1) \land r' < r \\
 
 ### Mint
 
+Minting is similar to burning, but we add to the account instead of
+removing it. Assume we are minting an amount $a$ to account $1$.
+
 $$a'(1) = a(1) + a$$
+
+The change in reserve is determined by the change in the fractional units of the account and the remainder.
 
 $$(b'(R)-b(R)) \cdot C = f'(1) - f(1) + r' - r$$
 
+The new fractional balance is:
+
 $$f'(1) = f(1) + a \mod{C}$$
+
+Apply modulo $C$ to both sides of the equation.
 
 $$f'(1)\bmod{C}= f(1)\bmod{C} + a \bmod{C} \mod{C}$$
 
 $$f'(1) = f(1) + a \bmod{C} \mod{C}$$
 
+We can see two cases for $f'(1)$, depending on whether the new fractional balance is greater than the old fractional balance.
+
 $$f'(1) = \begin{cases} f(1) + a\bmod{C} & f'(1) \geq f(1) \\
 f(1) + a\bmod{C} - C & f'(1) < f(1) \end{cases}$$
+
+The second case occurs when we need to carry to the integer unit.
+
+We update the remainder by subtracting $a$ from $r$ as minting decreases the amount no longer in circulation but still backed by the reserve.
 
 $$r' = r - a \mod{C}$$
 
@@ -251,6 +346,8 @@ $$r' = r - a \bmod{C} \mod{C}$$
 
 $$r' = \begin{cases} r - a\bmod{C} & r' \leq r \\
 r - a\bmod{C} + C & r' > r \end{cases}$$
+
+The reserve account is updated based on the changes in the fractional units of the account and the remainder.
 
 $$b'(R) - b(R) = \begin{cases} 0 & r' > r \land f'(1) < f(1) \\
 -1 & r' \leq r \land f'(1) < f(1) \\
