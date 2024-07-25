@@ -32,6 +32,7 @@ var allowedDBs = []string{"application", "blockstore", "state"}
 
 func CompactRocksDBCmd() *cobra.Command {
 	cmd := &cobra.Command{
+
 		Use: fmt.Sprintf(
 			"compact <%s>",
 			strings.Join(allowedDBs, "|"),
