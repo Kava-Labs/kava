@@ -676,6 +676,7 @@ func NewApp(
 		app.stakingKeeper,
 		&app.distrKeeper,
 	)
+
 	savingsKeeper := savingskeeper.NewKeeper(
 		appCodec,
 		keys[savingstypes.StoreKey],
