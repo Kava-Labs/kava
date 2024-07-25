@@ -1,0 +1,12 @@
+name: Cache Go
+description: Cache Go imports and modules
+runs:
+  using: composite
+  steps:
+    - name: Cache Go
+      uses: actions/cache@v4
+      with:
+        key: gomod-k-${{ hashFiles('**/go.mod', '**/go.sum') }}
+        path: |
+          /go/bin/goimports
+          /go/pkg/mod
