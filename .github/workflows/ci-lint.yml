@@ -45,22 +45,22 @@ jobs:
           args: ./...
   golang-test:
     runs-on: ubuntu-latest
-    if: |
-      contains(steps.changed-files.outputs.changed_files, '.go') ||
-      contains(steps.changed-files.outputs.changed_files, 'go.sum') ||
-      (
-        contains(steps.changed-files.outputs.changed_files, '.yml') ||
-        contains(steps.changed-files.outputs.changed_files, '.yaml')
-      )
-      &&
-      (
-        contains(steps.changed-files.outputs.changed_files, 'app') ||
-        contains(steps.changed-files.outputs.changed_files, 'client') ||
-        contains(steps.changed-files.outputs.changed_files, 'cmd') ||
-        contains(steps.changed-files.outputs.changed_files, 'migrate') ||
-        contains(steps.changed-files.outputs.changed_files, 'tests') ||
-        contains(steps.changed-files.outputs.changed_files, 'x')
-      )
+#    if: |
+#      contains(steps.changed-files.outputs.changed_files, '.go') ||
+#      contains(steps.changed-files.outputs.changed_files, 'go.sum') ||
+#      (
+#        contains(steps.changed-files.outputs.changed_files, '.yml') ||
+#        contains(steps.changed-files.outputs.changed_files, '.yaml')
+#      )
+#      &&
+#      (
+#        contains(steps.changed-files.outputs.changed_files, 'app') ||
+#        contains(steps.changed-files.outputs.changed_files, 'client') ||
+#        contains(steps.changed-files.outputs.changed_files, 'cmd') ||
+#        contains(steps.changed-files.outputs.changed_files, 'migrate') ||
+#        contains(steps.changed-files.outputs.changed_files, 'tests') ||
+#        contains(steps.changed-files.outputs.changed_files, 'x')
+#      )
     env:
       COVERAGE_DIR: out/coverage/unit/go
       COVERAGE_PATH: out/coverage/unit/go/cover.out
@@ -69,9 +69,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v44
       - name: Install Go
         uses: actions/setup-go@v5
         with:
