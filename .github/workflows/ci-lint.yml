@@ -7,11 +7,31 @@ jobs:
     uses: ./.github/workflows/proto.yml
   golangci-lint:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write # allow write access to checks to allow the action to annotate code in the PR.
     steps:
-      - uses: actions/checkout@v4
-      - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
-          golangci_lint_flags: --timeout 10m
+          fetch-depth: 0
+      - name: Load Version
+        id: load-version
+        run: |
+          echo "GOLANGCI_VERSION=v$(cat .golangci-version)"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
+          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
+          working-directory: ${{ github.workspace }}
+  golang-sec:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Run Gosec Security Scanner
+        uses: cosmos/gosec@master
+        with:
+          args: ./...
