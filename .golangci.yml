@@ -14,71 +14,71 @@ linters:
     - contextcheck
     - decorder
     - dogsled
-#    - dupl
-#    - dupword
+    #    - dupl
+    #    - dupword
     - durationcheck
     - errcheck
     - errchkjson
     - errname
     - errorlint
-#    - exhaustive
+    #    - exhaustive
     - exportloopref
     - funlen
     - gci
     - ginkgolinter
     - gocheckcompilerdirectives
-#    - gochecknoglobals
-#    - gochecknoinits
+    #    - gochecknoglobals
+    #    - gochecknoinits
     - goconst
     - gocritic
     - godox
     - gofmt
-#    - gofumpt
+    #    - gofumpt
     - goheader
     - goimports
     - mnd
-#    - gomodguard
+    #    - gomodguard
     - goprintffuncname
-#    - gosec
+    - gosec
     - gosimple
     - govet
     - grouper
     - importas
     - ineffassign
-#    - interfacebloat
+    #    - interfacebloat
     - lll
     - loggercheck
     - makezero
     - mirror
     - misspell
     - musttag
-#    - nakedret
-#    - nestif
+    #    - nakedret
+    #    - nestif
     - nilerr
-#    - nilnil
-#    - noctx
+    #    - nilnil
+    #    - noctx
     - nolintlint
-#    - nonamedreturns
+    #    - nonamedreturns
     - nosprintfhostport
     - prealloc
     - predeclared
     - promlinter
-#    - reassign
+    #    - reassign
     - revive
     - rowserrcheck
     - staticcheck
-#    - stylecheck
+    #    - stylecheck
     - tagalign
-#    - testpackage
-#    - thelper
-#    - tparallel
+    #    - testpackage
+    #    - thelper
+    #    - tparallel
     - typecheck
-#    - unconvert
+    #    - unconvert
     - unparam
     - unused
-#    - usestdlibvars
+    #    - usestdlibvars
     - wastedassign
-#    - whitespace
+    #    - whitespace
     - wrapcheck
 
 
@@ -104,18 +104,20 @@ linters-settings:
       - BUG
       - FIXME
       - HACK
+  gosec:
+    exclude-generated: true
   lll:
     line-length: 120
+  misspell:
+    locale: US
+    ignore-words: expect
   nolintlint:
     allow-leading-space: false
     require-explanation: true
     require-specific: true
-  unparam:
-    check-exported: true # checks exported functions and methods for unused params
-  misspell:
-    locale: US
-    ignore-words: expect
   prealloc:
     simple: true # enables simple preallocation checks
     range-loops: true # enabled preallocation checks in range loops
     for-loops: false # disables preallocation checks in for loops
+  unparam:
+    check-exported: true # checks exported functions and methods for unused params
