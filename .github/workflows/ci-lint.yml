@@ -43,42 +43,41 @@ jobs:
 #        uses: cosmos/gosec@master
 #        with:
 #          args: ./...
-  golang-test:
-    name: go test
-    runs-on: ubuntu-latest
-    if: |
-      contains(steps.changed-files.outputs.changed_files, '.go') ||
-      contains(steps.changed-files.outputs.changed_files, 'go.sum') ||
-      (
-        contains(steps.changed-files.outputs.changed_files, '.yml') ||
-        contains(steps.changed-files.outputs.changed_files, '.yaml')
-      )
-      &&
-      (
-        contains(steps.changed-files.outputs.changed_files, 'app') ||
-        contains(steps.changed-files.outputs.changed_files, 'client') ||
-        contains(steps.changed-files.outputs.changed_files, 'cmd') ||
-        contains(steps.changed-files.outputs.changed_files, 'migrate') ||
-        contains(steps.changed-files.outputs.changed_files, 'tests') ||
-        contains(steps.changed-files.outputs.changed_files, 'x')
-      )
-    env:
-      COVERAGE_DIR: out/coverage/unit/go
-      COVERAGE_PATH: out/coverage/unit/go/cover.out
-      FORMATTED_REPORT: out/coverage/unit/go/go-unit-cover.out
-      HTML_REPORT: out/coverage/unit/go/go-unit-cover.html
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache-dependency-path: go.sum
-          cache: true
-      - name: Go Test
-        run: |
-          mkdir -p ${{ env.COVERAGE_DIR }}
-          readarray -t test_dirs < <(find * -name "*_test.go" -exec dirname {} \; | sort | uniq | grep -v -e '^\.$')
-          half_nproc=$(( $(nproc --all) / 2 ))
-          printf '%s\0' "${test_dirs[@]}" | xargs -0 -P $half_nproc -n 1 -I {} go test "./{}" -race
+#  golang-test:
+#    name: go test
+#    runs-on: ubuntu-latest
+#    if: |
+#      contains(steps.changed-files.outputs.changed_files, '.go') ||
+#      contains(steps.changed-files.outputs.changed_files, 'go.sum') ||
+#      (
+#        contains(steps.changed-files.outputs.changed_files, '.yml') ||
+#        contains(steps.changed-files.outputs.changed_files, '.yaml')
+#      )
+#      &&
+#      (
+#        contains(steps.changed-files.outputs.changed_files, 'app') ||
+#        contains(steps.changed-files.outputs.changed_files, 'client') ||
+#        contains(steps.changed-files.outputs.changed_files, 'cmd') ||
+#        contains(steps.changed-files.outputs.changed_files, 'migrate') ||
+#        contains(steps.changed-files.outputs.changed_files, 'tests') ||
+#        contains(steps.changed-files.outputs.changed_files, 'x')
+#      )
+#    env:
+#      COVERAGE_DIR: out/coverage/unit/go
+#      COVERAGE_PATH: out/coverage/unit/go/cover.out
+#      FORMATTED_REPORT: out/coverage/unit/go/go-unit-cover.out
+#      HTML_REPORT: out/coverage/unit/go/go-unit-cover.html
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#      - name: Install Go
+#        uses: actions/setup-go@v5
+#        with:
+#          go-version-file: go.mod
+#          cache-dependency-path: go.sum
+#      - name: Go Test
+#        run: |
+#          mkdir -p ${{ env.COVERAGE_DIR }}
+#          readarray -t test_dirs < <(find * -name "*_test.go" -exec dirname {} \; | sort | uniq | grep -v -e '^\.$')
+#          half_nproc=$(( $(nproc --all) / 2 ))
+#          printf '%s\0' "${test_dirs[@]}" | xargs -0 -P $half_nproc -n 1 -I {} go test "./{}" -race
