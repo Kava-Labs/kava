@@ -29,6 +29,7 @@ This module is used only by `x/evm` where 18 decimal points are expected.
     - [BurnCoins](#burncoins)
 - [Client](#client)
   - [gRPC](#grpc)
+    - [TotalFractionalBalances](#totalfractionalbalances)
     - [Remainder](#remainder)
     - [FractionalBalance](#fractionalbalance)
 
