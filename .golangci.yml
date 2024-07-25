@@ -9,6 +9,11 @@ linters-settings:
   errcheck:
     check-blank: true
     check-type-assertions: false
+  revive:
+    severity: error
+    rules:
+      - name: exported
+        arguments: ["checkPrivateReceivers", "disableStutteringCheck", "sayRepetitiveInsteadOfStutters"]
   errorlint:
     check-generated: false
     default-signifies-exhaustive: false
@@ -60,7 +65,6 @@ linters:
     - errchkjson
     - errname
     - errorlint
-    - execinquery
     - exhaustive
     - exportloopref
     - gci
@@ -75,8 +79,7 @@ linters:
     - gofumpt
     - goheader
     - goimports
-    - gomnd
-    - gomoddirectives
+    - mnd
     - gomodguard
     - goprintffuncname
     - gosec
@@ -102,7 +105,6 @@ linters:
     - nosprintfhostport
     - prealloc
     - predeclared
-    - promlinter
     - reassign
     - revive
     - rowserrcheck
@@ -120,7 +122,6 @@ linters:
     - usestdlibvars
     - wastedassign
     - whitespace
-    - zerologlint
 
 issues:
   exclude-rules:
@@ -132,7 +133,7 @@ issues:
         - gochecknoglobals
         - gochecknoinits
         - goconst
-        - gomnd
+        - mnd
         - noctx
     - linters:
         - gosec
