@@ -20,10 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: '0'
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v44
+          fetch-depth: 0
       - name: Load Version
         id: load-version
         run: |
@@ -34,8 +31,6 @@ jobs:
           version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
           args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
           working-directory: ${{ github.workspace }}
-        if: |
-          contains(steps.changed-files.outputs.all_changed_files, '.go')
   golang-sec:
     runs-on: ubuntu-latest
     steps:
