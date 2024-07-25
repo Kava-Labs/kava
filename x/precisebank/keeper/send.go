@@ -64,12 +64,12 @@ func (k Keeper) SendCoins(
 
 	// Get a full extended coin amount (passthrough integer + fractional) ONLY
 	// for event attributes.
-	fullEmissionCoin := types.SumExtendedCoin(amt)
+	fullEmissionCoins := sdk.NewCoins(types.SumExtendedCoin(amt))
 
 	// If no passthrough integer nor fractional coins, then no event emission.
 	// We also want to emit the event with the whole equivalent extended coin
 	// if only integer coins are sent.
-	if fullEmissionCoin.IsZero() {
+	if fullEmissionCoins.IsZero() {
 		return nil
 	}
 
@@ -79,8 +79,10 @@ func (k Keeper) SendCoins(
 			banktypes.EventTypeTransfer,
 			sdk.NewAttribute(banktypes.AttributeKeyRecipient, to.String()),
 			sdk.NewAttribute(banktypes.AttributeKeySender, from.String()),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, fullEmissionCoin.String()),
+			sdk.NewAttribute(sdk.AttributeKeyAmount, fullEmissionCoins.String()),
 		),
+		banktypes.NewCoinSpentEvent(from, fullEmissionCoins),
+		banktypes.NewCoinReceivedEvent(to, fullEmissionCoins),
 	})
 
 	return nil

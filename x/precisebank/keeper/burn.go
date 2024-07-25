@@ -60,14 +60,15 @@ func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 		}
 	}
 
-	fullEmissionCoin := types.SumExtendedCoin(amt)
-	if fullEmissionCoin.IsZero() {
+	fullEmissionCoins := sdk.NewCoins(types.SumExtendedCoin(amt))
+	if fullEmissionCoins.IsZero() {
 		return nil
 	}
 
-	ctx.EventManager().EmitEvent(
-		banktypes.NewCoinBurnEvent(acc.GetAddress(), sdk.NewCoins(fullEmissionCoin)),
-	)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		banktypes.NewCoinBurnEvent(acc.GetAddress(), fullEmissionCoins),
+		banktypes.NewCoinSpentEvent(acc.GetAddress(), fullEmissionCoins),
+	})
 
 	return nil
 }

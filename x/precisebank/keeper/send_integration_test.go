@@ -435,6 +435,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 				types.ExtendedCoinDenom,
 				sendAmountFullExtended.AmountOf(types.ExtendedCoinDenom),
 			)
+			extCoins := sdk.NewCoins(sendExtendedAmount)
 
 			// No extra events if not sending akava
 			if sendExtendedAmount.IsZero() {
@@ -448,7 +449,21 @@ func (suite *sendIntegrationTestSuite) TestSendCoins() {
 				sdk.NewAttribute(sdk.AttributeKeyAmount, sendExtendedAmount.String()),
 			)
 
-			suite.Require().Contains(suite.Ctx.EventManager().Events(), extendedEvent)
+			expReceivedEvent := banktypes.NewCoinReceivedEvent(
+				recipient,
+				extCoins,
+			)
+
+			expSentEvent := banktypes.NewCoinSpentEvent(
+				sender,
+				extCoins,
+			)
+
+			events := suite.Ctx.EventManager().Events()
+
+			suite.Require().Contains(events, extendedEvent)
+			suite.Require().Contains(events, expReceivedEvent)
+			suite.Require().Contains(events, expSentEvent)
 		})
 	}
 }

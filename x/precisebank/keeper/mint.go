@@ -63,14 +63,15 @@ func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 		}
 	}
 
-	fullEmissionCoin := types.SumExtendedCoin(amt)
-	if fullEmissionCoin.IsZero() {
+	fullEmissionCoins := sdk.NewCoins(types.SumExtendedCoin(amt))
+	if fullEmissionCoins.IsZero() {
 		return nil
 	}
 
-	ctx.EventManager().EmitEvent(
-		banktypes.NewCoinMintEvent(acc.GetAddress(), sdk.NewCoins(fullEmissionCoin)),
-	)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		banktypes.NewCoinMintEvent(acc.GetAddress(), fullEmissionCoins),
+		banktypes.NewCoinReceivedEvent(acc.GetAddress(), fullEmissionCoins),
+	})
 
 	return nil
 }
