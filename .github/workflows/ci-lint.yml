@@ -20,6 +20,10 @@ jobs:
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v44
+      - name: Load Version
+        id: load-version
+        run: |
+          echo "GOLANGCI_VERSION=v$(cat .golangci-version)"
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
@@ -28,6 +32,19 @@ jobs:
           working-directory: ${{ github.workspace }}
         if: |
           contains(steps.changed-files.outputs.all_changed_files, '.go')
+  golang-sec:
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+      - name: Run Gosec Security Scanner
+        uses: cosmos/gosec@master
+        with:
+          args: ./...
   golang-test:
     name: go test
     runs-on: ubuntu-latest
@@ -55,8 +72,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup
-        uses: ./.github/actions/setup_go
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+          cache: true
       - name: Go Test
         run: |
           mkdir -p ${{ env.COVERAGE_DIR }}
