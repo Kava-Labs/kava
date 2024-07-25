@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v44
@@ -24,24 +24,44 @@ jobs:
             *.go
 
       - name: List all changed files
-        env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          for file in ${ALL_CHANGED_FILES}; do
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "$file was changed"
           done
-      
-
-      - name: Load Version
-        id: load-version
+      - name: Prepare Lint Args
+        id: prepare-lint-args
         run: |
-          echo "GOLANGCI_VERSION=v$(cat .golangci-version)"
+          # Extract changed Go files and format them for golangci-lint
+          changed_files="${{ steps.changed-files.outputs.all_changed_files }}"
+          if [ -z "$changed_files" ]; then
+            echo "No Go files changed, skipping golangci-lint."
+            exit 0
+          fi
+          echo "Changed Go files:"
+          echo "$changed_files"
+          # Prepare arguments for golangci-lint
+          lint_args=$(echo "$changed_files" | tr '\n' ' ')
+          echo "lint_args=$lint_args" >> $GITHUB_ENV
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
-          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
+          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0 ${{ env.lint_args }}
           working-directory: ${{ github.workspace }}
         if: |
           contains(steps.changed-files.outputs.all_changed_files, '.go')
+
+#      - name: Load Version
+#        id: load-version
+#        run: |
+#          echo "GOLANGCI_VERSION=v$(cat .golangci-version)"
+#
+#      - name: golangci-lint
+#        uses: golangci/golangci-lint-action@v6
+#        with:
+#          version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
+#          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
+#          working-directory: ${{ github.workspace }}
+#        if: |
+#          contains(steps.changed-files.outputs.all_changed_files, '.go')
