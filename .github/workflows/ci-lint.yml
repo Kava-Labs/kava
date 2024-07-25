@@ -19,8 +19,6 @@ jobs:
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v44
-        with:
-          files: '**/*.go' # Ensure the pattern is correct
 
       - name: List all changed files
         run: |
@@ -39,8 +37,9 @@ jobs:
           echo "Changed Go files:"
           echo "$changed_files"
           # Prepare arguments for golangci-lint
-          lint_args=$(echo "$changed_files" | tr '\n' ' ')
-          echo "lint_args=$lint_args" >> $GITHUB_ENV
+          # Filter only Go files
+          go_files=$(echo "$changed_files" | grep '\.go$' | tr '\n' ' ')
+          echo "go_files=$go_files" >> $GITHUB_ENV
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
