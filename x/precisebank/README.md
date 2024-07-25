@@ -387,6 +387,11 @@ The `x/precisebank` module keeps state of the following:
    by the reserve account but not yet in circulation. This can be non-zero if
    a fractional amount less than `1ukava` is minted.
 
+   **Note:** Currently, mint and burns are only used to transfer fractional
+   amounts between accounts via `x/evm`. This means mint and burns on mainnet
+   state will always be equal and opposite, always resulting in a zero remainder
+   at the end of each transaction and block.
+
 The `x/precisebank` module does not keep track of the reserve as it is stored in
 the `x/bank` module.
 
@@ -453,7 +458,7 @@ amount.
 
 ```json
 {
-  "type": "mint",
+  "type": "coinbase",
   "attributes": [
     {
       "key": "minter",
