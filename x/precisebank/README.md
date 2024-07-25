@@ -29,6 +29,7 @@ This module is used only by `x/evm` where 18 decimal points are expected.
     - [BurnCoins](#burncoins)
 - [Client](#client)
   - [gRPC](#grpc)
+    - [TotalFractionalBalances](#totalfractionalbalances)
     - [Remainder](#remainder)
     - [FractionalBalance](#fractionalbalance)
 
@@ -36,21 +37,21 @@ This module is used only by `x/evm` where 18 decimal points are expected.
 
 The standard unit of currency on the Kava Chain is `KAVA`.  This is denominated by the atomic unit `ukava`, which represents $10^{-6}$ `KAVA` and there are $10^6$ `ukava` per `KAVA`.
 
-In order to support 18 decimals of precision while maintaining `ukava` as the cosmos native atomic unit, we further split each `ukava` unit into $10^{12}$ `akava` units, the native currency of the Kava EVM.
+In order to support 18 decimals of precision while maintaining `ukava` as the cosmos-native atomic unit, we further split each `ukava` unit into $10^{12}$ `akava` units, the native currency of the Kava EVM.
 
-This gives a full $10^{18}$ precision on the EVM. In order to avoid confusion with atomic `ukava` units, we will refer to `akava` as sub-atomic units.
+This gives a full $10^{18}$ precision on the EVM. In order to avoid confusion with atomic `ukava` units, we will refer to `akava` as "sub-atomic units".
 
 To review we have:
- - `ukava`, the cosmos native unit and atomic unit of the Kava chain
- - `akava`, the evm native unit and sub-atomic unit of the Kava chain
+ - `ukava`, the cosmos-native unit and atomic unit of the Kava chain
+ - `akava`, the evm-native unit and sub-atomic unit of the Kava chain
 
-In order to maintain consistency between the `akava` supply and the `ukava` supply, we add the constraint that each `akava` or sub-atomic unit, may only exist as part of a atomic `ukava`, or in other words, we require each `akava` to be fully backed by a `ukava` in the `x/bank` module.
+In order to maintain consistency between the `akava` supply and the `ukava` supply, we add the constraint that each sub-atomic `akava`, may only exist as part of an atomic `ukava`. Every `akava` is fully backed by a `ukava` in the `x/bank` module.
 
-This is a requirement since `x/bank` `ukava` balances are shared between the cosmos modules and the EVM.  We are wrapping and extending the `x/bank` module with the `x/precisebank` module to add an extra $10^{12}$ units of precision.  If $10^{12}$ `akava` is transferred in the EVM, the cosmos modules will see a 1 `ukava` transfer and vice versa.  If `akava` was not fully backed by `ukava`, then balance changes would not be fully consistent across the cosmos and the EVM.
+This is a requirement since `ukava` balances in `x/bank` are shared between the cosmos modules and the EVM.  We are wrapping and extending the `x/bank` module with the `x/precisebank` module to add an extra $10^{12}$ units of precision.  If $10^{12}$ `akava` is transferred in the EVM, the cosmos modules will see a 1 `ukava` transfer and vice versa.  If `akava` was not fully backed by `ukava`, then balance changes would not be fully consistent across the cosmos and the EVM.
 
-This brings us to how are account balances are extended to represent `akava` balances larger than $10^{12}$.  First we define $a(n)$, $b(n)$, and $C$ where $a(n)$ is the `akava` balance of account `n`, $b(n)$ is the `ukava` balance of account `n` stored in the `x/bank` module, and $C$ is the conversion factor equal to $10^{12}$.
+This brings us to how account balances are extended to represent `akava` balances larger than $10^{12}$.  First, we define $a(n)$, $b(n)$, and $C$ where $a(n)$ is the `akava` balance of account `n`, $b(n)$ is the `ukava` balance of account `n` stored in the `x/bank` module, and $C$ is the conversion factor equal to $10^{12}$.
 
-Any $a(n)$ divisible by $C$, can be represented by $C$ * $b(n)$.  Any remainder not divisible by $C$, we define as $f(n)$ and store this in the `x/precisebank` store.
+Any $a(n)$ divisible by $C$, can be represented by $C$ * $b(n)$.  Any remainder not divisible by $C$, we define the "fractional balance" as $f(n)$ and store this in the `x/precisebank` store.
 
 Thus,
 
@@ -70,19 +71,19 @@ $$f(n) = a(n)\bmod{C}$$
 
 With this definition in mind we will refer to $b(n)$ units as integer units, and $f(n)$ as fractional units.
 
-Now since $f(n)$ is stored in the `x/precisebank` and not tracked by the `x/bank` keeper, these are not counted in the `ukava` supply, so we define
+Now since $f(n)$ is stored in the `x/precisebank` and not tracked by the `x/bank` keeper, these are not counted in the `ukava` supply, so if we define
 
-$$T_a = \sum_{n \in \mathcal{A}}{a(n)}$$
+$$T_a \equiv \sum_{n \in \mathcal{A}}{a(n)}$$
 
-$$T_b = \sum_{n \in \mathcal{A}}{b(n)}$$
+$$T_b \equiv \sum_{n \in \mathcal{A}}{b(n)}$$
 
-where $\mathcal{A}$ is the set of all accounts and $T_a$ is the total `akava` supply and $T_b$ is the total `ukava` supply, then a reserve account is added such that
+where $\mathcal{A}$ is the set of all accounts, $T_a$ is the total `akava` supply, and $T_b$ is the total `ukava` supply, then a reserve account $R$ is added such that
 
 $$a(R) = 0$$
 
 $$b(R) \cdot C = \sum_{n \in \mathcal{A}}{f(n)} + r$$
 
-where R is the reserve account or module account of the `x/precisebank`, and $r$ is the remainder or fractional amount backed by $b(R)$, but not yet in circulation such that
+where $R$ is the module account of the `x/precisebank`, and $r$ is the remainder or fractional amount backed by $b(R)$, but not yet in circulation such that
 
 $$T_a = T_b \cdot C - r$$
 
@@ -90,9 +91,9 @@ and
 
 $$ 0 <= r < C$$
 
-We see that $0 <= T_b \cdot C - T_a < C$, and if we mint, burn, or transfer `akava` such that this inequality would be invalid after updates to account balances, we adjust the $T_b$ supply by minting or burning to a reserve account which holds `ukava` equal to that of all `akava` balances less than `C` plus the remaining `akava` balance not in circulation.
+We see that $0 \le T_b \cdot C - T_a < C$. If we mint, burn, or transfer `akava` such that this inequality would be invalid after updates to account balances, we adjust the $T_b$ supply by minting or burning to the reserve account which holds `ukava` equal to that of all `akava` balances less than `C` plus the remainder.
 
-If we didn't add these constraints, then the total supply of `ukava` reported by the bank keeper would not account for the `akava` units.  We could increase the supply of `akava` without increasing the reported total supply of KAVA.
+If we didn't add these constraints, then the total supply of `ukava` reported by the bank keeper would not account for the `akava` units.  We would incorrectly increase the supply of `akava` without increasing the reported total supply of KAVA.
 
 ### Adding
 
