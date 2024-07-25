@@ -353,7 +353,7 @@ start-remote-sims:
 
 update-kvtool:
 	git submodule init || true
-	git submodule update
+	git submodule update --remote
 	cd tests/e2e/kvtool && make install
 
 .PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic test-fuzz start-remote-sims
