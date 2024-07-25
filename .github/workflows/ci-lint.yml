@@ -1,0 +1,21 @@
+name: Lint Checks
+on:
+  workflow_call:
+# run per commit ci checks against this commit
+jobs:
+  proto-lint:
+    uses: ./.github/workflows/proto.yml
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load Version
+        id: load-version
+        run: |
+          echo "GOLANGCI_VERSION=v$(cat .golangci-version)"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: $${{ steps.load-version.outputs.GOLANGCI_VERSION }}
+          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
+          working-directory: ${{ github.workspace }}
