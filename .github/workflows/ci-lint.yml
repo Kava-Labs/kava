@@ -16,6 +16,6 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: $${{ steps.load-version.outputs.GOLANGCI_VERSION }}
+          version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
           args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
           working-directory: ${{ github.workspace }}
