@@ -29,7 +29,6 @@ This module is used only by `x/evm` where 18 decimal points are expected.
     - [BurnCoins](#burncoins)
 - [Client](#client)
   - [gRPC](#grpc)
-    - [TotalFractionalBalances](#totalfractionalbalances)
     - [Remainder](#remainder)
     - [FractionalBalance](#fractionalbalance)
 
@@ -455,6 +454,42 @@ amount.
 }
 ```
 
+```json
+{
+  "type": "coin_spent",
+  "attributes": [
+    {
+      "key": "spender",
+      "value": "{{sdk.AccAddress of the address which is spending coins}}",
+      "index": true
+    },
+    {
+      "key": "amount",
+      "value": "{{sdk.Coins being spent}}",
+      "index": true
+    }
+  ]
+}
+```
+
+```json
+{
+  "type": "coin_received",
+  "attributes": [
+    {
+      "key": "receiver",
+      "value": "{{sdk.AccAddress of the address beneficiary of the coins}}",
+      "index": true
+    },
+    {
+      "key": "amount",
+      "value": "{{sdk.Coins being received}}",
+      "index": true
+    }
+  ]
+}
+```
+
 #### MintCoins
 
 ```json
@@ -475,6 +510,24 @@ amount.
 }
 ```
 
+```json
+{
+  "type": "coin_received",
+  "attributes": [
+    {
+      "key": "receiver",
+      "value": "{{sdk.AccAddress of the module minting coins}}",
+      "index": true
+    },
+    {
+      "key": "amount",
+      "value": "{{sdk.Coins being received}}",
+      "index": true
+    }
+  ]
+}
+```
+
 #### BurnCoins
 
 ```json
@@ -483,6 +536,24 @@ amount.
   "attributes": [
     {
       "key": "burner",
+      "value": "{{sdk.AccAddress of the module burning coins}}",
+      "index": true
+    },
+    {
+      "key": "amount",
+      "value": "{{sdk.Coins being burned}}",
+      "index": true
+    }
+  ]
+}
+```
+
+```json
+{
+  "type": "coin_spent",
+  "attributes": [
+    {
+      "key": "spender",
       "value": "{{sdk.AccAddress of the module burning coins}}",
       "index": true
     },
