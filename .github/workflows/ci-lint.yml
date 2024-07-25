@@ -9,18 +9,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0 # OR "2" -> To retrieve the preceding commit.
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v42
+        uses: tj-actions/changed-files@v44
         with:
           files: |
-            *.go
+            **.go
 
-      - name: Debug Changed Files
+      - name: List all changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          echo "Changed files:"
-          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+          for file in ${ALL_CHANGED_FILES}; do
+            echo "$file was changed"
+          done
+      
 
       - name: Load Version
         id: load-version
