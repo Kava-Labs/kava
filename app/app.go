@@ -981,6 +981,7 @@ func NewApp(
 		minttypes.ModuleName,
 		ibcexported.ModuleName,
 		evidencetypes.ModuleName,
+
 		authz.ModuleName,
 		ibctransfertypes.ModuleName,
 		evmtypes.ModuleName,

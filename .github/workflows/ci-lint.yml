@@ -15,7 +15,7 @@ jobs:
         uses: tj-actions/changed-files@v42
         with:
           files: |
-            **/*.go
+            *.go
 
       - name: Debug Changed Files
         run: |
