@@ -9,11 +9,6 @@ linters-settings:
   errcheck:
     check-blank: true
     check-type-assertions: false
-  revive:
-    severity: error
-    rules:
-      - name: exported
-        arguments: ["checkPrivateReceivers", "disableStutteringCheck", "sayRepetitiveInsteadOfStutters"]
   errorlint:
     check-generated: false
     default-signifies-exhaustive: false
@@ -105,6 +100,7 @@ linters:
     - nosprintfhostport
     - prealloc
     - predeclared
+    - promlinter
     - reassign
     - revive
     - rowserrcheck
