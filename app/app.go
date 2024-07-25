@@ -970,7 +970,6 @@ func NewApp(
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
 	app.mm.SetOrderInitGenesis(
-
 		capabilitytypes.ModuleName, // initialize capabilities, run before any module creating or claiming capabilities in InitGenesis
 		authtypes.ModuleName,       // loads all accounts, run before any module with a module account
 		banktypes.ModuleName,
@@ -981,7 +980,6 @@ func NewApp(
 		minttypes.ModuleName,
 		ibcexported.ModuleName,
 		evidencetypes.ModuleName,
-
 		authz.ModuleName,
 		ibctransfertypes.ModuleName,
 		evmtypes.ModuleName,
@@ -1018,6 +1016,7 @@ func NewApp(
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
+
 	app.RegisterServices(app.configurator)
 
 	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
