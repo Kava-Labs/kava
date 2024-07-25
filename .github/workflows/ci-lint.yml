@@ -36,4 +36,4 @@ jobs:
           args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
           working-directory: ${{ github.workspace }}
         if: |
-          contains(needs.changed_files.outputs.changed_files, '.go')
+          contains(steps.changed-files.outputs.all_changed_files, '.go')

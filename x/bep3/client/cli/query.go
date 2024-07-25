@@ -44,13 +44,11 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		QueryGetAtomicSwapsCmd(queryRoute),
 		QueryParamsCmd(queryRoute),
 	}
-
 	for _, cmd := range cmds {
 		flags.AddQueryFlagsToCmd(cmd)
 	}
 
 	bep3QueryCmd.AddCommand(cmds...)
-
 	return bep3QueryCmd
 }
 
