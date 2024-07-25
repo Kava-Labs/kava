@@ -18,18 +18,26 @@ jobs:
           fetch-depth: 0
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@v44
+        run: |
+          # Fetch the full history to ensure we can compare commits
+          git fetch --prune --unshallow
+          # List changed files in the last commit
+          changed_files=$(git diff --name-only HEAD^ HEAD | grep '\.go$')
+          echo "Changed Go files:"
+          echo "$changed_files"
+          # Set the changed files as an output
+          echo "changed_go_files=$changed_files" >> $GITHUB_ENV
+          echo "::set-output name=changed_go_files::$changed_files"
 
       - name: List all changed files
         run: |
-          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          for file in ${{ env.changed_go_files }}; do
             echo "$file was changed"
           done
       - name: Prepare Lint Args
         id: prepare-lint-args
         run: |
-          # Extract changed Go files and format them for golangci-lint
-          changed_files="${{ steps.changed-files.outputs.all_changed_files }}"
+          changed_files="${{ env.changed_go_files }}"
           if [ -z "$changed_files" ]; then
             echo "No Go files changed, skipping golangci-lint."
             exit 0
@@ -37,9 +45,8 @@ jobs:
           echo "Changed Go files:"
           echo "$changed_files"
           # Prepare arguments for golangci-lint
-          # Filter only Go files
-          go_files=$(echo "$changed_files" | grep '\.go$' | tr '\n' ' ')
-          echo "go_files=$go_files" >> $GITHUB_ENV
+          lint_args=$(echo "$changed_files" | tr '\n' ' ')
+          echo "lint_args=$lint_args" >> $GITHUB_ENV
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -48,7 +55,7 @@ jobs:
           args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0 ${{ env.lint_args }}
           working-directory: ${{ github.workspace }}
         if: |
-          contains(steps.changed-files.outputs.all_changed_files, '.go')
+          contains(env.changed_go_files, '.go')
 
 #      - name: Load Version
 #        id: load-version
