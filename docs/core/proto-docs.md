@@ -481,6 +481,10 @@
     - [GenesisState](#kava.precisebank.v1.GenesisState)
   
 - [kava/precisebank/v1/query.proto](#kava/precisebank/v1/query.proto)
+    - [QueryFractionalBalanceRequest](#kava.precisebank.v1.QueryFractionalBalanceRequest)
+    - [QueryFractionalBalanceResponse](#kava.precisebank.v1.QueryFractionalBalanceResponse)
+    - [QueryRemainderRequest](#kava.precisebank.v1.QueryRemainderRequest)
+    - [QueryRemainderResponse](#kava.precisebank.v1.QueryRemainderResponse)
     - [QueryTotalFractionalBalancesRequest](#kava.precisebank.v1.QueryTotalFractionalBalancesRequest)
     - [QueryTotalFractionalBalancesResponse](#kava.precisebank.v1.QueryTotalFractionalBalancesResponse)
   
@@ -6689,6 +6693,61 @@ GenesisState defines the precisebank module's genesis state.
 
 
 
+<a name="kava.precisebank.v1.QueryFractionalBalanceRequest"></a>
+
+### QueryFractionalBalanceRequest
+QueryFractionalBalanceRequest defines the request type for Query/FractionalBalance method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `address` | [string](#string) |  | address is the account address to query fractional balance for. |
+
+
+
+
+
+
+<a name="kava.precisebank.v1.QueryFractionalBalanceResponse"></a>
+
+### QueryFractionalBalanceResponse
+QueryFractionalBalanceResponse defines the response type for Query/FractionalBalance method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `fractional_balance` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | fractional_balance is the fractional balance of the address. |
+
+
+
+
+
+
+<a name="kava.precisebank.v1.QueryRemainderRequest"></a>
+
+### QueryRemainderRequest
+QueryRemainderRequest defines the request type for Query/Remainder method.
+
+
+
+
+
+
+<a name="kava.precisebank.v1.QueryRemainderResponse"></a>
+
+### QueryRemainderResponse
+QueryRemainderResponse defines the response type for Query/Remainder method.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| `remainder` | [cosmos.base.v1beta1.Coin](#cosmos.base.v1beta1.Coin) |  | remainder is the amount backed by the reserve, but not yet owned by any account, i.e. not in circulation. |
+
+
+
+
+
+
 <a name="kava.precisebank.v1.QueryTotalFractionalBalancesRequest"></a>
 
 ### QueryTotalFractionalBalancesRequest
@@ -6728,6 +6787,8 @@ Query defines the gRPC querier service for precisebank module
 | Method Name | Request Type | Response Type | Description | HTTP Verb | Endpoint |
 | ----------- | ------------ | ------------- | ------------| ------- | -------- |
 | `TotalFractionalBalances` | [QueryTotalFractionalBalancesRequest](#kava.precisebank.v1.QueryTotalFractionalBalancesRequest) | [QueryTotalFractionalBalancesResponse](#kava.precisebank.v1.QueryTotalFractionalBalancesResponse) | TotalFractionalBalances returns the total sum of all fractional balances managed by the precisebank module. | GET|/kava/precisebank/v1/total_fractional_balances|
+| `Remainder` | [QueryRemainderRequest](#kava.precisebank.v1.QueryRemainderRequest) | [QueryRemainderResponse](#kava.precisebank.v1.QueryRemainderResponse) | Remainder returns the amount backed by the reserve, but not yet owned by any account, i.e. not in circulation. | GET|/kava/precisebank/v1/remainder|
+| `FractionalBalance` | [QueryFractionalBalanceRequest](#kava.precisebank.v1.QueryFractionalBalanceRequest) | [QueryFractionalBalanceResponse](#kava.precisebank.v1.QueryFractionalBalanceResponse) | FractionalBalance returns only the fractional balance of an address. This does not include any integer balance. | GET|/kava/precisebank/v1/fractional_balance/{address}|
 
  <!-- end services -->
 
