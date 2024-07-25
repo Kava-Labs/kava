@@ -16,7 +16,7 @@ type EncodingConfig struct {
 	Amino             *codec.LegacyAmino
 }
 
-// MakeEncodingConfigBlah creates a new EncodingConfig.
+// MakeEncodingConfig creates a new EncodingConfig.
 func MakeEncodingConfig() EncodingConfig {
 	amino := codec.NewLegacyAmino()
 	interfaceRegistry := types.NewInterfaceRegistry()

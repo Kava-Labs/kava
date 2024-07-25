@@ -28,7 +28,41 @@ jobs:
           working-directory: ${{ github.workspace }}
         if: |
           contains(steps.changed-files.outputs.all_changed_files, '.go')
-
+  golang-test:
+    name: go test
+    runs-on: ubuntu-latest
+    if: |
+      contains(needs.changed_files.outputs.changed_files, '.go') ||
+      contains(needs.changed_files.outputs.changed_files, 'go.sum') ||
+      (
+        contains(needs.changed_files.outputs.changed_files, '.yml') ||
+        contains(needs.changed_files.outputs.changed_files, '.yaml')
+      )
+      &&
+      (
+        contains(needs.changed_files.outputs.changed_files, 'app') ||
+        contains(needs.changed_files.outputs.changed_files, 'client') ||
+        contains(needs.changed_files.outputs.changed_files, 'cmd') ||
+        contains(needs.changed_files.outputs.changed_files, 'migrate') ||
+        contains(needs.changed_files.outputs.changed_files, 'tests') ||
+        contains(needs.changed_files.outputs.changed_files, 'x')
+      )
+    env:
+      COVERAGE_DIR: out/coverage/unit/go
+      COVERAGE_PATH: out/coverage/unit/go/cover.out
+      FORMATTED_REPORT: out/coverage/unit/go/go-unit-cover.out
+      HTML_REPORT: out/coverage/unit/go/go-unit-cover.html
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup
+        uses: ./.github/actions/setup_go
+      - name: Go Test
+        run: |
+          mkdir -p ${{ env.COVERAGE_DIR }}
+          readarray -t test_dirs < <(find * -name "*_test.go" -exec dirname {} \; | sort | uniq | grep -v -e '^\.$')
+          half_nproc=$(( $(nproc --all) / 2 ))
+          printf '%s\0' "${test_dirs[@]}" | xargs -0 -P $half_nproc -n 1 -I {} go test "./{}" -race
 #      - name: Load Version
 #        id: load-version
 #        run: |
