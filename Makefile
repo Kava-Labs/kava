@@ -314,6 +314,11 @@ test-ibc: docker-build
 test:
 	@$(GO_BIN) test $$($(GO_BIN) list ./... | grep -v 'contrib' | grep -v 'tests/e2e')
 
+coverage:
+	@mkdir -p out
+	@$(GO_BIN) test -v -coverprofile=out/coverage.out  $$($(GO_BIN) list ./... | grep -v 'contrib' | grep -v 'tests/e2e')
+	@$(GO_BIN) tool cover -html="out/coverage.out"
+
 # Run cli integration tests
 # `-p 4` to use 4 cores, `-tags cli_test` to tell $(GO_BIN) not to ignore the cli package
 # These tests use the `kvd` or `kvcli` binaries in the build dir, or in `$BUILDDIR` if that env var is set.
