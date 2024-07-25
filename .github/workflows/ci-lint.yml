@@ -20,8 +20,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v44
         with:
-          files: |
-            *.go
+          files: '**/*.go' # Ensure the pattern is correct
 
       - name: List all changed files
         run: |
