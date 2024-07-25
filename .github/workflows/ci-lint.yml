@@ -45,7 +45,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
-          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0 ${{ env.go_files }}
+          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
           working-directory: ${{ github.workspace }}
         if: |
           contains(steps.changed-files.outputs.all_changed_files, '.go')
