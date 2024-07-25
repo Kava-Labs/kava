@@ -684,7 +684,6 @@ func NewApp(
 		app.bankKeeper,
 		app.liquidKeeper,
 	)
-
 	earnKeeper := earnkeeper.NewKeeper(
 		appCodec,
 		keys[earntypes.StoreKey],
