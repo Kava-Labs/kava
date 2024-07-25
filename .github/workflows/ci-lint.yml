@@ -12,8 +12,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
       - name: Load Version
         id: load-version
         run: |
@@ -22,15 +21,13 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
-          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
-          working-directory: ${{ github.workspace }}
+          args: -v -c .golangci.yml
   golang-sec:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: '0'
+        with: { fetch-depth: 0 }
       - name: Run Gosec Security Scanner
         uses: cosmos/gosec@master
         with:
