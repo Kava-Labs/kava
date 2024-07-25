@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v42
+        with:
+          files: |
+            **/*.go
       - name: Load Version
         id: load-version
         run: |
@@ -19,3 +25,5 @@ jobs:
           version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
           args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
           working-directory: ${{ github.workspace }}
+        if: |
+          contains(needs.changed_files.outputs.changed_files, '.go')

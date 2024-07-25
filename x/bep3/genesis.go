@@ -24,6 +24,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, accountKeeper types.Acco
 		if perm == authtypes.Burner {
 			hasBurnPermissions = true
 		}
+
 		if perm == authtypes.Minter {
 			hasMintPermissions = true
 		}
