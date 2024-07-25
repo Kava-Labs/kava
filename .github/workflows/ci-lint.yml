@@ -38,7 +38,7 @@ jobs:
           echo "$changed_files"
           # Prepare arguments for golangci-lint
           # Filter only Go files
-          go_files=$(echo "$changed_files" | grep '\.go$' | tr '\n' ' ')
+          go_files=$(find . -name '*.go' -print | tr '\n' ' ')
           echo "go_files=$go_files" >> $GITHUB_ENV
 
       - name: golangci-lint
