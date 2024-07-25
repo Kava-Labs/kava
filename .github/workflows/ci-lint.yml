@@ -32,20 +32,20 @@ jobs:
     name: go test
     runs-on: ubuntu-latest
     if: |
-      contains(needs.changed_files.outputs.changed_files, '.go') ||
-      contains(needs.changed_files.outputs.changed_files, 'go.sum') ||
+      contains(steps.changed-files.outputs.changed_files, '.go') ||
+      contains(steps.changed-files.outputs.changed_files, 'go.sum') ||
       (
-        contains(needs.changed_files.outputs.changed_files, '.yml') ||
-        contains(needs.changed_files.outputs.changed_files, '.yaml')
+        contains(steps.changed-files.outputs.changed_files, '.yml') ||
+        contains(steps.changed-files.outputs.changed_files, '.yaml')
       )
       &&
       (
-        contains(needs.changed_files.outputs.changed_files, 'app') ||
-        contains(needs.changed_files.outputs.changed_files, 'client') ||
-        contains(needs.changed_files.outputs.changed_files, 'cmd') ||
-        contains(needs.changed_files.outputs.changed_files, 'migrate') ||
-        contains(needs.changed_files.outputs.changed_files, 'tests') ||
-        contains(needs.changed_files.outputs.changed_files, 'x')
+        contains(steps.changed-files.outputs.changed_files, 'app') ||
+        contains(steps.changed-files.outputs.changed_files, 'client') ||
+        contains(steps.changed-files.outputs.changed_files, 'cmd') ||
+        contains(steps.changed-files.outputs.changed_files, 'migrate') ||
+        contains(steps.changed-files.outputs.changed_files, 'tests') ||
+        contains(steps.changed-files.outputs.changed_files, 'x')
       )
     env:
       COVERAGE_DIR: out/coverage/unit/go
@@ -63,16 +63,3 @@ jobs:
           readarray -t test_dirs < <(find * -name "*_test.go" -exec dirname {} \; | sort | uniq | grep -v -e '^\.$')
           half_nproc=$(( $(nproc --all) / 2 ))
           printf '%s\0' "${test_dirs[@]}" | xargs -0 -P $half_nproc -n 1 -I {} go test "./{}" -race
-#      - name: Load Version
-#        id: load-version
-#        run: |
-#          echo "GOLANGCI_VERSION=v$(cat .golangci-version)"
-#
-#      - name: golangci-lint
-#        uses: golangci/golangci-lint-action@v6
-#        with:
-#          version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
-#          args: --timeout 30m --verbose --allow-parallel-runners --max-same-issues 0 --max-issues-per-linter 0
-#          working-directory: ${{ github.workspace }}
-#        if: |
-#          contains(steps.changed-files.outputs.all_changed_files, '.go')
