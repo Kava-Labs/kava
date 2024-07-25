@@ -966,6 +966,7 @@ func NewApp(
 		consensusparamtypes.ModuleName,
 		packetforwardtypes.ModuleName,
 		precisebanktypes.ModuleName,
+
 	)
 
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
