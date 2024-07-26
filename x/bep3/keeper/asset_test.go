@@ -431,7 +431,7 @@ func (suite *AssetTestSuite) TestIncrementOutgoingAssetSupply() {
 			true,
 		},
 		{
-			"outoing + amount > current",
+			"outgoing + amount > current",
 			args{
 				coin: c("bnb", 36),
 			},

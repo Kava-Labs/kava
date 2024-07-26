@@ -98,7 +98,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 		}
 		previousAccrualTime, f := k.GetPreviousAccrualTime(ctx, mm.Denom)
 		if !f {
-			// Goverance adds new params at end of block, but mm's previous accrual time is set in begin blocker.
+			// Governance adds new params at end of block, but mm's previous accrual time is set in begin blocker.
 			// If a new money market is added and chain is exported before begin blocker runs, then the previous
 			// accrual time will not be found. We can't set it here because our ctx doesn't contain current block
 			// time; if we set it to ctx.BlockTime() then on the next block it could accrue interest from Jan 1st
