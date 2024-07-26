@@ -201,7 +201,7 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdk
 		k.cdc.MustUnmarshal(bz, &cdp)
 
 		if debtParam.Denom != cdp.GetTotalPrincipal().Denom {
-			panic(fmt.Sprintf("unkown debt param %s", cdp.GetTotalPrincipal().Denom))
+			panic(fmt.Sprintf("unknown debt param %s", cdp.GetTotalPrincipal().Denom))
 		}
 
 		//

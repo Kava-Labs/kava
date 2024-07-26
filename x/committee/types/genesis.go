@@ -7,7 +7,7 @@ import (
 	proto "github.com/cosmos/gogoproto/proto"
 )
 
-// DefaultNextProposalID is the starting poiint for proposal IDs.
+// DefaultNextProposalID is the starting point for proposal IDs.
 const DefaultNextProposalID uint64 = 1
 
 // NewGenesisState returns a new genesis state object for the module.
