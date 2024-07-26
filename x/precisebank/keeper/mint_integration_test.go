@@ -342,21 +342,27 @@ func (suite *mintIntegrationTestSuite) TestMintCoins() {
 				fraCoinAmt := mt.mintAmount.AmountOf(types.ExtendedCoinDenom)
 
 				totalExtCoinAmt := intCoinAmt.Add(fraCoinAmt)
+				extCoins := sdk.NewCoins(sdk.NewCoin(types.ExtendedCoinDenom, totalExtCoinAmt))
 
 				// Check for mint event
 				events := suite.Ctx.EventManager().Events()
-				extendedEvent := banktypes.NewCoinMintEvent(
+
+				expMintEvent := banktypes.NewCoinMintEvent(
 					recipientAddr,
-					sdk.NewCoins(sdk.NewCoin(
-						types.ExtendedCoinDenom,
-						totalExtCoinAmt,
-					)),
+					extCoins,
+				)
+
+				expReceivedEvent := banktypes.NewCoinReceivedEvent(
+					recipientAddr,
+					extCoins,
 				)
 
 				if totalExtCoinAmt.IsZero() {
-					suite.Require().NotContains(events, extendedEvent)
+					suite.Require().NotContains(events, expMintEvent)
+					suite.Require().NotContains(events, expReceivedEvent)
 				} else {
-					suite.Require().Contains(events, extendedEvent)
+					suite.Require().Contains(events, expMintEvent)
+					suite.Require().Contains(events, expReceivedEvent)
 				}
 			}
 		})
