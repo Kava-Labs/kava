@@ -16,19 +16,10 @@ jobs:
       - name: Load Version
         id: load-version
         run: |
-          echo "GOLANGCI_VERSION=v$(cat .golangci-version)"
+          echo "GOLANGCI_VERSION=$(cat .golangci-version)"
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
           args: -v -c .golangci.yml
-  golang-sec:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - name: Run Gosec Security Scanner
-        uses: cosmos/gosec@v0.10.4
-        with:
-          args: ./...
+

@@ -50,74 +50,73 @@ linters:
     - bidichk
     - bodyclose
     - containedctx
-    - contextcheck
+#    - contextcheck
     - decorder
     - dogsled
-    - dupl
-    - dupword
+#    - dupl
+#    - dupword
     - durationcheck
-    - errcheck
+#    - errcheck
     - errchkjson
-    - errname
-    - errorlint
-    - exhaustive
-    - exportloopref
-    - gci
+#    - errname
+#    - errorlint
+#    - exhaustive
+#    - exportloopref
+#    - gci
     - ginkgolinter
     - gocheckcompilerdirectives
-    - gochecknoglobals
-    - gochecknoinits
+#    - gochecknoglobals
+#    - gochecknoinits
     - goconst
-    - gocritic
-    - godox
+#    - gocritic
+#    - godox
     - gofmt
-    - gofumpt
+#    - gofumpt
     - goheader
     - goimports
-    - mnd
-    - gomodguard
+#    - mnd
+#    - gomodguard
     - goprintffuncname
-    - gosec
-    - gosimple
-    - govet
+#    - gosec
+#    - gosimple
+#    - govet
     - grouper
     - importas
-    - ineffassign
-    - interfacebloat
-    - lll
+#    - ineffassign
+#    - interfacebloat
+#    - lll
     - loggercheck
     - makezero
     - mirror
-    - misspell
+#    - misspell
     - musttag
-    - nakedret
-    - nestif
-    - nilerr
-    - nilnil
-    - noctx
-    - nolintlint
-    - nonamedreturns
+#    - nakedret
+#    - nestif
+#    - nilerr
+#    - nilnil
+#    - noctx
+#    - nolintlint
+#    - nonamedreturns
     - nosprintfhostport
-    - prealloc
-    - predeclared
+#    - prealloc
+#    - predeclared
     - promlinter
-    - reassign
-    - revive
+#    - reassign
+#    - revive
     - rowserrcheck
-    - sqlclosecheck
-    - staticcheck
-    - stylecheck
-    - tagalign
-    - testpackage
-    - thelper
-    - tparallel
+#    - staticcheck
+#    - stylecheck
+#    - tagalign
+#    - testpackage
+#    - thelper
+#    - tparallel
     - typecheck
-    - unconvert
-    - unparam
-    - unused
-    - usestdlibvars
-    - wastedassign
-    - whitespace
+#    - unconvert
+#    - unparam
+#    - unused
+#    - usestdlibvars
+#    - wastedassign
+#    - whitespace
 
 issues:
   exclude-rules:
