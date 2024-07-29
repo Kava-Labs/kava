@@ -637,7 +637,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			suite.keeper = keeper
 			// Run BeginBlocker once to transition MoneyMarkets
 			hard.BeginBlocker(suite.ctx, suite.keeper)
-			suite.Require().NoError(suite.keeper.Deposit(suite.ctx, tc.setup.borrower, tc.setup.depositCoins)
+			suite.Require().NoError(suite.keeper.Deposit(suite.ctx, tc.setup.borrower, tc.setup.depositCoins))
 			// Execute user's previous borrows
 			if err = suite.keeper.Borrow(suite.ctx, tc.setup.borrower, tc.setup.initialBorrowCoins); tc.setup.initialBorrowCoins.IsZero() {
 				suite.Require().True(strings.Contains(err.Error(), "cannot borrow zero coins"))
