@@ -25,18 +25,15 @@ const (
 
 func (suite *KeeperTestSuite) TestBorrow() {
 	type setupArgs struct {
-		usdxBorrowLimit sdk.Dec
-		priceKAVA       sdk.Dec
-		loanToValueKAVA sdk.Dec
-		priceBTCB       sdk.Dec
-		loanToValueBTCB sdk.Dec
-		priceBNB        sdk.Dec
-		loanToValueBNB  sdk.Dec
-		borrower        sdk.AccAddress
-		depositCoins    []sdk.Coin
-		wantDepositErr  string
-
-		// renamed this to be more clear
+		usdxBorrowLimit    sdk.Dec
+		priceKAVA          sdk.Dec
+		loanToValueKAVA    sdk.Dec
+		priceBTCB          sdk.Dec
+		loanToValueBTCB    sdk.Dec
+		priceBNB           sdk.Dec
+		loanToValueBNB     sdk.Dec
+		borrower           sdk.AccAddress
+		depositCoins       []sdk.Coin
 		initialBorrowCoins sdk.Coins
 	}
 
@@ -640,9 +637,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			suite.keeper = keeper
 			// Run BeginBlocker once to transition MoneyMarkets
 			hard.BeginBlocker(suite.ctx, suite.keeper)
-			if err = suite.keeper.Deposit(suite.ctx, tc.setup.borrower, tc.setup.depositCoins); err != nil {
-				suite.Require().Equal(tc.setup.wantDepositErr, err.Error())
-			}
+			suite.Require().NoError(suite.keeper.Deposit(suite.ctx, tc.setup.borrower, tc.setup.depositCoins)
 			// Execute user's previous borrows
 			if err = suite.keeper.Borrow(suite.ctx, tc.setup.borrower, tc.setup.initialBorrowCoins); tc.setup.initialBorrowCoins.IsZero() {
 				suite.Require().True(strings.Contains(err.Error(), "cannot borrow zero coins"))
