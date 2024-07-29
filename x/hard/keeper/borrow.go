@@ -119,7 +119,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	// The reserve coins aren't available for users to borrow
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	hardMaccCoins := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
-	reserveCoins, foundReserveCoins := k.GetTotalReservesForDenoms(ctx, amount)
+	reserveCoins, foundReserveCoins := k.GetTotalReservesByCoinDenoms(ctx, amount)
 	if !foundReserveCoins {
 		reserveCoins = sdk.NewCoins()
 	}

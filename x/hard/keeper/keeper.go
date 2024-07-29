@@ -296,8 +296,8 @@ func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 	return totalReserves.Coins, true
 }
 
-// GetTotalReservesForDenoms returns the total reserves for individual markets based on the denoms
-func (k Keeper) GetTotalReservesForDenoms(ctx sdk.Context, coins sdk.Coins) (sdk.Coins, bool) {
+// GetTotalReservesByCoinDenoms returns the total reserves for individual markets based on the input coin denoms
+func (k Keeper) GetTotalReservesByCoinDenoms(ctx sdk.Context, coins sdk.Coins) (sdk.Coins, bool) {
 	denoms := make(map[string]struct{})
 	for _, denom := range coins.Denoms() {
 		denoms[denom] = struct{}{}
