@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -837,7 +836,6 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 		sdk.NewCoins(sdk.NewCoin("ukava", availableToBorrow.AmountOf("ukava"))),
 	)
 	suite.Require().Error(err)
-	fmt.Println("err: ", err)
 	suite.Require().True(strings.Contains(err.Error(), "protocol reserves exceed available cash"))
 
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(blockDuration))
