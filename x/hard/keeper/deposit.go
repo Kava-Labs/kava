@@ -54,6 +54,13 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 			}
 		}
 	}
+	//1081000000
+	//2000000000ukava
+	// fundsAvailableToBorrow:  10000000000busd,1079999775ukava,200000000usdx
+	//hardMaccCoins:  10000000000busd,1080000001ukava,200000000usdx
+	//hardMaccCoins:  10000000000busd,1080000001ukava,200000000usdx
+
+	// fundsAvailableToBorrow:  10000000000busd,1079999775ukava,200000000usdx
 	if err != nil {
 		return err
 	}
