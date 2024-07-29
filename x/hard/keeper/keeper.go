@@ -302,16 +302,14 @@ func (k Keeper) GetTotalReservesForDenoms(ctx sdk.Context, coins sdk.Coins) (sdk
 	for _, denom := range coins.Denoms() {
 		denoms[denom] = struct{}{}
 	}
-	store := prefix.NewStore(ctx.KVStore(k.key), types.TotalReservesPrefix)
-	bz := store.Get(types.TotalReservesPrefix)
-	if len(bz) == 0 {
+
+	totalReservesCoins, ok := k.GetTotalReserves(ctx)
+	if !ok {
 		return sdk.Coins{}, false
 	}
 
-	var totalReserves types.CoinsProto
-	k.cdc.MustUnmarshal(bz, &totalReserves)
-	filteredTotalReserves := make(sdk.Coins, 0, len(totalReserves.Coins))
-	for _, tr := range totalReserves.Coins {
+	filteredTotalReserves := make(sdk.Coins, 0, len(totalReservesCoins))
+	for _, tr := range totalReservesCoins {
 		if _, ok := denoms[tr.Denom]; ok {
 			filteredTotalReserves = append(filteredTotalReserves, tr)
 		}
