@@ -402,7 +402,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 		},
 		{
-			name: "valid borrow followed by protocol reserves exceed available cash for busd when borrowing from ukava(incorrect)",
+			name: "valid borrow followed by protocol reserves exceed available cash for busd when borrowing from ukava",
 			args: []args{
 				{
 					usdxBorrowLimit:           sdk.MustNewDecFromStr("100000000000"),
@@ -422,6 +422,19 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				{
 					borrower:    sdk.AccAddress(crypto.AddressHash([]byte("test"))),
 					borrowCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1*KAVA_CF))),
+					expectedAccountBalance: sdk.NewCoins(
+						sdk.NewCoin("ukava", sdkmath.NewInt(51*KAVA_CF)), // now should be 1 ukava more
+						sdk.NewCoin("btcb", sdkmath.NewInt(100*BTCB_CF)),
+						sdk.NewCoin("usdx", sdkmath.NewInt(100*USDX_CF)),
+						sdk.NewCoin("busd", sdkmath.NewInt(100*BUSD_CF)),
+						sdk.NewCoin("bnb", sdkmath.NewInt(70*BNB_CF)),
+						sdk.NewCoin("xyz", sdkmath.NewInt(1)),
+					),
+					expectedModAccountBalance: sdk.NewCoins(
+						sdk.NewCoin("ukava", sdkmath.NewInt(1049*KAVA_CF)), // now should be 1 ukava less
+						sdk.NewCoin("bnb", sdkmath.NewInt(30*BUSD_CF)),
+						sdk.NewCoin("usdx", sdkmath.NewInt(100*USDX_CF)),
+					),
 				},
 			},
 			errArgs: []errArgs{
@@ -429,9 +442,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 					expectPass: true,
 				},
 				{
-					// THIS SHOULDN'T FAIL
-					expectPass: false,
-					contains:   "insolvency - protocol reserves exceed available cash",
+					expectPass: true,
 				},
 			},
 		},
@@ -773,8 +784,7 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(blockDuration))
 	hard.BeginBlocker(suite.ctx, suite.keeper)
 
-	// TODO: this is wrong, since usdk is not insolvent, ukava is.
-	suite.Require().Error(suite.keeper.Borrow(
+	suite.Require().NoError(suite.keeper.Borrow(
 		suite.ctx,
 		borrower,
 		sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF))),
