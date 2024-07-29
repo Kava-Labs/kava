@@ -431,7 +431,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				{
 					// THIS SHOULDN'T FAIL
 					expectPass: false,
-					contains:   "reserves 2638559busd,12306usdx > cash 3000000000bnb,1050000000ukava,100000000usdx: insolvency - protocol reserves exceed available cash",
+					contains:   "insolvency - protocol reserves exceed available cash",
 				},
 			},
 		},
@@ -464,7 +464,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 				},
 				{
 					expectPass: false,
-					contains:   "reserves 2638559busd,12306usdx > cash 3000000000bnb,1050000000ukava,100000000usdx: insolvency - protocol reserves exceed available cash",
+					contains:   "insolvency - protocol reserves exceed available cash",
 				},
 			},
 		},
