@@ -17,7 +17,7 @@ jobs:
         id: load-version
         run: |
           echo "GOLANGCI_VERSION=$(cat .golangci-version)"
-          echo "REV=$(git merge-base origin/main HEAD)"
+          echo "REV=$(git merge-base origin/master HEAD)"
           echo "REV=${{ steps.load-version.outputs.REV }}"
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
