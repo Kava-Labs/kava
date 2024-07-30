@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/kava-labs/kava/x/hard/keeper"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -880,7 +882,7 @@ func (suite *KeeperTestSuite) TestFilterCoinsByDenoms() {
 	}
 	for _, tt := range tests {
 		suite.Run(tt.name, func() {
-			got := suite.keeper.FilterCoinsByDenoms(tt.args.coins, tt.args.filterByCoins)
+			got := keeper.FilterCoinsByDenoms(tt.args.coins, tt.args.filterByCoins)
 			suite.Require().Equal(tt.want, got)
 		})
 	}

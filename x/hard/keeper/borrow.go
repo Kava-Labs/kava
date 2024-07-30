@@ -118,12 +118,12 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 
 	// The reserve coins aren't available for users to borrow
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
-	hardMaccCoins := k.FilterCoinsByDenoms(k.bankKeeper.GetAllBalances(ctx, macc.GetAddress()), amount)
+	hardMaccCoins := FilterCoinsByDenoms(k.bankKeeper.GetAllBalances(ctx, macc.GetAddress()), amount)
 	reserveCoins, foundReserveCoins := k.GetTotalReserves(ctx)
 	if !foundReserveCoins {
 		reserveCoins = sdk.NewCoins()
 	} else {
-		reserveCoins = k.FilterCoinsByDenoms(reserveCoins, amount)
+		reserveCoins = FilterCoinsByDenoms(reserveCoins, amount)
 	}
 
 	fundsAvailableToBorrow, isNegative := hardMaccCoins.SafeSub(reserveCoins...)
@@ -232,7 +232,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 //
 // Returns:
 // - A new list of coins that includes only those coins whose denom is in the filterByCoins list.
-func (k Keeper) FilterCoinsByDenoms(coins, filterByCoins sdk.Coins) sdk.Coins {
+func FilterCoinsByDenoms(coins, filterByCoins sdk.Coins) sdk.Coins {
 	// Create a map to store the denoms that we want to filter by.
 	denoms := make(map[string]struct{})
 
