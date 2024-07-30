@@ -13,6 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with: { fetch-depth: 0 }
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
       - name: Load Version
         id: load-version
         run: |
@@ -25,4 +29,3 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           args: -v -c .golangci.yml --new-from-rev ${{ env.REV }}
-
