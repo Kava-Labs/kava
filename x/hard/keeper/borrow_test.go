@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"time"
 
+	"github.com/kava-labs/kava/x/hard/keeper"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
@@ -419,7 +421,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 		},
 		{
-			name: "valid borrow followed by protocol reserves exceed available cash for busd when borrowing from ukava(incorrect)",
+			name: "valid borrow followed by protocol reserves exceed available cash for busd when borrowing from ukava",
 			setup: setupArgs{
 				usdxBorrowLimit:    sdk.MustNewDecFromStr("100000000000"),
 				priceKAVA:          sdk.MustNewDecFromStr("5.00"),
@@ -440,10 +442,20 @@ func (suite *KeeperTestSuite) TestBorrow() {
 					expectPass: true,
 				},
 				{
-					expectedAccountBalance:    sdk.NewCoins(),
-					expectedModAccountBalance: sdk.NewCoins(),
-					expectPass:                false,
-					contains:                  "insolvency - protocol reserves exceed available cash",
+					expectedAccountBalance: sdk.NewCoins(
+						sdk.NewCoin("ukava", sdkmath.NewInt(51*KAVA_CF)), // now should be 1 ukava more
+						sdk.NewCoin("btcb", sdkmath.NewInt(100*BTCB_CF)),
+						sdk.NewCoin("usdx", sdkmath.NewInt(100*USDX_CF)),
+						sdk.NewCoin("busd", sdkmath.NewInt(100*BUSD_CF)),
+						sdk.NewCoin("bnb", sdkmath.NewInt(70*BNB_CF)),
+						sdk.NewCoin("xyz", sdkmath.NewInt(1)),
+					),
+					expectedModAccountBalance: sdk.NewCoins(
+						sdk.NewCoin("ukava", sdkmath.NewInt(1049*KAVA_CF)), // now should be 1 ukava less
+						sdk.NewCoin("bnb", sdkmath.NewInt(30*BUSD_CF)),
+						sdk.NewCoin("usdx", sdkmath.NewInt(100*USDX_CF)),
+					),
+					expectPass: true,
 				},
 			},
 			borrows: []borrowArgs{
@@ -797,12 +809,81 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(blockDuration))
 	hard.BeginBlocker(suite.ctx, suite.keeper)
 
-	// TODO: this is wrong, since usdk is not insolvent, ukava is.
 	err = suite.keeper.Borrow(
 		suite.ctx,
 		borrower,
 		sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF))),
 	)
-	suite.Require().Error(err)
-	suite.Require().ErrorContains(err, "protocol reserves exceed available cash")
+	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) TestFilterCoinsByDenoms() {
+	type args struct {
+		coins         sdk.Coins
+		filterByCoins sdk.Coins
+	}
+	tests := []struct {
+		name string
+		args args
+		want sdk.Coins
+	}{
+		{
+			name: "more coins than filtered coins",
+			args: args{
+				coins: sdk.NewCoins(
+					sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+					sdk.NewCoin("usdx", sdkmath.NewInt(200*USDX_CF)),
+					sdk.NewCoin("busd", sdkmath.NewInt(100*BUSD_CF)),
+				),
+				filterByCoins: sdk.NewCoins(
+					sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF)),
+					sdk.NewCoin("ukava", sdkmath.NewInt(25*KAVA_CF)),
+				),
+			},
+			want: sdk.NewCoins(
+				sdk.NewCoin("usdx", sdkmath.NewInt(200*USDX_CF)),
+				sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+			),
+		},
+		{
+			name: "less coins than filtered coins",
+			args: args{
+				coins: sdk.NewCoins(
+					sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+				),
+				filterByCoins: sdk.NewCoins(
+					sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF)),
+					sdk.NewCoin("ukava", sdkmath.NewInt(25*KAVA_CF)),
+				),
+			},
+			want: sdk.NewCoins(
+				sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+			),
+		},
+		{
+			name: "no filter coins ",
+			args: args{
+				coins: sdk.NewCoins(
+					sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+				),
+				filterByCoins: sdk.NewCoins(),
+			},
+			want: sdk.NewCoins(),
+		},
+		{
+			name: "no coins ",
+			args: args{
+				coins: sdk.NewCoins(),
+				filterByCoins: sdk.NewCoins(
+					sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF))),
+			},
+			want: sdk.NewCoins(),
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			got := keeper.FilterCoinsByDenoms(tt.args.coins, tt.args.filterByCoins)
+			suite.Require().Equal(tt.want, got)
+		})
+	}
 }
