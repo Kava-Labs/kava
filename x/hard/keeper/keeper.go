@@ -296,28 +296,6 @@ func (k Keeper) GetTotalReserves(ctx sdk.Context) (sdk.Coins, bool) {
 	return totalReserves.Coins, true
 }
 
-// GetTotalReservesByCoinDenoms returns the total reserves for individual markets based on the input coin denoms
-func (k Keeper) GetTotalReservesByCoinDenoms(ctx sdk.Context, coins sdk.Coins) (sdk.Coins, bool) {
-	denoms := make(map[string]struct{})
-	for _, denom := range coins.Denoms() {
-		denoms[denom] = struct{}{}
-	}
-
-	totalReservesCoins, ok := k.GetTotalReserves(ctx)
-	if !ok {
-		return sdk.Coins{}, false
-	}
-
-	filteredTotalReserves := make(sdk.Coins, 0, len(totalReservesCoins))
-	for _, tr := range totalReservesCoins {
-		if _, ok := denoms[tr.Denom]; ok {
-			filteredTotalReserves = append(filteredTotalReserves, tr)
-		}
-	}
-
-	return filteredTotalReserves, true
-}
-
 // GetBorrowInterestFactor returns the current borrow interest factor for an individual market
 func (k Keeper) GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)

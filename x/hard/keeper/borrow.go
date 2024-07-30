@@ -118,11 +118,14 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 
 	// The reserve coins aren't available for users to borrow
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
-	hardMaccCoins := k.bankKeeper.GetAllBalances(ctx, macc.GetAddress())
-	reserveCoins, foundReserveCoins := k.GetTotalReservesByCoinDenoms(ctx, amount)
+	hardMaccCoins := k.FilterCoinsByDenoms(k.bankKeeper.GetAllBalances(ctx, macc.GetAddress()), amount)
+	reserveCoins, foundReserveCoins := k.GetTotalReserves(ctx)
 	if !foundReserveCoins {
 		reserveCoins = sdk.NewCoins()
+	} else {
+		reserveCoins = k.FilterCoinsByDenoms(reserveCoins, amount)
 	}
+
 	fundsAvailableToBorrow, isNegative := hardMaccCoins.SafeSub(reserveCoins...)
 	if isNegative {
 		return errorsmod.Wrapf(types.ErrReservesExceedCash, "reserves %s > cash %s", reserveCoins, hardMaccCoins)
@@ -218,6 +221,37 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		return errorsmod.Wrapf(types.ErrInsufficientLoanToValue, "requested borrow %s exceeds the allowable amount as determined by the collateralization ratio", amount)
 	}
 	return nil
+}
+
+// FilterCoinsByDenoms filters the given coins by retaining only those whose denoms
+// are present in the filterByCoins list.
+//
+// Parameters:
+// - coins: The list of coins to be filtered.
+// - filterByCoins: The list of coins whose denoms will be used as a filter.
+//
+// Returns:
+// - A new list of coins that includes only those coins whose denom is in the filterByCoins list.
+func (k Keeper) FilterCoinsByDenoms(coins, filterByCoins sdk.Coins) sdk.Coins {
+	// Create a map to store the denoms that we want to filter by.
+	denoms := make(map[string]struct{})
+
+	// Populate the map with denoms from filterByCoins.
+	for _, denom := range filterByCoins.Denoms() {
+		denoms[denom] = struct{}{}
+	}
+
+	// Prepare a slice to hold the filtered coins.
+	filteredCoins := make(sdk.Coins, 0, len(coins))
+
+	// Iterate through the list of coins and add those that have a denom in the denoms map.
+	for _, coin := range coins {
+		if _, exists := denoms[coin.Denom]; exists {
+			filteredCoins = append(filteredCoins, coin)
+		}
+	}
+
+	return filteredCoins
 }
 
 // IncrementBorrowedCoins increments the total amount of borrowed coins by the newCoins parameter

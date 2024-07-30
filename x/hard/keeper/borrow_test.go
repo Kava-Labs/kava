@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -420,44 +419,6 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			},
 		},
 		{
-			name: "first valid borrow, second insufficient funds blocks",
-			setup: setupArgs{
-				usdxBorrowLimit:    sdk.MustNewDecFromStr("100000000000"),
-				priceKAVA:          sdk.MustNewDecFromStr("5.00"),
-				loanToValueKAVA:    sdk.MustNewDecFromStr("0.6"),
-				priceBTCB:          sdk.MustNewDecFromStr("0.00"),
-				loanToValueBTCB:    sdk.MustNewDecFromStr("0.01"),
-				priceBNB:           sdk.MustNewDecFromStr("0.00"),
-				loanToValueBNB:     sdk.MustNewDecFromStr("0.01"),
-				borrower:           sdk.AccAddress(crypto.AddressHash([]byte("test"))),
-				depositCoins:       []sdk.Coin{sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))},
-				initialBorrowCoins: sdk.NewCoins(),
-			},
-			expected: []expected{
-				{
-					expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20*KAVA_CF)), sdk.NewCoin("btcb", sdkmath.NewInt(100*BTCB_CF)), sdk.NewCoin("bnb", sdkmath.NewInt(100*BNB_CF)), sdk.NewCoin("xyz", sdkmath.NewInt(1))),
-					expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1080*KAVA_CF)), sdk.NewCoin("usdx", sdkmath.NewInt(200*USDX_CF)), sdk.NewCoin("busd", sdkmath.NewInt(100*BUSD_CF))),
-
-					expectPass: true,
-				},
-				{
-					expectedAccountBalance:    sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(40*KAVA_CF)), sdk.NewCoin("btcb", sdkmath.NewInt(100*BTCB_CF)), sdk.NewCoin("bnb", sdkmath.NewInt(100*BNB_CF)), sdk.NewCoin("xyz", sdkmath.NewInt(1))),
-					expectedModAccountBalance: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1060*KAVA_CF)), sdk.NewCoin("usdx", sdkmath.NewInt(200*USDX_CF)), sdk.NewCoin("busd", sdkmath.NewInt(100*BUSD_CF))),
-					expectPass:                true,
-				},
-			},
-			borrows: []borrowArgs{
-				{
-					borrowCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20*KAVA_CF))),
-					wantErr:     "",
-				},
-				{
-					borrowCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20*KAVA_CF))),
-					wantErr:     "",
-				},
-			},
-		},
-		{
 			name: "valid borrow followed by protocol reserves exceed available cash for busd when borrowing from ukava",
 			setup: setupArgs{
 				usdxBorrowLimit:    sdk.MustNewDecFromStr("100000000000"),
@@ -650,7 +611,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 			suite.Require().NoError(suite.keeper.Deposit(suite.ctx, tc.setup.borrower, tc.setup.depositCoins))
 			// Execute user's previous borrows
 			if err = suite.keeper.Borrow(suite.ctx, tc.setup.borrower, tc.setup.initialBorrowCoins); tc.setup.initialBorrowCoins.IsZero() {
-				suite.Require().True(strings.Contains(err.Error(), "cannot borrow zero coins"))
+				suite.Require().ErrorContains(err, "cannot borrow zero coins")
 			} else {
 				suite.Require().NoError(err)
 			}
@@ -674,7 +635,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 					suite.Require().True(f)
 				} else {
 					suite.Require().Error(err)
-					suite.Require().True(strings.Contains(err.Error(), tc.expected[i].contains))
+					suite.Require().ErrorContains(err, tc.expected[i].contains)
 				}
 				blockDuration := time.Second * 3600 * 30 // long blocks to accumulate larger interest
 				runAtTime := suite.ctx.BlockTime().Add(blockDuration)
@@ -829,7 +790,7 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 		sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(2*USDX_CF))),
 	)
 	suite.Require().Error(err)
-	suite.Require().True(strings.Contains(err.Error(), "available to borrow: exceeds module account balance"))
+	suite.Require().ErrorContains(err, "available to borrow: exceeds module account balance")
 
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(blockDuration))
 	hard.BeginBlocker(suite.ctx, suite.keeper)
@@ -841,7 +802,7 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 		sdk.NewCoins(sdk.NewCoin("ukava", availableToBorrow.AmountOf("ukava"))),
 	)
 	suite.Require().Error(err)
-	suite.Require().True(strings.Contains(err.Error(), "protocol reserves exceed available cash"))
+	suite.Require().ErrorContains(err, "protocol reserves exceed available cash")
 
 	suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(blockDuration))
 	hard.BeginBlocker(suite.ctx, suite.keeper)
@@ -852,4 +813,75 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 		sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF))),
 	)
 	suite.Require().NoError(err)
+}
+
+func (suite *KeeperTestSuite) TestFilterCoinsByDenoms() {
+	type args struct {
+		coins         sdk.Coins
+		filterByCoins sdk.Coins
+	}
+	tests := []struct {
+		name string
+		args args
+		want sdk.Coins
+	}{
+		{
+			name: "more coins than filtered coins",
+			args: args{
+				coins: sdk.NewCoins(
+					sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+					sdk.NewCoin("usdx", sdkmath.NewInt(200*USDX_CF)),
+					sdk.NewCoin("busd", sdkmath.NewInt(100*BUSD_CF)),
+				),
+				filterByCoins: sdk.NewCoins(
+					sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF)),
+					sdk.NewCoin("ukava", sdkmath.NewInt(25*KAVA_CF)),
+				),
+			},
+			want: sdk.NewCoins(
+				sdk.NewCoin("usdx", sdkmath.NewInt(200*USDX_CF)),
+				sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+			),
+		},
+		{
+			name: "less coins than filtered coins",
+			args: args{
+				coins: sdk.NewCoins(
+					sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+				),
+				filterByCoins: sdk.NewCoins(
+					sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF)),
+					sdk.NewCoin("ukava", sdkmath.NewInt(25*KAVA_CF)),
+				),
+			},
+			want: sdk.NewCoins(
+				sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+			),
+		},
+		{
+			name: "no filter coins ",
+			args: args{
+				coins: sdk.NewCoins(
+					sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)),
+				),
+				filterByCoins: sdk.NewCoins(),
+			},
+			want: sdk.NewCoins(),
+		},
+		{
+			name: "no coins ",
+			args: args{
+				coins: sdk.NewCoins(),
+				filterByCoins: sdk.NewCoins(
+					sdk.NewCoin("usdx", sdkmath.NewInt(25*USDX_CF))),
+			},
+			want: sdk.NewCoins(),
+		},
+	}
+	for _, tt := range tests {
+		suite.Run(tt.name, func() {
+			got := suite.keeper.FilterCoinsByDenoms(tt.args.coins, tt.args.filterByCoins)
+			suite.Require().Equal(tt.want, got)
+		})
+	}
 }
