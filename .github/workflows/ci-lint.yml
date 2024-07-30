@@ -16,11 +16,13 @@ jobs:
       - name: Load Version
         id: load-version
         run: |
-          echo "GOLANGCI_VERSION=$(cat .golangci-version)"
-          echo "REV=$(git merge-base origin/master HEAD)"
+          GOLANGCI_VERSION=$(cat .golangci-version)
+          REV=$(git merge-base origin/master HEAD)
+          echo "GOLANGCI_VERSION=$GOLANGCI_VERSION" >> $GITHUB_ENV
+          echo "REV=$REV" >> $GITHUB_ENV
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: ${{ steps.load-version.outputs.GOLANGCI_VERSION }}
-          args: -v -c .golangci.yml --new-from-rev ${{ steps.load-version.outputs.REV }}
+          version: ${{ env.GOLANGCI_VERSION }}
+          args: -v -c .golangci.yml --new-from-rev ${{ env.REV }}
 
