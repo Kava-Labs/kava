@@ -216,7 +216,7 @@ func TestBasePool_AddLiquidity(t *testing.T) {
 
 			actualA, actualB, actualShares := pool.AddLiquidity(tc.desiredA, tc.desiredB)
 
-			// assert correct values are retruned
+			// assert correct values are returned
 			assert.Equal(t, tc.expectedA, actualA, "deposited A liquidity not equal")
 			assert.Equal(t, tc.expectedB, actualB, "deposited B liquidity not equal")
 			assert.Equal(t, tc.expectedShares, actualShares, "calculated shares not equal")

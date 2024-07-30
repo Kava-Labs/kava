@@ -217,20 +217,22 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins() {
 			fraCoinAmt := tt.burnCoins.AmountOf(types.ExtendedCoinDenom)
 
 			totalExtCoinAmt := intCoinAmt.Add(fraCoinAmt)
+			spentCoins := sdk.NewCoins(sdk.NewCoin(
+				types.ExtendedCoinDenom,
+				totalExtCoinAmt,
+			))
 
 			events := suite.Ctx.EventManager().Events()
-			extendedEvent := banktypes.NewCoinBurnEvent(
-				recipientAddr,
-				sdk.NewCoins(sdk.NewCoin(
-					types.ExtendedCoinDenom,
-					totalExtCoinAmt,
-				)),
-			)
+
+			expBurnEvent := banktypes.NewCoinBurnEvent(recipientAddr, spentCoins)
+			expSpendEvent := banktypes.NewCoinSpentEvent(recipientAddr, spentCoins)
 
 			if totalExtCoinAmt.IsZero() {
-				suite.Require().NotContains(events, extendedEvent)
+				suite.Require().NotContains(events, expBurnEvent)
+				suite.Require().NotContains(events, expSpendEvent)
 			} else {
-				suite.Require().Contains(events, extendedEvent)
+				suite.Require().Contains(events, expBurnEvent)
+				suite.Require().Contains(events, expSpendEvent)
 			}
 		})
 	}
