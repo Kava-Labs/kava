@@ -1,28 +1,28 @@
 run:
-  timeout: 20m
-  modules-download-mode: readonly
-  issues-exit-code: 0
-  allow-parallel-runners: true
+  timeout: 20m # set maximum time allowed for the linter to run. If the linting process exceeds this duration, it will be terminated
+  modules-download-mode: readonly # Ensures that modules are not modified during the linting process
+  issues-exit-code: 0 # TODO remove, set the exit code to 0 even if there are linting issues
+  allow-parallel-runners: true # enables parallel execution of linters to speed up linting process
 
 
 linters-settings:
   errcheck:
-    check-blank: true
-    check-type-assertions: false
+    check-blank: true # check for assignments to the blank identifier '_' when errors are returned
+    check-type-assertions: true # check type assertion 
   errorlint:
-    check-generated: false
-    default-signifies-exhaustive: false
+    check-generated: false # disabled linting of generated files
+    default-signifies-exhaustive: false # exhaustive handling of error types
   exhaustive:
-    default-signifies-exhaustive: false
+    default-signifies-exhaustive: false # exhaustive handling of error types
   gci:
-    sections:
-      - standard
+    sections: # defines the order of import sections
+      - standard 
       - default
   goconst:
-    min-len: 3
-    min-occurrences: 3
+    min-len: 3 # min length for string constants to be checked
+    min-occurrences: 3 # min occurrences of the same constant before it's flagged
   godox:
-    keywords:
+    keywords: # specific keywords to flag for further action
       - BUG
       - FIXME
       - HACK
@@ -33,14 +33,14 @@ linters-settings:
     require-explanation: true
     require-specific: true
   unparam:
-    check-exported: true
+    check-exported: true # checks exported functions and methods for unused params
   misspell:
     locale: US
     ignore-words: expect
   prealloc:
-    simple: true
-    range-loops: true
-    for-loops: false
+    simple: true # enables simple preallocation checks
+    range-loops: true # enabled preallocation checks in range loops
+    for-loops: false # disables preallocation checks in for loops
 
 linters:
   disable-all: true
