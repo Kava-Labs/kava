@@ -11,18 +11,18 @@ linters:
     - bidichk
     - bodyclose
     - containedctx
-#    - contextcheck
+    - contextcheck
     - decorder
     - dogsled
 #    - dupl
 #    - dupword
     - durationcheck
-#    - errcheck
+    - errcheck
     - errchkjson
     - errname
-#    - errorlint
+    - errorlint
 #    - exhaustive
-#    - exportloopref
+    - exportloopref
     - funlen
     - gci
     - ginkgolinter
@@ -36,43 +36,43 @@ linters:
 #    - gofumpt
     - goheader
     - goimports
-#    - mnd
+    - mnd
 #    - gomodguard
     - goprintffuncname
 #    - gosec
-#    - gosimple
-#    - govet
+    - gosimple
+    - govet
     - grouper
     - importas
-#    - ineffassign
+    - ineffassign
 #    - interfacebloat
     - lll
     - loggercheck
     - makezero
     - mirror
-#    - misspell
+    - misspell
     - musttag
 #    - nakedret
 #    - nestif
-#    - nilerr
+    - nilerr
 #    - nilnil
 #    - noctx
-#    - nolintlint
+    - nolintlint
 #    - nonamedreturns
     - nosprintfhostport
     - prealloc
-#    - predeclared
+    - predeclared
     - promlinter
 #    - reassign
     - revive
     - rowserrcheck
-#    - staticcheck
+    - staticcheck
 #    - stylecheck
     - tagalign
 #    - testpackage
 #    - thelper
 #    - tparallel
-#    - typecheck
+    - typecheck
 #    - unconvert
     - unparam
     - unused
