@@ -1,7 +1,6 @@
 run:
   timeout: 20m # set maximum time allowed for the linter to run. If the linting process exceeds this duration, it will be terminated
   modules-download-mode: readonly # Ensures that modules are not modified during the linting process
-  issues-exit-code: 0 # TODO remove, set the exit code to 0 even if there are linting issues
   allow-parallel-runners: true # enables parallel execution of linters to speed up linting process
 
 linters:
@@ -20,17 +19,18 @@ linters:
     - durationcheck
 #    - errcheck
     - errchkjson
-#    - errname
+    - errname
 #    - errorlint
 #    - exhaustive
 #    - exportloopref
+    - funlen
     - gci
     - ginkgolinter
     - gocheckcompilerdirectives
 #    - gochecknoglobals
 #    - gochecknoinits
     - goconst
-#    - gocritic
+    - gocritic
     - godox
     - gofmt
 #    - gofumpt
@@ -60,25 +60,27 @@ linters:
 #    - nolintlint
 #    - nonamedreturns
     - nosprintfhostport
-#    - prealloc
+    - prealloc
 #    - predeclared
     - promlinter
 #    - reassign
-#    - revive
+    - revive
     - rowserrcheck
 #    - staticcheck
 #    - stylecheck
-#    - tagalign
+    - tagalign
 #    - testpackage
 #    - thelper
 #    - tparallel
 #    - typecheck
 #    - unconvert
-#    - unparam
-#    - unused
+    - unparam
+    - unused
 #    - usestdlibvars
-#    - wastedassign
+    - wastedassign
 #    - whitespace
+    - wrapcheck
+
 
 linters-settings:
   errcheck:
@@ -102,7 +104,7 @@ linters-settings:
       - FIXME
       - HACK
   lll:
-    line-length: 140
+    line-length: 120
   nolintlint:
     allow-leading-space: false
     require-explanation: true

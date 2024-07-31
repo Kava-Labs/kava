@@ -95,7 +95,6 @@ import (
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/ethereum/go-ethereum/core/vm"
-
 	evmante "github.com/evmos/ethermint/app/ante"
 	ethermintconfig "github.com/evmos/ethermint/server/config"
 	"github.com/evmos/ethermint/x/evm"
@@ -127,7 +126,6 @@ import (
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earn "github.com/kava-labs/kava/x/earn"
 	earnclient "github.com/kava-labs/kava/x/earn/client"
-
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
@@ -154,7 +152,6 @@ import (
 	"github.com/kava-labs/kava/x/precisebank"
 	precisebankkeeper "github.com/kava-labs/kava/x/precisebank/keeper"
 	precisebanktypes "github.com/kava-labs/kava/x/precisebank/types"
-
 	pricefeed "github.com/kava-labs/kava/x/pricefeed"
 	pricefeedkeeper "github.com/kava-labs/kava/x/pricefeed/keeper"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
