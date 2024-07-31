@@ -118,28 +118,3 @@ linters-settings:
     simple: true # enables simple preallocation checks
     range-loops: true # enabled preallocation checks in range loops
     for-loops: false # disables preallocation checks in for loops
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - cyclop
-        - dupl
-        - errcheck
-        - gochecknoglobals
-        - gochecknoinits
-        - goconst
-        - mnd
-        - noctx
-    - linters:
-        - gosec
-      text: "math/rand"
-      path: _test\.go
-    - linters:
-        - gosec
-      text: "TLS InsecureSkipVerify set true"
-      path: _test\.go
-    - linters:
-        - gosec
-      text: "G108: Profiling endpoint is automatically exposed on /debug/pprof"
-      path: _test\.go
