@@ -1,0 +1,120 @@
+run:
+  timeout: 20m # set maximum time allowed for the linter to run. If the linting process exceeds this duration, it will be terminated
+  modules-download-mode: readonly # Ensures that modules are not modified during the linting process
+  allow-parallel-runners: true # enables parallel execution of linters to speed up linting process
+
+linters:
+  disable-all: true
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - decorder
+    - dogsled
+#    - dupl
+#    - dupword
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+#    - exhaustive
+    - exportloopref
+    - funlen
+    - gci
+    - ginkgolinter
+    - gocheckcompilerdirectives
+#    - gochecknoglobals
+#    - gochecknoinits
+    - goconst
+    - gocritic
+    - godox
+    - gofmt
+#    - gofumpt
+    - goheader
+    - goimports
+    - mnd
+#    - gomodguard
+    - goprintffuncname
+#    - gosec
+    - gosimple
+    - govet
+    - grouper
+    - importas
+    - ineffassign
+#    - interfacebloat
+    - lll
+    - loggercheck
+    - makezero
+    - mirror
+    - misspell
+    - musttag
+#    - nakedret
+#    - nestif
+    - nilerr
+#    - nilnil
+#    - noctx
+    - nolintlint
+#    - nonamedreturns
+    - nosprintfhostport
+    - prealloc
+    - predeclared
+    - promlinter
+#    - reassign
+    - revive
+    - rowserrcheck
+    - staticcheck
+#    - stylecheck
+    - tagalign
+#    - testpackage
+#    - thelper
+#    - tparallel
+    - typecheck
+#    - unconvert
+    - unparam
+    - unused
+#    - usestdlibvars
+    - wastedassign
+#    - whitespace
+    - wrapcheck
+
+
+linters-settings:
+  errcheck:
+    check-blank: true # check for assignments to the blank identifier '_' when errors are returned
+    check-type-assertions: false # check type assertion
+  errorlint:
+    check-generated: false # disabled linting of generated files
+    default-signifies-exhaustive: false # exhaustive handling of error types
+  exhaustive:
+    default-signifies-exhaustive: false # exhaustive handling of error types
+  gci:
+    sections: # defines the order of import sections
+      - standard
+      - default
+  goconst:
+    min-len: 3 # min length for string constants to be checked
+    min-occurrences: 3 # min occurrences of the same constant before it's flagged
+  godox:
+    keywords: # specific keywords to flag for further action
+      - BUG
+      - FIXME
+      - HACK
+  lll:
+    line-length: 120
+  nolintlint:
+    allow-leading-space: false
+    require-explanation: true
+    require-specific: true
+  unparam:
+    check-exported: true # checks exported functions and methods for unused params
+  misspell:
+    locale: US
+    ignore-words: expect
+  prealloc:
+    simple: true # enables simple preallocation checks
+    range-loops: true # enabled preallocation checks in range loops
+    for-loops: false # disables preallocation checks in for loops

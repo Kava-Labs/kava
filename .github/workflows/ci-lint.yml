@@ -7,11 +7,25 @@ jobs:
     uses: ./.github/workflows/proto.yml
   golangci-lint:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write # allow write access to checks to allow the action to annotate code in the PR.
     steps:
-      - uses: actions/checkout@v4
-      - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
-          golangci_lint_flags: --timeout 10m
+          go-version-file: go.mod
+      - name: Load Version
+        id: load-version
+        run: |
+          GOLANGCI_VERSION=$(cat .golangci-version)
+          REV=$(git merge-base origin/master HEAD)
+          echo "GOLANGCI_VERSION=$GOLANGCI_VERSION" >> $GITHUB_ENV
+          echo "REV=$REV" >> $GITHUB_ENV
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: ${{ env.GOLANGCI_VERSION }}
+          args: -v -c .golangci.yml --new-from-rev ${{ env.REV }}
