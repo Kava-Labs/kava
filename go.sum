@@ -873,8 +873,8 @@ github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef/go.mod h1:Ct9fl0F
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
 github.com/kava-labs/cometbft v0.37.4-kava.1 h1:QRuyBieWdUBpe4pcXgzu1SdMH2lkTaqXr/JPIeqdiHE=
 github.com/kava-labs/cometbft v0.37.4-kava.1/go.mod h1:Cmg5Hp4sNpapm7j+x0xRyt2g0juQfmB752ous+pA0G8=
-github.com/kava-labs/cometbft-db v0.9.1-kava.1 h1:0KmSPdXYdRp6TsgKuMxRnMZCMEGC5ysIVjuJddYr4tw=
-github.com/kava-labs/cometbft-db v0.9.1-kava.1/go.mod h1:iliyWaoV0mRwBJoizElCwwRA9Tf7jZJOURcRZF9m60U=
+github.com/kava-labs/cometbft-db v0.9.1-kava.2 h1:ZQaio886ifvml9XtJB4IYHhlArgA3+/a5Zwidg7H2J8=
+github.com/kava-labs/cometbft-db v0.9.1-kava.2/go.mod h1:PvUZbx7zeR7I4CAvtKBoii/5ia5gXskKjDjIVpt7gDw=
 github.com/kava-labs/cosmos-sdk v0.47.10-kava.3 h1:Fi+5URpyAoNbnHHBfps9etLV1kLsdaJUlua1KfDzOK4=
 github.com/kava-labs/cosmos-sdk v0.47.10-kava.3/go.mod h1:xgOZMrQ6t8zZ1XFtEPOfzo6oYN/N1dD3qIlwD/rszCo=
 github.com/kava-labs/ethermint v0.21.1-0.20240719184950-8c96f0354a6d h1:/z7P2VZXASpqylmA3fUvc3SxHHkc5w5iwhnl9wC6bu0=
