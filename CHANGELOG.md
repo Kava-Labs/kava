@@ -41,6 +41,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 - (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
+- (deps) [#1989] Bump cosmos-sdk to v0.47.13-kava.1
 
 ## [v0.26.1]
 
@@ -345,6 +346,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#1989]: https://github.com/Kava-Labs/kava/pull/1989
 [#1954]: https://github.com/Kava-Labs/kava/pull/1954
 [#1922]: https://github.com/Kava-Labs/kava/pull/1922
 [#1903]: https://github.com/Kava-Labs/kava/pull/1903
