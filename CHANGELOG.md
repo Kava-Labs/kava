@@ -71,6 +71,9 @@ For more details see the [IAVL V1 migration guide](/migrate/v0_26/iavl-v1.md).
     - An IAVL v1 reference node is saved at the upgrade height pointing to the version 1 data so app
     data for the upgrade version can be properly loaded.
 
+### Improvements
+- (deps) [#1988] Bump cometbft to v0.37.9-kava.1
+
 ### Bug Fixes
 
 * (ethermint) Fix infinite loop edge cases in evm indexer
@@ -395,6 +398,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 
 [ethermint#82]: https://github.com/Kava-Labs/ethermint/pull/82
 [ethermint#77]: https://github.com/Kava-Labs/ethermint/pull/77
+[#1988]: https://github.com/Kava-Labs/kava/pull/1988
 [#1973]: https://github.com/Kava-Labs/kava/pull/1973
 [#1967]: https://github.com/Kava-Labs/kava/pull/1967
 [#1954]: https://github.com/Kava-Labs/kava/pull/1954
