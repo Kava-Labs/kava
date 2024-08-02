@@ -261,10 +261,10 @@ build-docker-local-kava:
 # Run a 4-node testnet locally
 localnet-start: build-linux localnet-stop
 	@if ! [ -f build/node0/kvd/config/genesis.json ]; then docker run --rm -v $(CURDIR)/build:/kvd:Z kava/kavanode testnet --v 4 -o . --starting-ip-address 192.168.10.2 --keyring-backend=test ; fi
-	docker-compose up -d
+	$(DOCKER) compose up -d
 
 localnet-stop:
-	docker-compose down
+	$(DOCKER) compose down
 
 # Launch a new single validator chain
 start:
@@ -334,7 +334,7 @@ start-remote-sims:
 	# submit an array job on AWS Batch, using 1000 seeds, spot instances
 	aws batch submit-job \
 		-—job-name "master-$(VERSION)" \
-		-—job-queue “simulation-1-queue-spot" \
+		-—job-queue "simulation-1-queue-spot" \
 		-—array-properties size=1000 \
 		-—job-definition kava-sim-master \
 		-—container-override environment=[{SIM_NAME=master-$(VERSION)}]
