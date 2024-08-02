@@ -95,6 +95,7 @@ linters-settings:
     sections: # defines the order of import sections
       - standard
       - default
+      - localmodule
   goconst:
     min-len: 3 # min length for string constants to be checked
     min-occurrences: 3 # min occurrences of the same constant before it's flagged
