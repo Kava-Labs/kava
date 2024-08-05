@@ -32,7 +32,7 @@ lint: $(GOLANGCI_CACHE_DIR)
 		-v $(CURDIR):/app \
 		-w /app \
 		$(GOLANGCI_IMAGE_TAG) \
-		golangci-lint run -v --timeout 10m --new-from-rev $(LINT_FROM_REV)
+		golangci-lint run -v --new-from-rev $(LINT_FROM_REV)
 
 $(GOLANGCI_CACHE_DIR):
 	@mkdir -p $@
