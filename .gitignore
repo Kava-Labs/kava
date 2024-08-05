@@ -31,6 +31,9 @@ out
 # Ignore build cache dir
 build/.cache
 
+# Ignore make lint cache
+build/.golangci-lint
+
 # Ignore installed binaires
 build/bin
 
