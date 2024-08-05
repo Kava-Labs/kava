@@ -101,6 +101,8 @@ include $(BUILD_DIR)/deps.mk
 include $(BUILD_DIR)/proto.mk
 include $(BUILD_DIR)/proto-deps.mk
 
+include $(BUILD_DIR)/lint.mk
+
 #export GO111MODULE = on
 # process build tags
 build_tags = netgo
@@ -229,13 +231,6 @@ link-check:
 	@$(GO_BIN) get -u github.com/raviqqe/liche@f57a5d1c5be4856454cb26de155a65a4fd856ee3
 	liche -r . --exclude "^http://127.*|^https://riot.im/app*|^http://kava-testnet*|^https://testnet-dex*|^https://kava3.data.kava.io*|^https://ipfs.io*|^https://apps.apple.com*|^https://kava.quicksync.io*"
 
-
-lint:
-	golangci-lint run
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
-	$(GO_BIN) mod verify
-.PHONY: lint
-
 format:
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.go' | xargs gofmt -w -s
 	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" -not -name '*.pb.go' | xargs misspell -w
@@ -356,4 +351,4 @@ update-kvtool:
 	git submodule update
 	cd tests/e2e/kvtool && make install
 
-.PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic test-fuzz start-remote-sims
+.PHONY: all build-linux install build test test-cli test-all test-rest test-basic test-fuzz start-remote-sims
