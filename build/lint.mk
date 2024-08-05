@@ -28,7 +28,7 @@ GOLANGCI_CACHE_DIR ?= $(CURDIR)/$(BUILD_CACHE_DIR)/golangci-lint/$(GOLANGCI_VERS
 lint: $(GOLANGCI_CACHE_DIR)
 	@echo "Running lint from rev $(LINT_FROM_REV), use LINT_FROM_REV var to override."
 	$(DOCKER) run -t --rm \
-		-v $(GOLANGCI_CACHE_DIR):/root/cache \
+		-v $(GOLANGCI_CACHE_DIR):/root/.cache \
 		-v $(CURDIR):/app \
 		-w /app \
 		$(GOLANGCI_IMAGE_TAG) \
