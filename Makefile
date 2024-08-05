@@ -43,7 +43,12 @@ print-version:
 ###                             Project Settings                             ###
 ################################################################################
 LEDGER_ENABLED ?= true
+
 DOCKER:=docker
+ifeq ($(shell command -v $(DOCKER)),)
+$(error "Docker command '$(DOCKER)' not found. Please install Docker.")
+endif
+
 DOCKER_BUF := $(DOCKER) run --rm -v $(CURDIR):/workspace --workdir /workspace bufbuild/buf
 HTTPS_GIT := https://github.com/Kava-Labs/kava.git
 
