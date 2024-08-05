@@ -44,7 +44,7 @@ print-version:
 ################################################################################
 LEDGER_ENABLED ?= true
 
-DOCKER:=docker
+DOCKER ?= docker
 ifeq ($(shell command -v $(DOCKER)),)
 $(error "Docker command '$(DOCKER)' not found. Please install Docker.")
 endif
