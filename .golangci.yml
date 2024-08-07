@@ -81,6 +81,13 @@ linters:
 #    - whitespace
     - wrapcheck
 
+issues:
+  exclude-rules:
+    # Disable funlen for "func Test..." or func (suite *Suite) Test..." type functions
+    # These functions tend to be descriptive and exceed length limits.
+    - source: "^func (\\(.*\\) )?Test"
+      linters:
+        - funlen
 
 linters-settings:
   errcheck:
