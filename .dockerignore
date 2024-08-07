@@ -11,5 +11,10 @@ docs/
 networks/
 scratch/
 
+# Ignore build cache directories to avoid
+# errors when addings these to docker images
+build/.cache
+build/.golangci-lint
+
 go.work
 go.work.sum
