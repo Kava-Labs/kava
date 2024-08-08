@@ -165,6 +165,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 			evmtypes.DefaultChainConfig(), // ChainConfig
 			nil,                           // extraEIPs
 			nil,                           // eip712AllowedMsgs
+			nil,                           // enabledPrecompiles
 		),
 		nil,
 	)

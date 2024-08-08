@@ -107,6 +107,7 @@ import (
 
 	"github.com/kava-labs/kava/app/ante"
 	kavaparams "github.com/kava-labs/kava/app/params"
+	_ "github.com/kava-labs/kava/precompile/registry" // Ensure precompiles are registered when using the app module
 	"github.com/kava-labs/kava/x/auction"
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
 	auctiontypes "github.com/kava-labs/kava/x/auction/types"
