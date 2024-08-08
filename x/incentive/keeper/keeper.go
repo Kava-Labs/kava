@@ -793,7 +793,7 @@ func (k Keeper) SetSavingsRewardAccrualTime(ctx sdk.Context, poolID string, bloc
 	store.Set([]byte(poolID), bz)
 }
 
-// IterateSavingsRewardAccrualTimesiterates over all the previous savings reward accrual times in the store
+// IterateSavingsRewardAccrualTimes over all the previous savings reward accrual times in the store
 func (k Keeper) IterateSavingsRewardAccrualTimes(ctx sdk.Context, cb func(string, time.Time) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousSavingsRewardAccrualTimeKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
