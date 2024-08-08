@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"strconv"
 
+	"cosmossdk.io/log"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/store/wrapper"
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/iavl"
+	iavldb "github.com/cosmos/iavl/db"
 )
 
 const (
@@ -68,11 +71,9 @@ func readTree(db dbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) 
 	if len(prefix) != 0 {
 		db = dbm.NewPrefixDB(db, prefix)
 	}
+	dbt := wrapper.NewCosmosDB(db)
+	tree := iavl.NewMutableTree(iavldb.NewWrapper(dbt), DefaultCacheSize, false, log.NewNopLogger())
 
-	tree, err := iavl.NewMutableTree(db, DefaultCacheSize, false)
-	if err != nil {
-		return nil, err
-	}
 	ver, err := tree.LoadVersion(int64(version))
 	if err != nil {
 		return nil, err
