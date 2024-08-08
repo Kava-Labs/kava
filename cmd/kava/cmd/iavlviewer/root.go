@@ -10,11 +10,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store/wrapper"
-	ethermintserver "github.com/evmos/ethermint/server"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/iavl"
 	iavldb "github.com/cosmos/iavl/db"
+	ethermintserver "github.com/evmos/ethermint/server"
+	"github.com/spf13/cobra"
 )
 
 const (
@@ -69,7 +68,7 @@ func openPrefixTree(opts ethermintserver.StartOptions, cmd *cobra.Command, prefi
 
 // ReadTree loads an iavl tree from the directory
 // If version is 0, load latest, otherwise, load named version
-// The prefix represents which iavl tree you want to read. The iaviwer will always set a prefix.
+// The prefix represents which iavl tree you want to read. The iaviewer will always set a prefix.
 func readTree(db dbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) {
 	if len(prefix) != 0 {
 		db = dbm.NewPrefixDB(db, prefix)

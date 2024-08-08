@@ -29,6 +29,7 @@ func newDataCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			defer tree.Close()
 
 			printKeys(tree)
 			hash := tree.Hash()

@@ -22,6 +22,7 @@ func newVersionsCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			defer tree.Close()
 
 			printVersions(tree)
 
