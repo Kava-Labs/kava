@@ -214,7 +214,7 @@ func (MsgConvertCosmosCoinToERC20) Route() string { return RouterKey }
 // Type implements legacytx.LegacyMsg
 func (MsgConvertCosmosCoinToERC20) Type() string { return TypeMsgConvertCosmosCoinToERC20 }
 
-// NewMsgConvertCosmosCoinToERC20 returns a new MsgConvertCosmosCoinToERC20
+// NewMsgConvertCosmosCoinFromERC20 returns a new MsgConvertCosmosCoinToERC20
 func NewMsgConvertCosmosCoinFromERC20(
 	initiator string,
 	receiver string,
