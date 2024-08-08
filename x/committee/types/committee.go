@@ -380,7 +380,7 @@ func MustNewProposal(pubProposal PubProposal, id uint64, committeeID uint64, dea
 	return proposal
 }
 
-// GetPubProposal returns the PubProposal (govtypes.Content)
+// GetContent returns the PubProposal (govtypes.Content)
 func (p Proposal) GetContent() PubProposal {
 	content, ok := p.Content.GetCachedValue().(PubProposal)
 	if !ok {
