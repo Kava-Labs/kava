@@ -97,8 +97,9 @@ func (suite *IntegrationTestSuite) TestPrecompileGenesis() {
 			evmParamsResp, err := suite.Kava.Grpc.Query.Evm.Params(grpcGenesisContext, &evmtypes.QueryParamsRequest{})
 			suite.Require().NoError(err)
 
-			// accountErr is checked during assertions if we are expecting an account due to
-			// the service returning a not found error for precompiles that are not enabled
+			// accountErr is checked during in the assertions below if tf.expectIsEthAccount is true
+			// This is due to the service returning a not found error for address that are not enabled,
+			// which can be ignored when we do not expect an eth account to exist.
 			accountResponse, accountErr := suite.Kava.Grpc.Query.Auth.Account(
 				grpcGenesisContext, &authtypes.QueryAccountRequest{Address: sdkAddress.String()})
 			var account authtypes.AccountI
@@ -107,7 +108,8 @@ func (suite *IntegrationTestSuite) TestPrecompileGenesis() {
 				suite.Require().NoError(err)
 			}
 
-			// We ensure both the evm json rpc and x/evm grpc repeat the correct and same code value
+			// We ensure both the evm json rpc and x/evm grpc code endpoints return the same value
+			// in the assertions below
 			grpcCodeResponse, err := suite.Kava.Grpc.Query.Evm.Code(grpcGenesisContext,
 				&evmtypes.QueryCodeRequest{Address: evmAddress.String()})
 			suite.Require().NoError(err)
