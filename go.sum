@@ -225,8 +225,8 @@ github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3
 github.com/DataDog/zstd v1.5.0/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
 github.com/DataDog/zstd v1.5.5 h1:oWf5W7GtOLgp6bciQYDmhHHjdhYkALu6S/5Ni9ZgSvQ=
 github.com/DataDog/zstd v1.5.5/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
-github.com/Kava-Labs/go-ethereum v1.10.27-0.20240308170502-da7973e5eee0 h1:pPFzOjEZmihLk70TQRPUCWs8uar6nfh4vZ/I1r0zeso=
-github.com/Kava-Labs/go-ethereum v1.10.27-0.20240308170502-da7973e5eee0/go.mod h1:/6CsT5Ceen2WPLI/oCA3xMcZ5sWMF/D46SjM/ayY0Oo=
+github.com/Kava-Labs/go-ethereum v1.10.27-0.20240513233504-6e038346780b h1:gTLS1VJL+6TEcttEmQ9rAmm/UZZw23WlQf6n8R/Xjx0=
+github.com/Kava-Labs/go-ethereum v1.10.27-0.20240513233504-6e038346780b/go.mod h1:tvRm5KYJQ6LT+uss34spIP1oi6JgCfsFYiMKwJLZr6M=
 github.com/Kava-Labs/opendb v0.0.0-20240719173129-a2f11f6d7e51 h1:tMTENCeSPIJO8yCpEQbT15XYXt4EFNQUx3s334uxVts=
 github.com/Kava-Labs/opendb v0.0.0-20240719173129-a2f11f6d7e51/go.mod h1:LbPsJiWvj90NT3Y9YV8EFPkWfvp8A15Tp88qqKa3LxA=
 github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible/go.mod h1:r7JcOSlj0wfOMncg0iLm8Leh48TZaKVeNIfJntJ2wa0=
@@ -894,8 +894,8 @@ github.com/kava-labs/cometbft-db v0.9.1-kava.2 h1:ZQaio886ifvml9XtJB4IYHhlArgA3+
 github.com/kava-labs/cometbft-db v0.9.1-kava.2/go.mod h1:PvUZbx7zeR7I4CAvtKBoii/5ia5gXskKjDjIVpt7gDw=
 github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1 h1:vQwrm3sdAG1pkwrsi2mmCHSGDje5fzUR6vApEux/nVA=
 github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1/go.mod h1:OwLYEBcsnijCLE8gYkwQ7jycZZ/Acd+a83pJU+V+MKw=
-github.com/kava-labs/ethermint v0.21.1-0.20240719175058-d18ee9bd0f84 h1:kAoQaPVKpEIG8t6+F3crawO7vgJIGlUy68XayjkYz8A=
-github.com/kava-labs/ethermint v0.21.1-0.20240719175058-d18ee9bd0f84/go.mod h1:kbyr3La2Co3Hy3U3N2EvVk7W1srQ2x88JUpgsu2KrXo=
+github.com/kava-labs/ethermint v0.21.1-0.20240802224012-586960857184 h1:MWwCXFnkagXk93QiiD41I+S9wyrHZUQWLRFKo2tXL6A=
+github.com/kava-labs/ethermint v0.21.1-0.20240802224012-586960857184/go.mod h1:kbyr3La2Co3Hy3U3N2EvVk7W1srQ2x88JUpgsu2KrXo=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=

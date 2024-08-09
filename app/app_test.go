@@ -19,6 +19,7 @@ import (
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	solomachine "github.com/cosmos/ibc-go/v7/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
+	"github.com/ethereum/go-ethereum/precompile/modules"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -117,6 +118,16 @@ func TestLegacyMsgAreAminoRegistered(t *testing.T) {
 			require.Containsf(t, panicValue, aminoErrMsgPrefix, "msg %s amino registration panicked for unexpected reason", msgName)
 		}
 	}
+}
+
+// TestPrecompilesAreRegistered asserts that we have loaded the global precompile registry
+// by checking if at least one precompile is set
+//
+// If this test fails then has '_ "github.com/kava-labs/kava/precompile/registry"' been imported?
+func TestPrecompilesAreRegistered(t *testing.T) {
+	assert.Greater(t, len(modules.RegisteredModules()), 0,
+		"expected precompile registry to be imported and have at least one registered precompile",
+	)
 }
 
 // catchPanic returns the panic value of the passed function. The second return indicates if the function panicked.
