@@ -30,6 +30,7 @@ func NewCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd.AddCommand(newHashCmd(opts))
 	cmd.AddCommand(newShapeCmd(opts))
 	cmd.AddCommand(newVersionsCmd(opts))
+	cmd.AddCommand(newCommitInfoCmd(opts))
 
 	return cmd
 }
@@ -43,6 +44,19 @@ func parseVersion(arg string) (int, error) {
 }
 
 func openPrefixTree(opts ethermintserver.StartOptions, cmd *cobra.Command, prefix string, version int) (*iavl.MutableTree, error) {
+	db, err := openDB(opts, cmd)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %s", err)
+	}
+
+	tree, err := readTree(db, version, []byte(prefix))
+	if err != nil {
+		return nil, fmt.Errorf("failed to read tree with prefix %s: %s", prefix, err)
+	}
+	return tree, nil
+}
+
+func openDB(opts ethermintserver.StartOptions, cmd *cobra.Command) (dbm.DB, error) {
 	clientCtx := client.GetClientContextFromCmd(cmd)
 	ctx := server.GetServerContextFromCmd(cmd)
 	ctx.Config.SetRoot(clientCtx.HomeDir)
@@ -51,17 +65,8 @@ func openPrefixTree(opts ethermintserver.StartOptions, cmd *cobra.Command, prefi
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database at %s: %s", clientCtx.HomeDir, err)
 	}
-	defer func() {
-		if err := db.Close(); err != nil {
-			ctx.Logger.Error("error closing db", "error", err.Error())
-		}
-	}()
 
-	tree, err := readTree(db, version, []byte(prefix))
-	if err != nil {
-		return nil, fmt.Errorf("failed to read tree with prefix %s: %s", prefix, err)
-	}
-	return tree, nil
+	return db, nil
 }
 
 // ReadTree loads an iavl tree from the directory
@@ -74,11 +79,13 @@ func readTree(db dbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) 
 	dbt := wrapper.NewCosmosDB(db)
 	tree := iavl.NewMutableTree(iavldb.NewWrapper(dbt), DefaultCacheSize, false, log.NewNopLogger())
 
+	fmt.Printf("Loading tree version: %d\n", version)
 	ver, err := tree.LoadVersion(int64(version))
 	if err != nil {
 		return nil, err
 	}
+
 	fmt.Printf("Latest version: %d\n", ver)
-	fmt.Printf("Got version: %d\n", version)
+
 	return tree, err
 }
