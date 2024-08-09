@@ -29,6 +29,7 @@ func newShapeCmd(opts ethermintserver.StartOptions) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			defer tree.Close()
 
 			printShape(tree)
 
@@ -40,7 +41,6 @@ func newShapeCmd(opts ethermintserver.StartOptions) *cobra.Command {
 }
 
 func printShape(tree *iavl.MutableTree) {
-	// shape := tree.RenderShape("  ", nil)
 	// TODO: handle this error
 	shape, _ := tree.RenderShape("  ", nodeEncoder)
 	fmt.Println(strings.Join(shape, "\n"))
