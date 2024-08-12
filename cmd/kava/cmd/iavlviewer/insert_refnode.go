@@ -65,53 +65,53 @@ func newInsertReferenceNode(opts ethermintserver.StartOptions) *cobra.Command {
 			fmt.Printf("---------------------\n")
 			fmt.Printf("Node key format: (version, nonce) - root nodes have nonce of 1\n")
 
-			iter, err := db.Iterator(nil, nil)
-			if err != nil {
-				return fmt.Errorf("failed to create iterator: %w", err)
-			}
-			defer iter.Close()
+			// iter, err := db.Iterator(nil, nil)
+			// if err != nil {
+			// 	return fmt.Errorf("failed to create iterator: %w", err)
+			// }
+			// defer iter.Close()
 
-			// Print all nodes
-			for ; iter.Valid(); iter.Next() {
-				key := iter.Key()
-				keyPrefix := string(key[:1])
-				keyRest := key[1:]
+			// // Print all nodes
+			// for ; iter.Valid(); iter.Next() {
+			// 	key := iter.Key()
+			// 	keyPrefix := string(key[:1])
+			// 	keyRest := key[1:]
 
-				if keyPrefix == "s" {
-					var nk []byte
-					nodeKeyFormat.Scan(key, &nk)
-					nodeKey := iavl.GetNodeKey(nk)
+			// 	if keyPrefix == "s" {
+			// 		var nk []byte
+			// 		nodeKeyFormat.Scan(key, &nk)
+			// 		nodeKey := iavl.GetNodeKey(nk)
 
-					isRef, _ := isReferenceRoot(iter.Value())
-					if isRef {
-						var nk []byte
-						nodeKeyFormat.Scan(iter.Value(), &nk)
-						referredNodeKey := iavl.GetNodeKey(nk)
+			// 		isRef, _ := isReferenceRoot(iter.Value())
+			// 		if isRef {
+			// 			var nk []byte
+			// 			nodeKeyFormat.Scan(iter.Value(), &nk)
+			// 			referredNodeKey := iavl.GetNodeKey(nk)
 
-						fmt.Printf(
-							"[Reference Node] %s -> %s\n",
-							nodeKey.String(),
-							referredNodeKey.String(),
-						)
-						continue
-					}
+			// 			fmt.Printf(
+			// 				"[Reference Node] %s -> %s\n",
+			// 				nodeKey.String(),
+			// 				referredNodeKey.String(),
+			// 			)
+			// 			continue
+			// 		}
 
-					fmt.Printf("[Node] %s -> %x\n", nodeKey.String(), iter.Value())
-					continue
-				}
+			// 		fmt.Printf("[Node] %s -> %x\n", nodeKey.String(), iter.Value())
+			// 		continue
+			// 	}
 
-				keyPrefixName := ""
-				switch keyPrefix {
-				case "f":
-					keyPrefixName = "fastKey"
-				case "m":
-					keyPrefixName = "metadata"
-				default:
-					keyPrefixName = keyPrefix
-				}
+			// 	keyPrefixName := ""
+			// 	switch keyPrefix {
+			// 	case "f":
+			// 		keyPrefixName = "fastKey"
+			// 	case "m":
+			// 		keyPrefixName = "metadata"
+			// 	default:
+			// 		keyPrefixName = keyPrefix
+			// 	}
 
-				fmt.Printf("%s: %x -> %x\n", keyPrefixName, keyRest, iter.Value())
-			}
+			// 	fmt.Printf("%s: %x -> %x\n", keyPrefixName, keyRest, iter.Value())
+			// }
 
 			// How to get node db, not IAVL tree
 			nodeBytes, err := db.Get(rootNodeKey)
