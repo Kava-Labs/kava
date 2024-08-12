@@ -27,10 +27,10 @@ func isReferenceRoot(bz []byte) (bool, int) {
 	return false, 0
 }
 
-func newUpdateRootKeyVersion(opts ethermintserver.StartOptions) *cobra.Command {
+func newInsertReferenceNode(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-root-key-version [prefix] [old root node key version] [new root node key version]",
-		Short: "Modify the root key version.",
+		Use:   "insert-reference-node [prefix] [target node version] [reference key version]",
+		Short: "Add a new reference node that points to another version.",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			prefix := args[0]

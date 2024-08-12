@@ -31,7 +31,7 @@ func NewCmd(opts ethermintserver.StartOptions) *cobra.Command {
 	cmd.AddCommand(newShapeCmd(opts))
 	cmd.AddCommand(newVersionsCmd(opts))
 	cmd.AddCommand(newCommitInfoCmd(opts))
-	cmd.AddCommand(newUpdateRootKeyVersion(opts))
+	cmd.AddCommand(newInsertReferenceNode(opts))
 
 	return cmd
 }
