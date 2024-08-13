@@ -296,6 +296,30 @@
       }
     },
     {
+      "url": "./client/docs/ethermint-swagger.yml",
+      "dereference": {
+        "circular": "ignore"
+      },
+      "tags": {
+        "rename": {
+          "Query": "Ethermint"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Ethermint$1"
+          }
+        ]
+      },
+      "paths": {
+        "exclude": [
+        ]
+      }
+    },
+    {
       "url": "./client/docs/legacy-swagger.yml",
       "dereference": {
         "circular": "ignore"
