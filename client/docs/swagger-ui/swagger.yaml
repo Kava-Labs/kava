@@ -12019,6 +12019,163 @@ paths:
                       format: byte
       tags:
         - Liquid
+  /kava/precisebank/v1/fractional_balance/{address}:
+    get:
+      summary: >-
+        FractionalBalance returns only the fractional balance of an address.
+        This
+
+        does not include any integer balance.
+      operationId: PrecisebankFractionalBalance
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              fractional_balance:
+                description: fractional_balance is the fractional balance of the address.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+            description: >-
+              QueryFractionalBalanceResponse defines the response type for
+              Query/FractionalBalance method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: address
+          description: address is the account address to query  fractional balance for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - Precisebank
+  /kava/precisebank/v1/remainder:
+    get:
+      summary: |-
+        Remainder returns the amount backed by the reserve, but not yet owned by
+        any account, i.e. not in circulation.
+      operationId: PrecisebankRemainder
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              remainder:
+                description: >-
+                  remainder is the amount backed by the reserve, but not yet
+                  owned by any
+
+                  account, i.e. not in circulation.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+            description: >-
+              QueryRemainderResponse defines the response type for
+              Query/Remainder method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Precisebank
+  /kava/precisebank/v1/total_fractional_balances:
+    get:
+      summary: |-
+        TotalFractionalBalances returns the total sum of all fractional balances
+        managed by the precisebank module.
+      operationId: PrecisebankTotalFractionalBalances
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              total:
+                description: >-
+                  total is the total sum of all fractional balances managed by
+                  the precisebank
+
+                  module.
+                type: object
+                properties:
+                  denom:
+                    type: string
+                  amount:
+                    type: string
+            description: >-
+              QueryTotalFractionalBalancesResponse defines the response type for
+              Query/TotalFractionalBalances method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Precisebank
   /kava/pricefeed/v1beta1/markets:
     get:
       summary: Markets queries all markets
@@ -62082,6 +62239,56 @@ definitions:
     description: >-
       TotalSupplyResponse defines the response type for the Query/TotalSupply
       method.
+  kava.precisebank.v1.QueryFractionalBalanceResponse:
+    type: object
+    properties:
+      fractional_balance:
+        description: fractional_balance is the fractional balance of the address.
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+    description: >-
+      QueryFractionalBalanceResponse defines the response type for
+      Query/FractionalBalance method.
+  kava.precisebank.v1.QueryRemainderResponse:
+    type: object
+    properties:
+      remainder:
+        description: >-
+          remainder is the amount backed by the reserve, but not yet owned by
+          any
+
+          account, i.e. not in circulation.
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+    description: >-
+      QueryRemainderResponse defines the response type for Query/Remainder
+      method.
+  kava.precisebank.v1.QueryTotalFractionalBalancesResponse:
+    type: object
+    properties:
+      total:
+        description: >-
+          total is the total sum of all fractional balances managed by the
+          precisebank
+
+          module.
+        type: object
+        properties:
+          denom:
+            type: string
+          amount:
+            type: string
+    description: >-
+      QueryTotalFractionalBalancesResponse defines the response type for
+      Query/TotalFractionalBalances method.
   kava.pricefeed.v1beta1.CurrentPriceResponse:
     type: object
     properties:
