@@ -183,6 +183,23 @@
       }
     },
     {
+      "url": "./out/swagger/kava/precisebank/v1/query.swagger.json",
+      "tags": {
+        "rename": {
+          "Query": "Precisebank"
+        }
+      },
+      "operationIds": {
+        "rename": [
+          {
+            "type": "regex",
+            "from": "(.*)",
+            "to": "Precisebank$1"
+          }
+        ]
+      }
+    },
+    {
       "url": "./out/swagger/kava/pricefeed/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
