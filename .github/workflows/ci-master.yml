@@ -45,6 +45,9 @@ jobs:
       dockerhub-username: kavaops
       extra-image-tag: master
     secrets: inherit
+  rosetta:
+    uses: ./.github/workflows/ci-rosetta.yml
+    secrets: inherit
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes

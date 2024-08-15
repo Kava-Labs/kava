@@ -1,0 +1,16 @@
+name: Dispatch run-rosetta-tests event to rosetta-kava
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch run-rosetta-tests event to rosetta-kava
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.KAVA_PUBLIC_GITHUB_ACCESS_TOKEN }}
+          repository: Kava-Labs/rosetta-kava
+          event-type: run-rosetta-tests
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
