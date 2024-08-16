@@ -185,6 +185,23 @@ sleep $AVG_SECONDS_BETWEEN_BLOCKS
 updatedEvmUtilParams=$(curl https://api.app.internal.testnet.us-east.production.kava.io/kava/evmutil/v1beta1/params)
 printf "updated evm util module params\n %s" , "$updatedEvmUtilParams"
 
+# submit a kava token committee proposal
+COMMITTEE_PROP_TEMPLATE=$(
+  cat <<'END_HEREDOC'
+{
+    "@type": "/cosmos.gov.v1beta1.TextProposal",
+    "title": "The next big thing signaling proposal.",
+    "description": "The purpose of this proposal is to signal support/opposition to the next big thing"
+}
+END_HEREDOC
+)
+committeeProposalFileName="$(date +%s)-committee-proposal.json"
+touch $committeeProposalFileName
+echo "$COMMITTEE_PROP_TEMPLATE" >$committeeProposalFileName
+
+# committee 4 is the hard token committee
+kava tx committee submit-proposal 4 "$committeeProposalFileName" --gas 2000000 --gas-prices 0.01ukava --from god -y
+
 # if adding more cosmos coins -> er20s, ensure that the deployment order below remains the same.
 # convert 1 HARD to an erc20. doing this ensures the contract is deployed.
 kava tx evmutil convert-cosmos-coin-to-erc20 \
