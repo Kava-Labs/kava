@@ -196,11 +196,9 @@ COMMITTEE_PROP_TEMPLATE=$(
 END_HEREDOC
 )
 committeeProposalFileName="$(date +%s)-committee-proposal.json"
-touch $committeeProposalFileName
 echo "$COMMITTEE_PROP_TEMPLATE" >$committeeProposalFileName
-
-# committee 4 is the hard token committee
-kava tx committee submit-proposal 4 "$committeeProposalFileName" --gas 2000000 --gas-prices 0.01ukava --from god -y
+tokenCommitteeId=4
+kava tx committee submit-proposal "$tokenCommitteeId" "$committeeProposalFileName" --gas auto --gas-adjustment 1.5 --gas-prices 0.01ukava --from god -y
 
 # if adding more cosmos coins -> er20s, ensure that the deployment order below remains the same.
 # convert 1 HARD to an erc20. doing this ensures the contract is deployed.
