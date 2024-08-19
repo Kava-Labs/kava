@@ -1021,8 +1021,7 @@
             "check_collateralization_index_count": "10",
             "conversion_factor": "6"
           }
-        ]
-        ,
+        ],
         "debt_auction_lot": "10000000000",
         "debt_auction_threshold": "100000000000",
         "debt_param": {
@@ -2100,6 +2099,25 @@
               {
                 "name": "payment",
                 "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.committee.v1beta1.MsgVote",
+            "msg_value_type_name": "MsgValueCommitteeVote",
+            "value_types": [
+              {
+                "name": "proposal_id",
+                "type": "uint64"
+              },
+              {
+                "name": "voter",
+                "type": "string"
+              },
+              {
+                "name": "vote_type",
+                "type": "int32"
               }
             ],
             "nested_types": []
