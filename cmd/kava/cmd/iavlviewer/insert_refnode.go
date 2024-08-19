@@ -1,6 +1,7 @@
 package iavlviewer
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strconv"
 
@@ -20,14 +21,9 @@ var (
 	nodeKeyFormat = keyformat.NewFastPrefixFormatter('s', int64Size+int32Size) // s<version><nonce>
 )
 
-func isReferenceRoot(bz []byte) (bool, int) {
-	if bz[0] == nodeKeyFormat.Prefix()[0] {
-		return true, len(bz)
-	}
-	return false, 0
-}
-
 func newInsertReferenceNode(opts ethermintserver.StartOptions) *cobra.Command {
+	flagPruneNode := false
+
 	cmd := &cobra.Command{
 		Use:   "insert-reference-node [prefix] [target node version] [reference key version]",
 		Short: "Add a new reference node that points to another version.",
@@ -65,54 +61,6 @@ func newInsertReferenceNode(opts ethermintserver.StartOptions) *cobra.Command {
 			fmt.Printf("---------------------\n")
 			fmt.Printf("Node key format: (version, nonce) - root nodes have nonce of 1\n")
 
-			// iter, err := db.Iterator(nil, nil)
-			// if err != nil {
-			// 	return fmt.Errorf("failed to create iterator: %w", err)
-			// }
-			// defer iter.Close()
-
-			// // Print all nodes
-			// for ; iter.Valid(); iter.Next() {
-			// 	key := iter.Key()
-			// 	keyPrefix := string(key[:1])
-			// 	keyRest := key[1:]
-
-			// 	if keyPrefix == "s" {
-			// 		var nk []byte
-			// 		nodeKeyFormat.Scan(key, &nk)
-			// 		nodeKey := iavl.GetNodeKey(nk)
-
-			// 		isRef, _ := isReferenceRoot(iter.Value())
-			// 		if isRef {
-			// 			var nk []byte
-			// 			nodeKeyFormat.Scan(iter.Value(), &nk)
-			// 			referredNodeKey := iavl.GetNodeKey(nk)
-
-			// 			fmt.Printf(
-			// 				"[Reference Node] %s -> %s\n",
-			// 				nodeKey.String(),
-			// 				referredNodeKey.String(),
-			// 			)
-			// 			continue
-			// 		}
-
-			// 		fmt.Printf("[Node] %s -> %x\n", nodeKey.String(), iter.Value())
-			// 		continue
-			// 	}
-
-			// 	keyPrefixName := ""
-			// 	switch keyPrefix {
-			// 	case "f":
-			// 		keyPrefixName = "fastKey"
-			// 	case "m":
-			// 		keyPrefixName = "metadata"
-			// 	default:
-			// 		keyPrefixName = keyPrefix
-			// 	}
-
-			// 	fmt.Printf("%s: %x -> %x\n", keyPrefixName, keyRest, iter.Value())
-			// }
-
 			// How to get node db, not IAVL tree
 			nodeBytes, err := db.Get(rootNodeKey)
 			if err != nil {
@@ -138,16 +86,41 @@ func newInsertReferenceNode(opts ethermintserver.StartOptions) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to set reference node at version %d: %w", newVersion, err)
 			}
-			//
-			// fmt.Printf("Deleting old root node key: %x\n", rootNodeKey)
-			// err = db.Delete(rootNodeKey)
-			// if err != nil {
-			// 	return fmt.Errorf("failed to delete old root node: %w", err)
-			// }
+
+			if flagPruneNode {
+				// Mark the original data as pruned (nonce = 0)
+				// this allows the tree to return the correct earliest version while still keeping the data.
+				var newNonce uint32 = 0
+				prunedRootKeyBytes := buildNodeKey(rootNodeVersion, newNonce)
+				prunedRootNodeKey := nodeKeyFormat.Key(prunedRootKeyBytes)
+
+				fmt.Printf("Saving original root node data from %s to (%d, %d)\n", rootKey.String(), rootNodeVersion, newNonce)
+				err = db.Set(prunedRootNodeKey, nodeBytes)
+				if err != nil {
+					return fmt.Errorf("failed save root node data to (%d, %d): %w", rootNodeVersion, newNonce, err)
+				}
+
+				fmt.Printf("Deleting old root node key: %x\n", rootNodeKey)
+				err = db.Delete(rootNodeKey)
+				if err != nil {
+					return fmt.Errorf("failed to delete old root node: %w", err)
+				}
+			}
 
 			return db.Close()
 		},
 	}
 
+	cmd.Flags().BoolVar(&flagPruneNode, "prune-node", false, "prune the root node after inserting reference (saves the original data w/ nonce 0 so its version is ignored by tree, then deletes original data)")
+
 	return cmd
+}
+
+// buildNodeKey builds the the nodeDb key for the specified version + nonce.
+// this is the same logic that NodeKey.GetKey() uses on its private version + nonce variables.
+func buildNodeKey(version int64, nonce uint32) []byte {
+	b := make([]byte, 12)
+	binary.BigEndian.PutUint64(b, uint64(version))
+	binary.BigEndian.PutUint32(b[8:], nonce)
+	return b
 }
