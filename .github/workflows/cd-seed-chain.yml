@@ -72,7 +72,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           cache: npm
-          node-version: 18
+          node-version-file: .tool-versions
           cache-dependency-path: kava-bridge/contract/package.json
       - name: "install ERC20 contract deployment dependencies"
         run: "npm install"
