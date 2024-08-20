@@ -10,6 +10,10 @@ import (
 	"github.com/kava-labs/kava/cmd/kava/cmd"
 )
 
+func shouldNotCompile() bool {
+	return 0
+}
+
 func main() {
 	rootCmd := cmd.NewRootCmd()
 
