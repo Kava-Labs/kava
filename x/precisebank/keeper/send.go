@@ -179,10 +179,17 @@ func (k Keeper) sendExtendedCoins(
 	// Always send carry from reserve before receiving borrow from sender to
 	// ensure reserve always has sufficient balance starting from 0.
 	if !senderNeedsBorrow && recipientNeedsCarry {
+		reserveAddr := k.ak.GetModuleAddress(types.ModuleName)
+
+		// We use SendCoins instead of SendCoinsFromModuleToAccount to avoid
+		// the blocked addrs check. Blocked accounts should not be checked in
+		// a SendCoins operation. Only SendCoinsFromModuleToAccount should check
+		// blocked addrs which is done by the parent SendCoinsFromModuleToAccount
+		// method.
 		carryCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
-		if err := k.bk.SendCoinsFromModuleToAccount(
+		if err := k.bk.SendCoins(
 			ctx,
-			types.ModuleName,
+			reserveAddr,
 			to, // recipient carrying
 			sdk.NewCoins(carryCoin),
 		); err != nil {
