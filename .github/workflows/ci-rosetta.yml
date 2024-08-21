@@ -15,3 +15,4 @@ jobs:
           repository: Kava-Labs/rosetta-kava
           event-type: run-rosetta-tests
           client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+
