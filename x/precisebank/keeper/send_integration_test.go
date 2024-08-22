@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	"github.com/kava-labs/kava/app"
@@ -620,6 +621,65 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromAccountToModule() {
 		sendAmt,
 		recipientBalAfter,
 	)
+}
+
+func (suite *sendIntegrationTestSuite) TestSendCoinsFromAccountToModule_BlockedRecipientCarry() {
+	// Carrying to module account balance. This tests that SendCoinsFromAccountToModule
+	// does not fail when sending to a blocked module account.
+
+	sender := sdk.AccAddress([]byte{1})
+
+	sendAmt := cs(c(types.ExtendedCoinDenom, 1000))
+	sendAmt2 := cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(10)))
+
+	suite.MintToAccount(sender, sendAmt.Add(sendAmt2...))
+
+	err := suite.Keeper.SendCoinsFromAccountToModule(
+		suite.Ctx,
+		sender,
+		authtypes.FeeCollectorName,
+		sendAmt,
+	)
+	suite.Require().NoError(err)
+
+	// Trigger carry for fee_collector module account
+	err = suite.Keeper.SendCoinsFromAccountToModule(
+		suite.Ctx,
+		sender,
+		authtypes.FeeCollectorName,
+		sendAmt2,
+	)
+	suite.Require().NoError(err)
+}
+
+func (suite *sendIntegrationTestSuite) TestSendCoins_BlockedRecipientCarry() {
+	// Same test as TestSendCoinsFromModuleToAccount_Blocked, but with SendCoins
+	// which also should not fail when sending to a blocked module account.
+	sender := sdk.AccAddress([]byte{1})
+
+	sendAmt := cs(c(types.ExtendedCoinDenom, 1000))
+	sendAmt2 := cs(ci(types.ExtendedCoinDenom, types.ConversionFactor().SubRaw(10)))
+
+	suite.MintToAccount(sender, sendAmt.Add(sendAmt2...))
+
+	recipient := suite.App.GetAccountKeeper().GetModuleAddress(authtypes.FeeCollectorName)
+
+	err := suite.Keeper.SendCoins(
+		suite.Ctx,
+		sender,
+		recipient,
+		sendAmt,
+	)
+	suite.Require().NoError(err)
+
+	// Trigger carry for fee_collector module account
+	err = suite.Keeper.SendCoins(
+		suite.Ctx,
+		sender,
+		recipient,
+		sendAmt2,
+	)
+	suite.Require().NoError(err)
 }
 
 func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount() {
