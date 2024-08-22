@@ -8,9 +8,23 @@ storage footprint required for Kava nodes.
 
 Steps for using IAVL V1:
 
+**For `goleveldb` nodes:**
+1. Replace or recreate your node data with IAVL V1: see [Data](#data).
+2. Install an IAVL V1 binary:
+```sh
+git checkout v0.26.2-alpha.0
+make install
+```
+3. Start kava as usual: `kava start`
+
+**For `rocksdb` nodes:**
 1. Replace or recreate your node data with IAVL V1: see [Data](#data).
 2. Update your default memory allocator: see [default memory allocator](#default-memory-allocator)
-3. Install an IAVL V1 binary: `v0.26.2-alpha.0`
+3. Install an IAVL V1 binary:
+```sh
+git checkout v0.26.2-alpha.0
+make install COSMOS_BUILD_OPTIONS=rocksdb
+```
 4. Start kava with the desired memory allocator: `LD_PRELOAD=/path/to/tcmalloc kava start`
 
 ## Data
