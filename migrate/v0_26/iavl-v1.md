@@ -36,6 +36,9 @@ built with IAVL V1.
 ### Validators & Pruning nodes
 
 For nodes with minimal historical state, we recommend bootstrapping your node with statesync.
+For an example of how to setup a node with statesync, see [here](https://www.polkachu.com/state_sync/kava).
+
+A public RPC server is available at `https://rpc.kava.io:443`.
 
 ### Full-archive node
 
