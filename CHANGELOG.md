@@ -36,6 +36,41 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [unreleased]
 
+## [v0.26.2-iavl-v1-alpha.0]
+
+This is the first release candidate for Kava on IAVL V1.
+
+IAVL V1 is a new format for the low-level data storage used by the Kava blockchain.
+Using IAVL V1 brings performance speedups for syncing and massively reduces the data stored on disk
+(~2.4x less data storage required for a full-archive node).
+
+The release is compatible with v0 data, but for the full performance benefits, node operators are
+encouraged to update their data to the v1 format.
+
+For full-archive operators, an IAVL V1 snapshot will be made available in the coming weeks.
+For validators & operators of pruning nodes, it is recommended that node data is re-created from scratch
+via statesync.
+
+Future minor versions of v0.26 will be made available for both iavl v0 and iavl v1.
+Future major versions will use IAVL V1 unless otherwise specified.
+
+Node operators using rocksdb are encouraged to use `tcmalloc` as their memory allocator.
+
+For more details see the [IAVL V1 migration guide](/migrate/v0_26/iavl-v1.md).
+
+### Features
+
+- (deps) Upgrade to IAVL V1
+  - For backwards compatibility with v0 state, a patched version of IAVL v1 is used, available [here](https://github.com/Kava-Labs/iavl/tree/v1.2.0-kava.2).
+  - The patched version includes the following changes:
+    - Initial version of new modules is 1, not the current height. This matches the behavior of v0
+    and prevents app hash mismatches during the v0.25 & v0.26 upgrade blocks that added modules.
+    - To prevent being interpreted as data for height 1, the version is saved with nonce 0, creating
+    a state similar to if the data has been pruned.
+    - An IAVL v1 reference node is saved at the upgrade height pointing to the version 1 data so app
+    data for the upgrade version can be properly loaded.
+
+
 ## [v0.26.2]
 
 ### Features
@@ -419,7 +454,8 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.2...release/v0.26.x
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1-alpha.0...release/v0.26.x-iavl-v1
+[v0.26.2-iavl-v1-alpha.0]: https://github.com/Kava-Labs/kava/compare/v0.26.2...v0.26.2-iavl-v1-alpha.0
 [v0.26.2]: https://github.com/Kava-Labs/kava/compare/v0.26.1...v0.26.2
 [v0.26.1]: https://github.com/Kava-Labs/kava/compare/v0.26.0...v0.26.1
 [v0.26.0]: https://github.com/Kava-Labs/kava/compare/v0.25.0...v0.26.0
