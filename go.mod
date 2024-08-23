@@ -14,7 +14,7 @@ require (
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.46.16
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/iavl v1.0.0
+	github.com/cosmos/iavl v1.2.0
 	github.com/cosmos/ibc-go/v6 v6.1.1
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/evmos/ethermint v0.21.0
@@ -213,8 +213,8 @@ replace (
 	// Use rocksdb 8.8.1
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.16-iavl-v1-kava.1
-	github.com/cosmos/iavl => github.com/kava-labs/iavl v1.0.1-0.20240424201543-6db50239f44d
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.46.17-0.20240823230356-6031aeb8e8be
+	github.com/cosmos/iavl => github.com/kava-labs/iavl v1.2.0-kava.2
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
