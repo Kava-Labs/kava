@@ -18,7 +18,7 @@ func newVersionsCmd(opts ethermintserver.StartOptions) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			prefix := args[0]
-			tree, err := openPrefixTree(opts, cmd, prefix, 15)
+			tree, err := openPrefixTree(opts, cmd, prefix, 0)
 			if err != nil {
 				return err
 			}
