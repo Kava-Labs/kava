@@ -1,10 +1,10 @@
 name: Continuous Deployment (Protonet)
-# run after every successful CI job of new commits to the master branch
-on:
-  workflow_run:
-    workflows: [Continuous Integration (Kava Master)]
-    types:
-      - completed
+## run after every successful CI job of new commits to the master branch
+#on:
+#  workflow_run:
+#    workflows: [Continuous Integration (Kava Master)]
+#    types:
+#      - completed
 
 jobs:
   # in order:
