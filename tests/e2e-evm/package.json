@@ -1,0 +1,17 @@
+{
+  "name": "@kava-labs/e2e-evm",
+  "version": "0.0.1",
+  "enginers": {
+    "node": ">=20.0.0"
+  },
+  "description": "An e2e test suite for the Kava protocol and blockchain.",
+  "private": true,
+  "scripts": {
+    "test": "hardhat test"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "hardhat": "^2.22.9"
+  }
+}

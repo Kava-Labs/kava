@@ -35,6 +35,69 @@ jobs:
         run: make test
       - name: run e2e tests
         run: make docker-build test-e2e
+  test-e2e-evm-hardhat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current commit
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup nodejs
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version-file: .tool-versions
+          cache-dependency-path: tests/e2e-evm/package-lock.json
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/e2e/kvtool/go.sum
+      - name: Install npm dependencies
+        run: npm install
+        working-directory: tests/e2e-evm
+      - name: Run hardhat test suite
+        run: npx hardhat test --network hardhat
+        working-directory: tests/e2e-evm
+  test-e2e-evm-kvtool:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current commit
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup nodejs
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version-file: .tool-versions
+          cache-dependency-path: tests/e2e-evm/package-lock.json
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: |
+            go.sum
+            tests/e2e/kvtool/go.sum
+      - name: Build local image
+        run: make docker-build
+      - name: Install kvtool
+        run: make -C tests/e2e/kvtool install
+      - name: Generate kava config
+        run: kvtool testnet gen-config kava --kava.configTemplate $(sed -nr "s/E2E_KVTOOL_KAVA_CONFIG_TEMPLATE=\"(.*)\"/\1/p" tests/e2e/.env)
+      - name: Start kava chain
+        run: kvtool testnet up -d
+      - name: Install npm dependencies
+        run: npm install
+        working-directory: tests/e2e-evm
+      - name: Run hardhat test suite
+        run: npx hardhat test --network kvtool
+        working-directory: tests/e2e-evm
+      - name: Shutdown kava
+        if: always()
+        run: kvtool testnet down
   fuzz:
     runs-on: ubuntu-latest
     steps:
