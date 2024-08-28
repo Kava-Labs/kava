@@ -29,3 +29,25 @@ jobs:
         with:
           version: ${{ env.GOLANGCI_VERSION }}
           args: -v -c .golangci.yml --new-from-rev ${{ env.REV }}
+  e2e-evm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current commit
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Setup nodejs
+        uses: actions/setup-node@v3
+        with:
+          cache: npm
+          node-version-file: .tool-versions
+          cache-dependency-path: tests/e2e-evm/package-lock.json
+      - name: Install npm dependencies
+        run: npm install
+        working-directory: tests/e2e-evm
+      - name: Run linter
+        run: npm run lint
+        working-directory: tests/e2e-evm
+      - name: Run formatter
+        run: npm run prettier
+        working-directory: tests/e2e-evm
