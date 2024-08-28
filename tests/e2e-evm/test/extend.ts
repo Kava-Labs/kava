@@ -38,11 +38,13 @@ function getChainConfig(hre: HardhatRuntimeEnvironment): { chain?: Chain } {
 
 // extendViem wraps the viem hardhat runtime environment in order to support kvtool chain configuration
 export function extendViem(hre: HardhatRuntimeEnvironment) {
+  /* eslint-disable @typescript-eslint/unbound-method */
   const {
     getPublicClient,
     getWalletClients,
     getWalletClient,
   } = hre.viem;
+  /* eslint-enable @typescript-eslint/unbound-method */
 
   hre.viem.getPublicClient = (publicClientConfig?: Partial<PublicClientConfig>) =>
     getPublicClient({ ...defaultPublicClientConfig, ...publicClientConfig, ...getChainConfig(hre) });

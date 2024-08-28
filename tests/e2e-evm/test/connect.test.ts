@@ -1,7 +1,5 @@
 import hre from "hardhat";
-import { extendEnvironment } from "hardhat/config";
 import { expect } from "chai";
-import { Address, defineChain, Chain, PublicClientConfig, WalletClientConfig } from 'viem';
 import { whaleAddress, userAddress } from './addresses';
 
 describe("Viem Setup", function () {
