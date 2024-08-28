@@ -1,6 +1,12 @@
-import type { HardhatUserConfig } from "hardhat/config";
+import { HardhatUserConfig, extendEnvironment } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import { parseEther } from "viem";
+import { extendViem } from "./test/extend";
+
+//
+// Load HRE extensions
+//
+extendEnvironment(extendViem)
 
 // These accounts are defined in the kvtool/config/common/addresses.json.
 //
@@ -31,7 +37,7 @@ const config: HardhatUserConfig = {
         enabled: false, // The contracts here are only for testing and not deployment to mainnet.
       },
     },
-  }
+  },
   networks: {
     hardhat: {
       chainId: 31337, // The default hardhat network chain id
