@@ -1,7 +1,14 @@
 import { HardhatUserConfig, extendEnvironment } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox-viem";
+import "@nomicfoundation/hardhat-viem";
 import { parseEther } from "viem";
 import { extendViem } from "./test/extend";
+import chai from "chai";
+import chaiAsPromised from "chai-as-promised";
+
+//
+// Chai setup
+//
+chai.use(chaiAsPromised);
 
 //
 // Load HRE extensions

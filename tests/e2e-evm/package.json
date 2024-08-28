@@ -13,7 +13,16 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
-    "hardhat": "^2.22.9"
+    "@nomicfoundation/hardhat-viem": "^2.0.3",
+    "@types/chai": "^4.3.0",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20.0.0",
+    "chai": "^4.3.0",
+    "chai-as-promised": "^7.1.2",
+    "hardhat": "^2.22.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.4",
+    "viem": "^2.20.1"
   }
 }
