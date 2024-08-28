@@ -13,7 +13,7 @@ chai.use(chaiAsPromised);
 //
 // Load HRE extensions
 //
-extendEnvironment(extendViem)
+extendEnvironment(extendViem);
 
 // These accounts are defined in the kvtool/config/common/addresses.json.
 //
@@ -25,14 +25,20 @@ const accounts = [
   //
   // jq -r '.kava.users.whale2.mnemonic' < tests/e2e/kvtool/config/common/addresses.json | kava keys add whale2 --eth --recover
   // kava keys unsafe-export-eth-key whale2
-  { privateKey: "AA50F4C6C15190D9E18BF8B14FC09BFBA0E7306331A4F232D10A77C2879E7966", balance: parseEther("1000000").toString()},
+  {
+    privateKey: "AA50F4C6C15190D9E18BF8B14FC09BFBA0E7306331A4F232D10A77C2879E7966",
+    balance: parseEther("1000000").toString(),
+  },
 
   // 0x7bbf300890857b8c241b219c6a489431669b3afa
   // kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t
   //
   // jq -r '.kava.users.user.mnemonic' < tests/e2e/kvtool/config/common/addresses.json | kava keys add user --eth --recover
   // kava keys unsafe-export-eth-key user
-  { privateKey: "9549F115B0A21E5071A8AEC1B74AC093190E18DD83D019AC6497B0ADFBEFF26D", balance: parseEther("1000").toString()},
+  {
+    privateKey: "9549F115B0A21E5071A8AEC1B74AC093190E18DD83D019AC6497B0ADFBEFF26D",
+    balance: parseEther("1000").toString(),
+  },
 ];
 
 const config: HardhatUserConfig = {
