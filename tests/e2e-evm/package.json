@@ -31,6 +31,7 @@
     "eslint": "^9.9.1",
     "hardhat": "^2.22.9",
     "prettier": "3.3.3",
+    "prettier-plugin-solidity": "^1.4.1",
     "solhint": "^5.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.0.4",
