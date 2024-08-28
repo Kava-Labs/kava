@@ -17,6 +17,7 @@ export default tseslint.config(
   {
     ignores: [
       "eslint.config.mjs",
+      "prettier.config.mjs",
       "artifacts/",
     ],
   },
