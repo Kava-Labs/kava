@@ -5,6 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+<<<<<<< HEAD
+=======
+	dbm "github.com/cometbft/cometbft-db"
+	tmcfg "github.com/cometbft/cometbft/config"
+>>>>>>> 8ac4c5d0 (feat(cli): support CLI completion (#2017))
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
@@ -115,8 +120,6 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, defaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(defaultNodeHome),
-		tmcli.NewCompletionCmd(rootCmd, true), // TODO add other shells, drop tmcli dependency, unhide?
-		// testnetCmd(app.ModuleBasics, banktypes.GenesisBalancesIterator{}), // TODO add
 		debug.Cmd(),
 		config.Cmd(),
 	)
