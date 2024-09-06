@@ -1,7 +1,5 @@
 import hre from "hardhat";
 import { expect } from "chai";
-import { Address, toHex } from "viem";
-import { randomBytes } from "crypto";
 import { whaleAddress, userAddress } from "./addresses";
 
 // EOA Account describes how transactions behave against an account with
