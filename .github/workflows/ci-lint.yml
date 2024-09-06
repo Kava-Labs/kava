@@ -45,6 +45,12 @@ jobs:
       - name: Install npm dependencies
         run: npm install
         working-directory: tests/e2e-evm
+      - name: Run solhint
+        run: npm run solhint
+        working-directory: tests/e2e-evm
+      - name: Compile contracts and create artifcats
+        run: npm run compile
+        working-directory: tests/e2e-evm
       - name: Run linter
         run: npm run lint
         working-directory: tests/e2e-evm
