@@ -39,6 +39,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ### Features
 - (precisebank) [#1906] Add new `x/precisebank` module with bank decimal extension for EVM usage.
 - (cli) [#1922] Add `iavlviewer` CLI command for low-level iavl db debugging.
+- (cli) [#2017] Support CLI `completion` for bash, zsh, fish, & powershell.
 
 ### Improvements
 - (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
@@ -338,6 +339,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+[#2017]: https://github.com/Kava-Labs/kava/pull/2017
 [#1988]: https://github.com/Kava-Labs/kava/pull/1988
 [#1922]: https://github.com/Kava-Labs/kava/pull/1922
 [#1906]: https://github.com/Kava-Labs/kava/pull/1906
