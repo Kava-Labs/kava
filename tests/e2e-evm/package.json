@@ -1,0 +1,41 @@
+{
+  "name": "@kava-labs/e2e-evm",
+  "version": "0.0.1",
+  "enginers": {
+    "node": ">=20.0.0"
+  },
+  "description": "An e2e test suite for the Kava protocol and blockchain.",
+  "private": true,
+  "scripts": {
+    "lint": "eslint .",
+    "lint-fix": "eslint --fix .",
+    "prettier": "prettier '**/*.{json,sol,md,ts,js}' --check",
+    "prettier-fix": "prettier '**/*.{json,sol,md,ts,js}' --write",
+    "solhint": "solhint 'contracts/**/*.sol' --max-warnings 0",
+    "solhint-fix": "solhint 'contracts/**/*.sol' --fix",
+    "test": "npm run test-hardhat && npm run test-kvtool",
+    "test-hardhat": "hardhat test --typecheck --network hardhat",
+    "test-kvtool": "hardhat test --typecheck --network kvtool"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "@nomicfoundation/hardhat-viem": "^2.0.3",
+    "@types/chai": "^4.3.0",
+    "@types/chai-as-promised": "^7.1.2",
+    "@types/eslint__js": "^8.42.3",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20.0.0",
+    "chai": "^4.3.0",
+    "chai-as-promised": "^7.1.2",
+    "eslint": "^9.9.1",
+    "hardhat": "^2.22.9",
+    "prettier": "3.3.3",
+    "prettier-plugin-solidity": "^1.4.1",
+    "solhint": "^5.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.0.4",
+    "typescript-eslint": "^8.3.0",
+    "viem": "^2.20.1"
+  }
+}
