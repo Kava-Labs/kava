@@ -61,6 +61,9 @@ jobs:
         run: npm install
         working-directory: tests/e2e-evm
       - name: Run test suite against hardhat network
+        run: npm run compile
+        working-directory: tests/e2e-evm
+      - name: Run test suite against hardhat network
         run: npm run test-hardhat
         working-directory: tests/e2e-evm
       - name: Build local image
