@@ -19,3 +19,14 @@ npx hardhat test --network hardhat
 ```
 npx hardhat test --network kvtool
 ```
+
+## Running CI Locally
+
+With act installed, the following commands will run the lint and e2e CI jobs locally.
+
+```
+act -W '.github/workflows/ci-lint.yml' -j e2e-evm-lint
+act -W '.github/workflows/ci-default.yml' -j test-e2e-evm --bind
+```
+
+The `--bind` flag is required for volume mounts of docker containers correctly mount.  Without this flag, volumes are mounted as an empty directory.
