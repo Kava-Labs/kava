@@ -4,6 +4,7 @@ import { parseEther } from "viem";
 import { extendViem } from "./test/extensions/viem";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
+import "hardhat-ignore-warnings";
 
 //
 // Chai setup
@@ -56,6 +57,7 @@ const config: HardhatUserConfig = {
       chainId: 31337, // The default hardhat network chain id
       hardfork: "berlin", // The current hardfork of kava mainnet
       accounts: accounts,
+      throwOnTransactionFailures: false,
     },
     kvtool: {
       chainId: 8888, // The evm chain id of the kvtool network
