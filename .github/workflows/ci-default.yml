@@ -37,6 +37,8 @@ jobs:
         run: make docker-build test-e2e
   test-e2e-evm:
     runs-on: ubuntu-latest
+    env:
+      KAVA_TAG: local
     steps:
       - name: Checkout current commit
         uses: actions/checkout@v4
