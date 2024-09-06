@@ -57,6 +57,10 @@ const config: HardhatUserConfig = {
       chainId: 31337, // The default hardhat network chain id
       hardfork: "berlin", // The current hardfork of kava mainnet
       accounts: accounts,
+      //
+      // This is required for hardhat-viem to have the same behavior
+      // for reverted transactions as on Kava.
+      //
       throwOnTransactionFailures: false,
     },
     kvtool: {
