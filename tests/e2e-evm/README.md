@@ -29,4 +29,4 @@ act -W '.github/workflows/ci-lint.yml' -j e2e-evm-lint
 act -W '.github/workflows/ci-default.yml' -j test-e2e-evm --bind
 ```
 
-The `--bind` flag is required for volume mounts of docker containers correctly mount.  Without this flag, volumes are mounted as an empty directory.
+The `--bind` flag is required for volume mounts of docker containers correctly mount. Without this flag, volumes are mounted as an empty directory.
