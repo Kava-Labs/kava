@@ -29,7 +29,7 @@ const kavalocalnet: Chain = defineChain({
 
 // getChainConfig returns the kvtoollocalnet Chain if the hardhat environment kvtool network is set, else undefined
 function getChainConfig(hre: HardhatRuntimeEnvironment): { chain?: Chain } {
-  if (hre.network.name == "kvtool") {
+  if (hre.network.name === "kvtool") {
     return { chain: kavalocalnet };
   }
 

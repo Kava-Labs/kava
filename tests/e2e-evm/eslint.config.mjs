@@ -3,6 +3,11 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   eslint.configs.recommended,
+  {
+    rules: {
+      eqeqeq: ["error", "smart"],
+    },
+  },
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   {
