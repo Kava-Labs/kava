@@ -54,18 +54,18 @@ describe("ABI_BasicTests", function () {
         mockAddress = (await hre.viem.deployContract(tc.mock)).address;
       });
 
-      describe("State", function() {
-        it("has code set", async function() {
+      describe("State", function () {
+        it("has code set", async function () {
           const code = await publicClient.getCode({ address: mockAddress });
           expect(code).to.not.equal(0);
         });
 
-        it("has nonce default of 1", async function() {
+        it("has nonce default of 1", async function () {
           const nonce = await publicClient.getTransactionCount({ address: mockAddress });
           expect(nonce).to.equal(1);
         });
 
-        it("has a starting balance of 0", async function() {
+        it("has a starting balance of 0", async function () {
           const balance = await publicClient.getBalance({ address: mockAddress });
           expect(balance).to.equal(0n);
         });
