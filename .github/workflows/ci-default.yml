@@ -129,6 +129,8 @@ jobs:
         uses: actions/checkout@v4
       - name: validate testnet genesis
         run: kava validate-genesis ci/env/kava-internal-testnet/genesis.json
+  protonet-default:
+    uses: ./.github/workflows/cd-protonet.yml
   validate-protonet-genesis:
     runs-on: ubuntu-latest
     steps:
