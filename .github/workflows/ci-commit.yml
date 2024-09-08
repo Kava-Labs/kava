@@ -5,5 +5,3 @@ on:
 jobs:
   lint:
     uses: ./.github/workflows/ci-lint.yml
-  protonet:
-    uses: ./.github/workflows/cd-protonet.yml
