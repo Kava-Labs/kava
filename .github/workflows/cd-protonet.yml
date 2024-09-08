@@ -6,6 +6,9 @@ name: Continuous Deployment (Protonet)
 #    types:
 #      - completed
 
+on:
+  push:
+
 jobs:
   # in order:
   # enter standby (prevents autoscaling group from killing node during deploy)
@@ -45,16 +48,17 @@ jobs:
       chain-id: proto_2221-17000
       seed-script-filename: seed-protonet.sh
       erc20-deployer-network-name: protonet
-      genesis_validator_addresses: "kavavaloper14w4avgdvqrlpww6l5dhgj4egfn6ln7gmtp7r2m"
+      genesis_validator_addresses: "kavavaloper1te0aljy2m4zzysymw7dxkxy0fa6d7ws5fj3vmp"
+#      genesis_validator_addresses: "kavavaloper14w4avgdvqrlpww6l5dhgj4egfn6ln7gmtp7r2m"
       kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
     secrets: inherit
     needs: [start-chain-api]
-  post-pipeline-metrics:
-    uses: ./.github/workflows/metric-pipeline.yml
-    if: always() # always run so we metric failures and successes
-    with:
-      aws-region: us-east-1
-      metric-name: kava.deploys.testnet.proto
-      namespace: Kava/ContinuousDeployment
-    secrets: inherit
-    needs: [seed-chain-state]
+#  post-pipeline-metrics:
+#    uses: ./.github/workflows/metric-pipeline.yml
+#    if: always() # always run so we metric failures and successes
+#    with:
+#      aws-region: us-east-1
+#      metric-name: kava.deploys.testnet.proto
+#      namespace: Kava/ContinuousDeployment
+#    secrets: inherit
+#    needs: [seed-chain-state]
