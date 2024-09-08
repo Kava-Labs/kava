@@ -7,7 +7,7 @@ name: Continuous Deployment (Protonet)
 #      - completed
 
 on:
-  push:
+  workflow_call:
 
 jobs:
   # in order:
