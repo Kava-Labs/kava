@@ -22,29 +22,29 @@ jobs:
   # download updated binary and genesis
   # reset application database state (only done on internal testnet)
   # TODO: move to ansible-ami, move the role
-  reset-chain-to-zero-state-v2:
-    # only start cd pipeline if last ci run was successful
-    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    uses: ./.github/workflows/cd-reset-internal-testnet.yml
-    with:
-      aws-region: us-east-1
-      chain-id: proto_2221-17000
-      ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: reset-protonet-playbook.yml
-      playbook-infrastructure-branch: ss-protonet
-    secrets: inherit
-
-  # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
-  start-chain-api:
-    uses: ./.github/workflows/cd-start-chain.yml
-    with:
-      aws-region: us-east-1
-      chain-id: proto_2221-17000
-      ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: start-chain-api-playbook.yml
-      playbook-infrastructure-branch: ss-protonet
-    secrets: inherit
-    needs: [reset-chain-to-zero-state-v2]
+#  reset-chain-to-zero-state-v2:
+#    # only start cd pipeline if last ci run was successful
+#    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#    uses: ./.github/workflows/cd-reset-internal-testnet.yml
+#    with:
+#      aws-region: us-east-1
+#      chain-id: proto_2221-17000
+#      ssm-document-name: kava-testnet-internal-node-update
+#      playbook-name: reset-protonet-playbook.yml
+#      playbook-infrastructure-branch: ss-protonet
+#    secrets: inherit
+#
+#  # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
+#  start-chain-api:
+#    uses: ./.github/workflows/cd-start-chain.yml
+#    with:
+#      aws-region: us-east-1
+#      chain-id: proto_2221-17000
+#      ssm-document-name: kava-testnet-internal-node-update
+#      playbook-name: start-chain-api-playbook.yml
+#      playbook-infrastructure-branch: ss-protonet
+#    secrets: inherit
+#    needs: [reset-chain-to-zero-state-v2]
 
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
   seed-chain-state:
@@ -58,7 +58,7 @@ jobs:
 #      genesis_validator_addresses: "kavavaloper14w4avgdvqrlpww6l5dhgj4egfn6ln7gmtp7r2m"
       kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
     secrets: inherit
-    needs: [start-chain-api]
+#    needs: [start-chain-api]
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes
