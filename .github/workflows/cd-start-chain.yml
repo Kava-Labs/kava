@@ -63,7 +63,8 @@ jobs:
             --update-playbook-filename=$PLAYBOOK_NAME \
             --chain-id=$CHAIN_ID \
             --max-upgrade-batch-size=0 \
-            --wait-for-node-sync-after-upgrade=true
+            --wait-for-node-sync-after-upgrade=true \
+            --node-types=pruning-api
         env:
           SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
           PLAYBOOK_NAME: ${{ inputs.playbook-name }}
