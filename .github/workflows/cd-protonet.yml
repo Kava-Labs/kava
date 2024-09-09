@@ -43,7 +43,7 @@ jobs:
       playbook-name: start-chain-api-playbook.yml
       playbook-infrastructure-branch: ss-protonet
     secrets: inherit
-    needs: [reset-chain-to-zero-state]
+    needs: [reset-chain-to-zero-state-v2]
 
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
   seed-chain-state:
@@ -58,12 +58,12 @@ jobs:
       kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
     secrets: inherit
     needs: [start-chain-api]
-##  post-pipeline-metrics:
-##    uses: ./.github/workflows/metric-pipeline.yml
-##    if: always() # always run so we metric failures and successes
-##    with:
-##      aws-region: us-east-1
-##      metric-name: kava.deploys.testnet.proto
-##      namespace: Kava/ContinuousDeployment
-##    secrets: inherit
-##    needs: [seed-chain-state]
+  post-pipeline-metrics:
+    uses: ./.github/workflows/metric-pipeline.yml
+    if: always() # always run so we metric failures and successes
+    with:
+      aws-region: us-east-1
+      metric-name: kava.deploys.testnet.proto
+      namespace: Kava/ContinuousDeployment
+    secrets: inherit
+    needs: [seed-chain-state]
