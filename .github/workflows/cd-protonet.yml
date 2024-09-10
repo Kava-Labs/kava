@@ -10,11 +10,6 @@ on:
   push:
 
 jobs:
-  fuzz-v2:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout repo from current commit
-        uses: actions/checkout@v4
   # in order:
   # enter standby (prevents autoscaling group from killing node during deploy)
   # stop kava
@@ -67,4 +62,4 @@ jobs:
       metric-name: kava.deploys.testnet.proto
       namespace: Kava/ContinuousDeployment
     secrets: inherit
-    needs: [seed-chain-state]
+#    needs: [seed-chain-state]
