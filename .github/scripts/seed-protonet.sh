@@ -26,7 +26,8 @@ WEBAPP_E2E_WHALE_ADDRESS="0x0252284098b19036F81bd22851f8699042fafac2"
 
 # setup kava ethereum compatible account for deploying
 # erc20 contracts to the kava chain
-echo "sweet ocean blush coil mobile ten floor sample nuclear power legend where place swamp young marble grit observe enforce lake blossom lesson upon plug" | kava keys add --recover --eth dev-erc20-deployer-wallet
+echo "sweet ocean blush coil mobile ten floor sample nuclear power legend where place swamp young marble grit observe enforce lake blossom lesson upon plug" |
+kava keys add --recover --eth dev-erc20-deployer-wallet
 
 # fund evm-contract-deployer account (using issuance)
 kava tx issuance issue 200000000ukava kava1van3znl6597xgwwh46jgquutnqkwvwszjg04fz --from dev-wallet --gas-prices 0.5ukava -y
