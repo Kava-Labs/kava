@@ -4,7 +4,7 @@ set -x
 # get all the node's ec2 instance ids for the specified chain id
 # TODO: fix this and the sharded cluster module to add tags
 #chain_node_instance_ids=$(aws ec2 describe-instances --filters "Name=tag:KavaChainId,Values=$CHAIN_ID" | jq -r '[.Reservations | .[] | .Instances | .[] | .InstanceId] | join(" ")')
-chain_node_instance_ids='i-0b9b5ebe0d275d4cb'
+chain_node_instance_ids='i-01f39f5bedd1f9182'
 
 for chain_node_instance_id in ${chain_node_instance_ids}
 do

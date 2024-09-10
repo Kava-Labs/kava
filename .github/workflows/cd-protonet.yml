@@ -26,7 +26,7 @@ jobs:
       chain-id: proto_2221-17000
       ssm-document-name: kava-testnet-internal-node-update
       playbook-name: reset-protonet-playbook.yml
-      playbook-infrastructure-branch: shef-protonet-validator-ci
+      playbook-infrastructure-branch: shef-ci-protonet-validator
     secrets: inherit
 
   # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
@@ -37,7 +37,7 @@ jobs:
       chain-id: proto_2221-17000
       ssm-document-name: kava-testnet-internal-node-update
       playbook-name: start-chain-api-playbook.yml
-      playbook-infrastructure-branch: shef-protonet-validator-ci
+      playbook-infrastructure-branch: shef-ci-protonet-validator
     secrets: inherit
     needs: [reset-chain-to-zero-state]
 
