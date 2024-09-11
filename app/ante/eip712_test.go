@@ -17,8 +17,10 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
@@ -70,11 +72,17 @@ func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdkmath.Int {
 	return sdkmath.NewInt(amount).Mul(sdkmath.NewIntFromUint64(incr.Uint64()))
 }
 
-func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
-	from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins, msgs []sdk.Msg,
+func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
+	from sdk.AccAddress,
+	priv cryptotypes.PrivKey,
+	chainId string,
+	gas uint64,
+	gasAmount sdk.Coins,
+	msgs []sdk.Msg,
+	customDomain *apitypes.TypedDataDomain,
+	customDomainTypes []apitypes.Type,
 ) client.TxBuilder {
-	var err error
-
+	// Get required info
 	nonce, err := suite.tApp.GetAccountKeeper().GetSequence(suite.ctx, from)
 	suite.Require().NoError(err)
 
@@ -87,14 +95,32 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
 	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "", nil)
-	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, data, &eip712.FeeDelegationOptions{
-		FeePayer: from,
-	}, suite.tApp.GetEvmKeeper().GetParams(suite.ctx))
+	typedData, err := eip712.WrapTxToTypedData(
+		ethChainId,
+		msgs,
+		data,
+		&eip712.FeeDelegationOptions{
+			FeePayer: from,
+		},
+		suite.tApp.GetEvmKeeper().GetParams(suite.ctx),
+	)
 	suite.Require().NoError(err)
+
+	// Override Domain if provided, this will modify the hash to sign
+	if customDomain != nil {
+		typedData.Domain = *customDomain
+	}
+
+	// Override EIP712Domain types if provided
+	if customDomainTypes != nil {
+		typedData.Types["EIP712Domain"] = customDomainTypes
+	}
+
+	// Compute sigHash to sign
 	sigHash, err := eip712.ComputeTypedDataHash(typedData)
 	suite.Require().NoError(err)
 
-	// Sign typedData
+	// Sign sighHash
 	keyringSigner := tests.NewSigner(priv)
 	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
 	suite.Require().NoError(err)
@@ -133,6 +159,26 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	suite.Require().NoError(err)
 
 	return builder
+}
+
+func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
+	from sdk.AccAddress,
+	priv cryptotypes.PrivKey,
+	chainId string,
+	gas uint64,
+	gasAmount sdk.Coins,
+	msgs []sdk.Msg,
+) client.TxBuilder {
+	return suite.createTestEIP712CosmosTxBuilderWithDomain(
+		from,
+		priv,
+		chainId,
+		gas,
+		gasAmount,
+		msgs,
+		nil,
+		nil,
+	)
 }
 
 func (suite *EIP712TestSuite) SetupTest() {
@@ -593,6 +639,177 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 				)
 			},
 		},
+		{
+			name:           "passes when domain matches expected fields",
+			usdcDepositAmt: 100,
+			usdxToMintAmt:  90,
+			failCheckTx:    false,
+			errMsg:         "",
+			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
+
+				pc, err := etherminttypes.ParseChainID(ChainID)
+				suite.Require().NoError(err)
+				ethChainId := pc.Int64()
+
+				// Expected domain used in Ethermint ante handler
+				// These are explicitly set in this test to ensure Ethermint
+				// is using the expected domain for signature verification
+				domain := apitypes.TypedDataDomain{
+					Name:    "Kava Cosmos",
+					Version: "1.0.0",
+					ChainId: math.NewHexOrDecimal256(ethChainId),
+
+					// Both should be ommitted
+					Salt:              "",
+					VerifyingContract: "",
+				}
+
+				// Must be in order as defined in EIP-712
+				// https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator
+				// Internally the data is written in order of the types
+				domainTypes := []apitypes.Type{
+					{
+						Name: "name",
+						Type: "string",
+					},
+					{
+						Name: "version",
+						Type: "string",
+					},
+					{
+						Name: "chainId",
+						Type: "uint256",
+					},
+					// Exclude empty fields
+				}
+
+				return suite.createTestEIP712CosmosTxBuilderWithDomain(
+					suite.testAddr,
+					suite.testPrivKey,
+					ChainID,
+					uint64(sims.DefaultGenTxGas*10),
+					gasAmt,
+					msgs,
+					&domain,
+					domainTypes,
+				)
+			},
+		},
+		{
+			name:           "fails when domain.verifyingContract is non-empty string type",
+			usdcDepositAmt: 100,
+			usdxToMintAmt:  90,
+			failCheckTx:    true,
+			errMsg:         "signature verification failed",
+			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
+
+				pc, err := etherminttypes.ParseChainID(ChainID)
+				suite.Require().NoError(err)
+				ethChainId := pc.Int64()
+
+				// Domain and types are **not** included in the tx data.
+				// Both signature creation on client & verification in ante
+				// should match to produce a matching signature hash.
+				domain := apitypes.TypedDataDomain{
+					Name:    "Kava Cosmos",
+					Version: "1.0.0",
+					ChainId: math.NewHexOrDecimal256(ethChainId),
+
+					Salt: "",
+					// Original value with string type instead of address.
+					// This has been changed to expect empty field
+					VerifyingContract: "kavaCosmos",
+				}
+
+				domainTypes := []apitypes.Type{
+					{
+						Name: "name",
+						Type: "string",
+					},
+					{
+						Name: "version",
+						Type: "string",
+					},
+					{
+						Name: "chainId",
+						Type: "uint256",
+					},
+					{
+						Name: "verifyingContract",
+						// Incorrect! but old type in kava <= v0.26.0
+						Type: "string",
+					},
+				}
+
+				return suite.createTestEIP712CosmosTxBuilderWithDomain(
+					suite.testAddr,
+					suite.testPrivKey,
+					ChainID,
+					uint64(sims.DefaultGenTxGas*10),
+					gasAmt,
+					msgs,
+					&domain,
+					domainTypes,
+				)
+			},
+		},
+		{
+			name:           "fails when domain.verifyingContract is non-empty address type",
+			usdcDepositAmt: 100,
+			usdxToMintAmt:  90,
+			failCheckTx:    true,
+			errMsg:         "signature verification failed",
+			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
+
+				pc, err := etherminttypes.ParseChainID(ChainID)
+				suite.Require().NoError(err)
+				ethChainId := pc.Int64()
+
+				domain := apitypes.TypedDataDomain{
+					Name:    "Kava Cosmos",
+					Version: "1.0.0",
+					ChainId: math.NewHexOrDecimal256(ethChainId),
+
+					Salt: "",
+					// Address type
+					VerifyingContract: "0xc6d953c98f260cb7c3667cac87e5d508a0a81277",
+				}
+
+				domainTypes := []apitypes.Type{
+					{
+						Name: "name",
+						Type: "string",
+					},
+					{
+						Name: "version",
+						Type: "string",
+					},
+					{
+						Name: "chainId",
+						Type: "uint256",
+					},
+					{
+						Name: "verifyingContract",
+						// Correct type, but is value is not empty when its expected to be
+						Type: "address",
+					},
+				}
+
+				return suite.createTestEIP712CosmosTxBuilderWithDomain(
+					suite.testAddr,
+					suite.testPrivKey,
+					ChainID,
+					uint64(sims.DefaultGenTxGas*10),
+					gasAmt,
+					msgs,
+					&domain,
+					domainTypes,
+				)
+			},
+		},
 	}
 
 	for _, tc := range testcases {
@@ -669,13 +886,13 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 				suite.Require().True(found)
 				suite.Require().Equal(suite.testAddr, cdp.Owner)
 				suite.Require().Equal(sdk.NewCoin(USDCCoinDenom, suite.getEVMAmount(100)), cdp.Collateral)
-				suite.Require().Equal(sdk.NewCoin("usdx", sdkmath.NewInt(99_000_000)), cdp.Principal)
+				suite.Require().Equal(sdk.NewCoin("usdx", usdxAmt), cdp.Principal)
 
 				// validate hard
 				hardDeposit, found := suite.tApp.GetHardKeeper().GetDeposit(suite.ctx, suite.testAddr)
 				suite.Require().True(found)
 				suite.Require().Equal(suite.testAddr, hardDeposit.Depositor)
-				suite.Require().Equal(sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(99_000_000))), hardDeposit.Amount)
+				suite.Require().Equal(sdk.NewCoins(sdk.NewCoin("usdx", usdxAmt)), hardDeposit.Amount)
 			} else {
 				suite.Require().NotEqual(resDeliverTx.Code, uint32(0), resCheckTx.Log)
 				suite.Require().Contains(resDeliverTx.Log, tc.errMsg)
