@@ -65,4 +65,30 @@ describe("Empty Account", function () {
     expect(tx.to).to.equal(emptyAddress);
     expect(tx.input).to.equal(calldata);
   });
+
+  // Transaction may create an account at no extra cost
+  it("can be called with data", async function () {
+    const publicClient = await hre.viem.getPublicClient();
+    const walletClient = await hre.viem.getWalletClient(whaleAddress);
+
+    // Use a random account to not violate the assumption that parent emptyAccount is empty
+    const emptyAddress = toHex(randomBytes(20));
+
+    const txHash = await walletClient.sendTransaction({
+      to: emptyAddress,
+      value: 1n,
+    });
+    const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+    const tx = await publicClient.getTransaction({ hash: txHash });
+
+    expect(txReceipt.status).to.equal("success");
+    // A transaction may create an account with no extra charge beyond 21000 instrinic
+    expect(txReceipt.gasUsed).to.equal(21000n);
+    expect(tx.value).to.equal(1n);
+    expect(tx.to).to.equal(emptyAddress);
+
+    // Verify account was committed & value transferred
+    const balance = await publicClient.getBalance({ address: emptyAddress });
+    expect(balance).to.equal(1n);
+  });
 });
