@@ -47,6 +47,7 @@ const (
 	ChainID       = app.TestChainId
 	USDCCoinDenom = "erc20/usdc"
 	USDCCDPType   = "erc20-usdc"
+	TxGas         = uint64(sims.DefaultGenTxGas * 10)
 )
 
 type EIP712TestSuite struct {
@@ -75,7 +76,6 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 	from sdk.AccAddress,
 	priv cryptotypes.PrivKey,
 	chainID string,
-	gas uint64,
 	gasAmount sdk.Coins,
 	msgs []sdk.Msg,
 	customDomain *apitypes.TypedDataDomain,
@@ -90,7 +90,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 	ethChainID := pc.Uint64()
 
 	// GenerateTypedData TypedData
-	fee := legacytx.NewStdFee(gas, gasAmount)
+	fee := legacytx.NewStdFee(TxGas, gasAmount)
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
 	data := eip712.ConstructUntypedEIP712Data(chainID, accNumber, nonce, 0, fee, msgs, "", nil)
@@ -141,7 +141,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 
 	builder.SetExtensionOptions(option)
 	builder.SetFeeAmount(gasAmount)
-	builder.SetGasLimit(gas)
+	builder.SetGasLimit(TxGas)
 
 	sigsV2 := signing.SignatureV2{
 		PubKey: pubKey,
@@ -164,7 +164,6 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	from sdk.AccAddress,
 	priv cryptotypes.PrivKey,
 	chainID string,
-	gas uint64,
 	gasAmount sdk.Coins,
 	msgs []sdk.Msg,
 ) client.TxBuilder {
@@ -172,7 +171,6 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 		from,
 		priv,
 		chainID,
-		gas,
 		gasAmount,
 		msgs,
 		nil,
@@ -634,7 +632,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr,
 					suite.testPrivKey,
 					"kavatest_12-1",
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 				)
@@ -652,7 +649,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr2,
 					suite.testPrivKey2,
 					ChainID,
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 				)
@@ -707,7 +703,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr,
 					suite.testPrivKey,
 					ChainID,
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 					&domain,
@@ -766,7 +761,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr,
 					suite.testPrivKey,
 					ChainID,
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 					&domain,
@@ -821,7 +815,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr,
 					suite.testPrivKey,
 					ChainID,
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 					&domain,
@@ -865,7 +858,11 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 
 			gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 			txBuilder := suite.createTestEIP712CosmosTxBuilder(
-				suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, msgs,
+				suite.testAddr,
+				suite.testPrivKey,
+				ChainID,
+				gasAmt,
+				msgs,
 			)
 			if tc.updateTx != nil {
 				txBuilder = tc.updateTx(txBuilder, msgs)
@@ -951,7 +948,11 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 	// deliver deposit msg
 	gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 	txBuilder := suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, depositMsgs,
+		suite.testAddr,
+		suite.testPrivKey,
+		ChainID,
+		gasAmt,
+		depositMsgs,
 	)
 	txBytes, err := encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
@@ -996,7 +997,11 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 
 	// deliver withdraw msg
 	txBuilder = suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, withdrawMsgs,
+		suite.testAddr,
+		suite.testPrivKey,
+		ChainID,
+		gasAmt,
+		withdrawMsgs,
 	)
 	txBytes, err = encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
