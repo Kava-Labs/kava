@@ -16,7 +16,6 @@ jobs:
   # take ebs + zfs snapshots
   # download updated binary and genesis
   # reset application database state (only done on internal testnet)
-  # TODO: move to ansible-ami, move the role
   reset-chain-to-zero-state:
     # only start cd pipeline if last ci run was successful
     # if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -24,22 +23,10 @@ jobs:
     with:
       aws-region: us-east-1
       chain-id: proto_2221-17000
-      ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: reset-protonet-playbook.yml
+      ssm-document-name: kava-protonet-iavl-v1-instance-update
+      playbook-name: reset-chain.yml
       playbook-infrastructure-branch: shef-ci-protonet-validator
     secrets: inherit
-
-  # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
-  start-chain-api:
-    uses: ./.github/workflows/cd-start-chain.yml
-    with:
-      aws-region: us-east-1
-      chain-id: proto_2221-17000
-      ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: start-chain-api-playbook.yml
-      playbook-infrastructure-branch: shef-ci-protonet-validator
-    secrets: inherit
-    needs: [reset-chain-to-zero-state]
 
 #  # setup test and development accounts and balances, deploy contracts by calling the chain's api
 #  seed-chain-state:
