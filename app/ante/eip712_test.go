@@ -90,7 +90,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 	ethChainID := pc.Uint64()
 
 	// GenerateTypedData TypedData
-	fee := legacytx.NewStdFee(TxGas, gasAmount)
+	fee := legacytx.NewStdFee(TxGas, gasAmount) //nolint:staticcheck // Deprecated but EIP712 still uses legacytx
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
 	data := eip712.ConstructUntypedEIP712Data(chainID, accNumber, nonce, 0, fee, msgs, "", nil)
