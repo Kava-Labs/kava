@@ -72,19 +72,48 @@ func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdkmath.Int {
 	return sdkmath.NewInt(amount).Mul(sdkmath.NewIntFromUint64(incr.Uint64()))
 }
 
-func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
+func (suite *EIP712TestSuite) buildTransaction(
+	gasAmount sdk.Coins,
+	msgs []sdk.Msg,
+	nonce uint64,
+	pubKey cryptotypes.PubKey,
+	option *codectypes.Any,
+) client.TxBuilder {
+	suite.clientCtx.TxConfig.SignModeHandler()
+	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
+	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
+	suite.Require().True(ok)
+
+	builder.SetExtensionOptions(option)
+	builder.SetFeeAmount(gasAmount)
+	builder.SetGasLimit(TxGas)
+
+	sigsV2 := signing.SignatureV2{
+		PubKey: pubKey,
+		Data: &signing.SingleSignatureData{
+			SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+		},
+		Sequence: nonce,
+	}
+
+	err := builder.SetSignatures(sigsV2)
+	suite.Require().NoError(err)
+
+	err = builder.SetMsgs(msgs...)
+	suite.Require().NoError(err)
+
+	return builder
+}
+
+func (suite *EIP712TestSuite) buildSigHash(
 	from sdk.AccAddress,
-	priv cryptotypes.PrivKey,
 	chainID string,
 	gasAmount sdk.Coins,
 	msgs []sdk.Msg,
+	nonce uint64,
 	customDomain *apitypes.TypedDataDomain,
 	customDomainTypes []apitypes.Type,
-) client.TxBuilder {
-	// Get required info
-	nonce, err := suite.tApp.GetAccountKeeper().GetSequence(suite.ctx, from)
-	suite.Require().NoError(err)
-
+) []byte {
 	pc, err := etherminttypes.ParseChainID(chainID)
 	suite.Require().NoError(err)
 	ethChainID := pc.Uint64()
@@ -119,6 +148,36 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 	sigHash, err := eip712.ComputeTypedDataHash(typedData)
 	suite.Require().NoError(err)
 
+	return sigHash
+}
+
+func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
+	from sdk.AccAddress,
+	priv cryptotypes.PrivKey,
+	chainID string,
+	gasAmount sdk.Coins,
+	msgs []sdk.Msg,
+	customDomain *apitypes.TypedDataDomain,
+	customDomainTypes []apitypes.Type,
+) client.TxBuilder {
+	// Get required info
+	nonce, err := suite.tApp.GetAccountKeeper().GetSequence(suite.ctx, from)
+	suite.Require().NoError(err)
+
+	pc, err := etherminttypes.ParseChainID(chainID)
+	suite.Require().NoError(err)
+	ethChainID := pc.Uint64()
+
+	sigHash := suite.buildSigHash(
+		from,
+		chainID,
+		gasAmount,
+		msgs,
+		nonce,
+		customDomain,
+		customDomainTypes,
+	)
+
 	// Sign sighHash
 	keyringSigner := tests.NewSigner(priv)
 	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
@@ -134,30 +193,13 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 	})
 	suite.Require().NoError(err)
 
-	suite.clientCtx.TxConfig.SignModeHandler()
-	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
-	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok)
-
-	builder.SetExtensionOptions(option)
-	builder.SetFeeAmount(gasAmount)
-	builder.SetGasLimit(TxGas)
-
-	sigsV2 := signing.SignatureV2{
-		PubKey: pubKey,
-		Data: &signing.SingleSignatureData{
-			SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
-		},
-		Sequence: nonce,
-	}
-
-	err = builder.SetSignatures(sigsV2)
-	suite.Require().NoError(err)
-
-	err = builder.SetMsgs(msgs...)
-	suite.Require().NoError(err)
-
-	return builder
+	return suite.buildTransaction(
+		gasAmount,
+		msgs,
+		nonce,
+		pubKey,
+		option,
+	)
 }
 
 func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
@@ -356,6 +398,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 	suite.ctx = ctx
 
 	// We need to set the validator as calling the EVM looks up the validator address
+	//nolint:lll // ignore long line for link
 	// https://github.com/evmos/ethermint/blob/f21592ebfe74da7590eb42ed926dae970b2a9a3f/x/evm/keeper/state_transition.go#L487
 	// evmkeeper.EVMConfig() will return error "failed to load evm config" if not set
 	valAcc := &etherminttypes.EthAccount{
