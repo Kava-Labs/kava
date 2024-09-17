@@ -25,7 +25,7 @@ jobs:
       chain-id: proto_2221-17000
       ssm-document-name: kava-protonet-iavl-v1-instance-update
       playbook-name: reset-chain.yml
-      playbook-infrastructure-branch: shef-ci-protonet-validator
+      playbook-infrastructure-branch: shef-protonet-validator
     secrets: inherit
 
 #  # setup test and development accounts and balances, deploy contracts by calling the chain's api

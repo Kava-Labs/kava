@@ -131,7 +131,8 @@ jobs:
         run: kava validate-genesis ci/env/kava-internal-testnet/genesis.json
   validate-protonet-genesis:
     runs-on: ubuntu-latest
-    steps:
+    steps: # kava tendermint show-node-id
+      # api-peer-node-cluster (api-node + peer-node) (profile)
       - name: checkout repo from current commit
         uses: actions/checkout@v4
       - name: Set up Go

@@ -65,7 +65,7 @@ jobs:
             --aws-ssm-document-name=$SSM_DOCUMENT_NAME \
             --infrastructure-git-pointer=$PLAYBOOK_INFRASTRUCTURE_BRANCH \
             --update-playbook-filename=$PLAYBOOK_NAME \
-            --instance-ids=i-0823115fc9273dc8c \
+            --instance-ids=i-00f8ebaf29bc90605 \
             --max-upgrade-batch-size=0 \
             --wait-for-node-sync-after-upgrade=false
         env:
