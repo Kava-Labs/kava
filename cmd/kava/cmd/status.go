@@ -35,7 +35,7 @@ type resultStatus struct {
 func StatusCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "status",
-		Short: "Query remote node for status",
+		Short: "Query remote node for status UPDATING TO TEST THINGS",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
