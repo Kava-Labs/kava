@@ -1066,9 +1066,7 @@ func NewApp(
 		MaxTxGasWanted:         options.EVMMaxGasWanted,
 		AddressFetchers:        fetchers,
 		ExtensionOptionChecker: nil,
-		// Custom fee checker that allows for ANY 1 fee coin to be used listed
-		// in the min gas prices, instead of requiring ALL.
-		TxFeeChecker: ante.CheckTxFeeWithAnyValidatorMinGasPrices,
+		TxFeeChecker:           nil,
 	}
 
 	antehandler, err := ante.NewAnteHandler(anteOptions)
