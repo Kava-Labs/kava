@@ -17,17 +17,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	authtestutil "github.com/cosmos/cosmos-sdk/x/auth/testutil"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	gomock "github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
-// TestAccount represents an account used in the tests in x/auth/ante.
+// TestAccount represents a testing account for the AnteTestSuite
 type TestAccount struct {
 	acc  types.AccountI
 	priv cryptotypes.PrivKey
 }
 
+// AnteTestSuite is based on cosmos SDK's x/auth/ante/testutil_test.go
 type AnteTestSuite struct {
 	anteHandler sdk.AnteHandler
 	ctx         sdk.Context
@@ -48,7 +48,9 @@ func SetupTestSuite(t *testing.T, isCheckTx bool) *AnteTestSuite {
 
 	key := sdk.NewKVStoreKey(types.StoreKey)
 	testCtx := testutil.DefaultContextWithDB(t, key, sdk.NewTransientStoreKey("transient_test"))
-	suite.ctx = testCtx.Ctx.WithIsCheckTx(isCheckTx).WithBlockHeight(1) // app.BaseApp.NewContext(isCheckTx, tmproto.Header{}).WithBlockHeight(1)
+	suite.ctx = testCtx.Ctx.
+		WithIsCheckTx(isCheckTx).
+		WithBlockHeight(1)
 	suite.encCfg = moduletestutil.MakeTestEncodingConfig(auth.AppModuleBasic{})
 
 	maccPerms := map[string][]string{
@@ -61,7 +63,12 @@ func SetupTestSuite(t *testing.T, isCheckTx bool) *AnteTestSuite {
 	}
 
 	suite.accountKeeper = keeper.NewAccountKeeper(
-		suite.encCfg.Codec, key, types.ProtoBaseAccount, maccPerms, sdk.Bech32MainPrefix, types.NewModuleAddress("gov").String(),
+		suite.encCfg.Codec,
+		key,
+		types.ProtoBaseAccount,
+		maccPerms,
+		sdk.Bech32MainPrefix,
+		types.NewModuleAddress("gov").String(),
 	)
 	suite.accountKeeper.GetModuleAccount(suite.ctx, types.FeeCollectorName)
 	err := suite.accountKeeper.SetParams(suite.ctx, types.DefaultParams())
@@ -86,13 +93,18 @@ func SetupTestSuite(t *testing.T, isCheckTx bool) *AnteTestSuite {
 	return suite
 }
 
-func (suite *AnteTestSuite) CreateTestAccounts(numAccs int) []TestAccount {
+func (suite *AnteTestSuite) CreateTestAccounts(
+	t *testing.T,
+	numAccs uint64,
+) []TestAccount {
+	t.Helper()
+
 	var accounts []TestAccount
 
-	for i := 0; i < numAccs; i++ {
+	for i := uint64(0); i < numAccs; i++ {
 		priv, _, addr := testdata.KeyTestPubAddr()
 		acc := suite.accountKeeper.NewAccountWithAddress(suite.ctx, addr)
-		acc.SetAccountNumber(uint64(i))
+		require.NoError(t, acc.SetAccountNumber(i))
 		suite.accountKeeper.SetAccount(suite.ctx, acc)
 		accounts = append(accounts, TestAccount{acc, priv})
 	}
@@ -123,7 +135,7 @@ func TestDeductFees(t *testing.T) {
 					Return(sdkerrors.ErrInsufficientFunds)
 			},
 			sdk.NewDecCoins(sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001"))),
-			legacytx.NewStdFee(
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)),
 			),
@@ -142,7 +154,7 @@ func TestDeductFees(t *testing.T) {
 					Return(nil)
 			},
 			sdk.NewDecCoins(sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001"))),
-			legacytx.NewStdFee(
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)), // gasPrice * gas
 			),
@@ -164,7 +176,7 @@ func TestDeductFees(t *testing.T) {
 				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
 				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
 			),
-			legacytx.NewStdFee(
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)),
 			),
@@ -177,7 +189,7 @@ func TestDeductFees(t *testing.T) {
 				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
 				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
 			),
-			legacytx.NewStdFee(
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(sdk.NewInt64Coin("ukava", 99)), // gasPrice * gas - 1
 			),
@@ -190,7 +202,7 @@ func TestDeductFees(t *testing.T) {
 				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
 				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
 			),
-			legacytx.NewStdFee(
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(
 					// Both fee coins are -1 from the required amount
@@ -216,7 +228,7 @@ func TestDeductFees(t *testing.T) {
 				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
 				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
 			),
-			legacytx.NewStdFee(
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(
 					sdk.NewInt64Coin("ukava", 100),
@@ -233,7 +245,7 @@ func TestDeductFees(t *testing.T) {
 				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
 				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
 			),
-			legacytx.NewStdFee(
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(sdk.NewInt64Coin("cats", 1000)),
 			),
@@ -243,10 +255,11 @@ func TestDeductFees(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			s := SetupTestSuite(t, false)
+			// true for isCheckTx
+			s := SetupTestSuite(t, true)
 
 			// keys and addresses
-			accs := s.CreateTestAccounts(1)
+			accs := s.CreateTestAccounts(t, 1)
 
 			// msg and signatures
 			msg := testdata.NewTestMsg(accs[0].acc.GetAddress())
@@ -255,9 +268,8 @@ func TestDeductFees(t *testing.T) {
 			tc.setupMocks(s)
 
 			// Set the minimum gas prices for test & verify it was set
-			s.ctx = s.ctx.
-				WithMinGasPrices(tc.giveMinGasPrices).
-				WithIsCheckTx(true)
+			s.ctx = s.ctx.WithMinGasPrices(tc.giveMinGasPrices)
+
 			require.Equal(t, tc.giveMinGasPrices, s.ctx.MinGasPrices())
 			require.True(t, s.ctx.IsCheckTx(), "expected IsCheckTx to be true to test minimum gas prices")
 
