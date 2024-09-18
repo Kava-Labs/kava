@@ -113,7 +113,7 @@ func (suite *AnteTestSuite) CreateTestAccounts(
 }
 
 // TestDeductFees tests the full AnteHandler flow with the DeductFeeDecorator
-// using the custom TxFeeChecker
+// using the default TxFeeChecker
 func TestDeductFees(t *testing.T) {
 	tests := []struct {
 		name             string
@@ -283,7 +283,12 @@ func TestDeductFees(t *testing.T) {
 			// NOTE: Transaction is not signed, as it is not checked for this test.
 			tx := txBuilder.GetTx()
 
-			dfd := ante.NewDeductFeeDecorator(s.accountKeeper, s.bankKeeper, nil, nil)
+			dfd := ante.NewDeductFeeDecorator(
+				s.accountKeeper,
+				s.bankKeeper,
+				nil, // feegrant keeper - unused
+				nil, // TxFeeChecker func - nil for default
+			)
 			antehandler := sdk.ChainAnteDecorators(dfd)
 
 			_, err := antehandler(s.ctx, tx, false)
