@@ -125,7 +125,7 @@ func TestDeductFees(t *testing.T) {
 			sdk.NewDecCoins(sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001"))),
 			legacytx.NewStdFee(
 				100000,
-				sdk.NewCoins(sdk.NewInt64Coin("ukava", 1000)),
+				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)),
 			),
 			"insufficient funds: insufficient funds",
 		},
@@ -144,12 +144,12 @@ func TestDeductFees(t *testing.T) {
 			sdk.NewDecCoins(sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001"))),
 			legacytx.NewStdFee(
 				100000,
-				sdk.NewCoins(sdk.NewInt64Coin("ukava", 1000)),
+				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)), // gasPrice * gas
 			),
 			"",
 		},
 		{
-			"valid fees, multiple min gas prices",
+			"valid single fee, multiple min gas prices",
 			func(s *AnteTestSuite) {
 				s.bankKeeper.EXPECT().
 					SendCoinsFromAccountToModule(
@@ -166,7 +166,63 @@ func TestDeductFees(t *testing.T) {
 			),
 			legacytx.NewStdFee(
 				100000,
-				sdk.NewCoins(sdk.NewInt64Coin("ukava", 1000)),
+				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)),
+			),
+			"",
+		},
+		{
+			"insufficient single fee, multiple min gas prices",
+			func(_ *AnteTestSuite) {},
+			sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
+				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
+			),
+			legacytx.NewStdFee(
+				100000,
+				sdk.NewCoins(sdk.NewInt64Coin("ukava", 99)), // gasPrice * gas - 1
+			),
+			"insufficient fees; got: 99ukava required: 100ukava,300usdt: insufficient fee",
+		},
+		{
+			"insufficient multiple fee, multiple min gas prices",
+			func(_ *AnteTestSuite) {},
+			sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
+				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
+			),
+			legacytx.NewStdFee(
+				100000,
+				sdk.NewCoins(
+					// Both fee coins are -1 from the required amount
+					sdk.NewInt64Coin("ukava", 99), // gasPrice * gas - 1
+					sdk.NewInt64Coin("usdt", 299), // gasPrice * gas - 1
+				),
+			),
+			"insufficient fees; got: 99ukava,299usdt required: 100ukava,300usdt: insufficient fee",
+		},
+		{
+			"valid multiple fee, multiple min gas prices",
+			func(s *AnteTestSuite) {
+				s.bankKeeper.EXPECT().
+					SendCoinsFromAccountToModule(
+						gomock.Any(),
+						gomock.Any(),
+						gomock.Any(),
+						gomock.Any(),
+					).
+					Return(nil)
+			},
+			sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
+				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
+			),
+			legacytx.NewStdFee(
+				100000,
+				sdk.NewCoins(
+					sdk.NewInt64Coin("ukava", 100),
+					// insufficient usdt is fine if ukava is sufficient
+					sdk.NewInt64Coin("usdt", 1),
+				),
 			),
 			"",
 		},
