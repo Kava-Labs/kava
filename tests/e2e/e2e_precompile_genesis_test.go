@@ -68,8 +68,28 @@ func (suite *IntegrationTestSuite) TestPrecompileGenesis() {
 			genFixture: enabled(registry.NoopContractAddress),
 		},
 		{
-			name:       "noop contract address second address is disabled and not initialized",
-			genFixture: disabled(registry.NoopContractAddress2),
+			name:       "noop contract address two is enabled and initialized",
+			genFixture: enabled(registry.NoopContractAddress2),
+		},
+		{
+			name:       "noop contract address three is enabled and initialized",
+			genFixture: enabled(registry.NoopContractAddress3),
+		},
+		{
+			name:       "noop contract address four is enabled and initialized",
+			genFixture: enabled(registry.NoopContractAddress4),
+		},
+		{
+			name:       "noop contract address five is enabled and initialized",
+			genFixture: enabled(registry.NoopContractAddress5),
+		},
+		{
+			name:       "noop contract address six is enabled and initialized",
+			genFixture: enabled(registry.NoopContractAddress6),
+		},
+		{
+			name:       "noop contract address six is disabled and not initialized",
+			genFixture: disabled(registry.NoopContractAddress7),
 		},
 	}
 
