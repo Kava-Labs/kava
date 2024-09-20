@@ -7,7 +7,7 @@ set -ex
 # broadcast mode of `block` in order to
 # minimize the chance tx's fail due to an
 # account sequence number mismatch
-AVG_SECONDS_BETWEEN_BLOCKS=6.5
+AVG_SECONDS_BETWEEN_BLOCKS=10
 
 # configure kava binary to talk to the desired chain endpoint
 kava config node "${CHAIN_API_URL}"
