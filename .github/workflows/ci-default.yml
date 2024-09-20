@@ -37,6 +37,8 @@ jobs:
         run: make docker-build test-e2e
   test-e2e-evm:
     runs-on: ubuntu-latest
+    env:
+      KAVA_TAG: local
     steps:
       - name: Checkout current commit
         uses: actions/checkout@v4
@@ -57,6 +59,9 @@ jobs:
             tests/e2e/kvtool/go.sum
       - name: Install npm dependencies
         run: npm install
+        working-directory: tests/e2e-evm
+      - name: Run test suite against hardhat network
+        run: npm run compile
         working-directory: tests/e2e-evm
       - name: Run test suite against hardhat network
         run: npm run test-hardhat
