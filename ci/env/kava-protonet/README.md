@@ -7,5 +7,11 @@ Genesis Updates
 
 Summary
 =======
-- We decided to move critical data sections into the genesis.json file to ensure the node that starts up has all relevant state it needs BEFORE we execute any scripts to manipulate state.
-- The genesis.json contains the initial dev wallet, genesis account and associated balances to said account which is then used to pre-fund various ancillary kava balances (ex: community) to serve whatever testing purpose to protonet
+- We decided to move critical bootstrapping sections into the genesis.json file to ensure the node that kava starts up has all relevant initial state it needs BEFORE the seed-protonet.sh script executes.
+
+Advantages
+- Single source of truth for initial provisioning of the kava state when the validator node starts up
+
+Disadvantages
+- Maybe less dynamic in terms of having a shell script, post kava install, setup genesis accounts etc on the fly. Not sure if this was an expectation of this project.
+
