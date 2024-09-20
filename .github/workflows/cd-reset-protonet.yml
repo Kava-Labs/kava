@@ -3,6 +3,14 @@ name: Reset Internal Testnet
 on:
   workflow_call:
     inputs:
+      auto_scaling_group_names:
+        required: true
+        type: string
+        description: 'Comma-separated list of auto-scaling group names'
+      chain-tag-name:
+        required: false
+        type: string
+        default: 'KavaChainId'
       chain-id:
         required: true
         type: string
@@ -60,19 +68,22 @@ jobs:
         run: cd infrastructure/cli/kava-node-updater && make install && cd ../../../
       - name: run reset playbook on all chain nodes
         run: |
-          kava-node-updater \
-            --debug \
-            --max-retries=2 \
-            --aws-ssm-document-name=$SSM_DOCUMENT_NAME \
-            --infrastructure-git-pointer=$PLAYBOOK_INFRASTRUCTURE_BRANCH \
-            --update-playbook-filename=$PLAYBOOK_NAME \
-            --chain-id=$CHAIN_ID \
-            --max-upgrade-batch-size=0 \
-            --wait-for-node-sync-after-upgrade=false
+          IFS=',' read -r -a auto_scaling_group_names <<< "$AUTO_SCALING_GROUP_NAMES"
+          for auto_scaling_group_name in "${auto_scaling_group_names[@]}"; do
+            kava-node-updater \
+              --debug \
+              --max-retries=2 \
+              --aws-ssm-document-name="$SSM_DOCUMENT_NAME" \
+              --infrastructure-git-pointer="$PLAYBOOK_INFRASTRUCTURE_BRANCH" \
+              --update-playbook-filename="$PLAYBOOK_NAME" \
+              --autoscaling-group-name="$auto_scaling_group_name" \
+              --max-upgrade-batch-size=0 \
+              --wait-for-node-sync-after-upgrade=true
+          done
         env:
           SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
           PLAYBOOK_NAME: ${{ inputs.playbook-name }}
-          CHAIN_ID: ${{ inputs.chain-id }}
+          AUTO_SCALING_GROUP_NAMES: ${{ inputs.auto_scaling_group_names }}
           AWS_REGION: ${{ inputs.aws-region }}
           AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
