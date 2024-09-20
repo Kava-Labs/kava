@@ -44,23 +44,23 @@ jobs:
     needs: [reset-chain-to-zero-state]
 
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
-#  seed-chain-state:
-#    uses: ./.github/workflows/cd-seed-chain.yml
-#    with:
-#      chain-api-url: https://rpc.app.protonet.us-east.production.kava.io:443
-#      chain-id: proto_2221-17000
-#      seed-script-filename: seed-protonet.sh
-#      erc20-deployer-network-name: protonet
-#      genesis_validator_addresses: "kavavaloper14w4avgdvqrlpww6l5dhgj4egfn6ln7gmtp7r2m"
-#      kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
-#    secrets: inherit
-#    needs: [start-chain-api]
-#  post-pipeline-metrics:
-#    uses: ./.github/workflows/metric-pipeline.yml
-#    if: always() # always run so we metric failures and successes
-#    with:
-#      aws-region: us-east-1
-#      metric-name: kava.deploys.testnet.proto
-#      namespace: Kava/ContinuousDeployment
-#    secrets: inherit
-#    needs: [seed-chain-state]
+  seed-chain-state:
+    uses: ./.github/workflows/cd-seed-chain.yml
+    with:
+      chain-api-url: https://rpc.app.protonet.us-east.production.kava.io:443
+      chain-id: proto_2221-17000
+      seed-script-filename: seed-protonet.sh
+      erc20-deployer-network-name: protonet
+      genesis_validator_addresses: "kavavaloper1jaw3g097lq9jdrnscchspr2233yhpsxdlq7ula"
+      kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
+    secrets: inherit
+    needs: [start-chain-api]
+  post-pipeline-metrics:
+    uses: ./.github/workflows/metric-pipeline.yml
+    if: always() # always run so we metric failures and successes
+    with:
+      aws-region: us-east-1
+      metric-name: kava.deploys.testnet.proto
+      namespace: Kava/ContinuousDeployment
+    secrets: inherit
+    needs: [seed-chain-state]
