@@ -52,6 +52,13 @@
           "pub_key": null,
           "account_number": "0",
           "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "pub_key": null,
+          "account_number": "1",
+          "sequence": "0"
         }
       ]
     },
@@ -72,14 +79,50 @@
               "amount": "2000000000"
             }
           ]
-        }
-      ],
-      "supply": [
+        },
         {
-          "denom": "ukava",
-          "amount": "2000000000"
+          "address": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "coins": [
+            {
+              "denom": "bnb",
+              "amount": "500000000"
+            },
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+              "amount": "10000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            },
+            {
+              "denom": "xrpb",
+              "amount": "1000000000000000"
+            }
+          ]
         }
       ],
+      "supply": [],
       "denom_metadata": [],
       "send_enabled": []
     },
@@ -427,7 +470,128 @@
     },
     "issuance": {
       "params": {
-        "assets": []
+        "assets": [
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "ukava",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "erc20/multichain/usdt",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "usdx",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "erc20/multichain/usdc",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "hard",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "swp",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "busd",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "btcb",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "bnb",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "xrpb",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          }
+        ]
       },
       "supplies": []
     },
