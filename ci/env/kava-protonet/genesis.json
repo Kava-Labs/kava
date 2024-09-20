@@ -235,7 +235,7 @@
     "evm": {
       "accounts": [],
       "params": {
-        "evm_denom": "aphoton",
+        "evm_denom": "ukava",
         "enable_create": true,
         "enable_call": true,
         "extra_eips": [],
@@ -253,12 +253,12 @@
           "istanbul_block": "0",
           "muir_glacier_block": "0",
           "berlin_block": "0",
-          "london_block": "0",
-          "arrow_glacier_block": "0",
-          "gray_glacier_block": "0",
-          "merge_netsplit_block": "0",
-          "shanghai_block": "0",
-          "cancun_block": "0"
+          "london_block": null,
+          "arrow_glacier_block": null,
+          "gray_glacier_block": null,
+          "merge_netsplit_block": null,
+          "shanghai_block": null,
+          "cancun_block": null
         },
         "eip712_allowed_msgs": [],
         "allow_unprotected_txs": false
