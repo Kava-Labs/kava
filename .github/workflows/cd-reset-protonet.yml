@@ -78,6 +78,7 @@ jobs:
               --update-playbook-filename="$PLAYBOOK_NAME" \
               --autoscaling-group-name="$auto_scaling_group_name" \
               --max-upgrade-batch-size=0 \
+              --node-types="" \
               --wait-for-node-sync-after-upgrade=true
           done
         env:
