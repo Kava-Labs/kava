@@ -61,7 +61,7 @@ jobs:
           repository: Kava-Labs/infrastructure
           token: ${{ secrets.KAVA_PRIVATE_GITHUB_ACCESS_TOKEN }}
           path: infrastructure
-          ref: shef-protonet-validator-network-ephemeral
+          ref: master
       - name: Set up Go
         uses: actions/setup-go@v4
         with:

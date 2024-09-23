@@ -1,12 +1,10 @@
 name: Continuous Deployment (Protonet)
-## run after every successful CI job of new commits to the master branch
-#on:
-#  workflow_run:
-#    workflows: [Continuous Integration (Kava Master)]
-#    types:
-#      - completed
+# run after every successful CI job of new commits to the master branch
 on:
-  push:
+  workflow_run:
+    workflows: [Continuous Integration (Kava Master)]
+    types:
+      - completed
 
 jobs:
   # in order:
@@ -18,7 +16,7 @@ jobs:
   # enter inService
   reset-chain-to-zero-state:
     # only start cd pipeline if last ci run was successful
-#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     uses: ./.github/workflows/cd-reset-protonet.yml
     with:
       aws-region: us-east-1
@@ -27,7 +25,7 @@ jobs:
       auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node,kava-protonet-iavl-v1-rpc-api-node
       ssm-document-name: kava-protonet-iavl-v1-instance-update
       playbook-name: reset-chain.yml
-      playbook-infrastructure-branch: shef-protonet-validator-network-ephemeral
+      playbook-infrastructure-branch: master
     secrets: inherit
 
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
