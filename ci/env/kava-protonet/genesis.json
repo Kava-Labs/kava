@@ -4,23 +4,21 @@
   "initial_height": "1",
   "consensus_params": {
     "block": {
-      "max_bytes": "22020096",
+      "max_bytes": "200000",
       "max_gas": "20000000",
       "time_iota_ms": "1000"
     },
     "evidence": {
-      "max_age_num_blocks": "100000",
-      "max_age_duration": "172800000000000",
-      "max_bytes": "1048576"
+      "max_age_num_blocks": "1000000",
+      "max_age_duration": "6000000000000000",
+      "max_bytes": "50000"
     },
     "validator": {
       "pub_key_types": [
         "ed25519"
       ]
     },
-    "version": {
-      "app": "0"
-    }
+    "version": {}
   },
   "app_hash": "",
   "app_state": {
@@ -30,7 +28,7 @@
       "next_auction_id": "1",
       "params": {
         "max_auction_duration": "172800s",
-        "forward_bid_duration": "86400s",
+        "forward_bid_duration": "28800s",
         "reverse_bid_duration": "3600s",
         "increment_surplus": "0.050000000000000000",
         "increment_debt": "0.050000000000000000",
@@ -47,13 +45,6 @@
         "sig_verify_cost_secp256k1": "1000"
       },
       "accounts": [
-        {
-          "@type": "/cosmos.auth.v1beta1.BaseAccount",
-          "address": "kava1jaw3g097lq9jdrnscchspr2233yhpsxdjky582",
-          "pub_key": null,
-          "account_number": "0",
-          "sequence": "0"
-        },
         {
           "@type": "/cosmos.auth.v1beta1.ModuleAccount",
           "base_account": {
@@ -1742,7 +1733,7 @@
     },
     "feemarket": {
       "params": {
-        "no_base_fee": false,
+        "no_base_fee": true,
         "base_fee_change_denominator": 8,
         "elasticity_multiplier": 2,
         "enable_height": "0",
