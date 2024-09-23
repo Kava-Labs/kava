@@ -1,4 +1,4 @@
-name: Reset Internal Testnet
+name: Reset Protonet
 
 on:
   workflow_call:
@@ -36,10 +36,11 @@ on:
 
 # in order:
 # enter standby (prevents autoscaling group from killing node during deploy)
-# stop kava
+# stop doctor and kava
 # download updated binary and genesis
-# reset application database state (only done on internal testnet)
-
+# reset application database state
+# start kava and doctor
+# enter inService
 jobs:
   place-chain-nodes-on-standby:
     runs-on: ubuntu-latest
