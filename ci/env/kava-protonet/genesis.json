@@ -46,6 +46,13 @@
       },
       "accounts": [
         {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1jaw3g097lq9jdrnscchspr2233yhpsxdjky582",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
           "@type": "/cosmos.auth.v1beta1.ModuleAccount",
           "base_account": {
             "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
