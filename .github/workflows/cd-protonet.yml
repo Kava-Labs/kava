@@ -23,7 +23,7 @@ jobs:
       aws-region: us-east-1
       chain-tag-name: ChainId
       chain-id: proto_2221-17000
-      auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node,kava-protonet-iavl-v1-rpc-api-node
+      auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node #,kava-protonet-iavl-v1-rpc-api-node
       ssm-document-name: kava-protonet-iavl-v1-instance-update
       playbook-name: reset-chain.yml
       playbook-infrastructure-branch: shef-protonet-validator-network-ephemeral
