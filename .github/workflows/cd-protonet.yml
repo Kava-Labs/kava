@@ -11,10 +11,11 @@ on:
 jobs:
   # in order:
   # enter standby (prevents autoscaling group from killing node during deploy)
-  # stop kava
-  # take ebs + zfs snapshots
+  # stop doctor and kava
   # download updated binary and genesis
-  # reset application database state (only done on internal testnet)
+  # reset application database state
+  # start kava and doctor
+  # enter inService
   reset-chain-to-zero-state:
     # only start cd pipeline if last ci run was successful
 #    if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -23,7 +24,7 @@ jobs:
       aws-region: us-east-1
       chain-tag-name: ChainId
       chain-id: proto_2221-17000
-      auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node #,kava-protonet-iavl-v1-rpc-api-node
+      auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node,kava-protonet-iavl-v1-rpc-api-node
       ssm-document-name: kava-protonet-iavl-v1-instance-update
       playbook-name: reset-chain.yml
       playbook-infrastructure-branch: shef-protonet-validator-network-ephemeral
@@ -41,12 +42,13 @@ jobs:
       kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
     secrets: inherit
     needs: [reset-chain-to-zero-state]
+
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes
     with:
       aws-region: us-east-1
-      metric-name: kava.deploys.testnet.proto
+      metric-name: kava.deploys.protonet.proto
       namespace: Kava/ContinuousDeployment
     secrets: inherit
     needs: [seed-chain-state]
