@@ -80,3 +80,9 @@ jobs:
           PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
       - name: bring the chain online
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/exit-standby-all-chain-nodes.sh
+        env:
+          CHAIN_TAG_NAME: ${{ inputs.chain-tag-name }}
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
