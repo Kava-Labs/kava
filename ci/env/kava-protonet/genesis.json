@@ -76,7 +76,7 @@
           "coins": [
             {
               "denom": "ukava",
-              "amount": "2000000000"
+              "amount": "1000000000000000000"
             }
           ]
         },
@@ -174,8 +174,7 @@
           "base_committee": {
             "id": "1",
             "description": "Kava God Committee (testing only)",
-            "members": ["kava1van3znl6597xgwwh46jgquutnqkwvwszjg04fz", "kava1cxymrk2mqlhc6p08kx8zvsd23vgsm7ftfn9x5d"],
-            "permissions": [{ "@type": "/kava.committee.v1beta1.GodPermission" }],
+            "members": ["kava1jaw3g097lq9jdrnscchspr2233yhpsxdjky582", "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq"],            "permissions": [{ "@type": "/kava.committee.v1beta1.GodPermission" }],
             "vote_threshold": "0.667000000000000000",
             "proposal_duration": "604800s",
             "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
@@ -273,7 +272,7 @@
     },
     "feemarket": {
       "params": {
-        "no_base_fee": false,
+        "no_base_fee": true,
         "base_fee_change_denominator": 8,
         "elasticity_multiplier": 2,
         "enable_height": "0",
@@ -311,7 +310,7 @@
                 },
                 "value": {
                   "denom": "ukava",
-                  "amount": "1000000000"
+                  "amount": "500000000"
                 }
               }
             ],
