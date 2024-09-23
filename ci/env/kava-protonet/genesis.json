@@ -1925,7 +1925,40 @@
       "usdx_minting_claims": [],
       "hard_liquidity_provider_claims": [],
       "delegator_claims": [],
-      "swap_claims": [],
+      "swap_claims": [
+        {
+          "base_claim": {
+            "owner": "kava1ektgdyy0z23qqnd67ns3qvfzgfgjd5xe82lf5c",
+            "reward": []
+          },
+          "reward_indexes": [
+            {
+              "collateral_type": "ukava:usdx",
+              "reward_indexes": []
+            }
+          ]
+        },
+        {
+          "base_claim": {
+            "owner": "kava173w2zz287s36ewnnkf4mjansnthnnsz7rtrxqc",
+            "reward": []
+          },
+          "reward_indexes": [
+            {
+              "collateral_type": "hard:usdx",
+              "reward_indexes": []
+            },
+            {
+              "collateral_type": "swp:usdx",
+              "reward_indexes": []
+            },
+            {
+              "collateral_type": "ukava:usdx",
+              "reward_indexes": []
+            }
+          ]
+        }
+      ],
       "savings_reward_state": {
         "accumulation_times": [],
         "multi_reward_indexes": []
@@ -2101,9 +2134,476 @@
     "params": null,
     "pricefeed": {
       "params": {
-        "markets": []
+        "markets": [
+          {
+            "market_id": "bnb:usd",
+            "base_asset": "bnb",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "bnb:usd:30",
+            "base_asset": "bnb",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "btc:usd",
+            "base_asset": "btc",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "btc:usd:30",
+            "base_asset": "btc",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "eth:usd",
+            "base_asset": "eth",
+            "quote_asset": "eth",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "eth:usd:30",
+            "base_asset": "eth",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "xrp:usd:30",
+            "base_asset": "xrp",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "xrp:usd",
+            "base_asset": "xrp",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "busd:usd",
+            "base_asset": "busd",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "busd:usd:30",
+            "base_asset": "busd",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "usdc:usd",
+            "base_asset": "usdc",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "usdc:usd:30",
+            "base_asset": "usdc",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "usdt:usd",
+            "base_asset": "usdt",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "usdt:usd:30",
+            "base_asset": "usdt",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "kava:usd",
+            "base_asset": "kava",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "kava:usd:30",
+            "base_asset": "kava",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "hard:usd",
+            "base_asset": "hard",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "hard:usd:30",
+            "base_asset": "hard",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "atom:usd",
+            "base_asset": "atom",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "atom:usd:30",
+            "base_asset": "atom",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "osmo:usd",
+            "base_asset": "osmo",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "osmo:usd:30",
+            "base_asset": "osmo",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "akt:usd",
+            "base_asset": "akt",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "akt:usd:30",
+            "base_asset": "akt",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "luna:usd",
+            "base_asset": "luna",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "luna:usd:30",
+            "base_asset": "luna",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "usdx:usd",
+            "base_asset": "usdx",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "usdx:usd:30",
+            "base_asset": "usdx",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "usdx:usd:720",
+            "base_asset": "usdx",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "swp:usd",
+            "base_asset": "swp",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          },
+          {
+            "market_id": "swp:usd:30",
+            "base_asset": "swp",
+            "quote_asset": "usd",
+            "oracles": [
+              "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h"
+            ],
+            "active": true
+          }
+        ]
       },
-      "posted_prices": []
+      "posted_prices": [
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "bnb:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "215.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "bnb:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "217.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "btc:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "29500.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "btc:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "28500.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "eth:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "16250.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "eth:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "16250.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "akt:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "akt:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "osmo:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "4.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "osmo:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "4.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "luna:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "92.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "luna:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "92.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "atom:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "24.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "atom:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "24.962650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "xrp:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "0.552650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "xrp:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "0.552650000000001782"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "busd:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "busd:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "usdx:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "usdx:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "usdx:usd:720",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "kava:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "3.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "kava:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "3.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "hard:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "0.500000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "hard:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "0.500000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "swp:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "2.150000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "swp:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "2.150000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "usdt:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "usdc:usd",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "usdt:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        },
+        {
+          "expiry": "2050-01-01T00:00:00Z",
+          "market_id": "usdc:usd:30",
+          "oracle_address": "kava1hdn83q3srldcpan4ex2v4npuae8hmnfrps3e6h",
+          "price": "1.000000000000000000"
+        }
+      ]
     },
     "router": {},
     "savings": {
