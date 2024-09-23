@@ -39,6 +39,7 @@ on:
 # stop kava
 # download updated binary and genesis
 # reset application database state (only done on internal testnet)
+
 jobs:
   place-chain-nodes-on-standby:
     runs-on: ubuntu-latest
