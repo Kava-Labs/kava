@@ -29,20 +29,6 @@ jobs:
       playbook-infrastructure-branch: shef-protonet-validator-network-ephemeral
     secrets: inherit
 
-  # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
-  start-chain-api:
-    uses: ./.github/workflows/cd-start-protonet-chain.yml
-    with:
-      aws-region: us-east-1
-      chain-tag-name: ChainId
-      chain-id: proto_2221-17000
-      auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node,kava-protonet-iavl-v1-rpc-api-node
-      ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: start-chain-api-playbook.yml
-      playbook-infrastructure-branch: master
-    secrets: inherit
-    needs: [reset-chain-to-zero-state]
-
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
   seed-chain-state:
     uses: ./.github/workflows/cd-seed-chain.yml
@@ -54,7 +40,7 @@ jobs:
       genesis_validator_addresses: "kavavaloper1jaw3g097lq9jdrnscchspr2233yhpsxdlq7ula"
       kava_version_filepath:  ./ci/env/kava-protonet/KAVA.VERSION
     secrets: inherit
-    needs: [start-chain-api]
+    needs: [reset-chain-to-zero-state]
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes
