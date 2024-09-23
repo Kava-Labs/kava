@@ -90,3 +90,5 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
           AWS_SDK_LOAD_CONFIG: 1
           PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
+      - name: bring the chain online
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/exit-standby-all-chain-nodes.sh
