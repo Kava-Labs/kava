@@ -235,7 +235,7 @@
     "evm": {
       "accounts": [],
       "params": {
-        "evm_denom": "ukava",
+        "evm_denom": "akava",
         "enable_create": true,
         "enable_call": true,
         "extra_eips": [],
