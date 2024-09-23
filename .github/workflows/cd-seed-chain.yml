@@ -38,7 +38,9 @@ jobs:
       - name: get desired version of network
         id: kava-version
         run: |
-          echo "KAVA_VERSION=$(cat ${{ inputs.kava_version_filepath }})" >> $GITHUB_OUTPUT
+          KAVA_VERSION=$(cat ${{ inputs.kava_version_filepath }})
+          echo "KAVA_VERSION=$KAVA_VERSION" >> $GITHUB_OUTPUT
+          echo "Kava Version: $KAVA_VERSION"
         env:
           KAVA_VERSION_FILEPATH: ${{ inputs.kava_version_filepath }}
       - name: checkout version of kava used by network
