@@ -29,7 +29,6 @@ jobs:
       playbook-infrastructure-branch: shef-protonet-validator-network-ephemeral
     secrets: inherit
 
-
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
   seed-chain-state:
     uses: ./.github/workflows/cd-seed-chain.yml
