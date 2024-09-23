@@ -55,10 +55,172 @@
           "sequence": "0"
         },
         {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "name": "kavadist",
+          "permissions": [
+            "minter"
+          ]
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1fy5zeuutmxzwcx5hncu5q83ug3zcqmxcpwrjsn",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.ModuleAccount",
+          "base_account": {
+            "address": "kava1mfru9azs5nua2wxcd4sq64g5nt7nn4n8s2w8cu",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "name": "swap",
+          "permissions": []
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1ak4pa9z2aty94ze2cs06wsdnkg9hsvfkp40r02",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava123fxg0l602etulhhcdm0vt7l57qya5wjcrwhzz",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava10wlnqzyss4accfqmyxwx5jy5x9nfkwh6qm7n4t",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1vtf08rd2z9fm8qwxa54y3el5vues8ty64qcdyr",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "1"
+          },
+          "code_hash": "0xefe54230c8a74092194afdcb21c230b4cc4e07d0e6cd22bf0d3721f518df8ef2"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1wrrekcy2h0zs9shkruuwqsvsldq8hm70yad4ke",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "1"
+          },
+          "code_hash": "0xd51cf04c1b78bc48b348e8455c4181539ab0b7ff84bb081fed109cd5feafaede"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1g3kdcr8ah7rs07dk00elnkpmk34e6dcj94306a",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "1"
+          },
+          "code_hash": "0"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1xg3g4gadzvlgfqwnsfufnsv6r0gmtnhl9f09p5",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1kq0kfnnffkna9hknzg8kgx89ljczjtjdt8qrv7",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxw9ehkk",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        {
           "@type": "/cosmos.auth.v1beta1.BaseAccount",
           "address": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
           "pub_key": null,
-          "account_number": "1",
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1krh7k30pc9rteejpl2zycj0vau58y8c69xkzws",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "address": "kava1w66m9hdzwgd6uc8g93zqkcumgwzrpcw9e32lf8",
+            "pub_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          },
+          "code_hash": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+        },
+        {
+          "@type": "/ethermint.types.v1.EthAccount",
+          "base_account": {
+            "account_number": "23",
+            "address": "kava1seqjrgakfgzasu5g8gwsmgzwacg85e8nnxeqxl",
+            "pub_key": null,
+            "sequence": "1"
+          },
+          "code_hash": "0x45d85d503e0143ffd2bb95d7bcb4dadfc1c05ff005fc7c26e63eb47f496fdafc"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava10cy05c0j9udypdrp0wy8a5jtshx67v7zk5sdzp",
+          "pub_key": null,
+          "account_number": "0",
+          "sequence": "0"
+        },
+        {
+          "@type": "/cosmos.auth.v1beta1.BaseAccount",
+          "address": "kava1qffzssyckxgrd7qm6g59r7rfjpp047kzaefatc",
+          "pub_key": null,
+          "account_number": "0",
           "sequence": "0"
         }
       ]
@@ -121,6 +283,286 @@
               "amount": "1000000000000000"
             }
           ]
+        },
+        {
+          "address": "kava1xg3g4gadzvlgfqwnsfufnsv6r0gmtnhl9f09p5",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "1000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1fy5zeuutmxzwcx5hncu5q83ug3zcqmxcpwrjsn",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "100000000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1cj7njkw2g9fqx4e768zc75dp9sks8u9znxrf0w",
+          "coins": [
+            {
+              "denom": "hard",
+              "amount": "100000000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "100000000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "100000000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxw9ehkk",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "1000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1g3kdcr8ah7rs07dk00elnkpmk34e6dcj94306a",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "10000000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+          "coins": [
+            {
+              "denom": "bnb",
+              "amount": "500000000"
+            },
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/eth",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/usdc",
+              "amount": "10000000000"
+            },
+            {
+              "denom": "erc20/axelar/wbtc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/bitgo/wbtc",
+              "amount": "200000000"
+            },
+            {
+              "denom": "erc20/multichain/usdc",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "erc20/multichain/usdt",
+              "amount": "10000000000"
+            },
+            {
+              "denom": "erc20/multichain/wbtc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "ibc/27394FB092D2ECCD56123C74F36E4C1F926001CEADA9CA97EA622B25F41E5EB2",
+              "amount": "10000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            },
+            {
+              "denom": "xrpb",
+              "amount": "1000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1krh7k30pc9rteejpl2zycj0vau58y8c69xkzws",
+          "coins": [
+            {
+              "denom": "bnb",
+              "amount": "100000000000000000"
+            },
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/eth",
+              "amount": "1000000000000000000"
+            },
+            {
+              "denom": "erc20/axelar/usdc",
+              "amount": "10000000000"
+            },
+            {
+              "denom": "erc20/axelar/wbtc",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "erc20/bitgo/wbtc",
+              "amount": "200000000"
+            },
+            {
+              "denom": "erc20/tether/usdt",
+              "amount": "100000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            },
+            {
+              "denom": "xrpb",
+              "amount": "103000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1w66m9hdzwgd6uc8g93zqkcumgwzrpcw9e32lf8",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "1000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1kq0kfnnffkna9hknzg8kgx89ljczjtjdt8qrv7",
+          "coins": [
+            {
+              "denom": "ukava",
+              "amount": "1000000000000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1mfru9azs5nua2wxcd4sq64g5nt7nn4n8s2w8cu",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava10cy05c0j9udypdrp0wy8a5jtshx67v7zk5sdzp",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "10000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
+        },
+        {
+          "address": "kava1qffzssyckxgrd7qm6g59r7rfjpp047kzaefatc",
+          "coins": [
+            {
+              "denom": "btcb",
+              "amount": "200000000"
+            },
+            {
+              "denom": "busd",
+              "amount": "1000000000000000"
+            },
+            {
+              "denom": "hard",
+              "amount": "1000000000"
+            },
+            {
+              "denom": "swp",
+              "amount": "5000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "100000000000000"
+            },
+            {
+              "denom": "usdx",
+              "amount": "103000000000"
+            }
+          ]
         }
       ],
       "supply": [],
@@ -140,32 +582,201 @@
       "owners": []
     },
     "cdp": {
+      "cdps": [],
+      "debt_denom": "debt",
+      "deposits": [],
+      "gov_denom": "ukava",
       "params": {
-        "collateral_params": [],
+        "circuit_breaker": false,
+        "liquidation_block_interval": 500,
+        "collateral_params": [
+          {
+            "denom": "bnb",
+            "type": "bnb-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "5000000000000"
+            },
+            "stability_fee": "1.000000000158153904",
+            "auction_size": "50000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "bnb:usd",
+            "liquidation_market_id": "bnb:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "8"
+          },
+          {
+            "denom": "btcb",
+            "type": "btcb-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "10000000000000"
+            },
+            "stability_fee": "1.000000000782997609",
+            "auction_size": "100000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "btc:usd",
+            "liquidation_market_id": "btc:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "8"
+          },
+          {
+            "denom": "busd",
+            "type": "busd-a",
+            "liquidation_ratio": "1.010000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "50000000000000"
+            },
+            "stability_fee": "1.000000000000000000",
+            "auction_size": "1000000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "busd:usd",
+            "liquidation_market_id": "busd:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "8"
+          },
+          {
+            "denom": "busd",
+            "type": "busd-b",
+            "liquidation_ratio": "1.100000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "1000000000000"
+            },
+            "stability_fee": "1.000000012857214317",
+            "auction_size": "1000000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "busd:usd",
+            "liquidation_market_id": "busd:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "8"
+          },
+          {
+            "denom": "xrpb",
+            "type": "xrpb-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "5000000000000"
+            },
+            "stability_fee": "1.000000000782997609",
+            "auction_size": "4000000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "xrp:usd",
+            "liquidation_market_id": "xrp:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "8"
+          },
+          {
+            "denom": "ukava",
+            "type": "ukava-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "250000000000"
+            },
+            "stability_fee": "1.000000000782997609",
+            "auction_size": "5000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "kava:usd",
+            "liquidation_market_id": "kava:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "6"
+          },
+          {
+            "denom": "hard",
+            "type": "hard-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "100000000000"
+            },
+            "stability_fee": "1.000000000782997609",
+            "auction_size": "5000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "hard:usd",
+            "liquidation_market_id": "hard:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "6"
+          },
+          {
+            "denom": "hbtc",
+            "type": "hbtc-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "10000000000000"
+            },
+            "stability_fee": "1.000000001547125958",
+            "auction_size": "100000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "btc:usd",
+            "liquidation_market_id": "btc:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "8"
+          },
+          {
+            "denom": "swp",
+            "type": "swp-a",
+            "liquidation_ratio": "1.500000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "10000000"
+            },
+            "stability_fee": "1.000000001547125958",
+            "auction_size": "50000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "swp:usd",
+            "liquidation_market_id": "swp:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "6"
+          },
+          {
+            "denom": "erc20/tether/usdt",
+            "type": "usdt-a",
+            "liquidation_ratio": "1.010000000000000000",
+            "debt_limit": {
+              "denom": "usdx",
+              "amount": "25000000000000"
+            },
+            "stability_fee": "1.000000000000000000",
+            "auction_size": "100000000000",
+            "liquidation_penalty": "0.025000000000000000",
+            "spot_market_id": "usdt:usd",
+            "liquidation_market_id": "usdt:usd:30",
+            "keeper_reward_percentage": "0.010000000000000000",
+            "check_collateralization_index_count": "10",
+            "conversion_factor": "6"
+          }
+        ],
+        "debt_auction_lot": "10000000000",
+        "debt_auction_threshold": "100000000000",
         "debt_param": {
-          "denom": "usdx",
-          "reference_asset": "usd",
           "conversion_factor": "6",
-          "debt_floor": "10000000"
+          "debt_floor": "10000000",
+          "denom": "usdx",
+          "reference_asset": "usd"
         },
         "global_debt_limit": {
-          "denom": "usdx",
-          "amount": "0"
+          "amount": "181200010000000",
+          "denom": "usdx"
         },
-        "surplus_auction_threshold": "500000000000",
         "surplus_auction_lot": "10000000000",
-        "debt_auction_threshold": "100000000000",
-        "debt_auction_lot": "10000000000",
-        "circuit_breaker": false,
-        "liquidation_block_interval": "1"
+        "surplus_auction_threshold": "500000000000"
       },
-      "cdps": [],
-      "deposits": [],
-      "starting_cdp_id": "1",
-      "debt_denom": "debt",
-      "gov_denom": "ukava",
-      "previous_accumulation_times": [],
-      "total_principals": []
+      "starting_cdp_id": "1"
     },
     "committee": {
       "next_proposal_id": "1",
@@ -174,13 +785,222 @@
           "@type": "/kava.committee.v1beta1.MemberCommittee",
           "base_committee": {
             "id": "1",
-            "description": "Kava God Committee (testing only)",
-            "members": ["kava1van3znl6597xgwwh46jgquutnqkwvwszjg04fz", "kava1cxymrk2mqlhc6p08kx8zvsd23vgsm7ftfn9x5d"],
-            "permissions": [{ "@type": "/kava.committee.v1beta1.GodPermission" }],
+            "description": "Kava Stability Committee",
+            "members": [
+              "kava1fy5zeuutmxzwcx5hncu5q83ug3zcqmxcpwrjsn"
+            ],
+            "permissions": [
+              {
+                "@type": "/kava.committee.v1beta1.TextPermission"
+              },
+              {
+                "@type": "/kava.committee.v1beta1.ParamsChangePermission",
+                "allowed_params_changes": [
+                  {
+                    "subspace": "auction",
+                    "key": "BidDuration"
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "IncrementSurplus"
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "IncrementDebt"
+                  },
+                  {
+                    "subspace": "auction",
+                    "key": "IncrementCollateral"
+                  },
+                  {
+                    "subspace": "bep3",
+                    "key": "AssetParams"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "GlobalDebtLimit"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "SurplusThreshold"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "SurplusLot"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DebtThreshold"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DebtLot"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DistributionFrequency"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "CollateralParams"
+                  },
+                  {
+                    "subspace": "cdp",
+                    "key": "DebtParam"
+                  },
+                  {
+                    "subspace": "evmutil",
+                    "key": "EnabledConversionPairs"
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "Active"
+                  },
+                  {
+                    "subspace": "kavadist",
+                    "key": "Active"
+                  },
+                  {
+                    "subspace": "pricefeed",
+                    "key": "Markets"
+                  },
+                  {
+                    "subspace": "hard",
+                    "key": "MoneyMarkets"
+                  },
+                  {
+                    "subspace": "hard",
+                    "key": "MinimumBorrowUSDValue"
+                  }
+                ]
+              }
+            ],
             "vote_threshold": "0.667000000000000000",
             "proposal_duration": "604800s",
             "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
           }
+        },
+        {
+          "@type": "/kava.committee.v1beta1.MemberCommittee",
+          "base_committee": {
+            "id": "2",
+            "description": "Kava Safety Committee",
+            "members": [
+              "kava1fy5zeuutmxzwcx5hncu5q83ug3zcqmxcpwrjsn"
+            ],
+            "permissions": [
+              {
+                "@type": "/kava.committee.v1beta1.SoftwareUpgradePermission"
+              }
+            ],
+            "vote_threshold": "0.667000000000000000",
+            "proposal_duration": "604800s",
+            "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
+          }
+        },
+        {
+          "@type": "/kava.committee.v1beta1.MemberCommittee",
+          "base_committee": {
+            "id": "3",
+            "description": "Kava God Committee (testing only)",
+            "members": [
+              "kava1fy5zeuutmxzwcx5hncu5q83ug3zcqmxcpwrjsn"
+            ],
+            "permissions": [
+              {
+                "@type": "/kava.committee.v1beta1.GodPermission"
+              }
+            ],
+            "vote_threshold": "0.667000000000000000",
+            "proposal_duration": "604800s",
+            "tally_option": "TALLY_OPTION_FIRST_PAST_THE_POST"
+          }
+        },
+        {
+          "@type": "/kava.committee.v1beta1.TokenCommittee",
+          "base_committee": {
+            "id": "4",
+            "description": "HARD Governance Committee",
+            "members": [
+              "kava1fy5zeuutmxzwcx5hncu5q83ug3zcqmxcpwrjsn"
+            ],
+            "permissions": [
+              {
+                "@type": "/kava.committee.v1beta1.TextPermission"
+              },
+              {
+                "@type": "/kava.committee.v1beta1.ParamsChangePermission",
+                "allowed_params_changes": [
+                  {
+                    "subspace": "hard",
+                    "key": "MoneyMarkets"
+                  },
+                  {
+                    "subspace": "hard",
+                    "key": "MinimumBorrowUSDValue"
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "HardSupplyRewardPeriods"
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "HardBorrowRewardPeriods"
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "HardDelegatorRewardPeriods"
+                  }
+                ]
+              }
+            ],
+            "vote_threshold": "0.667000000000000000",
+            "proposal_duration": "604800s",
+            "tally_option": "TALLY_OPTION_DEADLINE"
+          },
+          "quorum": "0.330000000000000000",
+          "tally_denom": "hard"
+        },
+        {
+          "@type": "/kava.committee.v1beta1.TokenCommittee",
+          "base_committee": {
+            "id": "5",
+            "description": "SWP Governance Committee",
+            "members": [
+              "kava1fy5zeuutmxzwcx5hncu5q83ug3zcqmxcpwrjsn"
+            ],
+            "permissions": [
+              {
+                "@type": "/kava.committee.v1beta1.TextPermission"
+              },
+              {
+                "@type": "/kava.committee.v1beta1.ParamsChangePermission",
+                "allowed_params_changes": [
+                  {
+                    "subspace": "swap",
+                    "key": "AllowedPools"
+                  },
+                  {
+                    "subspace": "swap",
+                    "key": "SwapFee"
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "DelegatorRewardPeriods"
+                  },
+                  {
+                    "subspace": "incentive",
+                    "key": "SwapRewardPeriods"
+                  }
+                ]
+              }
+            ],
+            "vote_threshold": "0.667000000000000000",
+            "proposal_duration": "604800s",
+            "tally_option": "TALLY_OPTION_DEADLINE"
+          },
+          "quorum": "0.330000000000000000",
+          "tally_denom": "swp"
         }
       ],
       "proposals": [],
@@ -254,14 +1074,662 @@
           "istanbul_block": "0",
           "muir_glacier_block": "0",
           "berlin_block": "0",
-          "london_block": "0",
-          "arrow_glacier_block": "0",
-          "gray_glacier_block": "0",
-          "merge_netsplit_block": "0",
-          "shanghai_block": "0",
-          "cancun_block": "0"
+          "london_block": null,
+          "arrow_glacier_block": null,
+          "gray_glacier_block": null,
+          "merge_netsplit_block": null,
+          "shanghai_block": null,
+          "cancun_block": null
         },
-        "eip712_allowed_msgs": [],
+        "eip712_allowed_msgs": [
+          {
+            "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertERC20ToCoin",
+            "msg_value_type_name": "MsgValueEVMConvertERC20ToCoin",
+            "value_types": [
+              {
+                "name": "initiator",
+                "type": "string"
+              },
+              {
+                "name": "receiver",
+                "type": "string"
+              },
+              {
+                "name": "kava_erc20_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "string"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertCoinToERC20",
+            "msg_value_type_name": "MsgValueEVMConvertCoinToERC20",
+            "value_types": [
+              {
+                "name": "initiator",
+                "type": "string"
+              },
+              {
+                "name": "receiver",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.earn.v1beta1.MsgDeposit",
+            "msg_value_type_name": "MsgValueEarnDeposit",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              },
+              {
+                "name": "strategy",
+                "type": "int32"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.earn.v1beta1.MsgWithdraw",
+            "msg_value_type_name": "MsgValueEarnWithdraw",
+            "value_types": [
+              {
+                "name": "from",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              },
+              {
+                "name": "strategy",
+                "type": "int32"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.staking.v1beta1.MsgDelegate",
+            "msg_value_type_name": "MsgValueStakingDelegate",
+            "value_types": [
+              {
+                "name": "delegator_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.staking.v1beta1.MsgUndelegate",
+            "msg_value_type_name": "MsgValueStakingUndelegate",
+            "value_types": [
+              {
+                "name": "delegator_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.staking.v1beta1.MsgBeginRedelegate",
+            "msg_value_type_name": "MsgValueStakingBeginRedelegate",
+            "value_types": [
+              {
+                "name": "delegator_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_src_address",
+                "type": "string"
+              },
+              {
+                "name": "validator_dst_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimUSDXMintingReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimUSDXMintingReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "multiplier_name",
+                "type": "string"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimHardReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimHardReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimDelegatorReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimDelegatorReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimSwapReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimSwapReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimSavingsReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimSavingsReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.incentive.v1beta1.MsgClaimEarnReward",
+            "msg_value_type_name": "MsgValueIncentiveClaimEarnReward",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "denoms_to_claim",
+                "type": "IncentiveSelection[]"
+              }
+            ],
+            "nested_types": [
+              {
+                "name": "IncentiveSelection",
+                "attrs": [
+                  {
+                    "name": "denom",
+                    "type": "string"
+                  },
+                  {
+                    "name": "multiplier_name",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgMintDeposit",
+            "msg_value_type_name": "MsgValueRouterMintDeposit",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgDelegateMintDeposit",
+            "msg_value_type_name": "MsgValueRouterDelegateMintDeposit",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgWithdrawBurn",
+            "msg_value_type_name": "MsgValueRouterWithdrawBurn",
+            "value_types": [
+              {
+                "name": "from",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.router.v1beta1.MsgWithdrawBurnUndelegate",
+            "msg_value_type_name": "MsgValueRouterWithdrawBurnUndelegate",
+            "value_types": [
+              {
+                "name": "from",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.gov.v1beta1.MsgVote",
+            "msg_value_type_name": "MsgValueGovVote",
+            "value_types": [
+              {
+                "name": "proposal_id",
+                "type": "uint64"
+              },
+              {
+                "name": "voter",
+                "type": "string"
+              },
+              {
+                "name": "option",
+                "type": "int32"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/cosmos.bank.v1beta1.MsgSend",
+            "msg_value_type_name": "MsgValueBankSend",
+            "value_types": [
+              {
+                "name": "from_address",
+                "type": "string"
+              },
+              {
+                "name": "to_address",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin[]"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.liquid.v1beta1.MsgMintDerivative",
+            "msg_value_type_name": "MsgValueMintDerivative",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.liquid.v1beta1.MsgBurnDerivative",
+            "msg_value_type_name": "MsgValueBurnDerivative",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "validator",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.hard.v1beta1.MsgWithdraw",
+            "msg_value_type_name": "MsgValueHardWithdraw",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin[]"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.hard.v1beta1.MsgDeposit",
+            "msg_value_type_name": "MsgValueHardDeposit",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin[]"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertCosmosCoinToERC20",
+            "msg_value_type_name": "MsgConvertCosmosCoinToERC20",
+            "value_types": [
+              {
+                "name": "initiator",
+                "type": "string"
+              },
+              {
+                "name": "receiver",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.evmutil.v1beta1.MsgConvertCosmosCoinFromERC20",
+            "msg_value_type_name": "MsgConvertCosmosCoinFromERC20",
+            "value_types": [
+              {
+                "name": "initiator",
+                "type": "string"
+              },
+              {
+                "name": "receiver",
+                "type": "string"
+              },
+              {
+                "name": "amount",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.cdp.v1beta1.MsgCreateCDP",
+            "msg_value_type_name": "MsgValueCdpCreateCDP",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "collateral",
+                "type": "Coin"
+              },
+              {
+                "name": "principal",
+                "type": "Coin"
+              },
+              {
+                "name": "collateral_type",
+                "type": "string"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.cdp.v1beta1.MsgDeposit",
+            "msg_value_type_name": "MsgValueCdpDeposit",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "owner",
+                "type": "string"
+              },
+              {
+                "name": "collateral",
+                "type": "Coin"
+              },
+              {
+                "name": "collateral_type",
+                "type": "string"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.cdp.v1beta1.MsgWithdraw",
+            "msg_value_type_name": "MsgValueCdpWithdraw",
+            "value_types": [
+              {
+                "name": "depositor",
+                "type": "string"
+              },
+              {
+                "name": "owner",
+                "type": "string"
+              },
+              {
+                "name": "collateral",
+                "type": "Coin"
+              },
+              {
+                "name": "collateral_type",
+                "type": "string"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.cdp.v1beta1.MsgDrawDebt",
+            "msg_value_type_name": "MsgValueCdpDrawDebt",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "collateral_type",
+                "type": "string"
+              },
+              {
+                "name": "principal",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.cdp.v1beta1.MsgRepayDebt",
+            "msg_value_type_name": "MsgValueCdpRepayDebt",
+            "value_types": [
+              {
+                "name": "sender",
+                "type": "string"
+              },
+              {
+                "name": "collateral_type",
+                "type": "string"
+              },
+              {
+                "name": "payment",
+                "type": "Coin"
+              }
+            ],
+            "nested_types": []
+          },
+          {
+            "msg_type_url": "/kava.committee.v1beta1.MsgVote",
+            "msg_value_type_name": "MsgValueCommitteeVote",
+            "value_types": [
+              {
+                "name": "proposal_id",
+                "type": "uint64"
+              },
+              {
+                "name": "voter",
+                "type": "string"
+              },
+              {
+                "name": "vote_type",
+                "type": "int32"
+              }
+            ],
+            "nested_types": []
+          }
+        ],
         "allow_unprotected_txs": false
       }
     },
