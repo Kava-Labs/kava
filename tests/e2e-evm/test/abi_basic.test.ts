@@ -136,6 +136,16 @@ describe("ABI_BasicTests", function () {
             const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
             expect(txReceipt.status).to.equal("success");
           });
+
+          it(`can ${isPayable ? "" : "not "}be called with value and extra data`, async function () {
+            const data = concat([funcSelector, "0x01"]);
+            const txData = { to: ctx.address, data: data, gas: 25000n, value: 1n };
+
+            const txHash = await walletClient.sendTransaction(txData);
+            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
+          });
+
         });
       }
     });
@@ -147,6 +157,26 @@ describe("ABI_BasicTests", function () {
     // Fallback functions can be payable or non-payable and can receive data in both cases
     const testName = `ABI special functions: ${receiveFunction ? "" : "no "}receive and ${fallbackFunction ? fallbackFunction.stateMutability : "no"} fallback`;
     describe(testName, function () {
+      if (receiveFunction || fallbackFunction) {
+        it("can receive zero value transfers with no data", async function () {
+          const txData = { to: ctx.address, gas: 25000n };
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("success");
+        });
+      }
+
+      if (!receiveFunction && !fallbackFunction) {
+        it("can not receive zero value transfers with no data", async function () {
+          const txData = { to: ctx.address, gas: 25000n };
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("reverted");
+        });
+      }
+
       if (!receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable")) {
         it("can not receive plain transfers", async function () {
           const txData = { to: ctx.address, gas: 25000n, value: 1n };
@@ -167,7 +197,7 @@ describe("ABI_BasicTests", function () {
         });
       }
 
-      it(`can ${fallbackFunction ? "" : "not "}be called with an invalid function selector`, async function () {
+      it(`can ${fallbackFunction ? "" : "not "}be called with a non-matching function selector`, async function () {
         const data = toFunctionSelector("does_not_exist()");
         const txData = { to: ctx.address, data: data, gas: 25000n };
 
@@ -176,9 +206,27 @@ describe("ABI_BasicTests", function () {
         expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
       });
 
+      it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) function selector`, async function () {
+        const data: Hex = "0x010203";
+        const txData = { to: ctx.address, data: data, gas: 25000n };
+
+        const txHash = await walletClient.sendTransaction(txData);
+        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
+      });
+
       if (fallbackFunction) {
-        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}receive transfer with data or invalid function selector`, async function () {
+        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}receive value with a non-matching function selector`, async function () {
           const data = toFunctionSelector("does_not_exist()");
+          const txData = { to: ctx.address, data: data, gas: 25000n, value: 1n };
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
+        });
+
+        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}recieve value with an invalid function selector`, async function () {
+          const data: Hex = "0x010203";
           const txData = { to: ctx.address, data: data, gas: 25000n, value: 1n };
 
           const txHash = await walletClient.sendTransaction(txData);
