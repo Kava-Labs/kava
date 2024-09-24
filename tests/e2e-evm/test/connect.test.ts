@@ -15,8 +15,8 @@ describe("Viem Setup", function () {
       }
     })();
 
-    expect(hre.network.config.chainId).to.eq(expectedChainId);
-    expect(await publicClient.getChainId()).to.eq(expectedChainId);
+    expect(hre.network.config.chainId).to.equal(expectedChainId);
+    expect(await publicClient.getChainId()).to.equal(expectedChainId);
   });
 
   it("is configured with whale and user accounts", async function () {
@@ -42,9 +42,9 @@ describe("Viem Setup", function () {
       const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
       const tx = await publicClient.getTransaction({ hash: txHash });
 
-      expect(txReceipt.status).to.eq("success");
-      expect(txReceipt.gasUsed).to.eq(21000n);
-      expect(tx.value).to.eq(tc.value);
+      expect(txReceipt.status).to.equal("success");
+      expect(txReceipt.gasUsed).to.equal(21000n);
+      expect(tx.value).to.equal(tc.value);
     });
   });
 });
