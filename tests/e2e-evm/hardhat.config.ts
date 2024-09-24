@@ -1,9 +1,10 @@
 import { HardhatUserConfig, extendEnvironment } from "hardhat/config";
 import "@nomicfoundation/hardhat-viem";
 import { parseEther } from "viem";
-import { extendViem } from "./test/extend";
+import { extendViem } from "./test/extensions/viem";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
+import "hardhat-ignore-warnings";
 
 //
 // Chai setup
@@ -56,6 +57,11 @@ const config: HardhatUserConfig = {
       chainId: 31337, // The default hardhat network chain id
       hardfork: "berlin", // The current hardfork of kava mainnet
       accounts: accounts,
+      //
+      // This is required for hardhat-viem to have the same behavior
+      // for reverted transactions as on Kava.
+      //
+      throwOnTransactionFailures: false,
     },
     kvtool: {
       chainId: 8888, // The evm chain id of the kvtool network
