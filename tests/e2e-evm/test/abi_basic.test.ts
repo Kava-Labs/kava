@@ -1,16 +1,20 @@
 import hre from "hardhat";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
-import type { PublicClient, WalletClient, ContractName } from "@nomicfoundation/hardhat-viem/types";
+import type { PublicClient, WalletClient, ContractName, GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import { expect } from "chai";
-import { Address, Hex, toFunctionSelector, toFunctionSignature, concat } from "viem";
+import { Address, Hex, toFunctionSelector, toFunctionSignature, concat, encodeFunctionData } from "viem";
 import { Abi } from "abitype";
 import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
 import { whaleAddress } from "./addresses";
+
+const defaultGas = 25000n;
+const contractCallerGas = defaultGas + 3000n
 
 interface ContractTestCase {
   interface: keyof ArtifactsMap;
   mock: ContractName<keyof ArtifactsMap>;
   precompile: Address;
+  caller: ContractName<keyof ArtifactsMap>;
 }
 
 const precompiles: Address[] = [
@@ -26,23 +30,25 @@ const precompiles: Address[] = [
 describe("ABI_BasicTests", function () {
   const testCases = [
     // Test function modifiers without receive & fallback
-    { interface: "NoopNoReceiveNoFallback", mock: "NoopNoReceiveNoFallbackMock", precompile: precompiles[0] },
+    { interface: "NoopNoReceiveNoFallback", mock: "NoopNoReceiveNoFallbackMock", precompile: precompiles[0], caller: "NoopCaller"},
 
     // Test receive + fallback scenarios
-    { interface: "NoopReceiveNoFallback", mock: "NoopReceiveNoFallbackMock", precompile: precompiles[1] },
-    { interface: "NoopReceivePayableFallback", mock: "NoopReceivePayableFallbackMock", precompile: precompiles[2] },
+    { interface: "NoopReceiveNoFallback", mock: "NoopReceiveNoFallbackMock", precompile: precompiles[1], caller: "NoopCaller"},
+    { interface: "NoopReceivePayableFallback", mock: "NoopReceivePayableFallbackMock", precompile: precompiles[2], caller: "NoopCaller"},
     {
       interface: "NoopReceiveNonpayableFallback",
       mock: "NoopReceiveNonpayableFallbackMock",
       precompile: precompiles[3],
+      caller: "NoopCaller",
     },
 
     // Test no receive + fallback scenarios
-    { interface: "NoopNoReceivePayableFallback", mock: "NoopNoReceivePayableFallbackMock", precompile: precompiles[4] },
+    { interface: "NoopNoReceivePayableFallback", mock: "NoopNoReceivePayableFallbackMock", precompile: precompiles[4], caller: "NoopCaller"},
     {
       interface: "NoopNoReceiveNonpayableFallback",
       mock: "NoopNoReceiveNonpayableFallbackMock",
       precompile: precompiles[5],
+      caller: "NoopCaller",
     },
   ] as ContractTestCase[];
 
@@ -51,9 +57,11 @@ describe("ABI_BasicTests", function () {
   //
   let publicClient: PublicClient;
   let walletClient: WalletClient;
+  let caller: GetContractReturnType<ArtifactsMap["Caller"]["abi"]>;
   before("setup clients", async function () {
     publicClient = await hre.viem.getPublicClient();
     walletClient = await hre.viem.getWalletClient(whaleAddress);
+    caller = await hre.viem.deployContract("Caller");
   });
 
   interface StateContext {
@@ -89,6 +97,7 @@ describe("ABI_BasicTests", function () {
 
   interface AbiContext {
     address: Address;
+    caller: Address;
   }
   function itImplementsTheAbi(abi: Abi, getContext: () => Promise<AbiContext>) {
     let ctx: AbiContext;
@@ -111,39 +120,86 @@ describe("ABI_BasicTests", function () {
           const isPayable = funcDesc.stateMutability === "payable";
 
           it("can be called", async function () {
-            const txData = { to: ctx.address, data: funcSelector, gas: 25000n };
+            const txData = { to: ctx.address, data: funcSelector, gas: defaultGas };
 
             await expect(publicClient.call(txData)).to.be.fulfilled;
 
             const txHash = await walletClient.sendTransaction(txData);
             const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
             expect(txReceipt.status).to.equal("success");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
           });
 
-          it(`can ${isPayable ? "" : "not "}be called with value`, async function () {
-            const txData = { to: ctx.address, data: funcSelector, gas: 25000n, value: 1n };
+          it("can be called by low level contract call", async function() {
+            const data = encodeFunctionData({
+              abi: caller.abi,
+              functionName: "functionCall",
+              args: [ctx.address, funcSelector]
+            });
+            const txData = { to: caller.address, data: data, gas: contractCallerGas };
 
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
-          });
-
-          it("can be called with extra data", async function () {
-            const data = concat([funcSelector, "0x01"]);
-            const txData = { to: ctx.address, data: data, gas: 25000n };
+            await expect(publicClient.call(txData)).to.be.fulfilled;
 
             const txHash = await walletClient.sendTransaction(txData);
             const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
             expect(txReceipt.status).to.equal("success");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
           });
 
-          it(`can ${isPayable ? "" : "not "}be called with value and extra data`, async function () {
-            const data = concat([funcSelector, "0x01"]);
-            const txData = { to: ctx.address, data: data, gas: 25000n, value: 1n };
+          it("can be called by high level contract call", async function () {
+            const txData = { to: ctx.caller, data: funcSelector, gas: contractCallerGas };
+
+            await expect(publicClient.call(txData)).to.be.fulfilled;
+
+            const txHash = await walletClient.sendTransaction(txData);
+            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+            expect(txReceipt.status).to.equal("success");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+          });
+
+          it(`can ${isPayable ? "" : "not "}be called with value`, async function () {
+            const txData = { to: ctx.address, data: funcSelector, gas: defaultGas, value: 1n };
+            const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
             const txHash = await walletClient.sendTransaction(txData);
             const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
             expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+            let expectedBalance = startingBalance
+            if (isPayable) {
+              expectedBalance = startingBalance + txData.value
+            }
+            const balance = await publicClient.getBalance({ address: ctx.address });
+            expect(balance).to.equal(expectedBalance);
+          });
+
+          it("can be called with extra data", async function () {
+            const data = concat([funcSelector, "0x01"]);
+            const txData = { to: ctx.address, data: data, gas: defaultGas };
+
+            const txHash = await walletClient.sendTransaction(txData);
+            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+            expect(txReceipt.status).to.equal("success");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+          });
+
+          it(`can ${isPayable ? "" : "not "}be called with value and extra data`, async function () {
+            const data = concat([funcSelector, "0x01"]);
+            const txData = { to: ctx.address, data: data, gas: defaultGas, value: 1n };
+            const startingBalance = await publicClient.getBalance({ address: ctx.address });
+
+            const txHash = await walletClient.sendTransaction(txData);
+            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+            let expectedBalance = startingBalance
+            if (isPayable) {
+              expectedBalance = startingBalance + txData.value
+            }
+            const balance = await publicClient.getBalance({ address: ctx.address });
+            expect(balance).to.equal(expectedBalance);
           });
 
         });
@@ -159,79 +215,116 @@ describe("ABI_BasicTests", function () {
     describe(testName, function () {
       if (receiveFunction || fallbackFunction) {
         it("can receive zero value transfers with no data", async function () {
-          const txData = { to: ctx.address, gas: 25000n };
+          const txData = { to: ctx.address, gas: defaultGas };
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
           expect(txReceipt.status).to.equal("success");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
         });
       }
 
       if (!receiveFunction && !fallbackFunction) {
         it("can not receive zero value transfers with no data", async function () {
-          const txData = { to: ctx.address, gas: 25000n };
+          const txData = { to: ctx.address, gas: defaultGas };
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
           expect(txReceipt.status).to.equal("reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
         });
       }
 
       if (!receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable")) {
         it("can not receive plain transfers", async function () {
-          const txData = { to: ctx.address, gas: 25000n, value: 1n };
+          const txData = { to: ctx.address, gas: defaultGas, value: 1n };
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
           expect(txReceipt.status).to.equal("reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          let expectedBalance = startingBalance
+          if (fallbackFunction && fallbackFunction.stateMutability === "payable") {
+            expectedBalance = startingBalance + txData.value
+          }
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
         });
       }
 
       if (receiveFunction || (fallbackFunction && fallbackFunction.stateMutability === "payable")) {
         it("can receive plain transfers", async function () {
-          const txData = { to: ctx.address, gas: 25000n, value: 1n };
+          const txData = { to: ctx.address, gas: defaultGas, value: 1n };
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
           expect(txReceipt.status).to.equal("success");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          const expectedBalance = startingBalance + txData.value;
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
         });
       }
 
       it(`can ${fallbackFunction ? "" : "not "}be called with a non-matching function selector`, async function () {
         const data = toFunctionSelector("does_not_exist()");
-        const txData = { to: ctx.address, data: data, gas: 25000n };
+        const txData = { to: ctx.address, data: data, gas: defaultGas };
 
         const txHash = await walletClient.sendTransaction(txData);
         const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
         expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
+        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
       });
 
       it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) function selector`, async function () {
         const data: Hex = "0x010203";
-        const txData = { to: ctx.address, data: data, gas: 25000n };
+        const txData = { to: ctx.address, data: data, gas: defaultGas };
 
         const txHash = await walletClient.sendTransaction(txData);
         const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
         expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
+        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
       });
 
       if (fallbackFunction) {
         it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}receive value with a non-matching function selector`, async function () {
           const data = toFunctionSelector("does_not_exist()");
-          const txData = { to: ctx.address, data: data, gas: 25000n, value: 1n };
+          const txData = { to: ctx.address, data: data, gas: defaultGas, value: 1n };
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
           expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          let expectedBalance = startingBalance
+          if (fallbackFunction.stateMutability === "payable") {
+            expectedBalance = startingBalance + txData.value
+          }
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
         });
 
         it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}recieve value with an invalid function selector`, async function () {
           const data: Hex = "0x010203";
-          const txData = { to: ctx.address, data: data, gas: 25000n, value: 1n };
+          const txData = { to: ctx.address, data: data, gas: defaultGas, value: 1n };
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
           expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          let expectedBalance = startingBalance
+          if (fallbackFunction.stateMutability === "payable") {
+            expectedBalance = startingBalance + txData.value
+          }
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
         });
       }
     });
@@ -253,10 +346,12 @@ describe("ABI_BasicTests", function () {
       // behavior as closely as possible.
       describe("Mock", function () {
         let mockAddress: Address;
+        let callerAddress: Address;
         let deployedBytecode: Hex;
 
         before("deploy mock", async function () {
           mockAddress = (await hre.viem.deployContract(tc.mock)).address;
+          callerAddress = (await hre.viem.deployContract(tc.caller, [mockAddress])).address;
           // TODO: fix typing and do not use explicit any, unsafe assignment, or unsafe access
           // eslint-disable-next-line  @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
           deployedBytecode = ((await hre.artifacts.readArtifact(tc.mock)) as any).deployedBytecode;
@@ -274,6 +369,7 @@ describe("ABI_BasicTests", function () {
         itImplementsTheAbi(abi, () =>
           Promise.resolve({
             address: mockAddress,
+            caller: callerAddress,
           }),
         );
       });
@@ -282,6 +378,11 @@ describe("ABI_BasicTests", function () {
       // implemented the interface as expected and uses the same tests as the mocks above.
       (hre.network.name === "kvtool" ? describe : describe.skip)("Precompile", function () {
         const precompileAddress = tc.precompile;
+        let callerAddress: Address;
+
+        before("deploy pecompile caller", async function () {
+          callerAddress = (await hre.viem.deployContract(tc.caller, [precompileAddress])).address;
+        });
 
         itHasCorrectState(() =>
           Promise.resolve({
@@ -295,6 +396,7 @@ describe("ABI_BasicTests", function () {
         itImplementsTheAbi(abi, () =>
           Promise.resolve({
             address: precompileAddress,
+            caller: callerAddress,
           }),
         );
       });
