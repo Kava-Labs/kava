@@ -139,11 +139,21 @@ jobs:
     steps:
       - name: checkout repo from current commit
         uses: actions/checkout@v4
+      - name: save version of kava that will be deployed if this pr is merged
+        id: kava-version
+        run: |
+          echo "KAVA_VERSION=$(cat ./ci/env/kava-internal-testnet/KAVA.VERSION)" >> $GITHUB_OUTPUT
+      - name: checkout version of kava that will be deployed if this pr is merged
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.kava-version.outputs.KAVA_VERSION }}
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
       - name: build kava cli
         run: make install
+      - name: checkout repo from current commit to validate current branch's genesis
+        uses: actions/checkout@v4
       - name: validate protonet genesis
         run: kava validate-genesis ci/env/kava-protonet/genesis.json
