@@ -1,4 +1,4 @@
-name: Reset Protonet
+name: Restart Protonet
 
 on:
   workflow_call:
@@ -42,7 +42,7 @@ on:
 # start kava and doctor
 # enter inService
 jobs:
-  place-chain-nodes-on-standby:
+  restart-traffic:
     runs-on: ubuntu-latest
     steps:
       - name: checkout repo from current commit
@@ -92,3 +92,11 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
           AWS_SDK_LOAD_CONFIG: 1
           PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
+      - name: bring the chain online
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/exit-standby-all-chain-nodes.sh
+        env:
+          CHAIN_TAG_NAME: ${{ inputs.chain-tag-name }}
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
