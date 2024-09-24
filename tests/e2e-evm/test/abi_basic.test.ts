@@ -1,6 +1,11 @@
 import hre from "hardhat";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
-import type { PublicClient, WalletClient, ContractName, GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
+import type {
+  PublicClient,
+  WalletClient,
+  ContractName,
+  GetContractReturnType,
+} from "@nomicfoundation/hardhat-viem/types";
 import { expect } from "chai";
 import { Address, Hex, toFunctionSelector, toFunctionSignature, concat, encodeFunctionData } from "viem";
 import { Abi } from "abitype";
@@ -8,7 +13,7 @@ import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
 import { whaleAddress } from "./addresses";
 
 const defaultGas = 25000n;
-const contractCallerGas = defaultGas + 3000n
+const contractCallerGas = defaultGas + 3000n;
 
 interface ContractTestCase {
   interface: keyof ArtifactsMap;
@@ -30,11 +35,26 @@ const precompiles: Address[] = [
 describe("ABI_BasicTests", function () {
   const testCases = [
     // Test function modifiers without receive & fallback
-    { interface: "NoopNoReceiveNoFallback", mock: "NoopNoReceiveNoFallbackMock", precompile: precompiles[0], caller: "NoopCaller"},
+    {
+      interface: "NoopNoReceiveNoFallback",
+      mock: "NoopNoReceiveNoFallbackMock",
+      precompile: precompiles[0],
+      caller: "NoopCaller",
+    },
 
     // Test receive + fallback scenarios
-    { interface: "NoopReceiveNoFallback", mock: "NoopReceiveNoFallbackMock", precompile: precompiles[1], caller: "NoopCaller"},
-    { interface: "NoopReceivePayableFallback", mock: "NoopReceivePayableFallbackMock", precompile: precompiles[2], caller: "NoopCaller"},
+    {
+      interface: "NoopReceiveNoFallback",
+      mock: "NoopReceiveNoFallbackMock",
+      precompile: precompiles[1],
+      caller: "NoopCaller",
+    },
+    {
+      interface: "NoopReceivePayableFallback",
+      mock: "NoopReceivePayableFallbackMock",
+      precompile: precompiles[2],
+      caller: "NoopCaller",
+    },
     {
       interface: "NoopReceiveNonpayableFallback",
       mock: "NoopReceiveNonpayableFallbackMock",
@@ -43,7 +63,12 @@ describe("ABI_BasicTests", function () {
     },
 
     // Test no receive + fallback scenarios
-    { interface: "NoopNoReceivePayableFallback", mock: "NoopNoReceivePayableFallbackMock", precompile: precompiles[4], caller: "NoopCaller"},
+    {
+      interface: "NoopNoReceivePayableFallback",
+      mock: "NoopNoReceivePayableFallbackMock",
+      precompile: precompiles[4],
+      caller: "NoopCaller",
+    },
     {
       interface: "NoopNoReceiveNonpayableFallback",
       mock: "NoopNoReceiveNonpayableFallbackMock",
@@ -130,11 +155,11 @@ describe("ABI_BasicTests", function () {
             expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
           });
 
-          it("can be called by low level contract call", async function() {
+          it("can be called by low level contract call", async function () {
             const data = encodeFunctionData({
               abi: caller.abi,
               functionName: "functionCall",
-              args: [ctx.address, funcSelector]
+              args: [ctx.address, funcSelector],
             });
             const txData = { to: caller.address, data: data, gas: contractCallerGas };
 
@@ -166,9 +191,9 @@ describe("ABI_BasicTests", function () {
             expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
             expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
 
-            let expectedBalance = startingBalance
+            let expectedBalance = startingBalance;
             if (isPayable) {
-              expectedBalance = startingBalance + txData.value
+              expectedBalance = startingBalance + txData.value;
             }
             const balance = await publicClient.getBalance({ address: ctx.address });
             expect(balance).to.equal(expectedBalance);
@@ -194,14 +219,13 @@ describe("ABI_BasicTests", function () {
             expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
             expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
 
-            let expectedBalance = startingBalance
+            let expectedBalance = startingBalance;
             if (isPayable) {
-              expectedBalance = startingBalance + txData.value
+              expectedBalance = startingBalance + txData.value;
             }
             const balance = await publicClient.getBalance({ address: ctx.address });
             expect(balance).to.equal(expectedBalance);
           });
-
         });
       }
     });
@@ -245,9 +269,9 @@ describe("ABI_BasicTests", function () {
           expect(txReceipt.status).to.equal("reverted");
           expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
 
-          let expectedBalance = startingBalance
+          let expectedBalance = startingBalance;
           if (fallbackFunction && fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value
+            expectedBalance = startingBalance + txData.value;
           }
           const balance = await publicClient.getBalance({ address: ctx.address });
           expect(balance).to.equal(expectedBalance);
@@ -301,9 +325,9 @@ describe("ABI_BasicTests", function () {
           expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
           expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
 
-          let expectedBalance = startingBalance
+          let expectedBalance = startingBalance;
           if (fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value
+            expectedBalance = startingBalance + txData.value;
           }
           const balance = await publicClient.getBalance({ address: ctx.address });
           expect(balance).to.equal(expectedBalance);
@@ -319,9 +343,9 @@ describe("ABI_BasicTests", function () {
           expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
           expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
 
-          let expectedBalance = startingBalance
+          let expectedBalance = startingBalance;
           if (fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value
+            expectedBalance = startingBalance + txData.value;
           }
           const balance = await publicClient.getBalance({ address: ctx.address });
           expect(balance).to.equal(expectedBalance);

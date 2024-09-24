@@ -9,71 +9,71 @@ pragma solidity ^0.8.24;
 // Low level caller
 //
 contract Caller {
-  function functionCall(address payable to, bytes calldata data) external payable {
-    (bool success, bytes memory result) = to.call{value: msg.value}(data);
+    function functionCall(address payable to, bytes calldata data) external payable {
+        (bool success, bytes memory result) = to.call{value: msg.value}(data);
 
-    if (!success) {
-      if (result.length == 0) revert();
+        if (!success) {
+            if (result.length == 0) revert();
 
-      assembly {
-        revert(add(32, result), mload(result))
-      }
+            assembly {
+                revert(add(32, result), mload(result))
+            }
+        }
     }
-  }
 
-  // TODO: Callcode
+    // TODO: Callcode
 
-  function functionDelegateCall(address to, bytes calldata data) external {
-    (bool success, bytes memory result) = to.delegatecall(data);
+    function functionDelegateCall(address to, bytes calldata data) external {
+        (bool success, bytes memory result) = to.delegatecall(data);
 
-    if (!success) {
-      if (result.length == 0) revert();
+        if (!success) {
+            if (result.length == 0) revert();
 
-      assembly {
-        revert(add(32, result), mload(result))
-      }
+            assembly {
+                revert(add(32, result), mload(result))
+            }
+        }
     }
-  }
 
-  function functionStaticCall(address to, bytes calldata data) external view {
-    (bool success, bytes memory result) = to.staticcall(data);
+    function functionStaticCall(address to, bytes calldata data) external view {
+        (bool success, bytes memory result) = to.staticcall(data);
 
-    if (!success) {
-      if (result.length == 0) revert();
+        if (!success) {
+            if (result.length == 0) revert();
 
-      assembly {
-        revert(add(32, result), mload(result))
-      }
+            assembly {
+                revert(add(32, result), mload(result))
+            }
+        }
     }
-  }
 }
 
 //
 // High level caller
 //
 contract NoopCaller {
-  NoopNoReceiveNoFallback target;
+    NoopNoReceiveNoFallback target;
 
-  constructor(NoopNoReceiveNoFallback _target) {
-    target = _target;
-  }
+    constructor(NoopNoReceiveNoFallback _target) {
+        target = _target;
+    }
 
-  // call
-  function noopNonpayable() external {
-    target.noopNonpayable();
-  }
-  // call
-  function noopPayable() external payable {
-    target.noopPayable{value: msg.value}();
-  }
-  // staticcall (readonly)
-  function noopView() external view {
-    target.noopView();
-  }
-  // staticcall (readonly)
-  function noopPure() external view {
-    target.noopPure();
-  }
+    // call
+    function noopNonpayable() external {
+        target.noopNonpayable();
+    }
+    // call
+    function noopPayable() external payable {
+        target.noopPayable{value: msg.value}();
+    }
+    // staticcall (readonly)
+    function noopView() external view {
+        target.noopView();
+    }
+    // staticcall (readonly)
+    function noopPure() external view {
+        target.noopPure();
+    }
 }
 
 //
@@ -147,5 +147,3 @@ interface NoopNoReceiveNonpayableFallback is NoopNoReceiveNoFallback {
 contract NoopNoReceiveNonpayableFallbackMock is NoopNoReceiveNonpayableFallback, NoopNoReceiveNoFallbackMock {
     fallback() external {}
 }
-
-
