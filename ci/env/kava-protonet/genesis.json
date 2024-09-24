@@ -462,12 +462,12 @@
           "address": "kava1jaw3g097lq9jdrnscchspr2233yhpsxdjky582",
           "coins": [
             {
-              "denom": "ukava",
-              "amount": "1000000000000000000"
-            },
-            {
               "denom": "luke",
               "amount": "10000000000000000000"
+            },
+            {
+              "denom": "ukava",
+              "amount": "1000000000000000000"
             }
           ]
         },
