@@ -142,7 +142,7 @@ jobs:
       - name: save version of kava that will be deployed if this pr is merged
         id: kava-version
         run: |
-          echo "KAVA_VERSION=$(cat ./ci/env/kava-internal-testnet/KAVA.VERSION)" >> $GITHUB_OUTPUT
+          echo "KAVA_VERSION=$(cat ./ci/env/kava-protonet/KAVA.VERSION)" >> $GITHUB_OUTPUT
       - name: checkout version of kava that will be deployed if this pr is merged
         uses: actions/checkout@v4
         with:
