@@ -30,6 +30,7 @@ jobs:
       playbook-infrastructure-branch: shef-protonet-validator-network-data-reset
     secrets: inherit
 
+
   restart-chain:
       uses: ./.github/workflows/cd-restart-protonet.yml
       with:
