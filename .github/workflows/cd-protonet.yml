@@ -38,7 +38,7 @@ jobs:
     uses: ./.github/workflows/cd-reset-protonet.yml
     with:
       aws-region: us-east-1
-      chain-tag-name: ChainId
+      aws-chain-id-tag-name: ChainId
       chain-id: proto_2221-17000
       auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node,kava-protonet-iavl-v1-rpc-api-node
       ssm-document-name: kava-protonet-iavl-v1-instance-update
@@ -51,7 +51,7 @@ jobs:
       uses: ./.github/workflows/cd-restart-protonet.yml
       with:
         aws-region: us-east-1
-        chain-tag-name: ChainId
+        aws-chain-id-tag-name: ChainId
         chain-id: proto_2221-17000
         auto_scaling_group_names: kava-protonet-iavl-v1-validator-api-node,kava-protonet-iavl-v1-rpc-api-node
         ssm-document-name: kava-protonet-iavl-v1-instance-update

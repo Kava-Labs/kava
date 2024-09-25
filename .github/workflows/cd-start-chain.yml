@@ -3,7 +3,7 @@ name: Start Chain
 on:
   workflow_call:
     inputs:
-      chain-tag-name:
+      aws-chain-id-tag-name:
         required: false
         type: string
         default: 'KavaChainId'
@@ -40,7 +40,7 @@ jobs:
       - name: take the chain offline
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/put-all-chain-nodes-on-standby.sh
         env:
-          CHAIN_TAG_NAME: ${{ inputs.chain-tag-name }}
+          AWS_CHAIN_ID_TAG_NAME: ${{ inputs.aws-chain-id-tag-name }}
           CHAIN_ID: ${{ inputs.chain-id }}
           AWS_REGION: ${{ inputs.aws-region }}
           AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
@@ -81,7 +81,7 @@ jobs:
       - name: bring the chain online
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/exit-standby-all-chain-nodes.sh
         env:
-          CHAIN_TAG_NAME: ${{ inputs.chain-tag-name }}
+          AWS_CHAIN_ID_TAG_NAME: ${{ inputs.aws-chain-id-tag-name }}
           CHAIN_ID: ${{ inputs.chain-id }}
           AWS_REGION: ${{ inputs.aws-region }}
           AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
