@@ -13,7 +13,7 @@ import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
 import { whaleAddress } from "./addresses";
 
 const defaultGas = 25000n;
-const contractCallerGas = defaultGas + 3000n;
+const contractCallerGas = defaultGas + 10000n;
 
 interface ContractTestCase {
   interface: keyof ArtifactsMap;
@@ -171,6 +171,40 @@ describe("ABI_BasicTests", function () {
             expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
           });
 
+          if (funcDesc.stateMutability === "view" || funcDesc.stateMutability === "pure") {
+            it("can be called by static call", async function () {
+              const data = encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, funcSelector],
+              });
+              const txData = { to: caller.address, data: data, gas: contractCallerGas };
+
+              await expect(publicClient.call(txData)).to.be.fulfilled;
+
+              const txHash = await walletClient.sendTransaction(txData);
+              const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+              expect(txReceipt.status).to.equal("success");
+              expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+            });
+
+            it("can be called by static call with extra data", async function () {
+              const data = encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, concat([funcSelector, "0x01"])],
+              });
+              const txData = { to: caller.address, data: data, gas: contractCallerGas };
+
+              await expect(publicClient.call(txData)).to.be.fulfilled;
+
+              const txHash = await walletClient.sendTransaction(txData);
+              const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+              expect(txReceipt.status).to.equal("success");
+              expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+            });
+          }
+
           it("can be called by high level contract call", async function () {
             const txData = { to: ctx.caller, data: funcSelector, gas: contractCallerGas };
 
@@ -184,6 +218,45 @@ describe("ABI_BasicTests", function () {
 
           it(`can ${isPayable ? "" : "not "}be called with value`, async function () {
             const txData = { to: ctx.address, data: funcSelector, gas: defaultGas, value: 1n };
+            const startingBalance = await publicClient.getBalance({ address: ctx.address });
+
+            const txHash = await walletClient.sendTransaction(txData);
+            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+            let expectedBalance = startingBalance;
+            if (isPayable) {
+              expectedBalance = startingBalance + txData.value;
+            }
+            const balance = await publicClient.getBalance({ address: ctx.address });
+            expect(balance).to.equal(expectedBalance);
+          });
+
+          it(`can ${isPayable ? "" : "not "}be called by low level contract call with value`, async function () {
+            const txData = { to: ctx.caller, data: funcSelector, gas: 50000n, value: 1n };
+            const startingBalance = await publicClient.getBalance({ address: ctx.address });
+
+            const txHash = await walletClient.sendTransaction(txData);
+            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+            let expectedBalance = startingBalance;
+            if (isPayable) {
+              expectedBalance = startingBalance + txData.value;
+            }
+            const balance = await publicClient.getBalance({ address: ctx.address });
+            expect(balance).to.equal(expectedBalance);
+          });
+
+          it(`can ${isPayable ? "" : "not "}be called by high level contract call with value`, async function () {
+            const data = encodeFunctionData({
+              abi: caller.abi,
+              functionName: "functionCall",
+              args: [ctx.address, funcSelector],
+            });
+            const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
             const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
             const txHash = await walletClient.sendTransaction(txData);
@@ -246,11 +319,71 @@ describe("ABI_BasicTests", function () {
           expect(txReceipt.status).to.equal("success");
           expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
         });
+
+        it("can be called by another contract with no data", async function() {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionCall",
+            args: [ctx.address, "0x"],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas };
+
+          await expect(publicClient.call(txData)).to.be.fulfilled;
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("success");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+        });
+
+        it("can be called by static call with no data", async function () {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionStaticCall",
+            args: [ctx.address, "0x"],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas };
+
+          await expect(publicClient.call(txData)).to.be.fulfilled;
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("success");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+        });
       }
 
       if (!receiveFunction && !fallbackFunction) {
         it("can not receive zero value transfers with no data", async function () {
           const txData = { to: ctx.address, gas: defaultGas };
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+        });
+
+        it("can not receive zero value transfers with no data", async function () {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionCall",
+            args: [ctx.address, "0x"],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas };
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+        });
+
+        it("can not be called by static call with no data", async function () {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionStaticCall",
+            args: [ctx.address, "0x"],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas };
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
