@@ -403,9 +403,25 @@ describe("ABI_BasicTests", function () {
           expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
 
           let expectedBalance = startingBalance;
-          if (fallbackFunction && fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value;
-          }
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
+        });
+
+        it("can not receive plain transfers via message call", async function () {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionCall",
+            args: [ctx.address, "0x"],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          let expectedBalance = startingBalance;
           const balance = await publicClient.getBalance({ address: ctx.address });
           expect(balance).to.equal(expectedBalance);
         });
@@ -414,6 +430,25 @@ describe("ABI_BasicTests", function () {
       if (receiveFunction || (fallbackFunction && fallbackFunction.stateMutability === "payable")) {
         it("can receive plain transfers", async function () {
           const txData = { to: ctx.address, gas: defaultGas, value: 1n };
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("success");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          const expectedBalance = startingBalance + txData.value;
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
+        });
+
+        it("can plain transfers via message call", async function () {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionCall",
+            args: [ctx.address, "0x"],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
@@ -437,9 +472,65 @@ describe("ABI_BasicTests", function () {
         expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
       });
 
+      it(`can ${fallbackFunction ? "" : "not "}be called with a non-matching function selector via message call`, async function () {
+        const data = encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        });
+        const txData = { to: caller.address, data: data, gas: contractCallerGas};
+
+        const txHash = await walletClient.sendTransaction(txData);
+        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
+        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+      });
+
+      it(`can ${fallbackFunction ? "" : "not "}be called with a non-matching function selector via static call`, async function () {
+        const data = encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        });
+        const txData = { to: caller.address, data: data, gas: contractCallerGas};
+
+        const txHash = await walletClient.sendTransaction(txData);
+        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
+        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+      });
+
       it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) function selector`, async function () {
         const data: Hex = "0x010203";
         const txData = { to: ctx.address, data: data, gas: defaultGas };
+
+        const txHash = await walletClient.sendTransaction(txData);
+        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
+        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+      });
+
+      it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) via message call`, async function () {
+        const data = encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x010203"],
+        });
+        const txData = { to: caller.address, data: data, gas: contractCallerGas};
+
+        const txHash = await walletClient.sendTransaction(txData);
+        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
+        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+      });
+
+      it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) via static call`, async function () {
+        const data = encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, "0x010203"],
+        });
+        const txData = { to: caller.address, data: data, gas: contractCallerGas};
 
         const txHash = await walletClient.sendTransaction(txData);
         const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -466,9 +557,53 @@ describe("ABI_BasicTests", function () {
           expect(balance).to.equal(expectedBalance);
         });
 
+        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}receive value with a non-matching function selector via message call`, async function () {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionCall",
+            args: [ctx.address, toFunctionSelector("does_not_exist()")],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          let expectedBalance = startingBalance;
+          if (fallbackFunction.stateMutability === "payable") {
+            expectedBalance = startingBalance + txData.value;
+          }
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
+        });
+
         it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}recieve value with an invalid function selector`, async function () {
           const data: Hex = "0x010203";
           const txData = { to: ctx.address, data: data, gas: defaultGas, value: 1n };
+          const startingBalance = await publicClient.getBalance({ address: ctx.address });
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
+          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+
+          let expectedBalance = startingBalance;
+          if (fallbackFunction.stateMutability === "payable") {
+            expectedBalance = startingBalance + txData.value;
+          }
+          const balance = await publicClient.getBalance({ address: ctx.address });
+          expect(balance).to.equal(expectedBalance);
+        });
+
+        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}recieve value with an invalid function selector via message call`, async function () {
+          const data = encodeFunctionData({
+            abi: caller.abi,
+            functionName: "functionCall",
+            args: [ctx.address, "0x010203"],
+          });
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
