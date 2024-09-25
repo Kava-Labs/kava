@@ -45,7 +45,7 @@ jobs:
       playbook-name: reset-chain.yml
       playbook-infrastructure-branch: master
     secrets: inherit
-
+    needs: [changed_files]
 
   restart-chain:
       uses: ./.github/workflows/cd-restart-protonet.yml
