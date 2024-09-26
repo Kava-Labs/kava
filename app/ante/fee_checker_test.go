@@ -207,7 +207,7 @@ func TestDeductFees(t *testing.T) {
 			),
 			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
-				sdk.NewCoins(sdk.NewInt64Coin("usdt", 100)),
+				sdk.NewCoins(sdk.NewInt64Coin("usdt", 300)),
 			),
 			"",
 		},
