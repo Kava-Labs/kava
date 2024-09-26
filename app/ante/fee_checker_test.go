@@ -161,7 +161,8 @@ func TestDeductFees(t *testing.T) {
 			"",
 		},
 		{
-			"valid single fee, multiple min gas prices",
+			// Existing gas coin unaffected
+			"valid single ukava fee, multiple min gas prices",
 			func(s *AnteTestSuite) {
 				s.bankKeeper.EXPECT().
 					SendCoinsFromAccountToModule(
@@ -174,11 +175,39 @@ func TestDeductFees(t *testing.T) {
 			},
 			sdk.NewDecCoins(
 				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
+				// akava is removed from the min gas prices in `EvmMinGasFilter`
+				// but only to support 0ukava gas prices. Ensuring that the fee
+				// still works as expected even if it is present in case
+				// `EvmMinGasFilter` is removed.
+				sdk.NewDecCoinFromDec("akava", sdk.MustNewDecFromStr("10000000000")),
 				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
 			),
 			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
 				100000,
 				sdk.NewCoins(sdk.NewInt64Coin("ukava", 100)),
+			),
+			"",
+		},
+		{
+			"valid single usdt fee, multiple min gas prices",
+			func(s *AnteTestSuite) {
+				s.bankKeeper.EXPECT().
+					SendCoinsFromAccountToModule(
+						gomock.Any(),
+						gomock.Any(),
+						gomock.Any(),
+						gomock.Any(),
+					).
+					Return(nil)
+			},
+			sdk.NewDecCoins(
+				sdk.NewDecCoinFromDec("ukava", sdk.MustNewDecFromStr("0.001")),
+				sdk.NewDecCoinFromDec("akava", sdk.MustNewDecFromStr("10000000000")),
+				sdk.NewDecCoinFromDec("usdt", sdk.MustNewDecFromStr("0.003")),
+			),
+			legacytx.NewStdFee( //nolint:staticcheck // deprecated StdFee still in use
+				100000,
+				sdk.NewCoins(sdk.NewInt64Coin("usdt", 100)),
 			),
 			"",
 		},
