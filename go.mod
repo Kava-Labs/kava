@@ -228,7 +228,7 @@ replace (
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Use ethermint fork that respects min-gas-price with NoBaseFee true and london enabled, and includes eip712 support
-	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240927125350-8e41a3f8cd2a
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240927142856-1e0556e13958
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
