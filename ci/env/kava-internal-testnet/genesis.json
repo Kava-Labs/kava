@@ -3179,6 +3179,18 @@
           },
           {
             "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
+            "denom": "erc20/eth/dai",
+            "blocked_addresses": [],
+            "paused": false,
+            "blockable": false,
+            "rate_limit": {
+              "active": false,
+              "limit": "0",
+              "time_period": "0"
+            }
+          },
+          {
+            "owner": "kava1vlpsrmdyuywvaqrv7rx6xga224sqfwz3fyfhwq",
             "denom": "hard",
             "blocked_addresses": [],
             "paused": false,
