@@ -231,7 +231,8 @@ replace (
 	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.9-kava.1
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.9.1-kava.2
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1
+	// github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1
+	github.com/cosmos/cosmos-sdk => /Users/yevheniishcherbina/go/src/github.com/Kava-Labs/cosmos-sdk
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Tracking kava-labs/go-ethereum kava/release/v1.10 branch

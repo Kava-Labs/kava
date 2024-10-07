@@ -3,6 +3,7 @@ package testutil
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
@@ -236,9 +237,17 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 		bal.IsAllGT(funds),
 		"funded account lacks funds for account %s\nneeds: %s\nhas: %s", name, funds, bal,
 	)
+	fmt.Printf("balance before: %v\n", bal.AmountOf("ukava"))
 
 	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
 	res := whale.BankSend(acc.SdkAddress, funds)
+
+	resInJSON, err := json.Marshal(res)
+	require.NoError(chain.t, err)
+	fmt.Printf("resInJSON: %s\n", resInJSON)
+
+	bal = chain.QuerySdkForBalances(whale.SdkAddress)
+	fmt.Printf("balance after: %v\n", bal.AmountOf("ukava"))
 
 	require.NoErrorf(chain.t, res.Err, "failed to fund new account %s: %s", name, res.Err)
 

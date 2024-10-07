@@ -243,6 +243,7 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 					txBuilder.SetMsgs(currentRequest.Msgs...)
 					txBuilder.SetGasLimit(currentRequest.GasLimit)
 					txBuilder.SetFeeAmount(currentRequest.FeeAmount)
+					txBuilder.SetTimeoutHeight(12)
 
 					signerData := authsigning.SignerData{
 						ChainID:       s.chainID,
@@ -286,6 +287,8 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 					Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 				}
 				broadcastResponse, err := s.txClient.BroadcastTx(context.Background(), &broadcastRequest)
+
+				fmt.Printf("BroadcastTx TxHash: %v\n", broadcastResponse.TxResponse.TxHash)
 
 				// set to determine action at the end of loop
 				// default is OK
@@ -387,6 +390,12 @@ func Sign(
 	txBuilder sdkclient.TxBuilder,
 	signerData authsigning.SignerData,
 ) (authsigning.Tx, []byte, error) {
+	fmt.Printf("SIGN was called!\n")
+	//txBuilder.SetTimeoutHeight(12)
+
+	timeoutHeight := txBuilder.GetTx().GetTimeoutHeight()
+	fmt.Printf("timeoutHeight: %v\n", timeoutHeight)
+
 	signatureData := signing.SingleSignatureData{
 		SignMode:  signing.SignMode_SIGN_MODE_DIRECT,
 		Signature: nil,
