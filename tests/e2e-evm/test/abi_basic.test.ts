@@ -1,11 +1,6 @@
 import hre from "hardhat";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
-import type {
-  PublicClient,
-  WalletClient,
-  ContractName,
-  GetContractReturnType,
-} from "@nomicfoundation/hardhat-viem/types";
+import type { PublicClient, WalletClient, GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import { expect } from "chai";
 import {
   Address,
@@ -16,6 +11,7 @@ import {
   encodeFunctionData,
   CallParameters,
   Chain,
+  isHex,
 } from "viem";
 import { Abi, AbiFallback, AbiFunction, AbiReceive } from "abitype";
 import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
@@ -24,25 +20,27 @@ import { whaleAddress } from "./addresses";
 const defaultGas = 25000n;
 const contractCallerGas = defaultGas + 10000n;
 
-interface ContractTestCase {
+interface ContractTestCase<> {
   interface: keyof ArtifactsMap;
-  mock: ContractName<keyof ArtifactsMap>;
+  // Ensures contract name ends with "Mock", but does not enforce the prefix
+  // matches the interface.
+  mock: `${keyof ArtifactsMap}Mock`;
   precompile: Address;
-  caller: ContractName<keyof ArtifactsMap>;
+  caller: keyof ArtifactsMap;
 }
 
 const precompiles: Address[] = [
-  "0x9000000000000000000000000000000000000001", // noop no recieve no fallback
+  "0x9000000000000000000000000000000000000001", // noop no receive no fallback
   "0x9000000000000000000000000000000000000002", // noop receive no fallback
   "0x9000000000000000000000000000000000000003", // noop receive payable fallback
   "0x9000000000000000000000000000000000000004", // noop receive non payable fallback
   "0x9000000000000000000000000000000000000005", // noop no receive payable fallback
-  "0x9000000000000000000000000000000000000006", // noop no recieve non payable fallback
+  "0x9000000000000000000000000000000000000006", // noop no receive non payable fallback
 ];
 
 // ABI_BasicTests assert ethereum + solidity transaction ABI interactions perform as expected.
 describe("ABI_BasicTests", function () {
-  const testCases = [
+  const testCases: ContractTestCase[] = [
     // Test function modifiers without receive & fallback
     {
       interface: "NoopNoReceiveNoFallback",
@@ -84,7 +82,7 @@ describe("ABI_BasicTests", function () {
       precompile: precompiles[5],
       caller: "NoopCaller",
     },
-  ] as ContractTestCase[];
+  ];
 
   //
   // Client + Wallet Setup
@@ -483,6 +481,7 @@ describe("ABI_BasicTests", function () {
         return !!receiveFunction || (!!fallbackFunction && fallbackFunction.stateMutability === "payable");
       },
       txParams: (ctx) => ({ to: ctx.address, gas: defaultGas, value: 1n }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
       expectedStatus: "success",
     },
     {
@@ -501,6 +500,7 @@ describe("ABI_BasicTests", function () {
         gas: contractCallerGas,
         value: 1n,
       }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
       expectedStatus: "success",
     },
 
@@ -935,6 +935,9 @@ describe("ABI_BasicTests", function () {
     describe(tc.interface, function () {
       const abi = hre.artifacts.readArtifactSync(tc.interface).abi;
 
+      // Enforce that the mock contract name starts with the interface name
+      expect(tc.mock.startsWith(tc.interface), "Mock contract name must start with the interface name").to.be.true;
+
       // The interface is tested against a mock on all networks.
       // This serves as a reference to ensure all precompiles have mocks that behavior similarly
       // for testing on non-kava networks, in addition to ensure that we match normal contract
@@ -945,11 +948,24 @@ describe("ABI_BasicTests", function () {
         let deployedBytecode: Hex;
 
         before("deploy mock", async function () {
-          mockAddress = (await hre.viem.deployContract(tc.mock)).address;
-          callerAddress = (await hre.viem.deployContract(tc.caller, [mockAddress])).address;
-          // TODO: fix typing and do not use explicit any, unsafe assignment, or unsafe access
-          // eslint-disable-next-line  @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-          deployedBytecode = ((await hre.artifacts.readArtifact(tc.mock)) as any).deployedBytecode;
+          // Make type keyof ArtifactsMap to be a string as workaround for
+          // viem.deployContract() not accepting keyof ArtifactsMap. Each
+          // contract has it's own deployContract overload that accepts a
+          // literal string for the contract name, but using keyof ArtifactsMap
+          // falls back to the generic overload that only accepts a string NOT
+          // in the ArtifactsMap.
+          const mockContractName: string = tc.mock;
+          const callerContractName: string = tc.caller;
+
+          mockAddress = (await hre.viem.deployContract(mockContractName)).address;
+          callerAddress = (await hre.viem.deployContract(callerContractName, [mockAddress])).address;
+
+          const mockArtifact = await hre.artifacts.readArtifact(mockContractName);
+          if (isHex(mockArtifact.deployedBytecode)) {
+            deployedBytecode = mockArtifact.deployedBytecode;
+          } else {
+            expect.fail("deployedBytecode is not hex");
+          }
         });
 
         itHasCorrectState(() =>
@@ -975,8 +991,10 @@ describe("ABI_BasicTests", function () {
         const precompileAddress = tc.precompile;
         let callerAddress: Address;
 
-        before("deploy pecompile caller", async function () {
-          callerAddress = (await hre.viem.deployContract(tc.caller, [precompileAddress])).address;
+        before("deploy precompile caller", async function () {
+          const callerContractName: string = tc.caller;
+
+          callerAddress = (await hre.viem.deployContract(callerContractName, [precompileAddress])).address;
         });
 
         itHasCorrectState(() =>
