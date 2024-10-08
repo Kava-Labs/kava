@@ -506,7 +506,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with a non-matching function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -518,7 +518,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with a non-matching function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -531,7 +531,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with a non-matching function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -547,7 +547,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with a non-matching function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -564,7 +564,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with a non-matching function selector via static call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -580,7 +580,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with a non-matching function selector via static call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -597,7 +597,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with an invalid (short) function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -609,7 +609,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with an invalid (short) function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -622,7 +622,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with an invalid (short) function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -638,7 +638,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with an invalid (short) function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -655,7 +655,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with an invalid (short) function selector via static call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -671,7 +671,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with an invalid (short) function selector via static call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -689,7 +689,7 @@ describe("ABI_BasicTests", function () {
     // Fallback payable tests
     {
       name: "can receive value with a non-matching function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -703,7 +703,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with a non-matching function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
@@ -718,7 +718,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can receive value with a non-matching function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -736,7 +736,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with a non-matching function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
@@ -755,7 +755,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can receive value with an invalid (short) function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -769,7 +769,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with an invalid (short) function selector",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
@@ -784,7 +784,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can receive value with an invalid (short) function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -802,7 +802,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with an invalid (short) function selector via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
+      shouldRun(_, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
