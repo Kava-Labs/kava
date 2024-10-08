@@ -134,22 +134,11 @@ describe("ABI_BasicTests", function () {
     caller: Address;
   }
 
-  // ShouldRunFn is a function that determines if a test case should be run on a
-  // specific function. This is useful if you only want to run a test case on
-  // specific functions.
-  type ShouldRunFn = (
-    fn: AbiFunction,
-    receiveFunction: AbiReceive | undefined,
-    fallbackFunction: AbiFallback | undefined,
-  ) => boolean;
-
-  // AbiFunctionTestCaseBase defines a test case for an ABI function, this is run
-  // on EVERY function defined in an expected ABI. Use shouldRun to only run the
-  // test case on matching functions.
+  // AbiFunctionTestCaseBase defines a test case for an ABI function, this is
+  // run on every function defined in an expected ABI. Use shouldRun to only run
+  // the test case on matching functions.
   interface AbiFunctionTestCaseBase {
     name: string;
-    // If defined, only run this test case on functions that return true
-    shouldRun?: ShouldRunFn;
     expectedStatus: "success" | "reverted";
     // If defined, check the balance of the contract after the transaction
     expectedBalance?: (startingBalance: bigint) => bigint;
@@ -158,16 +147,27 @@ describe("ABI_BasicTests", function () {
   // AbiFunctionTestCase is a test case for a specific function in an ABI that
   // includes the function selector.
   type AbiFunctionTestCase = AbiFunctionTestCaseBase & {
+    // If defined, only run this test case on functions that return true. This
+    // is useful for testing specific function types.
+    shouldRun?: (
+      fn: AbiFunction,
+      receiveFunction: AbiReceive | undefined,
+      fallbackFunction: AbiFallback | undefined,
+    ) => boolean;
     txParams: (ctx: AbiContext, funcSelector: `0x${string}`) => CallParameters<Chain>;
   };
 
   // AbiFallbackTestCase is a test case for the fallback function, which does
   // not use a function selector.
   type AbiFallbackTestCase = AbiFunctionTestCaseBase & {
+    // Same as the shouldRun function for AbiFunctionTestCase, but without a
+    // specific ABIFunction.
+    shouldRun?: (receiveFunction: AbiReceive | undefined, fallbackFunction: AbiFallback | undefined) => boolean;
     // No function selector for fallback
     txParams: (ctx: AbiContext) => CallParameters<Chain>;
   };
 
+  // Define test cases for ABI function compliance
   const abiFunctionTestCases: AbiFunctionTestCase[] = [
     {
       name: "can be called",
@@ -361,12 +361,12 @@ describe("ABI_BasicTests", function () {
     },
   ];
 
-  // Test cases for special functions, receive and fallback
+  // Define test cases for special functions, receive and fallback
   const specialFunctionTests: AbiFallbackTestCase[] = [
     // Has receive function OR payable fallback
     {
       name: "can receive zero value transfers with no data",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!receiveFunction || !!fallbackFunction;
       },
       txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
@@ -374,7 +374,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can be called by another contract with no data",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!receiveFunction || !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -390,7 +390,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can be called by static call with no data",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!receiveFunction || !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -408,7 +408,7 @@ describe("ABI_BasicTests", function () {
     // No receive function AND no payable fallback
     {
       name: "can not receive zero value transfers with no data",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !receiveFunction && !fallbackFunction;
       },
       txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
@@ -416,7 +416,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive zero value transfers by high level contract call with no data",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !receiveFunction && !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -432,7 +432,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive zero value transfers by static call with no data",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !receiveFunction && !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -450,7 +450,7 @@ describe("ABI_BasicTests", function () {
     // No receive function AND no payable fallback
     {
       name: "can not receive plain transfers",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         // No receive function and no payable fallback
         return !receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable");
       },
@@ -459,7 +459,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive plain transfers via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         // No receive function and no payable fallback
         return !receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable");
       },
@@ -478,7 +478,7 @@ describe("ABI_BasicTests", function () {
     // Has receive function OR payable fallback
     {
       name: "can receive plain transfers",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         // Has receive function OR payable fallback
         return !!receiveFunction || (!!fallbackFunction && fallbackFunction.stateMutability === "payable");
       },
@@ -487,7 +487,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can receive plain transfers via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         // Has receive function OR payable fallback
         return !!receiveFunction || (!!fallbackFunction && fallbackFunction.stateMutability === "payable");
       },
@@ -506,7 +506,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with a non-matching function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -518,7 +518,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with a non-matching function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -531,7 +531,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with a non-matching function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -547,7 +547,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with a non-matching function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -564,7 +564,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with a non-matching function selector via static call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -580,7 +580,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with a non-matching function selector via static call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -597,7 +597,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with an invalid (short) function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -609,7 +609,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with an invalid (short) function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -622,7 +622,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with an invalid (short) function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -638,7 +638,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with an invalid (short) function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -655,7 +655,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can be called with an invalid (short) function selector via static call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -671,7 +671,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not be called with an invalid (short) function selector via static call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !fallbackFunction;
       },
       txParams: (ctx) => ({
@@ -689,7 +689,7 @@ describe("ABI_BasicTests", function () {
     // Fallback payable tests
     {
       name: "can receive value with a non-matching function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -703,7 +703,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with a non-matching function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
@@ -718,7 +718,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can receive value with a non-matching function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -736,7 +736,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with a non-matching function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
@@ -755,7 +755,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can receive value with an invalid (short) function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -769,7 +769,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with an invalid (short) function selector",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
@@ -784,7 +784,7 @@ describe("ABI_BasicTests", function () {
 
     {
       name: "can receive value with an invalid (short) function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
       },
       txParams: (ctx) => ({
@@ -802,7 +802,7 @@ describe("ABI_BasicTests", function () {
     },
     {
       name: "can not receive value with an invalid (short) function selector via message call",
-      shouldRun(_, receiveFunction, fallbackFunction) {
+      shouldRun(receiveFunction, fallbackFunction) {
         return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
       },
       txParams: (ctx) => ({
@@ -887,6 +887,11 @@ describe("ABI_BasicTests", function () {
     const testName = `ABI special functions: ${receiveFunction ? "" : "no "}receive and ${fallbackFunction ? fallbackFunction.stateMutability : "no"} fallback`;
     describe(testName, function () {
       for (const testCase of specialFunctionTests) {
+        // Check if we should run this test case
+        if (testCase.shouldRun && !testCase.shouldRun(receiveFunction, fallbackFunction)) {
+          continue;
+        }
+
         it(testCase.name, async function () {
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
