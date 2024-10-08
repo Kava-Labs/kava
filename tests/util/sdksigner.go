@@ -34,7 +34,8 @@ type KavaMsgRequest struct {
 	Memo      string
 	// Arbitrary data to be referenced in the corresponding KavaMsgResponse, unused
 	// in signing. This is mostly useful to match KavaMsgResponses with KavaMsgRequests.
-	Data interface{}
+	Data          interface{}
+	TimeoutHeight uint64
 }
 
 type KavaMsgResponse struct {
@@ -243,6 +244,7 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 					txBuilder.SetMsgs(currentRequest.Msgs...)
 					txBuilder.SetGasLimit(currentRequest.GasLimit)
 					txBuilder.SetFeeAmount(currentRequest.FeeAmount)
+					txBuilder.SetTimeoutHeight(currentRequest.TimeoutHeight)
 
 					signerData := authsigning.SignerData{
 						ChainID:       s.chainID,

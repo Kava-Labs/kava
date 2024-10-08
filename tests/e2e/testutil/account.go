@@ -3,6 +3,7 @@ package testutil
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/big"
@@ -212,7 +213,7 @@ func (a *SigningAccount) SignRawEvmData(msg []byte) ([]byte, cryptotypes.PubKey,
 }
 
 // NewFundedAccount creates a SigningAccount for a random account & funds the account from the whale.
-func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccount {
+func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins, opts ...uint64) *SigningAccount {
 	mnemonic, err := util.RandomMnemonic()
 	require.NoError(chain.t, err)
 
@@ -236,9 +237,25 @@ func (chain *Chain) NewFundedAccount(name string, funds sdk.Coins) *SigningAccou
 		bal.IsAllGT(funds),
 		"funded account lacks funds for account %s\nneeds: %s\nhas: %s", name, funds, bal,
 	)
+	balBefore := bal.AmountOf("ukava")
+	fmt.Printf("Balance before tx: %v\n", balBefore)
 
 	whale.l.Printf("attempting to fund created account (%s=%s)\n", name, acc.SdkAddress.String())
-	res := whale.BankSend(acc.SdkAddress, funds)
+	res := whale.BankSend(acc.SdkAddress, funds, opts...)
+
+	resInJSON, err := json.Marshal(res)
+	require.NoError(chain.t, err)
+	fmt.Printf("resInJSON: %s\n", resInJSON)
+	var timeoutHeight uint64
+	if len(opts) == 1 {
+		timeoutHeight = opts[0]
+	}
+	fmt.Printf("timeoutHeight: %v\n", timeoutHeight)
+
+	bal = chain.QuerySdkForBalances(whale.SdkAddress)
+	balAfter := bal.AmountOf("ukava")
+	fmt.Printf("Balance after tx: %v\n", balAfter)
+	fmt.Printf("Balance DIFF: %v\n", balBefore.Sub(balBefore))
 
 	require.NoErrorf(chain.t, res.Err, "failed to fund new account %s: %s", name, res.Err)
 
@@ -253,13 +270,18 @@ func (a *SigningAccount) NextNonce() (uint64, error) {
 }
 
 // BankSend is a helper method for sending funds via x/bank's MsgSend
-func (a *SigningAccount) BankSend(to sdk.AccAddress, amount sdk.Coins) util.KavaMsgResponse {
+func (a *SigningAccount) BankSend(to sdk.AccAddress, amount sdk.Coins, opts ...uint64) util.KavaMsgResponse {
+	var timeoutHeight uint64
+	if len(opts) == 1 {
+		timeoutHeight = opts[0]
+	}
 	return a.SignAndBroadcastKavaTx(
 		util.KavaMsgRequest{
-			Msgs:      []sdk.Msg{banktypes.NewMsgSend(a.SdkAddress, to, amount)},
-			GasLimit:  2e5,                                                        // 200,000 gas
-			FeeAmount: sdk.NewCoins(sdk.NewCoin(a.gasDenom, sdkmath.NewInt(200))), // assume min gas price of .001ukava
-			Data:      fmt.Sprintf("sending %s to %s", amount, to),
+			Msgs:          []sdk.Msg{banktypes.NewMsgSend(a.SdkAddress, to, amount)},
+			GasLimit:      2e5,                                                        // 200,000 gas
+			FeeAmount:     sdk.NewCoins(sdk.NewCoin(a.gasDenom, sdkmath.NewInt(200))), // assume min gas price of .001ukava
+			Data:          fmt.Sprintf("sending %s to %s", amount, to),
+			TimeoutHeight: timeoutHeight,
 		},
 	)
 }
