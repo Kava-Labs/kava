@@ -7,8 +7,17 @@ import type {
   GetContractReturnType,
 } from "@nomicfoundation/hardhat-viem/types";
 import { expect } from "chai";
-import { Address, Hex, toFunctionSelector, toFunctionSignature, concat, encodeFunctionData } from "viem";
-import { Abi } from "abitype";
+import {
+  Address,
+  Hex,
+  toFunctionSelector,
+  toFunctionSignature,
+  concat,
+  encodeFunctionData,
+  CallParameters,
+  Chain,
+} from "viem";
+import { Abi, AbiFallback, AbiFunction, AbiReceive } from "abitype";
 import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
 import { whaleAddress } from "./addresses";
 
@@ -124,6 +133,223 @@ describe("ABI_BasicTests", function () {
     address: Address;
     caller: Address;
   }
+
+  // ShouldRunFn is a function that determines if a test case should be run on a
+  // specific function. This is useful if you only want to run a test case on
+  // specific functions.
+  type ShouldRunFn = (
+    fn: AbiFunction,
+    receiveFunction: AbiReceive | undefined,
+    fallbackFunction: AbiFallback | undefined,
+  ) => boolean;
+
+  // AbiFunctionTestCase defines a test case for an ABI function, this is run
+  // on EVERY function defined in an expected ABI. Use shouldRun to only run the
+  // test case on matching functions.
+  interface AbiFunctionTestCase {
+    name: string;
+    // If defined, only run this test case on functions that return true
+    shouldRun?: ShouldRunFn;
+
+    txParams: (ctx: AbiContext, funcSelector: `0x${string}`) => CallParameters<Chain>;
+    expectedStatus: "success" | "reverted";
+    // If defined, check the balance of the contract after the transaction
+    expectedBalance?: (startingBalance: bigint) => bigint;
+  }
+
+  const AbiFunctionTestCases: AbiFunctionTestCase[] = [
+    {
+      name: "can be called",
+      txParams: (ctx, funcSelector) => ({ to: ctx.address, data: funcSelector, gas: defaultGas }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called by low level contract call",
+      txParams: (ctx, funcSelector) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, funcSelector],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called by static call",
+      shouldRun(fn) {
+        return fn.stateMutability === "view" || fn.stateMutability === "pure";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, funcSelector],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called by static call with extra data",
+      shouldRun(fn) {
+        return fn.stateMutability === "view" || fn.stateMutability === "pure";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, concat([funcSelector, "0x01"])],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called by high level contract call",
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.caller,
+        data: funcSelector,
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called with value",
+      shouldRun(fn) {
+        return fn.stateMutability === "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.address,
+        data: funcSelector,
+        gas: defaultGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with value",
+      shouldRun(fn) {
+        return fn.stateMutability !== "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.address,
+        data: funcSelector,
+        gas: defaultGas,
+        value: 1n,
+      }),
+      // Balance stays the same
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+    {
+      name: "can be called by low level contract call with value",
+      shouldRun(fn) {
+        return fn.stateMutability === "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.caller,
+        data: funcSelector,
+        gas: 50000n,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called by low level contract call with value",
+      shouldRun(fn) {
+        return fn.stateMutability !== "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.caller,
+        data: funcSelector,
+        gas: 50000n,
+        value: 1n,
+      }),
+      // Same
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+    {
+      name: "can be called by high level contract call with value",
+      shouldRun(fn) {
+        return fn.stateMutability === "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, funcSelector],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called by high level contract call with value",
+      shouldRun(fn) {
+        return fn.stateMutability !== "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, funcSelector],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+    {
+      name: "can be called with extra data",
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.address,
+        data: concat([funcSelector, "0x01"]),
+        gas: defaultGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called with value and extra data",
+      shouldRun(fn) {
+        return fn.stateMutability === "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.address,
+        data: concat([funcSelector, "0x01"]),
+        gas: defaultGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with value and extra data",
+      shouldRun(fn) {
+        return fn.stateMutability !== "payable";
+      },
+      txParams: (ctx, funcSelector) => ({
+        to: ctx.address,
+        data: concat([funcSelector, "0x01"]),
+        gas: defaultGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+  ];
+
   function itImplementsTheAbi(abi: Abi, getContext: () => Promise<AbiContext>) {
     let ctx: AbiContext;
     const receiveFunction = getAbiReceiveFunction(abi);
@@ -142,163 +368,41 @@ describe("ABI_BasicTests", function () {
         const funcSelector = toFunctionSelector(toFunctionSignature(funcDesc));
 
         describe(`${funcDesc.name} ${funcDesc.stateMutability}`, function () {
-          const isPayable = funcDesc.stateMutability === "payable";
+          // Run test cases for each function
+          for (const testCase of AbiFunctionTestCases) {
+            // Check if we should run this test case
+            if (testCase.shouldRun && !testCase.shouldRun(funcDesc, receiveFunction, fallbackFunction)) {
+              continue;
+            }
 
-          it("can be called", async function () {
-            const txData = { to: ctx.address, data: funcSelector, gas: defaultGas };
+            it(testCase.name, async function () {
+              const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
-            await expect(publicClient.call(txData)).to.be.fulfilled;
+              const txData = testCase.txParams(ctx, funcSelector);
 
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal("success");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-          });
-
-          it("can be called by low level contract call", async function () {
-            const data = encodeFunctionData({
-              abi: caller.abi,
-              functionName: "functionCall",
-              args: [ctx.address, funcSelector],
-            });
-            const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-            await expect(publicClient.call(txData)).to.be.fulfilled;
-
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal("success");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-          });
-
-          if (funcDesc.stateMutability === "view" || funcDesc.stateMutability === "pure") {
-            it("can be called by static call", async function () {
-              const data = encodeFunctionData({
-                abi: caller.abi,
-                functionName: "functionStaticCall",
-                args: [ctx.address, funcSelector],
-              });
-              const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-              await expect(publicClient.call(txData)).to.be.fulfilled;
+              // Only attempt to call if we expect it to succeed
+              if (testCase.expectedStatus === "success") {
+                await expect(publicClient.call(txData)).to.be.fulfilled;
+              } else {
+                await expect(publicClient.call(txData)).to.be.rejected;
+              }
 
               const txHash = await walletClient.sendTransaction(txData);
               const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-              expect(txReceipt.status).to.equal("success");
-              expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-            });
+              expect(txReceipt.status).to.equal(testCase.expectedStatus);
 
-            it("can be called by static call with extra data", async function () {
-              const data = encodeFunctionData({
-                abi: caller.abi,
-                functionName: "functionStaticCall",
-                args: [ctx.address, concat([funcSelector, "0x01"])],
-              });
-              const txData = { to: caller.address, data: data, gas: contractCallerGas };
+              if (txData.gas) {
+                expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+              }
 
-              await expect(publicClient.call(txData)).to.be.fulfilled;
+              if (testCase.expectedBalance) {
+                const expectedBalance = testCase.expectedBalance(startingBalance);
 
-              const txHash = await walletClient.sendTransaction(txData);
-              const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-              expect(txReceipt.status).to.equal("success");
-              expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+                const balance = await publicClient.getBalance({ address: ctx.address });
+                expect(balance).to.equal(expectedBalance);
+              }
             });
           }
-
-          it("can be called by high level contract call", async function () {
-            const txData = { to: ctx.caller, data: funcSelector, gas: contractCallerGas };
-
-            await expect(publicClient.call(txData)).to.be.fulfilled;
-
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal("success");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-          });
-
-          it(`can ${isPayable ? "" : "not "}be called with value`, async function () {
-            const txData = { to: ctx.address, data: funcSelector, gas: defaultGas, value: 1n };
-            const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-            let expectedBalance = startingBalance;
-            if (isPayable) {
-              expectedBalance = startingBalance + txData.value;
-            }
-            const balance = await publicClient.getBalance({ address: ctx.address });
-            expect(balance).to.equal(expectedBalance);
-          });
-
-          it(`can ${isPayable ? "" : "not "}be called by low level contract call with value`, async function () {
-            const txData = { to: ctx.caller, data: funcSelector, gas: 50000n, value: 1n };
-            const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-            let expectedBalance = startingBalance;
-            if (isPayable) {
-              expectedBalance = startingBalance + txData.value;
-            }
-            const balance = await publicClient.getBalance({ address: ctx.address });
-            expect(balance).to.equal(expectedBalance);
-          });
-
-          it(`can ${isPayable ? "" : "not "}be called by high level contract call with value`, async function () {
-            const data = encodeFunctionData({
-              abi: caller.abi,
-              functionName: "functionCall",
-              args: [ctx.address, funcSelector],
-            });
-            const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
-            const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-            let expectedBalance = startingBalance;
-            if (isPayable) {
-              expectedBalance = startingBalance + txData.value;
-            }
-            const balance = await publicClient.getBalance({ address: ctx.address });
-            expect(balance).to.equal(expectedBalance);
-          });
-
-          it("can be called with extra data", async function () {
-            const data = concat([funcSelector, "0x01"]);
-            const txData = { to: ctx.address, data: data, gas: defaultGas };
-
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal("success");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-          });
-
-          it(`can ${isPayable ? "" : "not "}be called with value and extra data`, async function () {
-            const data = concat([funcSelector, "0x01"]);
-            const txData = { to: ctx.address, data: data, gas: defaultGas, value: 1n };
-            const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-            const txHash = await walletClient.sendTransaction(txData);
-            const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-            expect(txReceipt.status).to.equal(isPayable ? "success" : "reverted");
-            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-            let expectedBalance = startingBalance;
-            if (isPayable) {
-              expectedBalance = startingBalance + txData.value;
-            }
-            const balance = await publicClient.getBalance({ address: ctx.address });
-            expect(balance).to.equal(expectedBalance);
-          });
         });
       }
     });
@@ -320,7 +424,7 @@ describe("ABI_BasicTests", function () {
           expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
         });
 
-        it("can be called by another contract with no data", async function() {
+        it("can be called by another contract with no data", async function () {
           const data = encodeFunctionData({
             abi: caller.abi,
             functionName: "functionCall",
@@ -413,7 +517,7 @@ describe("ABI_BasicTests", function () {
             functionName: "functionCall",
             args: [ctx.address, "0x"],
           });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
@@ -448,7 +552,7 @@ describe("ABI_BasicTests", function () {
             functionName: "functionCall",
             args: [ctx.address, "0x"],
           });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
@@ -478,7 +582,7 @@ describe("ABI_BasicTests", function () {
           functionName: "functionCall",
           args: [ctx.address, toFunctionSelector("does_not_exist()")],
         });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas};
+        const txData = { to: caller.address, data: data, gas: contractCallerGas };
 
         const txHash = await walletClient.sendTransaction(txData);
         const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -492,7 +596,7 @@ describe("ABI_BasicTests", function () {
           functionName: "functionStaticCall",
           args: [ctx.address, toFunctionSelector("does_not_exist()")],
         });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas};
+        const txData = { to: caller.address, data: data, gas: contractCallerGas };
 
         const txHash = await walletClient.sendTransaction(txData);
         const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -516,7 +620,7 @@ describe("ABI_BasicTests", function () {
           functionName: "functionCall",
           args: [ctx.address, "0x010203"],
         });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas};
+        const txData = { to: caller.address, data: data, gas: contractCallerGas };
 
         const txHash = await walletClient.sendTransaction(txData);
         const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -530,7 +634,7 @@ describe("ABI_BasicTests", function () {
           functionName: "functionStaticCall",
           args: [ctx.address, "0x010203"],
         });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas};
+        const txData = { to: caller.address, data: data, gas: contractCallerGas };
 
         const txHash = await walletClient.sendTransaction(txData);
         const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
@@ -563,7 +667,7 @@ describe("ABI_BasicTests", function () {
             functionName: "functionCall",
             args: [ctx.address, toFunctionSelector("does_not_exist()")],
           });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
@@ -603,7 +707,7 @@ describe("ABI_BasicTests", function () {
             functionName: "functionCall",
             args: [ctx.address, "0x010203"],
           });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n};
+          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
