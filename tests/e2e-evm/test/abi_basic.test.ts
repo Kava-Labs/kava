@@ -143,21 +143,32 @@ describe("ABI_BasicTests", function () {
     fallbackFunction: AbiFallback | undefined,
   ) => boolean;
 
-  // AbiFunctionTestCase defines a test case for an ABI function, this is run
+  // AbiFunctionTestCaseBase defines a test case for an ABI function, this is run
   // on EVERY function defined in an expected ABI. Use shouldRun to only run the
   // test case on matching functions.
-  interface AbiFunctionTestCase {
+  interface AbiFunctionTestCaseBase {
     name: string;
     // If defined, only run this test case on functions that return true
     shouldRun?: ShouldRunFn;
-
-    txParams: (ctx: AbiContext, funcSelector: `0x${string}`) => CallParameters<Chain>;
     expectedStatus: "success" | "reverted";
     // If defined, check the balance of the contract after the transaction
     expectedBalance?: (startingBalance: bigint) => bigint;
   }
 
-  const AbiFunctionTestCases: AbiFunctionTestCase[] = [
+  // AbiFunctionTestCase is a test case for a specific function in an ABI that
+  // includes the function selector.
+  type AbiFunctionTestCase = AbiFunctionTestCaseBase & {
+    txParams: (ctx: AbiContext, funcSelector: `0x${string}`) => CallParameters<Chain>;
+  };
+
+  // AbiFallbackTestCase is a test case for the fallback function, which does
+  // not use a function selector.
+  type AbiFallbackTestCase = AbiFunctionTestCaseBase & {
+    // No function selector for fallback
+    txParams: (ctx: AbiContext) => CallParameters<Chain>;
+  };
+
+  const abiFunctionTestCases: AbiFunctionTestCase[] = [
     {
       name: "can be called",
       txParams: (ctx, funcSelector) => ({ to: ctx.address, data: funcSelector, gas: defaultGas }),
@@ -350,6 +361,465 @@ describe("ABI_BasicTests", function () {
     },
   ];
 
+  // Test cases for special functions, receive and fallback
+  const specialFunctionTests: AbiFallbackTestCase[] = [
+    // Has receive function OR payable fallback
+    {
+      name: "can receive zero value transfers with no data",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!receiveFunction || !!fallbackFunction;
+      },
+      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called by another contract with no data",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!receiveFunction || !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can be called by static call with no data",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!receiveFunction || !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, "0x"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+
+    // No receive function AND no payable fallback
+    {
+      name: "can not receive zero value transfers with no data",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !receiveFunction && !fallbackFunction;
+      },
+      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
+      expectedStatus: "reverted",
+    },
+    {
+      name: "can not receive zero value transfers by high level contract call with no data",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !receiveFunction && !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "reverted",
+    },
+    {
+      name: "can not receive zero value transfers by static call with no data",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !receiveFunction && !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, "0x"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "reverted",
+    },
+
+    // No receive function AND no payable fallback
+    {
+      name: "can not receive plain transfers",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        // No receive function and no payable fallback
+        return !receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable");
+      },
+      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas, value: 1n }),
+      expectedStatus: "reverted",
+    },
+    {
+      name: "can not receive plain transfers via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        // No receive function and no payable fallback
+        return !receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable");
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x"],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedStatus: "reverted",
+    },
+    // Has receive function OR payable fallback
+    {
+      name: "can receive plain transfers",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        // Has receive function OR payable fallback
+        return !!receiveFunction || (!!fallbackFunction && fallbackFunction.stateMutability === "payable");
+      },
+      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas, value: 1n }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can receive plain transfers via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        // Has receive function OR payable fallback
+        return !!receiveFunction || (!!fallbackFunction && fallbackFunction.stateMutability === "payable");
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x"],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedStatus: "success",
+    },
+
+    {
+      name: "can be called with a non-matching function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: toFunctionSelector("does_not_exist()"),
+        gas: defaultGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with a non-matching function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: toFunctionSelector("does_not_exist()"),
+        gas: defaultGas,
+      }),
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can be called with a non-matching function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with a non-matching function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can be called with a non-matching function selector via static call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with a non-matching function selector via static call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can be called with an invalid (short) function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: "0x010203",
+        gas: defaultGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with an invalid (short) function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: "0x010203",
+        gas: defaultGas,
+      }),
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can be called with an invalid (short) function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x010203"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with an invalid (short) function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x010203"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can be called with an invalid (short) function selector via static call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, "0x010203"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "success",
+    },
+    {
+      name: "can not be called with an invalid (short) function selector via static call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !fallbackFunction;
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionStaticCall",
+          args: [ctx.address, "0x010203"],
+        }),
+        gas: contractCallerGas,
+      }),
+      expectedStatus: "reverted",
+    },
+
+    // Fallback payable tests
+    {
+      name: "can receive value with a non-matching function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: toFunctionSelector("does_not_exist()"),
+        gas: defaultGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not receive value with a non-matching function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: toFunctionSelector("does_not_exist()"),
+        gas: defaultGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can receive value with a non-matching function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not receive value with a non-matching function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, toFunctionSelector("does_not_exist()")],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can receive value with an invalid (short) function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: "0x010203",
+        gas: defaultGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not receive value with an invalid (short) function selector",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
+      },
+      txParams: (ctx) => ({
+        to: ctx.address,
+        data: "0x010203",
+        gas: defaultGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+
+    {
+      name: "can receive value with an invalid (short) function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x010203"],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance + 1n,
+      expectedStatus: "success",
+    },
+    {
+      name: "can not receive value with an invalid (short) function selector via message call",
+      shouldRun(_, receiveFunction, fallbackFunction) {
+        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
+      },
+      txParams: (ctx) => ({
+        to: caller.address,
+        data: encodeFunctionData({
+          abi: caller.abi,
+          functionName: "functionCall",
+          args: [ctx.address, "0x010203"],
+        }),
+        gas: contractCallerGas,
+        value: 1n,
+      }),
+      expectedBalance: (startingBalance) => startingBalance,
+      expectedStatus: "reverted",
+    },
+  ];
+
   function itImplementsTheAbi(abi: Abi, getContext: () => Promise<AbiContext>) {
     let ctx: AbiContext;
     const receiveFunction = getAbiReceiveFunction(abi);
@@ -369,7 +839,7 @@ describe("ABI_BasicTests", function () {
 
         describe(`${funcDesc.name} ${funcDesc.stateMutability}`, function () {
           // Run test cases for each function
-          for (const testCase of AbiFunctionTestCases) {
+          for (const testCase of abiFunctionTestCases) {
             // Check if we should run this test case
             if (testCase.shouldRun && !testCase.shouldRun(funcDesc, receiveFunction, fallbackFunction)) {
               continue;
@@ -380,7 +850,6 @@ describe("ABI_BasicTests", function () {
 
               const txData = testCase.txParams(ctx, funcSelector);
 
-              // Only attempt to call if we expect it to succeed
               if (testCase.expectedStatus === "success") {
                 await expect(publicClient.call(txData)).to.be.fulfilled;
               } else {
@@ -400,6 +869,9 @@ describe("ABI_BasicTests", function () {
 
                 const balance = await publicClient.getBalance({ address: ctx.address });
                 expect(balance).to.equal(expectedBalance);
+              } else {
+                const balance = await publicClient.getBalance({ address: ctx.address });
+                expect(balance).to.equal(startingBalance, "balance to not change if expectedBalance is not defined");
               }
             });
           }
@@ -414,313 +886,35 @@ describe("ABI_BasicTests", function () {
     // Fallback functions can be payable or non-payable and can receive data in both cases
     const testName = `ABI special functions: ${receiveFunction ? "" : "no "}receive and ${fallbackFunction ? fallbackFunction.stateMutability : "no"} fallback`;
     describe(testName, function () {
-      if (receiveFunction || fallbackFunction) {
-        it("can receive zero value transfers with no data", async function () {
-          const txData = { to: ctx.address, gas: defaultGas };
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("success");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-        });
-
-        it("can be called by another contract with no data", async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionCall",
-            args: [ctx.address, "0x"],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-          await expect(publicClient.call(txData)).to.be.fulfilled;
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("success");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-        });
-
-        it("can be called by static call with no data", async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionStaticCall",
-            args: [ctx.address, "0x"],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-          await expect(publicClient.call(txData)).to.be.fulfilled;
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("success");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-        });
-      }
-
-      if (!receiveFunction && !fallbackFunction) {
-        it("can not receive zero value transfers with no data", async function () {
-          const txData = { to: ctx.address, gas: defaultGas };
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-        });
-
-        it("can not receive zero value transfers with no data", async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionCall",
-            args: [ctx.address, "0x"],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-        });
-
-        it("can not be called by static call with no data", async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionStaticCall",
-            args: [ctx.address, "0x"],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-        });
-      }
-
-      if (!receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable")) {
-        it("can not receive plain transfers", async function () {
-          const txData = { to: ctx.address, gas: defaultGas, value: 1n };
+      for (const testCase of specialFunctionTests) {
+        it(testCase.name, async function () {
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+          const txData = testCase.txParams(ctx);
 
-          let expectedBalance = startingBalance;
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
-        });
-
-        it("can not receive plain transfers via message call", async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionCall",
-            args: [ctx.address, "0x"],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
-          const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-          let expectedBalance = startingBalance;
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
-        });
-      }
-
-      if (receiveFunction || (fallbackFunction && fallbackFunction.stateMutability === "payable")) {
-        it("can receive plain transfers", async function () {
-          const txData = { to: ctx.address, gas: defaultGas, value: 1n };
-          const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("success");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-          const expectedBalance = startingBalance + txData.value;
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
-        });
-
-        it("can plain transfers via message call", async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionCall",
-            args: [ctx.address, "0x"],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
-          const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal("success");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-          const expectedBalance = startingBalance + txData.value;
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
-        });
-      }
-
-      it(`can ${fallbackFunction ? "" : "not "}be called with a non-matching function selector`, async function () {
-        const data = toFunctionSelector("does_not_exist()");
-        const txData = { to: ctx.address, data: data, gas: defaultGas };
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
-        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-      });
-
-      it(`can ${fallbackFunction ? "" : "not "}be called with a non-matching function selector via message call`, async function () {
-        const data = encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
-        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-      });
-
-      it(`can ${fallbackFunction ? "" : "not "}be called with a non-matching function selector via static call`, async function () {
-        const data = encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
-        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-      });
-
-      it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) function selector`, async function () {
-        const data: Hex = "0x010203";
-        const txData = { to: ctx.address, data: data, gas: defaultGas };
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
-        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-      });
-
-      it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) via message call`, async function () {
-        const data = encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x010203"],
-        });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
-        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-      });
-
-      it(`can ${fallbackFunction ? "" : "not "}be called with an invalid (short) via static call`, async function () {
-        const data = encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, "0x010203"],
-        });
-        const txData = { to: caller.address, data: data, gas: contractCallerGas };
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal(fallbackFunction ? "success" : "reverted");
-        expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-      });
-
-      if (fallbackFunction) {
-        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}receive value with a non-matching function selector`, async function () {
-          const data = toFunctionSelector("does_not_exist()");
-          const txData = { to: ctx.address, data: data, gas: defaultGas, value: 1n };
-          const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-          let expectedBalance = startingBalance;
-          if (fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value;
+          if (testCase.expectedStatus === "success") {
+            await expect(publicClient.call(txData)).to.be.fulfilled;
+          } else {
+            await expect(publicClient.call(txData)).to.be.rejected;
           }
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
-        });
-
-        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}receive value with a non-matching function selector via message call`, async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionCall",
-            args: [ctx.address, toFunctionSelector("does_not_exist()")],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
-          const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+          expect(txReceipt.status).to.equal(testCase.expectedStatus);
 
-          let expectedBalance = startingBalance;
-          if (fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value;
+          if (txData.gas) {
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
           }
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
-        });
 
-        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}recieve value with an invalid function selector`, async function () {
-          const data: Hex = "0x010203";
-          const txData = { to: ctx.address, data: data, gas: defaultGas, value: 1n };
-          const startingBalance = await publicClient.getBalance({ address: ctx.address });
+          if (testCase.expectedBalance) {
+            const expectedBalance = testCase.expectedBalance(startingBalance);
 
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-          let expectedBalance = startingBalance;
-          if (fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value;
+            const balance = await publicClient.getBalance({ address: ctx.address });
+            expect(balance).to.equal(expectedBalance);
+          } else {
+            const balance = await publicClient.getBalance({ address: ctx.address });
+            expect(balance).to.equal(startingBalance, "balance to not change if expectedBalance is not defined");
           }
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
-        });
-
-        it(`can ${fallbackFunction.stateMutability === "payable" ? "" : "not "}recieve value with an invalid function selector via message call`, async function () {
-          const data = encodeFunctionData({
-            abi: caller.abi,
-            functionName: "functionCall",
-            args: [ctx.address, "0x010203"],
-          });
-          const txData = { to: caller.address, data: data, gas: contractCallerGas, value: 1n };
-          const startingBalance = await publicClient.getBalance({ address: ctx.address });
-
-          const txHash = await walletClient.sendTransaction(txData);
-          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-          expect(txReceipt.status).to.equal(fallbackFunction.stateMutability === "payable" ? "success" : "reverted");
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-
-          let expectedBalance = startingBalance;
-          if (fallbackFunction.stateMutability === "payable") {
-            expectedBalance = startingBalance + txData.value;
-          }
-          const balance = await publicClient.getBalance({ address: ctx.address });
-          expect(balance).to.equal(expectedBalance);
         });
       }
     });
