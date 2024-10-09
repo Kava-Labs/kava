@@ -13,7 +13,7 @@ import {
   Chain,
   isHex,
 } from "viem";
-import { Abi, AbiFallback, AbiFunction, AbiReceive } from "abitype";
+import { Abi } from "abitype";
 import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
 import { whaleAddress } from "./addresses";
 
@@ -132,693 +132,15 @@ describe("ABI_BasicTests", function () {
     caller: Address;
   }
 
-  // AbiFunctionTestCaseBase defines a test case for an ABI function, this is
-  // run on every function defined in an expected ABI. Use shouldRun to only run
-  // the test case on matching functions.
-  interface AbiFunctionTestCaseBase {
+  // AbiFunctionTestCase defines a test case for an ABI function, this is
+  // run on every function defined in an expected ABI.
+  interface AbiFunctionTestCase {
     name: string;
     expectedStatus: "success" | "reverted";
+    txParams: (ctx: AbiContext) => CallParameters<Chain>;
     // If defined, check the balance of the contract after the transaction
     expectedBalance?: (startingBalance: bigint) => bigint;
   }
-
-  // AbiFunctionTestCase is a test case for a specific function in an ABI that
-  // includes the function selector.
-  type AbiFunctionTestCase = AbiFunctionTestCaseBase & {
-    // If defined, only run this test case on functions that return true. This
-    // is useful for testing specific function types.
-    shouldRun?: (
-      fn: AbiFunction,
-      receiveFunction: AbiReceive | undefined,
-      fallbackFunction: AbiFallback | undefined,
-    ) => boolean;
-    txParams: (ctx: AbiContext, funcSelector: `0x${string}`) => CallParameters<Chain>;
-  };
-
-  // AbiFallbackTestCase is a test case for the fallback function, which does
-  // not use a function selector.
-  type AbiFallbackTestCase = AbiFunctionTestCaseBase & {
-    // Same as the shouldRun function for AbiFunctionTestCase, but without a
-    // specific ABIFunction.
-    shouldRun?: (receiveFunction: AbiReceive | undefined, fallbackFunction: AbiFallback | undefined) => boolean;
-    // No function selector for fallback
-    txParams: (ctx: AbiContext) => CallParameters<Chain>;
-  };
-
-  // Define test cases for ABI function compliance
-  const abiFunctionTestCases: AbiFunctionTestCase[] = [
-    {
-      name: "can be called",
-      txParams: (ctx, funcSelector) => ({ to: ctx.address, data: funcSelector, gas: defaultGas }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called by low level contract call",
-      txParams: (ctx, funcSelector) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, funcSelector],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called by static call",
-      shouldRun(fn) {
-        return fn.stateMutability === "view" || fn.stateMutability === "pure";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, funcSelector],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called by static call with extra data",
-      shouldRun(fn) {
-        return fn.stateMutability === "view" || fn.stateMutability === "pure";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, concat([funcSelector, "0x01"])],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called by high level contract call",
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.caller,
-        data: funcSelector,
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called with value",
-      shouldRun(fn) {
-        return fn.stateMutability === "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.address,
-        data: funcSelector,
-        gas: defaultGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with value",
-      shouldRun(fn) {
-        return fn.stateMutability !== "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.address,
-        data: funcSelector,
-        gas: defaultGas,
-        value: 1n,
-      }),
-      // Balance stays the same
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-    {
-      name: "can be called by low level contract call with value",
-      shouldRun(fn) {
-        return fn.stateMutability === "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.caller,
-        data: funcSelector,
-        gas: 50000n,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called by low level contract call with value",
-      shouldRun(fn) {
-        return fn.stateMutability !== "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.caller,
-        data: funcSelector,
-        gas: 50000n,
-        value: 1n,
-      }),
-      // Same
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-    {
-      name: "can be called by high level contract call with value",
-      shouldRun(fn) {
-        return fn.stateMutability === "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, funcSelector],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called by high level contract call with value",
-      shouldRun(fn) {
-        return fn.stateMutability !== "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, funcSelector],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-    {
-      name: "can be called with extra data",
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.address,
-        data: concat([funcSelector, "0x01"]),
-        gas: defaultGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called with value and extra data",
-      shouldRun(fn) {
-        return fn.stateMutability === "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.address,
-        data: concat([funcSelector, "0x01"]),
-        gas: defaultGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with value and extra data",
-      shouldRun(fn) {
-        return fn.stateMutability !== "payable";
-      },
-      txParams: (ctx, funcSelector) => ({
-        to: ctx.address,
-        data: concat([funcSelector, "0x01"]),
-        gas: defaultGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-  ];
-
-  // Define test cases for special functions, receive and fallback
-  const specialFunctionTests: AbiFallbackTestCase[] = [
-    // Has receive function OR payable fallback
-    {
-      name: "can receive zero value transfers with no data",
-      shouldRun(receiveFunction, fallbackFunction) {
-        return !!receiveFunction || !!fallbackFunction;
-      },
-      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called by another contract with no data",
-      shouldRun(receiveFunction, fallbackFunction) {
-        return !!receiveFunction || !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can be called by static call with no data",
-      shouldRun(receiveFunction, fallbackFunction) {
-        return !!receiveFunction || !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, "0x"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-
-    // No receive function AND no payable fallback
-    {
-      name: "can not receive zero value transfers with no data",
-      shouldRun(receiveFunction, fallbackFunction) {
-        return !receiveFunction && !fallbackFunction;
-      },
-      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
-      expectedStatus: "reverted",
-    },
-    {
-      name: "can not receive zero value transfers by high level contract call with no data",
-      shouldRun(receiveFunction, fallbackFunction) {
-        return !receiveFunction && !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "reverted",
-    },
-    {
-      name: "can not receive zero value transfers by static call with no data",
-      shouldRun(receiveFunction, fallbackFunction) {
-        return !receiveFunction && !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, "0x"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "reverted",
-    },
-
-    // No receive function AND no payable fallback
-    {
-      name: "can not receive plain transfers",
-      shouldRun(receiveFunction, fallbackFunction) {
-        // No receive function and no payable fallback
-        return !receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable");
-      },
-      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas, value: 1n }),
-      expectedStatus: "reverted",
-    },
-    {
-      name: "can not receive plain transfers via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
-        // No receive function and no payable fallback
-        return !receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable");
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x"],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedStatus: "reverted",
-    },
-    // Has receive function OR payable fallback
-    {
-      name: "can receive plain transfers",
-      shouldRun(receiveFunction, fallbackFunction) {
-        // Has receive function OR payable fallback
-        return !!receiveFunction || (!!fallbackFunction && fallbackFunction.stateMutability === "payable");
-      },
-      txParams: (ctx) => ({ to: ctx.address, gas: defaultGas, value: 1n }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can receive plain transfers via message call",
-      shouldRun(receiveFunction, fallbackFunction) {
-        // Has receive function OR payable fallback
-        return !!receiveFunction || (!!fallbackFunction && fallbackFunction.stateMutability === "payable");
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x"],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-
-    {
-      name: "can be called with a non-matching function selector",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: toFunctionSelector("does_not_exist()"),
-        gas: defaultGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with a non-matching function selector",
-      shouldRun(_, fallbackFunction) {
-        return !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: toFunctionSelector("does_not_exist()"),
-        gas: defaultGas,
-      }),
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can be called with a non-matching function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with a non-matching function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can be called with a non-matching function selector via static call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with a non-matching function selector via static call",
-      shouldRun(_, fallbackFunction) {
-        return !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can be called with an invalid (short) function selector",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: "0x010203",
-        gas: defaultGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with an invalid (short) function selector",
-      shouldRun(_, fallbackFunction) {
-        return !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: "0x010203",
-        gas: defaultGas,
-      }),
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can be called with an invalid (short) function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x010203"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with an invalid (short) function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x010203"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can be called with an invalid (short) function selector via static call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, "0x010203"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "success",
-    },
-    {
-      name: "can not be called with an invalid (short) function selector via static call",
-      shouldRun(_, fallbackFunction) {
-        return !fallbackFunction;
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionStaticCall",
-          args: [ctx.address, "0x010203"],
-        }),
-        gas: contractCallerGas,
-      }),
-      expectedStatus: "reverted",
-    },
-
-    // Fallback payable tests
-    {
-      name: "can receive value with a non-matching function selector",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: toFunctionSelector("does_not_exist()"),
-        gas: defaultGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not receive value with a non-matching function selector",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: toFunctionSelector("does_not_exist()"),
-        gas: defaultGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can receive value with a non-matching function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not receive value with a non-matching function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, toFunctionSelector("does_not_exist()")],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can receive value with an invalid (short) function selector",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: "0x010203",
-        gas: defaultGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not receive value with an invalid (short) function selector",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
-      },
-      txParams: (ctx) => ({
-        to: ctx.address,
-        data: "0x010203",
-        gas: defaultGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-
-    {
-      name: "can receive value with an invalid (short) function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability === "payable";
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x010203"],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance + 1n,
-      expectedStatus: "success",
-    },
-    {
-      name: "can not receive value with an invalid (short) function selector via message call",
-      shouldRun(_, fallbackFunction) {
-        return !!fallbackFunction && fallbackFunction.stateMutability !== "payable";
-      },
-      txParams: (ctx) => ({
-        to: caller.address,
-        data: encodeFunctionData({
-          abi: caller.abi,
-          functionName: "functionCall",
-          args: [ctx.address, "0x010203"],
-        }),
-        gas: contractCallerGas,
-        value: 1n,
-      }),
-      expectedBalance: (startingBalance) => startingBalance,
-      expectedStatus: "reverted",
-    },
-  ];
 
   function itImplementsTheAbi(abi: Abi, getContext: () => Promise<AbiContext>) {
     let ctx: AbiContext;
@@ -837,18 +159,193 @@ describe("ABI_BasicTests", function () {
 
         const funcSelector = toFunctionSelector(toFunctionSignature(funcDesc));
 
+        // Dynamically build test cases for each function individually, as
+        // the cases depend on the function's stateMutability.
+        const abiFunctionTestCases: AbiFunctionTestCase[] = [
+          {
+            name: "can be called",
+            txParams: (ctx) => ({ to: ctx.address, data: funcSelector, gas: defaultGas }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called by low level contract call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, funcSelector],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called by high level contract call",
+            txParams: (ctx) => ({
+              to: ctx.caller,
+              data: funcSelector,
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called with extra data",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: concat([funcSelector, "0x01"]),
+              gas: defaultGas,
+            }),
+            expectedStatus: "success",
+          },
+        ];
+
+        if (funcDesc.stateMutability === "view" || funcDesc.stateMutability === "pure") {
+          abiFunctionTestCases.push(
+            {
+              name: "can be called by static call",
+              txParams: (ctx) => ({
+                to: caller.address,
+                data: encodeFunctionData({
+                  abi: caller.abi,
+                  functionName: "functionStaticCall",
+                  args: [ctx.address, funcSelector],
+                }),
+                gas: contractCallerGas,
+              }),
+              expectedStatus: "success",
+            },
+            {
+              name: "can be called by static call with extra data",
+              txParams: (ctx) => ({
+                to: caller.address,
+                data: encodeFunctionData({
+                  abi: caller.abi,
+                  functionName: "functionStaticCall",
+                  args: [ctx.address, concat([funcSelector, "0x01"])],
+                }),
+                gas: contractCallerGas,
+              }),
+              expectedStatus: "success",
+            },
+          );
+        }
+
+        if (funcDesc.stateMutability === "payable") {
+          abiFunctionTestCases.push(
+            {
+              name: "can be called with value",
+              txParams: (ctx) => ({
+                to: ctx.address,
+                data: funcSelector,
+                gas: defaultGas,
+                value: 1n,
+              }),
+              expectedBalance: (startingBalance) => startingBalance + 1n,
+              expectedStatus: "success",
+            },
+            {
+              name: "can be called by low level contract call with value",
+              txParams: (ctx) => ({
+                to: ctx.caller,
+                data: funcSelector,
+                gas: 50000n,
+                value: 1n,
+              }),
+              expectedBalance: (startingBalance) => startingBalance + 1n,
+              expectedStatus: "success",
+            },
+            {
+              name: "can be called by high level contract call with value",
+              txParams: (ctx) => ({
+                to: caller.address,
+                data: encodeFunctionData({
+                  abi: caller.abi,
+                  functionName: "functionCall",
+                  args: [ctx.address, funcSelector],
+                }),
+                gas: contractCallerGas,
+                value: 1n,
+              }),
+              expectedBalance: (startingBalance) => startingBalance + 1n,
+              expectedStatus: "success",
+            },
+            {
+              name: "can be called with value and extra data",
+              txParams: (ctx) => ({
+                to: ctx.address,
+                data: concat([funcSelector, "0x01"]),
+                gas: defaultGas,
+                value: 1n,
+              }),
+              expectedBalance: (startingBalance) => startingBalance + 1n,
+              expectedStatus: "success",
+            },
+          );
+        }
+
+        if (funcDesc.stateMutability !== "payable") {
+          abiFunctionTestCases.push(
+            {
+              name: "can not be called with value",
+              txParams: (ctx) => ({
+                to: ctx.address,
+                data: funcSelector,
+                gas: defaultGas,
+                value: 1n,
+              }),
+              // Balance stays the same
+              expectedBalance: (startingBalance) => startingBalance,
+              expectedStatus: "reverted",
+            },
+            {
+              name: "can not be called by low level contract call with value",
+              txParams: (ctx) => ({
+                to: ctx.caller,
+                data: funcSelector,
+                gas: 50000n,
+                value: 1n,
+              }),
+              // Same
+              expectedBalance: (startingBalance) => startingBalance,
+              expectedStatus: "reverted",
+            },
+            {
+              name: "can not be called by high level contract call with value",
+              txParams: (ctx) => ({
+                to: caller.address,
+                data: encodeFunctionData({
+                  abi: caller.abi,
+                  functionName: "functionCall",
+                  args: [ctx.address, funcSelector],
+                }),
+                gas: contractCallerGas,
+                value: 1n,
+              }),
+              expectedBalance: (startingBalance) => startingBalance,
+              expectedStatus: "reverted",
+            },
+            {
+              name: "can not be called with value and extra data",
+              txParams: (ctx) => ({
+                to: ctx.address,
+                data: concat([funcSelector, "0x01"]),
+                gas: defaultGas,
+                value: 1n,
+              }),
+              expectedBalance: (startingBalance) => startingBalance,
+              expectedStatus: "reverted",
+            },
+          );
+        }
+
         describe(`${funcDesc.name} ${funcDesc.stateMutability}`, function () {
           // Run test cases for each function
           for (const testCase of abiFunctionTestCases) {
-            // Check if we should run this test case
-            if (testCase.shouldRun && !testCase.shouldRun(funcDesc, receiveFunction, fallbackFunction)) {
-              continue;
-            }
-
             it(testCase.name, async function () {
               const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
-              const txData = testCase.txParams(ctx, funcSelector);
+              const txData = testCase.txParams(ctx);
 
               if (testCase.expectedStatus === "success") {
                 await expect(publicClient.call(txData)).to.be.fulfilled;
@@ -886,12 +383,398 @@ describe("ABI_BasicTests", function () {
     // Fallback functions can be payable or non-payable and can receive data in both cases
     const testName = `ABI special functions: ${receiveFunction ? "" : "no "}receive and ${fallbackFunction ? fallbackFunction.stateMutability : "no"} fallback`;
     describe(testName, function () {
-      for (const testCase of specialFunctionTests) {
-        // Check if we should run this test case
-        if (testCase.shouldRun && !testCase.shouldRun(receiveFunction, fallbackFunction)) {
-          continue;
-        }
+      // Dynamically build test cases depending on the receive and fallback
+      // functions defined in the ABI
+      const specialFunctionTests: AbiFunctionTestCase[] = [];
 
+      if (receiveFunction && fallbackFunction) {
+        specialFunctionTests.push(
+          {
+            name: "can receive zero value transfers with no data",
+            txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called by another contract with no data",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called by static call with no data",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, "0x"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+        );
+      }
+
+      if (!receiveFunction && !fallbackFunction) {
+        specialFunctionTests.push(
+          {
+            name: "can not receive zero value transfers with no data",
+            txParams: (ctx) => ({ to: ctx.address, gas: defaultGas }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not receive zero value transfers by high level contract call with no data",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not receive zero value transfers by static call with no data",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, "0x"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "reverted",
+          },
+        );
+      }
+
+      // No receive function AND no payable fallback
+      if (!receiveFunction && (!fallbackFunction || fallbackFunction.stateMutability !== "payable")) {
+        specialFunctionTests.push(
+          {
+            name: "can not receive plain transfers",
+            txParams: (ctx) => ({ to: ctx.address, gas: defaultGas, value: 1n }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not receive plain transfers via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x"],
+              }),
+              gas: contractCallerGas,
+              value: 1n,
+            }),
+            expectedStatus: "reverted",
+          },
+        );
+      }
+
+      if (receiveFunction || (fallbackFunction && fallbackFunction.stateMutability === "payable")) {
+        specialFunctionTests.push(
+          {
+            name: "can receive plain transfers",
+            txParams: (ctx) => ({ to: ctx.address, gas: defaultGas, value: 1n }),
+            expectedBalance: (startingBalance) => startingBalance + 1n,
+            expectedStatus: "success",
+          },
+          {
+            name: "can receive plain transfers via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x"],
+              }),
+              gas: contractCallerGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance + 1n,
+            expectedStatus: "success",
+          },
+        );
+      }
+
+      if (fallbackFunction) {
+        specialFunctionTests.push(
+          {
+            name: "can be called with a non-matching function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: toFunctionSelector("does_not_exist()"),
+              gas: defaultGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called with a non-matching function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, toFunctionSelector("does_not_exist()")],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called with a non-matching function selector via static call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, toFunctionSelector("does_not_exist()")],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called with an invalid (short) function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: "0x010203",
+              gas: defaultGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called with an invalid (short) function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x010203"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called with an invalid (short) function selector via static call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, "0x010203"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+        );
+      }
+
+      if (!fallbackFunction) {
+        specialFunctionTests.push(
+          {
+            name: "can not be called with a non-matching function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: toFunctionSelector("does_not_exist()"),
+              gas: defaultGas,
+            }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not be called with a non-matching function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, toFunctionSelector("does_not_exist()")],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not be called with a non-matching function selector via static call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, toFunctionSelector("does_not_exist()")],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not be called with an invalid (short) function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: "0x010203",
+              gas: defaultGas,
+            }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not be called with an invalid (short) function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x010203"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not be called with an invalid (short) function selector via static call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionStaticCall",
+                args: [ctx.address, "0x010203"],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "reverted",
+          },
+        );
+      }
+
+      if (fallbackFunction && fallbackFunction.stateMutability === "payable") {
+        specialFunctionTests.push(
+          {
+            name: "can receive value with a non-matching function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: toFunctionSelector("does_not_exist()"),
+              gas: defaultGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance + 1n,
+            expectedStatus: "success",
+          },
+          {
+            name: "can receive value with a non-matching function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, toFunctionSelector("does_not_exist()")],
+              }),
+              gas: contractCallerGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance + 1n,
+            expectedStatus: "success",
+          },
+          {
+            name: "can receive value with an invalid (short) function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: "0x010203",
+              gas: defaultGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance + 1n,
+            expectedStatus: "success",
+          },
+          {
+            name: "can receive value with an invalid (short) function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x010203"],
+              }),
+              gas: contractCallerGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance + 1n,
+            expectedStatus: "success",
+          },
+        );
+      }
+
+      if (fallbackFunction && fallbackFunction.stateMutability !== "payable") {
+        specialFunctionTests.push(
+          {
+            name: "can not receive value with a non-matching function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: toFunctionSelector("does_not_exist()"),
+              gas: defaultGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance,
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not receive value with a non-matching function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, toFunctionSelector("does_not_exist()")],
+              }),
+              gas: contractCallerGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance,
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not receive value with an invalid (short) function selector",
+            txParams: (ctx) => ({
+              to: ctx.address,
+              data: "0x010203",
+              gas: defaultGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance,
+            expectedStatus: "reverted",
+          },
+          {
+            name: "can not receive value with an invalid (short) function selector via message call",
+            txParams: (ctx) => ({
+              to: caller.address,
+              data: encodeFunctionData({
+                abi: caller.abi,
+                functionName: "functionCall",
+                args: [ctx.address, "0x010203"],
+              }),
+              gas: contractCallerGas,
+              value: 1n,
+            }),
+            expectedBalance: (startingBalance) => startingBalance,
+            expectedStatus: "reverted",
+          },
+        );
+      }
+
+      for (const testCase of specialFunctionTests) {
         it(testCase.name, async function () {
           const startingBalance = await publicClient.getBalance({ address: ctx.address });
 
