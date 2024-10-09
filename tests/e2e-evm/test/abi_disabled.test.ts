@@ -95,24 +95,33 @@ describe("ABI_DisabledTests", function () {
       value: bigint;
       data: Hex;
     }
-    const testCases: testCase[] = [
-      { name: "zero value transfer", value: 0n, data: "0x" },
-      { name: "value transfer", value: 1n, data: "0x" },
-      { name: "invalid function selector", value: 0n, data: "0x010203" },
-      { name: "invalid function selector with value", value: 1n, data: "0x010203" },
-      { name: "non-matching function selector", value: 0n, data: toFunctionSelector("does_not_exist()") },
-      { name: "non-matching function selector with value", value: 1n, data: toFunctionSelector("does_not_exist()") },
-      {
-        name: "non-matching function selector with extra data",
-        value: 0n,
-        data: concat([toFunctionSelector("does_not_exist()"), "0x01"]),
-      },
-      {
-        name: "non-matching function selector with value and extra data",
-        value: 1n,
-        data: concat([toFunctionSelector("does_not_exist()"), "0x01"]),
-      },
-    ];
+    const testCases: testCase[] = [];
+
+    if (receiveFunction) {
+      testCases.push(
+        { name: "zero value transfer", value: 0n, data: "0x" },
+        { name: "value transfer", value: 1n, data: "0x" },
+      );
+    }
+
+    if (fallbackFunction) {
+      testCases.push(
+        { name: "invalid function selector", value: 0n, data: "0x010203" },
+        { name: "invalid function selector with value", value: 1n, data: "0x010203" },
+        { name: "non-matching function selector", value: 0n, data: toFunctionSelector("does_not_exist()") },
+        { name: "non-matching function selector with value", value: 1n, data: toFunctionSelector("does_not_exist()") },
+        {
+          name: "non-matching function selector with extra data",
+          value: 0n,
+          data: concat([toFunctionSelector("does_not_exist()"), "0x01"]),
+        },
+        {
+          name: "non-matching function selector with value and extra data",
+          value: 1n,
+          data: concat([toFunctionSelector("does_not_exist()"), "0x01"]),
+        },
+      );
+    }
 
     for (const funcDesc of abi) {
       if (funcDesc.type !== "function") {
