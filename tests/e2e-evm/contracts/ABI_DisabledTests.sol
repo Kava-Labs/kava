@@ -1,37 +1,38 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "./ABI_BasicTests.sol";
+import "./ABI_BasicTests.sol" as ABI_BasicTests;
 
 //
 // Disabled contract that is payable and callable with any calldata (receive + fallback)
 //
-contract NoopDisabledMock is NoopReceivePayableFallback{
+contract NoopDisabledMock is ABI_BasicTests.NoopReceivePayableFallback {
     // solc-ignore-next-line func-mutability
     function noopNonpayable() external {
-      mockRevert();
+        mockRevert();
     }
     function noopPayable() external payable {
-      mockRevert();
+        mockRevert();
     }
     // solc-ignore-next-line func-mutability
     function noopView() external view {
-      mockRevert();
+        mockRevert();
     }
     function noopPure() external pure {
-      mockRevert();
+        mockRevert();
     }
     receive() external payable {
-      mockRevert();
+        mockRevert();
     }
     fallback() external payable {
-      mockRevert();
+        mockRevert();
     }
 
     //
     // Mimic revert + revert reason
     //
     function mockRevert() private pure {
-      revert("call not allowed to disabled contract");
+        // solhint-disable-next-line reason-string, gas-custom-errors
+        revert("call not allowed to disabled contract");
     }
 }

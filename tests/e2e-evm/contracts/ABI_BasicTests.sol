@@ -13,8 +13,10 @@ contract Caller {
         (bool success, bytes memory result) = to.call{value: msg.value}(data);
 
         if (!success) {
-            if (result.length == 0) revert();
+            // solhint-disable-next-line gas-custom-errors
+            if (result.length == 0) revert("reverted with no reason");
 
+            // solhint-disable-next-line no-inline-assembly
             assembly {
                 revert(add(32, result), mload(result))
             }
@@ -24,11 +26,14 @@ contract Caller {
     // TODO: Callcode
 
     function functionDelegateCall(address to, bytes calldata data) external {
+        // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory result) = to.delegatecall(data);
 
         if (!success) {
-            if (result.length == 0) revert();
+            // solhint-disable-next-line gas-custom-errors
+            if (result.length == 0) revert("reverted with no reason");
 
+            // solhint-disable-next-line no-inline-assembly
             assembly {
                 revert(add(32, result), mload(result))
             }
@@ -39,8 +44,10 @@ contract Caller {
         (bool success, bytes memory result) = to.staticcall(data);
 
         if (!success) {
-            if (result.length == 0) revert();
+            // solhint-disable-next-line gas-custom-errors
+            if (result.length == 0) revert("reverted with no reason");
 
+            // solhint-disable-next-line no-inline-assembly
             assembly {
                 revert(add(32, result), mload(result))
             }
@@ -52,7 +59,7 @@ contract Caller {
 // High level caller
 //
 contract NoopCaller {
-    NoopNoReceiveNoFallback target;
+    NoopNoReceiveNoFallback private target;
 
     constructor(NoopNoReceiveNoFallback _target) {
         target = _target;
