@@ -10,6 +10,7 @@ import "hardhat-ignore-warnings";
 // Chai setup
 //
 chai.use(chaiAsPromised);
+chai.config.truncateThreshold = 0;
 
 //
 // Load HRE extensions
