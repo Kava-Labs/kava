@@ -12,7 +12,7 @@ import (
 )
 
 // AddCdp adds a cdp for a specific owner and collateral type
-func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coin, principal sdk.Coin, collateralType string) error {
+func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk.Coin, principal sdk.Coin, collateralType string) error {
 	// validation
 	err := k.ValidateCollateral(ctx, collateral, collateralType)
 	if err != nil {
@@ -112,7 +112,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 }
 
 // UpdateCdpAndCollateralRatioIndex updates the state of an existing cdp in the store by replacing the old index values and updating the store to the latest cdp object values
-func (k Keeper) UpdateCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdkmath.LegacyDec) error {
+func (k Keeper) UpdateCdpAndCollateralRatioIndex(ctx context.Context, cdp types.CDP, ratio sdkmath.LegacyDec) error {
 	err := k.removeOldCollateralRatioIndex(ctx, cdp.Type, cdp.ID)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (k Keeper) UpdateCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP,
 }
 
 // DeleteCdpAndCollateralRatioIndex deletes an existing cdp in the store by removing the old index value and deleting the cdp object from the store
-func (k Keeper) DeleteCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP) error {
+func (k Keeper) DeleteCdpAndCollateralRatioIndex(ctx context.Context, cdp types.CDP) error {
 	err := k.removeOldCollateralRatioIndex(ctx, cdp.Type, cdp.ID)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func (k Keeper) DeleteCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP)
 }
 
 // SetCdpAndCollateralRatioIndex sets the cdp and collateral ratio index in the store
-func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdkmath.LegacyDec) error {
+func (k Keeper) SetCdpAndCollateralRatioIndex(ctx context.Context, cdp types.CDP, ratio sdkmath.LegacyDec) error {
 	err := k.SetCDP(ctx, cdp)
 	if err != nil {
 		return err
@@ -146,7 +146,7 @@ func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ra
 	return nil
 }
 
-func (k Keeper) removeOldCollateralRatioIndex(ctx sdk.Context, ctype string, id uint64) error {
+func (k Keeper) removeOldCollateralRatioIndex(ctx context.Context, ctype string, id uint64) error {
 	storedCDP, found := k.GetCDP(ctx, ctype, id)
 	if !found {
 		return errorsmod.Wrapf(types.ErrCdpNotFound, "%d", storedCDP.ID)
@@ -157,13 +157,13 @@ func (k Keeper) removeOldCollateralRatioIndex(ctx sdk.Context, ctype string, id 
 }
 
 // MintDebtCoins mints debt coins in the cdp module account
-func (k Keeper) MintDebtCoins(ctx sdk.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
+func (k Keeper) MintDebtCoins(ctx context.Context, moduleAccount string, denom string, principalCoins sdk.Coin) error {
 	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, principalCoins.Amount))
 	return k.bankKeeper.MintCoins(ctx, moduleAccount, debtCoins)
 }
 
 // BurnDebtCoins burns debt coins from the cdp module account
-func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
+func (k Keeper) BurnDebtCoins(ctx context.Context, moduleAccount string, denom string, paymentCoins sdk.Coin) error {
 	macc := k.accountKeeper.GetModuleAccount(ctx, moduleAccount)
 	maxBurnableAmount := k.bankKeeper.GetBalance(ctx, macc.GetAddress(), denom).Amount
 	// check that the requested burn is not greater than the mod account balance
@@ -172,7 +172,7 @@ func (k Keeper) BurnDebtCoins(ctx sdk.Context, moduleAccount string, denom strin
 }
 
 // GetCdpID returns the id of the cdp corresponding to a specific owner and collateral denom
-func (k Keeper) GetCdpID(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (uint64, bool) {
+func (k Keeper) GetCdpID(ctx context.Context, owner sdk.AccAddress, collateralType string) (uint64, bool) {
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
 	if !found {
 		return 0, false
@@ -187,7 +187,7 @@ func (k Keeper) GetCdpID(ctx sdk.Context, owner sdk.AccAddress, collateralType s
 }
 
 // GetCdpIdsByOwner returns all the ids of cdps corresponding to a particular owner
-func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint64, bool) {
+func (k Keeper) GetCdpIdsByOwner(ctx context.Context, owner sdk.AccAddress) ([]uint64, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
 	bz := store.Get(owner)
 	if bz == nil {
@@ -200,7 +200,7 @@ func (k Keeper) GetCdpIdsByOwner(ctx sdk.Context, owner sdk.AccAddress) ([]uint6
 }
 
 // GetCdpByOwnerAndCollateralType queries cdps owned by owner and returns the cdp with matching denom
-func (k Keeper) GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (types.CDP, bool) {
+func (k Keeper) GetCdpByOwnerAndCollateralType(ctx context.Context, owner sdk.AccAddress, collateralType string) (types.CDP, bool) {
 	cdpIDs, found := k.GetCdpIdsByOwner(ctx, owner)
 	if !found {
 		return types.CDP{}, false
@@ -215,7 +215,7 @@ func (k Keeper) GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAdd
 }
 
 // GetCDP returns the cdp associated with a particular collateral denom and id
-func (k Keeper) GetCDP(ctx sdk.Context, collateralType string, cdpID uint64) (types.CDP, bool) {
+func (k Keeper) GetCDP(ctx context.Context, collateralType string, cdpID uint64) (types.CDP, bool) {
 	// get store
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	_, found := k.GetCollateral(ctx, collateralType)

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -11,11 +12,11 @@ type ParamKeeper interface {
 
 // AccountKeeper defines the expected account keeper
 type AccountKeeper interface {
-	GetAccount(sdk.Context, sdk.AccAddress) sdk.AccountI
+	GetAccount(context.Context, sdk.AccAddress) sdk.AccountI
 }
 
 // BankKeeper defines the expected bank keeper interface
 type BankKeeper interface {
-	GetSupply(ctx sdk.Context, denom string) sdk.Coin
-	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	GetSupply(ctx context.Context, denom string) sdk.Coin
+	GetBalance(ctx context.Context, addr sdk.AccAddress, denom string) sdk.Coin
 }

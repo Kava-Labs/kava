@@ -58,20 +58,20 @@ func (k *Keeper) SetHooks(hooks types.CDPHooks) *Keeper {
 }
 
 // CdpDenomIndexIterator returns an sdk.Iterator for all cdps with matching collateral denom
-func (k Keeper) CdpDenomIndexIterator(ctx sdk.Context, collateralType string) storetypes.Iterator {
+func (k Keeper) CdpDenomIndexIterator(ctx context.Context, collateralType string) storetypes.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	return storetypes.KVStorePrefixIterator(store, types.DenomIterKey(collateralType))
 }
 
 // CdpCollateralRatioIndexIterator returns an sdk.Iterator for all cdps that have collateral denom
 // matching denom and collateral:debt ratio LESS THAN targetRatio
-func (k Keeper) CdpCollateralRatioIndexIterator(ctx sdk.Context, collateralType string, targetRatio sdkmath.LegacyDec) storetypes.Iterator {
+func (k Keeper) CdpCollateralRatioIndexIterator(ctx context.Context, collateralType string, targetRatio sdkmath.LegacyDec) storetypes.Iterator {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	return store.Iterator(types.CollateralRatioIterKey(collateralType, sdkmath.LegacyZeroDec()), types.CollateralRatioIterKey(collateralType, targetRatio))
 }
 
 // IterateAllCdps iterates over all cdps and performs a callback function
-func (k Keeper) IterateAllCdps(ctx sdk.Context, cb func(cdp types.CDP) (stop bool)) {
+func (k Keeper) IterateAllCdps(ctx context.Context, cb func(cdp types.CDP) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
@@ -86,7 +86,7 @@ func (k Keeper) IterateAllCdps(ctx sdk.Context, cb func(cdp types.CDP) (stop boo
 }
 
 // IterateCdpsByCollateralType iterates over cdps with matching denom and performs a callback function
-func (k Keeper) IterateCdpsByCollateralType(ctx sdk.Context, collateralType string, cb func(cdp types.CDP) (stop bool)) {
+func (k Keeper) IterateCdpsByCollateralType(ctx context.Context, collateralType string, cb func(cdp types.CDP) (stop bool)) {
 	iterator := k.CdpDenomIndexIterator(ctx, collateralType)
 
 	defer iterator.Close()
@@ -101,7 +101,7 @@ func (k Keeper) IterateCdpsByCollateralType(ctx sdk.Context, collateralType stri
 
 // IterateCdpsByCollateralRatio iterate over cdps with collateral denom equal to denom and
 // collateral:debt ratio LESS THAN targetRatio and performs a callback function.
-func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, collateralType string, targetRatio sdkmath.LegacyDec, cb func(cdp types.CDP) (stop bool)) {
+func (k Keeper) IterateCdpsByCollateralRatio(ctx context.Context, collateralType string, targetRatio sdkmath.LegacyDec, cb func(cdp types.CDP) (stop bool)) {
 	iterator := k.CdpCollateralRatioIndexIterator(ctx, collateralType, targetRatio)
 
 	defer iterator.Close()
@@ -120,7 +120,7 @@ func (k Keeper) IterateCdpsByCollateralRatio(ctx sdk.Context, collateralType str
 
 // GetSliceOfCDPsByRatioAndType returns a slice of cdps of size equal to the input cutoffCount
 // sorted by target ratio in ascending order (ie, the lowest collateral:debt ratio cdps are returned first)
-func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdkmath.Int, targetRatio sdkmath.LegacyDec, collateralType string) (cdps types.CDPs) {
+func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx context.Context, cutoffCount sdkmath.Int, targetRatio sdkmath.LegacyDec, collateralType string) (cdps types.CDPs) {
 	count := sdkmath.ZeroInt()
 	k.IterateCdpsByCollateralRatio(ctx, collateralType, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
@@ -131,7 +131,7 @@ func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx sdk.Context, cutoffCount sdkmat
 }
 
 // GetPreviousAccrualTime returns the last time an individual market accrued interest
-func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (time.Time, bool) {
+func (k Keeper) GetPreviousAccrualTime(ctx context.Context, ctype string) (time.Time, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz := store.Get([]byte(ctype))
 	if bz == nil {
@@ -145,7 +145,7 @@ func (k Keeper) GetPreviousAccrualTime(ctx sdk.Context, ctype string) (time.Time
 }
 
 // SetPreviousAccrualTime sets the most recent accrual time for a particular market
-func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, ctype string, previousAccrualTime time.Time) {
+func (k Keeper) SetPreviousAccrualTime(ctx context.Context, ctype string, previousAccrualTime time.Time) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz, err := previousAccrualTime.MarshalBinary()
 	if err != nil {
@@ -155,7 +155,7 @@ func (k Keeper) SetPreviousAccrualTime(ctx sdk.Context, ctype string, previousAc
 }
 
 // GetInterestFactor returns the current interest factor for an individual collateral type
-func (k Keeper) GetInterestFactor(ctx sdk.Context, ctype string) (sdkmath.LegacyDec, bool) {
+func (k Keeper) GetInterestFactor(ctx context.Context, ctype string) (sdkmath.LegacyDec, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestFactorPrefix)
 	bz := store.Get([]byte(ctype))
 	if bz == nil {
@@ -169,7 +169,7 @@ func (k Keeper) GetInterestFactor(ctx sdk.Context, ctype string) (sdkmath.Legacy
 }
 
 // SetInterestFactor sets the current interest factor for an individual collateral type
-func (k Keeper) SetInterestFactor(ctx sdk.Context, ctype string, interestFactor sdkmath.LegacyDec) {
+func (k Keeper) SetInterestFactor(ctx context.Context, ctype string, interestFactor sdkmath.LegacyDec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.InterestFactorPrefix)
 	bz, err := interestFactor.Marshal()
 	if err != nil {

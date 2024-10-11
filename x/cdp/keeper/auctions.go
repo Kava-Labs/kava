@@ -13,7 +13,7 @@ const (
 )
 
 // AuctionCollateral creates auctions from the input deposits which attempt to raise the corresponding amount of debt
-func (k Keeper) AuctionCollateral(ctx sdk.Context, deposits types.Deposits, collateralType string, debt sdkmath.Int, bidDenom string) error {
+func (k Keeper) AuctionCollateral(ctx context.Context, deposits types.Deposits, collateralType string, debt sdkmath.Int, bidDenom string) error {
 	auctionSize := k.getAuctionSize(ctx, collateralType)
 	totalCollateral := deposits.SumCollateral()
 	for _, deposit := range deposits {
@@ -105,7 +105,7 @@ func (k Keeper) CreateAuctionsFromDeposit(
 
 // NetSurplusAndDebt burns surplus and debt coins equal to the minimum of surplus and debt balances held by the liquidator module account
 // for example, if there is 1000 debt and 100 surplus, 100 surplus and 100 debt are burned, netting to 900 debt
-func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
+func (k Keeper) NetSurplusAndDebt(ctx context.Context) error {
 	totalSurplus := k.GetTotalSurplus(ctx, types.LiquidatorMacc)
 	debt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
 	netAmount := sdk.MinInt(totalSurplus, debt)
@@ -128,20 +128,20 @@ func (k Keeper) NetSurplusAndDebt(ctx sdk.Context) error {
 }
 
 // GetTotalSurplus returns the total amount of surplus tokens held by the liquidator module account
-func (k Keeper) GetTotalSurplus(ctx sdk.Context, accountName string) sdkmath.Int {
+func (k Keeper) GetTotalSurplus(ctx context.Context, accountName string) sdkmath.Int {
 	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
 	dp := k.GetParams(ctx).DebtParam
 	return k.bankKeeper.GetBalance(ctx, acc.GetAddress(), dp.Denom).Amount
 }
 
 // GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
-func (k Keeper) GetTotalDebt(ctx sdk.Context, accountName string) sdkmath.Int {
+func (k Keeper) GetTotalDebt(ctx context.Context, accountName string) sdkmath.Int {
 	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
 	return k.bankKeeper.GetBalance(ctx, acc.GetAddress(), k.GetDebtDenom(ctx)).Amount
 }
 
 // RunSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
-func (k Keeper) RunSurplusAndDebtAuctions(ctx sdk.Context) error {
+func (k Keeper) RunSurplusAndDebtAuctions(ctx context.Context) error {
 	if err := k.NetSurplusAndDebt(ctx); err != nil {
 		return err
 	}

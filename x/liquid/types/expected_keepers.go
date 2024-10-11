@@ -31,12 +31,12 @@ type AccountKeeper interface {
 
 // StakingKeeper defines the expected keeper interface for interacting with staking
 type StakingKeeper interface {
-	BondDenom(ctx context.Context) (res string)
+	BondDenom(ctx context.Context) (res string, err error)
 
-	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
-	GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, found bool)
-	IterateDelegatorDelegations(ctx context.Context, delegator sdk.AccAddress, cb func(delegation stakingtypes.Delegation) (stop bool))
-	HasReceivingRedelegation(ctx context.Context, delAddr sdk.AccAddress, valDstAddr sdk.ValAddress) bool
+	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
+	GetDelegation(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (delegation stakingtypes.Delegation, err error)
+	IterateDelegatorDelegations(ctx context.Context, delegator sdk.AccAddress, cb func(delegation stakingtypes.Delegation) (stop bool)) error
+	HasReceivingRedelegation(ctx context.Context, delAddr sdk.AccAddress, valDstAddr sdk.ValAddress) (bool, error)
 
 	ValidateUnbondAmount(
 		ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, amt sdkmath.Int,
@@ -52,6 +52,6 @@ type StakingKeeper interface {
 }
 
 type DistributionKeeper interface {
-	GetDelegatorWithdrawAddr(ctx context.Context, delAddr sdk.AccAddress) sdk.AccAddress
+	GetDelegatorWithdrawAddr(ctx context.Context, delAddr sdk.AccAddress) (sdk.AccAddress, error)
 	WithdrawDelegationRewards(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) (sdk.Coins, error)
 }

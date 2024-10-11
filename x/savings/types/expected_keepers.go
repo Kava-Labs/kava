@@ -33,6 +33,6 @@ type SavingsHooks interface {
 }
 
 type LiquidKeeper interface {
-	GetStakedTokensForDerivatives(ctx context.Context, derivatives sdk.Coins) (sdk.Coin, error)
-	IsDerivativeDenom(ctx context.Context, denom string) bool
+	GetStakedTokensForDerivatives(ctx sdk.Context, derivatives sdk.Coins) (sdk.Coin, error)
+	IsDerivativeDenom(ctx sdk.Context, denom string) bool
 }

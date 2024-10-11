@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -19,7 +20,7 @@ func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types
 
 	factor, found := k.GetUSDXMintingRewardFactor(ctx, rewardPeriod.CollateralType)
 	if !found {
-		factor = sdk.ZeroDec()
+		factor = sdkmath.LegacyZeroDec()
 	}
 	// wrap in RewardIndexes for compatibility with Accumulator
 	indexes := types.RewardIndexes{}.With(types.USDXMintingRewardDenom, factor)
@@ -48,10 +49,10 @@ func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string)
 	cdpFactor, found := k.cdpKeeper.GetInterestFactor(ctx, collateralType)
 	if !found {
 		// assume nothing has been borrowed so the factor starts at it's default value
-		cdpFactor = sdk.OneDec()
+		cdpFactor = sdkmath.LegacyOneDec()
 	}
 	// return debt/factor to get the "pre interest" value of the current total debt
-	return sdk.NewDecFromInt(totalPrincipal).Quo(cdpFactor)
+	return sdkmath.LegacyNewDecFromInt(totalPrincipal).Quo(cdpFactor)
 }
 
 // InitializeUSDXMintingClaim creates or updates a claim such that no new rewards are accrued, but any existing rewards are not lost.
@@ -61,12 +62,12 @@ func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string)
 func (k Keeper) InitializeUSDXMintingClaim(ctx sdk.Context, cdp cdptypes.CDP) {
 	claim, found := k.GetUSDXMintingClaim(ctx, cdp.Owner)
 	if !found { // this is the owner's first usdx minting reward claim
-		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdk.ZeroInt()), types.RewardIndexes{})
+		claim = types.NewUSDXMintingClaim(cdp.Owner, sdk.NewCoin(types.USDXMintingRewardDenom, sdkmath.ZeroInt()), types.RewardIndexes{})
 	}
 
 	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, cdp.Type)
 	if !found {
-		globalRewardFactor = sdk.ZeroDec()
+		globalRewardFactor = sdkmath.LegacyZeroDec()
 	}
 	claim.RewardIndexes = claim.RewardIndexes.With(cdp.Type, globalRewardFactor)
 
@@ -111,7 +112,7 @@ func (k Keeper) synchronizeSingleUSDXMintingReward(ctx sdk.Context, claim types.
 		// Normally the factor should always be found, as it is added when the cdp is created in InitializeUSDXMintingClaim.
 		// However if a cdp type is not rewarded then becomes rewarded (ie a reward period is added to params), existing cdps will not have the factor in their claims.
 		// So assume the factor is the starting value for any global factor: 0.
-		userRewardFactor = sdk.ZeroDec()
+		userRewardFactor = sdkmath.LegacyZeroDec()
 	}
 
 	newRewardsAmount, err := k.CalculateSingleReward(userRewardFactor, globalRewardFactor, sourceShares)
@@ -138,7 +139,7 @@ func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.
 
 		globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, ri.CollateralType)
 		if !found {
-			globalRewardFactor = sdk.ZeroDec()
+			globalRewardFactor = sdkmath.LegacyZeroDec()
 		}
 
 		// the owner has an existing usdx minting reward claim
@@ -158,7 +159,7 @@ func (k Keeper) SimulateUSDXMintingSynchronization(ctx sdk.Context, claim types.
 		if !found {
 			continue
 		}
-		newRewardsAmount := rewardsAccumulatedFactor.Mul(sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount)).RoundInt()
+		newRewardsAmount := rewardsAccumulatedFactor.Mul(sdkmath.LegacyNewDecFromInt(cdp.GetTotalPrincipal().Amount)).RoundInt()
 		if newRewardsAmount.IsZero() {
 			continue
 		}
@@ -192,7 +193,7 @@ func (k Keeper) synchronizeRewardAndReturnClaim(ctx sdk.Context, cdp cdptypes.CD
 
 // ZeroUSDXMintingClaim zeroes out the claim object's rewards and returns the updated claim object
 func (k Keeper) ZeroUSDXMintingClaim(ctx sdk.Context, claim types.USDXMintingClaim) types.USDXMintingClaim {
-	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdk.ZeroInt())
+	claim.Reward = sdk.NewCoin(claim.Reward.Denom, sdkmath.ZeroInt())
 	k.SetUSDXMintingClaim(ctx, claim)
 	return claim
 }

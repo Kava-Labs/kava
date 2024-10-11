@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -147,8 +148,8 @@ func (k Keeper) DecrementOutgoingAssetSupply(ctx sdk.Context, coin sdk.Coin) err
 // CreateNewAssetSupply creates a new AssetSupply in the store for the input denom
 func (k Keeper) CreateNewAssetSupply(ctx sdk.Context, denom string) types.AssetSupply {
 	supply := types.NewAssetSupply(
-		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()),
-		sdk.NewCoin(denom, sdk.ZeroInt()), sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
+		sdk.NewCoin(denom, sdkmath.ZeroInt()), sdk.NewCoin(denom, sdkmath.ZeroInt()),
+		sdk.NewCoin(denom, sdkmath.ZeroInt()), sdk.NewCoin(denom, sdkmath.ZeroInt()), time.Duration(0))
 	k.SetAssetSupply(ctx, supply, denom)
 	return supply
 }
@@ -176,7 +177,7 @@ func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
 			supply.TimeElapsed = newTimeElapsed
 		} else {
 			supply.TimeElapsed = time.Duration(0)
-			supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
+			supply.TimeLimitedCurrentSupply = sdk.NewCoin(asset.Denom, sdkmath.ZeroInt())
 		}
 		k.SetAssetSupply(ctx, supply, asset.Denom)
 	}

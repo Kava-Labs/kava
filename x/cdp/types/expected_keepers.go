@@ -28,19 +28,19 @@ var _ BankKeeper = (bankkeeper.Keeper)(nil)
 
 // PricefeedKeeper defines the expected interface for the pricefeed
 type PricefeedKeeper interface {
-	GetCurrentPrice(context.Context, string) (pftypes.CurrentPrice, error)
-	GetParams(context.Context) pftypes.Params
+	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, error)
+	GetParams(sdk.Context) pftypes.Params
 	// These are used for testing TODO replace mockApp with keeper in tests to remove these
-	SetParams(context.Context, pftypes.Params)
-	SetPrice(context.Context, sdk.AccAddress, string, sdkmath.LegacyDec, time.Time) (pftypes.PostedPrice, error)
-	SetCurrentPrices(context.Context, string) error
+	SetParams(sdk.Context, pftypes.Params)
+	SetPrice(sdk.Context, sdk.AccAddress, string, sdkmath.LegacyDec, time.Time) (pftypes.PostedPrice, error)
+	SetCurrentPrices(sdk.Context, string) error
 }
 
 // AuctionKeeper expected interface for the auction keeper
 type AuctionKeeper interface {
-	StartSurplusAuction(ctx context.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, error)
-	StartDebtAuction(ctx context.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, error)
-	StartCollateralAuction(ctx context.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdkmath.Int, debt sdk.Coin) (uint64, error)
+	StartSurplusAuction(ctx sdk.Context, seller string, lot sdk.Coin, bidDenom string) (uint64, error)
+	StartDebtAuction(ctx sdk.Context, buyer string, bid sdk.Coin, initialLot sdk.Coin, debt sdk.Coin) (uint64, error)
+	StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdkmath.Int, debt sdk.Coin) (uint64, error)
 }
 
 // AccountKeeper expected interface for the account keeper
@@ -56,6 +56,6 @@ type AccountKeeper interface {
 
 // CDPHooks event hooks for other keepers to run code in response to CDP modifications
 type CDPHooks interface {
-	AfterCDPCreated(ctx context.Context, cdp CDP)
-	BeforeCDPModified(ctx context.Context, cdp CDP)
+	AfterCDPCreated(ctx sdk.Context, cdp CDP)
+	BeforeCDPModified(ctx sdk.Context, cdp CDP)
 }

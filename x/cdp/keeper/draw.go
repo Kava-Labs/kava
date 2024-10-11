@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -205,8 +206,8 @@ func (k Keeper) ReturnCollateral(ctx sdk.Context, cdp types.CDP) {
 func (k Keeper) calculatePayment(ctx sdk.Context, owed, fees, payment sdk.Coin) (sdk.Coin, sdk.Coin) {
 	// divides repayment into principal and fee components, with fee payment applied first.
 
-	feePayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())
-	principalPayment := sdk.NewCoin(payment.Denom, sdk.ZeroInt())
+	feePayment := sdk.NewCoin(payment.Denom, sdkmath.ZeroInt())
+	principalPayment := sdk.NewCoin(payment.Denom, sdkmath.ZeroInt())
 	var overpayment sdk.Coin
 	// return zero value coins if payment amount is invalid
 	if !payment.Amount.IsPositive() {
@@ -236,7 +237,7 @@ func (k Keeper) calculatePayment(ctx sdk.Context, owed, fees, payment sdk.Coin) 
 func (k Keeper) validatePrincipalPayment(ctx sdk.Context, cdp types.CDP, payment sdk.Coin) error {
 	proposedBalance := cdp.Principal.Amount.Sub(payment.Amount)
 	dp, _ := k.GetDebtParam(ctx, payment.Denom)
-	if proposedBalance.GT(sdk.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
+	if proposedBalance.GT(sdkmath.ZeroInt()) && proposedBalance.LT(dp.DebtFloor) {
 		return errorsmod.Wrapf(types.ErrBelowDebtFloor, "proposed %s < minimum %s", sdk.NewCoin(payment.Denom, proposedBalance), dp.DebtFloor)
 	}
 	return nil

@@ -15,7 +15,7 @@ var scalingFactor = 1e18
 
 // AccumulateInterest calculates the new interest that has accrued for the input collateral type based on the total amount of principal
 // that has been created with that collateral type and the amount of time that has passed since interest was last accumulated
-func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
+func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, ctype)
 	if !found {
 		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
@@ -106,7 +106,7 @@ func CalculateInterestFactor(perSecondInterestRate sdkmath.LegacyDec, secondsEla
 
 // SynchronizeInterest updates the input cdp object to reflect the current accumulated interest, updates the cdp state in the store,
 // and returns the updated cdp object
-func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
+func (k Keeper) SynchronizeInterest(ctx context.Context, cdp types.CDP) types.CDP {
 	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
 	if !found {
 		k.SetInterestFactor(ctx, cdp.Type, sdk.OneDec())
@@ -148,7 +148,7 @@ func (k Keeper) SynchronizeInterest(ctx sdk.Context, cdp types.CDP) types.CDP {
 }
 
 // CalculateNewInterest returns the amount of interest that has accrued to the cdp since its interest was last synchronized
-func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
+func (k Keeper) CalculateNewInterest(ctx context.Context, cdp types.CDP) sdk.Coin {
 	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
 	if !found {
 		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
@@ -162,7 +162,7 @@ func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
 }
 
 // SynchronizeInterestForRiskyCDPs synchronizes the interest for the slice of cdps with the lowest collateral:debt ratio
-func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdkmath.LegacyDec, cp types.CollateralParam) error {
+func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio sdkmath.LegacyDec, cp types.CollateralParam) error {
 	debtParam := k.GetParams(ctx).DebtParam
 
 	cdpStore := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)

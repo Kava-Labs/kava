@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -11,16 +12,16 @@ import (
 )
 
 type StakingKeeper interface {
-	BondDenom(ctx sdk.Context) (res string)
-	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
+	BondDenom(ctx context.Context) (res string, err error)
+	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
 
 	Delegate(
-		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdkmath.Int, tokenSrc stakingtypes.BondStatus,
+		ctx context.Context, delAddr sdk.AccAddress, bondAmt sdkmath.Int, tokenSrc stakingtypes.BondStatus,
 		validator stakingtypes.Validator, subtractAccount bool,
 	) (newShares sdkmath.LegacyDec, err error)
 	Undelegate(
-		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdkmath.LegacyDec,
-	) (time.Time, error)
+		ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdkmath.LegacyDec,
+	) (time.Time, sdkmath.Int, error)
 }
 
 type LiquidKeeper interface {

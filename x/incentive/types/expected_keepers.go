@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -23,17 +24,17 @@ type ParamSubspace interface {
 
 // BankKeeper defines the expected interface needed to send coins
 type BankKeeper interface {
-	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-	GetSupply(ctx sdk.Context, denom string) sdk.Coin
+	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins
+	GetSupply(ctx context.Context, denom string) sdk.Coin
 }
 
 // StakingKeeper defines the expected staking keeper for module accounts
 type StakingKeeper interface {
-	GetDelegatorDelegations(ctx sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) (delegations []stakingtypes.Delegation)
-	GetValidatorDelegations(ctx sdk.Context, valAddr sdk.ValAddress) (delegations []stakingtypes.Delegation)
-	GetValidator(ctx sdk.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, found bool)
-	TotalBondedTokens(ctx sdk.Context) sdkmath.Int
+	GetDelegatorDelegations(ctx context.Context, delegator sdk.AccAddress, maxRetrieve uint16) (delegations []stakingtypes.Delegation, err error)
+	GetValidatorDelegations(ctx context.Context, valAddr sdk.ValAddress) (delegations []stakingtypes.Delegation, err error)
+	GetValidator(ctx context.Context, addr sdk.ValAddress) (validator stakingtypes.Validator, err error)
+	TotalBondedTokens(ctx context.Context) (sdkmath.Int, error)
 }
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
@@ -89,19 +90,19 @@ type LiquidKeeper interface {
 
 // AccountKeeper expected interface for the account keeper (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) sdk.AccountI
-	SetAccount(ctx sdk.Context, acc sdk.AccountI)
-	GetModuleAccount(ctx sdk.Context, name string) sdk.ModuleAccountI
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	SetAccount(ctx context.Context, acc sdk.AccountI)
+	GetModuleAccount(ctx context.Context, name string) sdk.ModuleAccountI
 }
 
 // MintKeeper defines the required methods needed by this modules keeper
 type MintKeeper interface {
-	GetMinter(ctx sdk.Context) (minter minttypes.Minter)
+	GetMinter(ctx context.Context) (minter minttypes.Minter)
 }
 
 // DistrKeeper defines the required methods needed by this modules keeper
 type DistrKeeper interface {
-	GetCommunityTax(ctx sdk.Context) (percent sdkmath.LegacyDec)
+	GetCommunityTax(ctx context.Context) (percent sdkmath.LegacyDec, err error)
 }
 
 // PricefeedKeeper defines the required methods needed by this modules keeper

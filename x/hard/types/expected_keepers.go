@@ -36,17 +36,17 @@ type StakingKeeper interface {
 	IterateValidators(context.Context, func(index int64, validator stakingtypes.ValidatorI) (stop bool))
 	IterateAllDelegations(ctx context.Context, cb func(delegation stakingtypes.Delegation) (stop bool))
 	GetBondedPool(ctx context.Context) (bondedPool sdk.ModuleAccountI)
-	BondDenom(ctx context.Context) (res string)
+	BondDenom(ctx context.Context) (res string, err error)
 }
 
 // PricefeedKeeper defines the expected interface for the pricefeed
 type PricefeedKeeper interface {
-	GetCurrentPrice(context.Context, string) (pftypes.CurrentPrice, error)
+	GetCurrentPrice(sdk.Context, string) (pftypes.CurrentPrice, error)
 }
 
 // AuctionKeeper expected interface for the auction keeper (noalias)
 type AuctionKeeper interface {
-	StartCollateralAuction(ctx context.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdkmath.Int, debt sdk.Coin) (uint64, error)
+	StartCollateralAuction(ctx sdk.Context, seller string, lot sdk.Coin, maxBid sdk.Coin, lotReturnAddrs []sdk.AccAddress, lotReturnWeights []sdkmath.Int, debt sdk.Coin) (uint64, error)
 }
 
 // HARDHooks event hooks for other keepers to run code in response to HARD modifications

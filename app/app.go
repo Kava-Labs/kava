@@ -834,10 +834,11 @@ func NewApp(
 	govConfig := govtypes.DefaultConfig()
 	govKeeper := govkeeper.NewKeeper(
 		appCodec,
-		keys[govtypes.StoreKey],
+		runtime.NewKVStoreService(keys[govtypes.StoreKey]),
 		app.accountKeeper,
 		app.bankKeeper,
 		app.stakingKeeper,
+		app.distrKeeper,
 		app.MsgServiceRouter(),
 		govConfig,
 		govAuthAddrStr,
