@@ -20,7 +20,7 @@ import { whaleAddress } from "./addresses";
 const defaultGas = 25000n;
 const contractCallerGas = defaultGas + 10000n;
 
-interface ContractTestCase<> {
+interface ContractTestCase {
   interface: keyof ArtifactsMap;
   // Ensures contract name ends with "Mock", but does not enforce the prefix
   // matches the interface.
