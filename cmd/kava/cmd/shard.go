@@ -7,13 +7,13 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/spf13/cobra"
 
-	dbm "github.com/cometbft/cometbft-db"
+	dbm "github.com/cosmos/cosmos-db"
 
+	pruningtypes "cosmossdk.io/store/pruning/types"
+	"cosmossdk.io/store/rootmulti"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
-	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
-	"github.com/cosmos/cosmos-sdk/store/rootmulti"
 
 	tmconfig "github.com/cometbft/cometbft/config"
 	"github.com/cometbft/cometbft/node"

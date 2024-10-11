@@ -32,7 +32,7 @@ message MsgDeposit {
   // slippage represents the max decimal percentage price change
   string slippage = 4 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   // deadline represents the unix timestamp to complete the deposit by
@@ -50,7 +50,7 @@ message MsgWithdraw {
   string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // shares represents the amount of shares to withdraw
   string shares = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // min_token_a represents the minimum a token to withdraw
@@ -77,7 +77,7 @@ message MsgSwapExactForTokens {
   // slippage represents the maximum change in token_b allowed
   string slippage = 4 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   // deadline represents the unix timestamp to complete the swap by
@@ -102,7 +102,7 @@ message MsgSwapForExactTokens {
   // slippage represents the maximum change in token_a allowed
   string slippage = 4 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   // deadline represents the unix timestamp to complete the swap by

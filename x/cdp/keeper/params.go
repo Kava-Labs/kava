@@ -67,7 +67,7 @@ func (k Keeper) getliquidationMarketID(ctx sdk.Context, collateralType string) s
 	return cp.LiquidationMarketID
 }
 
-func (k Keeper) getLiquidationRatio(ctx sdk.Context, collateralType string) sdk.Dec {
+func (k Keeper) getLiquidationRatio(ctx sdk.Context, collateralType string) sdkmath.LegacyDec {
 	cp, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("collateral not found: %s", collateralType))
@@ -75,7 +75,7 @@ func (k Keeper) getLiquidationRatio(ctx sdk.Context, collateralType string) sdk.
 	return cp.LiquidationRatio
 }
 
-func (k Keeper) getLiquidationPenalty(ctx sdk.Context, collateralType string) sdk.Dec {
+func (k Keeper) getLiquidationPenalty(ctx sdk.Context, collateralType string) sdkmath.LegacyDec {
 	cp, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("collateral not found: %s", collateralType))
@@ -92,7 +92,7 @@ func (k Keeper) getAuctionSize(ctx sdk.Context, collateralType string) sdkmath.I
 }
 
 // GetFeeRate returns the per second fee rate for the input denom
-func (k Keeper) getFeeRate(ctx sdk.Context, collateralType string) (fee sdk.Dec) {
+func (k Keeper) getFeeRate(ctx sdk.Context, collateralType string) (fee sdkmath.LegacyDec) {
 	collalateralParam, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		panic(fmt.Sprintf("could not get fee rate for %s, collateral not found", collateralType))

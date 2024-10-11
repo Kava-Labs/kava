@@ -2807,7 +2807,7 @@ paths:
           type: string
           format: uint64
         - name: ratio
-          description: sdk.Dec as a string.
+          description: sdkmath.LegacyDec as a string.
           in: query
           required: false
           type: string
@@ -7962,7 +7962,7 @@ paths:
                             type: string
                           value:
                             type: string
-                            title: sdk.Dec as string
+                            title: sdkmath.LegacyDec as string
                         description: >-
                           BorrowInterestFactorResponse defines an individual
                           borrow interest factor.
@@ -8302,7 +8302,7 @@ paths:
                             type: string
                           value:
                             type: string
-                            title: sdk.Dec as string
+                            title: sdkmath.LegacyDec as string
                         description: >-
                           SupplyInterestFactorResponse defines an individual
                           borrow interest factor.
@@ -8617,10 +8617,10 @@ paths:
                       type: string
                     borrow_interest_factor:
                       type: string
-                      title: sdk.Dec as String
+                      title: sdkmath.LegacyDec as String
                     supply_interest_factor:
                       type: string
-                      title: sdk.Dec as String
+                      title: sdkmath.LegacyDec as String
                   title: >-
                     InterestFactor is a unique type returned by interest factor
                     queries
@@ -8844,10 +8844,10 @@ paths:
                       type: string
                     supply_interest_rate:
                       type: string
-                      title: sdk.Dec as String
+                      title: sdkmath.LegacyDec as String
                     borrow_interest_rate:
                       type: string
-                      title: sdk.Dec as String
+                      title: sdkmath.LegacyDec as String
                   title: >-
                     MoneyMarketInterestRate is a unique type returned by
                     interest rate queries
@@ -10032,7 +10032,7 @@ paths:
                             type: string
                           value:
                             type: string
-                            title: sdk.Dec as string
+                            title: sdkmath.LegacyDec as string
                         description: >-
                           BorrowInterestFactorResponse defines an individual
                           borrow interest factor.
@@ -10372,7 +10372,7 @@ paths:
                             type: string
                           value:
                             type: string
-                            title: sdk.Dec as string
+                            title: sdkmath.LegacyDec as string
                         description: >-
                           SupplyInterestFactorResponse defines an individual
                           borrow interest factor.
@@ -59381,7 +59381,7 @@ definitions:
         type: string
       value:
         type: string
-        title: sdk.Dec as string
+        title: sdkmath.LegacyDec as string
     description: BorrowInterestFactorResponse defines an individual borrow interest factor.
   kava.hard.v1beta1.BorrowLimit:
     type: object
@@ -59421,7 +59421,7 @@ definitions:
               type: string
             value:
               type: string
-              title: sdk.Dec as string
+              title: sdkmath.LegacyDec as string
           description: >-
             BorrowInterestFactorResponse defines an individual borrow interest
             factor.
@@ -59456,7 +59456,7 @@ definitions:
               type: string
             value:
               type: string
-              title: sdk.Dec as string
+              title: sdkmath.LegacyDec as string
           description: >-
             SupplyInterestFactorResponse defines an individual borrow interest
             factor.
@@ -59470,10 +59470,10 @@ definitions:
         type: string
       borrow_interest_factor:
         type: string
-        title: sdk.Dec as String
+        title: sdkmath.LegacyDec as String
       supply_interest_factor:
         type: string
-        title: sdk.Dec as String
+        title: sdkmath.LegacyDec as String
     title: InterestFactor is a unique type returned by interest factor queries
   kava.hard.v1beta1.InterestRateModel:
     type: object
@@ -59530,10 +59530,10 @@ definitions:
         type: string
       supply_interest_rate:
         type: string
-        title: sdk.Dec as String
+        title: sdkmath.LegacyDec as String
       borrow_interest_rate:
         type: string
-        title: sdk.Dec as String
+        title: sdkmath.LegacyDec as String
     title: MoneyMarketInterestRate is a unique type returned by interest rate queries
   kava.hard.v1beta1.Params:
     type: object
@@ -59833,7 +59833,7 @@ definitions:
                     type: string
                   value:
                     type: string
-                    title: sdk.Dec as string
+                    title: sdkmath.LegacyDec as string
                 description: >-
                   BorrowInterestFactorResponse defines an individual borrow
                   interest factor.
@@ -59905,7 +59905,7 @@ definitions:
                     type: string
                   value:
                     type: string
-                    title: sdk.Dec as string
+                    title: sdkmath.LegacyDec as string
                 description: >-
                   SupplyInterestFactorResponse defines an individual borrow
                   interest factor.
@@ -59953,10 +59953,10 @@ definitions:
               type: string
             borrow_interest_factor:
               type: string
-              title: sdk.Dec as String
+              title: sdkmath.LegacyDec as String
             supply_interest_factor:
               type: string
-              title: sdk.Dec as String
+              title: sdkmath.LegacyDec as String
           title: InterestFactor is a unique type returned by interest factor queries
     description: >-
       QueryInterestFactorsResponse is the response type for the
@@ -59973,10 +59973,10 @@ definitions:
               type: string
             supply_interest_rate:
               type: string
-              title: sdk.Dec as String
+              title: sdkmath.LegacyDec as String
             borrow_interest_rate:
               type: string
-              title: sdk.Dec as String
+              title: sdkmath.LegacyDec as String
           title: >-
             MoneyMarketInterestRate is a unique type returned by interest rate
             queries
@@ -60129,7 +60129,7 @@ definitions:
                     type: string
                   value:
                     type: string
-                    title: sdk.Dec as string
+                    title: sdkmath.LegacyDec as string
                 description: >-
                   BorrowInterestFactorResponse defines an individual borrow
                   interest factor.
@@ -60201,7 +60201,7 @@ definitions:
                     type: string
                   value:
                     type: string
-                    title: sdk.Dec as string
+                    title: sdkmath.LegacyDec as string
                 description: >-
                   SupplyInterestFactorResponse defines an individual borrow
                   interest factor.
@@ -60244,7 +60244,7 @@ definitions:
         type: string
       value:
         type: string
-        title: sdk.Dec as string
+        title: sdkmath.LegacyDec as string
     description: SupplyInterestFactorResponse defines an individual borrow interest factor.
   kava.incentive.v1beta1.Apy:
     type: object

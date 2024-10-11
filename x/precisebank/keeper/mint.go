@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -17,15 +18,17 @@ import (
 // If ExtendedCoinDenom is provided, the corresponding fractional amount is
 // added to the module state.
 // It will panic if the module account does not exist or is unauthorized.
-func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
+func (k Keeper) MintCoins(ctx context.Context, moduleName string, amt sdk.Coins) error {
 	// Disallow minting to x/precisebank module
 	if moduleName == types.ModuleName {
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s cannot be minted to", moduleName))
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// Note: MintingRestrictionFn is not used in x/precisebank
 	// Panic errors are identical to x/bank for consistency.
-	acc := k.ak.GetModuleAccount(ctx, moduleName)
+	acc := k.ak.GetModuleAccount(sdkCtx, moduleName)
 	if acc == nil {
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleName))
 	}
@@ -51,14 +54,14 @@ func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 
 	// Coins unmanaged by x/precisebank are passed through to x/bank
 	if !passthroughCoins.Empty() {
-		if err := k.bk.MintCoins(ctx, moduleName, passthroughCoins); err != nil {
+		if err := k.bk.MintCoins(sdkCtx, moduleName, passthroughCoins); err != nil {
 			return err
 		}
 	}
 
 	// Only mint extended coin if the amount is positive
 	if extendedAmount.IsPositive() {
-		if err := k.mintExtendedCoin(ctx, moduleName, extendedAmount); err != nil {
+		if err := k.mintExtendedCoin(sdkCtx, moduleName, extendedAmount); err != nil {
 			return err
 		}
 	}
@@ -68,7 +71,7 @@ func (k Keeper) MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 		return nil
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		banktypes.NewCoinMintEvent(acc.GetAddress(), fullEmissionCoins),
 		banktypes.NewCoinReceivedEvent(acc.GetAddress(), fullEmissionCoins),
 	})

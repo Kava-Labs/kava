@@ -37,7 +37,7 @@ func (k Keeper) AccumulateSwapRewards(ctx sdk.Context, rewardPeriod types.MultiR
 
 // getSwapTotalSourceShares fetches the sum of all source shares for a swap reward.
 // In the case of swap, these are the total (swap module) shares in a particular pool.
-func (k Keeper) getSwapTotalSourceShares(ctx sdk.Context, poolID string) sdk.Dec {
+func (k Keeper) getSwapTotalSourceShares(ctx sdk.Context, poolID string) sdkmath.LegacyDec {
 	totalShares, found := k.swapKeeper.GetPoolShares(ctx, poolID)
 	if !found {
 		totalShares = sdk.ZeroInt()

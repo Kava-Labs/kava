@@ -8,11 +8,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/app"
 	auctionkeeper "github.com/kava-labs/kava/x/auction/keeper"
@@ -205,27 +203,27 @@ func (suite *KeeperTestSuite) TestGetSetBorrowedCoins_Empty() {
 	suite.Require().Empty(coins)
 }
 
-func (suite *KeeperTestSuite) getAccountCoins(acc authtypes.AccountI) sdk.Coins {
+func (suite *KeeperTestSuite) getAccountCoins(acc sdk.AccountI) sdk.Coins {
 	bk := suite.app.GetBankKeeper()
 	return bk.GetAllBalances(suite.ctx, acc.GetAddress())
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) sdk.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authtypes.AccountI {
+func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) sdk.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
+func (suite *KeeperTestSuite) getModuleAccount(name string) sdk.ModuleAccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetModuleAccount(suite.ctx, name)
 }
 
-func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) authtypes.ModuleAccountI {
+func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) sdk.ModuleAccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetModuleAccount(ctx, name)
 }

@@ -132,7 +132,7 @@ func TestBaseCommittee(t *testing.T) {
 					"This base committee is for testing.",
 					addresses[:3],
 					[]types.Permission{&types.GodPermission{}},
-					sdk.Dec{},
+					sdkmath.LegacyDec{},
 					time.Hour*24*7,
 					types.TALLY_OPTION_FIRST_PAST_THE_POST,
 				)
@@ -289,7 +289,7 @@ func TestTokenCommittee(t *testing.T) {
 					testutil.D("0.667"),
 					time.Hour*24*7,
 					types.TALLY_OPTION_FIRST_PAST_THE_POST,
-					sdk.Dec{},
+					sdkmath.LegacyDec{},
 					"hard",
 				)
 			},

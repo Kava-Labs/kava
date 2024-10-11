@@ -24,7 +24,7 @@ message BaseCommittee {
 
   // Smallest percentage that must vote for a proposal to pass
   string vote_threshold = 5 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 
@@ -51,7 +51,7 @@ message TokenCommittee {
 
   BaseCommittee base_committee = 1 [(gogoproto.embed) = true];
   string quorum = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   string tally_denom = 3;

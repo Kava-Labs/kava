@@ -6,7 +6,6 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/issuance/types"
 )
 
@@ -29,7 +28,7 @@ func (k Keeper) IssueTokens(ctx sdk.Context, tokens sdk.Coin, owner, receiver sd
 		}
 	}
 	acc := k.accountKeeper.GetAccount(ctx, receiver)
-	_, ok := acc.(authtypes.ModuleAccountI)
+	_, ok := acc.(sdk.ModuleAccountI)
 	if ok {
 		return errorsmod.Wrapf(types.ErrIssueToModuleAccount, "address: %s", receiver)
 	}

@@ -19,7 +19,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // GetMinimumBorrowUSDValue returns the minimum borrow USD value
-func (k Keeper) GetMinimumBorrowUSDValue(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetMinimumBorrowUSDValue(ctx sdk.Context) sdkmath.LegacyDec {
 	params := k.GetParams(ctx)
 	return params.MinimumBorrowUSDValue
 }

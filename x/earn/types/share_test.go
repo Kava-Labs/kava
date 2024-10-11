@@ -15,7 +15,7 @@ var (
 	testDenom2 = "usdx"
 )
 
-func d(i int64) sdk.Dec {
+func d(i int64) sdkmath.LegacyDec {
 	return sdk.NewDec(i)
 }
 

@@ -39,7 +39,7 @@ message RateLimit {
   bool active = 1;
 
   bytes limit = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "limit,omitempty"
   ];

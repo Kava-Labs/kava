@@ -24,7 +24,7 @@ func TestGenesis_Default(t *testing.T) {
 func TestGenesis_Validate_SwapFee(t *testing.T) {
 	type args struct {
 		name      string
-		swapFee   sdk.Dec
+		swapFee   sdkmath.LegacyDec
 		expectErr bool
 	}
 	// More comprehensive swap fee tests are in prams_test.go

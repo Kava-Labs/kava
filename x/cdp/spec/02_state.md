@@ -31,7 +31,7 @@ type CDP struct {
     Principal       sdk.Coin
     AccumulatedFees sdk.Coin
     FeesUpdated     time.Time
-    InterestFactor  sdk.Dec
+    InterestFactor  sdkmath.LegacyDec
 }
 ```
 

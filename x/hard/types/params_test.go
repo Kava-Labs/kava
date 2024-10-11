@@ -16,7 +16,7 @@ type ParamTestSuite struct {
 
 func (suite *ParamTestSuite) TestParamValidation() {
 	type args struct {
-		minBorrowVal sdk.Dec
+		minBorrowVal sdkmath.LegacyDec
 		mms          types.MoneyMarkets
 	}
 	testCases := []struct {

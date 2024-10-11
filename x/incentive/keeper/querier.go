@@ -16,7 +16,7 @@ const (
 )
 
 // GetStakingAPR returns the total APR for staking and incentive rewards
-func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdk.Dec, error) {
+func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdkmath.LegacyDec, error) {
 	// Get staking APR + incentive APR
 	inflationRate := k.mintKeeper.GetMinter(ctx).Inflation
 	communityTax := k.distrKeeper.GetCommunityTax(ctx)
@@ -80,7 +80,7 @@ func GetAPYFromMultiRewardPeriod(
 	collateralType string,
 	rewardPeriod types.MultiRewardPeriod,
 	totalSupply sdkmath.Int,
-) (sdk.Dec, error) {
+) (sdkmath.LegacyDec, error) {
 	if totalSupply.IsZero() {
 		return sdk.ZeroDec(), nil
 	}

@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -72,12 +71,12 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // GetSwapFee returns the swap fee set in the module parameters
-func (k Keeper) GetSwapFee(ctx sdk.Context) sdk.Dec {
+func (k Keeper) GetSwapFee(ctx sdk.Context) sdkmath.LegacyDec {
 	return k.GetParams(ctx).SwapFee
 }
 
 // GetSwapModuleAccount returns the swap ModuleAccount
-func (k Keeper) GetSwapModuleAccount(ctx sdk.Context) authtypes.ModuleAccountI {
+func (k Keeper) GetSwapModuleAccount(ctx sdk.Context) sdk.ModuleAccountI {
 	return k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 }
 

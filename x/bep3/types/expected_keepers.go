@@ -1,26 +1,26 @@
 package types
 
 import (
+	"context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
 type BankKeeper interface {
-	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
-	MintCoins(ctx sdk.Context, name string, amt sdk.Coins) error
+	SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromAccountToModule(ctx context.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+	BurnCoins(ctx context.Context, name string, amt sdk.Coins) error
+	MintCoins(ctx context.Context, name string, amt sdk.Coins) error
 }
 
 // AccountKeeper defines the expected account keeper
 type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
+	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
 	GetModuleAddressAndPermissions(moduleName string) (sdk.AccAddress, []string)
-	SetModuleAccount(ctx sdk.Context, macc authtypes.ModuleAccountI)
+	SetModuleAccount(ctx context.Context, macc sdk.ModuleAccountI)
 
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
-	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
-	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	NewAccountWithAddress(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	SetAccount(ctx context.Context, acc sdk.AccountI)
 }

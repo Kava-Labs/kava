@@ -72,7 +72,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 	prices := []struct {
 		oracle   sdk.AccAddress
 		marketID string
-		price    sdk.Dec
+		price    sdkmath.LegacyDec
 		total    int
 	}{
 		{addrs[0], "tstusd", sdk.MustNewDecFromStr("0.33"), 1},

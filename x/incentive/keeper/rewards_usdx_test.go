@@ -278,7 +278,7 @@ func (suite *USDXRewardsTestSuite) TestAccumulateUSDXMintingRewards() {
 		rewardsPerSecond      sdk.Coin
 		initialTotalPrincipal sdk.Coin
 		timeElapsed           int
-		expectedRewardFactor  sdk.Dec
+		expectedRewardFactor  sdkmath.LegacyDec
 	}
 	type test struct {
 		name string
@@ -344,7 +344,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 		initialCollateral    sdk.Coin
 		initialPrincipal     sdk.Coin
 		blockTimes           []int
-		expectedRewardFactor sdk.Dec
+		expectedRewardFactor sdkmath.LegacyDec
 		expectedRewards      sdk.Coin
 	}
 	type test struct {
@@ -430,7 +430,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 		initialCollateral    sdk.Coin
 		initialPrincipal     sdk.Coin
 		blockTimes           []int
-		expectedRewardFactor sdk.Dec
+		expectedRewardFactor sdkmath.LegacyDec
 		expectedRewards      sdk.Coin
 	}
 	type test struct {

@@ -42,7 +42,7 @@ message RewardIndex {
   string collateral_type = 1;
 
   bytes reward_factor = 2 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
 }

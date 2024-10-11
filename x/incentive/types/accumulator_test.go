@@ -104,7 +104,7 @@ func TestAccumulator(t *testing.T) {
 		type args struct {
 			rewardsPerSecond  sdk.Coins
 			duration          time.Duration
-			totalSourceShares sdk.Dec
+			totalSourceShares sdkmath.LegacyDec
 		}
 		testcases := []struct {
 			name     string
@@ -201,7 +201,7 @@ func TestAccumulator(t *testing.T) {
 		type args struct {
 			accumulator       Accumulator
 			period            MultiRewardPeriod
-			totalSourceShares sdk.Dec
+			totalSourceShares sdkmath.LegacyDec
 			currentTime       time.Time
 		}
 		testcases := []struct {

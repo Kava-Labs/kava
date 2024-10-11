@@ -37,7 +37,7 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 
 // getDelegatorTotalSourceShares fetches the sum of all source shares for a delegator reward.
 // In the case of delegation, this is the total tokens staked to bonded validators.
-func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
+func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdkmath.LegacyDec {
 	totalBonded := k.stakingKeeper.TotalBondedTokens(ctx)
 
 	return sdk.NewDecFromInt(totalBonded)
@@ -117,7 +117,7 @@ func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAd
 	k.SetDelegatorClaim(ctx, claim)
 }
 
-func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) sdk.Dec {
+func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) sdkmath.LegacyDec {
 	totalDelegated := sdk.ZeroDec()
 
 	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 200)

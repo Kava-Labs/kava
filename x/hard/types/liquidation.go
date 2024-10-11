@@ -8,18 +8,18 @@ import (
 
 // ValuationMap holds the USD value of various coin types
 type ValuationMap struct {
-	Usd map[string]sdk.Dec
+	Usd map[string]sdkmath.LegacyDec
 }
 
 // NewValuationMap returns a new instance of ValuationMap
 func NewValuationMap() ValuationMap {
 	return ValuationMap{
-		Usd: make(map[string]sdk.Dec),
+		Usd: make(map[string]sdkmath.LegacyDec),
 	}
 }
 
 // Get returns the USD value for a specific denom
-func (m ValuationMap) Get(denom string) sdk.Dec {
+func (m ValuationMap) Get(denom string) sdkmath.LegacyDec {
 	return m.Usd[denom]
 }
 
@@ -29,7 +29,7 @@ func (m ValuationMap) SetZero(denom string) {
 }
 
 // Increment increments the USD value of a denom
-func (m ValuationMap) Increment(denom string, amount sdk.Dec) {
+func (m ValuationMap) Increment(denom string, amount sdkmath.LegacyDec) {
 	_, ok := m.Usd[denom]
 	if !ok {
 		m.Usd[denom] = amount
@@ -39,7 +39,7 @@ func (m ValuationMap) Increment(denom string, amount sdk.Dec) {
 }
 
 // Decrement decrements the USD value of a denom
-func (m ValuationMap) Decrement(denom string, amount sdk.Dec) {
+func (m ValuationMap) Decrement(denom string, amount sdkmath.LegacyDec) {
 	_, ok := m.Usd[denom]
 	if !ok {
 		m.Usd[denom] = amount
@@ -49,7 +49,7 @@ func (m ValuationMap) Decrement(denom string, amount sdk.Dec) {
 }
 
 // Sum returns the total USD value of all coins in the map
-func (m ValuationMap) Sum() sdk.Dec {
+func (m ValuationMap) Sum() sdkmath.LegacyDec {
 	sum := sdk.ZeroDec()
 	for _, v := range m.Usd {
 		sum = sum.Add(v)

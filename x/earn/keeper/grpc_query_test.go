@@ -881,7 +881,7 @@ func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amou
 }
 
 // slashValidator slashes the validator with the given address by the given percentage.
-func (suite *grpcQueryTestSuite) slashValidator(address sdk.ValAddress, slashFraction sdk.Dec) error {
+func (suite *grpcQueryTestSuite) slashValidator(address sdk.ValAddress, slashFraction sdkmath.LegacyDec) error {
 	stakingKeeper := suite.App.GetStakingKeeper()
 
 	validator, found := stakingKeeper.GetValidator(suite.Ctx, address)

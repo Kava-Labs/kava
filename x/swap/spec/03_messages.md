@@ -13,7 +13,7 @@ type MsgDeposit struct {
 	Depositor sdk.AccAddress `json:"depositor" yaml:"depositor"`
 	TokenA    sdk.Coin       `json:"token_a" yaml:"token_a"`
 	TokenB    sdk.Coin       `json:"token_b" yaml:"token_b"`
-	Slippage  sdk.Dec        `json:"slippage" yaml:"slippage"`
+	Slippage  sdkmath.LegacyDec        `json:"slippage" yaml:"slippage"`
 	Deadline  int64          `json:"deadline" yaml:"deadline"`
 }
 ```
@@ -42,7 +42,7 @@ type MsgSwapExactForTokens struct {
 	Requester   sdk.AccAddress `json:"requester" yaml:"requester"`
 	ExactTokenA sdk.Coin       `json:"exact_token_a" yaml:"exact_token_a"`
 	TokenB      sdk.Coin       `json:"token_b" yaml:"token_b"`
-	Slippage    sdk.Dec        `json:"slippage" yaml:"slippage"`
+	Slippage    sdkmath.LegacyDec        `json:"slippage" yaml:"slippage"`
 	Deadline    int64          `json:"deadline" yaml:"deadline"`
 }
 ```
@@ -57,7 +57,7 @@ type MsgSwapForExactTokens struct {
 	Requester   sdk.AccAddress `json:"requester" yaml:"requester"`
 	TokenA      sdk.Coin       `json:"token_a" yaml:"token_a"`
 	ExactTokenB sdk.Coin       `json:"exact_token_b" yaml:"exact_token_b"`
-	Slippage    sdk.Dec        `json:"slippage" yaml:"slippage"`
+	Slippage    sdkmath.LegacyDec        `json:"slippage" yaml:"slippage"`
 	Deadline    int64          `json:"deadline" yaml:"deadline"`
 }
 ```

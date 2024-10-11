@@ -5,7 +5,7 @@ import (
 	"math"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -87,7 +87,7 @@ func (k Keeper) AccumulateInterest(ctx sdk.Context, ctype string) error {
 // CalculateInterestFactor calculates the simple interest scaling factor,
 // which is equal to: (per-second interest rate ** number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
-func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdkmath.Int) sdk.Dec {
+func CalculateInterestFactor(perSecondInterestRate sdkmath.LegacyDec, secondsElapsed sdkmath.Int) sdkmath.LegacyDec {
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
 	scalingFactorInt := sdkmath.NewInt(int64(scalingFactor))
 
@@ -100,7 +100,7 @@ func CalculateInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdkma
 	// Calculate the interest factor as a uint scaled by 1e18
 	interestFactorMantissa := sdkmath.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 
-	// Convert interest factor to an unscaled sdk.Dec
+	// Convert interest factor to an unscaled sdkmath.LegacyDec
 	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
 }
 
@@ -162,7 +162,7 @@ func (k Keeper) CalculateNewInterest(ctx sdk.Context, cdp types.CDP) sdk.Coin {
 }
 
 // SynchronizeInterestForRiskyCDPs synchronizes the interest for the slice of cdps with the lowest collateral:debt ratio
-func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdk.Dec, cp types.CollateralParam) error {
+func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdkmath.LegacyDec, cp types.CollateralParam) error {
 	debtParam := k.GetParams(ctx).DebtParam
 
 	cdpStore := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
@@ -259,7 +259,7 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx sdk.Context, targetRatio sdk
 	return nil
 }
 
-func calculateCollateralRatio(debtParam types.DebtParam, collateralParam types.CollateralParam, cdp types.CDP) sdk.Dec {
+func calculateCollateralRatio(debtParam types.DebtParam, collateralParam types.CollateralParam, cdp types.CDP) sdkmath.LegacyDec {
 	debtTotal := sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), debtParam.ConversionFactor.Int64()))
 
 	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {

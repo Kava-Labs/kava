@@ -23,19 +23,19 @@ func (_m *MockAccountKeeper) EXPECT() *MockAccountKeeper_Expecter {
 }
 
 // GetModuleAccount provides a mock function with given fields: ctx, moduleName
-func (_m *MockAccountKeeper) GetModuleAccount(ctx types.Context, moduleName string) authtypes.ModuleAccountI {
+func (_m *MockAccountKeeper) GetModuleAccount(ctx types.Context, moduleName string) sdk.ModuleAccountI {
 	ret := _m.Called(ctx, moduleName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetModuleAccount")
 	}
 
-	var r0 authtypes.ModuleAccountI
-	if rf, ok := ret.Get(0).(func(types.Context, string) authtypes.ModuleAccountI); ok {
+	var r0 sdk.ModuleAccountI
+	if rf, ok := ret.Get(0).(func(types.Context, string) sdk.ModuleAccountI); ok {
 		r0 = rf(ctx, moduleName)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(authtypes.ModuleAccountI)
+			r0 = ret.Get(0).(sdk.ModuleAccountI)
 		}
 	}
 
@@ -61,12 +61,12 @@ func (_c *MockAccountKeeper_GetModuleAccount_Call) Run(run func(ctx types.Contex
 	return _c
 }
 
-func (_c *MockAccountKeeper_GetModuleAccount_Call) Return(_a0 authtypes.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
+func (_c *MockAccountKeeper_GetModuleAccount_Call) Return(_a0 sdk.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockAccountKeeper_GetModuleAccount_Call) RunAndReturn(run func(types.Context, string) authtypes.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
+func (_c *MockAccountKeeper_GetModuleAccount_Call) RunAndReturn(run func(types.Context, string) sdk.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }

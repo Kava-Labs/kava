@@ -5,8 +5,8 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -63,7 +63,7 @@ func (k Keeper) GetAllAccounts(ctx sdk.Context) (accounts []types.Account) {
 // callback, iteration is halted.
 func (k Keeper) IterateAllAccounts(ctx sdk.Context, cb func(types.Account) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.AccountStoreKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, types.AccountStoreKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -119,7 +119,7 @@ func (k Keeper) SetAccount(ctx sdk.Context, account types.Account) error {
 func (k Keeper) GetBalance(ctx sdk.Context, addr sdk.AccAddress) sdkmath.Int {
 	account := k.GetAccount(ctx, addr)
 	if account == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	return account.Balance
 }
@@ -217,7 +217,7 @@ func (k *Keeper) GetDeployedCosmosCoinContract(ctx sdk.Context, cosmosDenom stri
 // cosmos-sdk coins. If true is returned from the callback, iteration is halted.
 func (k Keeper) IterateAllDeployedCosmosCoinContracts(ctx sdk.Context, cb func(types.DeployedCosmosCoinContract) bool) {
 	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.DeployedCosmosCoinContractKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, types.DeployedCosmosCoinContractKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

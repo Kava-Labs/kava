@@ -22,7 +22,7 @@ message MsgPostPrice {
   string from = 1;
   string market_id = 2 [(gogoproto.customname) = "MarketID"];
   string price = 3 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   google.protobuf.Timestamp expiry = 4 [

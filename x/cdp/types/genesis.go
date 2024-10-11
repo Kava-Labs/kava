@@ -108,7 +108,7 @@ func (gtps GenesisTotalPrincipals) Validate() error {
 }
 
 // NewGenesisAccumulationTime returns a new GenesisAccumulationTime
-func NewGenesisAccumulationTime(ctype string, prevTime time.Time, factor sdk.Dec) GenesisAccumulationTime {
+func NewGenesisAccumulationTime(ctype string, prevTime time.Time, factor sdkmath.LegacyDec) GenesisAccumulationTime {
 	return GenesisAccumulationTime{
 		CollateralType:           ctype,
 		PreviousAccumulationTime: prevTime,

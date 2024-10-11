@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -18,7 +19,7 @@ import (
 // Note: This method is not used directly by x/evm, but is still required as
 // part of authtypes.BankKeeper. x/evm uses auth methods that require this
 // interface.
-func (k Keeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
+func (k Keeper) IsSendEnabledCoins(ctx context.Context, coins ...sdk.Coin) error {
 	// Simply pass through to x/bank
 	return k.bk.IsSendEnabledCoins(ctx, coins...)
 }
@@ -28,7 +29,7 @@ func (k Keeper) IsSendEnabledCoins(ctx sdk.Context, coins ...sdk.Coin) error {
 // ExtendedCoinDenom and supports non-ExtendedCoinDenom transfers by passing
 // through to x/bank.
 func (k Keeper) SendCoins(
-	ctx sdk.Context,
+	ctx context.Context,
 	from, to sdk.AccAddress,
 	amt sdk.Coins,
 ) error {
@@ -55,9 +56,11 @@ func (k Keeper) SendCoins(
 		}
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// Send the extended coin amount through x/precisebank
 	if extendedCoinAmount.IsPositive() {
-		if err := k.sendExtendedCoins(ctx, from, to, extendedCoinAmount); err != nil {
+		if err := k.sendExtendedCoins(sdkCtx, from, to, extendedCoinAmount); err != nil {
 			return err
 		}
 	}
@@ -74,7 +77,7 @@ func (k Keeper) SendCoins(
 	}
 
 	// Emit transfer event of extended denom for the FULL equivalent value.
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			banktypes.EventTypeTransfer,
 			sdk.NewAttribute(banktypes.AttributeKeyRecipient, to.String()),
@@ -163,7 +166,7 @@ func (k Keeper) sendExtendedCoins(
 	// Sender borrows by transferring 1 integer amount to reserve to account for
 	// lack of fractional balance.
 	if senderNeedsBorrow && !recipientNeedsCarry {
-		borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
+		borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1))
 		if err := k.bk.SendCoinsFromAccountToModule(
 			ctx,
 			from, // sender borrowing
@@ -186,7 +189,7 @@ func (k Keeper) sendExtendedCoins(
 		// a SendCoins operation. Only SendCoinsFromModuleToAccount should check
 		// blocked addrs which is done by the parent SendCoinsFromModuleToAccount
 		// method.
-		carryCoin := sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1))
+		carryCoin := sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1))
 		if err := k.bk.SendCoins(
 			ctx,
 			reserveAddr,
@@ -278,12 +281,13 @@ func addToFractionalBalance(
 // if the recipient module is the x/precisebank module account or if sending the
 // tokens fails.
 func (k Keeper) SendCoinsFromAccountToModule(
-	ctx sdk.Context,
+	ctx context.Context,
 	senderAddr sdk.AccAddress,
 	recipientModule string,
 	amt sdk.Coins,
 ) error {
-	recipientAcc := k.ak.GetModuleAccount(ctx, recipientModule)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	recipientAcc := k.ak.GetModuleAccount(sdkCtx, recipientModule)
 	if recipientAcc == nil {
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", recipientModule))
 	}
@@ -300,7 +304,7 @@ func (k Keeper) SendCoinsFromAccountToModule(
 // the recipient address is blocked, if the sender is the x/precisebank module
 // account, or if sending the tokens fails.
 func (k Keeper) SendCoinsFromModuleToAccount(
-	ctx sdk.Context,
+	ctx context.Context,
 	senderModule string,
 	recipientAddr sdk.AccAddress,
 	amt sdk.Coins,

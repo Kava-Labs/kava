@@ -297,7 +297,7 @@ type QueryCdpsRequest struct {
 	CollateralType string `protobuf:"bytes,1,opt,name=collateral_type,json=collateralType,proto3" json:"collateral_type,omitempty"`
 	Owner          string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	ID             uint64 `protobuf:"varint,3,opt,name=id,proto3" json:"id,omitempty"`
-	// sdk.Dec as a string
+	// sdkmath.LegacyDec as a string
 	Ratio      string             `protobuf:"bytes,4,opt,name=ratio,proto3" json:"ratio,omitempty"`
 	Pagination *query.PageRequest `protobuf:"bytes,5,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
@@ -1187,6 +1187,7 @@ func _Query_Deposits_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.cdp.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),

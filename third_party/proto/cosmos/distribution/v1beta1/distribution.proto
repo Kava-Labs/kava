@@ -152,7 +152,7 @@ message CommunityPoolSpendProposal {
 // staking token, and the creation height (to check later on if any slashes have
 // occurred). NOTE: Even though validators are slashed to whole staking tokens,
 // the delegators within the validator may be left with less than a full token,
-// thus sdk.Dec is used.
+// thus sdkmath.LegacyDec is used.
 message DelegatorStartingInfo {
   uint64 previous_period = 1;
   string stake           = 2 [

@@ -25,8 +25,8 @@ type GenesisState struct {
 
 // Params governance parameters for hard module
 type Params struct {
-	MoneyMarkets          MoneyMarkets `json:"money_markets" yaml:"money_markets"`
-	MinimumBorrowUSDValue sdk.Dec      `json:"minimum_borrow_usd_value" yaml:"minimum_borrow_usd_value"`
+	MoneyMarkets          MoneyMarkets      `json:"money_markets" yaml:"money_markets"`
+	MinimumBorrowUSDValue sdkmath.LegacyDec `json:"minimum_borrow_usd_value" yaml:"minimum_borrow_usd_value"`
 }
 
 // MoneyMarkets slice of MoneyMarket
@@ -39,23 +39,23 @@ type MoneyMarket struct {
 	SpotMarketID           string            `json:"spot_market_id" yaml:"spot_market_id"`
 	ConversionFactor       sdkmath.Int       `json:"conversion_factor" yaml:"conversion_factor"`
 	InterestRateModel      InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"`
-	ReserveFactor          sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"`
-	KeeperRewardPercentage sdk.Dec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"`
+	ReserveFactor          sdkmath.LegacyDec `json:"reserve_factor" yaml:"reserve_factor"`
+	KeeperRewardPercentage sdkmath.LegacyDec `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"`
 }
 
 // BorrowLimit enforces restrictions on a money market
 type BorrowLimit struct {
-	HasMaxLimit  bool    `json:"has_max_limit" yaml:"has_max_limit"`
-	MaximumLimit sdk.Dec `json:"maximum_limit" yaml:"maximum_limit"`
-	LoanToValue  sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"`
+	HasMaxLimit  bool              `json:"has_max_limit" yaml:"has_max_limit"`
+	MaximumLimit sdkmath.LegacyDec `json:"maximum_limit" yaml:"maximum_limit"`
+	LoanToValue  sdkmath.LegacyDec `json:"loan_to_value" yaml:"loan_to_value"`
 }
 
 // InterestRateModel contains information about an asset's interest rate
 type InterestRateModel struct {
-	BaseRateAPY    sdk.Dec `json:"base_rate_apy" yaml:"base_rate_apy"`
-	BaseMultiplier sdk.Dec `json:"base_multiplier" yaml:"base_multiplier"`
-	Kink           sdk.Dec `json:"kink" yaml:"kink"`
-	JumpMultiplier sdk.Dec `json:"jump_multiplier" yaml:"jump_multiplier"`
+	BaseRateAPY    sdkmath.LegacyDec `json:"base_rate_apy" yaml:"base_rate_apy"`
+	BaseMultiplier sdkmath.LegacyDec `json:"base_multiplier" yaml:"base_multiplier"`
+	Kink           sdkmath.LegacyDec `json:"kink" yaml:"kink"`
+	JumpMultiplier sdkmath.LegacyDec `json:"jump_multiplier" yaml:"jump_multiplier"`
 }
 
 // GenesisAccumulationTimes slice of GenesisAccumulationTime
@@ -63,10 +63,10 @@ type GenesisAccumulationTimes []GenesisAccumulationTime
 
 // GenesisAccumulationTime stores the previous distribution time and its corresponding denom
 type GenesisAccumulationTime struct {
-	CollateralType           string    `json:"collateral_type" yaml:"collateral_type"`
-	PreviousAccumulationTime time.Time `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
-	SupplyInterestFactor     sdk.Dec   `json:"supply_interest_factor" yaml:"supply_interest_factor"`
-	BorrowInterestFactor     sdk.Dec   `json:"borrow_interest_factor" yaml:"borrow_interest_factor"`
+	CollateralType           string            `json:"collateral_type" yaml:"collateral_type"`
+	PreviousAccumulationTime time.Time         `json:"previous_accumulation_time" yaml:"previous_accumulation_time"`
+	SupplyInterestFactor     sdkmath.LegacyDec `json:"supply_interest_factor" yaml:"supply_interest_factor"`
+	BorrowInterestFactor     sdkmath.LegacyDec `json:"borrow_interest_factor" yaml:"borrow_interest_factor"`
 }
 
 // Deposits is a slice of Deposit
@@ -84,8 +84,8 @@ type SupplyInterestFactors []SupplyInterestFactor
 
 // SupplyInterestFactor defines an individual borrow interest factor
 type SupplyInterestFactor struct {
-	Denom string  `json:"denom" yaml:"denom"`
-	Value sdk.Dec `json:"value" yaml:"value"`
+	Denom string            `json:"denom" yaml:"denom"`
+	Value sdkmath.LegacyDec `json:"value" yaml:"value"`
 }
 
 // Borrows is a slice of Borrow
@@ -103,6 +103,6 @@ type BorrowInterestFactors []BorrowInterestFactor
 
 // BorrowInterestFactor defines an individual borrow interest factor
 type BorrowInterestFactor struct {
-	Denom string  `json:"denom" yaml:"denom"`
-	Value sdk.Dec `json:"value" yaml:"value"`
+	Denom string            `json:"denom" yaml:"denom"`
+	Value sdkmath.LegacyDec `json:"value" yaml:"value"`
 }

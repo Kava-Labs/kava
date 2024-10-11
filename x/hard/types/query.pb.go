@@ -1168,7 +1168,7 @@ func (m *DepositResponse) GetIndex() SupplyInterestFactorResponses {
 // SupplyInterestFactorResponse defines an individual borrow interest factor.
 type SupplyInterestFactorResponse struct {
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// sdk.Dec as string
+	// sdkmath.LegacyDec as string
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
@@ -1283,7 +1283,7 @@ func (m *BorrowResponse) GetIndex() BorrowInterestFactorResponses {
 // BorrowInterestFactorResponse defines an individual borrow interest factor.
 type BorrowInterestFactorResponse struct {
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// sdk.Dec as string
+	// sdkmath.LegacyDec as string
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
@@ -1337,9 +1337,9 @@ func (m *BorrowInterestFactorResponse) GetValue() string {
 // MoneyMarketInterestRate is a unique type returned by interest rate queries
 type MoneyMarketInterestRate struct {
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// sdk.Dec as String
+	// sdkmath.LegacyDec as String
 	SupplyInterestRate string `protobuf:"bytes,2,opt,name=supply_interest_rate,json=supplyInterestRate,proto3" json:"supply_interest_rate,omitempty"`
-	// sdk.Dec as String
+	// sdkmath.LegacyDec as String
 	BorrowInterestRate string `protobuf:"bytes,3,opt,name=borrow_interest_rate,json=borrowInterestRate,proto3" json:"borrow_interest_rate,omitempty"`
 }
 
@@ -1400,9 +1400,9 @@ func (m *MoneyMarketInterestRate) GetBorrowInterestRate() string {
 // InterestFactor is a unique type returned by interest factor queries
 type InterestFactor struct {
 	Denom string `protobuf:"bytes,1,opt,name=denom,proto3" json:"denom,omitempty"`
-	// sdk.Dec as String
+	// sdkmath.LegacyDec as String
 	BorrowInterestFactor string `protobuf:"bytes,2,opt,name=borrow_interest_factor,json=borrowInterestFactor,proto3" json:"borrow_interest_factor,omitempty"`
-	// sdk.Dec as String
+	// sdkmath.LegacyDec as String
 	SupplyInterestFactor string `protobuf:"bytes,3,opt,name=supply_interest_factor,json=supplyInterestFactor,proto3" json:"supply_interest_factor,omitempty"`
 }
 
@@ -1989,6 +1989,7 @@ func _Query_InterestFactors_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.hard.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),

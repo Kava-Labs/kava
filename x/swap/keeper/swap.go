@@ -10,7 +10,7 @@ import (
 )
 
 // SwapExactForTokens swaps an exact coin a input for a coin b output
-func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, exactCoinA, coinB sdk.Coin, slippageLimit sdk.Dec) error {
+func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, exactCoinA, coinB sdk.Coin, slippageLimit sdkmath.LegacyDec) error {
 	poolID, pool, err := k.loadPool(ctx, exactCoinA.Denom, coinB.Denom)
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 }
 
 // SwapForExactTokens swaps a coin a input for an exact coin b output
-func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, coinA, exactCoinB sdk.Coin, slippageLimit sdk.Dec) error {
+func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, coinA, exactCoinB sdk.Coin, slippageLimit sdkmath.LegacyDec) error {
 	poolID, pool, err := k.loadPool(ctx, coinA.Denom, exactCoinB.Denom)
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ func (k Keeper) loadPool(ctx sdk.Context, denomA string, denomB string) (string,
 	return poolID, pool, nil
 }
 
-func (k Keeper) assertSlippageWithinLimit(priceChange sdk.Dec, slippageLimit sdk.Dec) error {
+func (k Keeper) assertSlippageWithinLimit(priceChange sdkmath.LegacyDec, slippageLimit sdkmath.LegacyDec) error {
 	slippage := sdk.OneDec().Sub(priceChange)
 	if slippage.GT(slippageLimit) {
 		return errorsmod.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)

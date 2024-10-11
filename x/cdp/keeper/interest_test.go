@@ -41,9 +41,9 @@ func (suite *InterestTestSuite) SetupTest() {
 
 func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 	type args struct {
-		perSecondInterestRate sdk.Dec
+		perSecondInterestRate sdkmath.LegacyDec
 		timeElapsed           sdkmath.Int
-		expectedValue         sdk.Dec
+		expectedValue         sdkmath.LegacyDec
 	}
 
 	type test struct {

@@ -53,7 +53,7 @@ message QueryCirculatingSupplyRequest {}
 message QueryCirculatingSupplyResponse {
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -65,7 +65,7 @@ message QueryTotalSupplyRequest {}
 message QueryTotalSupplyResponse {
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -77,7 +77,7 @@ message QueryCirculatingSupplyHARDRequest {}
 message QueryCirculatingSupplyHARDResponse {
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -89,7 +89,7 @@ message QueryCirculatingSupplyUSDXRequest {}
 message QueryCirculatingSupplyUSDXResponse {
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -101,7 +101,7 @@ message QueryCirculatingSupplySWPRequest {}
 message QueryCirculatingSupplySWPResponse {
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -113,7 +113,7 @@ message QueryTotalSupplyHARDRequest {}
 message QueryTotalSupplyHARDResponse {
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -125,7 +125,7 @@ message QueryTotalSupplyUSDXRequest {}
 message QueryTotalSupplyUSDXResponse {
   string amount = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }

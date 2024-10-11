@@ -7,8 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	"github.com/kava-labs/kava/x/community"
 	"github.com/kava-labs/kava/x/community/testutil"
 	"github.com/kava-labs/kava/x/community/types"
@@ -49,7 +47,7 @@ func (suite *genesisTestSuite) TestInitGenesis() {
 	// check for module account this way b/c GetModuleAccount creates if not existing.
 	acc := accountKeeper.GetAccount(suite.Ctx, suite.MaccAddress)
 	suite.NotNil(acc)
-	_, ok := acc.(authtypes.ModuleAccountI)
+	_, ok := acc.(sdk.ModuleAccountI)
 	suite.True(ok)
 
 	keeper := suite.App.GetCommunityKeeper()

@@ -3,7 +3,6 @@ package types
 import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -39,7 +38,7 @@ type StakingKeeper interface {
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
 type CdpKeeper interface {
-	GetInterestFactor(ctx sdk.Context, collateralType string) (sdk.Dec, bool)
+	GetInterestFactor(ctx sdk.Context, collateralType string) (sdkmath.LegacyDec, bool)
 	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdkmath.Int)
 	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
 	GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
@@ -50,8 +49,8 @@ type HardKeeper interface {
 	GetDeposit(ctx sdk.Context, depositor sdk.AccAddress) (hardtypes.Deposit, bool)
 	GetBorrow(ctx sdk.Context, borrower sdk.AccAddress) (hardtypes.Borrow, bool)
 
-	GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
-	GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdk.Dec, bool)
+	GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdkmath.LegacyDec, bool)
+	GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdkmath.LegacyDec, bool)
 	GetBorrowedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
 	GetSuppliedCoins(ctx sdk.Context) (coins sdk.Coins, found bool)
 }
@@ -90,9 +89,9 @@ type LiquidKeeper interface {
 
 // AccountKeeper expected interface for the account keeper (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
-	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
-	GetModuleAccount(ctx sdk.Context, name string) authtypes.ModuleAccountI
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) sdk.AccountI
+	SetAccount(ctx sdk.Context, acc sdk.AccountI)
+	GetModuleAccount(ctx sdk.Context, name string) sdk.ModuleAccountI
 }
 
 // MintKeeper defines the required methods needed by this modules keeper
@@ -102,7 +101,7 @@ type MintKeeper interface {
 
 // DistrKeeper defines the required methods needed by this modules keeper
 type DistrKeeper interface {
-	GetCommunityTax(ctx sdk.Context) (percent sdk.Dec)
+	GetCommunityTax(ctx sdk.Context) (percent sdkmath.LegacyDec)
 }
 
 // PricefeedKeeper defines the required methods needed by this modules keeper

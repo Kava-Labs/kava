@@ -38,7 +38,7 @@ func (k Keeper) AccumulateHardSupplyRewards(ctx sdk.Context, rewardPeriod types.
 // getHardSupplyTotalSourceShares fetches the sum of all source shares for a supply reward.
 // In the case of hard supply, this is the total supplied divided by the supply interest factor.
 // This gives the "pre interest" value of the total supplied.
-func (k Keeper) getHardSupplyTotalSourceShares(ctx sdk.Context, denom string) sdk.Dec {
+func (k Keeper) getHardSupplyTotalSourceShares(ctx sdk.Context, denom string) sdkmath.LegacyDec {
 	totalSuppliedCoins, found := k.hardKeeper.GetSuppliedCoins(ctx)
 	if !found {
 		// assume no coins have been supplied
@@ -100,7 +100,7 @@ func (k Keeper) SynchronizeHardSupplyReward(ctx sdk.Context, deposit hardtypes.D
 // synchronizeSingleHardSupplyReward synchronizes a single rewarded supply denom in a hard claim.
 // It returns the claim without setting in the store.
 // The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
-func (k Keeper) synchronizeSingleHardSupplyReward(ctx sdk.Context, claim types.HardLiquidityProviderClaim, denom string, sourceShares sdk.Dec) types.HardLiquidityProviderClaim {
+func (k Keeper) synchronizeSingleHardSupplyReward(ctx sdk.Context, claim types.HardLiquidityProviderClaim, denom string, sourceShares sdkmath.LegacyDec) types.HardLiquidityProviderClaim {
 	globalRewardIndexes, found := k.GetHardSupplyRewardIndexes(ctx, denom)
 	if !found {
 		// The global factor is only not found if

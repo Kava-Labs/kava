@@ -79,8 +79,8 @@ type RewardIndexes []RewardIndex
 
 // RewardIndex stores reward accumulation information
 type RewardIndex struct {
-	CollateralType string  `json:"collateral_type" yaml:"collateral_type"`
-	RewardFactor   sdk.Dec `json:"reward_factor" yaml:"reward_factor"`
+	CollateralType string            `json:"collateral_type" yaml:"collateral_type"`
+	RewardFactor   sdkmath.LegacyDec `json:"reward_factor" yaml:"reward_factor"`
 }
 
 // USDXMintingClaims slice of USDXMintingClaim
@@ -155,9 +155,9 @@ type Multipliers []Multiplier
 
 // Multiplier amount the claim rewards get increased by, along with how long the claim rewards are locked
 type Multiplier struct {
-	Name         MultiplierName `json:"name" yaml:"name"`
-	MonthsLockup int64          `json:"months_lockup" yaml:"months_lockup"`
-	Factor       sdk.Dec        `json:"factor" yaml:"factor"`
+	Name         MultiplierName    `json:"name" yaml:"name"`
+	MonthsLockup int64             `json:"months_lockup" yaml:"months_lockup"`
+	Factor       sdkmath.LegacyDec `json:"factor" yaml:"factor"`
 }
 
 // MultiplierName is the user facing ID for a multiplier. There is a restricted set of possible values.

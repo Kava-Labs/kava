@@ -9,18 +9,18 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// MaxSortableDec largest sortable sdk.Dec
+// MaxSortableDec largest sortable sdkmath.LegacyDec
 var MaxSortableDec = sdk.OneDec().Quo(sdk.SmallestDec())
 
-// ValidSortableDec sdk.Dec can't have precision of less than 10^-18
-func ValidSortableDec(dec sdk.Dec) bool {
+// ValidSortableDec sdkmath.LegacyDec can't have precision of less than 10^-18
+func ValidSortableDec(dec sdkmath.LegacyDec) bool {
 	return dec.Abs().LTE(MaxSortableDec)
 }
 
 // SortableDecBytes returns a byte slice representation of a Dec that can be sorted.
 // Left and right pads with 0s so there are 18 digits to left and right of the decimal point.
 // For this reason, there is a maximum and minimum value for this, enforced by ValidSortableDec.
-func SortableDecBytes(dec sdk.Dec) []byte {
+func SortableDecBytes(dec sdkmath.LegacyDec) []byte {
 	if !ValidSortableDec(dec) {
 		panic("dec must be within bounds")
 	}
@@ -40,8 +40,8 @@ func SortableDecBytes(dec sdk.Dec) []byte {
 	return []byte(fmt.Sprintf(fmt.Sprintf("%%0%ds", sdk.Precision*2+1), dec.String()))
 }
 
-// ParseDecBytes parses a []byte encoded using SortableDecBytes back to sdk.Dec
-func ParseDecBytes(db []byte) (sdk.Dec, error) {
+// ParseDecBytes parses a []byte encoded using SortableDecBytes back to sdkmath.LegacyDec
+func ParseDecBytes(db []byte) (sdkmath.LegacyDec, error) {
 	strFromDecBytes := strings.Trim(string(db[:]), "0")
 	if string(strFromDecBytes[0]) == "." {
 		strFromDecBytes = "0" + strFromDecBytes
@@ -57,7 +57,7 @@ func ParseDecBytes(db []byte) (sdk.Dec, error) {
 	}
 	dec, err := sdk.NewDecFromStr(strFromDecBytes)
 	if err != nil {
-		return sdk.Dec{}, err
+		return sdkmath.LegacyDec{}, err
 	}
 	return dec, nil
 }

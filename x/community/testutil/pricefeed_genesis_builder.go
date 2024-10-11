@@ -30,7 +30,7 @@ func (b lendGenesisBuilder) Build() (hardtypes.GenesisState, pricefeedtypes.Gene
 	return hardGS, pricefeedGS
 }
 
-func (b lendGenesisBuilder) WithMarket(denom, spotMarketId string, price sdk.Dec) lendGenesisBuilder {
+func (b lendGenesisBuilder) WithMarket(denom, spotMarketId string, price sdkmath.LegacyDec) lendGenesisBuilder {
 	// add hard money market
 	b.hardMarkets = append(b.hardMarkets,
 		hardtypes.NewMoneyMarket(

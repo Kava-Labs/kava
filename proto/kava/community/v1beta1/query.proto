@@ -62,7 +62,7 @@ message QueryTotalBalanceRequest {}
 message QueryTotalBalanceResponse {
   // pool defines community pool's coins.
   repeated cosmos.base.v1beta1.DecCoin pool = 1 [
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.castrepeated) = "cosmossdk.io/math.LegacyDecCoins",
     (gogoproto.nullable) = false
   ];
 }

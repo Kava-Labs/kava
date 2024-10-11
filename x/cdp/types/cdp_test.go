@@ -184,7 +184,7 @@ func (suite *CdpValidationSuite) TestCDPGetNormalizedPrincipal() {
 	testCases := []struct {
 		name        string
 		cdp         types.CDP
-		expected    sdk.Dec
+		expected    sdkmath.LegacyDec
 		expectedErr expectedErr
 	}{
 		{

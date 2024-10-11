@@ -18,7 +18,7 @@ var (
 )
 
 // NewParams returns a new params object
-func NewParams(pairs AllowedPools, swapFee sdk.Dec) Params {
+func NewParams(pairs AllowedPools, swapFee sdkmath.LegacyDec) Params {
 	return Params{
 		AllowedPools: pairs,
 		SwapFee:      swapFee,
@@ -73,7 +73,7 @@ func validateAllowedPoolsParams(i interface{}) error {
 }
 
 func validateSwapFee(i interface{}) error {
-	swapFee, ok := i.(sdk.Dec)
+	swapFee, ok := i.(sdkmath.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

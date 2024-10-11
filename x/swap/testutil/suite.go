@@ -68,7 +68,7 @@ func (suite *Suite) RemoveCoinsFromModule(amount sdk.Coins) {
 }
 
 // CreateAccount creates a new account from the provided balance
-func (suite *Suite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
+func (suite *Suite) CreateAccount(initialBalance sdk.Coins) sdk.AccountI {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	ak := suite.App.GetAccountKeeper()
 
@@ -82,7 +82,7 @@ func (suite *Suite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
 }
 
 // NewAccountFromAddr creates a new account from the provided address with the provided balance
-func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) authtypes.AccountI {
+func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) sdk.AccountI {
 	ak := suite.App.GetAccountKeeper()
 
 	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
@@ -95,7 +95,7 @@ func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) a
 }
 
 // CreateVestingAccount creates a new vesting account from the provided balance and vesting balance
-func (suite *Suite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalance sdk.Coins) authtypes.AccountI {
+func (suite *Suite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalance sdk.Coins) sdk.AccountI {
 	acc := suite.CreateAccount(initialBalance)
 	bacc := acc.(*authtypes.BaseAccount)
 
@@ -171,7 +171,7 @@ func (suite *Suite) PoolReservesEqual(poolID string, reserves sdk.Coins) {
 }
 
 // PoolShareValueEqual asserts that the depositor shares are in state and the value matches the expected coins
-func (suite *Suite) PoolShareValueEqual(depositor authtypes.AccountI, pool types.AllowedPool, coins sdk.Coins) {
+func (suite *Suite) PoolShareValueEqual(depositor sdk.AccountI, pool types.AllowedPool, coins sdk.Coins) {
 	poolRecord, ok := suite.Keeper.GetPool(suite.Ctx, pool.Name())
 	suite.Require().True(ok, fmt.Sprintf("expected pool %s to exist", pool.Name()))
 	shares, ok := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolRecord.PoolID)

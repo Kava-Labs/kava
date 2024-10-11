@@ -12,7 +12,7 @@ import (
 )
 
 // NewCDP creates a new CDP object
-func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal sdk.Coin, time time.Time, interestFactor sdk.Dec) CDP {
+func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal sdk.Coin, time time.Time, interestFactor sdkmath.LegacyDec) CDP {
 	fees := sdk.NewCoin(principal.Denom, sdk.ZeroInt())
 	return CDP{
 		ID:              id,
@@ -27,7 +27,7 @@ func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType
 }
 
 // NewCDPWithFees creates a new CDP object, for use during migration
-func NewCDPWithFees(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal, fees sdk.Coin, time time.Time, interestFactor sdk.Dec) CDP {
+func NewCDPWithFees(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal, fees sdk.Coin, time time.Time, interestFactor sdkmath.LegacyDec) CDP {
 	return CDP{
 		ID:              id,
 		Owner:           owner,
@@ -77,10 +77,10 @@ func (cdp CDP) GetTotalPrincipal() sdk.Coin {
 // The normalized principal is effectively how big the principal would have been if it had been borrowed at time 0 and not touched since.
 //
 // An error is returned if the cdp interest factor is in an invalid state.
-func (cdp CDP) GetNormalizedPrincipal() (sdk.Dec, error) {
+func (cdp CDP) GetNormalizedPrincipal() (sdkmath.LegacyDec, error) {
 	unsyncedDebt := cdp.GetTotalPrincipal().Amount
 	if cdp.InterestFactor.LT(sdk.OneDec()) {
-		return sdk.Dec{}, fmt.Errorf("interest factor '%s' must be ≥ 1", cdp.InterestFactor)
+		return sdkmath.LegacyDec{}, fmt.Errorf("interest factor '%s' must be ≥ 1", cdp.InterestFactor)
 	}
 	return sdk.NewDecFromInt(unsyncedDebt).Quo(cdp.InterestFactor), nil
 }
@@ -102,12 +102,12 @@ func (cdps CDPs) Validate() error {
 // This is only used for the legacy querier and legacy rest endpoints.
 type AugmentedCDP struct {
 	CDP                    `json:"cdp" yaml:"cdp"`
-	CollateralValue        sdk.Coin `json:"collateral_value" yaml:"collateral_value"`               // collateral's market value in debt coin
-	CollateralizationRatio sdk.Dec  `json:"collateralization_ratio" yaml:"collateralization_ratio"` // current collateralization ratio
+	CollateralValue        sdk.Coin          `json:"collateral_value" yaml:"collateral_value"`               // collateral's market value in debt coin
+	CollateralizationRatio sdkmath.LegacyDec `json:"collateralization_ratio" yaml:"collateralization_ratio"` // current collateralization ratio
 }
 
 // NewAugmentedCDP creates a new AugmentedCDP object
-func NewAugmentedCDP(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) AugmentedCDP {
+func NewAugmentedCDP(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdkmath.LegacyDec) AugmentedCDP {
 	augmentedCDP := AugmentedCDP{
 		CDP: CDP{
 			ID:              cdp.ID,
@@ -164,7 +164,7 @@ func (augcdps AugmentedCDPs) String() string {
 }
 
 // NewCDPResponse creates a new CDPResponse object
-func NewCDPResponse(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdk.Dec) CDPResponse {
+func NewCDPResponse(cdp CDP, collateralValue sdk.Coin, collateralizationRatio sdkmath.LegacyDec) CDPResponse {
 	return CDPResponse{
 		ID:                     cdp.ID,
 		Owner:                  cdp.Owner.String(),

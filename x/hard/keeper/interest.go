@@ -158,7 +158,7 @@ func (k Keeper) AccrueInterest(ctx sdk.Context, denom string) error {
 
 // CalculateBorrowRate calculates the borrow rate, which is the current APY expressed as a decimal
 // based on the current utilization.
-func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves sdk.Dec) (sdk.Dec, error) {
+func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves sdkmath.LegacyDec) (sdkmath.LegacyDec, error) {
 	utilRatio := CalculateUtilizationRatio(cash, borrows, reserves)
 
 	// Calculate normal borrow rate (under kink)
@@ -173,7 +173,7 @@ func CalculateBorrowRate(model types.InterestRateModel, cash, borrows, reserves 
 }
 
 // CalculateUtilizationRatio calculates an asset's current utilization rate
-func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
+func CalculateUtilizationRatio(cash, borrows, reserves sdkmath.LegacyDec) sdkmath.LegacyDec {
 	// Utilization rate is 0 when there are no borrows
 	if borrows.Equal(sdk.ZeroDec()) {
 		return sdk.ZeroDec()
@@ -190,7 +190,7 @@ func CalculateUtilizationRatio(cash, borrows, reserves sdk.Dec) sdk.Dec {
 // CalculateBorrowInterestFactor calculates the simple interest scaling factor,
 // which is equal to: (per-second interest rate * number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
-func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed sdkmath.Int) sdk.Dec {
+func CalculateBorrowInterestFactor(perSecondInterestRate sdkmath.LegacyDec, secondsElapsed sdkmath.Int) sdkmath.LegacyDec {
 	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
 	scalingFactorInt := sdkmath.NewInt(int64(scalingFactor))
 
@@ -201,14 +201,14 @@ func CalculateBorrowInterestFactor(perSecondInterestRate sdk.Dec, secondsElapsed
 	// Calculate the interest factor as a uint scaled by 1e18
 	interestFactorMantissa := sdkmath.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 
-	// Convert interest factor to an unscaled sdk.Dec
+	// Convert interest factor to an unscaled sdkmath.LegacyDec
 	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
 }
 
 // CalculateSupplyInterestFactor calculates the supply interest factor, which is the percentage of borrow interest
 // that flows to each unit of supply, i.e. at 50% utilization and 0% reserve factor, a 5% borrow interest will
 // correspond to a 2.5% supply interest.
-func CalculateSupplyInterestFactor(newInterest, cash, borrows, reserves sdk.Dec) sdk.Dec {
+func CalculateSupplyInterestFactor(newInterest, cash, borrows, reserves sdkmath.LegacyDec) sdkmath.LegacyDec {
 	totalSupply := cash.Add(borrows).Sub(reserves)
 	if totalSupply.IsZero() {
 		return sdk.OneDec()
@@ -301,7 +301,7 @@ func (k Keeper) SyncSupplyInterest(ctx sdk.Context, addr sdk.AccAddress) {
 
 // APYToSPY converts the input annual interest rate. For example, 10% apy would be passed as 1.10.
 // SPY = Per second compounded interest rate is how cosmos mathematically represents APY.
-func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
+func APYToSPY(apy sdkmath.LegacyDec) (sdkmath.LegacyDec, error) {
 	// Note: any APY 179 or greater will cause an out-of-bounds error
 	root, err := apy.ApproxRoot(uint64(secondsPerYear))
 	if err != nil {
@@ -312,6 +312,6 @@ func APYToSPY(apy sdk.Dec) (sdk.Dec, error) {
 
 // SPYToEstimatedAPY converts the internal per second compounded interest rate into an estimated annual
 // interest rate. The returned value is an estimate  and should not be used for financial calculations.
-func SPYToEstimatedAPY(apy sdk.Dec) sdk.Dec {
+func SPYToEstimatedAPY(apy sdkmath.LegacyDec) sdkmath.LegacyDec {
 	return apy.Power(uint64(secondsPerYear))
 }

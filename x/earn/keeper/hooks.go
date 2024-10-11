@@ -14,7 +14,7 @@ func (k Keeper) AfterVaultDepositCreated(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	sharesOwned sdk.Dec,
+	sharesOwned sdkmath.LegacyDec,
 ) {
 	if k.hooks != nil {
 		k.hooks.AfterVaultDepositCreated(ctx, vaultDenom, depositor, sharesOwned)
@@ -26,7 +26,7 @@ func (k Keeper) BeforeVaultDepositModified(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	sharesOwned sdk.Dec,
+	sharesOwned sdkmath.LegacyDec,
 ) {
 	if k.hooks != nil {
 		k.hooks.BeforeVaultDepositModified(ctx, vaultDenom, depositor, sharesOwned)

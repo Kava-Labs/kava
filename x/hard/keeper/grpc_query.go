@@ -517,13 +517,13 @@ func (s queryServer) InterestFactors(ctx context.Context, req *types.QueryIntere
 	} else {
 		interestFactorMap := make(map[string]types.InterestFactor)
 		// Populate mapping with supply interest factors
-		s.keeper.IterateSupplyInterestFactors(sdkCtx, func(denom string, factor sdk.Dec) (stop bool) {
+		s.keeper.IterateSupplyInterestFactors(sdkCtx, func(denom string, factor sdkmath.LegacyDec) (stop bool) {
 			interestFactor := types.InterestFactor{Denom: denom, SupplyInterestFactor: factor.String()}
 			interestFactorMap[denom] = interestFactor
 			return false
 		})
 		// Populate mapping with borrow interest factors
-		s.keeper.IterateBorrowInterestFactors(sdkCtx, func(denom string, factor sdk.Dec) (stop bool) {
+		s.keeper.IterateBorrowInterestFactors(sdkCtx, func(denom string, factor sdkmath.LegacyDec) (stop bool) {
 			interestFactor, ok := interestFactorMap[denom]
 			if !ok {
 				newInterestFactor := types.InterestFactor{Denom: denom, BorrowInterestFactor: factor.String()}

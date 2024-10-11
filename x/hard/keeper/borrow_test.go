@@ -26,13 +26,13 @@ const (
 
 func (suite *KeeperTestSuite) TestBorrow() {
 	type setupArgs struct {
-		usdxBorrowLimit    sdk.Dec
-		priceKAVA          sdk.Dec
-		loanToValueKAVA    sdk.Dec
-		priceBTCB          sdk.Dec
-		loanToValueBTCB    sdk.Dec
-		priceBNB           sdk.Dec
-		loanToValueBNB     sdk.Dec
+		usdxBorrowLimit    sdkmath.LegacyDec
+		priceKAVA          sdkmath.LegacyDec
+		loanToValueKAVA    sdkmath.LegacyDec
+		priceBTCB          sdkmath.LegacyDec
+		loanToValueBTCB    sdkmath.LegacyDec
+		priceBNB           sdkmath.LegacyDec
+		loanToValueBNB     sdkmath.LegacyDec
 		borrower           sdk.AccAddress
 		depositCoins       []sdk.Coin
 		initialBorrowCoins sdk.Coins

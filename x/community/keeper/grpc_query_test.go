@@ -172,10 +172,10 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 	bondedTokens := sdkmath.NewInt(1e6)
 	testCases := []struct {
 		name          string
-		bondedRatio   sdk.Dec
-		inflation     sdk.Dec
+		bondedRatio   sdkmath.LegacyDec
+		inflation     sdkmath.LegacyDec
 		rewardsPerSec sdkmath.LegacyDec
-		communityTax  sdk.Dec
+		communityTax  sdkmath.LegacyDec
 		expectedRate  sdkmath.LegacyDec
 	}{
 		{
@@ -270,7 +270,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 // it leverages the fact that there is a constant number of bonded tokens
 // and adjusts the total supply to make change the bonded ratio.
 // returns the new total supply of the bond denom
-func (suite *grpcQueryTestSuite) adjustBondedRatio(desiredRatio sdk.Dec) sdkmath.Int {
+func (suite *grpcQueryTestSuite) adjustBondedRatio(desiredRatio sdkmath.LegacyDec) sdkmath.Int {
 	// from the InitGenesis validator
 	bondedTokens := sdkmath.NewInt(1e6)
 	bondDenom := suite.App.GetStakingKeeper().BondDenom(suite.Ctx)

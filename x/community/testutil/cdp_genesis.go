@@ -10,7 +10,7 @@ import (
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 )
 
-func NewCDPGenState(cdc codec.JSONCodec, denom, asset string, liquidationRatio sdk.Dec) app.GenesisState {
+func NewCDPGenState(cdc codec.JSONCodec, denom, asset string, liquidationRatio sdkmath.LegacyDec) app.GenesisState {
 	cdpGenesis := cdptypes.GenesisState{
 		Params: cdptypes.Params{
 			GlobalDebtLimit:          sdk.NewInt64Coin("usdx", 1000000000000),

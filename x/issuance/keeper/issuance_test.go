@@ -8,10 +8,8 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
 	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cometbft/cometbft/crypto"
 	tmtime "github.com/cometbft/cometbft/types/time"
@@ -57,7 +55,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 	suite.modAccount = modAccount
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) sdk.AccountI {
 	ak := suite.tApp.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
@@ -67,7 +65,7 @@ func (suite *KeeperTestSuite) getBalance(addr sdk.AccAddress, denom string) sdk.
 	return bk.GetBalance(suite.ctx, addr, denom)
 }
 
-func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
+func (suite *KeeperTestSuite) getModuleAccount(name string) sdk.ModuleAccountI {
 	sk := suite.tApp.GetAccountKeeper()
 	return sk.GetModuleAccount(suite.ctx, name)
 }

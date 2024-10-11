@@ -13,7 +13,6 @@ import (
 	tmtime "github.com/cometbft/cometbft/types/time"
 
 	accountkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 
 	"github.com/kava-labs/kava/app"
@@ -71,7 +70,7 @@ func (suite *Suite) SetupTest() {
 }
 
 // CreateAccount creates a new account with the provided balance
-func (suite *Suite) CreateAccount(initialBalance sdk.Coins) authtypes.AccountI {
+func (suite *Suite) CreateAccount(initialBalance sdk.Coins) sdk.AccountI {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	fmt.Println(addrs[0].String())
 	acc := suite.AccountKeeper.NewAccountWithAddress(suite.Ctx, addrs[0])

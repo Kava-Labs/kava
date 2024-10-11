@@ -113,7 +113,7 @@ func (suite *ModuleTestSuite) createCdps() {
 	suite.liquidations = tracker
 }
 
-func (suite *ModuleTestSuite) setPrice(price sdk.Dec, market string) {
+func (suite *ModuleTestSuite) setPrice(price sdkmath.LegacyDec, market string) {
 	pfKeeper := suite.app.GetPriceFeedKeeper()
 
 	_, err := pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))

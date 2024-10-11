@@ -108,7 +108,7 @@ func NewDepositResponse(depositor sdk.AccAddress, amount sdk.Coins, indexes Supp
 type DepositResponses []DepositResponse
 
 // NewSupplyInterestFactor returns a new SupplyInterestFactor instance
-func NewSupplyInterestFactor(denom string, value sdk.Dec) SupplyInterestFactor {
+func NewSupplyInterestFactor(denom string, value sdkmath.LegacyDec) SupplyInterestFactor {
 	return SupplyInterestFactor{
 		Denom: denom,
 		Value: value,
@@ -132,7 +132,7 @@ func (sif SupplyInterestFactor) ToResponse() SupplyInterestFactorResponse {
 }
 
 // NewSupplyInterestFactorResponse returns a new SupplyInterestFactorResponse instance
-func NewSupplyInterestFactorResponse(denom string, value sdk.Dec) SupplyInterestFactorResponse {
+func NewSupplyInterestFactorResponse(denom string, value sdkmath.LegacyDec) SupplyInterestFactorResponse {
 	return SupplyInterestFactorResponse{
 		Denom: denom,
 		Value: value.String(),
@@ -143,7 +143,7 @@ func NewSupplyInterestFactorResponse(denom string, value sdk.Dec) SupplyInterest
 type SupplyInterestFactors []SupplyInterestFactor
 
 // GetInterestFactor returns a denom's interest factor value
-func (sifs SupplyInterestFactors) GetInterestFactor(denom string) (sdk.Dec, bool) {
+func (sifs SupplyInterestFactors) GetInterestFactor(denom string) (sdkmath.LegacyDec, bool) {
 	for _, sif := range sifs {
 		if sif.Denom == denom {
 			return sif.Value, true
@@ -153,7 +153,7 @@ func (sifs SupplyInterestFactors) GetInterestFactor(denom string) (sdk.Dec, bool
 }
 
 // SetInterestFactor sets a denom's interest factor value
-func (sifs SupplyInterestFactors) SetInterestFactor(denom string, factor sdk.Dec) SupplyInterestFactors {
+func (sifs SupplyInterestFactors) SetInterestFactor(denom string, factor sdkmath.LegacyDec) SupplyInterestFactors {
 	for i, sif := range sifs {
 		if sif.Denom == denom {
 			sif.Value = factor

@@ -31,7 +31,7 @@ import (
 // 	return app.GenesisState{bep3types.ModuleName: bep3types.ModuleCdc.MustMarshalJSON(genesis)}
 // }
 
-// func newPricefeedGenState(assets []string, prices []sdk.Dec) app.GenesisState {
+// func newPricefeedGenState(assets []string, prices []sdkmath.LegacyDec) app.GenesisState {
 // 	if len(assets) != len(prices) {
 // 		panic("assets and prices must be the same length")
 // 	}
@@ -228,7 +228,7 @@ import (
 // 			keeper := tApp.GetCommitteeKeeper()
 // 			ctx := tApp.NewContext(true, tmproto.Header{})
 // 			tApp.InitializeFromGenesisStates(
-// 				newPricefeedGenState([]string{"bnb"}, []sdk.Dec{testutil.D("15.01")}),
+// 				newPricefeedGenState([]string{"bnb"}, []sdkmath.LegacyDec{testutil.D("15.01")}),
 // 				newCDPGenesisState(testCDPParams),
 // 			)
 // 			// Cast BaseCommittee to MemberCommittee (if required) to meet Committee interface requirement
@@ -269,7 +269,7 @@ func (suite *keeperTestSuite) TestAddVote() {
 		testutil.D("0.4"),
 		time.Hour*24*7,
 		types.TALLY_OPTION_FIRST_PAST_THE_POST,
-		sdk.Dec{},
+		sdkmath.LegacyDec{},
 		"hard",
 	)
 	nonMemberAddr := suite.Addresses[4]
@@ -378,7 +378,7 @@ func (suite *keeperTestSuite) TestTallyMemberCommitteeVotes() {
 	testcases := []struct {
 		name              string
 		votes             []types.Vote
-		expectedVoteCount sdk.Dec
+		expectedVoteCount sdkmath.LegacyDec
 	}{
 		{
 			name:              "has 0 votes",
@@ -452,9 +452,9 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 	testcases := []struct {
 		name                   string
 		votes                  []types.Vote
-		expectedYesVoteCount   sdk.Dec
-		expectedNoVoteCount    sdk.Dec
-		expectedTotalVoteCount sdk.Dec
+		expectedYesVoteCount   sdkmath.LegacyDec
+		expectedNoVoteCount    sdkmath.LegacyDec
+		expectedTotalVoteCount sdkmath.LegacyDec
 	}{
 		{
 			name:                   "has 0 votes",

@@ -9,7 +9,7 @@ Example parameters for the swap module:
 | Key          | Type                | Example       | Description                             |
 | ------------ | ------------------- | ------------- | --------------------------------------- |
 | AllowedPools | array (AllowedPool) | [{see below}] | Array of tradable pools supported       |
-| SwapFee      | sdk.Dec             | 0.03          | Global trading fee in percentage format |
+| SwapFee      | sdkmath.LegacyDec             | 0.03          | Global trading fee in percentage format |
 
 Example parameters for `AllowedPool`:
 

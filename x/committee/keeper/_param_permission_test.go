@@ -157,7 +157,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 		{
 			name: "normal",
 			genState: []app.GenesisState{
-				newPricefeedGenState([]string{"bnb", "btc"}, []sdk.Dec{d("15.01"), d("9500")}),
+				newPricefeedGenState([]string{"bnb", "btc"}, []sdkmath.LegacyDec{d("15.01"), d("9500")}),
 				newCDPGenesisState(testCDPParams),
 				newBep3GenesisState(testBep3Params),
 			},

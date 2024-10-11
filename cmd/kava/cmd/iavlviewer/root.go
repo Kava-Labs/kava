@@ -6,10 +6,10 @@ import (
 	"strconv"
 
 	"cosmossdk.io/log"
+	"cosmossdk.io/store/wrapper"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store/wrapper"
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 

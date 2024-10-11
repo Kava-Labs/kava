@@ -20,7 +20,7 @@ func (suite *AccumulateUSDXRewardsTests) storedTimeEquals(cType string, expected
 	suite.Equal(expected, storedTime)
 }
 
-func (suite *AccumulateUSDXRewardsTests) storedIndexesEqual(cType string, expected sdk.Dec) {
+func (suite *AccumulateUSDXRewardsTests) storedIndexesEqual(cType string, expected sdkmath.LegacyDec) {
 	storedIndexes, found := suite.keeper.GetUSDXMintingRewardFactor(suite.ctx, cType)
 	suite.True(found)
 	suite.Equal(expected, storedIndexes)

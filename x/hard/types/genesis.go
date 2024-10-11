@@ -65,7 +65,7 @@ func (gs GenesisState) Validate() error {
 }
 
 // NewGenesisAccumulationTime returns a new GenesisAccumulationTime
-func NewGenesisAccumulationTime(ctype string, prevTime time.Time, supplyFactor, borrowFactor sdk.Dec) GenesisAccumulationTime {
+func NewGenesisAccumulationTime(ctype string, prevTime time.Time, supplyFactor, borrowFactor sdkmath.LegacyDec) GenesisAccumulationTime {
 	return GenesisAccumulationTime{
 		CollateralType:           ctype,
 		PreviousAccumulationTime: prevTime,

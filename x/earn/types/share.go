@@ -10,7 +10,7 @@ import (
 )
 
 // NewVaultShare returns a new VaultShare
-func NewVaultShare(denom string, amount sdk.Dec) VaultShare {
+func NewVaultShare(denom string, amount sdkmath.LegacyDec) VaultShare {
 	share := VaultShare{
 		Denom:  denom,
 		Amount: amount,
@@ -284,7 +284,7 @@ func (shares VaultShares) negative() VaultShares {
 }
 
 // AmountOf returns the amount of shares of the given denom.
-func (shares VaultShares) AmountOf(denom string) sdk.Dec {
+func (shares VaultShares) AmountOf(denom string) sdkmath.LegacyDec {
 	for _, s := range shares {
 		if s.Denom == denom {
 			return s.Amount

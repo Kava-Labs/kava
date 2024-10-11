@@ -40,8 +40,8 @@ type Committee interface {
 	GetProposalDuration() time.Duration
 	SetProposalDuration(time.Duration) BaseCommittee
 
-	GetVoteThreshold() sdk.Dec
-	SetVoteThreshold(sdk.Dec) BaseCommittee
+	GetVoteThreshold() sdkmath.LegacyDec
+	SetVoteThreshold(sdkmath.LegacyDec) BaseCommittee
 
 	GetTallyOption() TallyOption
 	Validate() error
@@ -53,7 +53,7 @@ type BaseCommittee struct {
 	Description      string           `json:"description" yaml:"description"`
 	Members          []sdk.AccAddress `json:"members" yaml:"members"`
 	Permissions      []Permission     `json:"permissions" yaml:"permissions"`
-	VoteThreshold    sdk.Dec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage that must vote for a proposal to pass
+	VoteThreshold    sdkmath.LegacyDec          `json:"vote_threshold" yaml:"vote_threshold"`       // Smallest percentage that must vote for a proposal to pass
 	ProposalDuration time.Duration    `json:"proposal_duration" yaml:"proposal_duration"` // The length of time a proposal remains active for. Proposals will close earlier if they get enough votes.
 	TallyOption      TallyOption      `json:"tally_option" yaml:"tally_option"`
 }
@@ -66,7 +66,7 @@ type MemberCommittee struct {
 // TokenCommittee supports voting on proposals by token holders
 type TokenCommittee struct {
 	BaseCommittee `json:"base_committee" yaml:"base_committee"`
-	Quorum        sdk.Dec `json:"quorum" yaml:"quorum"`
+	Quorum        sdkmath.LegacyDec `json:"quorum" yaml:"quorum"`
 	TallyDenom    string  `json:"tally_denom" yaml:"tally_denom"`
 }
 ```

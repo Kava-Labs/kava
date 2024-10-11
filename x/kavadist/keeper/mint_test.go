@@ -97,7 +97,7 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 		endTime             time.Time
 		infraPeriods        types.Periods
 		expectedFinalSupply sdk.Coin
-		marginOfError       sdk.Dec
+		marginOfError       sdkmath.LegacyDec
 	}
 
 	type errArgs struct {
@@ -186,7 +186,7 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 		infraPeriods            types.Periods
 		expectedFinalSupply     sdk.Coin
 		expectedBalanceIncrease sdk.Coin
-		marginOfError           sdk.Dec
+		marginOfError           sdkmath.LegacyDec
 	}
 
 	type errArgs struct {
@@ -257,7 +257,7 @@ func (suite *keeperTestSuite) TestInfraPayoutPartner() {
 		infraPeriods            types.Periods
 		expectedFinalSupply     sdk.Coin
 		expectedBalanceIncrease sdk.Coin
-		marginOfError           sdk.Dec
+		marginOfError           sdkmath.LegacyDec
 	}
 
 	type errArgs struct {
@@ -338,7 +338,7 @@ func (suite *keeperTestSuite) TestInfraPayoutE2E() {
 		partnerRewards      types.PartnerRewards
 		expectedFinalSupply sdk.Coin
 		expectedBalances    balances
-		marginOfError       sdk.Dec
+		marginOfError       sdkmath.LegacyDec
 	}
 
 	type errArgs struct {

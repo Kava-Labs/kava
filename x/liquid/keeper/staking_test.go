@@ -35,11 +35,11 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 
 	testCases := []struct {
 		name            string
-		createValidator func() (delegatorShares sdk.Dec, err error)
+		createValidator func() (delegatorShares sdkmath.LegacyDec, err error)
 	}{
 		{
 			name: "bonded validator",
-			createValidator: func() (sdk.Dec, error) {
+			createValidator: func() (sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 				delegatorShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 
@@ -51,7 +51,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 		},
 		{
 			name: "unbonded validator",
-			createValidator: func() (sdk.Dec, error) {
+			createValidator: func() (sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 				delegatorShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 
@@ -61,7 +61,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 		},
 		{
 			name: "ubonding (jailed) validator",
-			createValidator: func() (sdk.Dec, error) {
+			createValidator: func() (sdkmath.LegacyDec, error) {
 				val := suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 				delegatorShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 
@@ -71,7 +71,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 				// Jail and run end blocker to transition validator to unbonding.
 				consAddr, err := val.GetConsAddr()
 				if err != nil {
-					return sdk.Dec{}, err
+					return sdkmath.LegacyDec{}, err
 				}
 				suite.StakingKeeper.Jail(suite.Ctx, consAddr)
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
@@ -127,14 +127,14 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 
 	testCases := []struct {
 		name              string
-		createDelegations func() (fromDelegatorShares, toDelegatorShares sdk.Dec, err error)
-		shares            sdk.Dec
-		expectReceived    sdk.Dec
+		createDelegations func() (fromDelegatorShares, toDelegatorShares sdkmath.LegacyDec, err error)
+		shares            sdkmath.LegacyDec
+		expectReceived    sdkmath.LegacyDec
 		expectedErr       error
 	}{
 		{
 			name: "negative shares cannot be transferred",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				// Run end blocker to update validator state to bonded.
@@ -147,19 +147,19 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		},
 		{
 			name: "nil shares cannot be transferred",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
 				return fromDelegationShares, sdk.ZeroDec(), nil
 			},
-			shares:      sdk.Dec{},
+			shares:      sdkmath.LegacyDec{},
 			expectedErr: types.ErrUntransferableShares,
 		},
 		{
 			name: "0 shares cannot be transferred",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				toDelegationShares := suite.CreateDelegation(valAddr, toDelegator, i(2e9))
@@ -172,7 +172,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		},
 		{
 			name: "all shares can be transferred",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				toDelegationShares := suite.CreateDelegation(valAddr, toDelegator, i(2e9))
@@ -185,7 +185,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		},
 		{
 			name: "excess shares cannot be transferred",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
@@ -197,7 +197,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		},
 		{
 			name: "shares can be transferred to a non existent delegation",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
@@ -209,7 +209,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		},
 		{
 			name: "shares cannot be transferred from a non existent delegation",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
@@ -220,7 +220,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		},
 		{
 			name: "slashed validator shares can be transferred",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
@@ -234,7 +234,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 		},
 		{
 			name: "zero shares received when transfer < 1 token",
-			createDelegations: func() (sdk.Dec, sdk.Dec, error) {
+			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				toDelegationShares := suite.CreateDelegation(valAddr, toDelegator, i(1e9))

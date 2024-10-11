@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// d is a helper function for creating sdk.Dec values in tests
-func d(str string) sdk.Dec { return sdk.MustNewDecFromStr(str) }
+// d is a helper function for creating sdkmath.LegacyDec values in tests
+func d(str string) sdkmath.LegacyDec { return sdk.MustNewDecFromStr(str) }
 
 // c is a helper function for created sdk.Coin types in tests
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
@@ -197,7 +197,7 @@ func TestRewardIndexes(t *testing.T) {
 
 		type args struct {
 			denom  string
-			factor sdk.Dec
+			factor sdkmath.LegacyDec
 		}
 		testcases := []struct {
 			name          string
@@ -247,7 +247,7 @@ func TestRewardIndexes(t *testing.T) {
 		arbitraryDec := sdk.MustNewDecFromStr("0.1")
 
 		type expected struct {
-			factor sdk.Dec
+			factor sdkmath.LegacyDec
 			found  bool
 		}
 		testcases := []struct {
@@ -292,7 +292,7 @@ func TestRewardIndexes(t *testing.T) {
 		testcases := []struct {
 			name          string
 			rewardIndexes RewardIndexes
-			multiplier    sdk.Dec
+			multiplier    sdkmath.LegacyDec
 			expected      RewardIndexes
 		}{
 			{
@@ -362,7 +362,7 @@ func TestRewardIndexes(t *testing.T) {
 		testcases := []struct {
 			name          string
 			rewardIndexes RewardIndexes
-			divisor       sdk.Dec
+			divisor       sdkmath.LegacyDec
 			expected      expected
 		}{
 			{

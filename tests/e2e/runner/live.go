@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
+	tmservice "github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/client/grpc"

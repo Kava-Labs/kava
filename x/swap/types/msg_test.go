@@ -48,7 +48,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 		depositor   string
 		tokenA      sdk.Coin
 		tokenB      sdk.Coin
-		slippage    sdk.Dec
+		slippage    sdkmath.LegacyDec
 		deadline    int64
 		expectedErr string
 	}{
@@ -147,7 +147,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			depositor:   validMsg.Depositor,
 			tokenA:      validMsg.TokenA,
 			tokenB:      validMsg.TokenB,
-			slippage:    sdk.Dec{},
+			slippage:    sdkmath.LegacyDec{},
 			deadline:    validMsg.Deadline,
 			expectedErr: "slippage must be set: invalid slippage",
 		},
@@ -426,7 +426,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 		requester   string
 		exactTokenA sdk.Coin
 		tokenB      sdk.Coin
-		slippage    sdk.Dec
+		slippage    sdkmath.LegacyDec
 		deadline    int64
 		expectedErr string
 	}{
@@ -525,7 +525,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			requester:   validMsg.Requester,
 			exactTokenA: validMsg.ExactTokenA,
 			tokenB:      validMsg.TokenB,
-			slippage:    sdk.Dec{},
+			slippage:    sdkmath.LegacyDec{},
 			deadline:    validMsg.Deadline,
 			expectedErr: "slippage must be set: invalid slippage",
 		},
@@ -612,7 +612,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 		requester   string
 		tokenA      sdk.Coin
 		exactTokenB sdk.Coin
-		slippage    sdk.Dec
+		slippage    sdkmath.LegacyDec
 		deadline    int64
 		expectedErr string
 	}{
@@ -711,7 +711,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			requester:   validMsg.Requester,
 			tokenA:      validMsg.TokenA,
 			exactTokenB: validMsg.ExactTokenB,
-			slippage:    sdk.Dec{},
+			slippage:    sdkmath.LegacyDec{},
 			deadline:    validMsg.Deadline,
 			expectedErr: "slippage must be set: invalid slippage",
 		},

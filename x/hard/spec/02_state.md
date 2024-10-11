@@ -18,7 +18,7 @@ Without financial incentives, borrowers and suppliers will withdraw their funds 
 // Params governance parameters for hard module
 type Params struct {
 	MoneyMarkets          MoneyMarkets `json:"money_markets" yaml:"money_markets"`
-	MinimumBorrowUSDValue sdk.Dec      `json:"minimum_borrow_usd_value" yaml:"minimum_borrow_usd_value"`
+	MinimumBorrowUSDValue sdkmath.LegacyDec      `json:"minimum_borrow_usd_value" yaml:"minimum_borrow_usd_value"`
 }
 
 // MoneyMarket is a money market for an individual asset
@@ -28,8 +28,8 @@ type MoneyMarket struct {
   SpotMarketID           string            `json:"spot_market_id" yaml:"spot_market_id"` // the pricefeed market where price data is fetched
   ConversionFactor       sdkmath.Int           `json:"conversion_factor" yaml:"conversion_factor"` //the internal conversion factor for going from the smallest unit of a token to a whole unit (ie. 8 for BTC, 6 for KAVA, 18 for ETH)
   InterestRateModel      InterestRateModel `json:"interest_rate_model" yaml:"interest_rate_model"` // the model that determines the prevailing interest rate at each block
-  ReserveFactor          sdk.Dec           `json:"reserve_factor" yaml:"reserve_factor"` // the percentage of interest that is accumulated by the protocol as reserves
-  KeeperRewardPercentage sdk.Dec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"` // the percentage of a liquidation that is given to the keeper that liquidated the position
+  ReserveFactor          sdkmath.LegacyDec           `json:"reserve_factor" yaml:"reserve_factor"` // the percentage of interest that is accumulated by the protocol as reserves
+  KeeperRewardPercentage sdkmath.LegacyDec           `json:"keeper_reward_percentage" yaml:"keeper_reward_percentages"` // the percentage of a liquidation that is given to the keeper that liquidated the position
 }
 
 // MoneyMarkets slice of MoneyMarket
@@ -37,17 +37,17 @@ type MoneyMarkets []MoneyMarket
 
 // InterestRateModel contains information about an asset's interest rate
 type InterestRateModel struct {
-  BaseRateAPY    sdk.Dec `json:"base_rate_apy" yaml:"base_rate_apy"` // the base rate of APY when borrows are zero. Ex. A value of "0.02" would signify an interest rate of 2% APY as the Y-intercept of the interest rate model for the money market. Note that internally, interest rates are stored as per-second interest.
-  BaseMultiplier sdk.Dec `json:"base_multiplier" yaml:"base_multiplier"` // the percentage rate at which the interest rate APY increases for each percentage increase in borrow utilization. Ex. A value of "0.01" signifies that the APY interest rate increases by 1% for each additional percentage increase in borrow utilization.
-  Kink           sdk.Dec `json:"kink" yaml:"kink"` // the inflection point at which the BaseMultiplier no longer applies and the JumpMultiplier does apply. For example, a value of "0.8" signifies that at 80% utilization, the JumpMultiplier applies
-  JumpMultiplier sdk.Dec `json:"jump_multiplier" yaml:"jump_multiplier"` // same as BaseMultiplier, but only applied when utilization is above the Kink
+  BaseRateAPY    sdkmath.LegacyDec `json:"base_rate_apy" yaml:"base_rate_apy"` // the base rate of APY when borrows are zero. Ex. A value of "0.02" would signify an interest rate of 2% APY as the Y-intercept of the interest rate model for the money market. Note that internally, interest rates are stored as per-second interest.
+  BaseMultiplier sdkmath.LegacyDec `json:"base_multiplier" yaml:"base_multiplier"` // the percentage rate at which the interest rate APY increases for each percentage increase in borrow utilization. Ex. A value of "0.01" signifies that the APY interest rate increases by 1% for each additional percentage increase in borrow utilization.
+  Kink           sdkmath.LegacyDec `json:"kink" yaml:"kink"` // the inflection point at which the BaseMultiplier no longer applies and the JumpMultiplier does apply. For example, a value of "0.8" signifies that at 80% utilization, the JumpMultiplier applies
+  JumpMultiplier sdkmath.LegacyDec `json:"jump_multiplier" yaml:"jump_multiplier"` // same as BaseMultiplier, but only applied when utilization is above the Kink
 }
 
 // BorrowLimit enforces restrictions on a money market
 type BorrowLimit struct {
   HasMaxLimit  bool    `json:"has_max_limit" yaml:"has_max_limit"` // boolean for if the money market has a max amount that can be borrowed, irrespective of utilization.
-  MaximumLimit sdk.Dec `json:"maximum_limit" yaml:"maximum_limit"` // the maximum amount that can be borrowed for this money market, irrespective of utilization. Ignored if HasMaxLimit is false
-  LoanToValue  sdk.Dec `json:"loan_to_value" yaml:"loan_to_value"` // the percentage amount of borrow power each unit of deposit accounts for. Ex. A value of "0.5" signifies that for $1 of supply of a particular asset, borrow limits will be increased by $0.5
+  MaximumLimit sdkmath.LegacyDec `json:"maximum_limit" yaml:"maximum_limit"` // the maximum amount that can be borrowed for this money market, irrespective of utilization. Ignored if HasMaxLimit is false
+  LoanToValue  sdkmath.LegacyDec `json:"loan_to_value" yaml:"loan_to_value"` // the percentage amount of borrow power each unit of deposit accounts for. Ex. A value of "0.5" signifies that for $1 of supply of a particular asset, borrow limits will be increased by $0.5
 }
 ```
 

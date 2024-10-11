@@ -6,7 +6,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/kava-labs/kava/x/evmutil"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
 	"github.com/kava-labs/kava/x/evmutil/types"
@@ -77,7 +76,7 @@ func (s *genesisTestSuite) TestInitGenesis_ModuleAccount() {
 	// check for module account this way b/c GetModuleAccount creates if not existing.
 	acc := s.AccountKeeper.GetAccount(s.Ctx, s.AccountKeeper.GetModuleAddress(types.ModuleName))
 	s.Require().NotNil(acc)
-	_, ok := acc.(authtypes.ModuleAccountI)
+	_, ok := acc.(sdk.ModuleAccountI)
 	s.Require().True(ok)
 }
 

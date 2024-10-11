@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -34,7 +34,7 @@ func ModuleAccountInvariants(k Keeper) sdk.Invariant {
 		})
 
 		moduleAccCoins := k.bankKeeper.GetAllBalances(ctx, authtypes.NewModuleAddress(types.ModuleName))
-		broken := !moduleAccCoins.IsEqual(totalAuctionCoins)
+		broken := !moduleAccCoins.Equal(totalAuctionCoins)
 
 		invariantMessage := sdk.FormatInvariant(
 			types.ModuleName,

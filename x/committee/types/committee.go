@@ -52,8 +52,8 @@ type Committee interface {
 	GetProposalDuration() time.Duration
 	SetProposalDuration(time.Duration)
 
-	GetVoteThreshold() sdk.Dec
-	SetVoteThreshold(sdk.Dec)
+	GetVoteThreshold() sdkmath.LegacyDec
+	SetVoteThreshold(sdkmath.LegacyDec)
 
 	GetTallyOption() TallyOption
 	Validate() error
@@ -151,10 +151,10 @@ func (c BaseCommittee) String() string {
 }
 
 // GetVoteThreshold is a getter for committee VoteThreshold
-func (c BaseCommittee) GetVoteThreshold() sdk.Dec { return c.VoteThreshold }
+func (c BaseCommittee) GetVoteThreshold() sdkmath.LegacyDec { return c.VoteThreshold }
 
 // SetVoteThreshold is a setter for committee VoteThreshold
-func (c *BaseCommittee) SetVoteThreshold(voteThreshold sdk.Dec) {
+func (c *BaseCommittee) SetVoteThreshold(voteThreshold sdkmath.LegacyDec) {
 	c.VoteThreshold = voteThreshold
 }
 
@@ -233,7 +233,7 @@ func (c BaseCommittee) Validate() error {
 
 // NewMemberCommittee instantiates a new instance of MemberCommittee
 func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption,
+	threshold sdkmath.LegacyDec, duration time.Duration, tallyOption TallyOption,
 ) (*MemberCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
@@ -254,7 +254,7 @@ func NewMemberCommittee(id uint64, description string, members []sdk.AccAddress,
 
 // MustNewMemberCommittee instantiates a new instance of MemberCommittee and panics on error
 func MustNewMemberCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption,
+	threshold sdkmath.LegacyDec, duration time.Duration, tallyOption TallyOption,
 ) *MemberCommittee {
 	committee, err := NewMemberCommittee(id, description, members, permissions, threshold, duration, tallyOption)
 	if err != nil {
@@ -268,7 +268,7 @@ func (c MemberCommittee) GetType() string { return MemberCommitteeType }
 
 // NewTokenCommittee instantiates a new instance of TokenCommittee
 func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string,
+	threshold sdkmath.LegacyDec, duration time.Duration, tallyOption TallyOption, quorum sdkmath.LegacyDec, tallyDenom string,
 ) (*TokenCommittee, error) {
 	permissionsAny, err := PackPermissions(permissions)
 	if err != nil {
@@ -291,7 +291,7 @@ func NewTokenCommittee(id uint64, description string, members []sdk.AccAddress, 
 
 // MustNewTokenCommittee instantiates a new instance of TokenCommittee and panics on error
 func MustNewTokenCommittee(id uint64, description string, members []sdk.AccAddress, permissions []Permission,
-	threshold sdk.Dec, duration time.Duration, tallyOption TallyOption, quorum sdk.Dec, tallyDenom string,
+	threshold sdkmath.LegacyDec, duration time.Duration, tallyOption TallyOption, quorum sdkmath.LegacyDec, tallyDenom string,
 ) *TokenCommittee {
 	committee, err := NewTokenCommittee(id, description, members, permissions, threshold, duration, tallyOption, quorum, tallyDenom)
 	if err != nil {
@@ -304,7 +304,7 @@ func MustNewTokenCommittee(id uint64, description string, members []sdk.AccAddre
 func (c TokenCommittee) GetType() string { return TokenCommitteeType }
 
 // GetQuorum returns the quorum of the committee
-func (c TokenCommittee) GetQuorum() sdk.Dec { return c.Quorum }
+func (c TokenCommittee) GetQuorum() sdkmath.LegacyDec { return c.Quorum }
 
 // GetTallyDenom returns the tally denom of the committee
 func (c TokenCommittee) GetTallyDenom() string { return c.TallyDenom }

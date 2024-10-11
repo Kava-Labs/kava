@@ -45,7 +45,7 @@ func (th TallyHandler) Tally(
 	ctx sdk.Context,
 	proposal govv1.Proposal,
 ) (passes bool, burnDeposits bool, tallyResults govv1.TallyResult) {
-	results := make(map[govv1.VoteOption]sdk.Dec)
+	results := make(map[govv1.VoteOption]sdkmath.LegacyDec)
 	results[govv1.OptionYes] = sdk.ZeroDec()
 	results[govv1.OptionAbstain] = sdk.ZeroDec()
 	results[govv1.OptionNo] = sdk.ZeroDec()

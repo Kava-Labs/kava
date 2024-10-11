@@ -11,7 +11,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -229,7 +228,7 @@ func (suite *IntegrationTester) DeliverMsgDelegate(delegator sdk.AccAddress, val
 	return err
 }
 
-func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, tokenA, tokenB sdk.Coin, slippage sdk.Dec) error {
+func (suite *IntegrationTester) DeliverSwapMsgDeposit(depositor sdk.AccAddress, tokenA, tokenB sdk.Coin, slippage sdkmath.LegacyDec) error {
 	msg := swaptypes.NewMsgDeposit(
 		depositor.String(),
 		tokenA,
@@ -351,12 +350,12 @@ func (suite *IntegrationTester) ProposeAndVoteOnNewParams(voter sdk.AccAddress, 
 	suite.NoError(err)
 }
 
-func (suite *IntegrationTester) GetAccount(addr sdk.AccAddress) authtypes.AccountI {
+func (suite *IntegrationTester) GetAccount(addr sdk.AccAddress) sdk.AccountI {
 	ak := suite.App.GetAccountKeeper()
 	return ak.GetAccount(suite.Ctx, addr)
 }
 
-func (suite *IntegrationTester) GetModuleAccount(name string) authtypes.ModuleAccountI {
+func (suite *IntegrationTester) GetModuleAccount(name string) sdk.ModuleAccountI {
 	ak := suite.App.GetAccountKeeper()
 	return ak.GetModuleAccount(suite.Ctx, name)
 }

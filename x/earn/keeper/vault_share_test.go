@@ -89,7 +89,7 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 
 func (suite *vaultShareTestSuite) addTotalShareAndValue(
 	vaultDenom string,
-	vaultShares sdk.Dec,
+	vaultShares sdkmath.LegacyDec,
 	hardDeposit sdkmath.Int,
 ) {
 	macc := suite.AccountKeeper.GetModuleAccount(suite.Ctx, types.ModuleName)

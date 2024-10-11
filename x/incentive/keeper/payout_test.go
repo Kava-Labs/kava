@@ -9,7 +9,6 @@ import (
 
 	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	vestingtypes "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
 
 	"github.com/kava-labs/kava/app"
@@ -70,12 +69,12 @@ func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthBankGenesisB
 	)
 }
 
-func (suite *PayoutTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
+func (suite *PayoutTestSuite) getAccount(addr sdk.AccAddress) sdk.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *PayoutTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
+func (suite *PayoutTestSuite) getModuleAccount(name string) sdk.ModuleAccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetModuleAccount(suite.ctx, name)
 }

@@ -248,7 +248,7 @@ func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CDPBuilder {
 			// Set them to the default denom, but with 0 amount.
 			Principal:       c(cdptypes.DefaultStableDenom, 0),
 			AccumulatedFees: c(cdptypes.DefaultStableDenom, 0),
-			// zero value of sdk.Dec causes nil pointer panics
+			// zero value of sdkmath.LegacyDec causes nil pointer panics
 			InterestFactor: sdk.OneDec(),
 		},
 	}

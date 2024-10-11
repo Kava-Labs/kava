@@ -23,7 +23,6 @@ import (
 	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktestutil "github.com/cosmos/cosmos-sdk/x/bank/testutil"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -221,7 +220,7 @@ func (suite *Suite) RemoveCoinsFromModule(amount sdk.Coins) {
 
 // CreateAccount creates a new account from the provided balance, using index
 // to create different new addresses.
-func (suite *Suite) CreateAccount(initialBalance sdk.Coins, index int) authtypes.AccountI {
+func (suite *Suite) CreateAccount(initialBalance sdk.Coins, index int) sdk.AccountI {
 	_, addrs := app.GeneratePrivKeyAddressPairs(index + 1)
 	ak := suite.App.GetAccountKeeper()
 
@@ -235,7 +234,7 @@ func (suite *Suite) CreateAccount(initialBalance sdk.Coins, index int) authtypes
 }
 
 // NewAccountFromAddr creates a new account from the provided address with the provided balance
-func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) authtypes.AccountI {
+func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) sdk.AccountI {
 	ak := suite.App.GetAccountKeeper()
 
 	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
@@ -395,7 +394,7 @@ func (suite *Suite) NewBondCoin(amount sdkmath.Int) sdk.Coin {
 }
 
 // CreateDelegation delegates tokens to a validator.
-func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdk.Dec {
+func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdkmath.LegacyDec {
 	sk := suite.App.GetStakingKeeper()
 
 	stakingDenom := sk.BondDenom(suite.Ctx)

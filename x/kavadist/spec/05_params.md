@@ -26,14 +26,14 @@ Each `Period` has the following parameters
 | --------- | --------- | ---------------------- | --------------------------------------- |
 | Start     | time.Time | "2020-03-01T15:20:00Z" | the time when the period will start     |
 | End       | time.Time | "2020-06-01T15:20:00Z" | the time when the period will end       |
-| Inflation | sdk.Dec   | "1.000000003022265980" | the per-second inflation for the period |
+| Inflation | sdkmath.LegacyDec   | "1.000000003022265980" | the per-second inflation for the period |
 
 Each `CoreReward` has the following properties
 
 | Key     | Type           | Example                                       | Description                                              |
 | ------- | -------------- | --------------------------------------------- | -------------------------------------------------------- |
 | Address | sdk.AccAddress | "kava1x07eng0q9027j7wayap8nvqegpf625uu0w90tq" | address of core infrastructure provider                  |
-| Weight  | sdk.Dec        | "0.912345678907654321"                        | % of remaining minted rewards allocated to this provider |
+| Weight  | sdkmath.LegacyDec        | "0.912345678907654321"                        | % of remaining minted rewards allocated to this provider |
 
 Each `PartnerReward` has the following properties
 

@@ -1827,7 +1827,7 @@ QueryCdpsRequest is the params for a filtered CDP query, the request type for th
 | `collateral_type` | [string](#string) |  |  |
 | `owner` | [string](#string) |  |  |
 | `id` | [uint64](#uint64) |  |  |
-| `ratio` | [string](#string) |  | sdk.Dec as a string |
+| `ratio` | [string](#string) |  | sdkmath.LegacyDec as a string |
 | `pagination` | [cosmos.base.query.v1beta1.PageRequest](#cosmos.base.query.v1beta1.PageRequest) |  |  |
 
 
@@ -4480,7 +4480,7 @@ BorrowInterestFactorResponse defines an individual borrow interest factor.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  |  |
-| `value` | [string](#string) |  | sdk.Dec as string |
+| `value` | [string](#string) |  | sdkmath.LegacyDec as string |
 
 
 
@@ -4530,8 +4530,8 @@ InterestFactor is a unique type returned by interest factor queries
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  |  |
-| `borrow_interest_factor` | [string](#string) |  | sdk.Dec as String |
-| `supply_interest_factor` | [string](#string) |  | sdk.Dec as String |
+| `borrow_interest_factor` | [string](#string) |  | sdkmath.LegacyDec as String |
+| `supply_interest_factor` | [string](#string) |  | sdkmath.LegacyDec as String |
 
 
 
@@ -4547,8 +4547,8 @@ MoneyMarketInterestRate is a unique type returned by interest rate queries
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  |  |
-| `supply_interest_rate` | [string](#string) |  | sdk.Dec as String |
-| `borrow_interest_rate` | [string](#string) |  | sdk.Dec as String |
+| `supply_interest_rate` | [string](#string) |  | sdkmath.LegacyDec as String |
+| `borrow_interest_rate` | [string](#string) |  | sdkmath.LegacyDec as String |
 
 
 
@@ -4896,7 +4896,7 @@ SupplyInterestFactorResponse defines an individual borrow interest factor.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | `denom` | [string](#string) |  |  |
-| `value` | [string](#string) |  | sdk.Dec as string |
+| `value` | [string](#string) |  | sdkmath.LegacyDec as string |
 
 
 

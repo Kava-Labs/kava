@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/cdp/types"
@@ -112,7 +112,7 @@ func (k Keeper) AddCdp(ctx sdk.Context, owner sdk.AccAddress, collateral sdk.Coi
 }
 
 // UpdateCdpAndCollateralRatioIndex updates the state of an existing cdp in the store by replacing the old index values and updating the store to the latest cdp object values
-func (k Keeper) UpdateCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdk.Dec) error {
+func (k Keeper) UpdateCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdkmath.LegacyDec) error {
 	err := k.removeOldCollateralRatioIndex(ctx, cdp.Type, cdp.ID)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func (k Keeper) DeleteCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP)
 }
 
 // SetCdpAndCollateralRatioIndex sets the cdp and collateral ratio index in the store
-func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdk.Dec) error {
+func (k Keeper) SetCdpAndCollateralRatioIndex(ctx sdk.Context, cdp types.CDP, ratio sdkmath.LegacyDec) error {
 	err := k.SetCDP(ctx, cdp)
 	if err != nil {
 		return err
@@ -275,7 +275,7 @@ func (k Keeper) GetAllCdpsByCollateralType(ctx sdk.Context, collateralType strin
 }
 
 // GetAllCdpsByCollateralTypeAndRatio returns all cdps of a particular collateral type and below a certain collateralization ratio
-func (k Keeper) GetAllCdpsByCollateralTypeAndRatio(ctx sdk.Context, collateralType string, targetRatio sdk.Dec) (cdps types.CDPs) {
+func (k Keeper) GetAllCdpsByCollateralTypeAndRatio(ctx sdk.Context, collateralType string, targetRatio sdkmath.LegacyDec) (cdps types.CDPs) {
 	k.IterateCdpsByCollateralRatio(ctx, collateralType, targetRatio, func(cdp types.CDP) bool {
 		cdps = append(cdps, cdp)
 		return false
@@ -342,7 +342,7 @@ func (k Keeper) RemoveCdpOwnerIndex(ctx sdk.Context, cdp types.CDP) {
 }
 
 // IndexCdpByCollateralRatio sets the cdp id in the store, indexed by the collateral type and collateral to debt ratio
-func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdk.Dec) {
+func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdkmath.LegacyDec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
@@ -352,7 +352,7 @@ func (k Keeper) IndexCdpByCollateralRatio(ctx sdk.Context, collateralType string
 }
 
 // RemoveCdpCollateralRatioIndex deletes the cdp id from the store's index of cdps by collateral type and collateral to debt ratio
-func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdk.Dec) {
+func (k Keeper) RemoveCdpCollateralRatioIndex(ctx sdk.Context, collateralType string, id uint64, collateralRatio sdkmath.LegacyDec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
@@ -483,7 +483,7 @@ func (k Keeper) ValidateBalance(ctx sdk.Context, amount sdk.Coin, sender sdk.Acc
 }
 
 // CalculateCollateralToDebtRatio returns the collateral to debt ratio of the input collateral and debt amounts
-func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.Coin, collateralType string, debt sdk.Coin) sdk.Dec {
+func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.Coin, collateralType string, debt sdk.Coin) sdkmath.LegacyDec {
 	debtTotal := k.convertDebtToBaseUnits(ctx, debt)
 
 	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {
@@ -559,7 +559,7 @@ func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPRespons
 }
 
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
-func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, collateralType string, principal sdk.Coin, fees sdk.Coin, pfType pricefeedType) (sdk.Dec, error) {
+func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, collateralType string, principal sdk.Coin, fees sdk.Coin, pfType pricefeedType) (sdkmath.LegacyDec, error) {
 	if collateral.IsZero() {
 		return sdk.ZeroDec(), nil
 	}
@@ -570,12 +570,12 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 	case liquidation:
 		marketID = k.getliquidationMarketID(ctx, collateralType)
 	default:
-		return sdk.Dec{}, pfType.IsValid()
+		return sdkmath.LegacyDec{}, pfType.IsValid()
 	}
 
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
-		return sdk.Dec{}, err
+		return sdkmath.LegacyDec{}, err
 	}
 	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral, collateralType)
 	collateralValue := collateralBaseUnits.Mul(price.Price)
@@ -590,7 +590,7 @@ func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.
 }
 
 // CalculateCollateralizationRatioFromAbsoluteRatio takes a coin's denom and an absolute ratio and returns the respective collateralization ratio
-func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralType string, absoluteRatio sdk.Dec, pfType pricefeedType) (sdk.Dec, error) {
+func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context, collateralType string, absoluteRatio sdkmath.LegacyDec, pfType pricefeedType) (sdkmath.LegacyDec, error) {
 	// get price of collateral
 	var marketID string
 	switch pfType {
@@ -599,12 +599,12 @@ func (k Keeper) CalculateCollateralizationRatioFromAbsoluteRatio(ctx sdk.Context
 	case liquidation:
 		marketID = k.getliquidationMarketID(ctx, collateralType)
 	default:
-		return sdk.Dec{}, pfType.IsValid()
+		return sdkmath.LegacyDec{}, pfType.IsValid()
 	}
 
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
-		return sdk.Dec{}, err
+		return sdkmath.LegacyDec{}, err
 	}
 	// convert absolute ratio to collateralization ratio
 	respectiveCollateralRatio := absoluteRatio.Quo(price.Price)
@@ -640,13 +640,13 @@ func (k Keeper) UpdatePricefeedStatus(ctx sdk.Context, marketID string) (ok bool
 }
 
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))
-func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coin, collateralType string) (baseUnits sdk.Dec) {
+func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coin, collateralType string) (baseUnits sdkmath.LegacyDec) {
 	cp, _ := k.GetCollateral(ctx, collateralType)
 	return sdk.NewDecFromInt(collateral.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), cp.ConversionFactor.Int64()))
 }
 
 // converts the input debt to base units (ie multiplies the input by 10^(-ConversionFactor))
-func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdk.Dec) {
+func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdkmath.LegacyDec) {
 	dp, _ := k.GetDebtParam(ctx, debt.Denom)
 	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), dp.ConversionFactor.Int64()))
 }

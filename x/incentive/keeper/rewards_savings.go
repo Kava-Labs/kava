@@ -87,7 +87,7 @@ func (k Keeper) SynchronizeSavingsReward(ctx sdk.Context, deposit savingstypes.D
 // synchronizeSingleSavingsReward synchronizes a single rewarded savings denom in a savings claim.
 // It returns the claim without setting in the store.
 // The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
-func (k Keeper) synchronizeSingleSavingsReward(ctx sdk.Context, claim types.SavingsClaim, denom string, sourceShares sdk.Dec) types.SavingsClaim {
+func (k Keeper) synchronizeSingleSavingsReward(ctx sdk.Context, claim types.SavingsClaim, denom string, sourceShares sdkmath.LegacyDec) types.SavingsClaim {
 	globalRewardIndexes, found := k.GetSavingsRewardIndexes(ctx, denom)
 	if !found {
 		// The global factor is only not found if

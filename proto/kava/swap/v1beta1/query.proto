@@ -69,7 +69,7 @@ message PoolResponse {
   //  total_shares represents the total shares of the pool
   string total_shares = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
 }
@@ -107,7 +107,7 @@ message DepositResponse {
   // shares_owned presents the shares owned by the depositor for the pool
   string shares_owned = 3 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
   // shares_value represents the coin value of the shares_owned

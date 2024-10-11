@@ -87,7 +87,7 @@ func (p Params) Validate() error {
 }
 
 // NewPeriod returns a new instance of Period
-func NewPeriod(start time.Time, end time.Time, inflation sdk.Dec) Period {
+func NewPeriod(start time.Time, end time.Time, inflation sdkmath.LegacyDec) Period {
 	return Period{
 		Start:     start,
 		End:       end,
@@ -120,7 +120,7 @@ func NewPartnerReward(addr sdk.AccAddress, rps sdk.Coin) PartnerReward {
 	}
 }
 
-func NewCoreReward(addr sdk.AccAddress, w sdk.Dec) CoreReward {
+func NewCoreReward(addr sdk.AccAddress, w sdkmath.LegacyDec) CoreReward {
 	return CoreReward{
 		Address: addr,
 		Weight:  w,

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/precisebank/types"
@@ -10,7 +11,7 @@ import (
 // return the extended balance for the ExtendedCoinDenom, and the regular
 // balance for all other denoms.
 func (k Keeper) GetBalance(
-	ctx sdk.Context,
+	ctx context.Context,
 	addr sdk.AccAddress,
 	denom string,
 ) sdk.Coin {
@@ -22,16 +23,18 @@ func (k Keeper) GetBalance(
 		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// Pass through to x/bank for denoms except ExtendedCoinDenom
 	if denom != types.ExtendedCoinDenom {
-		return k.bk.GetBalance(ctx, addr, denom)
+		return k.bk.GetBalance(sdkCtx, addr, denom)
 	}
 
 	// x/bank for integer balance - full balance, including locked
-	integerCoins := k.bk.GetBalance(ctx, addr, types.IntegerCoinDenom)
+	integerCoins := k.bk.GetBalance(sdkCtx, addr, types.IntegerCoinDenom)
 
 	// x/precisebank for fractional balance
-	fractionalAmount := k.GetFractionalBalance(ctx, addr)
+	fractionalAmount := k.GetFractionalBalance(sdkCtx, addr)
 
 	// (Integer * ConversionFactor) + Fractional
 	fullAmount := integerCoins.

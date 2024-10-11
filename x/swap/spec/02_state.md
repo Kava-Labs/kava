@@ -12,7 +12,7 @@ order: 2
 // Params are governance parameters for the swap module
 type Params struct {
 	AllowedPools   AllowedPools   `json:"allowed_pools" yaml:"allowed_pools"`
-	SwapFee sdk.Dec `json:"swap_fee" yaml:"swap_fee"`
+	SwapFee sdkmath.LegacyDec `json:"swap_fee" yaml:"swap_fee"`
 }
 
 // AllowedPool defines a tradable pool

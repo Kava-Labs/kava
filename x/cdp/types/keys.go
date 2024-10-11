@@ -115,7 +115,7 @@ func SplitDepositIterKey(key []byte) (cdpID uint64) {
 }
 
 // CollateralRatioBytes returns the liquidation ratio as sortable bytes
-func CollateralRatioBytes(ratio sdk.Dec) []byte {
+func CollateralRatioBytes(ratio sdkmath.LegacyDec) []byte {
 	ok := ValidSortableDec(ratio)
 	if !ok {
 		// set to max sortable if input is too large.
@@ -125,7 +125,7 @@ func CollateralRatioBytes(ratio sdk.Dec) []byte {
 }
 
 // CollateralRatioKey returns the key for querying a cdp by its liquidation ratio
-func CollateralRatioKey(collateralType string, cdpID uint64, ratio sdk.Dec) []byte {
+func CollateralRatioKey(collateralType string, cdpID uint64, ratio sdkmath.LegacyDec) []byte {
 	ratioBytes := CollateralRatioBytes(ratio)
 	idBytes := GetCdpIDBytes(cdpID)
 
@@ -133,7 +133,7 @@ func CollateralRatioKey(collateralType string, cdpID uint64, ratio sdk.Dec) []by
 }
 
 // SplitCollateralRatioKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
-func SplitCollateralRatioKey(key []byte) (string, uint64, sdk.Dec) {
+func SplitCollateralRatioKey(key []byte) (string, uint64, sdkmath.LegacyDec) {
 	cdpID := GetCdpIDFromBytes(key[len(key)-8:])
 	split := bytes.Split(key[:len(key)-8], sep)
 	collateralType := string(split[0])
@@ -146,13 +146,13 @@ func SplitCollateralRatioKey(key []byte) (string, uint64, sdk.Dec) {
 }
 
 // CollateralRatioIterKey returns the key for iterating over cdps by denom and liquidation ratio
-func CollateralRatioIterKey(collateralType string, ratio sdk.Dec) []byte {
+func CollateralRatioIterKey(collateralType string, ratio sdkmath.LegacyDec) []byte {
 	ratioBytes := CollateralRatioBytes(ratio)
 	return createKey([]byte(collateralType), sep, ratioBytes)
 }
 
 // SplitCollateralRatioIterKey split the collateral ratio key and return the denom, cdp id, and collateral:debt ratio
-func SplitCollateralRatioIterKey(key []byte) (string, sdk.Dec) {
+func SplitCollateralRatioIterKey(key []byte) (string, sdkmath.LegacyDec) {
 	split := bytes.Split(key, sep)
 	collateralType := string(split[0])
 

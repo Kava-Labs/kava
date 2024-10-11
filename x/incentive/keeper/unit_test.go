@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store"
+	storetypes "cosmossdk.io/store/types"
 	db "github.com/cometbft/cometbft-db"
-	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
@@ -302,13 +302,13 @@ type fakeHardKeeper struct {
 
 type fakeHardState struct {
 	total           sdk.Coins
-	interestFactors map[string]sdk.Dec
+	interestFactors map[string]sdkmath.LegacyDec
 }
 
 func newFakeHardState() fakeHardState {
 	return fakeHardState{
 		total:           nil,
-		interestFactors: map[string]sdk.Dec{}, // initialize map to avoid panics on read
+		interestFactors: map[string]sdkmath.LegacyDec{}, // initialize map to avoid panics on read
 	}
 }
 
@@ -321,13 +321,13 @@ func newFakeHardKeeper() *fakeHardKeeper {
 	}
 }
 
-func (k *fakeHardKeeper) addTotalBorrow(coin sdk.Coin, factor sdk.Dec) *fakeHardKeeper {
+func (k *fakeHardKeeper) addTotalBorrow(coin sdk.Coin, factor sdkmath.LegacyDec) *fakeHardKeeper {
 	k.borrows.total = k.borrows.total.Add(coin)
 	k.borrows.interestFactors[coin.Denom] = factor
 	return k
 }
 
-func (k *fakeHardKeeper) addTotalSupply(coin sdk.Coin, factor sdk.Dec) *fakeHardKeeper {
+func (k *fakeHardKeeper) addTotalSupply(coin sdk.Coin, factor sdkmath.LegacyDec) *fakeHardKeeper {
 	k.deposits.total = k.deposits.total.Add(coin)
 	k.deposits.interestFactors[coin.Denom] = factor
 	return k
@@ -347,12 +347,12 @@ func (k *fakeHardKeeper) GetSuppliedCoins(_ sdk.Context) (sdk.Coins, bool) {
 	return k.deposits.total, true
 }
 
-func (k *fakeHardKeeper) GetBorrowInterestFactor(_ sdk.Context, denom string) (sdk.Dec, bool) {
+func (k *fakeHardKeeper) GetBorrowInterestFactor(_ sdk.Context, denom string) (sdkmath.LegacyDec, bool) {
 	f, ok := k.borrows.interestFactors[denom]
 	return f, ok
 }
 
-func (k *fakeHardKeeper) GetSupplyInterestFactor(_ sdk.Context, denom string) (sdk.Dec, bool) {
+func (k *fakeHardKeeper) GetSupplyInterestFactor(_ sdk.Context, denom string) (sdkmath.LegacyDec, bool) {
 	f, ok := k.deposits.interestFactors[denom]
 	return f, ok
 }
@@ -424,7 +424,7 @@ func (k *fakeStakingKeeper) GetValidatorDelegations(_ sdk.Context, valAddr sdk.V
 // fakeCDPKeeper is a stub cdp keeper.
 // It can be used to return values to the incentive keeper without having to initialize a full cdp keeper.
 type fakeCDPKeeper struct {
-	interestFactor *sdk.Dec
+	interestFactor *sdkmath.LegacyDec
 	totalPrincipal sdkmath.Int
 }
 
@@ -437,7 +437,7 @@ func newFakeCDPKeeper() *fakeCDPKeeper {
 	}
 }
 
-func (k *fakeCDPKeeper) addInterestFactor(f sdk.Dec) *fakeCDPKeeper {
+func (k *fakeCDPKeeper) addInterestFactor(f sdkmath.LegacyDec) *fakeCDPKeeper {
 	k.interestFactor = &f
 	return k
 }
@@ -447,11 +447,11 @@ func (k *fakeCDPKeeper) addTotalPrincipal(p sdkmath.Int) *fakeCDPKeeper {
 	return k
 }
 
-func (k *fakeCDPKeeper) GetInterestFactor(_ sdk.Context, collateralType string) (sdk.Dec, bool) {
+func (k *fakeCDPKeeper) GetInterestFactor(_ sdk.Context, collateralType string) (sdkmath.LegacyDec, bool) {
 	if k.interestFactor != nil {
 		return *k.interestFactor, true
 	}
-	return sdk.Dec{}, false
+	return sdkmath.LegacyDec{}, false
 }
 
 func (k *fakeCDPKeeper) GetTotalPrincipal(_ sdk.Context, collateralType string, principalDenom string) sdkmath.Int {
@@ -627,7 +627,7 @@ func (k *fakeLiquidKeeper) getRewardAmount(
 }
 
 type fakeDistrKeeper struct {
-	communityTax sdk.Dec
+	communityTax sdkmath.LegacyDec
 }
 
 var _ types.DistrKeeper = newFakeDistrKeeper()
@@ -636,12 +636,12 @@ func newFakeDistrKeeper() *fakeDistrKeeper {
 	return &fakeDistrKeeper{}
 }
 
-func (k *fakeDistrKeeper) setCommunityTax(percent sdk.Dec) *fakeDistrKeeper {
+func (k *fakeDistrKeeper) setCommunityTax(percent sdkmath.LegacyDec) *fakeDistrKeeper {
 	k.communityTax = percent
 	return k
 }
 
-func (k *fakeDistrKeeper) GetCommunityTax(ctx sdk.Context) (percent sdk.Dec) {
+func (k *fakeDistrKeeper) GetCommunityTax(ctx sdk.Context) (percent sdkmath.LegacyDec) {
 	return k.communityTax
 }
 

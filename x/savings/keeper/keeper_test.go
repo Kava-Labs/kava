@@ -80,27 +80,27 @@ func (suite *KeeperTestSuite) TestIterateDeposits() {
 	suite.Require().Equal(5, len(deposits))
 }
 
-func (suite *KeeperTestSuite) getAccountCoins(acc authtypes.AccountI) sdk.Coins {
+func (suite *KeeperTestSuite) getAccountCoins(acc sdk.AccountI) sdk.Coins {
 	bk := suite.app.GetBankKeeper()
 	return bk.GetAllBalances(suite.ctx, acc.GetAddress())
 }
 
-func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) authtypes.AccountI {
+func (suite *KeeperTestSuite) getAccount(addr sdk.AccAddress) sdk.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(suite.ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) authtypes.AccountI {
+func (suite *KeeperTestSuite) getAccountAtCtx(addr sdk.AccAddress, ctx sdk.Context) sdk.AccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetAccount(ctx, addr)
 }
 
-func (suite *KeeperTestSuite) getModuleAccount(name string) authtypes.ModuleAccountI {
+func (suite *KeeperTestSuite) getModuleAccount(name string) sdk.ModuleAccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetModuleAccount(suite.ctx, name)
 }
 
-func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) authtypes.ModuleAccountI {
+func (suite *KeeperTestSuite) getModuleAccountAtCtx(name string, ctx sdk.Context) sdk.ModuleAccountI {
 	ak := suite.app.GetAccountKeeper()
 	return ak.GetModuleAccount(ctx, name)
 }
@@ -110,7 +110,7 @@ func TestKeeperTestSuite(t *testing.T) {
 }
 
 // CreateAccount creates a new account from the provided balance and address
-func (suite *KeeperTestSuite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins) authtypes.AccountI {
+func (suite *KeeperTestSuite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins) sdk.AccountI {
 	ak := suite.app.GetAccountKeeper()
 
 	acc := ak.NewAccountWithAddress(suite.ctx, addr)
@@ -123,7 +123,7 @@ func (suite *KeeperTestSuite) CreateAccountWithAddress(addr sdk.AccAddress, init
 }
 
 // CreateVestingAccount creates a new vesting account. `vestingBalance` should be a fraction of `initialBalance`.
-func (suite *KeeperTestSuite) CreateVestingAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins, vestingBalance sdk.Coins) authtypes.AccountI {
+func (suite *KeeperTestSuite) CreateVestingAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins, vestingBalance sdk.Coins) sdk.AccountI {
 	if vestingBalance.IsAnyGT(initialBalance) {
 		panic("vesting balance must be less than initial balance")
 	}
@@ -174,7 +174,7 @@ func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, se
 }
 
 // CreateDelegation delegates tokens to a validator.
-func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdk.Dec {
+func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdkmath.LegacyDec {
 	sk := suite.app.GetStakingKeeper()
 
 	stakingDenom := sk.BondDenom(suite.ctx)

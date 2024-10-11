@@ -111,7 +111,7 @@ func (suite *SeizeTestSuite) createCdps() {
 	suite.liquidations = tracker
 }
 
-func (suite *SeizeTestSuite) setPrice(price sdk.Dec, market string) {
+func (suite *SeizeTestSuite) setPrice(price sdkmath.LegacyDec, market string) {
 	pfKeeper := suite.app.GetPriceFeedKeeper()
 
 	_, err := pfKeeper.SetPrice(suite.ctx, sdk.AccAddress{}, market, price, suite.ctx.BlockTime().Add(time.Hour*3))
@@ -225,9 +225,9 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 	type args struct {
 		ctype               string
 		blockTime           time.Time
-		initialPrice        sdk.Dec
-		finalPrice          sdk.Dec
-		finalTwapPrice      sdk.Dec
+		initialPrice        sdkmath.LegacyDec
+		finalPrice          sdkmath.LegacyDec
+		finalTwapPrice      sdkmath.LegacyDec
 		collateral          sdk.Coin
 		principal           sdk.Coin
 		expectedKeeperCoins sdk.Coins              // additional coins (if any) the borrower address should have after successfully liquidating position
@@ -450,8 +450,8 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 	type args struct {
 		ctype            string
 		blockTime        time.Time
-		initialPrice     sdk.Dec
-		finalPrice       sdk.Dec
+		initialPrice     sdkmath.LegacyDec
+		finalPrice       sdkmath.LegacyDec
 		collaterals      sdk.Coins
 		principals       sdk.Coins
 		expectedAuctions []auctiontypes.Auction // the auctions we should expect to find have been started

@@ -266,7 +266,7 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 	testCases := []struct {
 		depositA   sdk.Coin
 		depositB   sdk.Coin
-		slippage   sdk.Dec
+		slippage   sdkmath.LegacyDec
 		shouldFail bool
 	}{
 		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.7"), true},

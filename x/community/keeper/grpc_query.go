@@ -81,7 +81,7 @@ func (s queryServer) AnnualizedRewards(
 	totalSupply := s.keeper.bankKeeper.GetSupply(ctx, bondDenom).Amount
 	totalBonded := s.keeper.stakingKeeper.TotalBondedTokens(ctx)
 	rewardsPerSecond := params.StakingRewardsPerSecond
-	// need to convert these from sdk.Dec to sdkmath.LegacyDec
+	// need to convert these from sdkmath.LegacyDec to sdkmath.LegacyDec
 	inflationRate := convertDecToLegacyDec(s.keeper.mintKeeper.GetMinter(ctx).Inflation)
 	communityTax := convertDecToLegacyDec(s.keeper.distrKeeper.GetCommunityTax(ctx))
 
@@ -91,9 +91,9 @@ func (s queryServer) AnnualizedRewards(
 }
 
 // convertDecToLegacyDec is a helper method for converting between new and old Dec types
-// current version of cosmos-sdk in this repo uses sdk.Dec
+// current version of cosmos-sdk in this repo uses sdkmath.LegacyDec
 // this module uses sdkmath.LegacyDec in its parameters
 // TODO: remove me after upgrade to cosmos-sdk v50 (LegacyDec is everywhere)
-func convertDecToLegacyDec(in sdk.Dec) sdkmath.LegacyDec {
+func convertDecToLegacyDec(in sdkmath.LegacyDec) sdkmath.LegacyDec {
 	return sdkmath.LegacyNewDecFromBigIntWithPrec(in.BigInt(), sdk.Precision)
 }

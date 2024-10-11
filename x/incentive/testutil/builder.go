@@ -257,7 +257,7 @@ func (builder HardGenesisBuilder) WithInitializedMoneyMarket(market hardtypes.Mo
 	return builder
 }
 
-func (builder HardGenesisBuilder) WithMinBorrow(minUSDValue sdk.Dec) HardGenesisBuilder {
+func (builder HardGenesisBuilder) WithMinBorrow(minUSDValue sdkmath.LegacyDec) HardGenesisBuilder {
 	builder.Params.MinimumBorrowUSDValue = minUSDValue
 	return builder
 }

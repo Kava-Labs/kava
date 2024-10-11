@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -14,15 +15,17 @@ import (
 
 // BurnCoins burns coins deletes coins from the balance of the module account.
 // It will panic if the module account does not exist or is unauthorized.
-func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
+func (k Keeper) BurnCoins(ctx context.Context, moduleName string, amt sdk.Coins) error {
 	// Custom protection for x/precisebank, no external module should be able to
 	// affect reserves.
 	if moduleName == types.ModuleName {
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnauthorized, "module account %s cannot be burned from", moduleName))
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// Panic errors are identical to x/bank for consistency.
-	acc := k.ak.GetModuleAccount(ctx, moduleName)
+	acc := k.ak.GetModuleAccount(sdkCtx, moduleName)
 	if acc == nil {
 		panic(errorsmod.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", moduleName))
 	}
@@ -48,14 +51,14 @@ func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 
 	// Coins unmanaged by x/precisebank are passed through to x/bank
 	if !passthroughCoins.Empty() {
-		if err := k.bk.BurnCoins(ctx, moduleName, passthroughCoins); err != nil {
+		if err := k.bk.BurnCoins(sdkCtx, moduleName, passthroughCoins); err != nil {
 			return err
 		}
 	}
 
 	// Only burn extended coin if the amount is positive
 	if extendedAmount.IsPositive() {
-		if err := k.burnExtendedCoin(ctx, moduleName, extendedAmount); err != nil {
+		if err := k.burnExtendedCoin(sdkCtx, moduleName, extendedAmount); err != nil {
 			return err
 		}
 	}
@@ -65,7 +68,7 @@ func (k Keeper) BurnCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) err
 		return nil
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
+	sdkCtx.EventManager().EmitEvents(sdk.Events{
 		banktypes.NewCoinBurnEvent(acc.GetAddress(), fullEmissionCoins),
 		banktypes.NewCoinSpentEvent(acc.GetAddress(), fullEmissionCoins),
 	})

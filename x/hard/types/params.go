@@ -24,7 +24,7 @@ var (
 )
 
 // NewBorrowLimit returns a new BorrowLimit
-func NewBorrowLimit(hasMaxLimit bool, maximumLimit, loanToValue sdk.Dec) BorrowLimit {
+func NewBorrowLimit(hasMaxLimit bool, maximumLimit, loanToValue sdkmath.LegacyDec) BorrowLimit {
 	return BorrowLimit{
 		HasMaxLimit:  hasMaxLimit,
 		MaximumLimit: maximumLimit,
@@ -62,7 +62,7 @@ func (bl BorrowLimit) Equal(blCompareTo BorrowLimit) bool {
 
 // NewMoneyMarket returns a new MoneyMarket
 func NewMoneyMarket(denom string, borrowLimit BorrowLimit, spotMarketID string, conversionFactor sdkmath.Int,
-	interestRateModel InterestRateModel, reserveFactor, keeperRewardPercentage sdk.Dec,
+	interestRateModel InterestRateModel, reserveFactor, keeperRewardPercentage sdkmath.LegacyDec,
 ) MoneyMarket {
 	return MoneyMarket{
 		Denom:                  denom,
@@ -144,7 +144,7 @@ func (mms MoneyMarkets) Validate() error {
 }
 
 // NewInterestRateModel returns a new InterestRateModel
-func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdk.Dec) InterestRateModel {
+func NewInterestRateModel(baseRateAPY, baseMultiplier, kink, jumpMultiplier sdkmath.LegacyDec) InterestRateModel {
 	return InterestRateModel{
 		BaseRateAPY:    baseRateAPY,
 		BaseMultiplier: baseMultiplier,
@@ -195,7 +195,7 @@ func (irm InterestRateModel) Equal(irmCompareTo InterestRateModel) bool {
 type InterestRateModels []InterestRateModel
 
 // NewParams returns a new params object
-func NewParams(moneyMarkets MoneyMarkets, minimumBorrowUSDValue sdk.Dec) Params {
+func NewParams(moneyMarkets MoneyMarkets, minimumBorrowUSDValue sdkmath.LegacyDec) Params {
 	return Params{
 		MoneyMarkets:          moneyMarkets,
 		MinimumBorrowUSDValue: minimumBorrowUSDValue,
@@ -230,7 +230,7 @@ func (p Params) Validate() error {
 }
 
 func validateMinimumBorrowUSDValue(i interface{}) error {
-	minBorrowVal, ok := i.(sdk.Dec)
+	minBorrowVal, ok := i.(sdkmath.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

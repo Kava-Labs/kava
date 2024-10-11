@@ -178,9 +178,9 @@ func (k Keeper) PlaceBidSurplus(ctx sdk.Context, auction *types.SurplusAuction, 
 		return auction, errorsmod.Wrapf(types.ErrInvalidBidDenom, "%s ≠ %s", bid.Denom, auction.Bid.Denom)
 	}
 	minNewBidAmt := auction.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
-		sdk.MaxInt(
+		sdkmath.MaxInt(
 			sdkmath.NewInt(1),
-			sdk.NewDecFromInt(auction.Bid.Amount).Mul(k.GetParams(ctx).IncrementSurplus).RoundInt(),
+			sdkmath.LegacyNewDecFromInt(auction.Bid.Amount).Mul(k.GetParams(ctx).IncrementSurplus).RoundInt(),
 		),
 	)
 	if bid.Amount.LT(minNewBidAmt) {
@@ -243,12 +243,12 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction *types.Collat
 		panic("cannot place reverse bid on auction in forward phase")
 	}
 	minNewBidAmt := auction.Bid.Amount.Add( // new bids must be some % greater than old bid, and at least 1 larger to avoid replacing an old bid at no cost
-		sdk.MaxInt(
+		sdkmath.MaxInt(
 			sdkmath.NewInt(1),
-			sdk.NewDecFromInt(auction.Bid.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
+			sdkmath.LegacyNewDecFromInt(auction.Bid.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
 		),
 	)
-	minNewBidAmt = sdk.MinInt(minNewBidAmt, auction.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
+	minNewBidAmt = sdkmath.MinInt(minNewBidAmt, auction.MaxBid.Amount) // allow new bids to hit MaxBid even though it may be less than the increment %
 	if bid.Amount.LT(minNewBidAmt) {
 		return auction, errorsmod.Wrapf(types.ErrBidTooSmall, "%s < %s%s", bid, minNewBidAmt, auction.Bid.Denom)
 	}
@@ -277,7 +277,7 @@ func (k Keeper) PlaceForwardBidCollateral(ctx sdk.Context, auction *types.Collat
 	// Debt coins are sent to liquidator (until there is no CorrespondingDebt left). Amount sent is equal to bidIncrement (or whatever is left if < bidIncrement).
 	if auction.CorrespondingDebt.IsPositive() {
 
-		debtAmountToReturn := sdk.MinInt(bidIncrement.Amount, auction.CorrespondingDebt.Amount)
+		debtAmountToReturn := sdkmath.MinInt(bidIncrement.Amount, auction.CorrespondingDebt.Amount)
 		debtToReturn := sdk.NewCoin(auction.CorrespondingDebt.Denom, debtAmountToReturn)
 
 		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, auction.Initiator, sdk.NewCoins(debtToReturn))
@@ -325,9 +325,9 @@ func (k Keeper) PlaceReverseBidCollateral(ctx sdk.Context, auction *types.Collat
 		panic("cannot place forward bid on auction in reverse phase")
 	}
 	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
-		sdk.MaxInt(
+		sdkmath.MaxInt(
 			sdkmath.NewInt(1),
-			sdk.NewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
+			sdkmath.LegacyNewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementCollateral).RoundInt(),
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
@@ -396,16 +396,16 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction *types.DebtAuction, bidder
 		return auction, errorsmod.Wrapf(types.ErrInvalidLotDenom, "%s ≠ %s", lot.Denom, auction.Lot.Denom)
 	}
 	maxNewLotAmt := auction.Lot.Amount.Sub( // new lot must be some % less than old lot, and at least 1 smaller to avoid replacing an old bid at no cost
-		sdk.MaxInt(
+		sdkmath.MaxInt(
 			sdkmath.NewInt(1),
-			sdk.NewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementDebt).RoundInt(),
+			sdkmath.LegacyNewDecFromInt(auction.Lot.Amount).Mul(k.GetParams(ctx).IncrementDebt).RoundInt(),
 		),
 	)
 	if lot.Amount.GT(maxNewLotAmt) {
 		return auction, errorsmod.Wrapf(types.ErrLotTooLarge, "%s > %s%s", lot, maxNewLotAmt, auction.Lot.Denom)
 	}
 	if lot.IsNegative() {
-		return auction, errorsmod.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdk.ZeroInt(), auction.Lot.Denom)
+		return auction, errorsmod.Wrapf(types.ErrLotTooSmall, "%s ≤ %s%s", lot, sdkmath.ZeroInt(), auction.Lot.Denom)
 	}
 
 	// New bidder pays back old bidder
@@ -431,7 +431,7 @@ func (k Keeper) PlaceBidDebt(ctx sdk.Context, auction *types.DebtAuction, bidder
 	// Debt coins are sent to liquidator the first time a bid is placed. Amount sent is equal to min of Bid and amount of debt.
 	if auction.Bidder.Equals(authtypes.NewModuleAddress(auction.Initiator)) {
 		// Handle debt coins for first bid
-		debtAmountToReturn := sdk.MinInt(auction.Bid.Amount, auction.CorrespondingDebt.Amount)
+		debtAmountToReturn := sdkmath.MinInt(auction.Bid.Amount, auction.CorrespondingDebt.Amount)
 		debtToReturn := sdk.NewCoin(auction.CorrespondingDebt.Denom, debtAmountToReturn)
 
 		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, auction.Initiator, sdk.NewCoins(debtToReturn))

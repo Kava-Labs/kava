@@ -9,7 +9,7 @@ import (
 )
 
 // NewMultiplier returns a new Multiplier
-func NewMultiplier(name string, lockup int64, factor sdk.Dec) Multiplier {
+func NewMultiplier(name string, lockup int64, factor sdkmath.LegacyDec) Multiplier {
 	return Multiplier{
 		Name:         name,
 		MonthsLockup: lockup,

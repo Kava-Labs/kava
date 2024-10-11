@@ -118,17 +118,17 @@ func (suite *KeeperTestSuite) TestCalculateShares() {
 
 	type returns struct {
 		derivatives sdkmath.Int
-		shares      sdk.Dec
+		shares      sdkmath.LegacyDec
 		err         error
 	}
 	type validator struct {
 		tokens          sdkmath.Int
-		delegatorShares sdk.Dec
+		delegatorShares sdkmath.LegacyDec
 	}
 	testCases := []struct {
 		name       string
 		validator  *validator
-		delegation sdk.Dec
+		delegation sdkmath.LegacyDec
 		transfer   sdkmath.Int
 		expected   returns
 	}{
@@ -144,7 +144,7 @@ func (suite *KeeperTestSuite) TestCalculateShares() {
 		{
 			name:       "error when delegation not found",
 			validator:  &validator{i(1e9), d("1000000000")},
-			delegation: sdk.Dec{},
+			delegation: sdkmath.LegacyDec{},
 			transfer:   i(500e6),
 			expected: returns{
 				err: stakingtypes.ErrNoDelegation,
@@ -251,8 +251,8 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 		name                    string
 		amount                  sdk.Coin
 		expectedDerivatives     sdkmath.Int
-		expectedSharesRemaining sdk.Dec
-		expectedSharesAdded     sdk.Dec
+		expectedSharesRemaining sdkmath.LegacyDec
+		expectedSharesAdded     sdkmath.LegacyDec
 		expectedErr             error
 	}{
 		{

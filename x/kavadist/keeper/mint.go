@@ -81,7 +81,7 @@ func (k Keeper) mintIncentivePeriods(ctx sdk.Context, periods types.Periods, pre
 	return nil
 }
 
-func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdk.Dec, timePeriods sdkmath.Int, denom string) (sdk.Coin, error) {
+func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdkmath.LegacyDec, timePeriods sdkmath.Int, denom string) (sdk.Coin, error) {
 	totalSupply := k.bankKeeper.GetSupply(ctx, denom)
 	// used to scale accumulator calculations by 10^18
 	scalar := sdkmath.NewInt(1000000000000000000)

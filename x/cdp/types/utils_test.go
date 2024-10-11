@@ -12,7 +12,7 @@ import (
 
 func TestSortableDecBytes(t *testing.T) {
 	tests := []struct {
-		d    sdk.Dec
+		d    sdkmath.LegacyDec
 		want []byte
 	}{
 		{sdk.NewDec(0), []byte("000000000000000000.000000000000000000")},
@@ -39,7 +39,7 @@ func TestSortableDecBytes(t *testing.T) {
 
 func TestParseSortableDecBytes(t *testing.T) {
 	tests := []struct {
-		d    sdk.Dec
+		d    sdkmath.LegacyDec
 		want []byte
 	}{
 		{sdk.NewDec(0), []byte("000000000000000000.000000000000000000")},

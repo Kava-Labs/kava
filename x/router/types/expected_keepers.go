@@ -17,16 +17,16 @@ type StakingKeeper interface {
 	Delegate(
 		ctx sdk.Context, delAddr sdk.AccAddress, bondAmt sdkmath.Int, tokenSrc stakingtypes.BondStatus,
 		validator stakingtypes.Validator, subtractAccount bool,
-	) (newShares sdk.Dec, err error)
+	) (newShares sdkmath.LegacyDec, err error)
 	Undelegate(
-		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdk.Dec,
+		ctx sdk.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress, sharesAmount sdkmath.LegacyDec,
 	) (time.Time, error)
 }
 
 type LiquidKeeper interface {
 	DerivativeFromTokens(ctx sdk.Context, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error)
 	MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error)
-	BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Dec, error)
+	BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdkmath.LegacyDec, error)
 }
 
 type EarnKeeper interface {

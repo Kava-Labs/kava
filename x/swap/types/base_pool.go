@@ -219,7 +219,7 @@ func (p *BasePool) RemoveLiquidity(shares sdkmath.Int) (sdkmath.Int, sdkmath.Int
 
 // SwapExactAForB trades an exact value of a for b.  Returns the positive amount b
 // that is removed from the pool and the portion of a that is used for paying the fee.
-func (p *BasePool) SwapExactAForB(a sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
+func (p *BasePool) SwapExactAForB(a sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath.Int, sdkmath.Int) {
 	b, feeValue := p.calculateOutputForExactInput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -231,7 +231,7 @@ func (p *BasePool) SwapExactAForB(a sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkm
 
 // SwapExactBForA trades an exact value of b for a.  Returns the positive amount a
 // that is removed from the pool and the portion of b that is used for paying the fee.
-func (p *BasePool) SwapExactBForA(b sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
+func (p *BasePool) SwapExactBForA(b sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath.Int, sdkmath.Int) {
 	a, feeValue := p.calculateOutputForExactInput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -248,7 +248,7 @@ func (p *BasePool) SwapExactBForA(b sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkm
 // by splitting a trade into multiple trades.
 //
 // The swap output is truncated to ensure the pool invariant is always greater than or equal to the previous invariant.
-func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
+func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath.Int, sdkmath.Int) {
 	p.assertSwapInputIsValid(in)
 	p.assertFeeIsValid(fee)
 
@@ -266,7 +266,7 @@ func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdkm
 
 // SwapAForExactB trades a for an exact b.  Returns the positive amount a
 // that is added to the pool, and the portion of a that is used to pay the fee.
-func (p *BasePool) SwapAForExactB(b sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
+func (p *BasePool) SwapAForExactB(b sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath.Int, sdkmath.Int) {
 	a, feeValue := p.calculateInputForExactOutput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -278,7 +278,7 @@ func (p *BasePool) SwapAForExactB(b sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkm
 
 // SwapBForExactA trades b for an exact a.  Returns the positive amount b
 // that is added to the pool, and the portion of b that is used to pay the fee.
-func (p *BasePool) SwapBForExactA(a sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
+func (p *BasePool) SwapBForExactA(a sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath.Int, sdkmath.Int) {
 	b, feeValue := p.calculateInputForExactOutput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateReserves(
@@ -295,7 +295,7 @@ func (p *BasePool) SwapBForExactA(a sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkm
 // by splitting a trade into multiple trades.
 //
 // The swap input is ceiled to ensure the pool invariant is always greater than or equal to the previous invariant.
-func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdkmath.Int, fee sdk.Dec) (sdkmath.Int, sdkmath.Int) {
+func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath.Int, sdkmath.Int) {
 	p.assertSwapOutputIsValid(out, outReserves)
 	p.assertFeeIsValid(fee)
 
@@ -371,7 +371,7 @@ func (p *BasePool) assertSwapOutputIsValid(output sdkmath.Int, reserves sdkmath.
 }
 
 // assertFeeIsValid checks if the provided fee is less
-func (p *BasePool) assertFeeIsValid(fee sdk.Dec) {
+func (p *BasePool) assertFeeIsValid(fee sdkmath.LegacyDec) {
 	if fee.IsNegative() || fee.GTE(sdk.OneDec()) {
 		panic("invalid value: fee must be between 0 and 1")
 	}

@@ -39,8 +39,8 @@ type PostedPrices []PostedPrice
 
 // PostedPrice price for market posted by a specific oracle
 type PostedPrice struct {
-	MarketID      string         `json:"market_id" yaml:"market_id"`
-	OracleAddress sdk.AccAddress `json:"oracle_address" yaml:"oracle_address"`
-	Price         sdk.Dec        `json:"price" yaml:"price"`
-	Expiry        time.Time      `json:"expiry" yaml:"expiry"`
+	MarketID      string            `json:"market_id" yaml:"market_id"`
+	OracleAddress sdk.AccAddress    `json:"oracle_address" yaml:"oracle_address"`
+	Price         sdkmath.LegacyDec `json:"price" yaml:"price"`
+	Expiry        time.Time         `json:"expiry" yaml:"expiry"`
 }

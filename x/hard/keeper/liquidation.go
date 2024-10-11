@@ -12,8 +12,8 @@ import (
 
 // LiqData holds liquidation-related data
 type LiqData struct {
-	price            sdk.Dec
-	ltv              sdk.Dec
+	price            sdkmath.LegacyDec
+	ltv              sdkmath.LegacyDec
 	conversionFactor sdkmath.Int
 }
 
@@ -148,7 +148,7 @@ func (k Keeper) SeizeDeposits(ctx sdk.Context, keeper sdk.AccAddress, deposit ty
 
 // StartAuctions attempts to start auctions for seized assets
 func (k Keeper) StartAuctions(ctx sdk.Context, borrower sdk.AccAddress, borrows, deposits sdk.Coins,
-	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdk.Dec, liqMap map[string]LiqData,
+	depositCoinValues, borrowCoinValues types.ValuationMap, ltv sdkmath.LegacyDec, liqMap map[string]LiqData,
 ) (sdk.Coins, error) {
 	// Sort keys to ensure deterministic behavior
 	bKeys := borrowCoinValues.GetSortedKeys()
@@ -326,7 +326,7 @@ func (k Keeper) IsWithinValidLtvRange(ctx sdk.Context, deposit types.Deposit, bo
 
 // GetStoreLTV calculates the user's current LTV based on their deposits/borrows in the store
 // and does not include any outsanding interest.
-func (k Keeper) GetStoreLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, error) {
+func (k Keeper) GetStoreLTV(ctx sdk.Context, addr sdk.AccAddress) (sdkmath.LegacyDec, error) {
 	// Fetch deposits and parse coin denoms
 	deposit, found := k.GetDeposit(ctx, addr)
 	if !found {
@@ -344,7 +344,7 @@ func (k Keeper) GetStoreLTV(ctx sdk.Context, addr sdk.AccAddress) (sdk.Dec, erro
 
 // CalculateLtv calculates the potential LTV given a user's deposits and borrows.
 // The boolean returned indicates if the LTV should be added to the store's LTV index.
-func (k Keeper) CalculateLtv(ctx sdk.Context, deposit types.Deposit, borrow types.Borrow) (sdk.Dec, error) {
+func (k Keeper) CalculateLtv(ctx sdk.Context, deposit types.Deposit, borrow types.Borrow) (sdkmath.LegacyDec, error) {
 	// Load required liquidation data for every deposit/borrow denom
 	liqMap, err := k.LoadLiquidationData(ctx, deposit, borrow)
 	if err != nil {

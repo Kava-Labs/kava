@@ -3,9 +3,9 @@ package keeper
 import (
 	"time"
 
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -153,7 +153,7 @@ func (k Keeper) IterateUSDXMintingAccrualTimes(ctx sdk.Context, cb func(string, 
 }
 
 // GetUSDXMintingRewardFactor returns the current reward factor for an individual collateral type
-func (k Keeper) GetUSDXMintingRewardFactor(ctx sdk.Context, ctype string) (factor sdk.Dec, found bool) {
+func (k Keeper) GetUSDXMintingRewardFactor(ctx sdk.Context, ctype string) (factor sdkmath.LegacyDec, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
 	bz := store.Get([]byte(ctype))
 	if bz == nil {
@@ -166,7 +166,7 @@ func (k Keeper) GetUSDXMintingRewardFactor(ctx sdk.Context, ctype string) (facto
 }
 
 // SetUSDXMintingRewardFactor sets the current reward factor for an individual collateral type
-func (k Keeper) SetUSDXMintingRewardFactor(ctx sdk.Context, ctype string, factor sdk.Dec) {
+func (k Keeper) SetUSDXMintingRewardFactor(ctx sdk.Context, ctype string, factor sdkmath.LegacyDec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
 	bz, err := factor.Marshal()
 	if err != nil {
@@ -176,12 +176,12 @@ func (k Keeper) SetUSDXMintingRewardFactor(ctx sdk.Context, ctype string, factor
 }
 
 // IterateUSDXMintingRewardFactors iterates over all USDX Minting reward factor objects in the store and preforms a callback function
-func (k Keeper) IterateUSDXMintingRewardFactors(ctx sdk.Context, cb func(denom string, factor sdk.Dec) (stop bool)) {
+func (k Keeper) IterateUSDXMintingRewardFactors(ctx sdk.Context, cb func(denom string, factor sdkmath.LegacyDec) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.USDXMintingRewardFactorKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var factor sdk.Dec
+		var factor sdkmath.LegacyDec
 		if err := factor.Unmarshal(iterator.Value()); err != nil {
 			panic(err)
 		}

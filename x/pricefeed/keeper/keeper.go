@@ -5,11 +5,11 @@ import (
 	"sort"
 	"time"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
 	errorsmod "cosmossdk.io/errors"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -51,7 +51,7 @@ func (k Keeper) SetPrice(
 	ctx sdk.Context,
 	oracle sdk.AccAddress,
 	marketID string,
-	price sdk.Dec,
+	price sdkmath.LegacyDec,
 	expiry time.Time,
 ) (types.PostedPrice, error) {
 	// If the expiry is less than or equal to the current blockheight, we consider the price valid
@@ -205,7 +205,7 @@ func (k Keeper) setCurrentPrice(ctx sdk.Context, marketID string, currentPrice t
 }
 
 // CalculateMedianPrice calculates the median prices for the input prices.
-func (k Keeper) CalculateMedianPrice(prices []types.CurrentPrice) sdk.Dec {
+func (k Keeper) CalculateMedianPrice(prices []types.CurrentPrice) sdkmath.LegacyDec {
 	l := len(prices)
 
 	if l == 1 {
@@ -225,7 +225,7 @@ func (k Keeper) CalculateMedianPrice(prices []types.CurrentPrice) sdk.Dec {
 	return prices[l/2].Price
 }
 
-func (k Keeper) calculateMeanPrice(priceA, priceB types.CurrentPrice) sdk.Dec {
+func (k Keeper) calculateMeanPrice(priceA, priceB types.CurrentPrice) sdkmath.LegacyDec {
 	sum := priceA.Price.Add(priceB.Price)
 	mean := sum.Quo(sdk.NewDec(2))
 	return mean

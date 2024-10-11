@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/cometbft/cometbft/libs/log"
+	"cosmossdk.io/log"
 
 	"github.com/kava-labs/kava/x/auction/types"
 )
@@ -178,7 +178,7 @@ func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AuctionByTimeKeyPrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store
-		sdk.PrefixEndBytes(sdk.FormatTimeBytes(inclusiveCutoffTime)), // include any keys with times equal to inclusiveCutoffTime
+		storetypes.PrefixEndBytes(sdk.FormatTimeBytes(inclusiveCutoffTime)), // include any keys with times equal to inclusiveCutoffTime
 	)
 
 	defer iterator.Close()
@@ -195,7 +195,7 @@ func (k Keeper) IterateAuctionsByTime(ctx sdk.Context, inclusiveCutoffTime time.
 // IterateAuctions provides an iterator over all stored auctions.
 // For each auction, cb will be called. If cb returns true, the iterator will close and stop.
 func (k Keeper) IterateAuctions(ctx sdk.Context, cb func(auction types.Auction) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.AuctionKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

@@ -42,7 +42,7 @@ message CoreReward {
   ];
   string weight = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
   option (gogoproto.goproto_stringer) = true;
@@ -78,6 +78,6 @@ message Period {
   // example "1.000000003022265980"  - 10% inflation
   bytes inflation = 3 [
     (gogoproto.nullable) = false,
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
+    (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec"
   ];
 }

@@ -352,7 +352,7 @@ func TestCalculateRewards(t *testing.T) {
 	}
 	type args struct {
 		oldIndexes, newIndexes types.RewardIndexes
-		sourceAmount           sdk.Dec
+		sourceAmount           sdkmath.LegacyDec
 	}
 	testcases := []struct {
 		name     string
@@ -512,8 +512,8 @@ func TestCalculateSingleReward(t *testing.T) {
 		reward sdkmath.Int
 	}
 	type args struct {
-		oldIndex, newIndex sdk.Dec
-		sourceAmount       sdk.Dec
+		oldIndex, newIndex sdkmath.LegacyDec
+		sourceAmount       sdkmath.LegacyDec
 	}
 	testcases := []struct {
 		name     string

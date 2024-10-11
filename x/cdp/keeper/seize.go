@@ -88,7 +88,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 }
 
 // LiquidateCdps seizes collateral from all CDPs below the input liquidation ratio
-func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType string, liquidationRatio sdk.Dec, count sdkmath.Int) error {
+func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType string, liquidationRatio sdkmath.LegacyDec, count sdkmath.Int) error {
 	price, err := k.pricefeedKeeper.GetCurrentPrice(ctx, marketID)
 	if err != nil {
 		return err

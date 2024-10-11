@@ -258,7 +258,7 @@ func (k Keeper) accumulateEarnRewards(
 
 // getEarnTotalSourceShares fetches the sum of all source shares for a earn reward.
 // In the case of earn, these are the total (earn module) shares in a particular vault.
-func (k Keeper) getEarnTotalSourceShares(ctx sdk.Context, vaultDenom string) sdk.Dec {
+func (k Keeper) getEarnTotalSourceShares(ctx sdk.Context, vaultDenom string) sdkmath.LegacyDec {
 	totalShares, found := k.earnKeeper.GetVaultTotalShares(ctx, vaultDenom)
 	if !found {
 		return sdk.ZeroDec()
@@ -289,7 +289,7 @@ func (k Keeper) SynchronizeEarnReward(
 	ctx sdk.Context,
 	vaultDenom string,
 	owner sdk.AccAddress,
-	shares sdk.Dec,
+	shares sdkmath.LegacyDec,
 ) {
 	claim, found := k.GetEarnClaim(ctx, owner)
 	if !found {
@@ -306,7 +306,7 @@ func (k *Keeper) synchronizeEarnReward(
 	claim types.EarnClaim,
 	vaultDenom string,
 	owner sdk.AccAddress,
-	shares sdk.Dec,
+	shares sdkmath.LegacyDec,
 ) types.EarnClaim {
 	globalRewardIndexes, found := k.GetEarnRewardIndexes(ctx, vaultDenom)
 	if !found {

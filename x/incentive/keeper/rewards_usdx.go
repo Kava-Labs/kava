@@ -42,7 +42,7 @@ func (k Keeper) AccumulateUSDXMintingRewards(ctx sdk.Context, rewardPeriod types
 // getUSDXTotalSourceShares fetches the sum of all source shares for a usdx minting reward.
 // In the case of usdx minting, this is the total debt from all cdps of a particular type, divided by the cdp interest factor.
 // This gives the "pre interest" value of the total debt.
-func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string) sdk.Dec {
+func (k Keeper) getUSDXTotalSourceShares(ctx sdk.Context, collateralType string) sdkmath.LegacyDec {
 	totalPrincipal := k.cdpKeeper.GetTotalPrincipal(ctx, collateralType, cdptypes.DefaultStableDenom)
 
 	cdpFactor, found := k.cdpKeeper.GetInterestFactor(ctx, collateralType)
@@ -94,7 +94,7 @@ func (k Keeper) SynchronizeUSDXMintingReward(ctx sdk.Context, cdp cdptypes.CDP) 
 // synchronizeSingleUSDXMintingReward synchronizes a single rewarded cdp collateral type in a usdx minting claim.
 // It returns the claim without setting in the store.
 // The public methods for accessing and modifying claims are preferred over this one. Direct modification of claims is easy to get wrong.
-func (k Keeper) synchronizeSingleUSDXMintingReward(ctx sdk.Context, claim types.USDXMintingClaim, ctype string, sourceShares sdk.Dec) types.USDXMintingClaim {
+func (k Keeper) synchronizeSingleUSDXMintingReward(ctx sdk.Context, claim types.USDXMintingClaim, ctype string, sourceShares sdkmath.LegacyDec) types.USDXMintingClaim {
 	globalRewardFactor, found := k.GetUSDXMintingRewardFactor(ctx, ctype)
 	if !found {
 		// The global factor is only not found if

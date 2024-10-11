@@ -238,7 +238,7 @@ message DepositResponse {
 // SupplyInterestFactorResponse defines an individual borrow interest factor.
 message SupplyInterestFactorResponse {
   string denom = 1;
-  // sdk.Dec as string
+  // sdkmath.LegacyDec as string
   string value = 2;
 }
 
@@ -258,24 +258,24 @@ message BorrowResponse {
 // BorrowInterestFactorResponse defines an individual borrow interest factor.
 message BorrowInterestFactorResponse {
   string denom = 1;
-  // sdk.Dec as string
+  // sdkmath.LegacyDec as string
   string value = 2;
 }
 
 // MoneyMarketInterestRate is a unique type returned by interest rate queries
 message MoneyMarketInterestRate {
   string denom = 1;
-  // sdk.Dec as String
+  // sdkmath.LegacyDec as String
   string supply_interest_rate = 2;
-  // sdk.Dec as String
+  // sdkmath.LegacyDec as String
   string borrow_interest_rate = 3;
 }
 
 // InterestFactor is a unique type returned by interest factor queries
 message InterestFactor {
   string denom = 1;
-  // sdk.Dec as String
+  // sdkmath.LegacyDec as String
   string borrow_interest_factor = 2;
-  // sdk.Dec as String
+  // sdkmath.LegacyDec as String
   string supply_interest_factor = 3;
 }

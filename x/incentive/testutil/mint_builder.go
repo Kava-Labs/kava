@@ -39,22 +39,22 @@ func (builder MintGenesisBuilder) BuildMarshalled(cdc codec.JSONCodec) app.Genes
 }
 
 func (builder MintGenesisBuilder) WithMinter(
-	inflation sdk.Dec,
-	annualProvisions sdk.Dec,
+	inflation sdkmath.LegacyDec,
+	annualProvisions sdkmath.LegacyDec,
 ) MintGenesisBuilder {
 	builder.Minter = minttypes.NewMinter(inflation, annualProvisions)
 	return builder
 }
 
 func (builder MintGenesisBuilder) WithInflationMax(
-	inflationMax sdk.Dec,
+	inflationMax sdkmath.LegacyDec,
 ) MintGenesisBuilder {
 	builder.Params.InflationMax = inflationMax
 	return builder
 }
 
 func (builder MintGenesisBuilder) WithInflationMin(
-	inflationMin sdk.Dec,
+	inflationMin sdkmath.LegacyDec,
 ) MintGenesisBuilder {
 	builder.Params.InflationMin = inflationMin
 	return builder

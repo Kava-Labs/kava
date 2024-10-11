@@ -12,7 +12,7 @@ import (
 
 // Avoid cluttering test cases with long function names
 func I(in int64) sdkmath.Int                { return sdkmath.NewInt(in) }
-func D(str string) sdk.Dec                  { return sdk.MustNewDecFromStr(str) }
+func D(str string) sdkmath.LegacyDec        { return sdk.MustNewDecFromStr(str) }
 func C(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func Cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 

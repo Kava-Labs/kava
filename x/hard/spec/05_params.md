@@ -9,7 +9,7 @@ Example parameters for the Hard module:
 | Key                   | Type                | Example       | Description                                  |
 | --------------------- | ------------------- | ------------- | -------------------------------------------- |
 | MoneyMarkets          | array (MoneyMarket) | [{see below}] | Array of params for each supported market    |
-| MinimumBorrowUSDValue | sdk.Dec             | 10.0          | Minimum amount an individual user can borrow |
+| MinimumBorrowUSDValue | sdkmath.LegacyDec             | 10.0          | Minimum amount an individual user can borrow |
 
 Example parameters for `MoneyMarket`:
 

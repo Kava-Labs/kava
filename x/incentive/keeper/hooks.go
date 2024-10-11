@@ -113,7 +113,7 @@ func (h Hooks) BeforeDelegationSharesModified(ctx sdk.Context, delAddr sdk.AccAd
 
 // BeforeValidatorSlashed is called before a validator is slashed
 // Validator status is not updated when Slash or Jail is called
-func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdk.Dec) error {
+func (h Hooks) BeforeValidatorSlashed(ctx sdk.Context, valAddr sdk.ValAddress, fraction sdkmath.LegacyDec) error {
 	// Sync all claims for users delegated to this validator.
 	// For each claim, sync based on the total delegated to bonded validators.
 	for _, delegation := range h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr) {
@@ -211,7 +211,7 @@ func (h Hooks) AfterVaultDepositCreated(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	_ sdk.Dec,
+	_ sdkmath.LegacyDec,
 ) {
 	h.k.InitializeEarnReward(ctx, vaultDenom, depositor)
 }
@@ -221,7 +221,7 @@ func (h Hooks) BeforeVaultDepositModified(
 	ctx sdk.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
-	sharesOwned sdk.Dec,
+	sharesOwned sdkmath.LegacyDec,
 ) {
 	h.k.SynchronizeEarnReward(ctx, vaultDenom, depositor, sharesOwned)
 }

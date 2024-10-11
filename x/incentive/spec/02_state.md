@@ -105,7 +105,7 @@ type BaseMultiClaim struct {
 // RewardIndex stores reward accumulation information
 type RewardIndex struct {
 	CollateralType string  `json:"collateral_type" yaml:"collateral_type"`
-	RewardFactor   sdk.Dec `json:"reward_factor" yaml:"reward_factor"`
+	RewardFactor   sdkmath.LegacyDec `json:"reward_factor" yaml:"reward_factor"`
 }
 
 // MultiRewardIndex stores reward accumulation information on multiple reward types

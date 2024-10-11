@@ -215,7 +215,7 @@ func (suite *tallyHandlerSuite) TestTallyOutcomes() {
 
 }
 
-func (suite *tallyHandlerSuite) setTallyParams(quorum, threshold, veto sdk.Dec) {
+func (suite *tallyHandlerSuite) setTallyParams(quorum, threshold, veto sdkmath.LegacyDec) {
 	params := suite.app.GetGovKeeper().GetParams(suite.ctx)
 	params.Quorum = quorum.String()
 	params.Threshold = threshold.String()
@@ -384,7 +384,7 @@ func (h stakingHelper) createUnbondedValidator(ctx sdk.Context, address sdk.ValA
 	return validator, nil
 }
 
-func (h stakingHelper) delegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdkmath.Int) (sdk.Dec, error) {
+func (h stakingHelper) delegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdkmath.Int) (sdkmath.LegacyDec, error) {
 	msg := stakingtypes.NewMsgDelegate(
 		delegator,
 		validator,
@@ -394,7 +394,7 @@ func (h stakingHelper) delegate(ctx sdk.Context, delegator sdk.AccAddress, valid
 	msgServer := stakingkeeper.NewMsgServerImpl(&h.keeper)
 	_, err := msgServer.Delegate(sdk.WrapSDKContext(ctx), msg)
 	if err != nil {
-		return sdk.Dec{}, err
+		return sdkmath.LegacyDec{}, err
 	}
 
 	del, found := h.keeper.GetDelegation(ctx, delegator, validator)

@@ -52,7 +52,7 @@ func (suite *Suite) SetupTest() {
 }
 
 // CreateAccount creates a new account from the provided balance and address
-func (suite *Suite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins) authtypes.AccountI {
+func (suite *Suite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins) sdk.AccountI {
 	ak := suite.App.GetAccountKeeper()
 
 	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
@@ -65,7 +65,7 @@ func (suite *Suite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance
 }
 
 // CreateVestingAccount creates a new vesting account. `vestingBalance` should be a fraction of `initialBalance`.
-func (suite *Suite) CreateVestingAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins, vestingBalance sdk.Coins) authtypes.AccountI {
+func (suite *Suite) CreateVestingAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins, vestingBalance sdk.Coins) sdk.AccountI {
 	if vestingBalance.IsAnyGT(initialBalance) {
 		panic("vesting balance must be less than initial balance")
 	}
@@ -166,7 +166,7 @@ func (suite *Suite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegati
 }
 
 // SlashValidator burns tokens staked in a validator. new_tokens = old_tokens * (1-slashFraction)
-func (suite *Suite) SlashValidator(addr sdk.ValAddress, slashFraction sdk.Dec) {
+func (suite *Suite) SlashValidator(addr sdk.ValAddress, slashFraction sdkmath.LegacyDec) {
 	validator, found := suite.StakingKeeper.GetValidator(suite.Ctx, addr)
 	suite.Require().True(found)
 	consAddr, err := validator.GetConsAddr()
@@ -182,7 +182,7 @@ func (suite *Suite) SlashValidator(addr sdk.ValAddress, slashFraction sdk.Dec) {
 }
 
 // CreateDelegation delegates tokens to a validator.
-func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdk.Dec {
+func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdkmath.LegacyDec {
 	stakingDenom := suite.StakingKeeper.BondDenom(suite.Ctx)
 	msg := stakingtypes.NewMsgDelegate(
 		delegator,
@@ -201,7 +201,7 @@ func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAd
 
 // DelegationSharesEqual checks if a delegation has the specified shares.
 // It expects delegations with zero shares to not be stored in state.
-func (suite *Suite) DelegationSharesEqual(valAddr sdk.ValAddress, delegator sdk.AccAddress, shares sdk.Dec) bool {
+func (suite *Suite) DelegationSharesEqual(valAddr sdk.ValAddress, delegator sdk.AccAddress, shares sdkmath.LegacyDec) bool {
 	del, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegator, valAddr)
 
 	if shares.IsZero() {

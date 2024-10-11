@@ -176,7 +176,7 @@ func getUSDXMintingGenesisRewardState(ctx sdk.Context, keeper keeper.Keeper) typ
 	})
 
 	var mris types.MultiRewardIndexes
-	keeper.IterateUSDXMintingRewardFactors(ctx, func(ctype string, factor sdk.Dec) bool {
+	keeper.IterateUSDXMintingRewardFactors(ctx, func(ctype string, factor sdkmath.LegacyDec) bool {
 		mris = append(
 			mris,
 			types.NewMultiRewardIndex(

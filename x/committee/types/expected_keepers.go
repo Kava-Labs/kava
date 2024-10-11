@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -12,7 +11,7 @@ type ParamKeeper interface {
 
 // AccountKeeper defines the expected account keeper
 type AccountKeeper interface {
-	GetAccount(sdk.Context, sdk.AccAddress) authtypes.AccountI
+	GetAccount(sdk.Context, sdk.AccAddress) sdk.AccountI
 }
 
 // BankKeeper defines the expected bank keeper interface

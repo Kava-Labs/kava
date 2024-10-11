@@ -20,7 +20,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 	type args struct {
 		borrower                   sdk.AccAddress
 		keeper                     sdk.AccAddress
-		keeperRewardPercent        sdk.Dec
+		keeperRewardPercent        sdkmath.LegacyDec
 		initialModuleCoins         sdk.Coins
 		initialBorrowerCoins       sdk.Coins
 		initialKeeperCoins         sdk.Coins

@@ -115,7 +115,7 @@ func TestParams_ParamSetPairs_SwapFee(t *testing.T) {
 	}
 	require.NotNil(t, paramSetPair)
 
-	swapFee, ok := paramSetPair.Value.(*sdk.Dec)
+	swapFee, ok := paramSetPair.Value.(*sdkmath.LegacyDec)
 	require.True(t, ok)
 	assert.Equal(t, swapFee, &defaultParams.SwapFee)
 
@@ -142,7 +142,7 @@ func TestParams_Validation(t *testing.T) {
 			name: "nil swap fee",
 			key:  types.KeySwapFee,
 			testFn: func(params *types.Params) {
-				params.SwapFee = sdk.Dec{}
+				params.SwapFee = sdkmath.LegacyDec{}
 			},
 			expectedErr: "invalid swap fee: <nil>",
 		},

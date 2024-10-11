@@ -38,7 +38,7 @@ type MsgWithDeadline interface {
 }
 
 // NewMsgDeposit returns a new MsgDeposit
-func NewMsgDeposit(depositor string, tokenA sdk.Coin, tokenB sdk.Coin, slippage sdk.Dec, deadline int64) *MsgDeposit {
+func NewMsgDeposit(depositor string, tokenA sdk.Coin, tokenB sdk.Coin, slippage sdkmath.LegacyDec, deadline int64) *MsgDeposit {
 	return &MsgDeposit{
 		Depositor: depositor,
 		TokenA:    tokenA,
@@ -190,7 +190,7 @@ func (msg MsgWithdraw) DeadlineExceeded(blockTime time.Time) bool {
 }
 
 // NewMsgSwapExactForTokens returns a new MsgSwapExactForTokens
-func NewMsgSwapExactForTokens(requester string, exactTokenA sdk.Coin, tokenB sdk.Coin, slippage sdk.Dec, deadline int64) *MsgSwapExactForTokens {
+func NewMsgSwapExactForTokens(requester string, exactTokenA sdk.Coin, tokenB sdk.Coin, slippage sdkmath.LegacyDec, deadline int64) *MsgSwapExactForTokens {
 	return &MsgSwapExactForTokens{
 		Requester:   requester,
 		ExactTokenA: exactTokenA,
@@ -266,7 +266,7 @@ func (msg MsgSwapExactForTokens) DeadlineExceeded(blockTime time.Time) bool {
 }
 
 // NewMsgSwapForExactTokens returns a new MsgSwapForExactTokens
-func NewMsgSwapForExactTokens(requester string, tokenA sdk.Coin, exactTokenB sdk.Coin, slippage sdk.Dec, deadline int64) *MsgSwapForExactTokens {
+func NewMsgSwapForExactTokens(requester string, tokenA sdk.Coin, exactTokenB sdk.Coin, slippage sdkmath.LegacyDec, deadline int64) *MsgSwapForExactTokens {
 	return &MsgSwapForExactTokens{
 		Requester:   requester,
 		TokenA:      tokenA,

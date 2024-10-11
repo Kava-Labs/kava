@@ -97,7 +97,7 @@ func (s queryServer) RewardFactors(
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
 	var usdxFactors types.RewardIndexes
-	s.keeper.IterateUSDXMintingRewardFactors(sdkCtx, func(collateralType string, factor sdk.Dec) (stop bool) {
+	s.keeper.IterateUSDXMintingRewardFactors(sdkCtx, func(collateralType string, factor sdkmath.LegacyDec) (stop bool) {
 		usdxFactors = usdxFactors.With(collateralType, factor)
 		return false
 	})

@@ -8,10 +8,11 @@ import (
 	"testing"
 	"time"
 
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	storetypes "cosmossdk.io/store/types"
 	tmdb "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -21,7 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -476,7 +476,7 @@ func (tApp TestApp) CreateNewUnbondedValidator(ctx sdk.Context, valAddress sdk.V
 	return err
 }
 
-func (tApp TestApp) SetInflation(ctx sdk.Context, value sdk.Dec) {
+func (tApp TestApp) SetInflation(ctx sdk.Context, value sdkmath.LegacyDec) {
 	mk := tApp.GetMintKeeper()
 
 	mintParams := mk.GetParams(ctx)

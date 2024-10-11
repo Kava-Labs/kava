@@ -168,7 +168,7 @@ func (k Keeper) GetMemberCommitteeProposalResult(ctx sdk.Context, proposalID uin
 }
 
 // TallyMemberCommitteeVotes returns the polling status of a member committee vote
-func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64) (totalVotes sdk.Dec) {
+func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64) (totalVotes sdkmath.LegacyDec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
 	return sdk.NewDec(int64(len(votes)))
 }
@@ -190,7 +190,7 @@ func (k Keeper) GetTokenCommitteeProposalResult(ctx sdk.Context, proposalID uint
 // required for proposal to pass), and quorum (votes tallied at this percentage).
 func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 	tallyDenom string,
-) (yesVotes, noVotes, totalVotes, possibleVotes sdk.Dec) {
+) (yesVotes, noVotes, totalVotes, possibleVotes sdkmath.LegacyDec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
 
 	yesVotes = sdk.ZeroDec()

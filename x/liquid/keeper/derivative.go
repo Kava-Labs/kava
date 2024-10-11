@@ -53,13 +53,13 @@ func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 
 // CalculateDerivativeSharesFromTokens converts a staking token amount into its equivalent delegation shares, and staking derivative amount.
 // This combines the code for calculating the shares to be transferred, and the derivative coins to be minted.
-func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdkmath.Int) (sdkmath.Int, sdk.Dec, error) {
+func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, tokens sdkmath.Int) (sdkmath.Int, sdkmath.LegacyDec, error) {
 	if !tokens.IsPositive() {
-		return sdkmath.Int{}, sdk.Dec{}, errorsmod.Wrap(types.ErrUntransferableShares, "token amount must be positive")
+		return sdkmath.Int{}, sdkmath.LegacyDec{}, errorsmod.Wrap(types.ErrUntransferableShares, "token amount must be positive")
 	}
 	shares, err := k.stakingKeeper.ValidateUnbondAmount(ctx, delegator, validator, tokens)
 	if err != nil {
-		return sdkmath.Int{}, sdk.Dec{}, err
+		return sdkmath.Int{}, sdkmath.LegacyDec{}, err
 	}
 	return shares.TruncateInt(), shares, nil
 }
@@ -67,21 +67,21 @@ func (k Keeper) CalculateDerivativeSharesFromTokens(ctx sdk.Context, delegator s
 // BurnDerivative burns an user's staking derivative coins and returns them an equivalent staking delegation.
 //
 // The derivative coins are burned, and an equivalent number of shares in the module's staking delegation are transferred back to the user.
-func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Dec, error) {
+func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdkmath.LegacyDec, error) {
 
 	if amount.Denom != k.GetLiquidStakingTokenDenom(valAddr) {
-		return sdk.Dec{}, errorsmod.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
+		return sdkmath.LegacyDec{}, errorsmod.Wrap(types.ErrInvalidDenom, "derivative denom does not match validator")
 	}
 
 	if err := k.burnCoins(ctx, delegatorAddr, sdk.NewCoins(amount)); err != nil {
-		return sdk.Dec{}, err
+		return sdkmath.LegacyDec{}, err
 	}
 
 	modAcc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 	shares := sdk.NewDecFromInt(amount.Amount)
 	receivedShares, err := k.TransferDelegation(ctx, valAddr, modAcc.GetAddress(), delegatorAddr, shares)
 	if err != nil {
-		return sdk.Dec{}, err
+		return sdkmath.LegacyDec{}, err
 	}
 
 	ctx.EventManager().EmitEvent(

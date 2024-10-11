@@ -108,7 +108,7 @@ func NewBorrowResponse(borrower sdk.AccAddress, amount sdk.Coins, index BorrowIn
 type BorrowResponses []BorrowResponse
 
 // NewBorrowInterestFactor returns a new BorrowInterestFactor instance
-func NewBorrowInterestFactor(denom string, value sdk.Dec) BorrowInterestFactor {
+func NewBorrowInterestFactor(denom string, value sdkmath.LegacyDec) BorrowInterestFactor {
 	return BorrowInterestFactor{
 		Denom: denom,
 		Value: value,
@@ -132,7 +132,7 @@ func (bif BorrowInterestFactor) ToResponse() BorrowInterestFactorResponse {
 }
 
 // NewBorrowInterestFactorResponse returns a new BorrowInterestFactorResponse instance
-func NewBorrowInterestFactorResponse(denom string, value sdk.Dec) BorrowInterestFactorResponse {
+func NewBorrowInterestFactorResponse(denom string, value sdkmath.LegacyDec) BorrowInterestFactorResponse {
 	return BorrowInterestFactorResponse{
 		Denom: denom,
 		Value: value.String(),
@@ -143,7 +143,7 @@ func NewBorrowInterestFactorResponse(denom string, value sdk.Dec) BorrowInterest
 type BorrowInterestFactors []BorrowInterestFactor
 
 // GetInterestFactor returns a denom's interest factor value
-func (bifs BorrowInterestFactors) GetInterestFactor(denom string) (sdk.Dec, bool) {
+func (bifs BorrowInterestFactors) GetInterestFactor(denom string) (sdkmath.LegacyDec, bool) {
 	for _, bif := range bifs {
 		if bif.Denom == denom {
 			return bif.Value, true
@@ -153,7 +153,7 @@ func (bifs BorrowInterestFactors) GetInterestFactor(denom string) (sdk.Dec, bool
 }
 
 // SetInterestFactor sets a denom's interest factor value
-func (bifs BorrowInterestFactors) SetInterestFactor(denom string, factor sdk.Dec) BorrowInterestFactors {
+func (bifs BorrowInterestFactors) SetInterestFactor(denom string, factor sdkmath.LegacyDec) BorrowInterestFactors {
 	for i, bif := range bifs {
 		if bif.Denom == denom {
 			bif.Value = factor
