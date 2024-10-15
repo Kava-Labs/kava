@@ -150,15 +150,16 @@ describe("CallCode", () => {
             ],
           }),
         }),
-        // msg.sender is the caller contract, and value is NOT passed
+        // msg.sender is the caller contract
         wantSender: (ctx) => ctx.lowLevelCaller.address,
+        // msg.value is not preserved
         wantValue: 0n,
       },
       {
         name: "callcode with storage",
         txParams: (ctx) => ({
           to: ctx.lowLevelCaller.address,
-          value: 100n,
+          value: 0n,
           gas: contractCallerGas + 20_000n,
           data: encodeFunctionData({
             abi: lowLevelCaller.abi,

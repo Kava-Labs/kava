@@ -49,14 +49,14 @@ contract Caller {
             let result := callcode(
                 gas(), // gas
                 to, // to address
-                0, // value
+                callvalue(), // value
                 0, // in - pointer to start of input, 0 since we copied the data to 0
                 data.length, // insize - size of the input
                 0, // out
                 0 // outsize - 0 since we don't know the size of the output
             )
 
-            // Copy the returned data.
+            // Copy the returned data to memory.
             // returndatacopy(t, f, s)
             // - t: target location in memory
             // - f: source location in return data
