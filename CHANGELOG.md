@@ -39,15 +39,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 ## [v0.26.2]
 
 ### Features
-<<<<<<< HEAD
 - (cli) [#1954] Add `--unsafe-remove-modules` parameter flag to `rollback`
 - (opendb) [#1973] Support custom configurations for each database
   see https://github.com/Kava-Labs/opendb/blob/a2f11f6d/README.md#individual-database-configuration
-=======
-- (precisebank) [#1906] Add new `x/precisebank` module with bank decimal extension for EVM usage.
-- (cli) [#1922] Add `iavlviewer` CLI command for low-level iavl db debugging.
 - (cli) [#2017] Support CLI `completion` for bash, zsh, fish, & powershell.
->>>>>>> 8ac4c5d0 (feat(cli): support CLI completion (#2017))
 
 ### Improvements
 - (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
@@ -356,14 +351,10 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
-<<<<<<< HEAD
+[#2017]: https://github.com/Kava-Labs/kava/pull/2017
 [#1973]: https://github.com/Kava-Labs/kava/pull/1973
 [#1967]: https://github.com/Kava-Labs/kava/pull/1967
 [#1954]: https://github.com/Kava-Labs/kava/pull/1954
-=======
-[#2017]: https://github.com/Kava-Labs/kava/pull/2017
-[#1988]: https://github.com/Kava-Labs/kava/pull/1988
->>>>>>> 8ac4c5d0 (feat(cli): support CLI completion (#2017))
 [#1922]: https://github.com/Kava-Labs/kava/pull/1922
 [#1903]: https://github.com/Kava-Labs/kava/pull/1903
 [#1851]: https://github.com/Kava-Labs/kava/pull/1851
