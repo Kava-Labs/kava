@@ -89,11 +89,11 @@ describe("ABI_BasicTests", function () {
   //
   let publicClient: PublicClient;
   let walletClient: WalletClient;
-  let caller: GetContractReturnType<ArtifactsMap["Caller"]["abi"]>;
+  let lowLevelCaller: GetContractReturnType<ArtifactsMap["Caller"]["abi"]>;
   before("setup clients", async function () {
     publicClient = await hre.viem.getPublicClient();
     walletClient = await hre.viem.getWalletClient(whaleAddress);
-    caller = await hre.viem.deployContract("Caller");
+    lowLevelCaller = await hre.viem.deployContract("Caller");
   });
 
   interface StateContext {
@@ -170,10 +170,23 @@ describe("ABI_BasicTests", function () {
           {
             name: "can be called by low level contract call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
+                args: [ctx.address, funcSelector],
+              }),
+              gas: contractCallerGas,
+            }),
+            expectedStatus: "success",
+          },
+          {
+            name: "can be called by callcode",
+            txParams: (ctx) => ({
+              to: lowLevelCaller.address,
+              data: encodeFunctionData({
+                abi: lowLevelCaller.abi,
+                functionName: "functionCallCode",
                 args: [ctx.address, funcSelector],
               }),
               gas: contractCallerGas,
@@ -205,9 +218,9 @@ describe("ABI_BasicTests", function () {
             {
               name: "can be called by static call",
               txParams: (ctx) => ({
-                to: caller.address,
+                to: lowLevelCaller.address,
                 data: encodeFunctionData({
-                  abi: caller.abi,
+                  abi: lowLevelCaller.abi,
                   functionName: "functionStaticCall",
                   args: [ctx.address, funcSelector],
                 }),
@@ -218,9 +231,9 @@ describe("ABI_BasicTests", function () {
             {
               name: "can be called by static call with extra data",
               txParams: (ctx) => ({
-                to: caller.address,
+                to: lowLevelCaller.address,
                 data: encodeFunctionData({
-                  abi: caller.abi,
+                  abi: lowLevelCaller.abi,
                   functionName: "functionStaticCall",
                   args: [ctx.address, concat([funcSelector, "0x01"])],
                 }),
@@ -258,9 +271,9 @@ describe("ABI_BasicTests", function () {
             {
               name: "can be called by high level contract call with value",
               txParams: (ctx) => ({
-                to: caller.address,
+                to: lowLevelCaller.address,
                 data: encodeFunctionData({
-                  abi: caller.abi,
+                  abi: lowLevelCaller.abi,
                   functionName: "functionCall",
                   args: [ctx.address, funcSelector],
                 }),
@@ -313,9 +326,9 @@ describe("ABI_BasicTests", function () {
             {
               name: "can not be called by high level contract call with value",
               txParams: (ctx) => ({
-                to: caller.address,
+                to: lowLevelCaller.address,
                 data: encodeFunctionData({
-                  abi: caller.abi,
+                  abi: lowLevelCaller.abi,
                   functionName: "functionCall",
                   args: [ctx.address, funcSelector],
                 }),
@@ -397,9 +410,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can be called by another contract with no data",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x"],
               }),
@@ -410,9 +423,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can be called by static call with no data",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionStaticCall",
                 args: [ctx.address, "0x"],
               }),
@@ -433,9 +446,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not receive zero value transfers by high level contract call with no data",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x"],
               }),
@@ -446,9 +459,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not receive zero value transfers by static call with no data",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionStaticCall",
                 args: [ctx.address, "0x"],
               }),
@@ -470,9 +483,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not receive plain transfers via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x"],
               }),
@@ -495,9 +508,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can receive plain transfers via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x"],
               }),
@@ -524,9 +537,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can be called with a non-matching function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, toFunctionSelector("does_not_exist()")],
               }),
@@ -537,9 +550,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can be called with a non-matching function selector via static call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionStaticCall",
                 args: [ctx.address, toFunctionSelector("does_not_exist()")],
               }),
@@ -559,9 +572,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can be called with an invalid (short) function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x010203"],
               }),
@@ -572,9 +585,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can be called with an invalid (short) function selector via static call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionStaticCall",
                 args: [ctx.address, "0x010203"],
               }),
@@ -599,9 +612,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not be called with a non-matching function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, toFunctionSelector("does_not_exist()")],
               }),
@@ -612,9 +625,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not be called with a non-matching function selector via static call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionStaticCall",
                 args: [ctx.address, toFunctionSelector("does_not_exist()")],
               }),
@@ -634,9 +647,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not be called with an invalid (short) function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x010203"],
               }),
@@ -647,9 +660,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not be called with an invalid (short) function selector via static call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionStaticCall",
                 args: [ctx.address, "0x010203"],
               }),
@@ -676,9 +689,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can receive value with a non-matching function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, toFunctionSelector("does_not_exist()")],
               }),
@@ -702,9 +715,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can receive value with an invalid (short) function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x010203"],
               }),
@@ -733,9 +746,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not receive value with a non-matching function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, toFunctionSelector("does_not_exist()")],
               }),
@@ -759,9 +772,9 @@ describe("ABI_BasicTests", function () {
           {
             name: "can not receive value with an invalid (short) function selector via message call",
             txParams: (ctx) => ({
-              to: caller.address,
+              to: lowLevelCaller.address,
               data: encodeFunctionData({
-                abi: caller.abi,
+                abi: lowLevelCaller.abi,
                 functionName: "functionCall",
                 args: [ctx.address, "0x010203"],
               }),
