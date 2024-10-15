@@ -18,12 +18,65 @@ contract Caller {
 
             // solhint-disable-next-line no-inline-assembly
             assembly {
+                // Bubble up errors: revert(pointer, length of revert reason)
+                // - result is a dynamic array, so the first 32 bytes is the
+                //   length of the array.
+                // - add(32, result) skips the length of the array and points to
+                //   the start of the data.
+                // - mload(result) reads 32 bytes from the memory location,
+                //   which is the length of the revert reason.
                 revert(add(32, result), mload(result))
             }
         }
     }
 
-    // TODO: Callcode
+    function functionCallCode(address to, bytes calldata data) external payable {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // data is the ABI encoded signature and arguments
+            // memory structure:
+            // 0x00-0x20 - length of the array
+            // 0x20-0x04 - function signature
+            // 0x04-... - function arguments
+
+            // Copy the calldata to memory, as callcode uses memory pointers
+            calldatacopy(0, data.offset, data.length)
+
+            // callcode(g, a, v, in, insize, out, outsize)
+            // returns 0 on error (eg. out of gas) and 1 on success
+            let result := callcode(
+                gas(), // gas
+                to, // to address
+                0, // value
+                0, // in - pointer to start of input, 0 since we copied the data to 0
+                data.length, // insize - size of the input
+                0, // out
+                0 // outsize - 0 since we don't know the size of the output
+            )
+
+            // Copy the returned data.
+            // returndatacopy(t, f, s)
+            // - t: target location
+            // - f: source location
+            // - s: size
+            returndatacopy(0, 0, returndatasize())
+
+            switch result
+            // 0 on error
+            case 0 {
+                // solhint-disable-next-line gas-custom-errors
+                revert(0, returndatasize())
+            }
+            // 1 on success
+            case 1 {
+                return(0, returndatasize())
+            }
+            // Invalid result
+            default {
+                revert(0, 0)
+            }
+        }
+    }
 
     function functionDelegateCall(address to, bytes calldata data) external {
         // solhint-disable-next-line avoid-low-level-calls
