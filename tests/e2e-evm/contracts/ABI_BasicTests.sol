@@ -33,13 +33,15 @@ contract Caller {
     function functionCallCode(address to, bytes calldata data) external payable {
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            // data is the ABI encoded signature and arguments
-            // memory structure:
-            // 0x00-0x20 - length of the array
-            // 0x20-0x04 - function signature
-            // 0x04-... - function arguments
-
-            // Copy the calldata to memory, as callcode uses memory pointers
+            // Copy the calldata to memory, as callcode uses memory pointers.
+            // offset is where the actual data starts in the calldata. Copy the
+            // data to memory starting at 0.
+            // Note: We are taking full control of memory as we do not return
+            // to high-level Solidity code. This would be not memory safe as it
+            // may exceed the scratch space in the first 64 bytes from 0.
+            // This should be safe to still do, similar to the OpenZeppelin
+            // proxy contract, overwriting the full memory scratch pad at
+            // target 0 AND never returning to high-level Solidity code.
             calldatacopy(0, data.offset, data.length)
 
             // callcode(g, a, v, in, insize, out, outsize)
@@ -56,15 +58,15 @@ contract Caller {
 
             // Copy the returned data.
             // returndatacopy(t, f, s)
-            // - t: target location
-            // - f: source location
+            // - t: target location in memory
+            // - f: source location in return data
             // - s: size
+            // Note: Same memory safety notes as above with calldatacopy()
             returndatacopy(0, 0, returndatasize())
 
             switch result
             // 0 on error
             case 0 {
-                // solhint-disable-next-line gas-custom-errors
                 revert(0, returndatasize())
             }
             // 1 on success
