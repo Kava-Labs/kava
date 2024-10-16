@@ -1,8 +1,9 @@
 package keeper
 
 import (
+	"bytes"
+	sdkmath "cosmossdk.io/math"
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -38,9 +39,14 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 // getDelegatorTotalSourceShares fetches the sum of all source shares for a delegator reward.
 // In the case of delegation, this is the total tokens staked to bonded validators.
 func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdkmath.LegacyDec {
-	totalBonded := k.stakingKeeper.TotalBondedTokens(ctx)
+	totalBonded, err := k.stakingKeeper.TotalBondedTokens(ctx)
+	if err != nil {
+		// TODO(boodyvo): should we panic here or return zero?
+		//panic(fmt.Sprintf("could not retrieve total bonded tokens: %v", err))
+		return sdkmath.LegacyZeroDec()
+	}
 
-	return sdk.NewDecFromInt(totalBonded)
+	return sdkmath.LegacyNewDecFromInt(totalBonded)
 }
 
 // InitializeDelegatorReward initializes the reward index of a delegator claim
@@ -98,7 +104,7 @@ func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAd
 	userRewardIndexes, found := claim.RewardIndexes.Get(types.BondDenom)
 	if !found {
 		// Normally the reward indexes should always be found.
-		// However if there were no delegator rewards (ie no reward period in params) then a reward period is added, existing claims will not have the factor.
+		// However, if there were no delegator rewards (ie no reward period in params) then a reward period is added, existing claims will not have the factor.
 		// So given the reward period was just added, assume the starting value for any global reward indexes, which is an empty slice.
 		userRewardIndexes = types.RewardIndexes{}
 	}
@@ -118,16 +124,23 @@ func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAd
 }
 
 func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) sdkmath.LegacyDec {
-	totalDelegated := sdk.ZeroDec()
+	totalDelegated := sdkmath.LegacyZeroDec()
 
-	delegations := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 200)
+	delegations, err := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 200)
+	if err != nil {
+		// TODO(boodyvo): should we panic here or return zero?
+		return totalDelegated
+	}
+
 	for _, delegation := range delegations {
-		validator, found := k.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
-		if !found {
+		validator, err := k.stakingKeeper.GetValidator(ctx, []byte(delegation.GetValidatorAddr()))
+		if err != nil {
 			continue
 		}
 
-		if validator.GetOperator().Equals(valAddr) {
+		//if validator.GetOperator().Equals(valAddr) {
+		// TODO(boodyvo): was updated. Should be like this?
+		if bytes.Equal([]byte(validator.GetOperator()), valAddr) {
 			if shouldIncludeValidator {
 				// do nothing, so the validator is included regardless of bonded status
 			} else {
@@ -178,7 +191,7 @@ func (k Keeper) SimulateDelegatorSynchronization(ctx sdk.Context, claim types.De
 		for _, globalRewardIndex := range globalRewardIndexes {
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdkmath.LegacyZeroDec())
 				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
 				claim.RewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.RewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
 			}

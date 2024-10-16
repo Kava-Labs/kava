@@ -86,14 +86,14 @@ func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdkmath.Leg
 	// used to scale accumulator calculations by 10^18
 	scalar := sdkmath.NewInt(1000000000000000000)
 	// convert inflation rate to integer
-	inflationInt := sdkmath.NewUintFromBigInt(inflationRate.Mul(sdk.NewDecFromInt(scalar)).TruncateInt().BigInt())
+	inflationInt := sdkmath.NewUintFromBigInt(inflationRate.Mul(sdkmath.LegacyNewDecFromInt(scalar)).TruncateInt().BigInt())
 	timePeriodsUint := sdkmath.NewUintFromBigInt(timePeriods.BigInt())
 	scalarUint := sdkmath.NewUintFromBigInt(scalar.BigInt())
 	// calculate the multiplier (amount to multiply the total supply by to achieve the desired inflation)
 	// multiply the result by 10^-18 because RelativePow returns the result scaled by 10^18
-	accumulator := sdk.NewDecFromBigInt(sdkmath.RelativePow(inflationInt, timePeriodsUint, scalarUint).BigInt()).Mul(sdk.SmallestDec())
+	accumulator := sdkmath.LegacyNewDecFromBigInt(sdkmath.RelativePow(inflationInt, timePeriodsUint, scalarUint).BigInt()).Mul(sdkmath.LegacySmallestDec())
 	// calculate the number of coins to mint
-	amountToMint := (sdk.NewDecFromInt(totalSupply.Amount).Mul(accumulator)).Sub(sdk.NewDecFromInt(totalSupply.Amount)).TruncateInt()
+	amountToMint := (sdkmath.LegacyNewDecFromInt(totalSupply.Amount).Mul(accumulator)).Sub(sdkmath.LegacyNewDecFromInt(totalSupply.Amount)).TruncateInt()
 	if amountToMint.IsZero() {
 		return sdk.Coin{}, nil
 	}

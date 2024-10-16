@@ -8,7 +8,6 @@ import (
 	types "github.com/kava-labs/kava/x/swap/types"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,7 +28,7 @@ func s(str string) sdkmath.Int {
 
 // d creates a new sdkmath.LegacyDec from a string
 func d(str string) sdkmath.LegacyDec {
-	return sdk.MustNewDecFromStr(str)
+	return sdkmath.LegacyMustNewDecFromStr(str)
 }
 
 // exp takes a sdkmath.Int and computes the power

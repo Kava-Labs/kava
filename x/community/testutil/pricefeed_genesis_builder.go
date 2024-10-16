@@ -35,12 +35,12 @@ func (b lendGenesisBuilder) WithMarket(denom, spotMarketId string, price sdkmath
 	b.hardMarkets = append(b.hardMarkets,
 		hardtypes.NewMoneyMarket(
 			denom,
-			hardtypes.NewBorrowLimit(false, sdk.NewDec(1e15), sdk.MustNewDecFromStr("0.6")),
+			hardtypes.NewBorrowLimit(false, sdkmath.LegacyNewDec(1e15), sdkmath.LegacyMustNewDecFromStr("0.6")),
 			spotMarketId,
 			sdkmath.NewInt(1e6),
-			hardtypes.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")),
-			sdk.MustNewDecFromStr("0.05"),
-			sdk.ZeroDec(),
+			hardtypes.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")),
+			sdkmath.LegacyMustNewDecFromStr("0.05"),
+			sdkmath.LegacyZeroDec(),
 		),
 	)
 

@@ -59,8 +59,8 @@ func (suite *proposalTestSuite) SetupTest() {
 	genTime := tmtime.Now()
 
 	hardGS, pricefeedGS := testutil.NewLendGenesisBuilder().
-		WithMarket("ukava", "kava:usd", sdk.OneDec()).
-		WithMarket("usdx", "usdx:usd", sdk.OneDec()).
+		WithMarket("ukava", "kava:usd", sdkmath.LegacyOneDec()).
+		WithMarket("usdx", "usdx:usd", sdkmath.LegacyOneDec()).
 		Build()
 
 	tApp := app.NewTestApp()
@@ -83,7 +83,7 @@ func (suite *proposalTestSuite) SetupTest() {
 		app.GenesisState{hardtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&hardGS)},
 		app.GenesisState{pricefeedtypes.ModuleName: tApp.AppCodec().MustMarshalJSON(&pricefeedGS)},
 		app.GenesisState{types.ModuleName: tApp.AppCodec().MustMarshalJSON(&communityGs)},
-		testutil.NewCDPGenState(tApp.AppCodec(), "ukava", "kava", sdk.NewDec(2)),
+		testutil.NewCDPGenState(tApp.AppCodec(), "ukava", "kava", sdkmath.LegacyNewDec(2)),
 	)
 
 	suite.App = tApp
@@ -313,7 +313,7 @@ func (suite *proposalTestSuite) TestCommunityLendWithdrawProposal() {
 			// during the test - this is because staking denom is "ukava" and no
 			// longer "stake" which has an initial and changing balance instead
 			// of just 0
-			suite.App.SetInflation(suite.Ctx, sdk.ZeroDec())
+			suite.App.SetInflation(suite.Ctx, sdkmath.LegacyZeroDec())
 
 			// setup initial deposit
 			if !tc.initialDeposit.IsZero() {

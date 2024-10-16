@@ -26,10 +26,10 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "valid vault records",
 			vaultRecords: types.VaultRecords{
 				{
-					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(0)),
+					TotalShares: types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
 				},
 				{
-					TotalShares: types.NewVaultShare("ukava", sdk.NewDec(5)),
+					TotalShares: types.NewVaultShare("ukava", sdkmath.LegacyNewDec(5)),
 				},
 			},
 			errArgs: errArgs{
@@ -40,10 +40,10 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "invalid - duplicate denom",
 			vaultRecords: types.VaultRecords{
 				{
-					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(0)),
+					TotalShares: types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
 				},
 				{
-					TotalShares: types.NewVaultShare("usdx", sdk.NewDec(5)),
+					TotalShares: types.NewVaultShare("usdx", sdkmath.LegacyNewDec(5)),
 				},
 			},
 			errArgs: errArgs{
@@ -55,7 +55,7 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "invalid - invalid denom",
 			vaultRecords: types.VaultRecords{
 				{
-					TotalShares: types.VaultShare{Denom: "", Amount: sdk.NewDec(0)},
+					TotalShares: types.VaultShare{Denom: "", Amount: sdkmath.LegacyNewDec(0)},
 				},
 			},
 			errArgs: errArgs{
@@ -67,7 +67,7 @@ func TestVaultRecordValidate(t *testing.T) {
 			name: "invalid - negative",
 			vaultRecords: types.VaultRecords{
 				{
-					TotalShares: types.VaultShare{"usdx", sdk.NewDec(-5)},
+					TotalShares: types.VaultShare{"usdx", sdkmath.LegacyNewDec(-5)},
 				},
 			},
 			errArgs: errArgs{
@@ -110,14 +110,14 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 				{
 					Depositor: addrs[0],
 					Shares: types.NewVaultShares(
-						types.NewVaultShare("usdx", sdk.NewDec(0)),
+						types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
 					),
 				},
 				{
 					Depositor: addrs[1],
 					Shares: types.NewVaultShares(
-						types.NewVaultShare("usdx", sdk.NewDec(0)),
-						types.NewVaultShare("ukava", sdk.NewDec(5)),
+						types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
+						types.NewVaultShare("ukava", sdkmath.LegacyNewDec(5)),
 					),
 				},
 			},
@@ -131,14 +131,14 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 				{
 					Depositor: addrs[0],
 					Shares: types.NewVaultShares(
-						types.NewVaultShare("usdx", sdk.NewDec(0)),
+						types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
 					),
 				},
 				{
 					Depositor: addrs[0],
 					Shares: types.NewVaultShares(
-						types.NewVaultShare("usdx", sdk.NewDec(0)),
-						types.NewVaultShare("ukava", sdk.NewDec(5)),
+						types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
+						types.NewVaultShare("ukava", sdkmath.LegacyNewDec(5)),
 					),
 				},
 			},
@@ -153,7 +153,7 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 				{
 					Depositor: sdk.AccAddress{},
 					Shares: types.NewVaultShares(
-						types.NewVaultShare("usdx", sdk.NewDec(0)),
+						types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
 					),
 				},
 			},
@@ -169,7 +169,7 @@ func TestVaultShareRecordsValidate(t *testing.T) {
 					Depositor: addrs[0],
 					// Direct slice, not NewVaultShares() which panics
 					Shares: types.VaultShares{
-						types.VaultShare{"usdx", sdk.NewDec(-5)},
+						types.VaultShare{"usdx", sdkmath.LegacyNewDec(-5)},
 					},
 				},
 			},
@@ -376,8 +376,8 @@ func TestNewVaultShareRecord(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 
 	shares := types.NewVaultShares(
-		types.NewVaultShare("usdx", sdk.NewDec(0)),
-		types.NewVaultShare("ukava", sdk.NewDec(5)),
+		types.NewVaultShare("usdx", sdkmath.LegacyNewDec(0)),
+		types.NewVaultShare("ukava", sdkmath.LegacyNewDec(5)),
 	)
 
 	shareRecord := types.NewVaultShareRecord(addrs[0], shares)

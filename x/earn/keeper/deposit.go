@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,7 +42,7 @@ func (k *Keeper) Deposit(
 	vaultRecord, found := k.GetVaultRecord(ctx, amount.Denom)
 	if !found {
 		// Create a new VaultRecord with 0 supply
-		vaultRecord = types.NewVaultRecord(amount.Denom, sdk.ZeroDec())
+		vaultRecord = types.NewVaultRecord(amount.Denom, sdkmath.LegacyZeroDec())
 	}
 
 	// Get the strategy for the vault

@@ -1,9 +1,8 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"sort"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // ValuationMap holds the USD value of various coin types
@@ -25,7 +24,7 @@ func (m ValuationMap) Get(denom string) sdkmath.LegacyDec {
 
 // SetZero sets the USD value for a specific denom to 0
 func (m ValuationMap) SetZero(denom string) {
-	m.Usd[denom] = sdk.ZeroDec()
+	m.Usd[denom] = sdkmath.LegacyZeroDec()
 }
 
 // Increment increments the USD value of a denom
@@ -50,7 +49,7 @@ func (m ValuationMap) Decrement(denom string, amount sdkmath.LegacyDec) {
 
 // Sum returns the total USD value of all coins in the map
 func (m ValuationMap) Sum() sdkmath.LegacyDec {
-	sum := sdk.ZeroDec()
+	sum := sdkmath.LegacyZeroDec()
 	for _, v := range m.Usd {
 		sum = sum.Add(v)
 	}

@@ -7,7 +7,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	abcitypes "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -81,11 +80,10 @@ func (suite *IntegrationTester) StartChain(genesisStates ...app.GenesisState) {
 		genesisStates...,
 	)
 
-	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
-		Height:  1,
-		Time:    suite.GenesisTime,
-		ChainID: app.TestChainId,
-	})
+	suite.Ctx = suite.App.NewContext(false)
+	suite.Ctx.WithBlockTime(suite.GenesisTime)
+	suite.Ctx.WithChainID(app.TestChainId)
+	suite.Ctx.WithBlockHeight(1)
 }
 
 func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
@@ -128,9 +126,11 @@ func (suite *IntegrationTester) NextBlockAtWithRequest(
 	}
 	blockHeight := suite.Ctx.BlockHeight() + 1
 
-	responseEndBlock := suite.App.EndBlocker(suite.Ctx, reqEnd)
+	responseEndBlock, err := suite.App.EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
 	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(app.TestChainId)
-	responseBeginBlock := suite.App.BeginBlocker(suite.Ctx, reqBegin) // height and time in RequestBeginBlock are ignored by module begin blockers
+	responseBeginBlock, err := suite.App.BeginBlocker(suite.Ctx) // height and time in RequestBeginBlock are ignored by module begin blockers
+	suite.Require().NoError(err)
 
 	return responseEndBlock, responseBeginBlock
 }
@@ -204,7 +204,7 @@ func (suite *IntegrationTester) DeliverMsgCreateValidator(address sdk.ValAddress
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1_000_000),
 	)
 	if err != nil {

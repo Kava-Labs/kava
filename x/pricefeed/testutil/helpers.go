@@ -41,13 +41,13 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	blockTime := time.Now()
 	initialPriceExpiry := blockTime.Add(1 * time.Hour)
 
-	_, err := keeper.SetPrice(ctx, addrs[0], "asset1:usd", sdk.MustNewDecFromStr("1"), initialPriceExpiry)
+	_, err := keeper.SetPrice(ctx, addrs[0], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("1"), initialPriceExpiry)
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[0], "asset2:usd", sdk.MustNewDecFromStr("1"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[0], "asset2:usd", sdkmath.LegacyMustNewDecFromStr("1"), initialPriceExpiry)
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[0], "asset4:usd", sdk.MustNewDecFromStr("1"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[0], "asset4:usd", sdkmath.LegacyMustNewDecFromStr("1"), initialPriceExpiry)
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[0], "asset5:usd", sdk.MustNewDecFromStr("10"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[0], "asset5:usd", sdkmath.LegacyMustNewDecFromStr("10"), initialPriceExpiry)
 	require.NoError(t, err)
 
 	ctx = ctx.WithBlockTime(blockTime)
@@ -56,7 +56,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price should be set
 	price, err := keeper.GetCurrentPrice(ctx, "asset1:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.OneDec(), price.Price)
+	require.Equal(t, sdkmath.LegacyOneDec(), price.Price)
 	// not an active market, so price is not set
 	price, err = keeper.GetCurrentPrice(ctx, "asset2:usd")
 	require.Equal(t, types.ErrNoValidPrice, err)
@@ -66,16 +66,16 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price set initially
 	price, err = keeper.GetCurrentPrice(ctx, "asset4:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.OneDec(), price.Price)
+	require.Equal(t, sdkmath.LegacyOneDec(), price.Price)
 	price, err = keeper.GetCurrentPrice(ctx, "asset5:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("10.0"), price.Price)
+	require.Equal(t, sdkmath.LegacyMustNewDecFromStr("10.0"), price.Price)
 
-	_, err = keeper.SetPrice(ctx, addrs[1], "asset1:usd", sdk.MustNewDecFromStr("2"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[1], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("2"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[1], "asset2:usd", sdk.MustNewDecFromStr("2"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[1], "asset2:usd", sdkmath.LegacyMustNewDecFromStr("2"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[1], "asset5:usd", sdk.MustNewDecFromStr("20"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[1], "asset5:usd", sdkmath.LegacyMustNewDecFromStr("20"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
 
 	blockTime = blockTime.Add(30 * time.Minute)
@@ -85,7 +85,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price should be set
 	price, err = keeper.GetCurrentPrice(ctx, "asset1:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("1.5"), price.Price)
+	require.Equal(t, sdkmath.LegacyMustNewDecFromStr("1.5"), price.Price)
 	// not an active market, so price is not set
 	price, err = keeper.GetCurrentPrice(ctx, "asset2:usd")
 	require.Equal(t, types.ErrNoValidPrice, err)
@@ -95,16 +95,16 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price set initially
 	price, err = keeper.GetCurrentPrice(ctx, "asset4:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.OneDec(), price.Price)
+	require.Equal(t, sdkmath.LegacyOneDec(), price.Price)
 	price, err = keeper.GetCurrentPrice(ctx, "asset5:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("15.0"), price.Price)
+	require.Equal(t, sdkmath.LegacyMustNewDecFromStr("15.0"), price.Price)
 
-	_, err = keeper.SetPrice(ctx, addrs[2], "asset1:usd", sdk.MustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[2], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[2], "asset2:usd", sdk.MustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[2], "asset2:usd", sdkmath.LegacyMustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[2], "asset5:usd", sdk.MustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
+	_, err = keeper.SetPrice(ctx, addrs[2], "asset5:usd", sdkmath.LegacyMustNewDecFromStr("30"), initialPriceExpiry.Add(1*time.Hour))
 	require.NoError(t, err)
 
 	blockTime = blockTime.Add(15 * time.Minute)
@@ -114,7 +114,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price should be set
 	price, err = keeper.GetCurrentPrice(ctx, "asset1:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("2.0"), price.Price)
+	require.Equal(t, sdkmath.LegacyMustNewDecFromStr("2.0"), price.Price)
 	// not an active market, so price is not set
 	price, err = keeper.GetCurrentPrice(ctx, "asset2:usd")
 	require.Equal(t, types.ErrNoValidPrice, err)
@@ -124,10 +124,10 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price set initially
 	price, err = keeper.GetCurrentPrice(ctx, "asset4:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.OneDec(), price.Price)
+	require.Equal(t, sdkmath.LegacyOneDec(), price.Price)
 	price, err = keeper.GetCurrentPrice(ctx, "asset5:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("20.0"), price.Price)
+	require.Equal(t, sdkmath.LegacyMustNewDecFromStr("20.0"), price.Price)
 
 	blockTime = blockTime.Add(15 * time.Minute)
 	ctx = ctx.WithBlockTime(blockTime)
@@ -136,7 +136,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	// price should be set
 	price, err = keeper.GetCurrentPrice(ctx, "asset1:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("16"), price.Price)
+	require.Equal(t, sdkmath.LegacyMustNewDecFromStr("16"), price.Price)
 	// not an active market, so price is not set
 	price, err = keeper.GetCurrentPrice(ctx, "asset2:usd")
 	require.Equal(t, types.ErrNoValidPrice, err)
@@ -148,7 +148,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 	require.Equal(t, types.ErrNoValidPrice, err)
 	price, err = keeper.GetCurrentPrice(ctx, "asset5:usd")
 	require.NoError(t, err)
-	require.Equal(t, sdk.MustNewDecFromStr("25.0"), price.Price)
+	require.Equal(t, sdkmath.LegacyMustNewDecFromStr("25.0"), price.Price)
 
 	blockTime = blockTime.Add(10 * time.Hour)
 	ctx = ctx.WithBlockTime(blockTime)
@@ -185,7 +185,7 @@ func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper
 	initialPriceExpiry := blockTime.Add(1 * time.Hour)
 
 	// post a price
-	_, err := keeper.SetPrice(ctx, addrs[0], "asset1:usd", sdk.MustNewDecFromStr("1"), initialPriceExpiry)
+	_, err := keeper.SetPrice(ctx, addrs[0], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("1"), initialPriceExpiry)
 	require.NoError(t, err)
 
 	// reset context with fresh event manager
@@ -196,7 +196,7 @@ func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper
 	require.Equal(t, 0, len(ctx.EventManager().Events()))
 
 	// post same price from another oracle
-	_, err = keeper.SetPrice(ctx, addrs[1], "asset1:usd", sdk.MustNewDecFromStr("1"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[1], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("1"), initialPriceExpiry)
 	require.NoError(t, err)
 
 	blockTime = blockTime.Add(10 * time.Second)
@@ -207,11 +207,11 @@ func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper
 	require.Equal(t, 0, len(ctx.EventManager().Events()))
 
 	// post price changes
-	_, err = keeper.SetPrice(ctx, addrs[2], "asset1:usd", sdk.MustNewDecFromStr("2"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[2], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("2"), initialPriceExpiry)
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[3], "asset1:usd", sdk.MustNewDecFromStr("10"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[3], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("10"), initialPriceExpiry)
 	require.NoError(t, err)
-	_, err = keeper.SetPrice(ctx, addrs[4], "asset1:usd", sdk.MustNewDecFromStr("10"), initialPriceExpiry)
+	_, err = keeper.SetPrice(ctx, addrs[4], "asset1:usd", sdkmath.LegacyMustNewDecFromStr("10"), initialPriceExpiry)
 	require.NoError(t, err)
 
 	blockTime = blockTime.Add(10 * time.Second)
@@ -232,5 +232,5 @@ func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper
 	require.True(t, found)
 	// attributes have correct values
 	assert.Equal(t, "asset1:usd", marketID.Value)
-	assert.Equal(t, sdk.MustNewDecFromStr("2").String(), marketPrice.Value)
+	assert.Equal(t, sdkmath.LegacyMustNewDecFromStr("2").String(), marketPrice.Value)
 }

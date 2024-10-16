@@ -15,7 +15,11 @@ import (
 // The input staking token amount is used to calculate shares in the user's delegation, which are transferred to a delegation owned by the module.
 // Derivative coins are them minted and transferred to the user.
 func (k Keeper) MintDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, valAddr sdk.ValAddress, amount sdk.Coin) (sdk.Coin, error) {
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
 	if amount.Denom != bondDenom {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidDenom, "expected %s", bondDenom)
 	}
@@ -78,7 +82,7 @@ func (k Keeper) BurnDerivative(ctx sdk.Context, delegatorAddr sdk.AccAddress, va
 	}
 
 	modAcc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
-	shares := sdk.NewDecFromInt(amount.Amount)
+	shares := sdkmath.LegacyNewDecFromInt(amount.Amount)
 	receivedShares, err := k.TransferDelegation(ctx, valAddr, modAcc.GetAddress(), delegatorAddr, shares)
 	if err != nil {
 		return sdkmath.LegacyDec{}, err
@@ -108,14 +112,19 @@ func (k Keeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
 		return false
 	}
 
-	_, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-	return found
+	_, err = k.stakingKeeper.GetValidator(ctx, valAddr)
+	if err != nil {
+		return false
+	}
+
+	// TODO(boodyvo): should we return error as well?
+	return true
 }
 
 // GetStakedTokensForDerivatives returns the total value of the provided derivatives
 // in staked tokens, accounting for the specific share prices.
 func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) (sdk.Coin, error) {
-	total := sdk.ZeroInt()
+	total := sdkmath.ZeroInt()
 
 	for _, coin := range coins {
 		valAddr, err := types.ParseLiquidStakingTokenDenom(coin.Denom)
@@ -123,17 +132,22 @@ func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) 
 			return sdk.Coin{}, fmt.Errorf("invalid derivative denom: %w", err)
 		}
 
-		validator, found := k.stakingKeeper.GetValidator(ctx, valAddr)
-		if !found {
+		validator, err := k.stakingKeeper.GetValidator(ctx, valAddr)
+		if err != nil {
 			return sdk.Coin{}, fmt.Errorf("invalid derivative denom %s: validator not found", coin.Denom)
 		}
 
 		// bkava is 1:1 to delegation shares
-		valTokens := validator.TokensFromSharesTruncated(sdk.NewDecFromInt(coin.Amount))
+		valTokens := validator.TokensFromSharesTruncated(sdkmath.LegacyNewDecFromInt(coin.Amount))
 		total = total.Add(valTokens.TruncateInt())
 	}
 
-	totalCoin := sdk.NewCoin(k.stakingKeeper.BondDenom(ctx), total)
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
+	totalCoin := sdk.NewCoin(bondDenom, total)
 	return totalCoin, nil
 }
 
@@ -181,7 +195,11 @@ func (k Keeper) burnCoins(ctx sdk.Context, sender sdk.AccAddress, amount sdk.Coi
 
 // DerivativeFromTokens calculates the approximate amount of derivative coins that would be minted for a given amount of staking tokens.
 func (k Keeper) DerivativeFromTokens(ctx sdk.Context, valAddr sdk.ValAddress, tokens sdk.Coin) (sdk.Coin, error) {
-	bondDenom := k.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return sdk.Coin{}, err
+	}
+
 	if tokens.Denom != bondDenom {
 		return sdk.Coin{}, errorsmod.Wrapf(types.ErrInvalidDenom, "'%s' does not match staking denom '%s'", tokens.Denom, bondDenom)
 	}

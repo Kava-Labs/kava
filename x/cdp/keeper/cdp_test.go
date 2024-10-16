@@ -134,7 +134,7 @@ func (suite *CdpTestSuite) TestGetNextCdpID() {
 
 func (suite *CdpTestSuite) TestGetSetCdp() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdk.OneDec())
+	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdkmath.LegacyOneDec())
 	err := suite.keeper.SetCDP(suite.ctx, cdp)
 	suite.NoError(err)
 
@@ -150,7 +150,7 @@ func (suite *CdpTestSuite) TestGetSetCdp() {
 
 func (suite *CdpTestSuite) TestGetSetCdpId() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
-	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdk.OneDec())
+	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdkmath.LegacyOneDec())
 	err := suite.keeper.SetCDP(suite.ctx, cdp)
 	suite.NoError(err)
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdp)
@@ -165,7 +165,7 @@ func (suite *CdpTestSuite) TestGetSetCdpId() {
 
 func (suite *CdpTestSuite) TestGetSetCdpByOwnerAndCollateralType() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
-	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdk.OneDec())
+	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdkmath.LegacyOneDec())
 	err := suite.keeper.SetCDP(suite.ctx, cdp)
 	suite.NoError(err)
 	suite.keeper.IndexCdpByOwner(suite.ctx, cdp)
@@ -181,17 +181,17 @@ func (suite *CdpTestSuite) TestGetSetCdpByOwnerAndCollateralType() {
 
 func (suite *CdpTestSuite) TestCalculateCollateralToDebtRatio() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 3), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdk.OneDec())
+	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 3), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdkmath.LegacyOneDec())
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Type, cdp.Principal)
-	suite.Equal(sdk.MustNewDecFromStr("3.0"), cr)
-	cdp = types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 2), tmtime.Canonical(time.Now()), sdk.OneDec())
+	suite.Equal(sdkmath.LegacyMustNewDecFromStr("3.0"), cr)
+	cdp = types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 1), "xrp-a", c("usdx", 2), tmtime.Canonical(time.Now()), sdkmath.LegacyOneDec())
 	cr = suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Type, cdp.Principal)
-	suite.Equal(sdk.MustNewDecFromStr("0.5"), cr)
+	suite.Equal(sdkmath.LegacyMustNewDecFromStr("0.5"), cr)
 }
 
 func (suite *CdpTestSuite) TestSetCdpByCollateralRatio() {
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
-	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 3), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdk.OneDec())
+	cdp := types.NewCDP(types.DefaultCdpStartingID, addrs[0], c("xrp", 3), "xrp-a", c("usdx", 1), tmtime.Canonical(time.Now()), sdkmath.LegacyOneDec())
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdp.Collateral, cdp.Type, cdp.Principal)
 	suite.NotPanics(func() { suite.keeper.IndexCdpByCollateralRatio(suite.ctx, cdp.Type, cdp.ID, cr) })
 }

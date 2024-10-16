@@ -37,19 +37,19 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 
 	interestFactorPrior, foundInterestFactorPrior := k.GetInterestFactor(ctx, ctype)
 	if !foundInterestFactorPrior {
-		k.SetInterestFactor(ctx, ctype, sdk.OneDec())
+		k.SetInterestFactor(ctx, ctype, sdkmath.LegacyOneDec())
 		// set previous accrual time exit early because interest accumulated will be zero
 		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
 		return nil
 	}
 
 	borrowRateSpy := k.getFeeRate(ctx, ctype)
-	if borrowRateSpy.Equal(sdk.OneDec()) {
+	if borrowRateSpy.Equal(sdkmath.LegacyOneDec()) {
 		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
 		return nil
 	}
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdkmath.NewInt(timeElapsed))
-	interestAccumulated := (interestFactor.Mul(sdk.NewDecFromInt(totalPrincipalPrior))).RoundInt().Sub(totalPrincipalPrior)
+	interestAccumulated := (interestFactor.Mul(sdkmath.LegacyNewDecFromInt(totalPrincipalPrior))).RoundInt().Sub(totalPrincipalPrior)
 	if interestAccumulated.IsZero() {
 		// in the case accumulated interest rounds to zero, exit early without updating accrual time
 		return nil
@@ -109,8 +109,8 @@ func CalculateInterestFactor(perSecondInterestRate sdkmath.LegacyDec, secondsEla
 func (k Keeper) SynchronizeInterest(ctx context.Context, cdp types.CDP) types.CDP {
 	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
 	if !found {
-		k.SetInterestFactor(ctx, cdp.Type, sdk.OneDec())
-		cdp.InterestFactor = sdk.OneDec()
+		k.SetInterestFactor(ctx, cdp.Type, sdkmath.LegacyOneDec())
+		cdp.InterestFactor = sdkmath.LegacyOneDec()
 		cdp.FeesUpdated = ctx.BlockTime()
 		if err := k.SetCDP(ctx, cdp); err != nil {
 			panic(err)
@@ -151,13 +151,13 @@ func (k Keeper) SynchronizeInterest(ctx context.Context, cdp types.CDP) types.CD
 func (k Keeper) CalculateNewInterest(ctx context.Context, cdp types.CDP) sdk.Coin {
 	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
 	if !found {
-		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
+		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdkmath.ZeroInt())
 	}
 	cdpInterestFactor := globalInterestFactor.Quo(cdp.InterestFactor)
-	if cdpInterestFactor.Equal(sdk.OneDec()) {
-		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdk.ZeroInt())
+	if cdpInterestFactor.Equal(sdkmath.LegacyOneDec()) {
+		return sdk.NewCoin(cdp.AccumulatedFees.Denom, sdkmath.ZeroInt())
 	}
-	accumulatedInterest := sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+	accumulatedInterest := sdkmath.LegacyNewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
 	return sdk.NewCoin(cdp.AccumulatedFees.Denom, accumulatedInterest)
 }
 
@@ -170,7 +170,7 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio
 
 	cdpIDs := make([]uint64, 0, cp.CheckCollateralizationIndexCount.Int64())
 
-	iterator := collateralRatioStore.Iterator(types.CollateralRatioIterKey(cp.Type, sdk.ZeroDec()), types.CollateralRatioIterKey(cp.Type, targetRatio))
+	iterator := collateralRatioStore.Iterator(types.CollateralRatioIterKey(cp.Type, sdkmath.LegacyZeroDec()), types.CollateralRatioIterKey(cp.Type, targetRatio))
 	for ; iterator.Valid(); iterator.Next() {
 		_, id, _ := types.SplitCollateralRatioKey(iterator.Key())
 		cdpIDs = append(cdpIDs, id)
@@ -212,10 +212,10 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio
 		//
 		// CALC INTEREST
 		//
-		accumulatedInterest := sdk.ZeroInt()
+		accumulatedInterest := sdkmath.ZeroInt()
 		cdpInterestFactor := globalInterestFactor.Quo(cdp.InterestFactor)
-		if !cdpInterestFactor.Equal(sdk.OneDec()) {
-			accumulatedInterest = sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
+		if !cdpInterestFactor.Equal(sdkmath.LegacyOneDec()) {
+			accumulatedInterest = sdkmath.LegacyNewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(cdpInterestFactor).RoundInt().Sub(cdp.GetTotalPrincipal().Amount)
 		}
 
 		if accumulatedInterest.IsZero() {
@@ -260,12 +260,12 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio
 }
 
 func calculateCollateralRatio(debtParam types.DebtParam, collateralParam types.CollateralParam, cdp types.CDP) sdkmath.LegacyDec {
-	debtTotal := sdk.NewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), debtParam.ConversionFactor.Int64()))
+	debtTotal := sdkmath.LegacyNewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdk.OneInt(), debtParam.ConversionFactor.Int64()))
 
 	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {
 		return types.MaxSortableDec.Sub(sdk.SmallestDec())
 	} else {
-		collateralBaseUnits := sdk.NewDecFromInt(cdp.Collateral.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), collateralParam.ConversionFactor.Int64()))
+		collateralBaseUnits := sdkmath.LegacyNewDecFromInt(cdp.Collateral.Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdk.OneInt(), collateralParam.ConversionFactor.Int64()))
 		return collateralBaseUnits.Quo(debtTotal)
 	}
 }

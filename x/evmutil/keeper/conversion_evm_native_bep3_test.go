@@ -376,7 +376,7 @@ func (suite *Bep3ConversionTestSuite) testConvertBep3ERC20ToCoin(denom string) {
 			}
 
 			// create user account, otherwise `CallEVMWithData` will fail due to failing to get user account when finding its sequence.
-			err = suite.App.FundAccount(suite.Ctx, invokerCosmosAddr, sdk.NewCoins(sdk.NewCoin(conversionDenom, sdk.ZeroInt())))
+			err = suite.App.FundAccount(suite.Ctx, invokerCosmosAddr, sdk.NewCoins(sdk.NewCoin(conversionDenom, sdkmath.ZeroInt())))
 			suite.Require().NoError(err)
 
 			// execute bep3 conversion

@@ -44,9 +44,9 @@ func (suite *keeperTestSuite) TestMintOngoingPeriod() {
 	mAccSupply := suite.BankKeeper.GetAllBalances(ctx, mAcc.GetAddress()).AmountOf(types.GovDenom)
 	suite.Require().True(mAccSupply.Equal(finalSupply.Amount.Sub(initialSupply.Amount)))
 	// expect that inflation is ~10%
-	expectedSupply := sdk.NewDecFromInt(initialSupply.Amount).Mul(sdk.MustNewDecFromStr("1.1"))
-	supplyError := sdk.OneDec().Sub((sdk.NewDecFromInt(finalSupply.Amount).Quo(expectedSupply))).Abs()
-	suite.Require().True(supplyError.LTE(sdk.MustNewDecFromStr("0.001")))
+	expectedSupply := sdkmath.LegacyNewDecFromInt(initialSupply.Amount).Mul(sdkmath.LegacyMustNewDecFromStr("1.1"))
+	supplyError := sdkmath.LegacyOneDec().Sub((sdkmath.LegacyNewDecFromInt(finalSupply.Amount).Quo(expectedSupply))).Abs()
+	suite.Require().True(supplyError.LTE(sdkmath.LegacyMustNewDecFromStr("0.001")))
 }
 
 func (suite *keeperTestSuite) TestMintPeriodTransition() {
@@ -57,7 +57,7 @@ func (suite *keeperTestSuite) TestMintPeriodTransition() {
 		{
 			Start:     time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
 			End:       time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
-			Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+			Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 		},
 	}
 	params.Periods = periods
@@ -117,9 +117,9 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 			args{
 				startTime:           time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
 				endTime:             time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC),
-				infraPeriods:        types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				infraPeriods:        types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"))},
 				expectedFinalSupply: sdk.NewCoin(types.GovDenom, sdkmath.NewInt(1050000000000)),
-				marginOfError:       sdk.MustNewDecFromStr("0.0001"),
+				marginOfError:       sdkmath.LegacyMustNewDecFromStr("0.0001"),
 			},
 			errArgs{
 				expectPass: true,
@@ -131,9 +131,9 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 			args{
 				startTime:           time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
 				endTime:             time.Date(2022, time.October, 1, 1, 0, 10, 0, time.UTC),
-				infraPeriods:        types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				infraPeriods:        types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"))},
 				expectedFinalSupply: sdk.NewCoin(types.GovDenom, sdkmath.NewInt(1000000015471)),
-				marginOfError:       sdk.MustNewDecFromStr("0.0001"),
+				marginOfError:       sdkmath.LegacyMustNewDecFromStr("0.0001"),
 			},
 			errArgs{
 				expectPass: true,
@@ -160,16 +160,16 @@ func (suite *keeperTestSuite) TestInfraMinting() {
 		suite.Require().NoError(err)
 
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
+		marginHigh := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Add(tc.args.marginOfError))
+		marginLow := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Sub(tc.args.marginOfError))
 		suite.Require().Truef(
-			sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh),
+			sdkmath.LegacyNewDecFromInt(finalSupply.Amount).LTE(marginHigh),
 			"final supply %s is not <= %s high margin",
 			finalSupply.Amount.String(),
 			marginHigh.String(),
 		)
 		suite.Require().Truef(
-			sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow),
+			sdkmath.LegacyNewDecFromInt(finalSupply.Amount).GTE(marginLow),
 			"final supply %s is not >= %s low margin",
 			finalSupply.Amount.String(),
 		)
@@ -206,10 +206,10 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 			args{
 				startTime:               time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
 				endTime:                 time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC),
-				infraPeriods:            types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				infraPeriods:            types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"))},
 				expectedFinalSupply:     sdk.NewCoin(types.GovDenom, sdkmath.NewInt(1050000000000)),
 				expectedBalanceIncrease: sdk.NewCoin(types.GovDenom, sdkmath.NewInt(50000000000)),
-				marginOfError:           sdk.MustNewDecFromStr("0.0001"),
+				marginOfError:           sdkmath.LegacyMustNewDecFromStr("0.0001"),
 			},
 			errArgs{
 				expectPass: true,
@@ -220,7 +220,7 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 
 	for _, tc := range testCases {
 		suite.SetupTest()
-		coreReward := types.NewCoreReward(suite.Addrs[0], sdk.OneDec())
+		coreReward := types.NewCoreReward(suite.Addrs[0], sdkmath.LegacyOneDec())
 		params := types.NewParams(true, types.DefaultPeriods, types.NewInfraParams(tc.args.infraPeriods, types.DefaultInfraParams.PartnerRewards, types.CoreRewards{coreReward}))
 		ctx := suite.Ctx.WithBlockTime(tc.args.startTime)
 		suite.Keeper.SetParams(ctx, params)
@@ -237,10 +237,10 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
-		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh))
-		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow))
+		marginHigh := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Add(tc.args.marginOfError))
+		marginLow := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).LTE(marginHigh))
+		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).GTE(marginLow))
 
 		finalBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
@@ -277,10 +277,10 @@ func (suite *keeperTestSuite) TestInfraPayoutPartner() {
 			args{
 				startTime:               time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
 				endTime:                 time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC),
-				infraPeriods:            types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				infraPeriods:            types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"))},
 				expectedFinalSupply:     sdk.NewCoin(types.GovDenom, sdkmath.NewInt(1050000000000)),
 				expectedBalanceIncrease: sdk.NewCoin(types.GovDenom, sdkmath.NewInt(63072000)),
-				marginOfError:           sdk.MustNewDecFromStr("0.0001"),
+				marginOfError:           sdkmath.LegacyMustNewDecFromStr("0.0001"),
 			},
 			errArgs{
 				expectPass: true,
@@ -308,10 +308,10 @@ func (suite *keeperTestSuite) TestInfraPayoutPartner() {
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
-		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh))
-		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow))
+		marginHigh := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Add(tc.args.marginOfError))
+		marginLow := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).LTE(marginHigh))
+		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).GTE(marginLow))
 
 		finalBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
 		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
@@ -358,18 +358,18 @@ func (suite *keeperTestSuite) TestInfraPayoutE2E() {
 		{
 			"5% apy one year",
 			args{
-				periods:             types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
+				periods:             types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"))},
 				startTime:           time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC),
 				endTime:             time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC),
-				infraPeriods:        types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdk.MustNewDecFromStr("1.000000001547125958"))},
-				coreRewards:         types.CoreRewards{types.NewCoreReward(addrs[1], sdk.OneDec())},
+				infraPeriods:        types.Periods{types.NewPeriod(time.Date(2022, time.October, 1, 1, 0, 0, 0, time.UTC), time.Date(2023, time.October, 1, 1, 0, 0, 0, time.UTC), sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"))},
+				coreRewards:         types.CoreRewards{types.NewCoreReward(addrs[1], sdkmath.LegacyOneDec())},
 				partnerRewards:      types.PartnerRewards{types.NewPartnerReward(addrs[2], sdk.NewCoin("ukava", sdkmath.NewInt(2)))},
 				expectedFinalSupply: sdk.NewCoin(types.GovDenom, sdkmath.NewInt(1102500000000)),
 				expectedBalances: balances{
 					balance{addrs[1], sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(52436928000)))},
 					balance{addrs[2], sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(63072000)))},
 				},
-				marginOfError: sdk.MustNewDecFromStr("0.0001"),
+				marginOfError: sdkmath.LegacyMustNewDecFromStr("0.0001"),
 			},
 			errArgs{
 				expectPass: true,
@@ -395,10 +395,10 @@ func (suite *keeperTestSuite) TestInfraPayoutE2E() {
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
-		marginHigh := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Add(tc.args.marginOfError))
-		marginLow := sdk.NewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdk.OneDec().Sub(tc.args.marginOfError))
-		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).LTE(marginHigh))
-		suite.Require().True(sdk.NewDecFromInt(finalSupply.Amount).GTE(marginLow))
+		marginHigh := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Add(tc.args.marginOfError))
+		marginLow := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Sub(tc.args.marginOfError))
+		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).LTE(marginHigh))
+		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).GTE(marginLow))
 
 		for _, bal := range tc.args.expectedBalances {
 			finalBalance := suite.BankKeeper.GetAllBalances(ctx, bal.address)

@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	"github.com/kava-labs/kava/x/incentive/types"
 )
@@ -84,7 +83,7 @@ func (suite *AccumulateEarnRewardsTests) TestStakingRewardsDistributed() {
 		{
 			CollateralType: "ukava",
 			RewardFactor: initialVault1RewardFactor.
-				Add(sdk.NewDecFromInt(vaultDenom1Supply).
+				Add(sdkmath.LegacyNewDecFromInt(vaultDenom1Supply).
 					QuoInt64(10).
 					MulInt64(3600).
 					Quo(vault1Shares)),
@@ -95,7 +94,7 @@ func (suite *AccumulateEarnRewardsTests) TestStakingRewardsDistributed() {
 		{
 			CollateralType: "ukava",
 			RewardFactor: initialVault2RewardFactor.
-				Add(sdk.NewDecFromInt(vaultDenom2Supply).
+				Add(sdkmath.LegacyNewDecFromInt(vaultDenom2Supply).
 					QuoInt64(10).
 					MulInt64(3600).
 					Quo(vault2Shares)),

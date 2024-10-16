@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	"cosmossdk.io/store/prefix"
@@ -82,7 +83,7 @@ func (k Keeper) DeleteDeposit(ctx sdk.Context, deposit types.Deposit) {
 // IterateDeposits iterates over all deposit objects in the store and performs a callback function
 func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit
@@ -133,7 +134,7 @@ func (k Keeper) DeleteBorrow(ctx sdk.Context, borrow types.Borrow) {
 // IterateBorrows iterates over all borrow objects in the store and performs a callback function
 func (k Keeper) IterateBorrows(ctx sdk.Context, cb func(borrow types.Borrow) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var borrow types.Borrow
@@ -224,7 +225,7 @@ func (k Keeper) DeleteMoneyMarket(ctx sdk.Context, denom string) {
 //	that returns both the money market and the key (denom) it's stored under
 func (k Keeper) IterateMoneyMarkets(ctx sdk.Context, cb func(denom string, moneyMarket types.MoneyMarket) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.MoneyMarketsPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var moneyMarket types.MoneyMarket
@@ -301,9 +302,9 @@ func (k Keeper) GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdkmath.
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
 	bz := store.Get([]byte(denom))
 	if len(bz) == 0 {
-		return sdk.ZeroDec(), false
+		return sdkmath.LegacyZeroDec(), false
 	}
-	var borrowInterestFactor sdkmath.LegacyDecProto
+	var borrowInterestFactor sdk.DecProto
 	k.cdc.MustUnmarshal(bz, &borrowInterestFactor)
 	return borrowInterestFactor.Dec, true
 }
@@ -311,7 +312,7 @@ func (k Keeper) GetBorrowInterestFactor(ctx sdk.Context, denom string) (sdkmath.
 // SetBorrowInterestFactor sets the current borrow interest factor for an individual market
 func (k Keeper) SetBorrowInterestFactor(ctx sdk.Context, denom string, borrowInterestFactor sdkmath.LegacyDec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
-	bz := k.cdc.MustMarshal(&sdkmath.LegacyDecProto{Dec: borrowInterestFactor})
+	bz := k.cdc.MustMarshal(&sdk.DecProto{Dec: borrowInterestFactor})
 	store.Set([]byte(denom), bz)
 }
 
@@ -319,10 +320,10 @@ func (k Keeper) SetBorrowInterestFactor(ctx sdk.Context, denom string, borrowInt
 // both the borrow interest factor and the key (denom) it's stored under
 func (k Keeper) IterateBorrowInterestFactors(ctx sdk.Context, cb func(denom string, factor sdkmath.LegacyDec) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.BorrowInterestFactorPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var factor sdkmath.LegacyDecProto
+		var factor sdk.DecProto
 		k.cdc.MustUnmarshal(iterator.Value(), &factor)
 		if cb(string(iterator.Key()), factor.Dec) {
 			break
@@ -335,9 +336,9 @@ func (k Keeper) GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdkmath.
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
 	bz := store.Get([]byte(denom))
 	if len(bz) == 0 {
-		return sdk.ZeroDec(), false
+		return sdkmath.LegacyZeroDec(), false
 	}
-	var supplyInterestFactor sdkmath.LegacyDecProto
+	var supplyInterestFactor sdk.DecProto
 	k.cdc.MustUnmarshal(bz, &supplyInterestFactor)
 	return supplyInterestFactor.Dec, true
 }
@@ -345,7 +346,7 @@ func (k Keeper) GetSupplyInterestFactor(ctx sdk.Context, denom string) (sdkmath.
 // SetSupplyInterestFactor sets the current supply interest factor for an individual market
 func (k Keeper) SetSupplyInterestFactor(ctx sdk.Context, denom string, supplyInterestFactor sdkmath.LegacyDec) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
-	bz := k.cdc.MustMarshal(&sdkmath.LegacyDecProto{Dec: supplyInterestFactor})
+	bz := k.cdc.MustMarshal(&sdk.DecProto{Dec: supplyInterestFactor})
 	store.Set([]byte(denom), bz)
 }
 
@@ -353,10 +354,10 @@ func (k Keeper) SetSupplyInterestFactor(ctx sdk.Context, denom string, supplyInt
 // both the supply interest factor and the key (denom) it's stored under
 func (k Keeper) IterateSupplyInterestFactors(ctx sdk.Context, cb func(denom string, factor sdkmath.LegacyDec) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.SupplyInterestFactorPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
-		var factor sdkmath.LegacyDecProto
+		var factor sdk.DecProto
 
 		k.cdc.MustUnmarshal(iterator.Value(), &factor)
 		if cb(string(iterator.Key()), factor.Dec) {

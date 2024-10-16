@@ -47,7 +47,7 @@ func (suite *KeeperTestSuite) SetupApp() {
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
 	suite.SetupApp()
-	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
+	c := types.NewUSDXMintingClaim(suite.addrs[0], c("ukava", 1000000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdkmath.LegacyZeroDec())})
 	_, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 	suite.Require().False(found)
 	suite.Require().NotPanics(func() {
@@ -66,7 +66,7 @@ func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {
 func (suite *KeeperTestSuite) TestIterateUSDXMintingClaims() {
 	suite.SetupApp()
 	for i := 0; i < len(suite.addrs); i++ {
-		c := types.NewUSDXMintingClaim(suite.addrs[i], c("ukava", 100000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdk.ZeroDec())})
+		c := types.NewUSDXMintingClaim(suite.addrs[i], c("ukava", 100000), types.RewardIndexes{types.NewRewardIndex("bnb-a", sdkmath.LegacyZeroDec())})
 		suite.Require().NotPanics(func() {
 			suite.keeper.SetUSDXMintingClaim(suite.ctx, c)
 		})

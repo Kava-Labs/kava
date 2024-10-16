@@ -49,7 +49,7 @@ func (suite *Suite) SetupTest() {
 		{
 			Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 			End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
-			Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+			Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 		},
 	}
 	params := types.NewParams(true, testPeriods, types.DefaultInfraParams)

@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"time"
 
@@ -89,10 +90,10 @@ func (gats GenesisAccumulationTimes) Validate() error {
 
 // Validate performs validation of GenesisAccumulationTime
 func (gat GenesisAccumulationTime) Validate() error {
-	if gat.SupplyInterestFactor.LT(sdk.OneDec()) {
+	if gat.SupplyInterestFactor.LT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("supply interest factor should be ≥ 1.0, is %s for %s", gat.SupplyInterestFactor, gat.CollateralType)
 	}
-	if gat.BorrowInterestFactor.LT(sdk.OneDec()) {
+	if gat.BorrowInterestFactor.LT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("borrow interest factor should be ≥ 1.0, is %s for %s", gat.BorrowInterestFactor, gat.CollateralType)
 	}
 	return nil

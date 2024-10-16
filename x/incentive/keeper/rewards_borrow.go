@@ -57,11 +57,11 @@ func (k Keeper) getHardBorrowTotalSourceShares(ctx sdk.Context, denom string) sd
 	interestFactor, found := k.hardKeeper.GetBorrowInterestFactor(ctx, denom)
 	if !found {
 		// assume nothing has been borrowed so the factor starts at it's default value
-		interestFactor = sdk.OneDec()
+		interestFactor = sdkmath.LegacyOneDec()
 	}
 
 	// return borrowed/factor to get the "pre interest" value of the current total borrowed
-	return sdk.NewDecFromInt(totalBorrowed).Quo(interestFactor)
+	return sdkmath.LegacyNewDecFromInt(totalBorrowed).Quo(interestFactor)
 }
 
 // InitializeHardBorrowReward initializes the borrow-side of a hard liquidity provider claim
@@ -193,7 +193,7 @@ func (k Keeper) CalculateRewards(oldIndexes, newIndexes types.RewardIndexes, sou
 	for _, newIndex := range newIndexes {
 		oldFactor, found := oldIndexes.Get(newIndex.CollateralType)
 		if !found {
-			oldFactor = sdk.ZeroDec()
+			oldFactor = sdkmath.LegacyZeroDec()
 		}
 
 		rewardAmount, err := k.CalculateSingleReward(oldFactor, newIndex.RewardFactor, sourceShares)

@@ -7,10 +7,10 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/committee/keeper"
@@ -50,7 +50,7 @@ func (suite *MsgServerTestSuite) SetupTest() {
 		"This committee is for testing.",
 		suite.addresses[:3],
 		[]types.Permission{&types.GodPermission{}},
-		sdk.MustNewDecFromStr("0.5"),
+		sdkmath.LegacyMustNewDecFromStr("0.5"),
 		time.Hour*24*7,
 		types.TALLY_OPTION_FIRST_PAST_THE_POST,
 	)

@@ -100,7 +100,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 	// price = $0.5
 	// liquidation ratio = 1.5
 	// normalizedRatio = (1/(0.5/1.5)) = 3
-	normalizedRatio := sdk.OneDec().Quo(priceDivLiqRatio)
+	normalizedRatio := sdkmath.LegacyOneDec().Quo(priceDivLiqRatio)
 	cdpsToLiquidate := k.GetSliceOfCDPsByRatioAndType(ctx, count, normalizedRatio, collateralType)
 	for _, c := range cdpsToLiquidate {
 		k.hooks.BeforeCDPModified(ctx, c)
@@ -115,7 +115,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 // ApplyLiquidationPenalty multiplies the input debt amount by the liquidation penalty
 func (k Keeper) ApplyLiquidationPenalty(ctx sdk.Context, collateralType string, debt sdkmath.Int) sdkmath.Int {
 	penalty := k.getLiquidationPenalty(ctx, collateralType)
-	return sdk.NewDecFromInt(debt).Mul(penalty).RoundInt()
+	return sdkmath.LegacyNewDecFromInt(debt).Mul(penalty).RoundInt()
 }
 
 // ValidateLiquidation validate that adding the input principal puts the cdp below the liquidation ratio
@@ -141,7 +141,7 @@ func (k Keeper) payoutKeeperLiquidationReward(ctx sdk.Context, keeper sdk.AccAdd
 	if !found {
 		return types.CDP{}, errorsmod.Wrapf(types.ErrInvalidCollateral, "%s", cdp.Type)
 	}
-	reward := sdk.NewDecFromInt(cdp.Collateral.Amount).Mul(collateralParam.KeeperRewardPercentage).RoundInt()
+	reward := sdkmath.LegacyNewDecFromInt(cdp.Collateral.Amount).Mul(collateralParam.KeeperRewardPercentage).RoundInt()
 	rewardCoin := sdk.NewCoin(cdp.Collateral.Denom, reward)
 	paidReward := false
 	deposits := k.GetDeposits(ctx, cdp.ID)

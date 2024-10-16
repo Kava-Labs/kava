@@ -15,26 +15,26 @@ func TestSortableDecBytes(t *testing.T) {
 		d    sdkmath.LegacyDec
 		want []byte
 	}{
-		{sdk.NewDec(0), []byte("000000000000000000.000000000000000000")},
-		{sdk.NewDec(1), []byte("000000000000000001.000000000000000000")},
-		{sdk.MustNewDecFromStr("2.0"), []byte("000000000000000002.000000000000000000")},
-		{sdk.MustNewDecFromStr("-2.0"), []byte("-000000000000000002.000000000000000000")},
-		{sdk.NewDec(10), []byte("000000000000000010.000000000000000000")},
-		{sdk.NewDec(12340), []byte("000000000000012340.000000000000000000")},
+		{sdkmath.LegacyNewDec(0), []byte("000000000000000000.000000000000000000")},
+		{sdkmath.LegacyNewDec(1), []byte("000000000000000001.000000000000000000")},
+		{sdkmath.LegacyMustNewDecFromStr("2.0"), []byte("000000000000000002.000000000000000000")},
+		{sdkmath.LegacyMustNewDecFromStr("-2.0"), []byte("-000000000000000002.000000000000000000")},
+		{sdkmath.LegacyNewDec(10), []byte("000000000000000010.000000000000000000")},
+		{sdkmath.LegacyNewDec(12340), []byte("000000000000012340.000000000000000000")},
 		{sdk.NewDecWithPrec(12340, 4), []byte("000000000000000001.234000000000000000")},
 		{sdk.NewDecWithPrec(12340, 5), []byte("000000000000000000.123400000000000000")},
 		{sdk.NewDecWithPrec(12340, 8), []byte("000000000000000000.000123400000000000")},
 		{sdk.NewDecWithPrec(1009009009009009009, 17), []byte("000000000000000010.090090090090090090")},
 		{sdk.NewDecWithPrec(-1009009009009009009, 17), []byte("-000000000000000010.090090090090090090")},
-		{sdk.NewDec(1000000000000000000), []byte("max")},
-		{sdk.NewDec(-1000000000000000000), []byte("--")},
+		{sdkmath.LegacyNewDec(1000000000000000000), []byte("max")},
+		{sdkmath.LegacyNewDec(-1000000000000000000), []byte("--")},
 	}
 	for tcIndex, tc := range tests {
 		assert.Equal(t, tc.want, SortableDecBytes(tc.d), "bad String(), index: %v", tcIndex)
 	}
 
-	assert.Panics(t, func() { SortableDecBytes(sdk.NewDec(1000000000000000001)) })
-	assert.Panics(t, func() { SortableDecBytes(sdk.NewDec(-1000000000000000001)) })
+	assert.Panics(t, func() { SortableDecBytes(sdkmath.LegacyNewDec(1000000000000000001)) })
+	assert.Panics(t, func() { SortableDecBytes(sdkmath.LegacyNewDec(-1000000000000000001)) })
 }
 
 func TestParseSortableDecBytes(t *testing.T) {
@@ -42,19 +42,19 @@ func TestParseSortableDecBytes(t *testing.T) {
 		d    sdkmath.LegacyDec
 		want []byte
 	}{
-		{sdk.NewDec(0), []byte("000000000000000000.000000000000000000")},
-		{sdk.NewDec(1), []byte("000000000000000001.000000000000000000")},
-		{sdk.MustNewDecFromStr("2.0"), []byte("000000000000000002.000000000000000000")},
-		{sdk.MustNewDecFromStr("-2.0"), []byte("-000000000000000002.000000000000000000")},
-		{sdk.NewDec(10), []byte("000000000000000010.000000000000000000")},
-		{sdk.NewDec(12340), []byte("000000000000012340.000000000000000000")},
+		{sdkmath.LegacyNewDec(0), []byte("000000000000000000.000000000000000000")},
+		{sdkmath.LegacyNewDec(1), []byte("000000000000000001.000000000000000000")},
+		{sdkmath.LegacyMustNewDecFromStr("2.0"), []byte("000000000000000002.000000000000000000")},
+		{sdkmath.LegacyMustNewDecFromStr("-2.0"), []byte("-000000000000000002.000000000000000000")},
+		{sdkmath.LegacyNewDec(10), []byte("000000000000000010.000000000000000000")},
+		{sdkmath.LegacyNewDec(12340), []byte("000000000000012340.000000000000000000")},
 		{sdk.NewDecWithPrec(12340, 4), []byte("000000000000000001.234000000000000000")},
 		{sdk.NewDecWithPrec(12340, 5), []byte("000000000000000000.123400000000000000")},
 		{sdk.NewDecWithPrec(12340, 8), []byte("000000000000000000.000123400000000000")},
 		{sdk.NewDecWithPrec(1009009009009009009, 17), []byte("000000000000000010.090090090090090090")},
 		{sdk.NewDecWithPrec(-1009009009009009009, 17), []byte("-000000000000000010.090090090090090090")},
-		{sdk.NewDec(1000000000000000000), []byte("max")},
-		{sdk.NewDec(-1000000000000000000), []byte("--")},
+		{sdkmath.LegacyNewDec(1000000000000000000), []byte("max")},
+		{sdkmath.LegacyNewDec(-1000000000000000000), []byte("--")},
 	}
 	for tcIndex, tc := range tests {
 		b := SortableDecBytes(tc.d)
@@ -69,9 +69,9 @@ func TestRelativePow(t *testing.T) {
 		args []sdkmath.Int
 		want sdkmath.Int
 	}{
-		{[]sdkmath.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdk.OneInt()}, sdk.OneInt()},
-		{[]sdkmath.Int{sdk.ZeroInt(), sdk.ZeroInt(), sdkmath.NewInt(10)}, sdkmath.NewInt(10)},
-		{[]sdkmath.Int{sdk.ZeroInt(), sdk.OneInt(), sdkmath.NewInt(10)}, sdk.ZeroInt()},
+		{[]sdkmath.Int{sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdk.OneInt()}, sdk.OneInt()},
+		{[]sdkmath.Int{sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.NewInt(10)}, sdkmath.NewInt(10)},
+		{[]sdkmath.Int{sdkmath.ZeroInt(), sdk.OneInt(), sdkmath.NewInt(10)}, sdkmath.ZeroInt()},
 		{[]sdkmath.Int{sdkmath.NewInt(10), sdkmath.NewInt(2), sdk.OneInt()}, sdkmath.NewInt(100)},
 		{[]sdkmath.Int{sdkmath.NewInt(210), sdkmath.NewInt(2), sdkmath.NewInt(100)}, sdkmath.NewInt(441)},
 		{[]sdkmath.Int{sdkmath.NewInt(2100), sdkmath.NewInt(2), sdkmath.NewInt(1000)}, sdkmath.NewInt(4410)},

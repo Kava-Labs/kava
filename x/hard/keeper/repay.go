@@ -2,6 +2,7 @@ package keeper
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/hard/types"
@@ -86,7 +87,7 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 	assetPriceCache := map[string]sdkmath.LegacyDec{}
 
 	// Get the total USD value of user's existing borrows
-	existingBorrowUSDValue := sdk.ZeroDec()
+	existingBorrowUSDValue := sdkmath.LegacyZeroDec()
 	existingBorrow, found := k.GetBorrow(ctx, owner)
 	if found {
 		for _, coin := range existingBorrow.Amount {
@@ -106,13 +107,13 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 			}
 
 			// Calculate this borrow coin's USD value and add it to the total previous borrowed USD value
-			coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPrice)
+			coinUSDValue := sdkmath.LegacyNewDecFromInt(coin.Amount).Quo(sdkmath.LegacyNewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPrice)
 			existingBorrowUSDValue = existingBorrowUSDValue.Add(coinUSDValue)
 		}
 	}
 
 	senderCoins := k.bankKeeper.SpendableCoins(ctx, sender)
-	repayTotalUSDValue := sdk.ZeroDec()
+	repayTotalUSDValue := sdkmath.LegacyZeroDec()
 	for _, repayCoin := range coins {
 		// Check that sender holds enough tokens to make the proposed payment
 		if senderCoins.AmountOf(repayCoin.Denom).LT(repayCoin.Amount) {
@@ -134,16 +135,16 @@ func (k Keeper) ValidateRepay(ctx sdk.Context, sender, owner sdk.AccAddress, coi
 			assetPriceCache[repayCoin.Denom] = assetPriceInfo.Price
 			assetPrice = assetPriceInfo.Price
 		}
-		coinUSDValue := sdk.NewDecFromInt(repayCoin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPrice)
+		coinUSDValue := sdkmath.LegacyNewDecFromInt(repayCoin.Amount).Quo(sdkmath.LegacyNewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPrice)
 		repayTotalUSDValue = repayTotalUSDValue.Add(coinUSDValue)
 	}
 
-	// If the proposed repayment would results in a borrowed USD value below the minimum borrow USD value, reject it.
+	// If the proposed repayment would result in a borrowed USD value below the minimum borrow USD value, reject it.
 	// User can overpay their loan to close it out, but underpaying by such a margin that the USD value is in an
 	// invalid range is not allowed
 	// Unless the user is fully repaying their loan
 	proposedBorrowNewUSDValue := existingBorrowUSDValue.Sub(repayTotalUSDValue)
-	isFullRepayment := coins.IsEqual(existingBorrow.Amount)
+	isFullRepayment := coins.Equal(existingBorrow.Amount)
 	if proposedBorrowNewUSDValue.LT(k.GetMinimumBorrowUSDValue(ctx)) && !isFullRepayment {
 		return errorsmod.Wrapf(types.ErrBelowMinimumBorrowValue, "the proposed borrow's USD value $%s is below the minimum borrow limit $%s", proposedBorrowNewUSDValue, k.GetMinimumBorrowUSDValue(ctx))
 	}

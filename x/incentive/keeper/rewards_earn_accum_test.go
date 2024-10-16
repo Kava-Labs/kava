@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"
@@ -261,10 +260,10 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 		{
 			CollateralType: "ukava",
 			RewardFactor: d("4.154285714285714286"). // base incentive
-									Add(sdk.NewDecFromInt(vaultDenom1Supply). // staking rewards
-															QuoInt64(10).
-															MulInt64(3600).
-															Quo(vault1Shares),
+									Add(sdkmath.LegacyNewDecFromInt(vaultDenom1Supply). // staking rewards
+																QuoInt64(10).
+																MulInt64(3600).
+																Quo(vault1Shares),
 				),
 		},
 	})
@@ -292,7 +291,7 @@ func (suite *AccumulateEarnRewardsTests) TestStateUpdatedWhenBlockTimeHasIncreas
 		{
 			CollateralType: "ukava",
 			RewardFactor: d("7.24").
-				Add(sdk.NewDecFromInt(vaultDenom2Supply).
+				Add(sdkmath.LegacyNewDecFromInt(vaultDenom2Supply).
 					QuoInt64(10).
 					MulInt64(3600).
 					Quo(vault2Shares),

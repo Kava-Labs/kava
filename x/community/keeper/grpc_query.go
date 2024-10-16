@@ -107,5 +107,5 @@ func (s queryServer) AnnualizedRewards(
 // this module uses sdkmath.LegacyDec in its parameters
 // TODO: remove me after upgrade to cosmos-sdk v50 (LegacyDec is everywhere)
 func convertDecToLegacyDec(in sdkmath.LegacyDec) sdkmath.LegacyDec {
-	return sdkmath.LegacyNewDecFromBigIntWithPrec(in.BigInt(), sdk.Precision)
+	return sdkmath.LegacyNewDecFromBigIntWithPrec(in.BigInt(), sdkmath.LegacyPrecision)
 }

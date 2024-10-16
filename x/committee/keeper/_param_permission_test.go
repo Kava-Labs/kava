@@ -89,7 +89,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			SupplyLimit: bep3types.SupplyLimit{
 				Limit:          sdkmath.NewInt(350000000000000),
 				TimeLimited:    false,
-				TimeBasedLimit: sdk.ZeroInt(),
+				TimeBasedLimit: sdkmath.ZeroInt(),
 				TimePeriod:     time.Hour,
 			},
 			Active:        true,

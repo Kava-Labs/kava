@@ -314,7 +314,7 @@ func (builder HardDepositBuilder) Build() hardtypes.Deposit { return builder.Dep
 // WithSourceShares adds a deposit amount and factor such that the source shares for this deposit is equal to specified.
 // With a factor of 1, the deposit amount is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
 func (builder HardDepositBuilder) WithSourceShares(denom string, shares int64) HardDepositBuilder {
-	if !builder.Amount.AmountOf(denom).Equal(sdk.ZeroInt()) {
+	if !builder.Amount.AmountOf(denom).Equal(sdkmath.ZeroInt()) {
 		panic("adding to amount with existing denom not implemented")
 	}
 	if _, f := builder.Index.GetInterestFactor(denom); f {
@@ -322,7 +322,7 @@ func (builder HardDepositBuilder) WithSourceShares(denom string, shares int64) H
 	}
 
 	// pick arbitrary factor
-	factor := sdk.MustNewDecFromStr("2")
+	factor := sdkmath.LegacyMustNewDecFromStr("2")
 
 	// Calculate deposit amount that would equal the requested source shares given the above factor.
 	amt := sdkmath.NewInt(shares).Mul(factor.RoundInt())

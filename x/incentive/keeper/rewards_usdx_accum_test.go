@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/incentive/types"
@@ -158,7 +157,7 @@ func (suite *AccumulateUSDXRewardsTests) TestStateAddedWhenStateDoesNotExist() {
 
 	// After the first accumulation the current block time should be stored and the factor will be zero.
 	suite.storedTimeEquals(cType, firstAccrualTime)
-	suite.storedIndexesEqual(cType, sdk.ZeroDec())
+	suite.storedIndexesEqual(cType, sdkmath.LegacyZeroDec())
 
 	secondAccrualTime := firstAccrualTime.Add(10 * time.Second)
 	suite.ctx = suite.ctx.WithBlockTime(secondAccrualTime)

@@ -72,7 +72,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDeposit_Events() {
 			sdk.NewAttribute(sdk.AttributeKeySender, user.String()),
 		),
 	)
-	expectedShares := sdk.NewDecFromInt(msg.Amount.Amount) // no slashes so shares equal staked tokens
+	expectedShares := sdkmath.LegacyNewDecFromInt(msg.Amount.Amount) // no slashes so shares equal staked tokens
 	suite.EventsContains(suite.Ctx.EventManager().Events(),
 		sdk.NewEvent(
 			stakingtypes.EventTypeDelegate,
@@ -155,7 +155,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	suite.CreateNewUnbondedValidator(valAddr, sdkmath.NewInt(1e9))
 	suite.CreateDelegation(valAddr, user, sdkmath.NewInt(1e9))
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
-	suite.SlashValidator(valAddr, sdk.MustNewDecFromStr("0.666666666666666667"))
+	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.666666666666666667"))
 
 	// Query the full staked balance and convert it all to derivatives
 	// user technically 333_333_333.333333333333333333 staked tokens without rounding
@@ -173,7 +173,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	// There should be no extractable balance left in delegation
 	suite.DelegationBalanceLessThan(valAddr, user, sdkmath.NewInt(1))
 	// All derivative coins should be deposited to earn
-	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
+	suite.AccountBalanceOfEqual(user, derivativeDenom, sdkmath.ZeroInt())
 	// Earn vault has all minted derivatives
 	suite.VaultAccountValueEqual(user, sdk.NewInt64Coin(derivativeDenom, 999_999_998)) // 2 lost in conversion
 
@@ -192,7 +192,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	// There should be no earn deposit left (earn removes dust amounts)
 	suite.VaultAccountSharesEqual(user, nil)
 	// All derivative coins should be converted to a delegation
-	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
+	suite.AccountBalanceOfEqual(user, derivativeDenom, sdkmath.ZeroInt())
 	// The user should get back most of their original deposited balance
 	suite.DelegationBalanceInDeltaBelow(valAddr, user, sdkmath.NewInt(333_333_332), sdkmath.NewInt(2))
 }
@@ -210,7 +210,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	// Create a slashed validator, where a future delegator will own fractional tokens.
 	suite.CreateNewUnbondedValidator(valAddr, valBalance)
 	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
-	suite.SlashValidator(valAddr, sdk.MustNewDecFromStr("0.4")) // tokens remaining 600_000_000
+	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.4")) // tokens remaining 600_000_000
 
 	userBalance := sdkmath.NewInt(100e6)
 	vesting := sdkmath.NewInt(1000)
@@ -236,9 +236,9 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	// All spendable balance should be withdrawn
 	suite.AccountSpendableBalanceEqual(user, sdk.NewCoins())
 	// Since shares are newly created, the exact amount should be converted to derivatives, leaving none behind
-	suite.DelegationSharesEqual(valAddr, user, sdk.ZeroDec())
+	suite.DelegationSharesEqual(valAddr, user, sdkmath.LegacyZeroDec())
 	// All derivative coins should be deposited to earn
-	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
+	suite.AccountBalanceOfEqual(user, derivativeDenom, sdkmath.ZeroInt())
 
 	suite.VaultAccountValueEqual(user, sdk.NewInt64Coin(derivativeDenom, 166_666_666))
 
@@ -257,9 +257,9 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 	// There should be no earn deposit left (earn removes dust amounts)
 	suite.VaultAccountSharesEqual(user, nil)
 	// All derivative coins should be converted to a delegation
-	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
+	suite.AccountBalanceOfEqual(user, derivativeDenom, sdkmath.ZeroInt())
 	// There should be zero shares left because undelegate removes all created by burn.
-	suite.AccountBalanceOfEqual(user, derivativeDenom, sdk.ZeroInt())
+	suite.AccountBalanceOfEqual(user, derivativeDenom, sdkmath.ZeroInt())
 	// User should have most of their original balance back in an unbonding delegation
 	suite.UnbondingDelegationInDeltaBelow(valAddr, user, userBalance, sdkmath.NewInt(2))
 }

@@ -67,7 +67,7 @@ func (suite *GenesisTestSuite) TestValidate() {
 			"invalid supply",
 			args{
 				swaps:             types.AtomicSwaps{},
-				supplies:          types.AssetSupplies{{IncomingSupply: sdk.Coin{Denom: "Invalid", Amount: sdk.ZeroInt()}}},
+				supplies:          types.AssetSupplies{{IncomingSupply: sdk.Coin{Denom: "Invalid", Amount: sdkmath.ZeroInt()}}},
 				previousBlockTime: types.DefaultPreviousBlockTime,
 			},
 			false,

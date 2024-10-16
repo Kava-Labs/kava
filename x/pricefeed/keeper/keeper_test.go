@@ -75,9 +75,9 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 		price    sdkmath.LegacyDec
 		total    int
 	}{
-		{addrs[0], "tstusd", sdk.MustNewDecFromStr("0.33"), 1},
-		{addrs[1], "tstusd", sdk.MustNewDecFromStr("0.35"), 2},
-		{addrs[0], "tstusd", sdk.MustNewDecFromStr("0.37"), 2},
+		{addrs[0], "tstusd", sdkmath.LegacyMustNewDecFromStr("0.33"), 1},
+		{addrs[1], "tstusd", sdkmath.LegacyMustNewDecFromStr("0.35"), 2},
+		{addrs[0], "tstusd", sdkmath.LegacyMustNewDecFromStr("0.37"), 2},
 	}
 
 	for _, p := range prices {
@@ -124,33 +124,33 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 
 	_, err := keeper.SetPrice(
 		ctx, addrs[0], "tstusd",
-		sdk.MustNewDecFromStr("0.33"),
+		sdkmath.LegacyMustNewDecFromStr("0.33"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 
 	_, err = keeper.SetPrice(
 		ctx, addrs[1], "tstusd",
-		sdk.MustNewDecFromStr("0.35"),
+		sdkmath.LegacyMustNewDecFromStr("0.35"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 
 	_, err = keeper.SetPrice(
 		ctx, addrs[2], "tstusd",
-		sdk.MustNewDecFromStr("0.34"),
+		sdkmath.LegacyMustNewDecFromStr("0.34"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 
 	// Add an expired one which should fail
 	_, err = keeper.SetPrice(
 		ctx, addrs[3], "tstusd",
-		sdk.MustNewDecFromStr("0.9"),
+		sdkmath.LegacyMustNewDecFromStr("0.9"),
 		ctx.BlockTime().Add(-time.Hour*1))
 	require.Error(t, err)
 
 	// Add a non-expired price, but will not be counted when BlockTime is changed
 	_, err = keeper.SetPrice(
 		ctx, addrs[3], "tstusd",
-		sdk.MustNewDecFromStr("0.9"),
+		sdkmath.LegacyMustNewDecFromStr("0.9"),
 		time.Now().Add(time.Minute*30))
 	require.NoError(t, err)
 
@@ -165,7 +165,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	price, err := keeper.GetCurrentPrice(ctx, "tstusd")
 	require.Nil(t, err)
 
-	expCurPrice := sdk.MustNewDecFromStr("0.34")
+	expCurPrice := sdkmath.LegacyMustNewDecFromStr("0.34")
 	require.Truef(
 		t,
 		price.Price.Equal(expCurPrice),
@@ -176,7 +176,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	// Even number of oracles
 	_, err = keeper.SetPrice(
 		ctx, addrs[4], "tstusd",
-		sdk.MustNewDecFromStr("0.36"),
+		sdkmath.LegacyMustNewDecFromStr("0.36"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 
@@ -186,7 +186,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	price, err = keeper.GetCurrentPrice(ctx, "tstusd")
 	require.Nil(t, err)
 
-	exp := sdk.MustNewDecFromStr("0.345")
+	exp := sdkmath.LegacyMustNewDecFromStr("0.345")
 	require.Truef(t, price.Price.Equal(exp),
 		"current price %s should be %s",
 		price.Price.String(),
@@ -214,19 +214,19 @@ func TestKeeper_ExpiredSetCurrentPrices(t *testing.T) {
 
 	_, err := keeper.SetPrice(
 		ctx, addrs[0], "tstusd",
-		sdk.MustNewDecFromStr("0.33"),
+		sdkmath.LegacyMustNewDecFromStr("0.33"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 
 	_, err = keeper.SetPrice(
 		ctx, addrs[1], "tstusd",
-		sdk.MustNewDecFromStr("0.35"),
+		sdkmath.LegacyMustNewDecFromStr("0.35"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 
 	_, err = keeper.SetPrice(
 		ctx, addrs[2], "tstusd",
-		sdk.MustNewDecFromStr("0.34"),
+		sdkmath.LegacyMustNewDecFromStr("0.34"),
 		time.Now().Add(time.Hour*1))
 	require.NoError(t, err)
 

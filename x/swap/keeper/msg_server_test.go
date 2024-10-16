@@ -45,7 +45,7 @@ func (suite *msgServerTestSuite) TestDeposit_CreatePool() {
 		depositor.GetAddress().String(),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), pool.TokenA),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), pool.TokenB),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -95,7 +95,7 @@ func (suite *msgServerTestSuite) TestDeposit_DeadlineExceeded() {
 		depositor.GetAddress().String(),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), pool.TokenA),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), pool.TokenB),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
@@ -124,7 +124,7 @@ func (suite *msgServerTestSuite) TestDeposit_ExistingPool() {
 		depositor.GetAddress().String(),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), "usdx"),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), "ukava"),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -188,7 +188,7 @@ func (suite *msgServerTestSuite) TestDeposit_ExistingPool_SlippageFailure() {
 		depositor.GetAddress().String(),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), "usdx"),
 		suite.BankKeeper.GetBalance(suite.Ctx, depositor.GetAddress(), "ukava"),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -208,7 +208,7 @@ func (suite *msgServerTestSuite) TestWithdraw_AllShares() {
 	suite.Require().NoError(pool.Validate())
 	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
+	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdkmath.LegacyMustNewDecFromStr("1"))
 	suite.Require().NoError(err)
 
 	withdraw := types.NewMsgWithdraw(
@@ -261,7 +261,7 @@ func (suite *msgServerTestSuite) TestWithdraw_PartialShares() {
 	suite.Require().NoError(pool.Validate())
 	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
+	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdkmath.LegacyMustNewDecFromStr("1"))
 	suite.Require().NoError(err)
 
 	minTokenA := sdk.NewCoin("ukava", sdkmath.NewInt(4999999))
@@ -319,7 +319,7 @@ func (suite *msgServerTestSuite) TestWithdraw_SlippageFailure() {
 	suite.Require().NoError(pool.Validate())
 	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, types.DefaultSwapFee))
 
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
+	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdkmath.LegacyMustNewDecFromStr("1"))
 	suite.Require().NoError(err)
 
 	minTokenA := sdk.NewCoin("ukava", sdkmath.NewInt(5e6))
@@ -378,7 +378,7 @@ func (suite *msgServerTestSuite) TestSwapExactForTokens() {
 		requester.GetAddress().String(),
 		swapInput,
 		sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -442,7 +442,7 @@ func (suite *msgServerTestSuite) TestSwapExactForTokens_SlippageFailure() {
 		requester.GetAddress().String(),
 		swapInput,
 		sdk.NewCoin("usdx", sdkmath.NewInt(5030338)),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -463,7 +463,7 @@ func (suite *msgServerTestSuite) TestSwapExactForTokens_DeadlineExceeded() {
 		requester.GetAddress().String(),
 		sdk.NewCoin("ukava", sdkmath.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdkmath.NewInt(25e5)),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 
@@ -491,7 +491,7 @@ func (suite *msgServerTestSuite) TestSwapForExactTokens() {
 		requester.GetAddress().String(),
 		sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
 		swapOutput,
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -555,7 +555,7 @@ func (suite *msgServerTestSuite) TestSwapForExactTokens_SlippageFailure() {
 		requester.GetAddress().String(),
 		sdk.NewCoin("ukava", sdkmath.NewInt(990991)),
 		swapOutput,
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
@@ -576,7 +576,7 @@ func (suite *msgServerTestSuite) TestSwapForExactTokens_DeadlineExceeded() {
 		requester.GetAddress().String(),
 		sdk.NewCoin("ukava", sdkmath.NewInt(5e6)),
 		sdk.NewCoin("usdx", sdkmath.NewInt(25e5)),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		suite.Ctx.BlockTime().Add(-1*time.Second).Unix(),
 	)
 

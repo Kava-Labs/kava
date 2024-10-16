@@ -60,12 +60,12 @@ func (suite *GenesisTestSuite) TestGenesisValidation() {
 			args: args{
 				params: types.NewParams(
 					types.MoneyMarkets{
-						types.NewMoneyMarket("usdx", types.NewBorrowLimit(true, sdk.MustNewDecFromStr("100000000000"), sdk.MustNewDecFromStr("1")), "usdx:usd", sdkmath.NewInt(USDX_CF), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+						types.NewMoneyMarket("usdx", types.NewBorrowLimit(true, sdkmath.LegacyMustNewDecFromStr("100000000000"), sdkmath.LegacyMustNewDecFromStr("1")), "usdx:usd", sdkmath.NewInt(USDX_CF), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
 					},
-					sdk.MustNewDecFromStr("10"),
+					sdkmath.LegacyMustNewDecFromStr("10"),
 				),
 				gats: types.GenesisAccumulationTimes{
-					types.NewGenesisAccumulationTime("usdx", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), sdk.OneDec(), sdk.OneDec()),
+					types.NewGenesisAccumulationTime("usdx", time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC), sdkmath.LegacyOneDec(), sdkmath.LegacyOneDec()),
 				},
 				deps: types.DefaultDeposits,
 				brws: types.DefaultBorrows,

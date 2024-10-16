@@ -46,8 +46,8 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 	}
 
 	// Set up test constants
-	model := types.NewInterestRateModel(sdk.MustNewDecFromStr("0"), sdk.MustNewDecFromStr("0.1"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("0.5"))
-	reserveFactor := sdk.MustNewDecFromStr("0.05")
+	model := types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0"), sdkmath.LegacyMustNewDecFromStr("0.1"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("0.5"))
+	reserveFactor := sdkmath.LegacyMustNewDecFromStr("0.05")
 	oneMonthDur := time.Second * 30 * 24 * 3600
 	borrower := sdk.AccAddress(crypto.AddressHash([]byte("testborrower")))
 	keeper := sdk.AccAddress(crypto.AddressHash([]byte("testkeeper")))
@@ -65,7 +65,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:                   borrower,
 				keeper:                     keeper,
-				keeperRewardPercent:        sdk.MustNewDecFromStr("0.05"),
+				keeperRewardPercent:        sdkmath.LegacyMustNewDecFromStr("0.05"),
 				initialModuleCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
@@ -104,7 +104,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:                   borrower,
 				keeper:                     keeper,
-				keeperRewardPercent:        sdk.MustNewDecFromStr("0.0"),
+				keeperRewardPercent:        sdkmath.LegacyMustNewDecFromStr("0.0"),
 				initialModuleCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
@@ -143,7 +143,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:                   borrower,
 				keeper:                     keeper,
-				keeperRewardPercent:        sdk.MustNewDecFromStr("1.0"),
+				keeperRewardPercent:        sdkmath.LegacyMustNewDecFromStr("1.0"),
 				initialModuleCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
@@ -166,7 +166,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:             borrower,
 				keeper:               keeper,
-				keeperRewardPercent:  sdk.MustNewDecFromStr("0.05"),
+				keeperRewardPercent:  sdkmath.LegacyMustNewDecFromStr("0.05"),
 				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("bnb", sdkmath.NewInt(1000*BNB_CF)), sdk.NewCoin("btc", sdkmath.NewInt(1000*BTCB_CF))),
 				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
@@ -255,7 +255,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:             borrower,
 				keeper:               keeper,
-				keeperRewardPercent:  sdk.MustNewDecFromStr("0.05"),
+				keeperRewardPercent:  sdkmath.LegacyMustNewDecFromStr("0.05"),
 				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF))),
 				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF)), sdk.NewCoin("bnb", sdkmath.NewInt(100*BNB_CF)), sdk.NewCoin("btc", sdkmath.NewInt(100*BTCB_CF))),
 				initialKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
@@ -327,7 +327,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:             borrower,
 				keeper:               keeper,
-				keeperRewardPercent:  sdk.MustNewDecFromStr("0.05"),
+				keeperRewardPercent:  sdkmath.LegacyMustNewDecFromStr("0.05"),
 				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("bnb", sdkmath.NewInt(1000*BNB_CF)), sdk.NewCoin("btc", sdkmath.NewInt(1000*BTCB_CF))),
 				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF)), sdk.NewCoin("usdc", sdkmath.NewInt(100*KAVA_CF)), sdk.NewCoin("usdt", sdkmath.NewInt(100*KAVA_CF)), sdk.NewCoin("usdx", sdkmath.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:   sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
@@ -431,7 +431,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:             borrower,
 				keeper:               keeper,
-				keeperRewardPercent:  sdk.MustNewDecFromStr("0.05"),
+				keeperRewardPercent:  sdkmath.LegacyMustNewDecFromStr("0.05"),
 				initialModuleCoins:   sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdkmath.NewInt(1000*KAVA_CF))),
 				initialBorrowerCoins: sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdkmath.NewInt(1000*KAVA_CF))),
 				initialKeeperCoins:   sdk.NewCoins(sdk.NewCoin("usdx", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdt", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("dai", sdkmath.NewInt(1000*KAVA_CF)), sdk.NewCoin("usdc", sdkmath.NewInt(1000*KAVA_CF))),
@@ -505,7 +505,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			args{
 				borrower:                   borrower,
 				keeper:                     keeper,
-				keeperRewardPercent:        sdk.MustNewDecFromStr("0.05"),
+				keeperRewardPercent:        sdkmath.LegacyMustNewDecFromStr("0.05"),
 				initialModuleCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialBorrowerCoins:       sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
 				initialKeeperCoins:         sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(100*KAVA_CF))),
@@ -553,56 +553,56 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx",
-						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						types.NewBorrowLimit(false, sdkmath.LegacyNewDec(100000000*KAVA_CF), sdkmath.LegacyMustNewDecFromStr("0.9")), // Borrow Limit
 						"usdx:usd",                   // Market ID
 						sdkmath.NewInt(KAVA_CF),      // Conversion Factor
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 					types.NewMoneyMarket("usdt",
-						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						types.NewBorrowLimit(false, sdkmath.LegacyNewDec(100000000*KAVA_CF), sdkmath.LegacyMustNewDecFromStr("0.9")), // Borrow Limit
 						"usdt:usd",                   // Market ID
 						sdkmath.NewInt(KAVA_CF),      // Conversion Factor
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 					types.NewMoneyMarket("usdc",
-						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						types.NewBorrowLimit(false, sdkmath.LegacyNewDec(100000000*KAVA_CF), sdkmath.LegacyMustNewDecFromStr("0.9")), // Borrow Limit
 						"usdc:usd",                   // Market ID
 						sdkmath.NewInt(KAVA_CF),      // Conversion Factor
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 					types.NewMoneyMarket("dai",
-						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.9")), // Borrow Limit
+						types.NewBorrowLimit(false, sdkmath.LegacyNewDec(100000000*KAVA_CF), sdkmath.LegacyMustNewDecFromStr("0.9")), // Borrow Limit
 						"dai:usd",                    // Market ID
 						sdkmath.NewInt(KAVA_CF),      // Conversion Factor
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 					types.NewMoneyMarket("ukava",
-						types.NewBorrowLimit(false, sdk.NewDec(100000000*KAVA_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						types.NewBorrowLimit(false, sdkmath.LegacyNewDec(100000000*KAVA_CF), sdkmath.LegacyMustNewDecFromStr("0.8")), // Borrow Limit
 						"kava:usd",                   // Market ID
 						sdkmath.NewInt(KAVA_CF),      // Conversion Factor
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 					types.NewMoneyMarket("bnb",
-						types.NewBorrowLimit(false, sdk.NewDec(100000000*BNB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						types.NewBorrowLimit(false, sdkmath.LegacyNewDec(100000000*BNB_CF), sdkmath.LegacyMustNewDecFromStr("0.8")), // Borrow Limit
 						"bnb:usd",                    // Market ID
 						sdkmath.NewInt(BNB_CF),       // Conversion Factor
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 					types.NewMoneyMarket("btc",
-						types.NewBorrowLimit(false, sdk.NewDec(100000000*BTCB_CF), sdk.MustNewDecFromStr("0.8")), // Borrow Limit
+						types.NewBorrowLimit(false, sdkmath.LegacyNewDec(100000000*BTCB_CF), sdkmath.LegacyMustNewDecFromStr("0.8")), // Borrow Limit
 						"btc:usd",                    // Market ID
 						sdkmath.NewInt(BTCB_CF),      // Conversion Factor
 						model,                        // Interest Rate Model
 						reserveFactor,                // Reserve Factor
 						tc.args.keeperRewardPercent), // Keeper Reward Percent
 				},
-				sdk.NewDec(10),
+				sdkmath.LegacyNewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -624,43 +624,43 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 					{
 						MarketID:      "usdx:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("1.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("1.00"),
 						Expiry:        time.Now().Add(100 * time.Hour),
 					},
 					{
 						MarketID:      "usdt:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("1.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("1.00"),
 						Expiry:        time.Now().Add(100 * time.Hour),
 					},
 					{
 						MarketID:      "usdc:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("1.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("1.00"),
 						Expiry:        time.Now().Add(100 * time.Hour),
 					},
 					{
 						MarketID:      "dai:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("1.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("1.00"),
 						Expiry:        time.Now().Add(100 * time.Hour),
 					},
 					{
 						MarketID:      "kava:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("2.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("2.00"),
 						Expiry:        time.Now().Add(100 * time.Hour),
 					},
 					{
 						MarketID:      "bnb:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("10.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("10.00"),
 						Expiry:        time.Now().Add(100 * time.Hour),
 					},
 					{
 						MarketID:      "btc:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("100.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("100.00"),
 						Expiry:        time.Now().Add(100 * time.Hour),
 					},
 				},

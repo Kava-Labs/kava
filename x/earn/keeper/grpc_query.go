@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"strings"
 
@@ -122,8 +123,8 @@ func (s queryServer) Vaults(
 			IsPrivateVault:    allowedVault.IsPrivateVault,
 			AllowedDepositors: addressSliceToStringSlice(allowedVault.AllowedDepositors),
 			// No shares, no value
-			TotalShares: sdk.ZeroDec().String(),
-			TotalValue:  sdk.ZeroInt(),
+			TotalShares: sdkmath.LegacyZeroDec().String(),
+			TotalValue:  sdkmath.ZeroInt(),
 		})
 	}
 
@@ -164,7 +165,7 @@ func (s queryServer) Vault(
 	vaultRecord, found := s.keeper.GetVaultRecord(sdkCtx, req.Denom)
 	if !found {
 		// No supply yet, no error just set it to zero
-		vaultRecord.TotalShares = types.NewVaultShare(req.Denom, sdk.ZeroDec())
+		vaultRecord.TotalShares = types.NewVaultShare(req.Denom, sdkmath.LegacyZeroDec())
 	}
 
 	totalValue, err := s.keeper.GetVaultTotalValue(sdkCtx, req.Denom)
@@ -354,8 +355,8 @@ func (s queryServer) getOneAccountOneVaultDeposit(
 				{
 					Depositor: depositor.String(),
 					// Zero shares and zero value for no deposits
-					Shares: types.NewVaultShares(types.NewVaultShare(req.Denom, sdk.ZeroDec())),
-					Value:  sdk.NewCoins(sdk.NewCoin(req.Denom, sdk.ZeroInt())),
+					Shares: types.NewVaultShares(types.NewVaultShare(req.Denom, sdkmath.LegacyZeroDec())),
+					Value:  sdk.NewCoins(sdk.NewCoin(req.Denom, sdkmath.ZeroInt())),
 				},
 			},
 			Pagination: nil,
@@ -420,8 +421,8 @@ func (s queryServer) getOneAccountBkavaVaultDeposit(
 				{
 					Depositor: depositor.String(),
 					// Zero shares and zero value for no deposits
-					Shares: types.NewVaultShares(types.NewVaultShare(req.Denom, sdk.ZeroDec())),
-					Value:  sdk.NewCoins(sdk.NewCoin(req.Denom, sdk.ZeroInt())),
+					Shares: types.NewVaultShares(types.NewVaultShare(req.Denom, sdkmath.LegacyZeroDec())),
+					Value:  sdk.NewCoins(sdk.NewCoin(req.Denom, sdkmath.ZeroInt())),
 				},
 			},
 			Pagination: nil,

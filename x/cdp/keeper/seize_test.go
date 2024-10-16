@@ -402,7 +402,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdkmath.LegacyOneDec())
 			err = suite.keeper.AddCdp(suite.ctx, suite.addrs[0], tc.args.collateral, tc.args.principal, tc.args.ctype)
 			suite.Require().NoError(err)
 
@@ -537,7 +537,7 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdkmath.LegacyOneDec())
 
 			for idx, col := range tc.args.collaterals {
 				err := suite.keeper.AddCdp(suite.ctx, suite.addrs[idx], col, tc.args.principals[idx], tc.args.ctype)

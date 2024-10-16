@@ -62,14 +62,14 @@ func (s *migrateTestSuite) TestMigrate_JSON() {
 
 func (s *migrateTestSuite) TestMigrate_Params() {
 	params := v015swap.Params{
-		SwapFee: sdk.MustNewDecFromStr("0.33"),
+		SwapFee: sdkmath.LegacyMustNewDecFromStr("0.33"),
 		AllowedPools: v015swap.AllowedPools{
 			{TokenA: "A", TokenB: "B"},
 			{TokenA: "C", TokenB: "D"},
 		},
 	}
 	expectedParams := v016swap.Params{
-		SwapFee: sdk.MustNewDecFromStr("0.33"),
+		SwapFee: sdkmath.LegacyMustNewDecFromStr("0.33"),
 		AllowedPools: v016swap.AllowedPools{
 			{TokenA: "A", TokenB: "B"},
 			{TokenA: "C", TokenB: "D"},

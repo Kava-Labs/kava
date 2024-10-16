@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/kava-labs/kava/x/earn/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -81,7 +82,7 @@ func VaultSharesInvariant(k Keeper) sdk.Invariant {
 		k.IterateVaultRecords(ctx, func(record types.VaultRecord) bool {
 			totalShares[record.TotalShares.Denom] = vaultShares{
 				totalShares:      record.TotalShares,
-				totalSharesOwned: types.NewVaultShare(record.TotalShares.Denom, sdk.ZeroDec()),
+				totalSharesOwned: types.NewVaultShare(record.TotalShares.Denom, sdkmath.LegacyZeroDec()),
 			}
 
 			return false
@@ -94,7 +95,7 @@ func VaultSharesInvariant(k Keeper) sdk.Invariant {
 					totalShares[share.Denom] = shares
 				} else {
 					totalShares[share.Denom] = vaultShares{
-						totalShares:      types.NewVaultShare(share.Denom, sdk.ZeroDec()),
+						totalShares:      types.NewVaultShare(share.Denom, sdkmath.LegacyZeroDec()),
 						totalSharesOwned: share,
 					}
 				}

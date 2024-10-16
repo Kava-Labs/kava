@@ -26,11 +26,11 @@ func TestDeposit_NormalizedDeposit(t *testing.T) {
 				Index: types.SupplyInterestFactors{
 					{
 						Denom: "xrpb",
-						Value: sdk.MustNewDecFromStr("1.25"),
+						Value: sdkmath.LegacyMustNewDecFromStr("1.25"),
 					},
 					{
 						Denom: "bnb",
-						Value: sdk.MustNewDecFromStr("2.0"),
+						Value: sdkmath.LegacyMustNewDecFromStr("2.0"),
 					},
 				},
 			},
@@ -64,7 +64,7 @@ func TestDeposit_NormalizedDeposit(t *testing.T) {
 				Index: types.SupplyInterestFactors{
 					{
 						Denom: "xrpb",
-						Value: sdk.MustNewDecFromStr("1.25"),
+						Value: sdkmath.LegacyMustNewDecFromStr("1.25"),
 					},
 				},
 			},
@@ -79,7 +79,7 @@ func TestDeposit_NormalizedDeposit(t *testing.T) {
 				Index: types.SupplyInterestFactors{
 					{
 						Denom: "bnb",
-						Value: sdk.MustNewDecFromStr("0.999999999999999999"),
+						Value: sdkmath.LegacyMustNewDecFromStr("0.999999999999999999"),
 					},
 				},
 			},
@@ -94,7 +94,7 @@ func TestDeposit_NormalizedDeposit(t *testing.T) {
 				Index: types.SupplyInterestFactors{
 					{
 						Denom: "bnb",
-						Value: sdk.MustNewDecFromStr("0"),
+						Value: sdkmath.LegacyMustNewDecFromStr("0"),
 					},
 				},
 			},

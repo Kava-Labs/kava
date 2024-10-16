@@ -38,10 +38,14 @@ func (s queryServer) DelegatedBalance(
 
 	delegated := s.getDelegatedBalance(ctx, delegator)
 
-	bondDenom := s.keeper.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := s.keeper.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	vesting := s.getVesting(ctx, delegator).AmountOf(bondDenom)
 
-	vestingDelegated := sdk.MinInt(vesting, delegated)
+	vestingDelegated := sdkmath.MinInt(vesting, delegated)
 	vestedDelegated := delegated.Sub(vestingDelegated)
 
 	res := types.QueryDelegatedBalanceResponse{
@@ -69,11 +73,11 @@ func (s queryServer) TotalSupply(
 }
 
 func (s queryServer) getDelegatedBalance(ctx sdk.Context, delegator sdk.AccAddress) sdkmath.Int {
-	balance := sdk.ZeroDec()
+	balance := sdkmath.LegacyZeroDec()
 
 	s.keeper.stakingKeeper.IterateDelegatorDelegations(ctx, delegator, func(delegation stakingtypes.Delegation) bool {
-		validator, found := s.keeper.stakingKeeper.GetValidator(ctx, delegation.GetValidatorAddr())
-		if !found {
+		validator, err := s.keeper.stakingKeeper.GetValidator(ctx, []byte(delegation.GetValidatorAddr()))
+		if err != nil {
 			panic(fmt.Sprintf("validator %s for delegation not found", delegation.GetValidatorAddr()))
 		}
 		tokens := validator.TokensFromSharesTruncated(delegation.GetShares())

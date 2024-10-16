@@ -211,7 +211,7 @@ func (builder IncentiveGenesisBuilder) simpleRewardPeriod(ctype string, rewardsP
 func newZeroRewardIndexesFromCoins(coins ...sdk.Coin) types.RewardIndexes {
 	var ri types.RewardIndexes
 	for _, coin := range coins {
-		ri = ri.With(coin.Denom, sdk.ZeroDec())
+		ri = ri.With(coin.Denom, sdkmath.LegacyZeroDec())
 	}
 	return ri
 }
@@ -252,7 +252,7 @@ func (builder HardGenesisBuilder) WithInitializedMoneyMarket(market hardtypes.Mo
 
 	builder.PreviousAccumulationTimes = append(
 		builder.PreviousAccumulationTimes,
-		hardtypes.NewGenesisAccumulationTime(market.Denom, builder.genesisTime, sdk.OneDec(), sdk.OneDec()),
+		hardtypes.NewGenesisAccumulationTime(market.Denom, builder.genesisTime, sdkmath.LegacyOneDec(), sdkmath.LegacyOneDec()),
 	)
 	return builder
 }
@@ -267,19 +267,19 @@ func NewStandardMoneyMarket(denom string) hardtypes.MoneyMarket {
 		denom,
 		hardtypes.NewBorrowLimit(
 			false,
-			sdk.NewDec(1e15),
-			sdk.MustNewDecFromStr("0.6"),
+			sdkmath.LegacyNewDec(1e15),
+			sdkmath.LegacyMustNewDecFromStr("0.6"),
 		),
 		denom+":usd",
 		sdkmath.NewInt(1e6),
 		hardtypes.NewInterestRateModel(
-			sdk.MustNewDecFromStr("0.05"),
-			sdk.MustNewDecFromStr("2"),
-			sdk.MustNewDecFromStr("0.8"),
-			sdk.MustNewDecFromStr("10"),
+			sdkmath.LegacyMustNewDecFromStr("0.05"),
+			sdkmath.LegacyMustNewDecFromStr("2"),
+			sdkmath.LegacyMustNewDecFromStr("0.8"),
+			sdkmath.LegacyMustNewDecFromStr("10"),
 		),
-		sdk.MustNewDecFromStr("0.05"),
-		sdk.ZeroDec(),
+		sdkmath.LegacyMustNewDecFromStr("0.05"),
+		sdkmath.LegacyZeroDec(),
 	)
 }
 

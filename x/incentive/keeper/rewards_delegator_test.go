@@ -262,7 +262,7 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 			claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
 			for _, rewardIndex := range claim.RewardIndexes[0].RewardIndexes {
-				suite.Require().Equal(sdk.ZeroDec(), rewardIndex.RewardFactor)
+				suite.Require().Equal(sdkmath.LegacyZeroDec(), rewardIndex.RewardFactor)
 			}
 
 			// Run accumulator at several intervals
@@ -380,7 +380,7 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 			claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
 			for _, rewardIndex := range claim.RewardIndexes[0].RewardIndexes {
-				suite.Require().Equal(sdk.ZeroDec(), rewardIndex.RewardFactor)
+				suite.Require().Equal(sdkmath.LegacyZeroDec(), rewardIndex.RewardFactor)
 			}
 
 			// Run accumulator at several intervals
@@ -425,7 +425,7 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Contex
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1_000_000),
 	)
 	if err != nil {

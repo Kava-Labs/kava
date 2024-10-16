@@ -51,9 +51,9 @@ func GetProportionalRewardsPerSecond(
 	}
 
 	for _, rewardCoin := range rewardPeriod.RewardsPerSecond {
-		scaledAmount := sdk.NewDecFromInt(rewardCoin.Amount).
-			Mul(sdk.NewDecFromInt(singleBkavaSupply)).
-			Quo(sdk.NewDecFromInt(totalBkavaSupply))
+		scaledAmount := sdkmath.LegacyNewDecFromInt(rewardCoin.Amount).
+			Mul(sdkmath.LegacyNewDecFromInt(singleBkavaSupply)).
+			Quo(sdkmath.LegacyNewDecFromInt(totalBkavaSupply))
 
 		newRate = newRate.Add(sdk.NewDecCoinFromDec(rewardCoin.Denom, scaledAmount))
 	}
@@ -156,7 +156,7 @@ func (k Keeper) accumulateBkavaEarnRewards(
 
 	totalSourceShares := k.getEarnTotalSourceShares(ctx, collateralType)
 	var increment types.RewardIndexes
-	if totalSourceShares.GT(sdk.ZeroDec()) {
+	if totalSourceShares.GT(sdkmath.LegacyZeroDec()) {
 		// Divide total rewards by total shares to get the reward **per share**
 		// Leave as nil if no source shares
 		increment = types.NewRewardIndexesFromCoins(rewards).Quo(totalSourceShares)
@@ -261,7 +261,7 @@ func (k Keeper) accumulateEarnRewards(
 func (k Keeper) getEarnTotalSourceShares(ctx sdk.Context, vaultDenom string) sdkmath.LegacyDec {
 	totalShares, found := k.earnKeeper.GetVaultTotalShares(ctx, vaultDenom)
 	if !found {
-		return sdk.ZeroDec()
+		return sdkmath.LegacyZeroDec()
 	}
 	return totalShares.Amount
 }

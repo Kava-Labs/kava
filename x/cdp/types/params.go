@@ -22,7 +22,7 @@ var (
 	KeySurplusThreshold                   = []byte("SurplusThreshold")
 	KeySurplusLot                         = []byte("SurplusLot")
 	KeyBeginBlockerExecutionBlockInterval = []byte("BeginBlockerExecutionBlockInterval")
-	DefaultGlobalDebt                     = sdk.NewCoin(DefaultStableDenom, sdk.ZeroInt())
+	DefaultGlobalDebt                     = sdk.NewCoin(DefaultStableDenom, sdkmath.ZeroInt())
 	DefaultCircuitBreaker                 = false
 	DefaultCollateralParams               = CollateralParams{}
 	DefaultDebtParam                      = DebtParam{
@@ -39,7 +39,7 @@ var (
 	DefaultDebtThreshold    = sdkmath.NewInt(100000000000)
 	DefaultSurplusLot       = sdkmath.NewInt(10000000000)
 	DefaultDebtLot          = sdkmath.NewInt(10000000000)
-	stabilityFeeMax         = sdk.MustNewDecFromStr("1.000000051034942716") // 500% APR
+	stabilityFeeMax         = sdkmath.LegacyMustNewDecFromStr("1.000000051034942716") // 500% APR
 	// Run every block
 	DefaultBeginBlockerExecutionBlockInterval = int64(1)
 )
@@ -181,7 +181,7 @@ func (p Params) Validate() error {
 
 	// validate collateral params
 	collateralTypeDupMap := make(map[string]bool)
-	collateralParamsDebtLimit := sdk.ZeroInt()
+	collateralParamsDebtLimit := sdkmath.ZeroInt()
 
 	for _, cp := range p.CollateralParams {
 		// Collateral type eg busd-a should be unique, but denom can be same eg busd
@@ -263,16 +263,16 @@ func validateCollateralParams(i interface{}) error {
 			return fmt.Errorf("liquidation ratio must be > 0")
 		}
 
-		if cp.LiquidationPenalty.LT(sdk.ZeroDec()) || cp.LiquidationPenalty.GT(sdk.OneDec()) {
+		if cp.LiquidationPenalty.LT(sdkmath.LegacyZeroDec()) || cp.LiquidationPenalty.GT(sdkmath.LegacyOneDec()) {
 			return fmt.Errorf("liquidation penalty should be between 0 and 1, is %s for %s", cp.LiquidationPenalty, cp.Denom)
 		}
 		if !cp.AuctionSize.IsPositive() {
 			return fmt.Errorf("auction size should be positive, is %s for %s", cp.AuctionSize, cp.Denom)
 		}
-		if cp.StabilityFee.LT(sdk.OneDec()) || cp.StabilityFee.GT(stabilityFeeMax) {
+		if cp.StabilityFee.LT(sdkmath.LegacyOneDec()) || cp.StabilityFee.GT(stabilityFeeMax) {
 			return fmt.Errorf("stability fee must be ≥ 1.0, ≤ %s, is %s for %s", stabilityFeeMax, cp.StabilityFee, cp.Denom)
 		}
-		if cp.KeeperRewardPercentage.IsNegative() || cp.KeeperRewardPercentage.GT(sdk.OneDec()) {
+		if cp.KeeperRewardPercentage.IsNegative() || cp.KeeperRewardPercentage.GT(sdkmath.LegacyOneDec()) {
 			return fmt.Errorf("keeper reward percentage should be between 0 and 1, is %s for %s", cp.KeeperRewardPercentage, cp.Denom)
 		}
 		if cp.CheckCollateralizationIndexCount.IsNegative() {

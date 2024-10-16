@@ -604,7 +604,7 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				currRewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
-				suite.Require().Equal(sdk.ZeroDec(), currRewardIndex.RewardFactor)
+				suite.Require().Equal(sdkmath.LegacyZeroDec(), currRewardIndex.RewardFactor)
 			}
 
 			// Run accumulator at several intervals
@@ -1002,7 +1002,7 @@ func (suite *SupplyRewardsTestSuite) TestSimulateHardSupplyRewardSynchronization
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				currRewardIndex, found := multiRewardIndexPre.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
-				suite.Require().Equal(sdk.ZeroDec(), currRewardIndex.RewardFactor)
+				suite.Require().Equal(sdkmath.LegacyZeroDec(), currRewardIndex.RewardFactor)
 			}
 
 			// Check that the synced claim held in memory has properly simulated syncing

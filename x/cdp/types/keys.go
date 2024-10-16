@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	sdkmath "cosmossdk.io/math"
 	"encoding/binary"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -119,7 +120,7 @@ func CollateralRatioBytes(ratio sdkmath.LegacyDec) []byte {
 	ok := ValidSortableDec(ratio)
 	if !ok {
 		// set to max sortable if input is too large.
-		ratio = sdk.OneDec().Quo(sdk.SmallestDec())
+		ratio = sdkmath.LegacyOneDec().Quo(sdkmath.LegacySmallestDec())
 	}
 	return SortableDecBytes(ratio)
 }

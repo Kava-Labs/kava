@@ -25,7 +25,7 @@ func TestMsgDeposit_Signing(t *testing.T) {
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgDeposit(addr.String(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
+	msg := types.NewMsgDeposit(addr.String(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), 1623606299)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
@@ -38,7 +38,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 		addr.String(),
 		sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		1623606299,
 	)
 	require.NoError(t, validMsg.ValidateBasic())
@@ -138,7 +138,7 @@ func TestMsgDeposit_Validation(t *testing.T) {
 			depositor:   validMsg.Depositor,
 			tokenA:      validMsg.TokenA,
 			tokenB:      validMsg.TokenB,
-			slippage:    sdk.MustNewDecFromStr("-0.01"),
+			slippage:    sdkmath.LegacyMustNewDecFromStr("-0.01"),
 			deadline:    validMsg.Deadline,
 			expectedErr: "slippage can not be negative: invalid slippage",
 		},
@@ -192,7 +192,7 @@ func TestMsgDeposit_Deadline(t *testing.T) {
 			sdk.AccAddress("test1").String(),
 			sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
 			sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
-			sdk.MustNewDecFromStr("0.01"),
+			sdkmath.LegacyMustNewDecFromStr("0.01"),
 			tc.deadline,
 		)
 		require.NoError(t, msg.ValidateBasic())
@@ -301,7 +301,7 @@ func TestMsgWithdraw_Validation(t *testing.T) {
 		{
 			name:        "zero shares",
 			from:        validMsg.From,
-			shares:      sdk.ZeroInt(),
+			shares:      sdkmath.ZeroInt(),
 			minTokenA:   validMsg.MinTokenA,
 			minTokenB:   validMsg.MinTokenB,
 			deadline:    validMsg.Deadline,
@@ -406,7 +406,7 @@ func TestMsgSwapExactForTokens_Signing(t *testing.T) {
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgSwapExactForTokens(addr.String(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
+	msg := types.NewMsgSwapExactForTokens(addr.String(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), 1623606299)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
@@ -416,7 +416,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 		sdk.AccAddress("test1").String(),
 		sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		1623606299,
 	)
 	require.NoError(t, validMsg.ValidateBasic())
@@ -516,7 +516,7 @@ func TestMsgSwapExactForTokens_Validation(t *testing.T) {
 			requester:   validMsg.Requester,
 			exactTokenA: validMsg.ExactTokenA,
 			tokenB:      validMsg.TokenB,
-			slippage:    sdk.MustNewDecFromStr("-0.01"),
+			slippage:    sdkmath.LegacyMustNewDecFromStr("-0.01"),
 			deadline:    validMsg.Deadline,
 			expectedErr: "slippage can not be negative: invalid slippage",
 		},
@@ -570,7 +570,7 @@ func TestMsgSwapExactForTokens_Deadline(t *testing.T) {
 			sdk.AccAddress("test1").String(),
 			sdk.NewCoin("ukava", sdkmath.NewInt(1000000)),
 			sdk.NewCoin("usdx", sdkmath.NewInt(2000000)),
-			sdk.MustNewDecFromStr("0.01"),
+			sdkmath.LegacyMustNewDecFromStr("0.01"),
 			tc.deadline,
 		)
 		require.NoError(t, msg.ValidateBasic())
@@ -592,7 +592,7 @@ func TestMsgSwapForExactTokens_Signing(t *testing.T) {
 	addr, err := sdk.AccAddressFromBech32("kava1gepm4nwzz40gtpur93alv9f9wm5ht4l0hzzw9d")
 	require.NoError(t, err)
 
-	msg := types.NewMsgSwapForExactTokens(addr.String(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), 1623606299)
+	msg := types.NewMsgSwapForExactTokens(addr.String(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), 1623606299)
 	assert.Equal(t, []sdk.AccAddress{addr}, msg.GetSigners())
 	assert.Equal(t, signBytes, msg.GetSignBytes())
 }
@@ -602,7 +602,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 		sdk.AccAddress("test1").String(),
 		sdk.NewCoin("ukava", sdkmath.NewInt(1e6)),
 		sdk.NewCoin("usdx", sdkmath.NewInt(5e6)),
-		sdk.MustNewDecFromStr("0.01"),
+		sdkmath.LegacyMustNewDecFromStr("0.01"),
 		1623606299,
 	)
 	require.NoError(t, validMsg.ValidateBasic())
@@ -702,7 +702,7 @@ func TestMsgSwapForExactTokens_Validation(t *testing.T) {
 			requester:   validMsg.Requester,
 			tokenA:      validMsg.TokenA,
 			exactTokenB: validMsg.ExactTokenB,
-			slippage:    sdk.MustNewDecFromStr("-0.01"),
+			slippage:    sdkmath.LegacyMustNewDecFromStr("-0.01"),
 			deadline:    validMsg.Deadline,
 			expectedErr: "slippage can not be negative: invalid slippage",
 		},
@@ -756,7 +756,7 @@ func TestMsgSwapForExactTokens_Deadline(t *testing.T) {
 			sdk.AccAddress("test1").String(),
 			sdk.NewCoin("ukava", sdkmath.NewInt(1000000)),
 			sdk.NewCoin("usdx", sdkmath.NewInt(2000000)),
-			sdk.MustNewDecFromStr("0.01"),
+			sdkmath.LegacyMustNewDecFromStr("0.01"),
 			tc.deadline,
 		)
 		require.NoError(t, msg.ValidateBasic())

@@ -118,7 +118,7 @@ func NewGenesisAccumulationTime(ctype string, prevTime time.Time, factor sdkmath
 
 // Validate performs validation of GenesisAccumulationTime
 func (gat GenesisAccumulationTime) Validate() error {
-	if gat.InterestFactor.LT(sdk.OneDec()) {
+	if gat.InterestFactor.LT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("interest factor should be ≥ 1.0, is %s for %s", gat.InterestFactor, gat.CollateralType)
 	}
 	return nil

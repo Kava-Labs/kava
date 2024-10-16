@@ -116,12 +116,12 @@ func (suite *KeeperTestSuite) TestDeposit() {
 			loanToValue, _ := sdk.NewDecFromStr("0.6")
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
-					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "usdx:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "kava:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("btcb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "btcb:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "usdx:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
+					types.NewMoneyMarket("ukava", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "kava:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "bnb:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
+					types.NewMoneyMarket("btcb", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "btcb:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
 				},
-				sdk.NewDec(10),
+				sdkmath.LegacyNewDec(10),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -140,25 +140,25 @@ func (suite *KeeperTestSuite) TestDeposit() {
 					{
 						MarketID:      "usdx:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("1.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("1.00"),
 						Expiry:        time.Now().Add(1 * time.Hour),
 					},
 					{
 						MarketID:      "kava:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("2.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("2.00"),
 						Expiry:        time.Now().Add(1 * time.Hour),
 					},
 					{
 						MarketID:      "btcb:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("100.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("100.00"),
 						Expiry:        time.Now().Add(1 * time.Hour),
 					},
 					{
 						MarketID:      "bnb:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("10.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("10.00"),
 						Expiry:        time.Now().Add(1 * time.Hour),
 					},
 				},
@@ -279,11 +279,11 @@ func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
 			)
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
-					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "bnb:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("busd", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "busd:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
-					types.NewMoneyMarket("xrpb", types.NewBorrowLimit(false, sdk.NewDec(1000000000000000), loanToValue), "xrpb:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdk.MustNewDecFromStr("0.05"), sdk.MustNewDecFromStr("2"), sdk.MustNewDecFromStr("0.8"), sdk.MustNewDecFromStr("10")), sdk.MustNewDecFromStr("0.05"), sdk.ZeroDec()),
+					types.NewMoneyMarket("bnb", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "bnb:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
+					types.NewMoneyMarket("busd", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "busd:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
+					types.NewMoneyMarket("xrpb", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "xrpb:usd", sdkmath.NewInt(100000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
 				},
-				sdk.MustNewDecFromStr("10"),
+				sdkmath.LegacyMustNewDecFromStr("10"),
 			), types.DefaultAccumulationTimes, types.DefaultDeposits, types.DefaultBorrows,
 				types.DefaultTotalSupplied, types.DefaultTotalBorrowed, types.DefaultTotalReserves,
 			)
@@ -300,19 +300,19 @@ func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
 					{
 						MarketID:      "busd:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("1.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("1.00"),
 						Expiry:        time.Now().Add(1 * time.Hour),
 					},
 					{
 						MarketID:      "xrpb:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("2.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("2.00"),
 						Expiry:        time.Now().Add(1 * time.Hour),
 					},
 					{
 						MarketID:      "bnb:usd",
 						OracleAddress: sdk.AccAddress{},
-						Price:         sdk.MustNewDecFromStr("200.00"),
+						Price:         sdkmath.LegacyMustNewDecFromStr("200.00"),
 						Expiry:        time.Now().Add(1 * time.Hour),
 					},
 				},

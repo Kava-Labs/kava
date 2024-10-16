@@ -79,7 +79,7 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.NewDec(0).String(),
+				TotalShares:       sdkmath.LegacyNewDec(0).String(),
 				TotalValue:        sdkmath.NewInt(0),
 			},
 			res.Vault,
@@ -95,16 +95,16 @@ func (suite *grpcQueryTestSuite) TestVaults_ZeroSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.ZeroDec().String(),
-				TotalValue:        sdk.ZeroInt(),
+				TotalShares:       sdkmath.LegacyZeroDec().String(),
+				TotalValue:        sdkmath.ZeroInt(),
 			},
 			{
 				Denom:             "busd",
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.ZeroDec().String(),
-				TotalValue:        sdk.ZeroInt(),
+				TotalShares:       sdkmath.LegacyZeroDec().String(),
+				TotalValue:        sdkmath.ZeroInt(),
 			},
 		},
 			res.Vaults,
@@ -143,7 +143,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.NewDecFromInt(depositAmount.Amount).String(),
+				TotalShares:       sdkmath.LegacyNewDecFromInt(depositAmount.Amount).String(),
 				TotalValue:        depositAmount.Amount,
 			},
 			{
@@ -151,7 +151,7 @@ func (suite *grpcQueryTestSuite) TestVaults_WithSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_SAVINGS},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.NewDecFromInt(deposit2Amount.Amount).String(),
+				TotalShares:       sdkmath.LegacyNewDecFromInt(deposit2Amount.Amount).String(),
 				TotalValue:        deposit2Amount.Amount,
 			},
 		},
@@ -189,23 +189,23 @@ func (suite *grpcQueryTestSuite) TestVaults_MixedSupply() {
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.ZeroDec().String(),
-				TotalValue:        sdk.ZeroInt(),
+				TotalShares:       sdkmath.LegacyZeroDec().String(),
+				TotalValue:        sdkmath.ZeroInt(),
 			},
 			{
 				Denom:             vault2Denom,
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_HARD},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.ZeroDec().String(),
-				TotalValue:        sdk.ZeroInt(),
+				TotalShares:       sdkmath.LegacyZeroDec().String(),
+				TotalValue:        sdkmath.ZeroInt(),
 			},
 			{
 				Denom:             vault3Denom,
 				Strategies:        []types.StrategyType{types.STRATEGY_TYPE_SAVINGS},
 				IsPrivateVault:    false,
 				AllowedDepositors: nil,
-				TotalShares:       sdk.NewDecFromInt(depositAmount.Amount).String(),
+				TotalShares:       sdkmath.LegacyNewDecFromInt(depositAmount.Amount).String(),
 				TotalValue:        depositAmount.Amount,
 			},
 		},
@@ -301,7 +301,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 					Depositor: acc1.String(),
 					// Only includes specified deposit shares
 					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit1Amount.Denom, sdk.NewDecFromInt(deposit1Amount.Amount)),
+						types.NewVaultShare(deposit1Amount.Denom, sdkmath.LegacyNewDecFromInt(deposit1Amount.Amount)),
 					),
 					// Only the specified vault denom value
 					Value: sdk.NewCoins(deposit1Amount),
@@ -326,7 +326,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 					Depositor: acc2.String(),
 					// Only includes specified deposit shares
 					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit3Amount.Denom, sdk.NewDecFromInt(deposit3Amount.Amount)),
+						types.NewVaultShare(deposit3Amount.Denom, sdkmath.LegacyNewDecFromInt(deposit3Amount.Amount)),
 					),
 					// Only the specified vault denom value
 					Value: sdk.NewCoins(deposit3Amount),
@@ -350,7 +350,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 				Depositor: acc2.String(),
 				// Only includes specified deposit shares
 				Shares: types.NewVaultShares(
-					types.NewVaultShare(deposit3Amount.Denom, sdk.NewDecFromInt(deposit3Amount.Amount)),
+					types.NewVaultShare(deposit3Amount.Denom, sdkmath.LegacyNewDecFromInt(deposit3Amount.Amount)),
 				),
 				// Only the specified vault denom value
 				Value: sdk.NewCoins(
@@ -383,8 +383,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 				{
 					Depositor: acc1.String(),
 					Shares: types.NewVaultShares(
-						types.NewVaultShare(deposit1Amount.Denom, sdk.NewDecFromInt(deposit1Amount.Amount)),
-						types.NewVaultShare(deposit2Amount.Denom, sdk.NewDecFromInt(deposit2Amount.Amount)),
+						types.NewVaultShare(deposit1Amount.Denom, sdkmath.LegacyNewDecFromInt(deposit1Amount.Amount)),
+						types.NewVaultShare(deposit2Amount.Denom, sdkmath.LegacyNewDecFromInt(deposit2Amount.Amount)),
 					),
 					Value: sdk.NewCoins(deposit1Amount, deposit2Amount),
 				},
@@ -406,8 +406,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 				Depositor: acc2.String(),
 				Shares: types.VaultShares{
 					// Does not include non-bkava vaults
-					types.NewVaultShare(deposit4Amount.Denom, sdk.NewDecFromInt(deposit4Amount.Amount)),
-					types.NewVaultShare(deposit3Amount.Denom, sdk.NewDecFromInt(deposit3Amount.Amount)),
+					types.NewVaultShare(deposit4Amount.Denom, sdkmath.LegacyNewDecFromInt(deposit4Amount.Amount)),
+					types.NewVaultShare(deposit3Amount.Denom, sdkmath.LegacyNewDecFromInt(deposit3Amount.Amount)),
 				},
 				Value: sdk.Coins{
 					// Does not include non-bkava vaults
@@ -420,7 +420,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 		for i := range res.Deposits[0].Shares {
 			suite.Equal(
 				res.Deposits[0].Shares[i].Amount,
-				sdk.NewDecFromInt(res.Deposits[0].Value[i].Amount),
+				sdkmath.LegacyNewDecFromInt(res.Deposits[0].Value[i].Amount),
 				"order of deposit value should match shares",
 			)
 		}
@@ -523,7 +523,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 	// Slash the last validator to reduce the value of it's derivatives to test bkava to underlying token conversion.
 	// First call end block to bond validator to enable slashing.
 	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
-	err = suite.slashValidator(sdk.ValAddress(address2), sdk.MustNewDecFromStr("0.5"))
+	err = suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.5"))
 	suite.Require().NoError(err)
 
 	suite.Run("no deposits", func() {
@@ -573,6 +573,8 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 		// last validator slashed 50% so derivatives are worth half
 		// Excludes non-bkava deposits
 		expectedValue := derivatives1.Amount.Add(derivatives2.Amount.QuoRaw(2))
+		bondDemon, err := suite.bondDenom()
+		suite.Require().NoError(err)
 		suite.Require().ElementsMatchf(
 			[]types.DepositResponse{
 				{
@@ -581,7 +583,7 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 					Shares: nil,
 					// Value returned in units of staked token
 					Value: sdk.NewCoins(
-						sdk.NewCoin(suite.bondDenom(), expectedValue),
+						sdk.NewCoin(bondDemon, expectedValue),
 					),
 				},
 			},
@@ -644,7 +646,7 @@ func (suite *grpcQueryTestSuite) TestVault_bKava_Aggregate() {
 	// Slash the last validator to reduce the value of it's derivatives to test bkava to underlying token conversion.
 	// First call end block to bond validator to enable slashing.
 	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
-	err := suite.slashValidator(sdk.ValAddress(address3), sdk.MustNewDecFromStr("0.5"))
+	err := suite.slashValidator(sdk.ValAddress(address3), sdkmath.LegacyMustNewDecFromStr("0.5"))
 	suite.Require().NoError(err)
 
 	// vault denom is only "bkava" which has it's own special handler
@@ -797,7 +799,7 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 				// bond validators
 				staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
 				// slash val2 - its shares are now 80% as valuable!
-				err := suite.slashValidator(sdk.ValAddress(address2), sdk.MustNewDecFromStr("0.2"))
+				err := suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.2"))
 				suite.Require().NoError(err)
 
 				// create "bkava" vault. it holds all bkava denoms
@@ -837,7 +839,7 @@ func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress,
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		minSelfDelegation,
 	)
 	if err != nil {
@@ -857,8 +859,10 @@ func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amou
 	address := sdk.AccAddress(valAddress)
 
 	remainingSelfDelegation := sdkmath.NewInt(1e6)
+	bondDenom, err := suite.bondDenom()
+	suite.Require().NoError(err)
 	selfDelegation := sdk.NewCoin(
-		suite.bondDenom(),
+		bondDenom,
 		amount.Add(remainingSelfDelegation),
 	)
 
@@ -867,7 +871,9 @@ func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amou
 	err = suite.createUnbondedValidator(valAddress, selfDelegation, remainingSelfDelegation)
 	suite.Require().NoError(err)
 
-	toConvert := sdk.NewCoin(suite.bondDenom(), amount)
+	bondDenom, err = suite.bondDenom()
+	suite.Require().NoError(err)
+	toConvert := sdk.NewCoin(bondDenom, amount)
 	derivatives, err := suite.App.GetLiquidKeeper().MintDerivative(suite.Ctx,
 		address,
 		valAddress,
@@ -884,8 +890,8 @@ func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amou
 func (suite *grpcQueryTestSuite) slashValidator(address sdk.ValAddress, slashFraction sdkmath.LegacyDec) error {
 	stakingKeeper := suite.App.GetStakingKeeper()
 
-	validator, found := stakingKeeper.GetValidator(suite.Ctx, address)
-	suite.Require().True(found)
+	validator, err := stakingKeeper.GetValidator(suite.Ctx, address)
+	suite.Require().NoError(err)
 	consAddr, err := validator.GetConsAddr()
 	suite.Require().NoError(err)
 
@@ -900,6 +906,6 @@ func (suite *grpcQueryTestSuite) slashValidator(address sdk.ValAddress, slashFra
 }
 
 // bondDenom fetches the staking denom from the staking module.
-func (suite *grpcQueryTestSuite) bondDenom() string {
+func (suite *grpcQueryTestSuite) bondDenom() (string, error) {
 	return suite.App.GetStakingKeeper().BondDenom(suite.Ctx)
 }

@@ -66,10 +66,10 @@ func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
-					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdkmath.ZeroInt()), time.Hour),
 				},
 				blockTimes:     []time.Duration{time.Hour},
-				expectedSupply: types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour*2),
+				expectedSupply: types.NewAssetSupply(sdk.NewCoin("usdtoken", sdkmath.ZeroInt()), time.Hour*2),
 			},
 		},
 		{
@@ -79,10 +79,10 @@ func (suite *ABCITestSuite) TestRateLimitingTimePassage() {
 					types.NewAsset(suite.addrs[0].String(), "usdtoken", []string{suite.addrs[1].String()}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
-					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdkmath.ZeroInt()), time.Hour),
 				},
 				blockTimes:     []time.Duration{time.Hour * 12, time.Hour * 12},
-				expectedSupply: types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Duration(0)),
+				expectedSupply: types.NewAssetSupply(sdk.NewCoin("usdtoken", sdkmath.ZeroInt()), time.Duration(0)),
 			},
 		},
 	}

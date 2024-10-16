@@ -33,13 +33,13 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 
 	// first deposit creates pool - calls AfterPoolDepositCreated with initial shares
 	swapHooks.On("AfterPoolDepositCreated", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), expectedShares).Once()
-	err := suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
+	err := suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), depositA, depositB, sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// second deposit adds to pool - calls BeforePoolDepositModified
 	// shares given are the initial shares, not the shares added to the pool
 	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), expectedShares).Once()
-	err = suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(25e6)), sdk.MustNewDecFromStr("0.0015"))
+	err = suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(25e6)), sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// get the shares from the store from the last deposit
@@ -49,7 +49,7 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 	// third deposit adds to pool - calls BeforePoolDepositModified
 	// shares given are the shares added in previous deposit, not the shares added to the pool now
 	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_1.GetAddress(), shareRecord.SharesOwned).Once()
-	err = suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.MustNewDecFromStr("0.0015"))
+	err = suite.Keeper.Deposit(suite.Ctx, depositor_1.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	depositor_2 := suite.NewAccountFromAddr(
@@ -63,12 +63,12 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 	// first deposit deposit into pool creates the deposit and calls AfterPoolDepositCreated
 	expectedShares = sdkmath.NewInt(2236067)
 	swapHooks.On("AfterPoolDepositCreated", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_2.GetAddress(), expectedShares).Once()
-	err = suite.Keeper.Deposit(suite.Ctx, depositor_2.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.0015"))
+	err = suite.Keeper.Deposit(suite.Ctx, depositor_2.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// second deposit into pool calls BeforePoolDepositModified with initial shares given
 	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_2.GetAddress(), expectedShares).Once()
-	err = suite.Keeper.Deposit(suite.Ctx, depositor_2.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(2e6)), sdk.NewCoin("usdx", sdkmath.NewInt(10e6)), sdk.MustNewDecFromStr("0.0015"))
+	err = suite.Keeper.Deposit(suite.Ctx, depositor_2.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(2e6)), sdk.NewCoin("usdx", sdkmath.NewInt(10e6)), sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// get the shares from the store from the last deposit
@@ -77,7 +77,7 @@ func (suite *keeperTestSuite) TestHooks_DepositAndWithdraw() {
 
 	// third deposit into pool calls BeforePoolDepositModified with shares from last deposit
 	swapHooks.On("BeforePoolDepositModified", suite.Ctx, types.PoolIDFromCoins(deposit), depositor_2.GetAddress(), shareRecord.SharesOwned).Once()
-	err = suite.Keeper.Deposit(suite.Ctx, depositor_2.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(3e6)), sdk.NewCoin("usdx", sdkmath.NewInt(15e6)), sdk.MustNewDecFromStr("0.0015"))
+	err = suite.Keeper.Deposit(suite.Ctx, depositor_2.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(3e6)), sdk.NewCoin("usdx", sdkmath.NewInt(15e6)), sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// test hooks with a full withdraw of all shares
@@ -135,11 +135,11 @@ func (suite *keeperTestSuite) TestHooks_NoPanicsOnNilHooks() {
 	deposit := sdk.NewCoins(depositA, depositB)
 
 	// deposit create pool should not panic when hooks are not set
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
+	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// existing deposit should not panic with hooks are not set
-	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(25e6)), sdk.MustNewDecFromStr("0.0015"))
+	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(25e6)), sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	// withdraw of shares should not panic when hooks are not set
@@ -175,7 +175,7 @@ func (suite *keeperTestSuite) TestHooks_HookOrdering() {
 		_, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), poolID)
 		suite.Require().True(found, "expected after hook to be called after shares are updated")
 	})
-	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
+	err := suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	swapHooks.On("BeforePoolDepositModified", suite.Ctx, poolID, depositor.GetAddress(), expectedShares).Run(func(args mock.Arguments) {
@@ -183,7 +183,7 @@ func (suite *keeperTestSuite) TestHooks_HookOrdering() {
 		suite.Require().True(found, "expected share record to exist")
 		suite.Equal(expectedShares, shareRecord.SharesOwned, "expected hook to be called before shares are updated")
 	})
-	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdk.MustNewDecFromStr("0.0015"))
+	err = suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), depositA, depositB, sdkmath.LegacyMustNewDecFromStr("0.0015"))
 	suite.Require().NoError(err)
 
 	existingShareRecord, found := suite.Keeper.GetDepositorShares(suite.Ctx, depositor.GetAddress(), types.PoolIDFromCoins(deposit))

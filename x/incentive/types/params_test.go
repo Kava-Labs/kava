@@ -24,7 +24,7 @@ var rewardPeriodWithInvalidRewardsPerSecond = types.NewRewardPeriod(
 	"bnb",
 	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
-	sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()},
+	sdk.Coin{Denom: "INVALID!@#😫", Amount: sdkmath.ZeroInt()},
 )
 
 var rewardPeriodWithZeroRewardsPerSecond = types.NewRewardPeriod(
@@ -32,7 +32,7 @@ var rewardPeriodWithZeroRewardsPerSecond = types.NewRewardPeriod(
 	"bnb",
 	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
-	sdk.Coin{Denom: "ukava", Amount: sdk.ZeroInt()},
+	sdk.Coin{Denom: "ukava", Amount: sdkmath.ZeroInt()},
 )
 
 var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
@@ -40,7 +40,7 @@ var rewardMultiPeriodWithInvalidRewardsPerSecond = types.NewMultiRewardPeriod(
 	"bnb",
 	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
-	sdk.Coins{sdk.Coin{Denom: "INVALID!@#😫", Amount: sdk.ZeroInt()}},
+	sdk.Coins{sdk.Coin{Denom: "INVALID!@#😫", Amount: sdkmath.ZeroInt()}},
 )
 
 var rewardMultiPeriodWithZeroRewardsPerSecond = types.NewMultiRewardPeriod(
@@ -48,7 +48,7 @@ var rewardMultiPeriodWithZeroRewardsPerSecond = types.NewMultiRewardPeriod(
 	"bnb",
 	time.Date(2020, 10, 15, 14, 0, 0, 0, time.UTC),
 	time.Date(2024, 10, 15, 14, 0, 0, 0, time.UTC),
-	sdk.Coins{sdk.Coin{Denom: "zero", Amount: sdk.ZeroInt()}},
+	sdk.Coins{sdk.Coin{Denom: "zero", Amount: sdkmath.ZeroInt()}},
 )
 
 var validMultiRewardPeriod = types.NewMultiRewardPeriod(
@@ -107,15 +107,15 @@ func (suite *ParamTestSuite) TestParamValidation() {
 					{
 						Denom: "hard",
 						Multipliers: types.Multipliers{
-							types.NewMultiplier("small", 1, sdk.MustNewDecFromStr("0.25")),
-							types.NewMultiplier("large", 12, sdk.MustNewDecFromStr("1.0")),
+							types.NewMultiplier("small", 1, sdkmath.LegacyMustNewDecFromStr("0.25")),
+							types.NewMultiplier("large", 12, sdkmath.LegacyMustNewDecFromStr("1.0")),
 						},
 					},
 					{
 						Denom: "ukava",
 						Multipliers: types.Multipliers{
-							types.NewMultiplier("small", 1, sdk.MustNewDecFromStr("0.2")),
-							types.NewMultiplier("large", 12, sdk.MustNewDecFromStr("1.0")),
+							types.NewMultiplier("small", 1, sdkmath.LegacyMustNewDecFromStr("0.2")),
+							types.NewMultiplier("large", 12, sdkmath.LegacyMustNewDecFromStr("1.0")),
 						},
 					},
 				},
@@ -223,7 +223,7 @@ func (suite *ParamTestSuite) TestParamValidation() {
 					{
 						Denom: "hard",
 						Multipliers: types.Multipliers{
-							types.NewMultiplier("small", -9999, sdk.MustNewDecFromStr("0.25")),
+							types.NewMultiplier("small", -9999, sdkmath.LegacyMustNewDecFromStr("0.25")),
 						},
 					},
 				},

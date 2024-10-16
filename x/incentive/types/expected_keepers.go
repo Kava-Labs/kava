@@ -39,10 +39,10 @@ type StakingKeeper interface {
 
 // CdpKeeper defines the expected cdp keeper for interacting with cdps
 type CdpKeeper interface {
-	GetInterestFactor(ctx sdk.Context, collateralType string) (sdkmath.LegacyDec, bool)
-	GetTotalPrincipal(ctx sdk.Context, collateralType string, principalDenom string) (total sdkmath.Int)
-	GetCdpByOwnerAndCollateralType(ctx sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
-	GetCollateral(ctx sdk.Context, collateralType string) (cdptypes.CollateralParam, bool)
+	GetInterestFactor(ctx context.Context, collateralType string) (sdkmath.LegacyDec, bool)
+	GetTotalPrincipal(ctx context.Context, collateralType string, principalDenom string) (total sdkmath.Int)
+	GetCdpByOwnerAndCollateralType(ctx context.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool)
+	GetCollateral(ctx context.Context, collateralType string) (cdptypes.CollateralParam, bool)
 }
 
 // HardKeeper defines the expected hard keeper for interacting with Hard protocol

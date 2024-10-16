@@ -57,73 +57,73 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 		{
 			"1 year",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("1.191463614477847370"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("1.191463614477847370"),
 			},
 		},
 		{
 			"10 year",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds * 10),
-				expectedValue:         sdk.MustNewDecFromStr("5.765113233897391189"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("5.765113233897391189"),
 			},
 		},
 		{
 			"1 month",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds / 12),
-				expectedValue:         sdk.MustNewDecFromStr("1.014705619075717373"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("1.014705619075717373"),
 			},
 		},
 		{
 			"1 day",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000005555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000005555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds / 365),
-				expectedValue:         sdk.MustNewDecFromStr("1.000480067194057924"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("1.000480067194057924"),
 			},
 		},
 		{
 			"1 year: low interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000000555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("1.017656545925063632"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("1.017656545925063632"),
 			},
 		},
 		{
 			"1 year, lower interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000055"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000000055"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("1.001735985079841390"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("1.001735985079841390"),
 			},
 		},
 		{
 			"1 year, lowest interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000000005"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000000005"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("1.000157692432076670"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("1.000157692432076670"),
 			},
 		},
 		{
 			"1 year: high interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000055555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000055555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("5.766022095987868825"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("5.766022095987868825"),
 			},
 		},
 		{
 			"1 year: higher interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000000555555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000000555555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("40628388.864535408465693310"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("40628388.864535408465693310"),
 			},
 		},
 		// If we raise the per second interest rate too much we'll cause an integer overflow.
@@ -131,9 +131,9 @@ func (suite *InterestTestSuite) TestCalculateInterestFactor() {
 		{
 			"1 year: highest interest rate",
 			args{
-				perSecondInterestRate: sdk.MustNewDecFromStr("1.000001555555"),
+				perSecondInterestRate: sdkmath.LegacyMustNewDecFromStr("1.000001555555"),
 				timeElapsed:           sdkmath.NewInt(oneYearInSeconds),
-				expectedValue:         sdk.MustNewDecFromStr("2017093013158200407564.613502861572552603"),
+				expectedValue:         sdkmath.LegacyMustNewDecFromStr("2017093013158200407564.613502861572552603"),
 			},
 		},
 	}
@@ -179,9 +179,9 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			args{
 				ctype:                   "bnb-a",
 				initialTime:             time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				totalPrincipal:          sdk.ZeroInt(),
+				totalPrincipal:          sdkmath.ZeroInt(),
 				timeElapsed:             oneYearInSeconds,
-				expectedTotalPrincipal:  sdk.ZeroInt(),
+				expectedTotalPrincipal:  sdkmath.ZeroInt(),
 				expectedLastAccrualTime: time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC).Add(time.Duration(int(time.Second) * oneYearInSeconds)),
 			},
 		},
@@ -246,7 +246,7 @@ func (suite *InterestTestSuite) TestAccumulateInterest() {
 			suite.ctx = suite.ctx.WithBlockTime(tc.args.initialTime)
 			suite.keeper.SetTotalPrincipal(suite.ctx, tc.args.ctype, types.DefaultStableDenom, tc.args.totalPrincipal)
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdkmath.LegacyOneDec())
 
 			updatedBlockTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			suite.ctx = suite.ctx.WithBlockTime(updatedBlockTime)
@@ -369,7 +369,7 @@ func (suite *InterestTestSuite) TestSynchronizeInterest() {
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdkmath.LegacyOneDec())
 			err = suite.keeper.AddCdp(suite.ctx, addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
@@ -483,7 +483,7 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdkmath.LegacyOneDec())
 
 			// setup account state
 			_, addrs := app.GeneratePrivKeyAddressPairs(tc.args.numberOfCdps)
@@ -518,7 +518,7 @@ func (suite *InterestTestSuite) TestMultipleCDPInterest() {
 			suite.Require().Equal(tc.args.expectedStableBalance, usdxSupply.Amount)
 			suite.Require().Equal(tc.args.expectedTotalPrincipal, totalPrincipal)
 
-			sumOfCDPPrincipal := sdk.ZeroInt()
+			sumOfCDPPrincipal := sdkmath.ZeroInt()
 
 			for j := 0; j < tc.args.numberOfCdps; j++ {
 				cdp, found := suite.keeper.GetCDP(suite.ctx, tc.args.ctype, uint64(j+1))
@@ -623,7 +623,7 @@ func (suite *InterestTestSuite) TestCalculateCDPInterest() {
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdkmath.LegacyOneDec())
 			err = suite.keeper.AddCdp(suite.ctx, addrs[0], tc.args.initialCollateral, tc.args.initialPrincipal, tc.args.ctype)
 			suite.Require().NoError(err)
 
@@ -701,7 +701,7 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 
 			// setup cdp state
 			suite.keeper.SetPreviousAccrualTime(suite.ctx, tc.args.ctype, suite.ctx.BlockTime())
-			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdk.OneDec())
+			suite.keeper.SetInterestFactor(suite.ctx, tc.args.ctype, sdkmath.LegacyOneDec())
 			for j, addr := range addrs {
 				initialPrincipal := tc.args.minPrincipal.Add(c("usdx", int64(j)*tc.args.principalIncrement.Amount.Int64()))
 				err := suite.keeper.AddCdp(suite.ctx, addr, tc.args.initialCollateral, initialPrincipal, tc.args.ctype)

@@ -209,7 +209,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 		{
 			name:        "zero reserve a",
 			poolID:      "ukava:usdx",
-			reservesA:   sdk.Coin{Denom: "ukava", Amount: sdk.ZeroInt()},
+			reservesA:   sdk.Coin{Denom: "ukava", Amount: sdkmath.ZeroInt()},
 			reservesB:   validRecord.ReservesB,
 			totalShares: validRecord.TotalShares,
 			expectedErr: "pool 'ukava:usdx' has invalid reserves: 0ukava",
@@ -226,7 +226,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 			name:        "zero reserve b",
 			poolID:      "ukava:usdx",
 			reservesA:   validRecord.ReservesA,
-			reservesB:   sdk.Coin{Denom: "usdx", Amount: sdk.ZeroInt()},
+			reservesB:   sdk.Coin{Denom: "usdx", Amount: sdkmath.ZeroInt()},
 			totalShares: validRecord.TotalShares,
 			expectedErr: "pool 'ukava:usdx' has invalid reserves: 0usdx",
 		},
@@ -243,7 +243,7 @@ func TestState_PoolRecord_Validations(t *testing.T) {
 			poolID:      validRecord.PoolID,
 			reservesA:   validRecord.ReservesA,
 			reservesB:   validRecord.ReservesB,
-			totalShares: sdk.ZeroInt(),
+			totalShares: sdkmath.ZeroInt(),
 			expectedErr: "pool 'ukava:usdx' has invalid total shares: 0",
 		},
 	}
@@ -466,7 +466,7 @@ func TestState_ShareRecord_Validations(t *testing.T) {
 			name:        "zero total shares",
 			depositor:   validRecord.Depositor,
 			poolID:      validRecord.PoolID,
-			sharesOwned: sdk.ZeroInt(),
+			sharesOwned: sdkmath.ZeroInt(),
 			expectedErr: "depositor 'kava1mq9qxlhze029lm0frzw2xr6hem8c3k9ts54w0w' and pool 'ukava:usdx' has invalid total shares: 0",
 		},
 	}

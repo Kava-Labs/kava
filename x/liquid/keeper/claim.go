@@ -16,7 +16,11 @@ func (k Keeper) CollectStakingRewards(
 	macc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleAccountName)
 
 	// Ensure withdraw address is as expected
-	withdrawAddr := k.distributionKeeper.GetDelegatorWithdrawAddr(ctx, macc.GetAddress())
+	withdrawAddr, err := k.distributionKeeper.GetDelegatorWithdrawAddr(ctx, macc.GetAddress())
+	if err != nil {
+		return nil, err
+	}
+
 	if !withdrawAddr.Equals(macc.GetAddress()) {
 		panic(fmt.Sprintf(
 			"unexpected withdraw address for liquid staking module account, expected %s, got %s",

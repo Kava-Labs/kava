@@ -78,7 +78,7 @@ func TestParams_Default(t *testing.T) {
 	assert.Equal(t, types.DefaultSwapFee, defaultParams.SwapFee)
 
 	assert.Equal(t, 0, len(defaultParams.AllowedPools))
-	assert.Equal(t, sdk.ZeroDec(), defaultParams.SwapFee)
+	assert.Equal(t, sdkmath.LegacyZeroDec(), defaultParams.SwapFee)
 }
 
 func TestParams_ParamSetPairs_AllowedPools(t *testing.T) {
@@ -150,7 +150,7 @@ func TestParams_Validation(t *testing.T) {
 			name: "negative swap fee",
 			key:  types.KeySwapFee,
 			testFn: func(params *types.Params) {
-				params.SwapFee = sdk.NewDec(-1)
+				params.SwapFee = sdkmath.LegacyNewDec(-1)
 			},
 			expectedErr: "invalid swap fee: -1.000000000000000000",
 		},
@@ -158,7 +158,7 @@ func TestParams_Validation(t *testing.T) {
 			name: "swap fee greater than 1",
 			key:  types.KeySwapFee,
 			testFn: func(params *types.Params) {
-				params.SwapFee = sdk.MustNewDecFromStr("1.000000000000000001")
+				params.SwapFee = sdkmath.LegacyMustNewDecFromStr("1.000000000000000001")
 			},
 			expectedErr: "invalid swap fee: 1.000000000000000001",
 		},
@@ -166,7 +166,7 @@ func TestParams_Validation(t *testing.T) {
 			name: "0 swap fee",
 			key:  types.KeySwapFee,
 			testFn: func(params *types.Params) {
-				params.SwapFee = sdk.ZeroDec()
+				params.SwapFee = sdkmath.LegacyZeroDec()
 			},
 			expectedErr: "",
 		},
@@ -174,7 +174,7 @@ func TestParams_Validation(t *testing.T) {
 			name: "1 swap fee",
 			key:  types.KeySwapFee,
 			testFn: func(params *types.Params) {
-				params.SwapFee = sdk.OneDec()
+				params.SwapFee = sdkmath.LegacyOneDec()
 			},
 			expectedErr: "invalid swap fee: 1.000000000000000000",
 		},
@@ -215,7 +215,7 @@ func TestParams_String(t *testing.T) {
 			types.NewAllowedPool("hard", "ukava"),
 			types.NewAllowedPool("ukava", "usdx"),
 		),
-		sdk.MustNewDecFromStr("0.5"),
+		sdkmath.LegacyMustNewDecFromStr("0.5"),
 	)
 
 	require.NoError(t, params.Validate())

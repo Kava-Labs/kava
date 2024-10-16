@@ -29,7 +29,7 @@ func init() {
 	sdk.GetConfig().SetBech32PrefixForAccount("kava", "kava"+sdk.PrefixPublic)
 }
 
-func d(amount string) sdkmath.LegacyDec     { return sdk.MustNewDecFromStr(amount) }
+func d(amount string) sdkmath.LegacyDec     { return sdkmath.LegacyMustNewDecFromStr(amount) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func i(n int64) sdkmath.Int                 { return sdkmath.NewInt(n) }
 func is(ns ...int64) (is []sdkmath.Int) {

@@ -27,7 +27,7 @@ func (suite *genesisTestSuite) TestInitGenesis_ValidationPanic() {
 				{
 					Start:     time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC),
 					End:       tmtime.Canonical(time.Unix(1, 0)),
-					Inflation: sdk.OneDec(),
+					Inflation: sdkmath.LegacyOneDec(),
 				},
 			},
 		},
@@ -47,7 +47,7 @@ func (suite *genesisTestSuite) TestInitAndExportGenesis() {
 				{
 					Start:     time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC),
 					End:       time.Date(2021, 2, 1, 1, 1, 1, 1, time.UTC),
-					Inflation: sdk.OneDec(),
+					Inflation: sdkmath.LegacyOneDec(),
 				},
 			},
 		},

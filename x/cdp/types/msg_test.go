@@ -10,7 +10,7 @@ import (
 
 var (
 	coinsSingle = sdk.NewInt64Coin(sdk.DefaultBondDenom, 1000)
-	coinsZero   = sdk.NewCoin(sdk.DefaultBondDenom, sdk.ZeroInt())
+	coinsZero   = sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.ZeroInt())
 	addrs       = []sdk.AccAddress{
 		sdk.AccAddress("test1"),
 		sdk.AccAddress("test2"),

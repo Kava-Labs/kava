@@ -43,15 +43,15 @@ func TestDepositIterKey_Invalid(t *testing.T) {
 }
 
 func TestCollateralRatioKey(t *testing.T) {
-	collateralKey := CollateralRatioKey("kava-a", 2, sdk.MustNewDecFromStr("1.50"))
+	collateralKey := CollateralRatioKey("kava-a", 2, sdkmath.LegacyMustNewDecFromStr("1.50"))
 	collateralType, id, ratio := SplitCollateralRatioKey(collateralKey)
 	require.Equal(t, "kava-a", collateralType)
 	require.Equal(t, 2, int(id))
-	require.Equal(t, ratio, sdk.MustNewDecFromStr("1.50"))
+	require.Equal(t, ratio, sdkmath.LegacyMustNewDecFromStr("1.50"))
 }
 
 func TestCollateralRatioKey_BigRatio(t *testing.T) {
-	bigRatio := sdk.OneDec().Quo(sdk.SmallestDec()).Mul(sdk.OneDec().Add(sdk.OneDec()))
+	bigRatio := sdkmath.LegacyOneDec().Quo(sdk.SmallestDec()).Mul(sdkmath.LegacyOneDec().Add(sdkmath.LegacyOneDec()))
 	collateralKey := CollateralRatioKey("kava-a", 2, bigRatio)
 	collateralType, id, ratio := SplitCollateralRatioKey(collateralKey)
 	require.Equal(t, "kava-a", collateralType)
@@ -64,10 +64,10 @@ func TestCollateralRatioKey_Invalid(t *testing.T) {
 }
 
 func TestCollateralRatioIterKey(t *testing.T) {
-	collateralIterKey := CollateralRatioIterKey("kava-a", sdk.MustNewDecFromStr("1.50"))
+	collateralIterKey := CollateralRatioIterKey("kava-a", sdkmath.LegacyMustNewDecFromStr("1.50"))
 	collateralType, ratio := SplitCollateralRatioIterKey(collateralIterKey)
 	require.Equal(t, "kava-a", collateralType)
-	require.Equal(t, ratio, sdk.MustNewDecFromStr("1.50"))
+	require.Equal(t, ratio, sdkmath.LegacyMustNewDecFromStr("1.50"))
 }
 
 func TestCollateralRatioIterKey_Invalid(t *testing.T) {

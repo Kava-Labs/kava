@@ -25,7 +25,7 @@ func cs(coins ...sdk.Coin) sdk.Coins { return sdk.NewCoins(coins...) }
 // 			AllowedPools: types.AllowedPools{
 // 				types.NewAllowedPool("ukava", "usdx"),
 // 			},
-// 			SwapFee: sdk.MustNewDecFromStr("0.03"),
+// 			SwapFee: sdkmath.LegacyMustNewDecFromStr("0.03"),
 // 		},
 // 	}
 

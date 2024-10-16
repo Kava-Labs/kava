@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -12,7 +13,7 @@ import (
 // CreateNewAssetSupply creates a new AssetSupply in the store for the input denom
 func (k Keeper) CreateNewAssetSupply(ctx sdk.Context, denom string) types.AssetSupply {
 	supply := types.NewAssetSupply(
-		sdk.NewCoin(denom, sdk.ZeroInt()), time.Duration(0))
+		sdk.NewCoin(denom, sdkmath.ZeroInt()), time.Duration(0))
 	k.SetAssetSupply(ctx, supply, denom)
 	return supply
 }
@@ -58,7 +59,7 @@ func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
 		}
 		if !asset.RateLimit.Active {
 			// rate limiting is not active, reset supply
-			supply.CurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
+			supply.CurrentSupply = sdk.NewCoin(asset.Denom, sdkmath.ZeroInt())
 			supply.TimeElapsed = time.Duration(0)
 			k.SetAssetSupply(ctx, supply, asset.Denom)
 			continue
@@ -71,7 +72,7 @@ func (k Keeper) UpdateTimeBasedSupplyLimits(ctx sdk.Context) {
 		}
 		// rate limiting is active, the rate-limiting period has expired, and is now reset
 		supply.TimeElapsed = time.Duration(0)
-		supply.CurrentSupply = sdk.NewCoin(asset.Denom, sdk.ZeroInt())
+		supply.CurrentSupply = sdk.NewCoin(asset.Denom, sdkmath.ZeroInt())
 		k.SetAssetSupply(ctx, supply, asset.Denom)
 	}
 	k.SetPreviousBlockTime(ctx, ctx.BlockTime())

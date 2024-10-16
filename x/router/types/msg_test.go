@@ -153,7 +153,7 @@ func TestMsg_Validate(t *testing.T) {
 			msgArgs: msgArgs{
 				depositor: validAddress,
 				validator: validValidatorAddress,
-				amount:    sdk.NewCoin("ukava", sdk.ZeroInt()),
+				amount:    sdk.NewCoin("ukava", sdkmath.ZeroInt()),
 			},
 			expectedErr: sdkerrors.ErrInvalidCoins,
 		},

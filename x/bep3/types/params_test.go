@@ -27,7 +27,7 @@ func (suite *ParamsTestSuite) SetupTest() {
 	supply1 := types.SupplyLimit{
 		Limit:          sdkmath.NewInt(10000000000000),
 		TimeLimited:    false,
-		TimeBasedLimit: sdk.ZeroInt(),
+		TimeBasedLimit: sdkmath.ZeroInt(),
 		TimePeriod:     time.Hour,
 	}
 	supply2 := types.SupplyLimit{
@@ -179,7 +179,7 @@ func (suite *ParamsTestSuite) TestParamValidation() {
 			args: args{
 				assetParams: types.AssetParams{types.NewAssetParam(
 					"bnb", 714,
-					types.SupplyLimit{sdkmath.NewInt(-10000000000000), false, time.Hour, sdk.ZeroInt()}, true,
+					types.SupplyLimit{sdkmath.NewInt(-10000000000000), false, time.Hour, sdkmath.ZeroInt()}, true,
 					suite.addr, sdkmath.NewInt(1000), sdkmath.NewInt(100000000), sdkmath.NewInt(100000000000),
 					types.DefaultMinBlockLock, types.DefaultMaxBlockLock)},
 			},

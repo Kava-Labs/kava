@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/earn/types"
@@ -11,7 +13,7 @@ var _ types.EarnHooks = Keeper{}
 
 // AfterVaultDepositCreated - call hook if registered
 func (k Keeper) AfterVaultDepositCreated(
-	ctx sdk.Context,
+	ctx context.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
 	sharesOwned sdkmath.LegacyDec,
@@ -23,7 +25,7 @@ func (k Keeper) AfterVaultDepositCreated(
 
 // BeforeVaultDepositModified - call hook if registered
 func (k Keeper) BeforeVaultDepositModified(
-	ctx sdk.Context,
+	ctx context.Context,
 	vaultDenom string,
 	depositor sdk.AccAddress,
 	sharesOwned sdkmath.LegacyDec,

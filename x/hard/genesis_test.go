@@ -47,22 +47,22 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 				"ukava",
 				types.NewBorrowLimit(
 					false,
-					sdk.NewDec(1e15),
+					sdkmath.LegacyNewDec(1e15),
 					loanToValue,
 				),
 				"kava:usd",
 				sdkmath.NewInt(1e6),
 				types.NewInterestRateModel(
-					sdk.MustNewDecFromStr("0.05"),
-					sdk.MustNewDecFromStr("2"),
-					sdk.MustNewDecFromStr("0.8"),
-					sdk.MustNewDecFromStr("10"),
+					sdkmath.LegacyMustNewDecFromStr("0.05"),
+					sdkmath.LegacyMustNewDecFromStr("2"),
+					sdkmath.LegacyMustNewDecFromStr("0.8"),
+					sdkmath.LegacyMustNewDecFromStr("10"),
 				),
-				sdk.MustNewDecFromStr("0.05"),
-				sdk.ZeroDec(),
+				sdkmath.LegacyMustNewDecFromStr("0.05"),
+				sdkmath.LegacyZeroDec(),
 			),
 		},
-		sdk.NewDec(10),
+		sdkmath.LegacyNewDec(10),
 	)
 
 	deposits := types.Deposits{
@@ -72,7 +72,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 			types.SupplyInterestFactors{
 				{
 					Denom: "ukava",
-					Value: sdk.NewDec(1),
+					Value: sdkmath.LegacyNewDec(1),
 				},
 			},
 		),
@@ -90,7 +90,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 			types.BorrowInterestFactors{
 				{
 					Denom: "ukava",
-					Value: sdk.NewDec(1),
+					Value: sdkmath.LegacyNewDec(1),
 				},
 			},
 		),
@@ -101,8 +101,8 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		totalBorrowed = totalBorrowed.Add(borrow.Amount...)
 	}
 
-	supplyInterestFactor := sdk.MustNewDecFromStr("1.0001")
-	borrowInterestFactor := sdk.MustNewDecFromStr("1.1234")
+	supplyInterestFactor := sdkmath.LegacyMustNewDecFromStr("1.0001")
+	borrowInterestFactor := sdkmath.LegacyMustNewDecFromStr("1.1234")
 	accuralTimes := types.GenesisAccumulationTimes{
 		types.NewGenesisAccumulationTime("ukava", suite.genTime, supplyInterestFactor, borrowInterestFactor),
 	}

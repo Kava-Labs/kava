@@ -239,7 +239,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalSupply() {
 		// bond validators
 		staking.EndBlocker(suite.ctx, suite.tApp.GetStakingKeeper())
 		// slash val2 - its shares are now 80% as valuable!
-		err := suite.slashValidator(sdk.ValAddress(address2), sdk.MustNewDecFromStr("0.2"))
+		err := suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.2"))
 		suite.Require().NoError(err)
 
 		suite.addDeposits(
@@ -281,7 +281,7 @@ func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress,
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		minSelfDelegation,
 	)
 	if err != nil {

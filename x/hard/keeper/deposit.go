@@ -19,7 +19,7 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coins sdk.Coi
 		if !foundInterestFactor {
 			_, foundMm := k.GetMoneyMarket(ctx, coin.Denom)
 			if foundMm {
-				k.SetSupplyInterestFactor(ctx, coin.Denom, sdk.OneDec())
+				k.SetSupplyInterestFactor(ctx, coin.Denom, sdkmath.LegacyOneDec())
 			}
 		}
 	}
@@ -146,7 +146,7 @@ func (k Keeper) DecrementSuppliedCoins(ctx sdk.Context, coins sdk.Coins) error {
 		coinsToSubtract := sdk.NewCoins()
 		for _, coin := range coins {
 			if suppliedCoins.AmountOf(coin.Denom).LT(coin.Amount) {
-				if suppliedCoins.AmountOf(coin.Denom).GT(sdk.ZeroInt()) {
+				if suppliedCoins.AmountOf(coin.Denom).GT(sdkmath.ZeroInt()) {
 					coinsToSubtract = coinsToSubtract.Add(sdk.NewCoin(coin.Denom, suppliedCoins.AmountOf(coin.Denom)))
 				}
 			} else {
@@ -188,7 +188,7 @@ func (k Keeper) loadSyncedDeposit(ctx sdk.Context, deposit types.Deposit) types.
 
 			// Calculate interest that will be paid to user for this asset
 			if foundAtIndex != -1 {
-				storedAmount := sdk.NewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
+				storedAmount := sdkmath.LegacyNewDecFromInt(deposit.Amount.AmountOf(coin.Denom))
 				userLastInterestFactor := deposit.Index[foundAtIndex].Value
 				coinInterest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
 				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))

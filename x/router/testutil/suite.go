@@ -128,7 +128,7 @@ func (suite *Suite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAd
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1e6),
 	)
 	if err != nil {
@@ -215,7 +215,7 @@ func (suite *Suite) DelegationSharesEqual(valAddr sdk.ValAddress, delegator sdk.
 // DelegationBalanceLessThan checks if a delegation's staked token balance is less the specified amount.
 // It treats not found delegations as having zero shares.
 func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator sdk.AccAddress, max sdkmath.Int) bool {
-	shares := sdk.ZeroDec()
+	shares := sdkmath.LegacyZeroDec()
 	del, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegator, valAddr)
 	if found {
 		shares = del.Shares
@@ -232,7 +232,7 @@ func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator 
 // DelegationBalanceInDeltaBelow checks if a delegation's staked token balance is between `expected` and `expected - delta` inclusive.
 // It treats not found delegations as having zero shares.
 func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdkmath.Int) bool {
-	shares := sdk.ZeroDec()
+	shares := sdkmath.LegacyZeroDec()
 	del, found := suite.StakingKeeper.GetDelegation(suite.Ctx, delegator, valAddr)
 	if found {
 		shares = del.Shares
@@ -250,7 +250,7 @@ func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delega
 
 // UnbondingDelegationInDeltaBelow checks if the total balance in an unbonding delegation is between `expected` and `expected - delta` inclusive.
 func (suite *Suite) UnbondingDelegationInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdkmath.Int) bool {
-	tokens := sdk.ZeroInt()
+	tokens := sdkmath.ZeroInt()
 	ubd, found := suite.StakingKeeper.GetUnbondingDelegation(suite.Ctx, delegator, valAddr)
 	if found {
 		for _, entry := range ubd.Entries {

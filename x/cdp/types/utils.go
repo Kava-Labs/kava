@@ -6,11 +6,10 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // MaxSortableDec largest sortable sdkmath.LegacyDec
-var MaxSortableDec = sdk.OneDec().Quo(sdk.SmallestDec())
+var MaxSortableDec = sdkmath.LegacyOneDec().Quo(sdkmath.LegacySmallestDec())
 
 // ValidSortableDec sdkmath.LegacyDec can't have precision of less than 10^-18
 func ValidSortableDec(dec sdkmath.LegacyDec) bool {
@@ -35,9 +34,9 @@ func SortableDecBytes(dec sdkmath.LegacyDec) []byte {
 	}
 	// We move the negative sign to the front of all the left padded 0s, to make negative numbers come before positive numbers
 	if dec.IsNegative() {
-		return append([]byte("-"), []byte(fmt.Sprintf(fmt.Sprintf("%%0%ds", sdk.Precision*2+1), dec.Abs().String()))...)
+		return append([]byte("-"), []byte(fmt.Sprintf(fmt.Sprintf("%%0%ds", sdkmath.LegacyPrecision*2+1), dec.Abs().String()))...)
 	}
-	return []byte(fmt.Sprintf(fmt.Sprintf("%%0%ds", sdk.Precision*2+1), dec.String()))
+	return []byte(fmt.Sprintf(fmt.Sprintf("%%0%ds", sdkmath.LegacyPrecision*2+1), dec.String()))
 }
 
 // ParseDecBytes parses a []byte encoded using SortableDecBytes back to sdkmath.LegacyDec
@@ -55,7 +54,7 @@ func ParseDecBytes(db []byte) (sdkmath.LegacyDec, error) {
 	if bytes.Equal(db, []byte("--")) {
 		return MaxSortableDec.Neg(), nil
 	}
-	dec, err := sdk.NewDecFromStr(strFromDecBytes)
+	dec, err := sdkmath.LegacyNewDecFromStr(strFromDecBytes)
 	if err != nil {
 		return sdkmath.LegacyDec{}, err
 	}
@@ -71,25 +70,25 @@ func RelativePow(x sdkmath.Int, n sdkmath.Int, b sdkmath.Int) (z sdkmath.Int) {
 			z = b // 0^0 = 1
 			return
 		}
-		z = sdk.ZeroInt() // otherwise 0^a = 0
+		z = sdkmath.ZeroInt() // otherwise 0^a = 0
 		return
 	}
 
 	z = x
-	if n.Mod(sdkmath.NewInt(2)).Equal(sdk.ZeroInt()) {
+	if n.Mod(sdkmath.NewInt(2)).Equal(sdkmath.ZeroInt()) {
 		z = b
 	}
 
 	halfOfB := b.Quo(sdkmath.NewInt(2))
 	n = n.Quo(sdkmath.NewInt(2))
 
-	for n.GT(sdk.ZeroInt()) {
+	for n.GT(sdkmath.ZeroInt()) {
 		xSquared := x.Mul(x)
 		xSquaredRounded := xSquared.Add(halfOfB)
 
 		x = xSquaredRounded.Quo(b)
 
-		if n.Mod(sdkmath.NewInt(2)).Equal(sdk.OneInt()) {
+		if n.Mod(sdkmath.NewInt(2)).Equal(sdkmath.OneInt()) {
 			zx := z.Mul(x)
 			zxRounded := zx.Add(halfOfB)
 			z = zxRounded.Quo(b)

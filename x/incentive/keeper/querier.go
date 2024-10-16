@@ -26,9 +26,9 @@ func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdkmath.Lega
 
 	// Staking APR = (Inflation Rate * (1 - Community Tax)) / (Bonded Tokens / Circulating Supply)
 	stakingAPR := inflationRate.
-		Mul(sdk.OneDec().Sub(communityTax)).
-		Quo(sdk.NewDecFromInt(bondedTokens).
-			Quo(sdk.NewDecFromInt(circulatingSupply.Amount)))
+		Mul(sdkmath.LegacyOneDec().Sub(communityTax)).
+		Quo(sdkmath.LegacyNewDecFromInt(bondedTokens).
+			Quo(sdkmath.LegacyNewDecFromInt(circulatingSupply.Amount)))
 
 	// Get incentive APR
 	bkavaRewardPeriod, found := params.EarnRewardPeriods.GetMultiRewardPeriod(liquidtypes.DefaultDerivativeDenom)
@@ -39,7 +39,7 @@ func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdkmath.Lega
 
 	// Total amount of bkava in earn vaults, this may be lower than total bank
 	// supply of bkava as some bkava may not be deposited in earn vaults
-	totalEarnBkavaDeposited := sdk.ZeroInt()
+	totalEarnBkavaDeposited := sdkmath.ZeroInt()
 
 	var iterErr error
 	k.earnKeeper.IterateVaultRecords(ctx, func(record earntypes.VaultRecord) (stop bool) {
@@ -59,14 +59,14 @@ func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdkmath.Lega
 	})
 
 	if iterErr != nil {
-		return sdk.ZeroDec(), iterErr
+		return sdkmath.LegacyZeroDec(), iterErr
 	}
 
 	// Incentive APR = rewards per second * seconds per year / total supplied to earn vaults
 	// Override collateral type to use "kava" instead of "bkava" when fetching
 	incentiveAPY, err := GetAPYFromMultiRewardPeriod(ctx, k, types.BondDenom, bkavaRewardPeriod, totalEarnBkavaDeposited)
 	if err != nil {
-		return sdk.ZeroDec(), err
+		return sdkmath.LegacyZeroDec(), err
 	}
 
 	totalAPY := stakingAPR.Add(incentiveAPY)
@@ -82,22 +82,22 @@ func GetAPYFromMultiRewardPeriod(
 	totalSupply sdkmath.Int,
 ) (sdkmath.LegacyDec, error) {
 	if totalSupply.IsZero() {
-		return sdk.ZeroDec(), nil
+		return sdkmath.LegacyZeroDec(), nil
 	}
 
 	// Get USD value of collateral type
 	collateralUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(collateralType))
 	if err != nil {
-		return sdk.ZeroDec(), fmt.Errorf(
+		return sdkmath.LegacyZeroDec(), fmt.Errorf(
 			"failed to get price for incentive collateralType %s with market ID %s: %w",
 			collateralType, getMarketID(collateralType), err,
 		)
 	}
 
 	// Total USD value of the collateral type total supply
-	totalSupplyUSDValue := sdk.NewDecFromInt(totalSupply).Mul(collateralUSDValue.Price)
+	totalSupplyUSDValue := sdkmath.LegacyNewDecFromInt(totalSupply).Mul(collateralUSDValue.Price)
 
-	totalUSDRewardsPerSecond := sdk.ZeroDec()
+	totalUSDRewardsPerSecond := sdkmath.LegacyZeroDec()
 
 	// In many cases, RewardsPerSecond are assets that are different from the
 	// CollateralType, so we need to use the USD value of CollateralType and
@@ -106,10 +106,10 @@ func GetAPYFromMultiRewardPeriod(
 		// Get USD value of 1 unit of reward asset type, using TWAP
 		rewardDenomUSDValue, err := k.pricefeedKeeper.GetCurrentPrice(ctx, getMarketID(reward.Denom))
 		if err != nil {
-			return sdk.ZeroDec(), fmt.Errorf("failed to get price for RewardsPerSecond asset %s: %w", reward.Denom, err)
+			return sdkmath.LegacyZeroDec(), fmt.Errorf("failed to get price for RewardsPerSecond asset %s: %w", reward.Denom, err)
 		}
 
-		rewardPerSecond := sdk.NewDecFromInt(reward.Amount).Mul(rewardDenomUSDValue.Price)
+		rewardPerSecond := sdkmath.LegacyNewDecFromInt(reward.Amount).Mul(rewardDenomUSDValue.Price)
 		totalUSDRewardsPerSecond = totalUSDRewardsPerSecond.Add(rewardPerSecond)
 	}
 

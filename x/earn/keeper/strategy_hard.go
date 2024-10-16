@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -22,7 +23,7 @@ func (s *HardStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (s
 	deposit, found := s.hardKeeper.GetSyncedDeposit(ctx, macc.GetAddress())
 	if !found {
 		// Return 0 if no deposit exists for module account
-		return sdk.NewCoin(denom, sdk.ZeroInt()), nil
+		return sdk.NewCoin(denom, sdkmath.ZeroInt()), nil
 	}
 
 	// Only return the deposit for the vault denom.
@@ -33,7 +34,7 @@ func (s *HardStrategy) GetEstimatedTotalAssets(ctx sdk.Context, denom string) (s
 	}
 
 	// Return 0 if no deposit exists for the vault denom
-	return sdk.NewCoin(denom, sdk.ZeroInt()), nil
+	return sdk.NewCoin(denom, sdkmath.ZeroInt()), nil
 }
 
 // Deposit deposits the specified amount of coins into hard.

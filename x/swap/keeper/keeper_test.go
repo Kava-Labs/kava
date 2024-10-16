@@ -63,7 +63,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 		AllowedPools: types.AllowedPools{
 			types.NewAllowedPool("ukava", "usdx"),
 		},
-		SwapFee: sdk.MustNewDecFromStr("0.03"),
+		SwapFee: sdkmath.LegacyMustNewDecFromStr("0.03"),
 	}
 	keeper.SetParams(suite.Ctx, params)
 	suite.Equal(keeper.GetParams(suite.Ctx), params)
@@ -73,7 +73,7 @@ func (suite keeperTestSuite) TestParams_Persistance() {
 		AllowedPools: types.AllowedPools{
 			types.NewAllowedPool("hard", "ukava"),
 		},
-		SwapFee: sdk.MustNewDecFromStr("0.01"),
+		SwapFee: sdkmath.LegacyMustNewDecFromStr("0.01"),
 	}
 	keeper.SetParams(suite.Ctx, params)
 	suite.NotEqual(keeper.GetParams(suite.Ctx), oldParams)
@@ -84,7 +84,7 @@ func (suite keeperTestSuite) TestParams_GetSwapFee() {
 	keeper := suite.Keeper
 
 	params := types.Params{
-		SwapFee: sdk.MustNewDecFromStr("0.00333"),
+		SwapFee: sdkmath.LegacyMustNewDecFromStr("0.00333"),
 	}
 	keeper.SetParams(suite.Ctx, params)
 

@@ -60,7 +60,7 @@ func TestAssetSupplyValidate(t *testing.T) {
 				IncomingSupply:           coin,
 				OutgoingSupply:           coin,
 				CurrentSupply:            coin,
-				TimeLimitedCurrentSupply: sdk.NewCoin("lol", sdk.ZeroInt()),
+				TimeLimitedCurrentSupply: sdk.NewCoin("lol", sdkmath.ZeroInt()),
 				TimeElapsed:              time.Hour,
 			},
 			false,
@@ -101,7 +101,7 @@ func TestAssetSupplyEquality(t *testing.T) {
 		{
 			name:    "not equal coin amount",
 			asset1:  NewAssetSupply(coin, coin, coin, coin, time.Duration(0)),
-			asset2:  NewAssetSupply(sdk.NewCoin("test", sdk.ZeroInt()), coin, coin, coin, time.Duration(1)),
+			asset2:  NewAssetSupply(sdk.NewCoin("test", sdkmath.ZeroInt()), coin, coin, coin, time.Duration(1)),
 			expPass: false,
 		},
 		{

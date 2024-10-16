@@ -24,8 +24,8 @@ func TestQuerierTestSuite(t *testing.T) {
 }
 
 func (suite *QuerierTestSuite) TestGetStakingAPR() {
-	communityTax := sdk.MustNewDecFromStr("0.90")
-	inflation := sdk.MustNewDecFromStr("0.75")
+	communityTax := sdkmath.LegacyMustNewDecFromStr("0.90")
+	inflation := sdkmath.LegacyMustNewDecFromStr("0.75")
 
 	bondedTokens := int64(120_000_000_000000)
 	liquidStakedTokens := int64(60_000_000_000000)
@@ -35,8 +35,8 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 	usdcSupply := int64(2_500_000_000000)
 
 	earnKeeper := newFakeEarnKeeper().
-		addVault("bkava-asdf", earntypes.NewVaultShare("bkava-asdf", sdk.NewDec(liquidStakedTokens))).
-		addVault(usdcDenom, earntypes.NewVaultShare(usdcDenom, sdk.NewDec(usdcSupply)))
+		addVault("bkava-asdf", earntypes.NewVaultShare("bkava-asdf", sdkmath.LegacyNewDec(liquidStakedTokens))).
+		addVault(usdcDenom, earntypes.NewVaultShare(usdcDenom, sdkmath.LegacyNewDec(usdcSupply)))
 
 	suite.keeper = suite.NewTestKeeper(&fakeParamSubspace{}).
 		WithDistrKeeper(
@@ -44,7 +44,7 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 		).
 		WithMintKeeper(
 			newFakeMintKeeper().
-				setMinter(minttypes.NewMinter(inflation, sdk.OneDec())),
+				setMinter(minttypes.NewMinter(inflation, sdkmath.LegacyOneDec())),
 		).
 		WithStakingKeeper(
 			newFakeStakingKeeper().addBondedTokens(bondedTokens),
@@ -58,15 +58,15 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 		).
 		WithPricefeedKeeper(
 			newFakePricefeedKeeper().
-				setPrice(pricefeedtypes.NewCurrentPrice("kava:usd:30", sdk.MustNewDecFromStr("1.5"))).
-				setPrice(pricefeedtypes.NewCurrentPrice("usdc:usd:30", sdk.OneDec())),
+				setPrice(pricefeedtypes.NewCurrentPrice("kava:usd:30", sdkmath.LegacyMustNewDecFromStr("1.5"))).
+				setPrice(pricefeedtypes.NewCurrentPrice("usdc:usd:30", sdkmath.LegacyOneDec())),
 		).
 		Build()
 
 	// ~18% APR
 	expectedStakingAPY := inflation.
-		Mul(sdk.OneDec().Sub(communityTax)).
-		Quo(sdk.NewDec(bondedTokens).Quo(sdk.NewDec(totalSupply)))
+		Mul(sdkmath.LegacyOneDec().Sub(communityTax)).
+		Quo(sdkmath.LegacyNewDec(bondedTokens).Quo(sdkmath.LegacyNewDec(totalSupply)))
 
 	// Staking APR = (Inflation Rate * (1 - Community Tax)) / (Bonded Tokens / Circulating Supply)
 	aprWithoutIncentives, err := keeper.GetStakingAPR(suite.ctx, suite.keeper, types.Params{})
@@ -105,7 +105,7 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 		aprWithIncentives, err := keeper.GetStakingAPR(suite.ctx, suite.keeper, params)
 		suite.Require().NoError(err)
 		// Approx 10% increase in APR from incentives
-		suite.Require().Equal(sdk.MustNewDecFromStr("0.280711113729177500"), aprWithIncentives)
+		suite.Require().Equal(sdkmath.LegacyMustNewDecFromStr("0.280711113729177500"), aprWithIncentives)
 
 		suite.Require().Truef(
 			aprWithIncentives.GT(aprWithoutIncentives),
@@ -127,7 +127,7 @@ func (suite *QuerierTestSuite) TestGetStakingAPR() {
 		)
 		suite.Require().NoError(err)
 		suite.Require().Equal(
-			sdk.MustNewDecFromStr("0.099981734400000000"),
+			sdkmath.LegacyMustNewDecFromStr("0.099981734400000000"),
 			apy,
 			"usdc apy should be approx 10%",
 		)

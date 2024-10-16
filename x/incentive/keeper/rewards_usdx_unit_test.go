@@ -249,7 +249,7 @@ func NewCDPBuilder(owner sdk.AccAddress, collateralType string) CDPBuilder {
 			Principal:       c(cdptypes.DefaultStableDenom, 0),
 			AccumulatedFees: c(cdptypes.DefaultStableDenom, 0),
 			// zero value of sdkmath.LegacyDec causes nil pointer panics
-			InterestFactor: sdk.OneDec(),
+			InterestFactor: sdkmath.LegacyOneDec(),
 		},
 	}
 }
@@ -260,10 +260,10 @@ func (builder CDPBuilder) Build() cdptypes.CDP { return builder.CDP }
 // WithSourceShares adds a principal amount and interest factor such that the source shares for this CDP is equal to specified.
 // With a factor of 1, the total principal is the source shares. This picks an arbitrary factor to ensure factors are accounted for in production code.
 func (builder CDPBuilder) WithSourceShares(shares int64) CDPBuilder {
-	if !builder.GetTotalPrincipal().Amount.Equal(sdk.ZeroInt()) {
+	if !builder.GetTotalPrincipal().Amount.Equal(sdkmath.ZeroInt()) {
 		panic("setting source shares on cdp with existing principal or fees not implemented")
 	}
-	if !(builder.InterestFactor.IsNil() || builder.InterestFactor.Equal(sdk.OneDec())) {
+	if !(builder.InterestFactor.IsNil() || builder.InterestFactor.Equal(sdkmath.LegacyOneDec())) {
 		panic("setting source shares on cdp with existing interest factor not implemented")
 	}
 	// pick arbitrary interest factor
@@ -273,7 +273,7 @@ func (builder CDPBuilder) WithSourceShares(shares int64) CDPBuilder {
 	principal := sdkmath.NewInt(shares).Mul(factor)
 
 	builder.Principal = sdk.NewCoin(cdptypes.DefaultStableDenom, principal)
-	builder.InterestFactor = sdk.NewDecFromInt(factor)
+	builder.InterestFactor = sdkmath.LegacyNewDecFromInt(factor)
 
 	return builder
 }

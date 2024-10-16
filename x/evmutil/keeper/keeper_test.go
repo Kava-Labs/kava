@@ -64,11 +64,11 @@ func (suite *keeperTestSuite) TestSetAccount_ZeroBalance() {
 	suite.Require().NoError(err)
 	err = suite.Keeper.SetAccount(suite.Ctx, types.Account{
 		Address: suite.Addrs[0],
-		Balance: sdk.ZeroInt(),
+		Balance: sdkmath.ZeroInt(),
 	})
 	suite.Require().NoError(err)
 	bal := suite.Keeper.GetBalance(suite.Ctx, suite.Addrs[0])
-	suite.Require().Equal(sdk.ZeroInt(), bal)
+	suite.Require().Equal(sdkmath.ZeroInt(), bal)
 	expAcct := suite.Keeper.GetAccount(suite.Ctx, suite.Addrs[0])
 	suite.Require().Nil(expAcct)
 }
@@ -142,13 +142,13 @@ func (suite *keeperTestSuite) TestSendBalance() {
 		{
 			"fails when sending negative amount",
 			sdkmath.NewInt(-5),
-			sdk.ZeroInt(),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
+			sdkmath.ZeroInt(),
 			false,
 		},
 		{
 			"send zero amount",
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			startingSenderBal,
 			startingRecipientBal,
 			true,
@@ -156,8 +156,8 @@ func (suite *keeperTestSuite) TestSendBalance() {
 		{
 			"fails when sender does not have enough balance",
 			sdkmath.NewInt(101),
-			sdk.ZeroInt(),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
+			sdkmath.ZeroInt(),
 			false,
 		},
 		{
@@ -228,7 +228,7 @@ func (suite *keeperTestSuite) TestSetBalance() {
 		{
 			"zero balance",
 			suite.Addrs[0],
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			true,
 		},
 	}
@@ -272,25 +272,25 @@ func (suite *keeperTestSuite) TestRemoveBalance() {
 		{
 			"fails if amount is negative",
 			sdkmath.NewInt(-10),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			false,
 		},
 		{
 			"remove zero amount",
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			existingAccount.Balance,
 			true,
 		},
 		{
 			"not enough balance",
 			sdkmath.NewInt(101),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			false,
 		},
 		{
 			"remove full balance",
 			sdkmath.NewInt(100),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			true,
 		},
 		{
@@ -334,7 +334,7 @@ func (suite *keeperTestSuite) TestGetBalance() {
 		{
 			"returns 0 balance if account does not exist",
 			suite.Addrs[1],
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 		},
 		{
 			"returns account balance",

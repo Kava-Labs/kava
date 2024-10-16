@@ -1,6 +1,8 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdkmath "cosmossdk.io/math"
+)
 
 // NewAPY returns a new instance of APY
 func NewAPY(collateralType string, apy sdkmath.LegacyDec) Apy {

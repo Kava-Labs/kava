@@ -1,6 +1,7 @@
 package types
 
 import (
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -8,10 +9,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 )
@@ -39,14 +38,22 @@ func init() {
 
 	// CommitteeChange/Delete proposals along with Permission types are
 	// registered on gov's ModuleCdc
-	RegisterLegacyAminoCodec(govcodec.Amino)
+	// TODO(boodyvo): find a current usage pattern
+	RegisterLegacyAminoCodec(codec.NewLegacyAmino())
 
 	// Register external module pubproposal types. Ideally these would be registered within the modules' types pkg init function.
 	// However registration happens here as a work-around.
+
+	// Deprecated: Do not use. As of the Cosmos SDK release v0.47.x, there is no
+	// longer a need for an explicit CommunityPoolSpendProposal. To spend community
+	// pool funds, a simple MsgCommunityPoolSpend can be invoked from the x/gov
+	// module via a v1 governance proposal
 	RegisterProposalTypeCodec(distrtypes.CommunityPoolSpendProposal{}, "cosmos-sdk/CommunityPoolSpendProposal")
 	RegisterProposalTypeCodec(proposaltypes.ParameterChangeProposal{}, "cosmos-sdk/ParameterChangeProposal")
 	RegisterProposalTypeCodec(govv1beta1.TextProposal{}, "cosmos-sdk/TextProposal")
+	// Deprecated: This legacy proposal is deprecated in favor of Msg-based gov proposals, see MsgSoftwareUpgrade.
 	RegisterProposalTypeCodec(upgradetypes.SoftwareUpgradeProposal{}, "cosmos-sdk/SoftwareUpgradeProposal")
+	// Deprecated: This legacy proposal is deprecated in favor of Msg-based gov proposals, see MsgCancelUpgrade.
 	RegisterProposalTypeCodec(upgradetypes.CancelSoftwareUpgradeProposal{}, "cosmos-sdk/CancelSoftwareUpgradeProposal")
 	RegisterProposalTypeCodec(communitytypes.CommunityCDPRepayDebtProposal{}, "kava/CommunityCDPRepayDebtProposal")
 	RegisterProposalTypeCodec(communitytypes.CommunityCDPWithdrawCollateralProposal{}, "kava/CommunityCDPWithdrawCollateralProposal")

@@ -17,10 +17,10 @@ import (
 
 // Avoid cluttering test cases with long function names
 func i(in int64) sdkmath.Int                { return sdkmath.NewInt(in) }
-func d(str string) sdkmath.LegacyDec        { return sdk.MustNewDecFromStr(str) }
+func d(str string) sdkmath.LegacyDec        { return sdkmath.LegacyMustNewDecFromStr(str) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func dc(denom string, amount string) sdkmath.LegacyDecCoin {
-	return sdk.NewDecCoinFromDec(denom, sdk.MustNewDecFromStr(amount))
+	return sdk.NewDecCoinFromDec(denom, sdkmath.LegacyMustNewDecFromStr(amount))
 }
 func cs(coins ...sdk.Coin) sdk.Coins                  { return sdk.NewCoins(coins...) }
 func toDcs(coins ...sdk.Coin) sdk.DecCoins            { return sdk.NewDecCoinsFromCoins(coins...) }
@@ -39,9 +39,9 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 				{
 					Denom:               "xrp",
 					Type:                "xrp-a",
-					LiquidationRatio:    sdk.MustNewDecFromStr("2.0"),
+					LiquidationRatio:    sdkmath.LegacyMustNewDecFromStr("2.0"),
 					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					StabilityFee:        sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:  d("0.05"),
 					AuctionSize:         i(7000000000),
 					SpotMarketID:        "xrp:usd",
@@ -51,9 +51,9 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 				{
 					Denom:               "btc",
 					Type:                "btc-a",
-					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+					LiquidationRatio:    sdkmath.LegacyMustNewDecFromStr("1.5"),
 					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:        sdk.MustNewDecFromStr("1.000000000782997609"), // %2.5 apr
+					StabilityFee:        sdkmath.LegacyMustNewDecFromStr("1.000000000782997609"), // %2.5 apr
 					LiquidationPenalty:  d("0.025"),
 					AuctionSize:         i(10000000),
 					SpotMarketID:        "btc:usd",
@@ -63,9 +63,9 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 				{
 					Denom:               "bnb",
 					Type:                "bnb-a",
-					LiquidationRatio:    sdk.MustNewDecFromStr("1.5"),
+					LiquidationRatio:    sdkmath.LegacyMustNewDecFromStr("1.5"),
 					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:        sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
+					StabilityFee:        sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"), // %5 apr
 					LiquidationPenalty:  d("0.05"),
 					AuctionSize:         i(50000000000),
 					SpotMarketID:        "bnb:usd",
@@ -77,7 +77,7 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 					Type:                "busd-a",
 					LiquidationRatio:    d("1.01"),
 					DebtLimit:           sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:        sdk.OneDec(), // %0 apr
+					StabilityFee:        sdkmath.LegacyOneDec(), // %0 apr
 					LiquidationPenalty:  d("0.05"),
 					AuctionSize:         i(10000000000),
 					SpotMarketID:        "busd:usd",
@@ -97,16 +97,16 @@ func NewCDPGenStateMulti(cdc codec.JSONCodec) app.GenesisState {
 		GovDenom:      cdptypes.DefaultGovDenom,
 		CDPs:          cdptypes.CDPs{},
 		PreviousAccumulationTimes: cdptypes.GenesisAccumulationTimes{
-			cdptypes.NewGenesisAccumulationTime("btc-a", time.Time{}, sdk.OneDec()),
-			cdptypes.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdk.OneDec()),
-			cdptypes.NewGenesisAccumulationTime("busd-a", time.Time{}, sdk.OneDec()),
-			cdptypes.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec()),
+			cdptypes.NewGenesisAccumulationTime("btc-a", time.Time{}, sdkmath.LegacyOneDec()),
+			cdptypes.NewGenesisAccumulationTime("xrp-a", time.Time{}, sdkmath.LegacyOneDec()),
+			cdptypes.NewGenesisAccumulationTime("busd-a", time.Time{}, sdkmath.LegacyOneDec()),
+			cdptypes.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdkmath.LegacyOneDec()),
 		},
 		TotalPrincipals: cdptypes.GenesisTotalPrincipals{
-			cdptypes.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
-			cdptypes.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
-			cdptypes.NewGenesisTotalPrincipal("busd-a", sdk.ZeroInt()),
-			cdptypes.NewGenesisTotalPrincipal("bnb-a", sdk.ZeroInt()),
+			cdptypes.NewGenesisTotalPrincipal("btc-a", sdkmath.ZeroInt()),
+			cdptypes.NewGenesisTotalPrincipal("xrp-a", sdkmath.ZeroInt()),
+			cdptypes.NewGenesisTotalPrincipal("busd-a", sdkmath.ZeroInt()),
+			cdptypes.NewGenesisTotalPrincipal("bnb-a", sdkmath.ZeroInt()),
 		},
 	}
 	return app.GenesisState{cdptypes.ModuleName: cdc.MustMarshalJSON(&cdpGenesis)}
@@ -130,37 +130,37 @@ func NewPricefeedGenStateMultiFromTime(cdc codec.JSONCodec, t time.Time) app.Gen
 			{
 				MarketID:      "kava:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("2.00"),
+				Price:         sdkmath.LegacyMustNewDecFromStr("2.00"),
 				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "btc:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("8000.00"),
+				Price:         sdkmath.LegacyMustNewDecFromStr("8000.00"),
 				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "xrp:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("0.25"),
+				Price:         sdkmath.LegacyMustNewDecFromStr("0.25"),
 				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "bnb:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("17.25"),
+				Price:         sdkmath.LegacyMustNewDecFromStr("17.25"),
 				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "busd:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.OneDec(),
+				Price:         sdkmath.LegacyOneDec(),
 				Expiry:        t.Add(expiry),
 			},
 			{
 				MarketID:      "zzz:usd",
 				OracleAddress: sdk.AccAddress{},
-				Price:         sdk.MustNewDecFromStr("2.00"),
+				Price:         sdkmath.LegacyMustNewDecFromStr("2.00"),
 				Expiry:        t.Add(expiry),
 			},
 		},
@@ -200,7 +200,7 @@ func NewCommitteeGenesisState(cdc codec.Codec, committeeID uint64, members ...sd
 		"This committee is for testing.",
 		members,
 		[]committeetypes.Permission{&committeetypes.GodPermission{}},
-		sdk.MustNewDecFromStr("0.666666667"),
+		sdkmath.LegacyMustNewDecFromStr("0.666666667"),
 		time.Hour*24*7,
 		committeetypes.TALLY_OPTION_FIRST_PAST_THE_POST,
 	)

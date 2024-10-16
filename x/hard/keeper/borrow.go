@@ -18,7 +18,7 @@ func (k Keeper) Borrow(ctx sdk.Context, borrower sdk.AccAddress, coins sdk.Coins
 		if !foundInterestFactor {
 			_, foundMm := k.GetMoneyMarket(ctx, coin.Denom)
 			if foundMm {
-				k.SetBorrowInterestFactor(ctx, coin.Denom, sdk.OneDec())
+				k.SetBorrowInterestFactor(ctx, coin.Denom, sdkmath.LegacyOneDec())
 			}
 		}
 	}
@@ -135,7 +135,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	}
 
 	// Get the proposed borrow USD value
-	proprosedBorrowUSDValue := sdk.ZeroDec()
+	proprosedBorrowUSDValue := sdkmath.LegacyZeroDec()
 	for _, coin := range amount {
 		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
 		if !found {
@@ -147,18 +147,18 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		if err != nil {
 			return errorsmod.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
-		coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+		coinUSDValue := sdkmath.LegacyNewDecFromInt(coin.Amount).Quo(sdkmath.LegacyNewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 
 		// Validate the requested borrow value for the asset against the money market's global borrow limit
 		if moneyMarket.BorrowLimit.HasMaxLimit {
 			var assetTotalBorrowedAmount sdkmath.Int
 			totalBorrowedCoins, found := k.GetBorrowedCoins(ctx)
 			if !found {
-				assetTotalBorrowedAmount = sdk.ZeroInt()
+				assetTotalBorrowedAmount = sdkmath.ZeroInt()
 			} else {
 				assetTotalBorrowedAmount = totalBorrowedCoins.AmountOf(coin.Denom)
 			}
-			newProposedAssetTotalBorrowedAmount := sdk.NewDecFromInt(assetTotalBorrowedAmount.Add(coin.Amount))
+			newProposedAssetTotalBorrowedAmount := sdkmath.LegacyNewDecFromInt(assetTotalBorrowedAmount.Add(coin.Amount))
 			if newProposedAssetTotalBorrowedAmount.GT(moneyMarket.BorrowLimit.MaximumLimit) {
 				return errorsmod.Wrapf(types.ErrGreaterThanAssetBorrowLimit,
 					"proposed borrow would result in %s borrowed, but the maximum global asset borrow limit is %s",
@@ -173,7 +173,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 	if !found {
 		return errorsmod.Wrapf(types.ErrDepositsNotFound, "no deposits found for %s", borrower)
 	}
-	totalBorrowableAmount := sdk.ZeroDec()
+	totalBorrowableAmount := sdkmath.LegacyZeroDec()
 	for _, coin := range deposit.Amount {
 		moneyMarket, found := k.GetMoneyMarket(ctx, coin.Denom)
 		if !found {
@@ -185,13 +185,13 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 		if err != nil {
 			return errorsmod.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 		}
-		depositUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+		depositUSDValue := sdkmath.LegacyNewDecFromInt(coin.Amount).Quo(sdkmath.LegacyNewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 		borrowableAmountForDeposit := depositUSDValue.Mul(moneyMarket.BorrowLimit.LoanToValue)
 		totalBorrowableAmount = totalBorrowableAmount.Add(borrowableAmountForDeposit)
 	}
 
 	// Get the total USD value of user's existing borrows
-	existingBorrowUSDValue := sdk.ZeroDec()
+	existingBorrowUSDValue := sdkmath.LegacyZeroDec()
 	existingBorrow, found := k.GetBorrow(ctx, borrower)
 	if found {
 		for _, coin := range existingBorrow.Amount {
@@ -205,7 +205,7 @@ func (k Keeper) ValidateBorrow(ctx sdk.Context, borrower sdk.AccAddress, amount 
 			if err != nil {
 				return errorsmod.Wrapf(types.ErrPriceNotFound, "no price found for market %s", moneyMarket.SpotMarketID)
 			}
-			coinUSDValue := sdk.NewDecFromInt(coin.Amount).Quo(sdk.NewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
+			coinUSDValue := sdkmath.LegacyNewDecFromInt(coin.Amount).Quo(sdkmath.LegacyNewDecFromInt(moneyMarket.ConversionFactor)).Mul(assetPriceInfo.Price)
 			existingBorrowUSDValue = existingBorrowUSDValue.Add(coinUSDValue)
 		}
 	}
@@ -278,7 +278,7 @@ func (k Keeper) DecrementBorrowedCoins(ctx sdk.Context, coins sdk.Coins) error {
 		coinsToSubtract := sdk.NewCoins()
 		for _, coin := range coins {
 			if borrowedCoins.AmountOf(coin.Denom).LT(coin.Amount) {
-				if borrowedCoins.AmountOf(coin.Denom).GT(sdk.ZeroInt()) {
+				if borrowedCoins.AmountOf(coin.Denom).GT(sdkmath.ZeroInt()) {
 					coinsToSubtract = coinsToSubtract.Add(sdk.NewCoin(coin.Denom, borrowedCoins.AmountOf(coin.Denom)))
 				}
 			} else {
@@ -320,7 +320,7 @@ func (k Keeper) loadSyncedBorrow(ctx sdk.Context, borrow types.Borrow) types.Bor
 
 			// Calculate interest owed by user for this asset
 			if foundAtIndex != -1 {
-				storedAmount := sdk.NewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
+				storedAmount := sdkmath.LegacyNewDecFromInt(borrow.Amount.AmountOf(coin.Denom))
 				userLastInterestFactor := borrow.Index[foundAtIndex].Value
 				coinInterest := (storedAmount.Quo(userLastInterestFactor).Mul(interestFactorValue)).Sub(storedAmount)
 				totalNewInterest = totalNewInterest.Add(sdk.NewCoin(coin.Denom, coinInterest.TruncateInt()))

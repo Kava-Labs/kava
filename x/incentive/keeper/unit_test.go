@@ -389,7 +389,7 @@ func (k *fakeStakingKeeper) addBondedTokens(amount int64) *fakeStakingKeeper {
 }
 
 func (k *fakeStakingKeeper) TotalBondedTokens(_ sdk.Context) sdkmath.Int {
-	total := sdk.ZeroInt()
+	total := sdkmath.ZeroInt()
 	for _, val := range k.validators {
 		if val.GetStatus() == stakingtypes.Bonded {
 			total = total.Add(val.GetBondedTokens())
@@ -433,7 +433,7 @@ var _ types.CdpKeeper = newFakeCDPKeeper()
 func newFakeCDPKeeper() *fakeCDPKeeper {
 	return &fakeCDPKeeper{
 		interestFactor: nil,
-		totalPrincipal: sdk.ZeroInt(),
+		totalPrincipal: sdkmath.ZeroInt(),
 	}
 }
 
@@ -511,7 +511,7 @@ func (k *fakeEarnKeeper) GetVaultTotalShares(
 func (k *fakeEarnKeeper) GetVaultTotalValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	vaultShares, found := k.vaultShares[denom]
 	if !found {
-		return sdk.NewCoin(denom, sdk.ZeroInt()), nil
+		return sdk.NewCoin(denom, sdkmath.ZeroInt()), nil
 	}
 
 	return sdk.NewCoin(denom, vaultShares.Amount.RoundInt()), nil
@@ -575,7 +575,7 @@ func (k *fakeLiquidKeeper) GetAllDerivativeDenoms(ctx sdk.Context) (denoms []str
 }
 
 func (k *fakeLiquidKeeper) GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, error) {
-	totalSupply := sdk.ZeroInt()
+	totalSupply := sdkmath.ZeroInt()
 	for _, supply := range k.derivatives {
 		totalSupply = totalSupply.Add(supply)
 	}
@@ -586,7 +586,7 @@ func (k *fakeLiquidKeeper) GetTotalDerivativeValue(ctx sdk.Context) (sdk.Coin, e
 func (k *fakeLiquidKeeper) GetDerivativeValue(ctx sdk.Context, denom string) (sdk.Coin, error) {
 	supply, found := k.derivatives[denom]
 	if !found {
-		return sdk.NewCoin("ukava", sdk.ZeroInt()), nil
+		return sdk.NewCoin("ukava", sdkmath.ZeroInt()), nil
 	}
 
 	return sdk.NewCoin("ukava", supply), nil
@@ -609,7 +609,7 @@ func (k *fakeLiquidKeeper) getRewardAmount(
 	amt, found := k.derivatives[derivativeDenom]
 	if !found {
 		// No error
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 
 	lastRewardClaim, found := k.lastRewardClaim[derivativeDenom]
@@ -619,7 +619,7 @@ func (k *fakeLiquidKeeper) getRewardAmount(
 
 	duration := int64(ctx.BlockTime().Sub(lastRewardClaim).Seconds())
 	if duration <= 0 {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 
 	// Reward amount just set to 10% of the derivative supply per second
@@ -726,7 +726,7 @@ func (k *fakeBankKeeper) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sd
 func (k *fakeBankKeeper) GetSupply(ctx sdk.Context, denom string) sdk.Coin {
 	supply, found := k.supply[denom]
 	if !found {
-		return sdk.NewCoin(denom, sdk.ZeroInt())
+		return sdk.NewCoin(denom, sdkmath.ZeroInt())
 	}
 
 	return sdk.NewCoin(denom, supply)

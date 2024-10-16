@@ -70,11 +70,15 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 	if err != nil {
 		return nil, err
 	}
-	validator, found := m.keeper.stakingKeeper.GetValidator(ctx, valAddr)
-	if !found {
+	validator, err := m.keeper.stakingKeeper.GetValidator(ctx, valAddr)
+	if err != nil {
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
-	bondDenom := m.keeper.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := m.keeper.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	if msg.Amount.Denom != bondDenom {
 		return nil, errorsmod.Wrapf(
 			sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Amount.Denom, bondDenom,
@@ -180,7 +184,8 @@ func (m msgServer) WithdrawBurnUndelegate(goCtx context.Context, msg *types.MsgW
 		return nil, err
 	}
 
-	completionTime, err := m.keeper.stakingKeeper.Undelegate(ctx, depositor, val, sharesReturned)
+	// TODO(boodyvo): should we use extra var
+	completionTime, _, err := m.keeper.stakingKeeper.Undelegate(ctx, depositor, val, sharesReturned)
 	if err != nil {
 		return nil, err
 	}

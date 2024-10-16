@@ -180,47 +180,47 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 	}{
 		{
 			name:          "sanity check: no inflation, no rewards => 0%",
-			bondedRatio:   sdk.MustNewDecFromStr("0.3456"),
-			inflation:     sdk.ZeroDec(),
+			bondedRatio:   sdkmath.LegacyMustNewDecFromStr("0.3456"),
+			inflation:     sdkmath.LegacyZeroDec(),
 			rewardsPerSec: sdkmath.LegacyZeroDec(),
 			expectedRate:  sdkmath.LegacyZeroDec(),
 		},
 		{
 			name:          "inflation sanity check: 100% inflation, 100% bonded => 100%",
-			bondedRatio:   sdk.OneDec(),
-			inflation:     sdk.OneDec(),
+			bondedRatio:   sdkmath.LegacyOneDec(),
+			inflation:     sdkmath.LegacyOneDec(),
 			rewardsPerSec: sdkmath.LegacyZeroDec(),
 			expectedRate:  sdkmath.LegacyOneDec(),
 		},
 		{
 			name:          "inflation sanity check: 100% community tax => 0%",
-			bondedRatio:   sdk.OneDec(),
-			inflation:     sdk.OneDec(),
-			communityTax:  sdk.OneDec(),
+			bondedRatio:   sdkmath.LegacyOneDec(),
+			inflation:     sdkmath.LegacyOneDec(),
+			communityTax:  sdkmath.LegacyOneDec(),
 			rewardsPerSec: sdkmath.LegacyZeroDec(),
 			expectedRate:  sdkmath.LegacyZeroDec(),
 		},
 		{
 			name:          "rewards per second sanity check: (totalBonded/SecondsPerYear) rps => 100%",
-			bondedRatio:   sdk.OneDec(), // bonded tokens are constant in this test. ratio has no affect.
-			inflation:     sdk.ZeroDec(),
+			bondedRatio:   sdkmath.LegacyOneDec(), // bonded tokens are constant in this test. ratio has no affect.
+			inflation:     sdkmath.LegacyZeroDec(),
 			rewardsPerSec: sdkmath.LegacyNewDecFromInt(bondedTokens).QuoInt(sdkmath.NewInt(keeper.SecondsPerYear)),
 			// expect ~100%
 			expectedRate: sdkmath.LegacyMustNewDecFromStr("0.999999999999999984"),
 		},
 		{
 			name:          "inflation enabled: realistic example",
-			bondedRatio:   sdk.MustNewDecFromStr("0.148"),
-			inflation:     sdk.MustNewDecFromStr("0.595"),
-			communityTax:  sdk.MustNewDecFromStr("0.9495"),
+			bondedRatio:   sdkmath.LegacyMustNewDecFromStr("0.148"),
+			inflation:     sdkmath.LegacyMustNewDecFromStr("0.595"),
+			communityTax:  sdkmath.LegacyMustNewDecFromStr("0.9495"),
 			rewardsPerSec: sdkmath.LegacyZeroDec(),
 			// expect ~20.23%
 			expectedRate: sdkmath.LegacyMustNewDecFromStr("0.203023625910000000"),
 		},
 		{
 			name:          "inflation disabled: simple example",
-			bondedRatio:   sdk.OneDec(), // bonded tokens are constant in this test. ratio has no affect.
-			inflation:     sdk.ZeroDec(),
+			bondedRatio:   sdkmath.LegacyOneDec(), // bonded tokens are constant in this test. ratio has no affect.
+			inflation:     sdkmath.LegacyZeroDec(),
 			rewardsPerSec: sdkmath.LegacyMustNewDecFromStr("0.01"),
 			// 1e6 bonded tokens => seconds per year / bonded tokens = 31.536
 			// expect 31.536%
@@ -239,7 +239,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 			mk.SetMinter(suite.Ctx, minter)
 
 			// set community tax
-			communityTax := sdk.ZeroDec()
+			communityTax := sdkmath.LegacyZeroDec()
 			if !tc.communityTax.IsNil() {
 				communityTax = tc.communityTax
 			}
@@ -278,12 +278,12 @@ func (suite *grpcQueryTestSuite) adjustBondedRatio(desiredRatio sdkmath.LegacyDe
 	// first, burn all non-delegated coins (bonded ratio = 100%)
 	suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
 
-	if desiredRatio.Equal(sdk.OneDec()) {
+	if desiredRatio.Equal(sdkmath.LegacyOneDec()) {
 		return bondedTokens
 	}
 
 	// mint new tokens to adjust the bond ratio
-	newTotalSupply := sdk.NewDecFromInt(bondedTokens).Quo(desiredRatio).TruncateInt()
+	newTotalSupply := sdkmath.LegacyNewDecFromInt(bondedTokens).Quo(desiredRatio).TruncateInt()
 	coinsToMint := newTotalSupply.Sub(bondedTokens)
 	err := suite.App.FundAccount(suite.Ctx, app.RandomAddress(), sdk.NewCoins(sdk.NewCoin(bondDenom, coinsToMint)))
 	suite.Require().NoError(err)

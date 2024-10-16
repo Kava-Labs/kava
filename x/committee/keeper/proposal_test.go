@@ -468,9 +468,9 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 			votes: []types.Vote{
 				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.VOTE_TYPE_YES}, // Token holder
 			},
-			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4]),
+			expectedYesVoteCount:   sdkmath.LegacyNewDec(genCoinCounts[4]),
 			expectedNoVoteCount:    testutil.D("0"),
-			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+			expectedTotalVoteCount: sdkmath.LegacyNewDec(genCoinCounts[4]),
 		},
 		{
 			name: "does not count non-token holder 'Yes' votes",
@@ -478,9 +478,9 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.VOTE_TYPE_YES}, // Token holder
 				{ProposalID: defaultProposalID, Voter: genAddrs[0], VoteType: types.VOTE_TYPE_YES}, // Non-token holder
 			},
-			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4]),
+			expectedYesVoteCount:   sdkmath.LegacyNewDec(genCoinCounts[4]),
 			expectedNoVoteCount:    testutil.D("0"),
-			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+			expectedTotalVoteCount: sdkmath.LegacyNewDec(genCoinCounts[4]),
 		},
 		{
 			name: "counts multiple 'Yes' votes from token holders",
@@ -489,9 +489,9 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[5], VoteType: types.VOTE_TYPE_YES}, // Token holder
 				{ProposalID: defaultProposalID, Voter: genAddrs[6], VoteType: types.VOTE_TYPE_YES}, // Token holder
 			},
-			expectedYesVoteCount:   sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+			expectedYesVoteCount:   sdkmath.LegacyNewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
 			expectedNoVoteCount:    testutil.D("0"),
-			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+			expectedTotalVoteCount: sdkmath.LegacyNewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
 		},
 		{
 			name: "counts token holder 'No' votes",
@@ -499,8 +499,8 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[4], VoteType: types.VOTE_TYPE_NO}, // Token holder
 			},
 			expectedYesVoteCount:   testutil.D("0"),
-			expectedNoVoteCount:    sdk.NewDec(genCoinCounts[4]),
-			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+			expectedNoVoteCount:    sdkmath.LegacyNewDec(genCoinCounts[4]),
+			expectedTotalVoteCount: sdkmath.LegacyNewDec(genCoinCounts[4]),
 		},
 		{
 			name: "does not count non-token holder 'No' votes",
@@ -509,8 +509,8 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[0], VoteType: types.VOTE_TYPE_NO}, // Non-token holder
 			},
 			expectedYesVoteCount:   testutil.D("0"),
-			expectedNoVoteCount:    sdk.NewDec(genCoinCounts[4]),
-			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+			expectedNoVoteCount:    sdkmath.LegacyNewDec(genCoinCounts[4]),
+			expectedTotalVoteCount: sdkmath.LegacyNewDec(genCoinCounts[4]),
 		},
 		{
 			name: "counts multiple 'No' votes from token holders",
@@ -520,8 +520,8 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 				{ProposalID: defaultProposalID, Voter: genAddrs[6], VoteType: types.VOTE_TYPE_NO}, // Token holder
 			},
 			expectedYesVoteCount:   testutil.D("0"),
-			expectedNoVoteCount:    sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
-			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+			expectedNoVoteCount:    sdkmath.LegacyNewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
+			expectedTotalVoteCount: sdkmath.LegacyNewDec(genCoinCounts[4] + genCoinCounts[5] + genCoinCounts[6]),
 		},
 		{
 			name: "includes token holder 'Abstain' votes in total vote count",
@@ -530,7 +530,7 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 			},
 			expectedYesVoteCount:   testutil.D("0"),
 			expectedNoVoteCount:    testutil.D("0"),
-			expectedTotalVoteCount: sdk.NewDec(genCoinCounts[4]),
+			expectedTotalVoteCount: sdkmath.LegacyNewDec(genCoinCounts[4]),
 		},
 	}
 
@@ -574,7 +574,7 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 		// Check that all non-Yes votes are counted according to their weight
 		suite.Equal(tc.expectedTotalVoteCount, currVotes)
 		// Check that possible votes equals the number of members on the committee
-		suite.Equal(sdk.NewDecFromInt(totalSupply.AmountOf(tokenCom.GetTallyDenom())), possibleVotes)
+		suite.Equal(sdkmath.LegacyNewDecFromInt(totalSupply.AmountOf(tokenCom.GetTallyDenom())), possibleVotes)
 	}
 }
 

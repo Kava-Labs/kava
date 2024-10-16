@@ -134,7 +134,7 @@ func (s QueryServer) TotalCollateral(c context.Context, req *types.QueryTotalCol
 		for i := len(collateralTypes) - 1; i > 0; i-- {
 			cdps := s.keeper.GetAllCdpsByCollateralType(ctx, collateralTypes[i])
 
-			collateral := sdk.ZeroInt()
+			collateral := sdkmath.ZeroInt()
 
 			for _, cdp := range cdps {
 				collateral = collateral.Add(cdp.Collateral.Amount)
@@ -258,7 +258,7 @@ func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (type
 		}
 	}
 
-	ratio := sdk.ZeroDec()
+	ratio := sdkmath.LegacyZeroDec()
 
 	if req.Ratio != "" {
 		ratio, err = sdk.NewDecFromStr(req.Ratio)

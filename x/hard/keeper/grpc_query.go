@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -436,7 +437,7 @@ func (s queryServer) InterestRate(ctx context.Context, req *types.QueryInterestR
 		macc := s.accountKeeper.GetModuleAccount(sdkCtx, types.ModuleName)
 		cash := s.bankKeeper.GetBalance(sdkCtx, macc.GetAddress(), denom).Amount
 
-		borrowed := sdk.NewCoin(denom, sdk.ZeroInt())
+		borrowed := sdk.NewCoin(denom, sdkmath.ZeroInt())
 		borrowedCoins, foundBorrowedCoins := s.keeper.GetBorrowedCoins(sdkCtx)
 		if foundBorrowedCoins {
 			borrowed = sdk.NewCoin(denom, borrowedCoins.AmountOf(denom))
@@ -448,14 +449,14 @@ func (s queryServer) InterestRate(ctx context.Context, req *types.QueryInterestR
 		}
 
 		// CalculateBorrowRate calculates the current interest rate based on utilization (the fraction of supply that has ien borrowed)
-		borrowAPY, err := CalculateBorrowRate(moneyMarket.InterestRateModel, sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		borrowAPY, err := CalculateBorrowRate(moneyMarket.InterestRateModel, sdkmath.LegacyNewDecFromInt(cash), sdkmath.LegacyNewDecFromInt(borrowed.Amount), sdkmath.LegacyNewDecFromInt(reserves.AmountOf(denom)))
 		if err != nil {
 			return nil, err
 		}
 
-		utilRatio := CalculateUtilizationRatio(sdk.NewDecFromInt(cash), sdk.NewDecFromInt(borrowed.Amount), sdk.NewDecFromInt(reserves.AmountOf(denom)))
+		utilRatio := CalculateUtilizationRatio(sdkmath.LegacyNewDecFromInt(cash), sdkmath.LegacyNewDecFromInt(borrowed.Amount), sdkmath.LegacyNewDecFromInt(reserves.AmountOf(denom)))
 		fullSupplyAPY := borrowAPY.Mul(utilRatio)
-		realSupplyAPY := fullSupplyAPY.Mul(sdk.OneDec().Sub(moneyMarket.ReserveFactor))
+		realSupplyAPY := fullSupplyAPY.Mul(sdkmath.LegacyOneDec().Sub(moneyMarket.ReserveFactor))
 
 		moneyMarketInterestRate := types.MoneyMarketInterestRate{
 			Denom:              denom,

@@ -28,7 +28,11 @@ func (k Keeper) PayoutAccumulatedStakingRewards(ctx sdk.Context) {
 	}
 
 	// get the denom for staking
-	stakingRewardDenom := k.stakingKeeper.BondDenom(ctx)
+	stakingRewardDenom, err := k.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		// TODO(boodyvo): handle error
+		panic(err)
+	}
 
 	// we fetch the community pool balance to ensure only accumulate rewards up to the current balance
 	communityPoolBalance := sdkmath.LegacyNewDecFromInt(k.bankKeeper.GetBalance(ctx, k.moduleAddress, stakingRewardDenom).Amount)

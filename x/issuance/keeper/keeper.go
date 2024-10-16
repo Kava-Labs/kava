@@ -56,7 +56,7 @@ func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom 
 
 // IterateAssetSupplies provides an iterator over all stored AssetSupplies.
 func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.AssetSupply) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

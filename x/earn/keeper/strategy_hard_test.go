@@ -47,7 +47,7 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc() {
 	suite.HardDepositAmountEqual(sdk.NewCoins(depositAmount))
 	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
 	suite.VaultTotalSharesEqual(types.NewVaultShares(
-		types.NewVaultShare(depositAmount.Denom, sdk.NewDecFromInt(depositAmount.Amount)),
+		types.NewVaultShare(depositAmount.Denom, sdkmath.LegacyNewDecFromInt(depositAmount.Amount)),
 	))
 
 	// Query vault total
@@ -77,7 +77,7 @@ func (suite *strategyHardTestSuite) TestDeposit_SingleAcc_MultipleDeposits() {
 	suite.HardDepositAmountEqual(sdk.NewCoins(expectedVaultBalance))
 	suite.VaultTotalValuesEqual(sdk.NewCoins(expectedVaultBalance))
 	suite.VaultTotalSharesEqual(types.NewVaultShares(
-		types.NewVaultShare(expectedVaultBalance.Denom, sdk.NewDecFromInt(expectedVaultBalance.Amount)),
+		types.NewVaultShare(expectedVaultBalance.Denom, sdkmath.LegacyNewDecFromInt(expectedVaultBalance.Amount)),
 	))
 
 	// Query vault total
@@ -113,7 +113,7 @@ func (suite *strategyHardTestSuite) TestDeposit_MultipleAcc_MultipleDeposits() {
 	suite.HardDepositAmountEqual(sdk.NewCoins(expectedTotalValue))
 	suite.VaultTotalValuesEqual(sdk.NewCoins(expectedTotalValue))
 	suite.VaultTotalSharesEqual(types.NewVaultShares(
-		types.NewVaultShare(expectedTotalValue.Denom, sdk.NewDecFromInt(expectedTotalValue.Amount)),
+		types.NewVaultShare(expectedTotalValue.Denom, sdkmath.LegacyNewDecFromInt(expectedTotalValue.Amount)),
 	))
 
 	// Query vault total
@@ -132,7 +132,7 @@ func (suite *strategyHardTestSuite) TestGetVaultTotalValue_Empty() {
 	totalValue, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenom)
 	suite.Require().NoError(err)
 
-	suite.Equal(sdk.NewCoin(vaultDenom, sdk.ZeroInt()), totalValue)
+	suite.Equal(sdk.NewCoin(vaultDenom, sdkmath.ZeroInt()), totalValue)
 }
 
 func (suite *strategyHardTestSuite) TestGetVaultTotalValue_NoDenomDeposit() {
@@ -160,7 +160,7 @@ func (suite *strategyHardTestSuite) TestGetVaultTotalValue_NoDenomDeposit() {
 	totalValueBusd, err := suite.Keeper.GetVaultTotalValue(suite.Ctx, vaultDenomBusd)
 	suite.Require().NoError(err)
 
-	suite.Equal(sdk.NewCoin(vaultDenomBusd, sdk.ZeroInt()), totalValueBusd)
+	suite.Equal(sdk.NewCoin(vaultDenomBusd, sdkmath.ZeroInt()), totalValueBusd)
 }
 
 // ----------------------------------------------------------------------------
@@ -312,7 +312,7 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
 	suite.Require().True(found)
-	suite.Equal(sdk.NewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
+	suite.Equal(sdkmath.LegacyNewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
 
 	// 2. Direct hard deposit from module account to increase vault value
 	// Total value: 100 -> 110
@@ -340,12 +340,12 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 	suite.Require().True(found)
 	// 100 * 100 / 110 = 190.909090909090909091
 	// QuoInt64() truncates
-	expectedAcc2Shares := sdk.NewDec(100).MulInt64(100).QuoInt64(110)
+	expectedAcc2Shares := sdkmath.LegacyNewDec(100).MulInt64(100).QuoInt64(110)
 	suite.Equal(expectedAcc2Shares, acc2Shares.AmountOf(vaultDenom))
 
 	vaultTotalShares, found := suite.Keeper.GetVaultTotalShares(suite.Ctx, vaultDenom)
 	suite.Require().True(found)
-	suite.Equal(sdk.NewDec(100).Add(expectedAcc2Shares), vaultTotalShares.Amount)
+	suite.Equal(sdkmath.LegacyNewDec(100).Add(expectedAcc2Shares), vaultTotalShares.Amount)
 
 	// Hard deposit again from module account to triple original value
 	// 210 -> 300
@@ -364,7 +364,7 @@ func (suite *strategyHardTestSuite) TestAccountShares() {
 	// sharedIssued = 100 * 190 / 300 = 63.3 = 63
 	// total shares = 100 + 63 = 163
 	suite.Equal(
-		sdk.NewDec(100).Add(sdk.NewDec(100).Mul(vaultTotalShares.Amount).Quo(sdk.NewDec(300))),
+		sdkmath.LegacyNewDec(100).Add(sdkmath.LegacyNewDec(100).Mul(vaultTotalShares.Amount).Quo(sdkmath.LegacyNewDec(300))),
 		acc1Shares.AmountOf(vaultDenom),
 		"shares should consist of 100 of 1x share price and 63 of 3x share price",
 	)
@@ -393,7 +393,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedAmount() {
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
 	suite.Require().True(found)
-	suite.Equal(sdk.NewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
+	suite.Equal(sdkmath.LegacyNewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
 
 	// 2. Direct hard deposit from module account to increase vault value
 	// Total value: 200 -> 220, 110 each account
@@ -432,7 +432,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_AccumulatedTruncated() {
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
 	suite.Require().True(found)
-	suite.Equal(sdk.NewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
+	suite.Equal(sdkmath.LegacyNewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
 
 	// 2. Direct hard deposit from module account to increase vault value
 	// Total value: 200 -> 211, 105.5 each account
@@ -473,7 +473,7 @@ func (suite *strategyHardTestSuite) TestWithdraw_ExpensiveShares() {
 
 	acc1Shares, found := suite.Keeper.GetVaultAccountShares(suite.Ctx, acc1)
 	suite.Require().True(found)
-	suite.Equal(sdk.NewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
+	suite.Equal(sdkmath.LegacyNewDec(100), acc1Shares.AmountOf(vaultDenom), "initial deposit 1:1 shares")
 
 	// 2. Direct hard deposit from module account to increase vault value
 	// Total value: 100 -> 2000, shares now 10usdx each

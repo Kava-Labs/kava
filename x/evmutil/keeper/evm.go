@@ -15,6 +15,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"encoding/json"
 	"math/big"
 
@@ -89,7 +90,7 @@ func (k Keeper) CallEVMWithData(
 		return nil, err
 	}
 
-	ethGasContext := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ethGasContext := ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 
 	// EstimateGas applies the transaction against current block state to get
 	// optimal gas value. Since this is done right before the ApplyMessage

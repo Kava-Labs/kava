@@ -17,7 +17,7 @@ func TestSumExtendedCoin(t *testing.T) {
 		{
 			"empty",
 			sdk.NewCoins(),
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.ZeroInt()),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.ZeroInt()),
 		},
 		{
 			"only integer",

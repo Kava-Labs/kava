@@ -205,15 +205,15 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// User 2 gets 99% of rewards
 	stakingRewards1 := delegationRewards.
 		AmountOf("ukava").
-		Quo(sdk.NewDec(100)).
+		Quo(sdkmath.LegacyNewDec(100)).
 		RoundInt()
 	suite.BalanceEquals(userAddr1, preClaimBal1.Add(sdk.NewCoin("ukava", stakingRewards1)))
 
 	// Total * 99 / 100
 	stakingRewards2 := delegationRewards.
 		AmountOf("ukava").
-		Mul(sdk.NewDec(99)).
-		Quo(sdk.NewDec(100)).
+		Mul(sdkmath.LegacyNewDec(99)).
+		Quo(sdkmath.LegacyNewDec(100)).
 		RoundInt()
 
 	suite.BalanceInEpsilon(

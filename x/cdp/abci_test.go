@@ -134,13 +134,13 @@ func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterest() {
 	usdcCollateral := types.CollateralParam{
 		Denom:                            "erc20/usdc",
 		Type:                             "erc20-usdc",
-		LiquidationRatio:                 sdk.MustNewDecFromStr("1.01"),
+		LiquidationRatio:                 sdkmath.LegacyMustNewDecFromStr("1.01"),
 		DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
-		StabilityFee:                     sdk.OneDec(),
+		StabilityFee:                     sdkmath.LegacyOneDec(),
 		AuctionSize:                      sdkmath.NewIntFromUint64(10000000000),
-		LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+		LiquidationPenalty:               sdkmath.LegacyMustNewDecFromStr("0.05"),
 		CheckCollateralizationIndexCount: sdkmath.NewInt(10),
-		KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+		KeeperRewardPercentage:           sdkmath.LegacyMustNewDecFromStr("0.01"),
 		SpotMarketID:                     "usdc:usd",
 		LiquidationMarketID:              "usdc:usd",
 		ConversionFactor:                 sdkmath.NewInt(6),
@@ -148,13 +148,13 @@ func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterest() {
 	usdtCollateral := types.CollateralParam{
 		Denom:                            "erc20/usdt",
 		Type:                             "erc20-usdt",
-		LiquidationRatio:                 sdk.MustNewDecFromStr("1.01"),
+		LiquidationRatio:                 sdkmath.LegacyMustNewDecFromStr("1.01"),
 		DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
-		StabilityFee:                     sdk.OneDec(),
+		StabilityFee:                     sdkmath.LegacyOneDec(),
 		AuctionSize:                      sdkmath.NewIntFromUint64(10000000000),
-		LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+		LiquidationPenalty:               sdkmath.LegacyMustNewDecFromStr("0.05"),
 		CheckCollateralizationIndexCount: sdkmath.NewInt(10),
-		KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+		KeeperRewardPercentage:           sdkmath.LegacyMustNewDecFromStr("0.01"),
 		SpotMarketID:                     "usdt:usd",
 		LiquidationMarketID:              "usdt:usd",
 		ConversionFactor:                 sdkmath.NewInt(18),
@@ -199,11 +199,11 @@ func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterest() {
 	// set for USDC by AddCdp
 	globalInterestFactor, found := suite.keeper.GetInterestFactor(suite.ctx, usdcCollateral.Type)
 	suite.Require().True(found, "expected global interest factor for new collateral to be set")
-	suite.Equal(sdk.OneDec(), globalInterestFactor, "expected global interest factor to equal 1")
+	suite.Equal(sdkmath.LegacyOneDec(), globalInterestFactor, "expected global interest factor to equal 1")
 	// not set for USDT since it has no cdps
 	globalInterestFactor, found = suite.keeper.GetInterestFactor(suite.ctx, usdtCollateral.Type)
 	suite.Require().False(found, "expected global interest factor for new collateral to not be set")
-	suite.Equal(sdk.ZeroDec(), globalInterestFactor, "expected global interest factor to equal 0")
+	suite.Equal(sdkmath.LegacyZeroDec(), globalInterestFactor, "expected global interest factor to equal 0")
 }
 
 func (suite *ModuleTestSuite) TestBeginBlock() {

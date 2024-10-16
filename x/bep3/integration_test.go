@@ -26,7 +26,7 @@ var (
 )
 
 func i(in int64) sdkmath.Int                { return sdkmath.NewInt(in) }
-func d(de int64) sdkmath.LegacyDec          { return sdk.NewDec(de) }
+func d(de int64) sdkmath.LegacyDec          { return sdkmath.LegacyNewDec(de) }
 func c(denom string, amount int64) sdk.Coin { return sdk.NewInt64Coin(denom, amount) }
 func cs(coins ...sdk.Coin) sdk.Coins        { return sdk.NewCoins(coins...) }
 func ts(minOffset int) int64                { return tmtime.Now().Add(time.Duration(minOffset) * time.Minute).Unix() }
@@ -46,7 +46,7 @@ func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 					SupplyLimit: types.SupplyLimit{
 						Limit:          sdkmath.NewInt(350000000000000),
 						TimeLimited:    false,
-						TimeBasedLimit: sdk.ZeroInt(),
+						TimeBasedLimit: sdkmath.ZeroInt(),
 						TimePeriod:     time.Hour,
 					},
 					Active:        true,
@@ -63,7 +63,7 @@ func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 					SupplyLimit: types.SupplyLimit{
 						Limit:          sdkmath.NewInt(100000000000),
 						TimeLimited:    false,
-						TimeBasedLimit: sdk.ZeroInt(),
+						TimeBasedLimit: sdkmath.ZeroInt(),
 						TimePeriod:     time.Hour,
 					},
 					Active:        true,
@@ -78,17 +78,17 @@ func baseGenState(deputy sdk.AccAddress) types.GenesisState {
 		},
 		Supplies: types.AssetSupplies{
 			types.NewAssetSupply(
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
 				time.Duration(0),
 			),
 			types.NewAssetSupply(
-				sdk.NewCoin("inc", sdk.ZeroInt()),
-				sdk.NewCoin("inc", sdk.ZeroInt()),
-				sdk.NewCoin("inc", sdk.ZeroInt()),
-				sdk.NewCoin("inc", sdk.ZeroInt()),
+				sdk.NewCoin("inc", sdkmath.ZeroInt()),
+				sdk.NewCoin("inc", sdkmath.ZeroInt()),
+				sdk.NewCoin("inc", sdkmath.ZeroInt()),
+				sdk.NewCoin("inc", sdkmath.ZeroInt()),
 				time.Duration(0),
 			),
 		},

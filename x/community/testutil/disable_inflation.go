@@ -60,7 +60,7 @@ func (suite *disableInflationTestSuite) SetupTest() {
 	suite.genesisKavadistState = kavadistGen
 
 	distrGen := distrtypes.DefaultGenesisState()
-	distrGen.Params.CommunityTax = sdk.MustNewDecFromStr("0.949500000000000000")
+	distrGen.Params.CommunityTax = sdkmath.LegacyMustNewDecFromStr("0.949500000000000000")
 	suite.genesisDistrState = distrGen
 
 	appCodec := tApp.AppCodec()
@@ -97,12 +97,12 @@ func (suite *disableInflationTestSuite) TestDisableInflation() {
 			disableTimeMsg = "expected inflation disable time to be reset"
 			expectedStakingRewards = setStakingRewards
 
-			expectedMintState.Params.InflationMin = sdk.ZeroDec()
-			expectedMintState.Params.InflationMax = sdk.ZeroDec()
+			expectedMintState.Params.InflationMin = sdkmath.LegacyZeroDec()
+			expectedMintState.Params.InflationMax = sdkmath.LegacyZeroDec()
 
 			expectedKavadistState.Params.Active = false
 
-			expectedDistrState.Params.CommunityTax = sdk.ZeroDec()
+			expectedDistrState.Params.CommunityTax = sdkmath.LegacyZeroDec()
 
 			msgSuffix = "after upgrade"
 

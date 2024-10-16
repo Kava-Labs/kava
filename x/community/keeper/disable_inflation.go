@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,8 +57,8 @@ func (k Keeper) disableInflation(ctx sdk.Context) {
 
 	// set x/min inflation to 0
 	mintParams := k.mintKeeper.GetParams(ctx)
-	mintParams.InflationMin = sdk.ZeroDec()
-	mintParams.InflationMax = sdk.ZeroDec()
+	mintParams.InflationMin = sdkmath.LegacyZeroDec()
+	mintParams.InflationMax = sdkmath.LegacyZeroDec()
 	if err := k.mintKeeper.SetParams(ctx, mintParams); err != nil {
 		panic(err)
 	}
@@ -75,7 +76,7 @@ func (k Keeper) disableCommunityTax(ctx sdk.Context) {
 	logger := k.Logger(ctx)
 
 	distrParams := k.distrKeeper.GetParams(ctx)
-	distrParams.CommunityTax = sdk.ZeroDec()
+	distrParams.CommunityTax = sdkmath.LegacyZeroDec()
 	if err := k.distrKeeper.SetParams(ctx, distrParams); err != nil {
 		panic(err)
 	}

@@ -64,9 +64,9 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) SetupTest() {
 	stakingBuilder := testutil.NewStakingGenesisBuilder()
 
 	mintBuilder := testutil.NewMintGenesisBuilder().
-		WithInflationMax(sdk.OneDec()).
-		WithInflationMin(sdk.OneDec()).
-		WithMinter(sdk.OneDec(), sdk.ZeroDec()).
+		WithInflationMax(sdkmath.LegacyOneDec()).
+		WithInflationMin(sdkmath.LegacyOneDec()).
+		WithMinter(sdkmath.LegacyOneDec(), sdkmath.LegacyZeroDec()).
 		WithMintDenom("ukava")
 
 	suite.StartChainWithBuilders(
@@ -166,13 +166,13 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 	// Total staking rewards / total source shares (**deposited in earn** not total minted)
 	// types.RewardIndexes.Quo() uses Dec.Quo() which uses bankers rounding.
 	// So we need to use Dec.Quo() to also round vs Dec.QuoInt() which truncates
-	expectedIndexes1 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
+	expectedIndexes1 := sdkmath.LegacyNewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(userDepositAmount0))
+		Quo(sdkmath.LegacyNewDecFromInt(userDepositAmount0))
 
-	expectedIndexes2 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
+	expectedIndexes2 := sdkmath.LegacyNewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(userDepositAmount1))
+		Quo(sdkmath.LegacyNewDecFromInt(userDepositAmount1))
 
 	// Only contains staking rewards
 	suite.StoredEarnIndexesEqual(vaultDenom1, types.RewardIndexes{

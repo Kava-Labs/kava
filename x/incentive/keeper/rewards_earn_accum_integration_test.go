@@ -65,9 +65,9 @@ func (suite *AccumulateEarnRewardsIntegrationTests) SetupTest() {
 	stakingBuilder := testutil.NewStakingGenesisBuilder()
 
 	mintBuilder := testutil.NewMintGenesisBuilder().
-		WithInflationMax(sdk.OneDec()).
-		WithInflationMin(sdk.OneDec()).
-		WithMinter(sdk.OneDec(), sdk.ZeroDec()).
+		WithInflationMax(sdkmath.LegacyOneDec()).
+		WithInflationMin(sdkmath.LegacyOneDec()).
+		WithMinter(sdkmath.LegacyOneDec(), sdkmath.LegacyZeroDec()).
 		WithMintDenom("ukava")
 
 	suite.StartChainWithBuilders(
@@ -168,13 +168,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	suite.StoredEarnTimeEquals(derivative0.Denom, suite.Ctx.BlockTime())
 	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
 
-	stakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
+	stakingRewardIndexes0 := sdkmath.LegacyNewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(derivative0.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(derivative0.Amount))
 
-	stakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
+	stakingRewardIndexes1 := sdkmath.LegacyNewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(derivative1.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(derivative1.Amount))
 
 	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
 		{
@@ -293,13 +293,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	suite.StoredEarnTimeEquals(derivative1.Denom, suite.Ctx.BlockTime())
 
 	// Divided by deposit amounts, not bank supply amounts
-	stakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
+	stakingRewardIndexes0 := sdkmath.LegacyNewDecFromInt(validatorRewards[suite.valAddrs[0].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(depositAmount0.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(depositAmount0.Amount))
 
-	stakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
+	stakingRewardIndexes1 := sdkmath.LegacyNewDecFromInt(validatorRewards[suite.valAddrs[1].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(depositAmount1.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(depositAmount1.Amount))
 
 	// Slightly increased rewards due to less bkava deposited
 	suite.StoredEarnIndexesEqual(derivative0.Denom, types.RewardIndexes{
@@ -532,13 +532,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 
 	validatorRewards0, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
 
-	firstStakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards0[suite.valAddrs[0].String()].
+	firstStakingRewardIndexes0 := sdkmath.LegacyNewDecFromInt(validatorRewards0[suite.valAddrs[0].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(derivative0.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(derivative0.Amount))
 
-	firstStakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards0[suite.valAddrs[1].String()].
+	firstStakingRewardIndexes1 := sdkmath.LegacyNewDecFromInt(validatorRewards0[suite.valAddrs[1].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(derivative1.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(derivative1.Amount))
 
 	// After the first accumulation only the current block time should be stored.
 	// The indexes will be empty as no time has passed since the previous block because it didn't exist.
@@ -584,13 +584,13 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 
 	validatorRewards1, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
 
-	secondStakingRewardIndexes0 := sdk.NewDecFromInt(validatorRewards1[suite.valAddrs[0].String()].
+	secondStakingRewardIndexes0 := sdkmath.LegacyNewDecFromInt(validatorRewards1[suite.valAddrs[0].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(derivative0.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(derivative0.Amount))
 
-	secondStakingRewardIndexes1 := sdk.NewDecFromInt(validatorRewards1[suite.valAddrs[1].String()].
+	secondStakingRewardIndexes1 := sdkmath.LegacyNewDecFromInt(validatorRewards1[suite.valAddrs[1].String()].
 		AmountOf("ukava")).
-		Quo(sdk.NewDecFromInt(derivative1.Amount))
+		Quo(sdkmath.LegacyNewDecFromInt(derivative1.Amount))
 
 	// Second accumulation has both staking rewards and incentive rewards
 	// ukava incentive rewards: 3600 * 1000 / (2 * 1000000) == 1.8

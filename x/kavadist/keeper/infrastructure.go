@@ -12,8 +12,8 @@ import (
 
 func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods, previousBlockTime time.Time) (sdk.Coin, sdkmath.Int, error) {
 	var err error
-	coinsMinted := sdk.NewCoin(types.GovDenom, sdk.ZeroInt())
-	timeElapsed := sdk.ZeroInt()
+	coinsMinted := sdk.NewCoin(types.GovDenom, sdkmath.ZeroInt())
+	timeElapsed := sdkmath.ZeroInt()
 	for _, period := range periods {
 		switch {
 		// Case 1 - period is fully expired
@@ -77,7 +77,7 @@ func (k Keeper) distributeInfrastructureCoins(ctx sdk.Context, partnerRewards ty
 		coinsToDistribute = updatedCoins
 	}
 	for _, cr := range coreRewards {
-		coinsToSend := sdk.NewCoin(types.GovDenom, sdk.NewDecFromInt(coinsToDistribute.Amount).Mul(cr.Weight).RoundInt())
+		coinsToSend := sdk.NewCoin(types.GovDenom, sdkmath.LegacyNewDecFromInt(coinsToDistribute.Amount).Mul(cr.Weight).RoundInt())
 		// TODO check balance, log if insufficient and return rather than error
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, cr.Address, sdk.NewCoins(coinsToSend))
 		if err != nil {

@@ -52,7 +52,7 @@ func (suite *depositTestSuite) TestDeposit_Balances() {
 
 	suite.VaultTotalValuesEqual(sdk.NewCoins(depositAmount))
 	suite.VaultTotalSharesEqual(types.NewVaultShares(
-		types.NewVaultShare(depositAmount.Denom, sdk.NewDecFromInt(depositAmount.Amount)),
+		types.NewVaultShare(depositAmount.Denom, sdkmath.LegacyNewDecFromInt(depositAmount.Amount)),
 	))
 }
 

@@ -25,12 +25,12 @@ func NewCDPGenState(cdc codec.JSONCodec, denom, asset string, liquidationRatio s
 					Type:                             asset + "-a",
 					LiquidationRatio:                 liquidationRatio,
 					DebtLimit:                        sdk.NewInt64Coin("usdx", 1000000000000),
-					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // %5 apr
-					LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
+					StabilityFee:                     sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"), // %5 apr
+					LiquidationPenalty:               sdkmath.LegacyMustNewDecFromStr("0.05"),
 					AuctionSize:                      sdk.NewInt(100),
 					SpotMarketID:                     asset + ":usd",
 					LiquidationMarketID:              asset + ":usd",
-					KeeperRewardPercentage:           sdk.MustNewDecFromStr("0.01"),
+					KeeperRewardPercentage:           sdkmath.LegacyMustNewDecFromStr("0.01"),
 					CheckCollateralizationIndexCount: sdk.NewInt(10),
 					ConversionFactor:                 sdk.NewInt(6),
 				},
@@ -47,10 +47,10 @@ func NewCDPGenState(cdc codec.JSONCodec, denom, asset string, liquidationRatio s
 		GovDenom:      cdptypes.DefaultGovDenom,
 		CDPs:          cdptypes.CDPs{},
 		PreviousAccumulationTimes: cdptypes.GenesisAccumulationTimes{
-			cdptypes.NewGenesisAccumulationTime(asset+"-a", time.Time{}, sdk.OneDec()),
+			cdptypes.NewGenesisAccumulationTime(asset+"-a", time.Time{}, sdkmath.LegacyOneDec()),
 		},
 		TotalPrincipals: cdptypes.GenesisTotalPrincipals{
-			cdptypes.NewGenesisTotalPrincipal(asset+"-a", sdk.ZeroInt()),
+			cdptypes.NewGenesisTotalPrincipal(asset+"-a", sdkmath.ZeroInt()),
 		},
 	}
 	return app.GenesisState{cdptypes.ModuleName: cdc.MustMarshalJSON(&cdpGenesis)}

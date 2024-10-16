@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -49,11 +50,11 @@ func (k Keeper) getHardSupplyTotalSourceShares(ctx sdk.Context, denom string) sd
 	interestFactor, found := k.hardKeeper.GetSupplyInterestFactor(ctx, denom)
 	if !found {
 		// assume nothing has been borrowed so the factor starts at it's default value
-		interestFactor = sdk.OneDec()
+		interestFactor = sdkmath.LegacyOneDec()
 	}
 
 	// return supplied/factor to get the "pre interest" value of the current total supplied
-	return sdk.NewDecFromInt(totalSupplied).Quo(interestFactor)
+	return sdkmath.LegacyNewDecFromInt(totalSupplied).Quo(interestFactor)
 }
 
 // InitializeHardSupplyReward initializes the supply-side of a hard liquidity provider claim
@@ -204,7 +205,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 		for _, globalRewardIndex := range globalRewardIndexes {
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdkmath.LegacyZeroDec())
 				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
 				claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.SupplyRewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
 			}
@@ -219,7 +220,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 			if !found {
 				continue
 			}
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(sdk.NewDecFromInt(deposit.Amount.AmountOf(ri.CollateralType))).RoundInt()
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(sdkmath.LegacyNewDecFromInt(deposit.Amount.AmountOf(ri.CollateralType))).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}
@@ -254,7 +255,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 		for _, globalRewardIndex := range globalRewardIndexes {
 			userRewardIndex, foundUserRewardIndex := userRewardIndexes.RewardIndexes.GetRewardIndex(globalRewardIndex.CollateralType)
 			if !foundUserRewardIndex {
-				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdk.ZeroDec())
+				userRewardIndex = types.NewRewardIndex(globalRewardIndex.CollateralType, sdkmath.LegacyZeroDec())
 				userRewardIndexes.RewardIndexes = append(userRewardIndexes.RewardIndexes, userRewardIndex)
 				claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes = append(claim.BorrowRewardIndexes[userRewardIndexIndex].RewardIndexes, userRewardIndex)
 			}
@@ -269,7 +270,7 @@ func (k Keeper) SimulateHardSynchronization(ctx sdk.Context, claim types.HardLiq
 			if !found {
 				continue
 			}
-			newRewardsAmount := rewardsAccumulatedFactor.Mul(sdk.NewDecFromInt(borrow.Amount.AmountOf(ri.CollateralType))).RoundInt()
+			newRewardsAmount := rewardsAccumulatedFactor.Mul(sdkmath.LegacyNewDecFromInt(borrow.Amount.AmountOf(ri.CollateralType))).RoundInt()
 			if newRewardsAmount.IsZero() || newRewardsAmount.IsNegative() {
 				continue
 			}

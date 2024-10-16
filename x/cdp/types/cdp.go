@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"errors"
 	"fmt"
 	"strings"
@@ -13,7 +14,7 @@ import (
 
 // NewCDP creates a new CDP object
 func NewCDP(id uint64, owner sdk.AccAddress, collateral sdk.Coin, collateralType string, principal sdk.Coin, time time.Time, interestFactor sdkmath.LegacyDec) CDP {
-	fees := sdk.NewCoin(principal.Denom, sdk.ZeroInt())
+	fees := sdk.NewCoin(principal.Denom, sdkmath.ZeroInt())
 	return CDP{
 		ID:              id,
 		Owner:           owner,
@@ -79,10 +80,10 @@ func (cdp CDP) GetTotalPrincipal() sdk.Coin {
 // An error is returned if the cdp interest factor is in an invalid state.
 func (cdp CDP) GetNormalizedPrincipal() (sdkmath.LegacyDec, error) {
 	unsyncedDebt := cdp.GetTotalPrincipal().Amount
-	if cdp.InterestFactor.LT(sdk.OneDec()) {
+	if cdp.InterestFactor.LT(sdkmath.LegacyOneDec()) {
 		return sdkmath.LegacyDec{}, fmt.Errorf("interest factor '%s' must be ≥ 1", cdp.InterestFactor)
 	}
-	return sdk.NewDecFromInt(unsyncedDebt).Quo(cdp.InterestFactor), nil
+	return sdkmath.LegacyNewDecFromInt(unsyncedDebt).Quo(cdp.InterestFactor), nil
 }
 
 // CDPs a collection of CDP objects

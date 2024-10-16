@@ -103,7 +103,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				deposits:           types.Deposits{},
 				debtDenom:          types.DefaultDebtDenom,
 				govDenom:           types.DefaultGovDenom,
-				genAccumTimes:      types.GenesisAccumulationTimes{types.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdk.OneDec().Sub(sdk.SmallestDec()))},
+				genAccumTimes:      types.GenesisAccumulationTimes{types.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdkmath.LegacyOneDec().Sub(sdk.SmallestDec()))},
 				genTotalPrincipals: types.DefaultGenesisState().TotalPrincipals,
 			},
 			errArgs: errArgs{
@@ -178,13 +178,13 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 			Principal:       c("usdx", 10000000),
 			AccumulatedFees: c("usdx", 0),
 			FeesUpdated:     suite.genTime,
-			InterestFactor:  sdk.NewDec(1),
+			InterestFactor:  sdkmath.LegacyNewDec(1),
 		},
 	}
 
 	genTotalPrincipals := types.GenesisTotalPrincipals{
-		types.NewGenesisTotalPrincipal("btc-a", sdk.ZeroInt()),
-		types.NewGenesisTotalPrincipal("xrp-a", sdk.ZeroInt()),
+		types.NewGenesisTotalPrincipal("btc-a", sdkmath.ZeroInt()),
+		types.NewGenesisTotalPrincipal("xrp-a", sdkmath.ZeroInt()),
 	}
 
 	var deposits types.Deposits
@@ -215,9 +215,9 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 				{
 					Denom:                            "xrp",
 					Type:                             "xrp-a",
-					LiquidationRatio:                 sdk.MustNewDecFromStr("2.0"),
+					LiquidationRatio:                 sdkmath.LegacyMustNewDecFromStr("2.0"),
 					DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:                     sdk.MustNewDecFromStr("1.000000001547125958"), // 5% apr
+					StabilityFee:                     sdkmath.LegacyMustNewDecFromStr("1.000000001547125958"), // 5% apr
 					LiquidationPenalty:               d("0.05"),
 					AuctionSize:                      i(7000000000),
 					SpotMarketID:                     "xrp:usd",
@@ -229,9 +229,9 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 				{
 					Denom:                            "btc",
 					Type:                             "btc-a",
-					LiquidationRatio:                 sdk.MustNewDecFromStr("1.5"),
+					LiquidationRatio:                 sdkmath.LegacyMustNewDecFromStr("1.5"),
 					DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
-					StabilityFee:                     sdk.MustNewDecFromStr("1.000000000782997609"), // 2.5% apr
+					StabilityFee:                     sdkmath.LegacyMustNewDecFromStr("1.000000000782997609"), // 2.5% apr
 					LiquidationPenalty:               d("0.025"),
 					AuctionSize:                      i(10000000),
 					SpotMarketID:                     "btc:usd",
@@ -254,8 +254,8 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 		CDPs:          cdps,
 		Deposits:      deposits,
 		PreviousAccumulationTimes: types.GenesisAccumulationTimes{
-			types.NewGenesisAccumulationTime("btc-a", suite.genTime, sdk.OneDec()),
-			types.NewGenesisAccumulationTime("xrp-a", suite.genTime, sdk.OneDec()),
+			types.NewGenesisAccumulationTime("btc-a", suite.genTime, sdkmath.LegacyOneDec()),
+			types.NewGenesisAccumulationTime("xrp-a", suite.genTime, sdkmath.LegacyOneDec()),
 		},
 		TotalPrincipals: genTotalPrincipals,
 	}

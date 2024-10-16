@@ -36,8 +36,8 @@ func TestGrpcQueryTestSuite(t *testing.T) {
 
 func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 	zeroResponse := &types.QueryDelegatedBalanceResponse{
-		Vested:  suite.NewBondCoin(sdk.ZeroInt()),
-		Vesting: suite.NewBondCoin(sdk.ZeroInt()),
+		Vested:  suite.NewBondCoin(sdkmath.ZeroInt()),
+		Vesting: suite.NewBondCoin(sdkmath.ZeroInt()),
 	}
 
 	testCases := []struct {
@@ -64,7 +64,7 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 				return delAddr.String()
 			},
 			expectedRes: &types.QueryDelegatedBalanceResponse{
-				Vested:  suite.NewBondCoin(sdk.ZeroInt()),
+				Vested:  suite.NewBondCoin(sdkmath.ZeroInt()),
 				Vesting: suite.NewBondCoin(i(250e6)),
 			},
 		},
@@ -124,7 +124,7 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 			},
 			expectedRes: &types.QueryDelegatedBalanceResponse{
 				Vested:  suite.NewBondCoin(i(1e9)),
-				Vesting: suite.NewBondCoin(sdk.ZeroInt()),
+				Vesting: suite.NewBondCoin(sdkmath.ZeroInt()),
 			},
 		},
 		{
@@ -144,7 +144,7 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 			},
 			expectedRes: &types.QueryDelegatedBalanceResponse{
 				Vested:  suite.NewBondCoin(i(500e6)),
-				Vesting: suite.NewBondCoin(sdk.ZeroInt()),
+				Vesting: suite.NewBondCoin(sdkmath.ZeroInt()),
 			},
 		},
 	}
@@ -178,7 +178,7 @@ func (suite *grpcQueryTestSuite) TestQueryTotalSupply() {
 		{
 			name:          "no liquid kava means no tvl",
 			setup:         func() {},
-			expectedTotal: sdk.ZeroInt(),
+			expectedTotal: sdkmath.ZeroInt(),
 			expectedErr:   nil,
 		},
 		{

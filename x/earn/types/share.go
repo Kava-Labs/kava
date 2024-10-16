@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	fmt "fmt"
 	"sort"
 	"strings"
@@ -291,7 +292,7 @@ func (shares VaultShares) AmountOf(denom string) sdkmath.LegacyDec {
 		}
 	}
 
-	return sdk.ZeroDec()
+	return sdkmath.LegacyZeroDec()
 }
 
 // GetShare the single share of the given denom.
@@ -302,7 +303,7 @@ func (shares VaultShares) GetShare(denom string) VaultShare {
 		}
 	}
 
-	return NewVaultShare(denom, sdk.ZeroDec())
+	return NewVaultShare(denom, sdkmath.LegacyZeroDec())
 }
 
 // IsZero returns true if the VaultShares is empty.

@@ -60,7 +60,7 @@ func TestLendProposals_ValidateBasic(t *testing.T) {
 			proposal: proposalData{
 				Title:       "Error profoundly",
 				Description: "My coins are zero",
-				Amount:      sdk.NewCoins(sdk.NewCoin("ukava", sdk.ZeroInt())),
+				Amount:      sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.ZeroInt())),
 			},
 			expectedErr: "invalid coins",
 		},

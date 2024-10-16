@@ -20,7 +20,7 @@ type genesisTestSuite struct {
 func (suite *genesisTestSuite) Test_InitGenesis_ValidationPanic() {
 	invalidState := types.NewGenesisState(
 		types.Params{
-			SwapFee: sdk.NewDec(-1),
+			SwapFee: sdkmath.LegacyNewDec(-1),
 		},
 		types.PoolRecords{},
 		types.ShareRecords{},
@@ -41,7 +41,7 @@ func (suite *genesisTestSuite) Test_InitAndExportGenesis() {
 	state := types.NewGenesisState(
 		types.Params{
 			AllowedPools: types.AllowedPools{types.NewAllowedPool("ukava", "usdx")},
-			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
+			SwapFee:      sdkmath.LegacyMustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
 			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6))), sdkmath.NewInt(1e6)),
@@ -80,7 +80,7 @@ func (suite *genesisTestSuite) Test_Marshall() {
 	state := types.NewGenesisState(
 		types.Params{
 			AllowedPools: types.AllowedPools{types.NewAllowedPool("ukava", "usdx")},
-			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
+			SwapFee:      sdkmath.LegacyMustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
 			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6))), sdkmath.NewInt(1e6)),
@@ -115,7 +115,7 @@ func (suite *genesisTestSuite) Test_LegacyJSONConversion() {
 	state := types.NewGenesisState(
 		types.Params{
 			AllowedPools: types.AllowedPools{types.NewAllowedPool("ukava", "usdx")},
-			SwapFee:      sdk.MustNewDecFromStr("0.00255"),
+			SwapFee:      sdkmath.LegacyMustNewDecFromStr("0.00255"),
 		},
 		types.PoolRecords{
 			types.NewPoolRecord(sdk.NewCoins(sdk.NewCoin("hard", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6))), sdkmath.NewInt(1e6)),

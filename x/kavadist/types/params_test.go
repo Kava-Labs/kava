@@ -6,8 +6,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/kava-labs/kava/x/kavadist/types"
 )
 
@@ -29,12 +27,12 @@ func (suite *ParamTestSuite) SetupTest() {
 			{
 				Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
-				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+				Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 			},
 			{
 				Start:     time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
-				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+				Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 			},
 		},
 	}
@@ -44,12 +42,12 @@ func (suite *ParamTestSuite) SetupTest() {
 			{
 				Start:     time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
-				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+				Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 			},
 			{
 				Start:     time.Date(2023, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2024, time.March, 1, 1, 0, 0, 0, time.UTC),
-				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+				Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 			},
 		},
 	}
@@ -59,12 +57,12 @@ func (suite *ParamTestSuite) SetupTest() {
 			{
 				Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2021, time.March, 1, 1, 0, 0, 0, time.UTC),
-				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+				Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 			},
 			{
 				Start:     time.Date(2020, time.March, 1, 1, 0, 0, 0, time.UTC),
 				End:       time.Date(2022, time.March, 1, 1, 0, 0, 0, time.UTC),
-				Inflation: sdk.MustNewDecFromStr("1.000000003022265980"),
+				Inflation: sdkmath.LegacyMustNewDecFromStr("1.000000003022265980"),
 			},
 		},
 	}

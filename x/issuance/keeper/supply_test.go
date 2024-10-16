@@ -32,7 +32,7 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
-					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdkmath.ZeroInt()), time.Hour),
 				},
 				coin: sdk.NewCoin("usdtoken", sdkmath.NewInt(100000)),
 			},
@@ -48,7 +48,7 @@ func (suite *KeeperTestSuite) TestIncrementCurrentAssetSupply() {
 					types.NewAsset(suite.addrs[0], "usdtoken", []string{suite.addrs[1]}, false, true, types.NewRateLimit(true, sdkmath.NewInt(10000000000), time.Hour*24)),
 				},
 				supplies: []types.AssetSupply{
-					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdk.ZeroInt()), time.Hour),
+					types.NewAssetSupply(sdk.NewCoin("usdtoken", sdkmath.ZeroInt()), time.Hour),
 				},
 				coin: sdk.NewCoin("usdtoken", sdkmath.NewInt(10000000001)),
 			},

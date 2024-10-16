@@ -52,8 +52,8 @@ func TestGenesisState_Validate(t *testing.T) {
 						{
 							Denom: "ukava",
 							Multipliers: Multipliers{
-								NewMultiplier("small", 1, sdk.MustNewDecFromStr("0.33")),
-								NewMultiplier("large", 12, sdk.MustNewDecFromStr("1.00")),
+								NewMultiplier("small", 1, sdkmath.LegacyMustNewDecFromStr("0.33")),
+								NewMultiplier("large", 12, sdkmath.LegacyMustNewDecFromStr("1.00")),
 							},
 						},
 					},
@@ -78,7 +78,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
-								RewardFactor:   sdk.ZeroDec(),
+								RewardFactor:   sdkmath.LegacyZeroDec(),
 							},
 						},
 					},
@@ -123,7 +123,7 @@ func TestGenesisState_Validate(t *testing.T) {
 						RewardIndexes: []RewardIndex{
 							{
 								CollateralType: "bnb-a",
-								RewardFactor:   sdk.ZeroDec(),
+								RewardFactor:   sdkmath.LegacyZeroDec(),
 							},
 						},
 					},

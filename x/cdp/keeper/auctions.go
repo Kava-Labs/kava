@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -16,9 +17,10 @@ const (
 func (k Keeper) AuctionCollateral(ctx context.Context, deposits types.Deposits, collateralType string, debt sdkmath.Int, bidDenom string) error {
 	auctionSize := k.getAuctionSize(ctx, collateralType)
 	totalCollateral := deposits.SumCollateral()
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	for _, deposit := range deposits {
-		debtCoveredByDeposit := (sdk.NewDecFromInt(deposit.Amount.Amount).Quo(sdk.NewDecFromInt(totalCollateral))).Mul(sdk.NewDecFromInt(debt)).RoundInt()
-		if err := k.CreateAuctionsFromDeposit(ctx, deposit.Amount, collateralType, deposit.Depositor, debtCoveredByDeposit, auctionSize, bidDenom); err != nil {
+		debtCoveredByDeposit := (sdkmath.LegacyNewDecFromInt(deposit.Amount.Amount).Quo(sdkmath.LegacyNewDecFromInt(totalCollateral))).Mul(sdkmath.LegacyNewDecFromInt(debt)).RoundInt()
+		if err := k.CreateAuctionsFromDeposit(sdkCtx, deposit.Amount, collateralType, deposit.Depositor, debtCoveredByDeposit, auctionSize, bidDenom); err != nil {
 			return err
 		}
 	}
@@ -50,8 +52,8 @@ func (k Keeper) CreateAuctionsFromDeposit(
 	// if last auction has larger rounding error, then allocate one debt to last auction first
 	// follows the largest remainder method https://en.wikipedia.org/wiki/Largest_remainder_method
 	if lastAuctionError.GT(wholeAuctionError) {
-		lastAuctionDebt = lastAuctionDebt.Add(sdk.OneInt())
-		unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
+		lastAuctionDebt = lastAuctionDebt.Add(sdkmath.OneInt())
+		unallocatedDebt = unallocatedDebt.Sub(sdkmath.OneInt())
 	}
 
 	debtDenom := k.GetDebtDenom(ctx)
@@ -63,8 +65,8 @@ func (k Keeper) CreateAuctionsFromDeposit(
 
 		// distribute unallocated debt left over starting with first auction created
 		if unallocatedDebt.IsPositive() {
-			debtAmount = debtAmount.Add(sdk.OneInt())
-			unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
+			debtAmount = debtAmount.Add(sdkmath.OneInt())
+			unallocatedDebt = unallocatedDebt.Sub(sdkmath.OneInt())
 		}
 
 		penalty := k.ApplyLiquidationPenalty(ctx, collateralType, debtAmount)
@@ -88,8 +90,8 @@ func (k Keeper) CreateAuctionsFromDeposit(
 	// then unallocatedDebt will be zero since we will have already distributed
 	// all of the unallocated debt
 	if unallocatedDebt.IsPositive() {
-		lastAuctionDebt = lastAuctionDebt.Add(sdk.OneInt())
-		unallocatedDebt = unallocatedDebt.Sub(sdk.OneInt())
+		lastAuctionDebt = lastAuctionDebt.Add(sdkmath.OneInt())
+		unallocatedDebt = unallocatedDebt.Sub(sdkmath.OneInt())
 	}
 
 	penalty := k.ApplyLiquidationPenalty(ctx, collateralType, lastAuctionDebt)
@@ -108,13 +110,15 @@ func (k Keeper) CreateAuctionsFromDeposit(
 func (k Keeper) NetSurplusAndDebt(ctx context.Context) error {
 	totalSurplus := k.GetTotalSurplus(ctx, types.LiquidatorMacc)
 	debt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
-	netAmount := sdk.MinInt(totalSurplus, debt)
+	netAmount := sdkmath.MinInt(totalSurplus, debt)
 	if netAmount.IsZero() {
 		return nil
 	}
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
 	// burn debt coins equal to netAmount
-	err := k.bankKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(ctx), netAmount)))
+	err := k.bankKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(k.GetDebtDenom(sdkCtx), netAmount)))
 	if err != nil {
 		return err
 	}
@@ -123,7 +127,7 @@ func (k Keeper) NetSurplusAndDebt(ctx context.Context) error {
 	dp := k.GetParams(ctx).DebtParam
 	liquidatorAcc := k.accountKeeper.GetModuleAccount(ctx, types.LiquidatorMacc)
 	balance := k.bankKeeper.GetBalance(ctx, liquidatorAcc.GetAddress(), dp.Denom).Amount
-	burnAmount := sdk.MinInt(balance, netAmount)
+	burnAmount := sdkmath.MinInt(balance, netAmount)
 	return k.bankKeeper.BurnCoins(ctx, types.LiquidatorMacc, sdk.NewCoins(sdk.NewCoin(dp.Denom, burnAmount)))
 }
 
@@ -137,7 +141,8 @@ func (k Keeper) GetTotalSurplus(ctx context.Context, accountName string) sdkmath
 // GetTotalDebt returns the total amount of debt tokens held by the liquidator module account
 func (k Keeper) GetTotalDebt(ctx context.Context, accountName string) sdkmath.Int {
 	acc := k.accountKeeper.GetModuleAccount(ctx, accountName)
-	return k.bankKeeper.GetBalance(ctx, acc.GetAddress(), k.GetDebtDenom(ctx)).Amount
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	return k.bankKeeper.GetBalance(ctx, acc.GetAddress(), k.GetDebtDenom(sdkCtx)).Amount
 }
 
 // RunSurplusAndDebtAuctions nets the surplus and debt balances and then creates surplus or debt auctions if the remaining balance is above the auction threshold parameter
@@ -148,12 +153,14 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx context.Context) error {
 	remainingDebt := k.GetTotalDebt(ctx, types.LiquidatorMacc)
 	params := k.GetParams(ctx)
 
-	if remainingDebt.GTE(params.DebtAuctionThreshold) {
-		debtLot := sdk.NewCoin(k.GetDebtDenom(ctx), params.DebtAuctionLot)
-		bidCoin := sdk.NewCoin(params.DebtParam.Denom, debtLot.Amount)
-		initialLot := sdk.NewCoin(k.GetGovDenom(ctx), debtLot.Amount.Mul(sdkmath.NewInt(dump)))
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 
-		_, err := k.auctionKeeper.StartDebtAuction(ctx, types.LiquidatorMacc, bidCoin, initialLot, debtLot)
+	if remainingDebt.GTE(params.DebtAuctionThreshold) {
+		debtLot := sdk.NewCoin(k.GetDebtDenom(sdkCtx), params.DebtAuctionLot)
+		bidCoin := sdk.NewCoin(params.DebtParam.Denom, debtLot.Amount)
+		initialLot := sdk.NewCoin(k.GetGovDenom(sdkCtx), debtLot.Amount.Mul(sdkmath.NewInt(dump)))
+
+		_, err := k.auctionKeeper.StartDebtAuction(sdkCtx, types.LiquidatorMacc, bidCoin, initialLot, debtLot)
 		if err != nil {
 			return err
 		}
@@ -165,7 +172,7 @@ func (k Keeper) RunSurplusAndDebtAuctions(ctx context.Context) error {
 		return nil
 	}
 
-	surplusLot := sdk.NewCoin(params.DebtParam.Denom, sdk.MinInt(params.SurplusAuctionLot, surplus))
-	_, err := k.auctionKeeper.StartSurplusAuction(ctx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(ctx))
+	surplusLot := sdk.NewCoin(params.DebtParam.Denom, sdkmath.MinInt(params.SurplusAuctionLot, surplus))
+	_, err := k.auctionKeeper.StartSurplusAuction(sdkCtx, types.LiquidatorMacc, surplusLot, k.GetGovDenom(sdkCtx))
 	return err
 }

@@ -54,7 +54,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 	}
 
 	// match cdp ratio (if supplied)
-	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
+	if !params.Ratio.IsNil() && params.Ratio.GT(sdkmath.LegacyZeroDec()) {
 		denoms := k.GetCollateralTypes(ctx)
 		for _, denom := range denoms {
 			ratio, err := k.CalculateCollateralizationRatioFromAbsoluteRatio(ctx, denom, params.Ratio, "liquidation")
@@ -68,7 +68,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 
 	var commonCDPs types.CDPs
 	// If no params specified, fetch all CDPs
-	if params.CollateralType == "" && len(params.Owner) == 0 && params.ID == 0 && params.Ratio.Equal(sdk.ZeroDec()) {
+	if params.CollateralType == "" && len(params.Owner) == 0 && params.ID == 0 && params.Ratio.Equal(sdkmath.LegacyZeroDec()) {
 		commonCDPs = k.GetAllCdps(ctx)
 	}
 
@@ -105,7 +105,7 @@ func FilterCDPs(ctx sdk.Context, k Keeper, params types.QueryCdpsParams) (types.
 		}
 	}
 
-	if !params.Ratio.IsNil() && params.Ratio.GT(sdk.ZeroDec()) {
+	if !params.Ratio.IsNil() && params.Ratio.GT(sdkmath.LegacyZeroDec()) {
 		if len(matchRatio) == 0 {
 			return nil, nil
 		}

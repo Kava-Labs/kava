@@ -11,7 +11,8 @@ import (
 
 // ensure Msg interface compliance at compile time
 var (
-	_ sdk.Msg            = &MsgConvertCoinToERC20{}
+	_ sdk.Msg = &MsgConvertCoinToERC20{}
+	// TODO(boodyvo): do we want to switch to Msg?
 	_ legacytx.LegacyMsg = &MsgConvertCoinToERC20{}
 	_ sdk.Msg            = &MsgConvertERC20ToCoin{}
 	_ legacytx.LegacyMsg = &MsgConvertERC20ToCoin{}
@@ -137,7 +138,7 @@ func (msg MsgConvertERC20ToCoin) ValidateBasic() error {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, "receiver is not a valid bech32 address")
 	}
 
-	if msg.Amount.IsNil() || msg.Amount.LTE(sdk.ZeroInt()) {
+	if msg.Amount.IsNil() || msg.Amount.LTE(sdkmath.ZeroInt()) {
 		return errorsmod.Wrapf(sdkerrors.ErrInvalidRequest, "amount cannot be zero or less")
 	}
 

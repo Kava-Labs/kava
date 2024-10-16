@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"math"
 	"time"
@@ -77,7 +78,7 @@ func (*Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMax ti
 // total rewards per source share, which is what the indexes store.
 // Note, duration is rounded to the nearest second to keep rewards calculation consistent with kava-7.
 func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.DecCoins, totalSourceShares sdkmath.LegacyDec, duration time.Duration) RewardIndexes {
-	if totalSourceShares.LTE(sdk.ZeroDec()) {
+	if totalSourceShares.LTE(sdkmath.LegacyZeroDec()) {
 		// When there is zero source shares, there is no users with deposits/borrows/delegations to pay out the current block's rewards to.
 		// So drop the rewards and pay out nothing.
 		return nil
@@ -89,7 +90,7 @@ func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.DecCoins, totalSour
 		return nil
 	}
 	increment := NewRewardIndexesFromCoins(rewardsPerSecond)
-	increment = increment.Mul(sdk.NewDec(durationSeconds)).Quo(totalSourceShares)
+	increment = increment.Mul(sdkmath.LegacyNewDec(durationSeconds)).Quo(totalSourceShares)
 	return increment
 }
 
@@ -140,5 +141,5 @@ func CalculatePerSecondRewards(
 		return nil, upTo // TODO
 	}
 
-	return periodRewardsPerSecond.MulDec(sdk.NewDec(durationSeconds)), upTo
+	return periodRewardsPerSecond.MulDec(sdkmath.LegacyNewDec(durationSeconds)), upTo
 }

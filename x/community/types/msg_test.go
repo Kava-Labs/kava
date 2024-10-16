@@ -57,7 +57,7 @@ func TestFundCommunityPool_ValidateBasic(t *testing.T) {
 			message: types.MsgFundCommunityPool{
 				Depositor: app.RandomAddress().String(),
 				Amount: sdk.NewCoins(
-					sdk.NewCoin("ukava", sdk.ZeroInt()),
+					sdk.NewCoin("ukava", sdkmath.ZeroInt()),
 				),
 			},
 		},

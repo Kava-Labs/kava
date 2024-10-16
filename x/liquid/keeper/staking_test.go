@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	// d is an alias for sdk.MustNewDecFromStr
-	d = sdk.MustNewDecFromStr
+	// d is an alias for sdkmath.LegacyMustNewDecFromStr
+	d = sdkmath.LegacyMustNewDecFromStr
 	// i is an alias for sdkmath.NewInt
 	i = sdkmath.NewInt
 	// c is an alias for sdk.NewInt64Coin
@@ -140,7 +140,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				// Run end blocker to update validator state to bonded.
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-				return fromDelegationShares, sdk.ZeroDec(), nil
+				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
 			},
 			shares:      d("-1.0"),
 			expectedErr: types.ErrUntransferableShares,
@@ -152,7 +152,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-				return fromDelegationShares, sdk.ZeroDec(), nil
+				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
 			},
 			shares:      sdkmath.LegacyDec{},
 			expectedErr: types.ErrUntransferableShares,
@@ -167,7 +167,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 
 				return fromDelegationShares, toDelegationShares, nil
 			},
-			shares:      sdk.ZeroDec(),
+			shares:      sdkmath.LegacyZeroDec(),
 			expectedErr: types.ErrUntransferableShares,
 		},
 		{
@@ -190,7 +190,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-				return fromDelegationShares, sdk.ZeroDec(), nil
+				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
 			},
 			shares:      d("1000000000.000000000000000001"),
 			expectedErr: stakingtypes.ErrNotEnoughDelegationShares,
@@ -202,7 +202,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-				return fromDelegationShares, sdk.ZeroDec(), nil
+				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
 			},
 			shares:         d("500000000.0"),
 			expectReceived: d("500000000.0"),
@@ -213,7 +213,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
 
-				return sdk.ZeroDec(), sdk.ZeroDec(), nil
+				return sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), nil
 			},
 			shares:      d("500000000.0"),
 			expectedErr: types.ErrNoDelegatorForAddress,
@@ -227,7 +227,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 
 				suite.SlashValidator(valAddr, d("0.05"))
 
-				return fromDelegationShares, sdk.ZeroDec(), nil
+				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
 			},
 			shares:         d("500000000.0"),
 			expectReceived: d("500000000.0"),
@@ -310,7 +310,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_RedelegationsForbidden() {
 	_, err := suite.Keeper.TransferDelegation(suite.Ctx, val2Addr, fromDelegator, toDelegator, fromDelegationShares)
 	suite.ErrorIs(err, types.ErrRedelegationsNotCompleted)
 	suite.DelegationSharesEqual(val2Addr, fromDelegator, fromDelegationShares)
-	suite.DelegationSharesEqual(val2Addr, toDelegator, sdk.ZeroDec())
+	suite.DelegationSharesEqual(val2Addr, toDelegator, sdkmath.LegacyZeroDec())
 }
 
 func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegation() {
@@ -328,7 +328,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegati
 		ed25519.GenPrivKey().PubKey(),
 		delegation,
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		minSelfDelegation,
 	)
 	suite.Require().NoError(err)
@@ -340,7 +340,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegati
 
 	_, err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, valAccAddr, toDelegator, d("0.000000000000000001"))
 	suite.ErrorIs(err, types.ErrSelfDelegationBelowMinimum)
-	suite.DelegationSharesEqual(valAddr, valAccAddr, sdk.NewDecFromInt(delegation.Amount))
+	suite.DelegationSharesEqual(valAddr, valAccAddr, sdkmath.LegacyNewDecFromInt(delegation.Amount))
 }
 
 func (suite *KeeperTestSuite) TestTransferDelegation_CanTransferVested() {

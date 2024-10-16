@@ -16,7 +16,7 @@ var (
 )
 
 func d(i int64) sdkmath.LegacyDec {
-	return sdk.NewDec(i)
+	return sdkmath.LegacyNewDec(i)
 }
 
 type vaultShareTestSuite struct {
@@ -29,16 +29,16 @@ func TestVaultShareTestSuite(t *testing.T) {
 
 func (s *vaultShareTestSuite) TestNewVaultShareFromDec() {
 	s.Require().NotPanics(func() {
-		types.NewVaultShare(testDenom1, sdk.NewDec(5))
+		types.NewVaultShare(testDenom1, sdkmath.LegacyNewDec(5))
 	})
 	s.Require().NotPanics(func() {
-		types.NewVaultShare(testDenom1, sdk.ZeroDec())
+		types.NewVaultShare(testDenom1, sdkmath.LegacyZeroDec())
 	})
 	s.Require().NotPanics(func() {
-		types.NewVaultShare(strings.ToUpper(testDenom1), sdk.NewDec(5))
+		types.NewVaultShare(strings.ToUpper(testDenom1), sdkmath.LegacyNewDec(5))
 	})
 	s.Require().Panics(func() {
-		types.NewVaultShare(testDenom1, sdk.NewDec(-5))
+		types.NewVaultShare(testDenom1, sdkmath.LegacyNewDec(-5))
 	})
 }
 
@@ -58,9 +58,9 @@ func (s *vaultShareTestSuite) TestAddVaultShare() {
 }
 
 func (s *vaultShareTestSuite) TestAddVaultShares() {
-	one := sdk.NewDec(1)
-	zero := sdk.NewDec(0)
-	two := sdk.NewDec(2)
+	one := sdkmath.LegacyNewDec(1)
+	zero := sdkmath.LegacyNewDec(0)
+	two := sdkmath.LegacyNewDec(2)
 
 	cases := []struct {
 		inputOne types.VaultShares
@@ -123,11 +123,11 @@ func (s *vaultShareTestSuite) TestFilteredZeroVaultShares() {
 		{
 			name: "all greater than zero",
 			input: types.VaultShares{
-				{"testa", sdk.NewDec(1)},
-				{"testb", sdk.NewDec(2)},
-				{"testc", sdk.NewDec(3)},
-				{"testd", sdk.NewDec(4)},
-				{"teste", sdk.NewDec(5)},
+				{"testa", sdkmath.LegacyNewDec(1)},
+				{"testb", sdkmath.LegacyNewDec(2)},
+				{"testc", sdkmath.LegacyNewDec(3)},
+				{"testd", sdkmath.LegacyNewDec(4)},
+				{"teste", sdkmath.LegacyNewDec(5)},
 			},
 			original: "1.000000000000000000testa,2.000000000000000000testb,3.000000000000000000testc,4.000000000000000000testd,5.000000000000000000teste",
 			expected: "1.000000000000000000testa,2.000000000000000000testb,3.000000000000000000testc,4.000000000000000000testd,5.000000000000000000teste",
@@ -135,11 +135,11 @@ func (s *vaultShareTestSuite) TestFilteredZeroVaultShares() {
 		{
 			name: "zero share in middle",
 			input: types.VaultShares{
-				{"testa", sdk.NewDec(1)},
-				{"testb", sdk.NewDec(2)},
-				{"testc", sdk.NewDec(0)},
-				{"testd", sdk.NewDec(4)},
-				{"teste", sdk.NewDec(5)},
+				{"testa", sdkmath.LegacyNewDec(1)},
+				{"testb", sdkmath.LegacyNewDec(2)},
+				{"testc", sdkmath.LegacyNewDec(0)},
+				{"testd", sdkmath.LegacyNewDec(4)},
+				{"teste", sdkmath.LegacyNewDec(5)},
 			},
 			original: "1.000000000000000000testa,2.000000000000000000testb,0.000000000000000000testc,4.000000000000000000testd,5.000000000000000000teste",
 			expected: "1.000000000000000000testa,2.000000000000000000testb,4.000000000000000000testd,5.000000000000000000teste",
@@ -147,11 +147,11 @@ func (s *vaultShareTestSuite) TestFilteredZeroVaultShares() {
 		{
 			name: "zero share end (unordered)",
 			input: types.VaultShares{
-				{"teste", sdk.NewDec(5)},
-				{"testc", sdk.NewDec(3)},
-				{"testa", sdk.NewDec(1)},
-				{"testd", sdk.NewDec(4)},
-				{"testb", sdk.NewDec(0)},
+				{"teste", sdkmath.LegacyNewDec(5)},
+				{"testc", sdkmath.LegacyNewDec(3)},
+				{"testa", sdkmath.LegacyNewDec(1)},
+				{"testd", sdkmath.LegacyNewDec(4)},
+				{"testb", sdkmath.LegacyNewDec(0)},
 			},
 			original: "5.000000000000000000teste,3.000000000000000000testc,1.000000000000000000testa,4.000000000000000000testd,0.000000000000000000testb",
 			expected: "1.000000000000000000testa,3.000000000000000000testc,4.000000000000000000testd,5.000000000000000000teste",
@@ -172,22 +172,22 @@ func (s *vaultShareTestSuite) TestIsValid() {
 		msg        string
 	}{
 		{
-			types.NewVaultShare("mytoken", sdk.NewDec(10)),
+			types.NewVaultShare("mytoken", sdkmath.LegacyNewDec(10)),
 			true,
 			"valid shares should have passed",
 		},
 		{
-			types.VaultShare{Denom: "BTC", Amount: sdk.NewDec(10)},
+			types.VaultShare{Denom: "BTC", Amount: sdkmath.LegacyNewDec(10)},
 			true,
 			"valid uppercase denom",
 		},
 		{
-			types.VaultShare{Denom: "Bitshare", Amount: sdk.NewDec(10)},
+			types.VaultShare{Denom: "Bitshare", Amount: sdkmath.LegacyNewDec(10)},
 			true,
 			"valid mixed case denom",
 		},
 		{
-			types.VaultShare{Denom: "btc", Amount: sdk.NewDec(-10)},
+			types.VaultShare{Denom: "btc", Amount: sdkmath.LegacyNewDec(-10)},
 			false,
 			"negative amount",
 		},
@@ -210,23 +210,23 @@ func (s *vaultShareTestSuite) TestSubVaultShare() {
 		msg        string
 	}{
 		{
-			types.NewVaultShare("mytoken", sdk.NewDec(20)),
+			types.NewVaultShare("mytoken", sdkmath.LegacyNewDec(20)),
 			true,
 			"valid shares should have passed",
 		},
 		{
-			types.NewVaultShare("othertoken", sdk.NewDec(20)),
+			types.NewVaultShare("othertoken", sdkmath.LegacyNewDec(20)),
 			false,
 			"denom mismatch",
 		},
 		{
-			types.NewVaultShare("mytoken", sdk.NewDec(9)),
+			types.NewVaultShare("mytoken", sdkmath.LegacyNewDec(9)),
 			false,
 			"negative amount",
 		},
 	}
 
-	vaultShare := types.NewVaultShare("mytoken", sdk.NewDec(10))
+	vaultShare := types.NewVaultShare("mytoken", sdkmath.LegacyNewDec(10))
 
 	for _, tc := range tests {
 		tc := tc
@@ -256,7 +256,7 @@ func (s *vaultShareTestSuite) TestSubVaultShares() {
 			"unorted shares should panic",
 		},
 		{
-			types.VaultShares{types.VaultShare{Denom: "BTC", Amount: sdk.NewDec(10)}, types.NewVaultShare("eth", d(15)), types.NewVaultShare("mytoken", d(5))},
+			types.VaultShares{types.VaultShare{Denom: "BTC", Amount: sdkmath.LegacyNewDec(10)}, types.NewVaultShare("eth", d(15)), types.NewVaultShare("mytoken", d(5))},
 			false,
 			"invalid denoms",
 		},
@@ -330,16 +330,16 @@ func (s *vaultShareTestSuite) TestVaultSharesValidate() {
 		expectedPass bool
 	}{
 		{types.VaultShares{}, true},
-		{types.VaultShares{types.VaultShare{testDenom1, sdk.NewDec(5)}}, true},
-		{types.VaultShares{types.VaultShare{testDenom1, sdk.NewDec(5)}, types.VaultShare{testDenom2, sdk.NewDec(100000)}}, true},
-		{types.VaultShares{types.VaultShare{testDenom1, sdk.NewDec(-5)}}, false},
-		{types.VaultShares{types.VaultShare{"BTC", sdk.NewDec(5)}}, true},
-		{types.VaultShares{types.VaultShare{"0BTC", sdk.NewDec(5)}}, false},
-		{types.VaultShares{types.VaultShare{testDenom1, sdk.NewDec(5)}, types.VaultShare{"B", sdk.NewDec(100000)}}, false},
-		{types.VaultShares{types.VaultShare{testDenom1, sdk.NewDec(5)}, types.VaultShare{testDenom2, sdk.NewDec(-100000)}}, false},
-		{types.VaultShares{types.VaultShare{testDenom1, sdk.NewDec(-5)}, types.VaultShare{testDenom2, sdk.NewDec(100000)}}, false},
-		{types.VaultShares{types.VaultShare{"BTC", sdk.NewDec(5)}, types.VaultShare{testDenom2, sdk.NewDec(100000)}}, true},
-		{types.VaultShares{types.VaultShare{"0BTC", sdk.NewDec(5)}, types.VaultShare{testDenom2, sdk.NewDec(100000)}}, false},
+		{types.VaultShares{types.VaultShare{testDenom1, sdkmath.LegacyNewDec(5)}}, true},
+		{types.VaultShares{types.VaultShare{testDenom1, sdkmath.LegacyNewDec(5)}, types.VaultShare{testDenom2, sdkmath.LegacyNewDec(100000)}}, true},
+		{types.VaultShares{types.VaultShare{testDenom1, sdkmath.LegacyNewDec(-5)}}, false},
+		{types.VaultShares{types.VaultShare{"BTC", sdkmath.LegacyNewDec(5)}}, true},
+		{types.VaultShares{types.VaultShare{"0BTC", sdkmath.LegacyNewDec(5)}}, false},
+		{types.VaultShares{types.VaultShare{testDenom1, sdkmath.LegacyNewDec(5)}, types.VaultShare{"B", sdkmath.LegacyNewDec(100000)}}, false},
+		{types.VaultShares{types.VaultShare{testDenom1, sdkmath.LegacyNewDec(5)}, types.VaultShare{testDenom2, sdkmath.LegacyNewDec(-100000)}}, false},
+		{types.VaultShares{types.VaultShare{testDenom1, sdkmath.LegacyNewDec(-5)}, types.VaultShare{testDenom2, sdkmath.LegacyNewDec(100000)}}, false},
+		{types.VaultShares{types.VaultShare{"BTC", sdkmath.LegacyNewDec(5)}, types.VaultShare{testDenom2, sdkmath.LegacyNewDec(100000)}}, true},
+		{types.VaultShares{types.VaultShare{"0BTC", sdkmath.LegacyNewDec(5)}, types.VaultShare{testDenom2, sdkmath.LegacyNewDec(100000)}}, false},
 	}
 
 	for i, tc := range testCases {
@@ -374,8 +374,8 @@ func (s *vaultShareTestSuite) TestVaultSharesString() {
 }
 
 func (s *vaultShareTestSuite) TestNewVaultSharesWithIsValid() {
-	fake1 := append(types.NewVaultShares(types.NewVaultShare("mytoken", d(10))), types.VaultShare{Denom: "10BTC", Amount: sdk.NewDec(10)})
-	fake2 := append(types.NewVaultShares(types.NewVaultShare("mytoken", d(10))), types.VaultShare{Denom: "BTC", Amount: sdk.NewDec(-10)})
+	fake1 := append(types.NewVaultShares(types.NewVaultShare("mytoken", d(10))), types.VaultShare{Denom: "10BTC", Amount: sdkmath.LegacyNewDec(10)})
+	fake2 := append(types.NewVaultShares(types.NewVaultShare("mytoken", d(10))), types.VaultShare{Denom: "BTC", Amount: sdkmath.LegacyNewDec(-10)})
 
 	tests := []struct {
 		share      types.VaultShares
@@ -410,7 +410,7 @@ func (s *vaultShareTestSuite) TestNewVaultSharesWithIsValid() {
 }
 
 func (s *vaultShareTestSuite) TestVaultShares_AddVaultShareWithIsValid() {
-	lengthTestVaultShares := types.NewVaultShares().Add(types.NewVaultShare("mytoken", d(10))).Add(types.VaultShare{Denom: "BTC", Amount: sdk.NewDec(10)})
+	lengthTestVaultShares := types.NewVaultShares().Add(types.NewVaultShare("mytoken", d(10))).Add(types.VaultShare{Denom: "BTC", Amount: sdkmath.LegacyNewDec(10)})
 	s.Require().Equal(2, len(lengthTestVaultShares), "should be 2")
 
 	tests := []struct {
@@ -424,12 +424,12 @@ func (s *vaultShareTestSuite) TestVaultShares_AddVaultShareWithIsValid() {
 			"valid shares should have passed",
 		},
 		{
-			types.NewVaultShares().Add(types.NewVaultShare("mytoken", d(10))).Add(types.VaultShare{Denom: "0BTC", Amount: sdk.NewDec(10)}),
+			types.NewVaultShares().Add(types.NewVaultShare("mytoken", d(10))).Add(types.VaultShare{Denom: "0BTC", Amount: sdkmath.LegacyNewDec(10)}),
 			false,
 			"invalid denoms",
 		},
 		{
-			types.NewVaultShares().Add(types.NewVaultShare("mytoken", d(10))).Add(types.VaultShare{Denom: "BTC", Amount: sdk.NewDec(-10)}),
+			types.NewVaultShares().Add(types.NewVaultShare("mytoken", d(10))).Add(types.VaultShare{Denom: "BTC", Amount: sdkmath.LegacyNewDec(-10)}),
 			false,
 			"negative amount",
 		},

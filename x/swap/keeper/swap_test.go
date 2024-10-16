@@ -14,7 +14,7 @@ import (
 
 func (suite *keeperTestSuite) TestSwapExactForTokens() {
 	suite.Keeper.SetParams(suite.Ctx, types.Params{
-		SwapFee: sdk.MustNewDecFromStr("0.0025"),
+		SwapFee: sdkmath.LegacyMustNewDecFromStr("0.0025"),
 	})
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
@@ -31,7 +31,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens() {
 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
-	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.Require().NoError(err)
 
 	expectedOutput := sdk.NewCoin("usdx", sdkmath.NewInt(4982529))
@@ -67,7 +67,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_OutputGreaterThanZero() {
 	coinA := sdk.NewCoin("usdx", sdkmath.NewInt(5))
 	coinB := sdk.NewCoin("ukava", sdkmath.NewInt(1))
 
-	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("1"))
+	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("1"))
 	suite.EqualError(err, "swap output rounds to zero, increase input amount: insufficient liquidity")
 }
 
@@ -88,43 +88,43 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_Slippage() {
 		shouldFail bool
 	}{
 		// positive slippage OK
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
 		// positive slippage with zero slippage OK
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(2e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(50e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
 		// exact zero slippage OK
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4950495)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4935790)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4705299)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(990099)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(987158)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(941059)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4950495)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4935790)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4705299)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(990099)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(987158)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(941059)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
 		// slippage failure, zero slippage tolerance
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4950496)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4935793)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4705300)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(990100)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(987159)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(941060)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4950496)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4935793)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4705300)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(990100)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(987159)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(941060)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
 		// slippage failure, 1 percent slippage
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000501)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4985647)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4752828)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000101)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(997130)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(950565)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000501)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4985647)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4752828)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000101)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(997130)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(950565)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
 		// slippage OK, 1 percent slippage
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000500)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4985646)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4752827)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000100)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(997129)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(950564)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000500)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4985646)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.NewCoin("usdx", sdkmath.NewInt(4752827)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000100)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(997129)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.NewCoin("ukava", sdkmath.NewInt(950564)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
 	}
 
 	for _, tc := range testCases {
@@ -166,8 +166,8 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds() {
 		coinA    sdk.Coin
 		coinB    sdk.Coin
 	}{
-		{"no ukava balance", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
-		{"no usdx balance", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
+		{"no ukava balance", sdk.NewCoin("ukava", sdkmath.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
+		{"no usdx balance", sdk.NewCoin("usdx", sdkmath.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
 		{"low ukava balance", sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5000000))},
 		{"low ukava balance", sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1000000))},
 		{"large ukava balance difference", sdk.NewCoin("ukava", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000e6))},
@@ -188,7 +188,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds() {
 			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
 			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
@@ -202,8 +202,8 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds_Vesting()
 		coinA    sdk.Coin
 		coinB    sdk.Coin
 	}{
-		{"no ukava balance, vesting only", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
-		{"no usdx balance, vesting only", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
+		{"no ukava balance, vesting only", sdk.NewCoin("ukava", sdkmath.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
+		{"no usdx balance, vesting only", sdk.NewCoin("usdx", sdkmath.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
 		{"low ukava balance, vesting matches exact", sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1)), sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5000000))},
 		{"low ukava balance, vesting matches exact", sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("usdx", sdkmath.NewInt(1)), sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1000000))},
 		{"large ukava balance difference, vesting covers difference", sdk.NewCoin("ukava", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000e6))},
@@ -225,7 +225,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds_Vesting()
 			requester := suite.CreateVestingAccount(balance, vesting)
 
 			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
@@ -249,10 +249,10 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PoolNotFound() {
 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
-	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err := suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 
-	err = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+	err = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 }
 
@@ -268,7 +268,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
 	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
 	suite.Require().True(found, "expected pool record to exist")
 
-	poolRecord.TotalShares = sdk.ZeroInt()
+	poolRecord.TotalShares = sdkmath.ZeroInt()
 	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
 
 	balance := sdk.NewCoins(
@@ -280,11 +280,11 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInvalidPool() {
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
 	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 
 	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 }
 
@@ -311,17 +311,17 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_PanicOnInsufficientModuleAc
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapExactForTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 }
 
 func (suite *keeperTestSuite) TestSwapForExactTokens() {
 	suite.Keeper.SetParams(suite.Ctx, types.Params{
-		SwapFee: sdk.MustNewDecFromStr("0.0025"),
+		SwapFee: sdkmath.LegacyMustNewDecFromStr("0.0025"),
 	})
 	owner := suite.CreateAccount(sdk.Coins{})
 	reserves := sdk.NewCoins(
@@ -338,7 +338,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens() {
 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
-	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.Require().NoError(err)
 
 	expectedInput := sdk.NewCoin("ukava", sdkmath.NewInt(1003511))
@@ -374,11 +374,11 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_OutputLessThanPoolReserves(
 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(1e6))
 
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(500e6).Add(sdk.OneInt()))
-	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.EqualError(err, "output 500000001 >= pool reserves 500000000: insufficient liquidity")
 
 	coinB = sdk.NewCoin("usdx", sdkmath.NewInt(500e6))
-	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.EqualError(err, "output 500000000 >= pool reserves 500000000: insufficient liquidity")
 }
 
@@ -399,43 +399,43 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_Slippage() {
 		shouldFail bool
 	}{
 		// positive slippage OK
-		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
 		// positive slippage with zero slippage OK
-		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(5e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.0025"), false},
 		// exact zero slippage OK
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1010102)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1010102)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1010102)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5050506)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5050506)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5050506)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1010102)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1010102)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1010102)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5050506)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5050506)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5050506)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
 		// slippage failure, zero slippage tolerance
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1010101)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1010101)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1010101)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5050505)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5050505)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5050505)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.ZeroDec(), sdk.MustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1010101)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1010101)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1010101)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5050505)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5050505)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5050505)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyZeroDec(), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
 		// slippage failure, 1 percent slippage
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), true},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), true},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), true},
 		// slippage OK, 1 percent slippage
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.003"), false},
-		{sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdk.MustNewDecFromStr("0.01"), sdk.MustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("ukava", sdkmath.NewInt(1000001)), sdk.NewCoin("usdx", sdkmath.NewInt(5e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.003"), false},
+		{sdk.NewCoin("usdx", sdkmath.NewInt(5000001)), sdk.NewCoin("ukava", sdkmath.NewInt(1e6)), sdkmath.LegacyMustNewDecFromStr("0.01"), sdkmath.LegacyMustNewDecFromStr("0.05"), false},
 	}
 
 	for _, tc := range testCases {
@@ -477,8 +477,8 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds() {
 		coinA    sdk.Coin
 		coinB    sdk.Coin
 	}{
-		{"no ukava balance", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
-		{"no usdx balance", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
+		{"no ukava balance", sdk.NewCoin("ukava", sdkmath.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
+		{"no usdx balance", sdk.NewCoin("usdx", sdkmath.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
 		{"low ukava balance", sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5000000))},
 		{"low ukava balance", sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1000000))},
 		{"large ukava balance difference", sdk.NewCoin("ukava", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000e6))},
@@ -499,7 +499,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds() {
 			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
 			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
@@ -513,8 +513,8 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds_Vesting()
 		coinA    sdk.Coin
 		coinB    sdk.Coin
 	}{
-		{"no ukava balance, vesting only", sdk.NewCoin("ukava", sdk.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("ukava", sdkmath.NewInt(1000)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
-		{"no usdx balance, vesting only", sdk.NewCoin("usdx", sdk.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("usdx", sdkmath.NewInt(5000)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
+		{"no ukava balance, vesting only", sdk.NewCoin("ukava", sdkmath.ZeroInt()), sdk.NewCoin("ukava", sdkmath.NewInt(100)), sdk.NewCoin("ukava", sdkmath.NewInt(1000)), sdk.NewCoin("usdx", sdkmath.NewInt(500))},
+		{"no usdx balance, vesting only", sdk.NewCoin("usdx", sdkmath.ZeroInt()), sdk.NewCoin("usdx", sdkmath.NewInt(500)), sdk.NewCoin("usdx", sdkmath.NewInt(5000)), sdk.NewCoin("ukava", sdkmath.NewInt(100))},
 		{"low ukava balance, vesting matches exact", sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("ukava", sdkmath.NewInt(100000)), sdk.NewCoin("ukava", sdkmath.NewInt(1000000)), sdk.NewCoin("usdx", sdkmath.NewInt(5000000))},
 		{"low ukava balance, vesting matches exact", sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("usdx", sdkmath.NewInt(500000)), sdk.NewCoin("usdx", sdkmath.NewInt(5000000)), sdk.NewCoin("ukava", sdkmath.NewInt(1000000))},
 		{"large ukava balance difference, vesting covers difference", sdk.NewCoin("ukava", sdkmath.NewInt(100e6)), sdk.NewCoin("ukava", sdkmath.NewInt(10000e6)), sdk.NewCoin("ukava", sdkmath.NewInt(1000e6)), sdk.NewCoin("usdx", sdkmath.NewInt(5000e6))},
@@ -536,7 +536,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds_Vesting()
 			requester := suite.CreateVestingAccount(balance, vesting)
 
 			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdk.MustNewDecFromStr("0.1"))
+			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
 	}
@@ -560,10 +560,10 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PoolNotFound() {
 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(1e6))
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
-	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 
-	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+	err = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.EqualError(err, "pool ukava:usdx not found: invalid pool")
 }
 
@@ -579,7 +579,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
 	poolRecord, found := suite.Keeper.GetPool(suite.Ctx, poolID)
 	suite.Require().True(found, "expected pool record to exist")
 
-	poolRecord.TotalShares = sdk.ZeroInt()
+	poolRecord.TotalShares = sdkmath.ZeroInt()
 	suite.Keeper.SetPool_Raw(suite.Ctx, poolRecord)
 
 	balance := sdk.NewCoins(
@@ -591,11 +591,11 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInvalidPool() {
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
 	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 
 	suite.PanicsWithValue("invalid pool ukava:usdx: total shares must be greater than zero: invalid pool", func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinB, coinA, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected invalid pool record to panic")
 }
 
@@ -622,10 +622,10 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_PanicOnInsufficientModuleAc
 	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(5e6))
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 
 	suite.Panics(func() {
-		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdk.MustNewDecFromStr("0.01"))
+		_ = suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	}, "expected panic when module account does not have enough funds")
 }

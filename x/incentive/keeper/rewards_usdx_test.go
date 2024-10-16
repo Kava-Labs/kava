@@ -391,7 +391,7 @@ func (suite *USDXRewardsTestSuite) TestSynchronizeUSDXMintingReward() {
 
 			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
+			suite.Require().Equal(sdkmath.LegacyZeroDec(), claim.RewardIndexes[0].RewardFactor)
 
 			var timeElapsed int
 			previousBlockTime := suite.ctx.BlockTime()
@@ -477,7 +477,7 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 
 			claim, found := suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			suite.Require().Equal(sdk.ZeroDec(), claim.RewardIndexes[0].RewardFactor)
+			suite.Require().Equal(sdkmath.LegacyZeroDec(), claim.RewardIndexes[0].RewardFactor)
 
 			var timeElapsed int
 			previousBlockTime := suite.ctx.BlockTime()
@@ -495,8 +495,8 @@ func (suite *USDXRewardsTestSuite) TestSimulateUSDXMintingRewardSynchronization(
 
 			claim, found = suite.keeper.GetUSDXMintingClaim(suite.ctx, suite.addrs[0])
 			suite.Require().True(found)
-			suite.Require().Equal(claim.RewardIndexes[0].RewardFactor, sdk.ZeroDec())
-			suite.Require().Equal(claim.Reward, sdk.NewCoin("ukava", sdk.ZeroInt()))
+			suite.Require().Equal(claim.RewardIndexes[0].RewardFactor, sdkmath.LegacyZeroDec())
+			suite.Require().Equal(claim.Reward, sdk.NewCoin("ukava", sdkmath.ZeroInt()))
 
 			updatedClaim := suite.keeper.SimulateUSDXMintingSynchronization(suite.ctx, claim)
 			suite.Require().Equal(tc.args.expectedRewardFactor, updatedClaim.RewardIndexes[0].RewardFactor)

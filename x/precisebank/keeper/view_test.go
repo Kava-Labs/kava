@@ -57,7 +57,7 @@ func TestKeeper_GetBalance(t *testing.T) {
 			"non-extended denom - ukava returns ukava",
 			types.IntegerCoinDenom,
 			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			sdk.NewCoin("ukava", sdk.NewInt(1000)),
 		},
 		{
@@ -71,7 +71,7 @@ func TestKeeper_GetBalance(t *testing.T) {
 			"unrelated denom - no fractional",
 			"busd",
 			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			sdk.NewCoin("busd", sdk.NewInt(1000)),
 		},
 		{
@@ -172,7 +172,7 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			"non-extended denom - ukava returns ukava",
 			types.IntegerCoinDenom,
 			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			sdk.NewCoin("ukava", sdk.NewInt(1000)),
 		},
 		{
@@ -186,7 +186,7 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			"unrelated denom - no fractional",
 			"busd",
 			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
-			sdk.ZeroInt(),
+			sdkmath.ZeroInt(),
 			sdk.NewCoin("busd", sdk.NewInt(1000)),
 		},
 		{

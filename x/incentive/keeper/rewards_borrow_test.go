@@ -585,7 +585,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 				incentBuilder = incentBuilder.WithSimpleBorrowRewardPeriod(tc.args.incentiveBorrowRewardDenom, tc.args.rewardsPerSecond)
 			}
 			// Set the minimum borrow to 0 to allow testing small borrows
-			hardBuilder := NewHardGenStateMulti(suite.genesisTime).WithMinBorrow(sdk.ZeroDec())
+			hardBuilder := NewHardGenStateMulti(suite.genesisTime).WithMinBorrow(sdkmath.LegacyZeroDec())
 
 			suite.SetupWithGenState(authBuilder, incentBuilder, hardBuilder)
 
@@ -610,7 +610,7 @@ func (suite *BorrowRewardsTestSuite) TestSynchronizeHardBorrowReward() {
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				currRewardIndex, found := multiRewardIndex.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
-				suite.Require().Equal(sdk.ZeroDec(), currRewardIndex.RewardFactor)
+				suite.Require().Equal(sdkmath.LegacyZeroDec(), currRewardIndex.RewardFactor)
 			}
 
 			// Run accumulator at several intervals
@@ -1045,7 +1045,7 @@ func (suite *BorrowRewardsTestSuite) TestSimulateHardBorrowRewardSynchronization
 			for _, expectedRewardIndex := range tc.args.expectedRewardIndexes {
 				currRewardIndex, found := multiRewardIndexPre.RewardIndexes.GetRewardIndex(expectedRewardIndex.CollateralType)
 				suite.Require().True(found)
-				suite.Require().Equal(sdk.ZeroDec(), currRewardIndex.RewardFactor)
+				suite.Require().Equal(sdkmath.LegacyZeroDec(), currRewardIndex.RewardFactor)
 			}
 
 			// Check that the synced claim held in memory has properly simulated syncing

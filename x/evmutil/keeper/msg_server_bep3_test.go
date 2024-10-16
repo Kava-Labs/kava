@@ -266,7 +266,7 @@ func (suite *MsgServerSuite) TestConvertERC20ToCoin_Bep3() {
 			}
 
 			// create user account, otherwise `CallEVMWithData` will fail due to failing to get user account when finding its sequence.
-			err = suite.App.FundAccount(suite.Ctx, invokerCosmosAddr, sdk.NewCoins(sdk.NewCoin(conversionDenom, sdk.ZeroInt())))
+			err = suite.App.FundAccount(suite.Ctx, invokerCosmosAddr, sdk.NewCoins(sdk.NewCoin(conversionDenom, sdkmath.ZeroInt())))
 			suite.Require().NoError(err)
 
 			_, err := suite.msgServer.ConvertERC20ToCoin(sdk.WrapSDKContext(suite.Ctx), &tc.msg)

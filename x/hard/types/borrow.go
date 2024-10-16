@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"strings"
 
@@ -31,14 +32,14 @@ func (b Borrow) NormalizedBorrow() (sdk.DecCoins, error) {
 		if !found {
 			return nil, fmt.Errorf("borrowed amount '%s' missing interest factor", coin.Denom)
 		}
-		if factor.LT(sdk.OneDec()) {
+		if factor.LT(sdkmath.LegacyOneDec()) {
 			return nil, fmt.Errorf("interest factor '%s' < 1", coin.Denom)
 		}
 
 		normalized = normalized.Add(
 			sdk.NewDecCoinFromDec(
 				coin.Denom,
-				sdk.NewDecFromInt(coin.Amount).Quo(factor),
+				sdkmath.LegacyNewDecFromInt(coin.Amount).Quo(factor),
 			),
 		)
 	}
@@ -149,7 +150,7 @@ func (bifs BorrowInterestFactors) GetInterestFactor(denom string) (sdkmath.Legac
 			return bif.Value, true
 		}
 	}
-	return sdk.ZeroDec(), false
+	return sdkmath.LegacyZeroDec(), false
 }
 
 // SetInterestFactor sets a denom's interest factor value

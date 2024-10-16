@@ -38,7 +38,7 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 			name:          "initial 1:1",
 			beforeConvert: func() {},
 			giveAmount:    sdk.NewCoin(vaultDenom, sdkmath.NewInt(100)),
-			wantShares:    types.NewVaultShare(vaultDenom, sdk.NewDec(100)),
+			wantShares:    types.NewVaultShare(vaultDenom, sdkmath.LegacyNewDec(100)),
 		},
 		{
 			name: "value doubled",
@@ -47,20 +47,20 @@ func (suite *vaultShareTestSuite) TestConvertToShares() {
 				// set total shares set total value for hard
 				// value is double than shares
 				// shares is 2x price now
-				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(100), sdkmath.NewInt(200))
+				suite.addTotalShareAndValue(vaultDenom, sdkmath.LegacyNewDec(100), sdkmath.NewInt(200))
 			},
 			giveAmount: sdk.NewCoin(vaultDenom, sdkmath.NewInt(100)),
-			wantShares: types.NewVaultShare(vaultDenom, sdk.NewDec(50)),
+			wantShares: types.NewVaultShare(vaultDenom, sdkmath.LegacyNewDec(50)),
 		},
 		{
 			name: "truncate",
 
 			beforeConvert: func() {
-				suite.addTotalShareAndValue(vaultDenom, sdk.NewDec(1000), sdkmath.NewInt(1001))
+				suite.addTotalShareAndValue(vaultDenom, sdkmath.LegacyNewDec(1000), sdkmath.NewInt(1001))
 			},
 			giveAmount: sdk.NewCoin(vaultDenom, sdkmath.NewInt(100)),
 			// 100 * 100 / 101 = 99.0099something
-			wantShares: types.NewVaultShare(vaultDenom, sdk.NewDec(100).MulInt64(1000).QuoInt64(1001)),
+			wantShares: types.NewVaultShare(vaultDenom, sdkmath.LegacyNewDec(100).MulInt64(1000).QuoInt64(1001)),
 		},
 	}
 
@@ -96,7 +96,7 @@ func (suite *vaultShareTestSuite) addTotalShareAndValue(
 
 	vaultRecord, found := suite.Keeper.GetVaultRecord(suite.Ctx, vaultDenom)
 	if !found {
-		vaultRecord = types.NewVaultRecord(vaultDenom, sdk.ZeroDec())
+		vaultRecord = types.NewVaultRecord(vaultDenom, sdkmath.LegacyZeroDec())
 	}
 
 	// Add to vault record
@@ -117,17 +117,17 @@ func (suite *vaultShareTestSuite) addTotalShareAndValue(
 }
 
 func TestPrecisionMulQuoOrder(t *testing.T) {
-	assetAmount := sdk.NewDec(100)
-	totalShares := sdk.NewDec(100)
-	totalValue := sdk.NewDec(105)
+	assetAmount := sdkmath.LegacyNewDec(100)
+	totalShares := sdkmath.LegacyNewDec(100)
+	totalValue := sdkmath.LegacyNewDec(105)
 
 	// issuedShares =  assetAmount * (totalValue / totalShares)
 	//              = (assetAmount * totalShares) / totalValue
 	mulFirst := assetAmount.Mul(totalShares).QuoTruncate(totalValue)
 	quoFirst := assetAmount.Mul(totalShares.QuoTruncate(totalValue))
 
-	assert.Equal(t, sdk.MustNewDecFromStr("95.238095238095238095"), mulFirst)
-	assert.Equal(t, sdk.MustNewDecFromStr("95.238095238095238000"), quoFirst)
+	assert.Equal(t, sdkmath.LegacyMustNewDecFromStr("95.238095238095238095"), mulFirst)
+	assert.Equal(t, sdkmath.LegacyMustNewDecFromStr("95.238095238095238000"), quoFirst)
 
 	assert.NotEqual(t, mulFirst, quoFirst)
 }

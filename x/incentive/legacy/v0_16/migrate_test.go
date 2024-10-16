@@ -108,17 +108,17 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						{
 							Name:         v015incentive.Small,
 							MonthsLockup: 6,
-							Factor:       sdk.MustNewDecFromStr("0.5"),
+							Factor:       sdkmath.LegacyMustNewDecFromStr("0.5"),
 						},
 						{
 							Name:         v015incentive.Large,
 							MonthsLockup: 12,
-							Factor:       sdk.MustNewDecFromStr("0.8"),
+							Factor:       sdkmath.LegacyMustNewDecFromStr("0.8"),
 						},
 						{
 							Name:         v015incentive.Medium,
 							MonthsLockup: 9,
-							Factor:       sdk.MustNewDecFromStr("0.7"),
+							Factor:       sdkmath.LegacyMustNewDecFromStr("0.7"),
 						},
 					},
 				},
@@ -137,7 +137,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v015incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -152,7 +152,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 				RewardIndexes: v015incentive.RewardIndexes{
 					{
 						CollateralType: "kava",
-						RewardFactor:   sdk.MustNewDecFromStr("0.5"),
+						RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.5"),
 					},
 				},
 			},
@@ -170,7 +170,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v015incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -189,7 +189,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v015incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -208,7 +208,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v015incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -227,7 +227,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v015incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 						},
 					},
 				},
@@ -245,7 +245,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v015incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},
@@ -256,7 +256,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v015incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},
@@ -275,7 +275,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v015incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},
@@ -294,7 +294,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v015incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},
@@ -316,7 +316,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v016incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -376,17 +376,17 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						{
 							Name:         "small",
 							MonthsLockup: 6,
-							Factor:       sdk.MustNewDecFromStr("0.5"),
+							Factor:       sdkmath.LegacyMustNewDecFromStr("0.5"),
 						},
 						{
 							Name:         "large",
 							MonthsLockup: 12,
-							Factor:       sdk.MustNewDecFromStr("0.8"),
+							Factor:       sdkmath.LegacyMustNewDecFromStr("0.8"),
 						},
 						{
 							Name:         "medium",
 							MonthsLockup: 9,
-							Factor:       sdk.MustNewDecFromStr("0.7"),
+							Factor:       sdkmath.LegacyMustNewDecFromStr("0.7"),
 						},
 					},
 				},
@@ -401,7 +401,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 				RewardIndexes: v016incentive.RewardIndexes{
 					{
 						CollateralType: "kava",
-						RewardFactor:   sdk.MustNewDecFromStr("0.5"),
+						RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.5"),
 					},
 				},
 			},
@@ -419,7 +419,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v016incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -438,7 +438,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v016incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -457,7 +457,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v016incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.15"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.15"),
 						},
 					},
 				},
@@ -476,7 +476,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 					RewardIndexes: []v016incentive.RewardIndex{
 						{
 							CollateralType: "bnb",
-							RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+							RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 						},
 					},
 				},
@@ -494,7 +494,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v016incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},
@@ -505,7 +505,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v016incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},
@@ -524,7 +524,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v016incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},
@@ -543,7 +543,7 @@ func (s *migrateTestSuite) TestMigrate_GenState() {
 						RewardIndexes: []v016incentive.RewardIndex{
 							{
 								CollateralType: "bnb",
-								RewardFactor:   sdk.MustNewDecFromStr("0.25"),
+								RewardFactor:   sdkmath.LegacyMustNewDecFromStr("0.25"),
 							},
 						},
 					},

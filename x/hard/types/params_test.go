@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/kava-labs/kava/x/hard/types"
@@ -43,14 +42,14 @@ func (suite *ParamTestSuite) TestParamValidation() {
 						Denom: "btcb",
 						BorrowLimit: types.NewBorrowLimit(
 							false,
-							sdk.MustNewDecFromStr("100000000000"),
-							sdk.MustNewDecFromStr("0.5"),
+							sdkmath.LegacyMustNewDecFromStr("100000000000"),
+							sdkmath.LegacyMustNewDecFromStr("0.5"),
 						),
 						SpotMarketID:           "btc:usd",
 						ConversionFactor:       sdkmath.NewInt(0),
 						InterestRateModel:      types.InterestRateModel{},
-						ReserveFactor:          sdk.MustNewDecFromStr("0.05"),
-						KeeperRewardPercentage: sdk.MustNewDecFromStr("0.05"),
+						ReserveFactor:          sdkmath.LegacyMustNewDecFromStr("0.05"),
+						KeeperRewardPercentage: sdkmath.LegacyMustNewDecFromStr("0.05"),
 					},
 				},
 			},

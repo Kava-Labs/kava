@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"sort"
 
@@ -14,11 +16,12 @@ import (
 // AddCdp adds a cdp for a specific owner and collateral type
 func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk.Coin, principal sdk.Coin, collateralType string) error {
 	// validation
-	err := k.ValidateCollateral(ctx, collateral, collateralType)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	err := k.ValidateCollateral(sdkCtx, collateral, collateralType)
 	if err != nil {
 		return err
 	}
-	err = k.ValidateBalance(ctx, collateral, owner)
+	err = k.ValidateBalance(sdkCtx, collateral, owner)
 	if err != nil {
 		return err
 	}
@@ -26,29 +29,29 @@ func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk
 	if found {
 		return errorsmod.Wrapf(types.ErrCdpAlreadyExists, "owner %s, denom %s", owner, collateral.Denom)
 	}
-	err = k.ValidatePrincipalAdd(ctx, principal)
+	err = k.ValidatePrincipalAdd(sdkCtx, principal)
 	if err != nil {
 		return err
 	}
 
-	err = k.ValidateDebtLimit(ctx, collateralType, principal)
+	err = k.ValidateDebtLimit(sdkCtx, collateralType, principal)
 	if err != nil {
 		return err
 	}
-	err = k.ValidateCollateralizationRatio(ctx, collateral, collateralType, principal, sdk.NewCoin(principal.Denom, sdk.ZeroInt()))
+	err = k.ValidateCollateralizationRatio(sdkCtx, collateral, collateralType, principal, sdk.NewCoin(principal.Denom, sdkmath.ZeroInt()))
 	if err != nil {
 		return err
 	}
 
 	// send coins from the owners account to the cdp module
-	id := k.GetNextCdpID(ctx)
+	id := k.GetNextCdpID(sdkCtx)
 	interestFactor, found := k.GetInterestFactor(ctx, collateralType)
 	if !found {
-		interestFactor = sdk.OneDec()
+		interestFactor = sdkmath.LegacyOneDec()
 		k.SetInterestFactor(ctx, collateralType, interestFactor)
 
 	}
-	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, ctx.BlockHeader().Time, interestFactor)
+	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, sdkCtx.BlockHeader().Time, interestFactor)
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
 	if err != nil {
@@ -66,41 +69,41 @@ func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk
 	}
 
 	// mint the corresponding amount of debt coins
-	err = k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), principal)
+	err = k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(sdkCtx), principal)
 	if err != nil {
 		panic(err)
 	}
 
 	// update total principal for input collateral type
-	k.IncrementTotalPrincipal(ctx, collateralType, principal)
+	k.IncrementTotalPrincipal(sdkCtx, collateralType, principal)
 
 	// set the cdp, deposit, and indexes in the store
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, collateral, cdp.Type, principal)
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(sdkCtx, collateral, cdp.Type, principal)
 	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 	if err != nil {
 		return err
 	}
-	k.IndexCdpByOwner(ctx, cdp)
+	k.IndexCdpByOwner(sdkCtx, cdp)
 	k.SetDeposit(ctx, deposit)
-	k.SetNextCdpID(ctx, id+1)
+	k.SetNextCdpID(sdkCtx, id+1)
 
-	k.hooks.AfterCDPCreated(ctx, cdp)
+	k.hooks.AfterCDPCreated(sdkCtx, cdp)
 
 	// emit events for cdp creation, deposit, and draw
-	ctx.EventManager().EmitEvent(
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCreateCdp,
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
-	ctx.EventManager().EmitEvent(
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpDeposit,
 			sdk.NewAttribute(sdk.AttributeKeyAmount, collateral.String()),
 			sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
 		),
 	)
-	ctx.EventManager().EmitEvent(
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpDraw,
 			sdk.NewAttribute(sdk.AttributeKeyAmount, principal.String()),
@@ -118,11 +121,12 @@ func (k Keeper) UpdateCdpAndCollateralRatioIndex(ctx context.Context, cdp types.
 		return err
 	}
 
-	err = k.SetCDP(ctx, cdp)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	err = k.SetCDP(sdkCtx, cdp)
 	if err != nil {
 		return err
 	}
-	k.IndexCdpByCollateralRatio(ctx, cdp.Type, cdp.ID, ratio)
+	k.IndexCdpByCollateralRatio(sdkCtx, cdp.Type, cdp.ID, ratio)
 	return nil
 }
 
@@ -133,16 +137,19 @@ func (k Keeper) DeleteCdpAndCollateralRatioIndex(ctx context.Context, cdp types.
 		return err
 	}
 
-	return k.DeleteCDP(ctx, cdp)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	return k.DeleteCDP(sdkCtx, cdp)
 }
 
 // SetCdpAndCollateralRatioIndex sets the cdp and collateral ratio index in the store
 func (k Keeper) SetCdpAndCollateralRatioIndex(ctx context.Context, cdp types.CDP, ratio sdkmath.LegacyDec) error {
-	err := k.SetCDP(ctx, cdp)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	err := k.SetCDP(sdkCtx, cdp)
 	if err != nil {
 		return err
 	}
-	k.IndexCdpByCollateralRatio(ctx, cdp.Type, cdp.ID, ratio)
+	k.IndexCdpByCollateralRatio(sdkCtx, cdp.Type, cdp.ID, ratio)
 	return nil
 }
 
@@ -151,8 +158,10 @@ func (k Keeper) removeOldCollateralRatioIndex(ctx context.Context, ctype string,
 	if !found {
 		return errorsmod.Wrapf(types.ErrCdpNotFound, "%d", storedCDP.ID)
 	}
-	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, storedCDP.Collateral, storedCDP.Type, storedCDP.GetTotalPrincipal())
-	k.RemoveCdpCollateralRatioIndex(ctx, storedCDP.Type, storedCDP.ID, oldCollateralToDebtRatio)
+
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(sdkCtx, storedCDP.Collateral, storedCDP.Type, storedCDP.GetTotalPrincipal())
+	k.RemoveCdpCollateralRatioIndex(sdkCtx, storedCDP.Type, storedCDP.ID, oldCollateralToDebtRatio)
 	return nil
 }
 
@@ -167,7 +176,7 @@ func (k Keeper) BurnDebtCoins(ctx context.Context, moduleAccount string, denom s
 	macc := k.accountKeeper.GetModuleAccount(ctx, moduleAccount)
 	maxBurnableAmount := k.bankKeeper.GetBalance(ctx, macc.GetAddress(), denom).Amount
 	// check that the requested burn is not greater than the mod account balance
-	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, sdk.MinInt(paymentCoins.Amount, maxBurnableAmount)))
+	debtCoins := sdk.NewCoins(sdk.NewCoin(denom, sdkmath.MinInt(paymentCoins.Amount, maxBurnableAmount)))
 	return k.bankKeeper.BurnCoins(ctx, moduleAccount, debtCoins)
 }
 
@@ -188,7 +197,8 @@ func (k Keeper) GetCdpID(ctx context.Context, owner sdk.AccAddress, collateralTy
 
 // GetCdpIdsByOwner returns all the ids of cdps corresponding to a particular owner
 func (k Keeper) GetCdpIdsByOwner(ctx context.Context, owner sdk.AccAddress) ([]uint64, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpIDKeyPrefix)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.CdpIDKeyPrefix)
 	bz := store.Get(owner)
 	if bz == nil {
 		return []uint64{}, false
@@ -217,7 +227,8 @@ func (k Keeper) GetCdpByOwnerAndCollateralType(ctx context.Context, owner sdk.Ac
 // GetCDP returns the cdp associated with a particular collateral denom and id
 func (k Keeper) GetCDP(ctx context.Context, collateralType string, cdpID uint64) (types.CDP, bool) {
 	// get store
-	store := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.CdpKeyPrefix)
 	_, found := k.GetCollateral(ctx, collateralType)
 	if !found {
 		return types.CDP{}, false
@@ -487,7 +498,7 @@ func (k Keeper) CalculateCollateralToDebtRatio(ctx sdk.Context, collateral sdk.C
 	debtTotal := k.convertDebtToBaseUnits(ctx, debt)
 
 	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {
-		return types.MaxSortableDec.Sub(sdk.SmallestDec())
+		return types.MaxSortableDec.Sub(sdkmath.LegacySmallestDec())
 	}
 
 	collateralBaseUnits := k.convertCollateralToBaseUnits(ctx, collateral, collateralType)
@@ -515,7 +526,7 @@ func (k Keeper) LoadAugmentedCDP(ctx sdk.Context, cdp types.CDP) types.Augmented
 	}
 	// convert collateral value to debt coin
 	totalDebt := cdp.GetTotalPrincipal().Amount
-	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
+	collateralValueInDebtDenom := sdkmath.LegacyNewDecFromInt(totalDebt).Mul(collateralizationRatio)
 	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
 	// create new augmuented cdp
 	augmentedCDP := types.NewAugmentedCDP(cdp, collateralValueInDebt, collateralizationRatio)
@@ -552,7 +563,7 @@ func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPRespons
 	}
 	// convert collateral value to debt coin
 	totalDebt := cdp.GetTotalPrincipal().Amount
-	collateralValueInDebtDenom := sdk.NewDecFromInt(totalDebt).Mul(collateralizationRatio)
+	collateralValueInDebtDenom := sdkmath.LegacyNewDecFromInt(totalDebt).Mul(collateralizationRatio)
 	collateralValueInDebt := sdk.NewCoin(cdp.Principal.Denom, collateralValueInDebtDenom.RoundInt())
 	// create new cdp response
 	return types.NewCDPResponse(cdp, collateralValueInDebt, collateralizationRatio)
@@ -561,7 +572,7 @@ func (k Keeper) LoadCDPResponse(ctx sdk.Context, cdp types.CDP) types.CDPRespons
 // CalculateCollateralizationRatio returns the collateralization ratio of the input collateral to the input debt plus fees
 func (k Keeper) CalculateCollateralizationRatio(ctx sdk.Context, collateral sdk.Coin, collateralType string, principal sdk.Coin, fees sdk.Coin, pfType pricefeedType) (sdkmath.LegacyDec, error) {
 	if collateral.IsZero() {
-		return sdk.ZeroDec(), nil
+		return sdkmath.LegacyZeroDec(), nil
 	}
 	var marketID string
 	switch pfType {
@@ -642,13 +653,13 @@ func (k Keeper) UpdatePricefeedStatus(ctx sdk.Context, marketID string) (ok bool
 // converts the input collateral to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertCollateralToBaseUnits(ctx sdk.Context, collateral sdk.Coin, collateralType string) (baseUnits sdkmath.LegacyDec) {
 	cp, _ := k.GetCollateral(ctx, collateralType)
-	return sdk.NewDecFromInt(collateral.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), cp.ConversionFactor.Int64()))
+	return sdkmath.LegacyNewDecFromInt(collateral.Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdkmath.OneInt(), cp.ConversionFactor.Int64()))
 }
 
 // converts the input debt to base units (ie multiplies the input by 10^(-ConversionFactor))
 func (k Keeper) convertDebtToBaseUnits(ctx sdk.Context, debt sdk.Coin) (baseUnits sdkmath.LegacyDec) {
 	dp, _ := k.GetDebtParam(ctx, debt.Denom)
-	return sdk.NewDecFromInt(debt.Amount).Mul(sdk.NewDecFromIntWithPrec(sdk.OneInt(), dp.ConversionFactor.Int64()))
+	return sdkmath.LegacyNewDecFromInt(debt.Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdkmath.OneInt(), dp.ConversionFactor.Int64()))
 }
 
 type pricefeedType string

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,7 +28,7 @@ func (k Keeper) AccumulateSavingsRewards(ctx sdk.Context, rewardPeriod types.Mul
 	maccCoins := k.bankKeeper.GetAllBalances(ctx, savingsMacc.GetAddress())
 	denomBalance := maccCoins.AmountOf(rewardPeriod.CollateralType)
 
-	acc.Accumulate(rewardPeriod, sdk.NewDecFromInt(denomBalance), ctx.BlockTime())
+	acc.Accumulate(rewardPeriod, sdkmath.LegacyNewDecFromInt(denomBalance), ctx.BlockTime())
 
 	k.SetSavingsRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 
@@ -78,7 +79,7 @@ func (k Keeper) SynchronizeSavingsReward(ctx sdk.Context, deposit savingstypes.D
 	// Existing denoms have their reward indexes + reward amount synced
 	existingDenoms := setDifference(getDenoms(deposit.Amount), incomingDenoms)
 	for _, denom := range existingDenoms {
-		claim = k.synchronizeSingleSavingsReward(ctx, claim, denom, sdk.NewDecFromInt(deposit.Amount.AmountOf(denom)))
+		claim = k.synchronizeSingleSavingsReward(ctx, claim, denom, sdkmath.LegacyNewDecFromInt(deposit.Amount.AmountOf(denom)))
 	}
 
 	k.SetSavingsClaim(ctx, claim)
@@ -133,7 +134,7 @@ func (k Keeper) GetSynchronizedSavingsClaim(ctx sdk.Context, owner sdk.AccAddres
 	}
 
 	for _, coin := range deposit.Amount {
-		claim = k.synchronizeSingleSavingsReward(ctx, claim, coin.Denom, sdk.NewDecFromInt(coin.Amount))
+		claim = k.synchronizeSingleSavingsReward(ctx, claim, coin.Denom, sdkmath.LegacyNewDecFromInt(coin.Amount))
 	}
 
 	return claim, true

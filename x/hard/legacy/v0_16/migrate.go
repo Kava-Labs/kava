@@ -2,8 +2,6 @@ package v0_16
 
 import (
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	v015hard "github.com/kava-labs/kava/x/hard/legacy/v0_15"
 	v016hard "github.com/kava-labs/kava/x/hard/types"
 )
@@ -39,19 +37,19 @@ func migrateParams(params v015hard.Params) v016hard.Params {
 		Denom: UATOM_IBC_DENOM,
 		BorrowLimit: v016hard.BorrowLimit{
 			HasMaxLimit:  true,
-			MaximumLimit: sdk.NewDec(25000000000),
-			LoanToValue:  sdk.MustNewDecFromStr("0.5"),
+			MaximumLimit: sdkmath.LegacyNewDec(25000000000),
+			LoanToValue:  sdkmath.LegacyMustNewDecFromStr("0.5"),
 		},
 		SpotMarketID:     "atom:usd:30",
 		ConversionFactor: sdkmath.NewInt(1000000),
 		InterestRateModel: v016hard.InterestRateModel{
-			BaseRateAPY:    sdk.ZeroDec(),
-			BaseMultiplier: sdk.MustNewDecFromStr("0.05"),
-			Kink:           sdk.MustNewDecFromStr("0.8"),
-			JumpMultiplier: sdk.NewDec(5),
+			BaseRateAPY:    sdkmath.LegacyZeroDec(),
+			BaseMultiplier: sdkmath.LegacyMustNewDecFromStr("0.05"),
+			Kink:           sdkmath.LegacyMustNewDecFromStr("0.8"),
+			JumpMultiplier: sdkmath.LegacyNewDec(5),
 		},
-		ReserveFactor:          sdk.MustNewDecFromStr("0.025"),
-		KeeperRewardPercentage: sdk.MustNewDecFromStr("0.02"),
+		ReserveFactor:          sdkmath.LegacyMustNewDecFromStr("0.025"),
+		KeeperRewardPercentage: sdkmath.LegacyMustNewDecFromStr("0.02"),
 	}
 	moneyMarkets = append(moneyMarkets, atomMoneyMarket)
 

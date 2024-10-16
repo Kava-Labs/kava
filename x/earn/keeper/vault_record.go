@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/x/earn/types"
 )
@@ -60,7 +61,7 @@ func (k Keeper) IterateVaultRecords(
 	cb func(record types.VaultRecord) (stop bool),
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.VaultRecordKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
