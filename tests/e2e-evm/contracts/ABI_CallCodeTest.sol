@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-contract TargetContract {
+contract CallCodeTestContract {
     uint256 public storageValue;
 
     function getMsgInfo() external payable returns (address, uint256) {

@@ -23,7 +23,7 @@ describe("CallCode", () => {
 
   interface CallCodeContext {
     lowLevelCaller: GetContractReturnType<ArtifactsMap["Caller"]["abi"]>;
-    implementationContract: GetContractReturnType<ArtifactsMap["TargetContract"]["abi"]>;
+    implementationContract: GetContractReturnType<ArtifactsMap["CallCodeTestContract"]["abi"]>;
   }
 
   interface callCodeTestCaseBase {
@@ -55,7 +55,7 @@ describe("CallCode", () => {
     let ctx: CallCodeContext;
 
     before("deploy called contract", async function () {
-      const contract = await hre.viem.deployContract("TargetContract");
+      const contract = await hre.viem.deployContract("CallCodeTestContract");
       ctx = {
         lowLevelCaller: lowLevelCaller,
         implementationContract: contract,
@@ -152,7 +152,7 @@ describe("CallCode", () => {
         }),
         // msg.sender is the caller contract
         wantSender: (ctx) => ctx.lowLevelCaller.address,
-        // msg.value is not preserved
+        // msg.value is not preserved via callcode
         wantValue: 0n,
       },
       {
@@ -174,6 +174,7 @@ describe("CallCode", () => {
             ],
           }),
         }),
+        // Storage in caller contract
         wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
         wantStorageValue: 2n,
       },
