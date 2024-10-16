@@ -46,18 +46,6 @@ jobs:
 
       - name: stop chain services & reset data on all chain nodes
         run: |
-          echo $AWS_REGION $CHAIN_ID $SSM_DOCUMENT_NAME $AWS_SDK_LOAD_CONFIG $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY
-        env:
-          SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
-          CHAIN_ID: ${{ inputs.chain-id }}
-          AWS_SDK_LOAD_CONFIG: 1
-          AWS_REGION: ${{ inputs.aws-region }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
-          PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
-
-      - name: stop chain services & reset data on all chain nodes
-        run: |
           kava-node-updater \
             --debug \
             --max-retries=2 \
