@@ -186,6 +186,12 @@ describe("CallCode", () => {
         // Signer is the whale
         txData.account = whaleAddress;
 
+        if (!txData.to) {
+          expect.fail("to field not set");
+        }
+
+        const startingBalance = await publicClient.getBalance({ address: txData.to });
+
         const res = await publicClient.call(txData);
 
         // Check the return value for the msg.sender and msg.value if applicable
@@ -228,6 +234,10 @@ describe("CallCode", () => {
           const expectedStorage = pad(toHex(tc.wantStorageValue));
           expect(storageValue).to.equal(expectedStorage, "unexpected storage value");
         }
+
+        const balance = await publicClient.getBalance({ address: txData.to });
+        const expectedBalance = startingBalance + (txData.value ?? 0n);
+        expect(balance).to.equal(expectedBalance, "unexpected balance");
       });
     }
   });
