@@ -1,0 +1,99 @@
+# for use with ephemeral testnets like internal testnet
+
+name: Reset Ephemeral Network
+on:
+  workflow_call:
+    inputs:
+      chain-id:
+        required: true
+        type: string
+      aws-region:
+        required: true
+        type: string
+      ssm-document-name:
+        required: true
+        type: string
+      playbook-infrastructure-branch:
+        required: true
+        type: string
+    secrets:
+      CI_AWS_KEY_ID:
+        required: true
+      CI_AWS_KEY_SECRET:
+        required: true
+      KAVA_PRIVATE_GITHUB_ACCESS_TOKEN:
+        required: true
+jobs:
+  reset-ephemeral-network:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout infrastructure repo
+        uses: actions/checkout@v4
+        with:
+          repository: Kava-Labs/infrastructure
+          token: ${{ secrets.KAVA_PRIVATE_GITHUB_ACCESS_TOKEN }}
+          path: infrastructure
+          ref: master
+
+      - name: Set up Go with kava-node-updater cache
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: infrastructure/cli/kava-node-updater/go.mod
+          cache-dependency-path: infrastructure/cli/kava-node-updater/go.mod
+
+      - name: build kava node updater
+        run: cd infrastructure/cli/kava-node-updater && make install && cd ../../../
+
+      - name: stop chain services & reset data on all chain nodes
+        run: |
+          echo $AWS_REGION $CHAIN_ID $SSM_DOCUMENT_NAME $AWS_SDK_LOAD_CONFIG $AWS_ACCESS_KEY_ID $AWS_SECRET_ACCESS_KEY
+        env:
+          SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_SDK_LOAD_CONFIG: 1
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
+          PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
+
+      - name: stop chain services & reset data on all chain nodes
+        run: |
+          kava-node-updater \
+            --debug \
+            --max-retries=2 \
+            --aws-ssm-document-name=$SSM_DOCUMENT_NAME \
+            --infrastructure-git-pointer=$PLAYBOOK_INFRASTRUCTURE_BRANCH \
+            --chain-id=$CHAIN_ID \
+            --max-upgrade-batch-size=0 \
+            --wait-for-node-sync-after-upgrade=false \
+            --update-playbook-filename=reset-chain-data.yml
+        env:
+          SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_SDK_LOAD_CONFIG: 1
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
+          PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
+
+      # NOTE: we wait for the reset to finish before restarting the nodes to prevent nodes from
+      # re-syncing the previous chain state.
+      - name: reconfigure & restart chain services on all chain nodes
+        run: |
+          kava-node-updater \
+            --debug \
+            --max-retries=2 \
+            --aws-ssm-document-name=$SSM_DOCUMENT_NAME \
+            --infrastructure-git-pointer=$PLAYBOOK_INFRASTRUCTURE_BRANCH \
+            --chain-id=$CHAIN_ID \
+            --max-upgrade-batch-size=0 \
+            --wait-for-node-sync-after-upgrade=false \
+            --update-playbook-filename=playbook.yml
+        env:
+          SSM_DOCUMENT_NAME: ${{ inputs.ssm-document-name }}
+          CHAIN_ID: ${{ inputs.chain-id }}
+          AWS_REGION: ${{ inputs.aws-region }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CI_AWS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_AWS_KEY_SECRET }}
+          AWS_SDK_LOAD_CONFIG: 1
+          PLAYBOOK_INFRASTRUCTURE_BRANCH: ${{ inputs.playbook-infrastructure-branch }}
