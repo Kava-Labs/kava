@@ -6,13 +6,13 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	tmlog "cosmossdk.io/log"
+	txsigning "cosmossdk.io/x/tx/signing"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	vesting "github.com/cosmos/cosmos-sdk/x/auth/vesting/types"
-	ibcante "github.com/cosmos/ibc-go/v7/modules/core/ante"
-	ibckeeper "github.com/cosmos/ibc-go/v7/modules/core/keeper"
+	ibcante "github.com/cosmos/ibc-go/v8/modules/core/ante"
+	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
 	evmante "github.com/evmos/ethermint/app/ante"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
@@ -25,7 +25,7 @@ type HandlerOptions struct {
 	IBCKeeper              *ibckeeper.Keeper
 	EvmKeeper              evmante.EVMKeeper
 	FeegrantKeeper         authante.FeegrantKeeper
-	SignModeHandler        authsigning.SignModeHandler
+	SignModeHandler        *txsigning.HandlerMap
 	SigGasConsumer         authante.SignatureVerificationGasConsumer
 	FeeMarketKeeper        evmtypes.FeeMarketKeeper
 	MaxTxGasWanted         uint64

@@ -29,10 +29,10 @@ type BankKeeper interface {
 
 // DistributionKeeper defines the expected interface needed for community-pool deposits to earn vaults
 type DistributionKeeper interface {
-	GetFeePool(ctx sdk.Context) (feePool disttypes.FeePool)
-	SetFeePool(ctx sdk.Context, feePool disttypes.FeePool)
-	GetDistributionAccount(ctx sdk.Context) sdk.ModuleAccountI
-	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
+	GetFeePool(ctx context.Context) (feePool disttypes.FeePool)
+	SetFeePool(ctx context.Context, feePool disttypes.FeePool)
+	GetDistributionAccount(ctx context.Context) sdk.ModuleAccountI
+	DistributeFromFeePool(ctx context.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
 }
 
 // LiquidKeeper defines the expected interface needed for derivative to staked token conversions.

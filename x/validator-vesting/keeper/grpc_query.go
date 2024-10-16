@@ -37,7 +37,7 @@ func (s queryServer) TotalSupply(c context.Context, req *types.QueryTotalSupplyR
 	ctx := sdk.UnwrapSDKContext(c)
 
 	totalSupply := s.bk.GetSupply(ctx, "ukava").Amount
-	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt()
+	supplyInt := sdkmath.LegacyNewDecFromInt(totalSupply).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).TruncateInt()
 	return &types.QueryTotalSupplyResponse{
 		Amount: supplyInt,
 	}, nil
@@ -98,7 +98,7 @@ func (s queryServer) CirculatingSupplyHARD(c context.Context, req *types.QueryCi
 		time.Date(2024, 9, 15, 14, 0, 0, 0, time.UTC),  // + 1,666,667  *** Year FOUR ***
 	}
 
-	circSupply := sdk.ZeroInt()
+	circSupply := sdkmath.ZeroInt()
 	blockTime := ctx.BlockTime()
 	switch {
 	case blockTime.Before(supplyIncreaseDates[0]):
@@ -213,7 +213,7 @@ func (s queryServer) CirculatingSupplyUSDX(c context.Context, req *types.QueryCi
 	ctx := sdk.UnwrapSDKContext(c)
 
 	totalSupply := s.bk.GetSupply(ctx, "usdx").Amount
-	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt()
+	supplyInt := sdkmath.LegacyNewDecFromInt(totalSupply).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).TruncateInt()
 	return &types.QueryCirculatingSupplyUSDXResponse{
 		Amount: supplyInt,
 	}, nil
@@ -289,7 +289,7 @@ func (s queryServer) CirculatingSupplySWP(c context.Context, req *types.QueryCir
 		scheduleAmounts = append(scheduleAmounts, []int64{0, 0, 0, monthlyStakersSwp, monthlyLPIncentivesSwp})
 	}
 
-	circSupply := sdk.ZeroInt()
+	circSupply := sdkmath.ZeroInt()
 	blockTime := ctx.BlockTime()
 
 	for i := 0; i < len(scheduleAmounts); i++ {
@@ -316,7 +316,7 @@ func (s queryServer) TotalSupplyHARD(c context.Context, req *types.QueryTotalSup
 	ctx := sdk.UnwrapSDKContext(c)
 
 	totalSupply := s.bk.GetSupply(ctx, "hard").Amount
-	supplyInt := sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt()
+	supplyInt := sdkmath.LegacyNewDecFromInt(totalSupply).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).TruncateInt()
 	return &types.QueryTotalSupplyHARDResponse{
 		Amount: supplyInt,
 	}, nil
@@ -344,15 +344,15 @@ func getCirculatingSupply(blockTime time.Time, totalSupply sdkmath.Int) sdkmath.
 
 	switch {
 	case blockTime.Before(vestingDates[0]):
-		return sdk.NewDecFromInt(totalSupply.Sub(sdkmath.NewInt(9937500000000))).Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return sdkmath.LegacyNewDecFromInt(totalSupply.Sub(sdkmath.NewInt(9937500000000))).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[0]) && blockTime.Before(vestingDates[1]) || blockTime.Equal(vestingDates[0]):
-		return sdk.NewDecFromInt(totalSupply.Sub(sdkmath.NewInt(7453125000000))).Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return sdkmath.LegacyNewDecFromInt(totalSupply.Sub(sdkmath.NewInt(7453125000000))).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[1]) && blockTime.Before(vestingDates[2]) || blockTime.Equal(vestingDates[1]):
-		return sdk.NewDecFromInt(totalSupply.Sub(sdkmath.NewInt(4968750000000))).Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return sdkmath.LegacyNewDecFromInt(totalSupply.Sub(sdkmath.NewInt(4968750000000))).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).RoundInt()
 	case blockTime.After(vestingDates[2]) && blockTime.Before(vestingDates[3]) || blockTime.Equal(vestingDates[2]):
-		return sdk.NewDecFromInt(totalSupply.Sub(sdkmath.NewInt(2484375000000))).Mul(sdk.MustNewDecFromStr("0.000001")).RoundInt()
+		return sdkmath.LegacyNewDecFromInt(totalSupply.Sub(sdkmath.NewInt(2484375000000))).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).RoundInt()
 	default:
 		// align with total supply calculation and truncate int here instead of round
-		return sdk.NewDecFromInt(totalSupply).Mul(sdk.MustNewDecFromStr("0.000001")).TruncateInt()
+		return sdkmath.LegacyNewDecFromInt(totalSupply).Mul(sdkmath.LegacyMustNewDecFromStr("0.000001")).TruncateInt()
 	}
 }

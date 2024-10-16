@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	"github.com/kava-labs/kava/x/swap/types"
@@ -21,7 +22,7 @@ func (k *Keeper) SwapExactForTokens(ctx sdk.Context, requester sdk.AccAddress, e
 		return errorsmod.Wrapf(types.ErrInsufficientLiquidity, "swap output rounds to zero, increase input amount")
 	}
 
-	priceChange := sdk.NewDecFromInt(swapOutput.Amount).Quo(sdk.NewDecFromInt(coinB.Amount))
+	priceChange := sdkmath.LegacyNewDecFromInt(swapOutput.Amount).Quo(sdkmath.LegacyNewDecFromInt(coinB.Amount))
 	if err := k.assertSlippageWithinLimit(priceChange, slippageLimit); err != nil {
 		return err
 	}
@@ -49,7 +50,7 @@ func (k *Keeper) SwapForExactTokens(ctx sdk.Context, requester sdk.AccAddress, c
 
 	swapInput, feePaid := pool.SwapWithExactOutput(exactCoinB, k.GetSwapFee(ctx))
 
-	priceChange := sdk.NewDecFromInt(coinA.Amount).Quo(sdk.NewDecFromInt(swapInput.Sub(feePaid).Amount))
+	priceChange := sdkmath.LegacyNewDecFromInt(coinA.Amount).Quo(sdkmath.LegacyNewDecFromInt(swapInput.Sub(feePaid).Amount))
 	if err := k.assertSlippageWithinLimit(priceChange, slippageLimit); err != nil {
 		return err
 	}
@@ -78,7 +79,7 @@ func (k Keeper) loadPool(ctx sdk.Context, denomA string, denomB string) (string,
 }
 
 func (k Keeper) assertSlippageWithinLimit(priceChange sdkmath.LegacyDec, slippageLimit sdkmath.LegacyDec) error {
-	slippage := sdk.OneDec().Sub(priceChange)
+	slippage := sdkmath.LegacyOneDec().Sub(priceChange)
 	if slippage.GT(slippageLimit) {
 		return errorsmod.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
 	}

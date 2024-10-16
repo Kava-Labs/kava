@@ -1,7 +1,6 @@
 package testutil
 
 import (
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/stretchr/testify/suite"
@@ -30,7 +29,7 @@ func (suite *Suite) SetupTest() {
 	suite.App = app.NewTestApp()
 	suite.Keeper = suite.App.GetCommitteeKeeper()
 	suite.BankKeeper = suite.App.GetBankKeeper()
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{})
+	suite.Ctx = suite.App.NewContext(true)
 	_, accAddresses := app.GeneratePrivKeyAddressPairs(10)
 	suite.Addresses = accAddresses
 

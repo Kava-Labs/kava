@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	fmt "fmt"
 	"time"
 
@@ -220,7 +221,7 @@ func (c BaseCommittee) Validate() error {
 	}
 
 	// threshold must be in the range [0, 1]
-	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdk.ZeroDec()) || c.VoteThreshold.GT(sdk.NewDec(1)) {
+	if c.VoteThreshold.IsNil() || c.VoteThreshold.LTE(sdkmath.LegacyZeroDec()) || c.VoteThreshold.GT(sdkmath.LegacyNewDec(1)) {
 		return fmt.Errorf("invalid threshold: %s", c.VoteThreshold)
 	}
 
@@ -320,7 +321,7 @@ func (c TokenCommittee) Validate() error {
 		return err
 	}
 
-	if c.Quorum.IsNil() || c.Quorum.IsNegative() || c.Quorum.GT(sdk.NewDec(1)) {
+	if c.Quorum.IsNil() || c.Quorum.IsNegative() || c.Quorum.GT(sdkmath.LegacyNewDec(1)) {
 		return fmt.Errorf("invalid quorum: %s", c.Quorum)
 	}
 

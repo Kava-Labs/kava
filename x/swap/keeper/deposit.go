@@ -67,11 +67,11 @@ func (k Keeper) Deposit(ctx sdk.Context, depositor sdk.AccAddress, coinA sdk.Coi
 		return errorsmod.Wrap(types.ErrInsufficientLiquidity, "deposit must be increased")
 	}
 
-	maxPercentPriceChange := sdk.MaxDec(
-		sdk.NewDecFromInt(desiredAmount.AmountOf(coinA.Denom)).Quo(sdk.NewDecFromInt(depositAmount.AmountOf(coinA.Denom))),
-		sdk.NewDecFromInt(desiredAmount.AmountOf(coinB.Denom)).Quo(sdk.NewDecFromInt(depositAmount.AmountOf(coinB.Denom))),
+	maxPercentPriceChange := sdkmath.LegacyMaxDec(
+		sdkmath.LegacyNewDecFromInt(desiredAmount.AmountOf(coinA.Denom)).Quo(sdkmath.LegacyNewDecFromInt(depositAmount.AmountOf(coinA.Denom))),
+		sdkmath.LegacyNewDecFromInt(desiredAmount.AmountOf(coinB.Denom)).Quo(sdkmath.LegacyNewDecFromInt(depositAmount.AmountOf(coinB.Denom))),
 	)
-	slippage := maxPercentPriceChange.Sub(sdk.OneDec())
+	slippage := maxPercentPriceChange.Sub(sdkmath.LegacyOneDec())
 
 	if slippage.GT(slippageLimit) {
 		return errorsmod.Wrapf(types.ErrSlippageExceeded, "slippage %s > limit %s", slippage, slippageLimit)
@@ -116,12 +116,12 @@ func (k Keeper) depositAllowed(ctx sdk.Context, poolID string) bool {
 
 func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.AccAddress, reserves sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdkmath.Int, error) {
 	if allowed := k.depositAllowed(ctx, poolID); !allowed {
-		return nil, sdk.Coins{}, sdk.ZeroInt(), errorsmod.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
+		return nil, sdk.Coins{}, sdkmath.ZeroInt(), errorsmod.Wrap(types.ErrNotAllowed, fmt.Sprintf("can not create pool '%s'", poolID))
 	}
 
 	pool, err := types.NewDenominatedPool(reserves)
 	if err != nil {
-		return nil, sdk.Coins{}, sdk.ZeroInt(), err
+		return nil, sdk.Coins{}, sdkmath.ZeroInt(), err
 	}
 
 	return pool, pool.Reserves(), pool.TotalShares(), nil
@@ -130,7 +130,7 @@ func (k Keeper) initializePool(ctx sdk.Context, poolID string, depositor sdk.Acc
 func (k Keeper) addLiquidityToPool(ctx sdk.Context, record types.PoolRecord, depositor sdk.AccAddress, desiredAmount sdk.Coins) (*types.DenominatedPool, sdk.Coins, sdkmath.Int, error) {
 	pool, err := types.NewDenominatedPoolWithExistingShares(record.Reserves(), record.TotalShares)
 	if err != nil {
-		return nil, sdk.Coins{}, sdk.ZeroInt(), err
+		return nil, sdk.Coins{}, sdkmath.ZeroInt(), err
 	}
 
 	depositAmount, shares := pool.AddLiquidity(desiredAmount)

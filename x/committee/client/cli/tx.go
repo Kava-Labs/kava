@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	sdkmath "cosmossdk.io/math"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -12,12 +13,14 @@ import (
 	"github.com/cometbft/cometbft/crypto"
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 
@@ -244,8 +247,15 @@ and to delete a committee:
 			if err != nil {
 				return err
 			}
-			err = msg.ValidateBasic()
-			if err != nil {
+
+			contentProposal := msg.GetContent()
+			if contentProposal == nil {
+				return errors.Wrap(govtypes.ErrInvalidProposalContent, "missing content")
+			}
+			if !govv1beta1.IsValidProposalType(contentProposal.ProposalType()) {
+				return errors.Wrap(govtypes.ErrInvalidProposalType, contentProposal.ProposalType())
+			}
+			if err := contentProposal.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -268,7 +278,7 @@ func MustGetExampleCommitteeChangeProposal(cdc codec.Codec) string {
 			[]types.Permission{
 				&types.GodPermission{},
 			},
-			sdk.MustNewDecFromStr("0.8"),
+			sdkmath.LegacyMustNewDecFromStr("0.8"),
 			time.Hour*24*7,
 			types.TALLY_OPTION_FIRST_PAST_THE_POST,
 		),

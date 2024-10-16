@@ -11,7 +11,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -22,7 +21,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-var defaultSwapFee = sdk.MustNewDecFromStr("0.003")
+var defaultSwapFee = sdkmath.LegacyMustNewDecFromStr("0.003")
 
 // Suite implements a test suite for the swap module integration tests
 type Suite struct {
@@ -37,7 +36,9 @@ type Suite struct {
 // SetupTest instantiates a new app, keepers, and sets suite state
 func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true)
+	ctx.WithBlockTime(tmtime.Now())
+	ctx.WithBlockHeight(1)
 
 	suite.Ctx = ctx
 	suite.App = tApp
@@ -105,7 +106,8 @@ func (suite *Suite) CreateVestingAccount(initialBalance sdk.Coins, vestingBalanc
 			Amount: vestingBalance,
 		},
 	}
-	vacc := vestingtypes.NewPeriodicVestingAccount(bacc, initialBalance, time.Now().Unix(), periods) // TODO is initialBalance correct for originalVesting?
+	vacc, err := vestingtypes.NewPeriodicVestingAccount(bacc, initialBalance, time.Now().Unix(), periods) // TODO is initialBalance correct for originalVesting?
+	suite.Require().NoError(err)
 
 	return vacc
 }
@@ -117,7 +119,7 @@ func (suite *Suite) CreatePool(reserves sdk.Coins) error {
 	suite.Require().NoError(pool.Validate())
 	suite.Keeper.SetParams(suite.Ctx, types.NewParams(types.AllowedPools{pool}, defaultSwapFee))
 
-	return suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdk.MustNewDecFromStr("1"))
+	return suite.Keeper.Deposit(suite.Ctx, depositor.GetAddress(), reserves[0], reserves[1], sdkmath.LegacyMustNewDecFromStr("1"))
 }
 
 // AccountBalanceEqual asserts that the coins match the account balance

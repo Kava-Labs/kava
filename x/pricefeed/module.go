@@ -142,3 +142,7 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 	return []abci.ValidatorUpdate{}
 }
+
+func (AppModule) IsOnePerModuleType() {}
+
+func (AppModule) IsAppModule() {}

@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"cosmossdk.io/log"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -87,7 +87,7 @@ func (k Keeper) DeleteDeposit(ctx sdk.Context, deposit types.Deposit) {
 // IterateDeposits iterates over all deposit objects in the store and performs a callback function
 func (k Keeper) IterateDeposits(ctx sdk.Context, cb func(deposit types.Deposit) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositsKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var deposit types.Deposit

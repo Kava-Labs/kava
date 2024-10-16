@@ -76,14 +76,26 @@ func (s queryServer) AnnualizedRewards(
 	// this method adds both sources together so it is accurate in both cases.
 
 	params := s.keeper.mustGetParams(ctx)
-	bondDenom := s.keeper.stakingKeeper.BondDenom(ctx)
+	bondDenom, err := s.keeper.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	totalSupply := s.keeper.bankKeeper.GetSupply(ctx, bondDenom).Amount
-	totalBonded := s.keeper.stakingKeeper.TotalBondedTokens(ctx)
+	totalBonded, err := s.keeper.stakingKeeper.TotalBondedTokens(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	rewardsPerSecond := params.StakingRewardsPerSecond
 	// need to convert these from sdkmath.LegacyDec to sdkmath.LegacyDec
 	inflationRate := convertDecToLegacyDec(s.keeper.mintKeeper.GetMinter(ctx).Inflation)
-	communityTax := convertDecToLegacyDec(s.keeper.distrKeeper.GetCommunityTax(ctx))
+	tax, err := s.keeper.distrKeeper.GetCommunityTax(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	communityTax := convertDecToLegacyDec(tax)
 
 	return &types.QueryAnnualizedRewardsResponse{
 		StakingRewards: CalculateStakingAnnualPercentage(totalSupply, totalBonded, inflationRate, communityTax, rewardsPerSecond),

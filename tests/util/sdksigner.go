@@ -94,7 +94,7 @@ func (s *KavaSigner) pollAccountState() <-chan authtypes.AccountI {
 			response, err := s.authClient.Account(context.Background(), &request)
 
 			if err == nil {
-				var account authtypes.AccountI
+				var account sdk.AccountI
 
 				err = s.encodingConfig.InterfaceRegistry.UnpackAny(response.Account, &account)
 				if err == nil {

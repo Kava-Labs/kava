@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -163,14 +164,14 @@ func (k Keeper) GetProposalResult(ctx sdk.Context, proposalID uint64, committee 
 // GetMemberCommitteeProposalResult gets the result of a member committee proposal
 func (k Keeper) GetMemberCommitteeProposalResult(ctx sdk.Context, proposalID uint64, committee types.Committee) bool {
 	currVotes := k.TallyMemberCommitteeVotes(ctx, proposalID)
-	possibleVotes := sdk.NewDec(int64(len(committee.GetMembers())))
+	possibleVotes := sdkmath.LegacyNewDec(int64(len(committee.GetMembers())))
 	return currVotes.GTE(committee.GetVoteThreshold().Mul(possibleVotes)) // vote threshold requirements
 }
 
 // TallyMemberCommitteeVotes returns the polling status of a member committee vote
 func (k Keeper) TallyMemberCommitteeVotes(ctx sdk.Context, proposalID uint64) (totalVotes sdkmath.LegacyDec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
-	return sdk.NewDec(int64(len(votes)))
+	return sdkmath.LegacyNewDec(int64(len(votes)))
 }
 
 // GetTokenCommitteeProposalResult gets the result of a token committee proposal
@@ -193,25 +194,25 @@ func (k Keeper) TallyTokenCommitteeVotes(ctx sdk.Context, proposalID uint64,
 ) (yesVotes, noVotes, totalVotes, possibleVotes sdkmath.LegacyDec) {
 	votes := k.GetVotesByProposal(ctx, proposalID)
 
-	yesVotes = sdk.ZeroDec()
-	noVotes = sdk.ZeroDec()
-	totalVotes = sdk.ZeroDec()
+	yesVotes = sdkmath.LegacyZeroDec()
+	noVotes = sdkmath.LegacyZeroDec()
+	totalVotes = sdkmath.LegacyZeroDec()
 	for _, vote := range votes {
 		// 1 token = 1 vote
 		acc := k.accountKeeper.GetAccount(ctx, vote.Voter)
 		accNumCoins := k.bankKeeper.GetBalance(ctx, acc.GetAddress(), tallyDenom).Amount
 
 		// Add votes to counters
-		totalVotes = totalVotes.Add(sdk.NewDecFromInt(accNumCoins))
+		totalVotes = totalVotes.Add(sdkmath.LegacyNewDecFromInt(accNumCoins))
 		if vote.VoteType == types.VOTE_TYPE_YES {
-			yesVotes = yesVotes.Add(sdk.NewDecFromInt(accNumCoins))
+			yesVotes = yesVotes.Add(sdkmath.LegacyNewDecFromInt(accNumCoins))
 		} else if vote.VoteType == types.VOTE_TYPE_NO {
-			noVotes = noVotes.Add(sdk.NewDecFromInt(accNumCoins))
+			noVotes = noVotes.Add(sdkmath.LegacyNewDecFromInt(accNumCoins))
 		}
 	}
 
 	possibleVotesInt := k.bankKeeper.GetSupply(ctx, tallyDenom).Amount
-	return yesVotes, noVotes, totalVotes, sdk.NewDecFromInt(possibleVotesInt)
+	return yesVotes, noVotes, totalVotes, sdkmath.LegacyNewDecFromInt(possibleVotesInt)
 }
 
 func (k Keeper) attemptEnactProposal(ctx sdk.Context, proposal types.Proposal) types.ProposalOutcome {
@@ -261,15 +262,15 @@ func (k Keeper) GetProposalTallyResponse(ctx sdk.Context, proposalID uint64) (*t
 	switch com := committee.(type) {
 	case *types.MemberCommittee:
 		currVotes := k.TallyMemberCommitteeVotes(ctx, proposal.ID)
-		possibleVotes := sdk.NewDec(int64(len(com.Members)))
+		possibleVotes := sdkmath.LegacyNewDec(int64(len(com.Members)))
 		proposalTally = types.QueryTallyResponse{
 			ProposalID:    proposal.ID,
 			YesVotes:      currVotes,
-			NoVotes:       sdk.ZeroDec(),
+			NoVotes:       sdkmath.LegacyZeroDec(),
 			CurrentVotes:  currVotes,
 			PossibleVotes: possibleVotes,
 			VoteThreshold: com.VoteThreshold,
-			Quorum:        sdk.ZeroDec(),
+			Quorum:        sdkmath.LegacyZeroDec(),
 		}
 	case *types.TokenCommittee:
 		yesVotes, noVotes, currVotes, possibleVotes := k.TallyTokenCommitteeVotes(ctx, proposal.ID, com.TallyDenom)

@@ -82,7 +82,7 @@ func (k Keeper) RemoveAtomicSwap(ctx sdk.Context, swapID []byte) {
 // IterateAtomicSwaps provides an iterator over all stored AtomicSwaps.
 // For each AtomicSwap, cb will be called. If cb returns true, the iterator will close and stop.
 func (k Keeper) IterateAtomicSwaps(ctx sdk.Context, cb func(atomicSwap types.AtomicSwap) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.key), types.AtomicSwapKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -126,7 +126,7 @@ func (k Keeper) IterateAtomicSwapsByBlock(ctx sdk.Context, inclusiveCutoffTime u
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapByBlockPrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store
-		sdk.PrefixEndBytes(sdk.Uint64ToBigEndian(inclusiveCutoffTime)), // end of range
+		storetypes.PrefixEndBytes(sdk.Uint64ToBigEndian(inclusiveCutoffTime)), // end of range
 	)
 
 	defer iterator.Close()
@@ -167,7 +167,7 @@ func (k Keeper) IterateAtomicSwapsLongtermStorage(ctx sdk.Context, inclusiveCuto
 	store := prefix.NewStore(ctx.KVStore(k.key), types.AtomicSwapLongtermStoragePrefix)
 	iterator := store.Iterator(
 		nil, // start at the very start of the prefix store
-		sdk.PrefixEndBytes(sdk.Uint64ToBigEndian(inclusiveCutoffTime)), // end of range
+		storetypes.PrefixEndBytes(sdk.Uint64ToBigEndian(inclusiveCutoffTime)), // end of range
 	)
 
 	defer iterator.Close()
@@ -205,7 +205,7 @@ func (k Keeper) SetAssetSupply(ctx sdk.Context, supply types.AssetSupply, denom 
 
 // IterateAssetSupplies provides an iterator over all stored AssetSupplies.
 func (k Keeper) IterateAssetSupplies(ctx sdk.Context, cb func(supply types.AssetSupply) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.key), types.AssetSupplyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

@@ -2,6 +2,7 @@ package common
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,10 +39,12 @@ func QueryProposer(cliCtx client.Context, proposalID uint64) (Proposer, error) {
 		fmt.Sprintf("%s.%s='%s'", sdk.EventTypeMessage, sdk.AttributeKeyAction, types.TypeMsgSubmitProposal),
 		fmt.Sprintf("%s.%s='%s'", types.EventTypeProposalSubmit, types.AttributeKeyProposalID, []byte(fmt.Sprintf("%d", proposalID))),
 	}
+	// removed internal join of events and requires the AND operator here
+	query := strings.Join(events, " AND ")
 
 	// NOTE: SearchTxs is used to facilitate the txs query which does not currently
 	// support configurable pagination.
-	searchResult, err := authtx.QueryTxsByEvents(cliCtx, events, defaultPage, defaultLimit, "")
+	searchResult, err := authtx.QueryTxsByEvents(cliCtx, defaultPage, defaultLimit, query, "")
 	if err != nil {
 		return Proposer{}, err
 	}

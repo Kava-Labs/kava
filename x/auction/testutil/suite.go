@@ -6,7 +6,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -45,7 +44,9 @@ func (suite *Suite) SetupTest(numAddrs int) {
 		sdk.NewCoin("token2", sdkmath.NewInt(100)),
 	)
 
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true)
+	ctx.WithBlockHeight(1)
+	ctx.WithBlockTime(tmtime.Now())
 
 	modName := "liquidator"
 	modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(modName), nil, 0, 0)

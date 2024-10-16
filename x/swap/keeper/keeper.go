@@ -120,7 +120,7 @@ func (k Keeper) DeletePool(ctx sdk.Context, poolID string) {
 // IteratePools iterates over all pool objects in the store and performs a callback function
 func (k Keeper) IteratePools(ctx sdk.Context, cb func(record types.PoolRecord) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.PoolKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.PoolRecord
@@ -186,7 +186,7 @@ func (k Keeper) DeleteDepositorShares(ctx sdk.Context, depositor sdk.AccAddress,
 // IterateDepositorShares iterates over all pool objects in the store and performs a callback function
 func (k Keeper) IterateDepositorShares(ctx sdk.Context, cb func(record types.ShareRecord) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.ShareRecord
@@ -209,7 +209,7 @@ func (k Keeper) GetAllDepositorShares(ctx sdk.Context) (records types.ShareRecor
 // IterateDepositorSharesByOwner iterates over share records for a specific address and performs a callback function
 func (k Keeper) IterateDepositorSharesByOwner(ctx sdk.Context, owner sdk.AccAddress, cb func(record types.ShareRecord) (stop bool)) {
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositorPoolSharesPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, owner.Bytes())
+	iterator := storetypes.KVStorePrefixIterator(store, owner.Bytes())
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		var record types.ShareRecord

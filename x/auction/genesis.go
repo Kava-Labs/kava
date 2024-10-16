@@ -41,7 +41,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, bankKeeper types.BankKee
 
 	// check module coins match auction coins
 	// Note: Other sdk modules do not check this, instead just using the existing module account coins, or if zero, setting them.
-	if !maccCoins.IsEqual(totalAuctionCoins) {
+	if !maccCoins.Equal(totalAuctionCoins) {
 		panic(fmt.Sprintf("total auction coins (%s) do not equal (%s) module account (%s) ", maccCoins, types.ModuleName, totalAuctionCoins))
 	}
 }

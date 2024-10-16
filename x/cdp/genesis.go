@@ -1,6 +1,7 @@
 package cdp
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -112,7 +113,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) types.GenesisState {
 	for _, cp := range params.CollateralParams {
 		interestFactor, found := k.GetInterestFactor(ctx, cp.Type)
 		if !found {
-			interestFactor = sdk.OneDec()
+			interestFactor = sdkmath.LegacyOneDec()
 		}
 		// Governance param changes happen in the end blocker. If a new collateral type is added and then the chain
 		// is exported before the BeginBlocker can run, previous accrual time won't be found. We can't set it to

@@ -86,7 +86,7 @@ func PoolReservesInvariant(k Keeper) sdk.Invariant {
 			return false
 		})
 
-		broken := !reserves.IsEqual(balance)
+		broken := !reserves.Equal(balance)
 		return message, broken
 	}
 }
@@ -107,7 +107,7 @@ func PoolSharesInvariant(k Keeper) sdk.Invariant {
 		k.IteratePools(ctx, func(pr types.PoolRecord) bool {
 			totalShares[pr.PoolID] = poolShares{
 				totalShares:      pr.TotalShares,
-				totalSharesOwned: sdk.ZeroInt(),
+				totalSharesOwned: sdkmath.ZeroInt(),
 			}
 
 			return false
@@ -119,7 +119,7 @@ func PoolSharesInvariant(k Keeper) sdk.Invariant {
 				totalShares[sr.PoolID] = shares
 			} else {
 				totalShares[sr.PoolID] = poolShares{
-					totalShares:      sdk.ZeroInt(),
+					totalShares:      sdkmath.ZeroInt(),
 					totalSharesOwned: sr.SharesOwned,
 				}
 			}

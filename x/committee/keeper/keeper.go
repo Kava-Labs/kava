@@ -4,9 +4,9 @@ import (
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/codec"
 	"cosmossdk.io/store/prefix"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
@@ -80,7 +80,7 @@ func (k Keeper) DeleteCommittee(ctx sdk.Context, committeeID uint64) {
 // IterateCommittees provides an iterator over all stored committees.
 // For each committee, cb will be called. If cb returns true, the iterator will close and stop.
 func (k Keeper) IterateCommittees(ctx sdk.Context, cb func(committee types.Committee) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.CommitteeKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -187,7 +187,7 @@ func (k Keeper) DeleteProposal(ctx sdk.Context, proposalID uint64) {
 // IterateProposals provides an iterator over all stored proposals.
 // For each proposal, cb will be called. If cb returns true, the iterator will close and stop.
 func (k Keeper) IterateProposals(ctx sdk.Context, cb func(proposal types.Proposal) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.ProposalKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -262,7 +262,7 @@ func (k Keeper) DeleteVote(ctx sdk.Context, proposalID uint64, voter sdk.AccAddr
 // IterateVotes provides an iterator over all stored votes.
 // For each vote, cb will be called. If cb returns true, the iterator will close and stop.
 func (k Keeper) IterateVotes(ctx sdk.Context, cb func(vote types.Vote) (stop bool)) {
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), types.VoteKeyPrefix)
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
@@ -288,7 +288,7 @@ func (k Keeper) GetVotes(ctx sdk.Context) []types.Vote {
 // GetVotesByProposal returns all votes for one proposal.
 func (k Keeper) GetVotesByProposal(ctx sdk.Context, proposalID uint64) []types.Vote {
 	results := []types.Vote{}
-	iterator := sdk.KVStorePrefixIterator(ctx.KVStore(k.storeKey), append(types.VoteKeyPrefix, types.GetKeyFromID(proposalID)...))
+	iterator := storetypes.KVStorePrefixIterator(ctx.KVStore(k.storeKey), append(types.VoteKeyPrefix, types.GetKeyFromID(proposalID)...))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

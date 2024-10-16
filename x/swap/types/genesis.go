@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type poolShares struct {
@@ -44,7 +43,7 @@ func (gs GenesisState) Validate() error {
 	for _, pr := range gs.PoolRecords {
 		totalShares[pr.PoolID] = poolShares{
 			totalShares:      pr.TotalShares,
-			totalSharesOwned: sdk.ZeroInt(),
+			totalSharesOwned: sdkmath.ZeroInt(),
 		}
 	}
 	for _, sr := range gs.ShareRecords {
@@ -53,7 +52,7 @@ func (gs GenesisState) Validate() error {
 			totalShares[sr.PoolID] = shares
 		} else {
 			totalShares[sr.PoolID] = poolShares{
-				totalShares:      sdk.ZeroInt(),
+				totalShares:      sdkmath.ZeroInt(),
 				totalSharesOwned: sr.SharesOwned,
 			}
 		}

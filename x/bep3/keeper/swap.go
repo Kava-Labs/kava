@@ -68,6 +68,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 		direction = types.SWAP_DIRECTION_OUTGOING
 	}
 
+	// TODO(boodyvo): this looks strange, as switch/case is redundant here
 	switch direction {
 	case types.SWAP_DIRECTION_INCOMING:
 		// If recipient's account doesn't exist, register it in state so that the address can send

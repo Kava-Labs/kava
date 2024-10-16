@@ -8,7 +8,6 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 )
 
@@ -32,14 +31,15 @@ var (
 )
 
 func init() {
+	// TODO(boodyvo): the moduleCdc was removed, looks like need an updated (depinjection ?)
 	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolLendDeposit)
-	govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendDepositProposal{}, "kava/CommunityPoolLendDepositProposal", nil)
+	//govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendDepositProposal{}, "kava/CommunityPoolLendDepositProposal", nil)
 	govv1beta1.RegisterProposalType(ProposalTypeCommunityPoolLendWithdraw)
-	govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal", nil)
+	//govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityPoolLendWithdrawProposal{}, "kava/CommunityPoolLendWithdrawProposal", nil)
 	govv1beta1.RegisterProposalType(ProposalTypeCommunityCDPRepayDebt)
-	govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityCDPRepayDebtProposal{}, "kava/CommunityCDPRepayDebtProposal", nil)
+	//govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityCDPRepayDebtProposal{}, "kava/CommunityCDPRepayDebtProposal", nil)
 	govv1beta1.RegisterProposalType(ProposalTypeCommunityCDPWithdrawCollateral)
-	govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityCDPWithdrawCollateralProposal{}, "kava/CommunityCDPWithdrawCollateralProposal", nil)
+	//govcodec.ModuleCdc.Amino.RegisterConcrete(&CommunityCDPWithdrawCollateralProposal{}, "kava/CommunityCDPWithdrawCollateralProposal", nil)
 }
 
 //////////////////

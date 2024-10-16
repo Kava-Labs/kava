@@ -2,10 +2,12 @@ package cli
 
 import (
 	"fmt"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"strings"
 
 	"github.com/spf13/cobra"
 
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -159,7 +161,15 @@ Where proposal.json contains:
 			if err != nil {
 				return err
 			}
-			if err := msg.ValidateBasic(); err != nil {
+
+			contentProposal := msg.GetContent()
+			if contentProposal == nil {
+				return errors.Wrap(govtypes.ErrInvalidProposalContent, "missing content")
+			}
+			if !govv1beta1.IsValidProposalType(contentProposal.ProposalType()) {
+				return errors.Wrap(govtypes.ErrInvalidProposalType, contentProposal.ProposalType())
+			}
+			if err := contentProposal.ValidateBasic(); err != nil {
 				return err
 			}
 
@@ -217,7 +227,15 @@ Where proposal.json contains:
 			if err != nil {
 				return err
 			}
-			if err := msg.ValidateBasic(); err != nil {
+
+			contentProposal := msg.GetContent()
+			if contentProposal == nil {
+				return errors.Wrap(govtypes.ErrInvalidProposalContent, "missing content")
+			}
+			if !govv1beta1.IsValidProposalType(contentProposal.ProposalType()) {
+				return errors.Wrap(govtypes.ErrInvalidProposalType, contentProposal.ProposalType())
+			}
+			if err := contentProposal.ValidateBasic(); err != nil {
 				return err
 			}
 

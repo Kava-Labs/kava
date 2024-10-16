@@ -6,10 +6,9 @@ import (
 
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-var zero = sdk.ZeroInt()
+var zero = sdkmath.ZeroInt()
 
 // calculateInitialShares calculates initial shares as sqrt(A*B), the geometric mean of A and B
 func calculateInitialShares(reservesA, reservesB sdkmath.Int) sdkmath.Int {
@@ -223,7 +222,7 @@ func (p *BasePool) SwapExactAForB(a sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath
 	b, feeValue := p.calculateOutputForExactInput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateReserves(
-		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
+		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdkmath.ZeroInt(),
 	)
 
 	return b, feeValue
@@ -235,7 +234,7 @@ func (p *BasePool) SwapExactBForA(b sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath
 	a, feeValue := p.calculateOutputForExactInput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateReserves(
-		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
+		p.reservesA.Sub(a), sdkmath.ZeroInt(), p.reservesB.Add(b), feeValue,
 	)
 
 	return a, feeValue
@@ -252,7 +251,7 @@ func (p *BasePool) calculateOutputForExactInput(in, inReserves, outReserves sdkm
 	p.assertSwapInputIsValid(in)
 	p.assertFeeIsValid(fee)
 
-	inAfterFee := sdk.NewDecFromInt(in).Mul(sdk.OneDec().Sub(fee)).TruncateInt()
+	inAfterFee := sdkmath.LegacyNewDecFromInt(in).Mul(sdkmath.LegacyOneDec().Sub(fee)).TruncateInt()
 
 	var result big.Int
 	result.Mul(outReserves.BigInt(), inAfterFee.BigInt())
@@ -270,7 +269,7 @@ func (p *BasePool) SwapAForExactB(b sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath
 	a, feeValue := p.calculateInputForExactOutput(b, p.reservesB, p.reservesA, fee)
 
 	p.assertInvariantAndUpdateReserves(
-		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdk.ZeroInt(),
+		p.reservesA.Add(a), feeValue, p.reservesB.Sub(b), sdkmath.ZeroInt(),
 	)
 
 	return a, feeValue
@@ -282,7 +281,7 @@ func (p *BasePool) SwapBForExactA(a sdkmath.Int, fee sdkmath.LegacyDec) (sdkmath
 	b, feeValue := p.calculateInputForExactOutput(a, p.reservesA, p.reservesB, fee)
 
 	p.assertInvariantAndUpdateReserves(
-		p.reservesA.Sub(a), sdk.ZeroInt(), p.reservesB.Add(b), feeValue,
+		p.reservesA.Sub(a), sdkmath.ZeroInt(), p.reservesB.Add(b), feeValue,
 	)
 
 	return b, feeValue
@@ -308,10 +307,10 @@ func (p *BasePool) calculateInputForExactOutput(out, outReserves, inReserves sdk
 
 	inWithoutFee := sdkmath.NewIntFromBigInt(&result)
 	if remainder.Sign() != 0 {
-		inWithoutFee = inWithoutFee.Add(sdk.OneInt())
+		inWithoutFee = inWithoutFee.Add(sdkmath.OneInt())
 	}
 
-	in := sdk.NewDecFromInt(inWithoutFee).Quo(sdk.OneDec().Sub(fee)).Ceil().TruncateInt()
+	in := sdkmath.LegacyNewDecFromInt(inWithoutFee).Quo(sdkmath.LegacyOneDec().Sub(fee)).Ceil().TruncateInt()
 	feeValue := in.Sub(inWithoutFee)
 
 	return in, feeValue
@@ -372,7 +371,7 @@ func (p *BasePool) assertSwapOutputIsValid(output sdkmath.Int, reserves sdkmath.
 
 // assertFeeIsValid checks if the provided fee is less
 func (p *BasePool) assertFeeIsValid(fee sdkmath.LegacyDec) {
-	if fee.IsNegative() || fee.GTE(sdk.OneDec()) {
+	if fee.IsNegative() || fee.GTE(sdkmath.LegacyOneDec()) {
 		panic("invalid value: fee must be between 0 and 1")
 	}
 }

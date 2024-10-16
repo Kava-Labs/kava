@@ -67,7 +67,7 @@ func getCmdDeposit() *cobra.Command {
 				return err
 			}
 
-			slippage, err := sdk.NewDecFromStr(args[2])
+			slippage, err := sdkmath.LegacyNewDecFromStr(args[2])
 			if err != nil {
 				return err
 			}
@@ -160,7 +160,7 @@ func getCmdSwapExactForTokens() *cobra.Command {
 				return err
 			}
 
-			slippage, err := sdk.NewDecFromStr(args[2])
+			slippage, err := sdkmath.LegacyNewDecFromStr(args[2])
 			if err != nil {
 				return err
 			}
@@ -206,7 +206,7 @@ func getCmdSwapForExactTokens() *cobra.Command {
 				return err
 			}
 
-			slippage, err := sdk.NewDecFromStr(args[2])
+			slippage, err := sdkmath.LegacyNewDecFromStr(args[2])
 			if err != nil {
 				return err
 			}

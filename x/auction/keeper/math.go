@@ -4,7 +4,6 @@ import (
 	"sort"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // splitIntIntoWeightedBuckets divides an initial +ve integer among several buckets in proportion to the buckets' weights
@@ -47,7 +46,7 @@ func splitIntIntoWeightedBuckets(amount sdkmath.Int, buckets []sdkmath.Int) []sd
 	})
 
 	// calculate total left over from remainders
-	allocated := sdk.ZeroInt()
+	allocated := sdkmath.ZeroInt()
 	for _, qr := range quotients {
 		allocated = allocated.Add(qr.quo)
 	}
@@ -58,8 +57,8 @@ func splitIntIntoWeightedBuckets(amount sdkmath.Int, buckets []sdkmath.Int) []sd
 	for _, qr := range quotients {
 		results[qr.index] = qr.quo
 		if !leftToAllocate.IsZero() {
-			results[qr.index] = results[qr.index].Add(sdk.OneInt())
-			leftToAllocate = leftToAllocate.Sub(sdk.OneInt())
+			results[qr.index] = results[qr.index].Add(sdkmath.OneInt())
+			leftToAllocate = leftToAllocate.Sub(sdkmath.OneInt())
 		}
 	}
 	return results
@@ -73,7 +72,7 @@ type quoRem struct {
 
 // totalInts adds together sdk.Ints
 func totalInts(is ...sdkmath.Int) sdkmath.Int {
-	total := sdk.ZeroInt()
+	total := sdkmath.ZeroInt()
 	for _, i := range is {
 		total = total.Add(i)
 	}

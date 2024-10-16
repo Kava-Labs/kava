@@ -41,15 +41,18 @@ type HardKeeper interface {
 
 // DistributionKeeper defines the contract needed to be fulfilled for distribution dependencies.
 type DistributionKeeper interface {
-	DistributeFromFeePool(ctx sdk.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
-	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
-	GetFeePoolCommunityCoins(ctx sdk.Context) sdk.DecCoins
-	GetFeePool(ctx sdk.Context) distrtypes.FeePool
-	SetFeePool(ctx sdk.Context, feePool distrtypes.FeePool)
-	GetParams(ctx sdk.Context) distrtypes.Params
-	SetParams(ctx sdk.Context, params distrtypes.Params) error
-	GetCommunityTax(ctx sdk.Context) sdkmath.LegacyDec
+	DistributeFromFeePool(ctx context.Context, amount sdk.Coins, receiveAddr sdk.AccAddress) error
+	FundCommunityPool(ctx context.Context, amount sdk.Coins, sender sdk.AccAddress) error
+	GetFeePoolCommunityCoins(ctx context.Context) sdk.DecCoins
+	GetFeePool(ctx context.Context) distrtypes.FeePool
+	SetFeePool(ctx context.Context, feePool distrtypes.FeePool)
+	GetParams(ctx context.Context) distrtypes.Params
+	SetParams(ctx context.Context, params distrtypes.Params) error
+	GetCommunityTax(ctx context.Context) (sdkmath.LegacyDec, error)
 }
+
+// need the method: GetParams(ctx context.Context) distrtypes.Params
+// have the method: GetParams(clientCtx sdk.Context) (params types.Params)
 
 type MintKeeper interface {
 	GetParams(ctx context.Context) (params minttypes.Params)

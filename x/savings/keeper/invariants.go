@@ -61,7 +61,7 @@ func SolvencyInvariant(k Keeper) sdk.Invariant {
 			return false
 		})
 
-		broken := !deposited.IsEqual(balance)
+		broken := !deposited.Equal(balance)
 		return message, broken
 	}
 }

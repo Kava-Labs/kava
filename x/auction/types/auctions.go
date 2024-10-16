@@ -272,7 +272,7 @@ func (wa WeightedAddresses) Validate() error {
 		return fmt.Errorf("number of addresses doesn't match number of weights, %d ≠ %d", len(wa.Addresses), len(wa.Weights))
 	}
 
-	totalWeight := sdk.ZeroInt()
+	totalWeight := sdkmath.ZeroInt()
 	for i := range wa.Addresses {
 		if wa.Addresses[i].Empty() {
 			return fmt.Errorf("address %d cannot be empty", i)

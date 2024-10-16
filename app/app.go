@@ -94,7 +94,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v8/modules/core/02-client/client"
+	ibcclientclient "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/cli"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
@@ -585,6 +585,19 @@ func NewApp(
 		app.accountKeeper,
 	)
 
+	//NewEVMWrapper := func(
+	//	blockCtx vm.BlockContext,
+	//	txCtx vm.TxContext,
+	//	stateDB vm.StateDB,
+	//	chainConfig *goparams.ChainConfig,
+	//	config vm.Config,
+	//	_ ethermintvm.PrecompiledContracts, // unused
+	//) ethermintvm.EVM {
+	//	return vm.NewEVM(blockCtx, txCtx, stateDB, chainConfig, config)
+	//}
+
+	//Cannot use 'NewEVMWrapper' (type
+	//func(blockCtx vm.BlockContext, txCtx vm.TxContext, stateDB vm.StateDB, chainConfig *goparams.ChainConfig, config vm.Config, customPrecompiles ethermintvm.PrecompiledContracts) *vm.EVM) as the type evm.Constructor
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec,
 		keys[evmtypes.StoreKey],
@@ -791,8 +804,9 @@ func NewApp(
 	committeeGovRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(communitytypes.RouterKey, community.NewCommunityPoolProposalHandler(app.communityKeeper)).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(&app.upgradeKeeper))
+		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper))
+	// TODO(boodyvo): check the message updates. Looks like this one if not needed anymore.
+	//AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(&app.upgradeKeeper))
 	// Note: the committee proposal handler is not registered on the committee router. This means committees cannot create or update other committees.
 	// Adding the committee proposal handler to the router is possible but awkward as the handler depends on the keeper which depends on the handler.
 	app.committeeKeeper = committeekeeper.NewKeeper(
@@ -824,7 +838,8 @@ func NewApp(
 	govRouter.
 		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(&app.upgradeKeeper)).
+		// TODO(boodyvo): check the message updates. Looks like this one if not needed anymore.
+		//AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(&app.upgradeKeeper)).
 		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
 		AddRoute(kavadisttypes.RouterKey, kavadist.NewCommunityPoolMultiSpendProposalHandler(app.kavadistKeeper)).
 		AddRoute(earntypes.RouterKey, earn.NewCommunityPoolProposalHandler(app.earnKeeper)).
@@ -856,7 +871,8 @@ func NewApp(
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
-		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx, encodingConfig.TxConfig),
+		// TODO(boodyvo): deliverTx -> app is in sdk ?
+		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app, encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.accountKeeper, authsims.RandomGenesisAccounts, authSubspace),
 		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper, bankSubspace),
 		capability.NewAppModule(appCodec, *app.capabilityKeeper, false), // todo: confirm if this is okay to not be sealed
@@ -865,13 +881,13 @@ func NewApp(
 		gov.NewAppModule(appCodec, &app.govKeeper, app.accountKeeper, app.bankKeeper, govSubspace),
 		params.NewAppModule(app.paramsKeeper),
 		crisis.NewAppModule(&app.crisisKeeper, options.SkipGenesisInvariants, crisisSubspace),
-		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper, slashingSubspace),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper, slashingSubspace, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.consensusParamsKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
 		packetforward.NewAppModule(app.packetForwardKeeper, packetforwardSubspace),
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		feemarket.NewAppModule(app.feeMarketKeeper, feemarketSubspace),
-		upgrade.NewAppModule(&app.upgradeKeeper),
+		upgrade.NewAppModule(&app.upgradeKeeper, ac),
 		evidence.NewAppModule(app.evidenceKeeper),
 		transferModule,
 		vesting.NewAppModule(app.accountKeeper, app.bankKeeper),
@@ -1149,7 +1165,7 @@ func (app *App) PreBlocker(ctx sdk.Context, req *abci.RequestFinalizeBlock) (*sd
 }
 
 // InitChainer contains app specific logic for the InitChain abci call.
-func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)

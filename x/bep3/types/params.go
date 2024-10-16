@@ -20,7 +20,7 @@ var (
 	KeyAssetParams = []byte("AssetParams")
 
 	DefaultBnbDeputyFixedFee sdkmath.Int = sdkmath.NewInt(1000) // 0.00001 BNB
-	DefaultMinAmount         sdkmath.Int = sdk.ZeroInt()
+	DefaultMinAmount         sdkmath.Int = sdkmath.ZeroInt()
 	DefaultMaxAmount         sdkmath.Int = sdkmath.NewInt(1000000000000) // 10,000 BNB
 	DefaultMinBlockLock      uint64      = 220
 	DefaultMaxBlockLock      uint64      = 270

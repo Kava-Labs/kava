@@ -1,11 +1,11 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"errors"
 	"fmt"
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -23,7 +23,7 @@ const (
 
 var (
 	// DefaultIncrement is the smallest percent change a new bid must have from the old one
-	DefaultIncrement sdkmath.LegacyDec = sdk.MustNewDecFromStr("0.05")
+	DefaultIncrement sdkmath.LegacyDec = sdkmath.LegacyMustNewDecFromStr("0.05")
 	// ParamStoreKeyParams Param store key for auction params
 	KeyForwardBidDuration  = []byte("ForwardBidDuration")
 	KeyReverseBidDuration  = []byte("ReverseBidDuration")
