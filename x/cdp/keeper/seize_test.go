@@ -68,6 +68,7 @@ func (suite *SeizeTestSuite) SetupTest() {
 
 func (suite *SeizeTestSuite) createCdps() {
 	tApp := app.NewTestApp()
+	fmt.Println("creating new context")
 	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 	cdps := make(types.CDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
@@ -81,6 +82,7 @@ func (suite *SeizeTestSuite) createCdps() {
 		NewCDPGenStateMulti(tApp.AppCodec()),
 	)
 
+	fmt.Println("initialized app from genesis state")
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
@@ -103,6 +105,7 @@ func (suite *SeizeTestSuite) createCdps() {
 				tracker.debt += int64(debt)
 			}
 		}
+		fmt.Println("creating collateral", collateral)
 		err := suite.keeper.AddCdp(suite.ctx, addrs[j], c(collateral, int64(amount)), c("usdx", int64(debt)), collateral+"-a")
 		suite.NoError(err)
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral+"-a", uint64(j+1))

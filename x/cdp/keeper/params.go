@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -26,7 +27,10 @@ func (k Keeper) SetParams(ctx context.Context, params types.Params) {
 
 // GetCollateral returns the collateral param with corresponding denom
 func (k Keeper) GetCollateral(ctx context.Context, collateralType string) (types.CollateralParam, bool) {
+	// print stack from what function it was called from
+	fmt.Println("stack", string(debug.Stack()))
 	params := k.GetParams(ctx)
+	fmt.Println("params.CollateralParams", params.CollateralParams)
 	for _, cp := range params.CollateralParams {
 		if cp.Type == collateralType {
 			return cp, true
