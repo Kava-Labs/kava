@@ -47,7 +47,7 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	deposits := k.GetDeposits(ctx, cdp.ID)
 	debt := cdp.GetTotalPrincipal().Amount
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
-	debt = sdk.MinInt(debt, modAccountDebt)
+	debt = sdkmath.MinInt(debt, modAccountDebt)
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
 	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
@@ -95,7 +95,7 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 	}
 	priceDivLiqRatio := price.Price.Quo(liquidationRatio)
 	if priceDivLiqRatio.IsZero() {
-		priceDivLiqRatio = sdk.SmallestDec()
+		priceDivLiqRatio = sdkmath.LegacySmallestDec()
 	}
 	// price = $0.5
 	// liquidation ratio = 1.5

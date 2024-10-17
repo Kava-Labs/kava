@@ -12,9 +12,9 @@ import (
 
 func TestMsgPlaceBid_ValidateBasic(t *testing.T) {
 	addr := sdk.AccAddress([]byte("someName"))
-	price, _ := sdk.NewDecFromStr("0.3005")
+	price, _ := sdkmath.LegacyNewDecFromStr("0.3005")
 	expiry := tmtime.Now()
-	negativePrice, _ := sdk.NewDecFromStr("-3.05")
+	negativePrice, _ := sdkmath.LegacyNewDecFromStr("-3.05")
 
 	tests := []struct {
 		name       string

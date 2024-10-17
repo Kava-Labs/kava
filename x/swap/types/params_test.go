@@ -10,7 +10,6 @@ import (
 
 	"github.com/kava-labs/kava/x/swap/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -25,7 +24,7 @@ func TestParams_UnmarshalJSON(t *testing.T) {
 	poolData, err := json.Marshal(pools)
 	require.NoError(t, err)
 
-	fee, err := sdk.NewDecFromStr("0.5")
+	fee, err := sdkmath.LegacyNewDecFromStr("0.5")
 	require.NoError(t, err)
 	feeData, err := json.Marshal(fee)
 	require.NoError(t, err)
@@ -48,7 +47,7 @@ func TestParams_MarshalYAML(t *testing.T) {
 		types.NewAllowedPool("hard", "ukava"),
 		types.NewAllowedPool("hard", "usdx"),
 	)
-	fee, err := sdk.NewDecFromStr("0.5")
+	fee, err := sdkmath.LegacyNewDecFromStr("0.5")
 	require.NoError(t, err)
 
 	p := types.Params{

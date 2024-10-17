@@ -46,7 +46,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		WithSimpleAccount(addrs[0], cs(c("bnb", 1e10), c("ukava", 1e10))).
 		WithSimpleModuleAccount(kavadisttypes.KavaDistMacc, cs(c("hard", 1e15), c("ukava", 1e15)))
 
-	loanToValue, _ := sdk.NewDecFromStr("0.6")
+	loanToValue, _ := sdkmath.LegacyNewDecFromStr("0.6")
 	borrowLimit := sdkmath.LegacyNewDec(1000000000000000)
 	hardGS := hardtypes.NewGenesisState(
 		hardtypes.NewParams(

@@ -11,8 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/simulation"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -42,7 +40,9 @@ type liquidationTracker struct {
 
 func (suite *ModuleTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true)
+	ctx.WithBlockHeight(1)
+	ctx.WithBlockTime(tmtime.Now())
 	tracker := liquidationTracker{}
 
 	coins := cs(c("btc", 100000000), c("xrp", 10000000000), c("erc20/usdc", 10000000000))
@@ -63,7 +63,9 @@ func (suite *ModuleTestSuite) SetupTest() {
 
 func (suite *ModuleTestSuite) createCdps() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true)
+	ctx.WithBlockHeight(1)
+	ctx.WithBlockTime(tmtime.Now())
 	cdps := make(types.CDPs, 100)
 	tracker := liquidationTracker{}
 
@@ -183,7 +185,7 @@ func (suite *ModuleTestSuite) TestBeginBlockNewCdpTypeSetsGlobalInterest() {
 
 	// ensure begin block does not panic due to no accumulation time or no global interest factor
 	suite.Require().NotPanics(func() {
-		cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+		cdp.BeginBlocker(suite.ctx, suite.keeper)
 	}, "expected begin blocker not to panic")
 
 	// set by accumulate interest (or add cdp above)
@@ -236,7 +238,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.setPrice(d("0.2"), "xrp:usd")
 
 	// test case 1 execution
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+	cdp.BeginBlocker(suite.ctx, suite.keeper)
 
 	// test case 1 assert
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
@@ -256,7 +258,7 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.setPrice(d("6000"), "btc:usd")
 
 	// btc collateral test case execution
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+	cdp.BeginBlocker(suite.ctx, suite.keeper)
 
 	// btc collateral test case assertion 1
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
@@ -290,7 +292,7 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	suite.Equal(i(1000000000), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount)
 	for i := 0; i < 100; i++ {
 		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
-		cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+		cdp.BeginBlocker(suite.ctx, suite.keeper)
 	}
 
 	cdpMacc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
@@ -338,7 +340,7 @@ func (suite *ModuleTestSuite) TestCDPBeginBlockerRunsOnlyOnConfiguredInterval() 
 	suite.setPrice(d("0.2"), "xrp:usd")
 
 	// test case 1 execution
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+	cdp.BeginBlocker(suite.ctx, suite.keeper)
 
 	// test case 1 assert
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
@@ -357,7 +359,7 @@ func (suite *ModuleTestSuite) TestCDPBeginBlockerRunsOnlyOnConfiguredInterval() 
 	suite.ctx = suite.ctx.WithBlockHeight(2)
 
 	// test case 2 execution
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+	cdp.BeginBlocker(suite.ctx, suite.keeper)
 
 	// test case 2 assert
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)

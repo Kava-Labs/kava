@@ -149,7 +149,7 @@ $ kvcli q cdp cdps --page=2 --limit=100
 			}
 
 			if len(strRatio) != 0 {
-				cdpRatio, err := sdk.NewDecFromStr(strRatio)
+				cdpRatio, err := sdkmath.LegacyNewDecFromStr(strRatio)
 				if err != nil {
 					return fmt.Errorf("cannot parse cdp ratio %s", strRatio)
 				}

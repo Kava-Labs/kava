@@ -19,9 +19,16 @@ const (
 func GetStakingAPR(ctx sdk.Context, k Keeper, params types.Params) (sdkmath.LegacyDec, error) {
 	// Get staking APR + incentive APR
 	inflationRate := k.mintKeeper.GetMinter(ctx).Inflation
-	communityTax := k.distrKeeper.GetCommunityTax(ctx)
+	communityTax, err := k.distrKeeper.GetCommunityTax(ctx)
+	if err != nil {
+		return sdkmath.LegacyZeroDec(), err
+	}
 
-	bondedTokens := k.stakingKeeper.TotalBondedTokens(ctx)
+	bondedTokens, err := k.stakingKeeper.TotalBondedTokens(ctx)
+	if err != nil {
+		return sdkmath.LegacyZeroDec(), err
+	}
+
 	circulatingSupply := k.bankKeeper.GetSupply(ctx, types.BondDenom)
 
 	// Staking APR = (Inflation Rate * (1 - Community Tax)) / (Bonded Tokens / Circulating Supply)

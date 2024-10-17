@@ -49,7 +49,7 @@ func (k Keeper) GetBalance(
 // by address. If the account has no spendable coins, an empty Coins slice is
 // returned.
 func (k Keeper) SpendableCoin(
-	ctx sdk.Context,
+	ctx context.Context,
 	addr sdk.AccAddress,
 	denom string,
 ) sdk.Coin {
@@ -66,8 +66,9 @@ func (k Keeper) SpendableCoin(
 	// x/bank for integer balance - excluding locked
 	integerCoin := k.bk.SpendableCoin(ctx, addr, types.IntegerCoinDenom)
 
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	// x/precisebank for fractional balance
-	fractionalAmount := k.GetFractionalBalance(ctx, addr)
+	fractionalAmount := k.GetFractionalBalance(sdkCtx, addr)
 
 	// Spendable = (Integer * ConversionFactor) + Fractional
 	fullAmount := integerCoin.Amount.

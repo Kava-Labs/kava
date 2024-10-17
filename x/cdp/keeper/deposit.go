@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"context"
+	storetypes "cosmossdk.io/store/types"
 	"fmt"
 
 	errorsmod "cosmossdk.io/errors"
@@ -12,8 +14,9 @@ import (
 
 // DepositCollateral adds collateral to a cdp
 func (k Keeper) DepositCollateral(ctx context.Context, owner, depositor sdk.AccAddress, collateral sdk.Coin, collateralType string) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	// check that collateral exists and has a functioning pricefeed
-	err := k.ValidateCollateral(ctx, collateral, collateralType)
+	err := k.ValidateCollateral(sdkCtx, collateral, collateralType)
 	if err != nil {
 		return err
 	}
@@ -21,11 +24,11 @@ func (k Keeper) DepositCollateral(ctx context.Context, owner, depositor sdk.AccA
 	if !found {
 		return errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, collateral %s", owner, collateralType)
 	}
-	err = k.ValidateBalance(ctx, collateral, depositor)
+	err = k.ValidateBalance(sdkCtx, collateral, depositor)
 	if err != nil {
 		return err
 	}
-	k.hooks.BeforeCDPModified(ctx, cdp)
+	k.hooks.BeforeCDPModified(sdkCtx, cdp)
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	deposit, found := k.GetDeposit(ctx, cdp.ID, depositor)
@@ -44,7 +47,7 @@ func (k Keeper) DepositCollateral(ctx context.Context, owner, depositor sdk.AccA
 	cdp.Collateral = cdp.Collateral.Add(collateral)
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 
-	ctx.EventManager().EmitEvent(
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpDeposit,
 			sdk.NewAttribute(sdk.AttributeKeyAmount, collateral.String()),
@@ -57,7 +60,8 @@ func (k Keeper) DepositCollateral(ctx context.Context, owner, depositor sdk.AccA
 
 // WithdrawCollateral removes collateral from a cdp if it does not put the cdp below the liquidation ratio
 func (k Keeper) WithdrawCollateral(ctx context.Context, owner, depositor sdk.AccAddress, collateral sdk.Coin, collateralType string) error {
-	err := k.ValidateCollateral(ctx, collateral, collateralType)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	err := k.ValidateCollateral(sdkCtx, collateral, collateralType)
 	if err != nil {
 		return err
 	}
@@ -72,10 +76,10 @@ func (k Keeper) WithdrawCollateral(ctx context.Context, owner, depositor sdk.Acc
 	if collateral.Amount.GT(deposit.Amount.Amount) {
 		return errorsmod.Wrapf(types.ErrInvalidWithdrawAmount, "collateral %s, deposit %s", collateral, deposit.Amount)
 	}
-	k.hooks.BeforeCDPModified(ctx, cdp)
+	k.hooks.BeforeCDPModified(sdkCtx, cdp)
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
-	collateralizationRatio, err := k.CalculateCollateralizationRatio(ctx, cdp.Collateral.Sub(collateral), cdp.Type, cdp.Principal, cdp.AccumulatedFees, spot)
+	collateralizationRatio, err := k.CalculateCollateralizationRatio(sdkCtx, cdp.Collateral.Sub(collateral), cdp.Type, cdp.Principal, cdp.AccumulatedFees, spot)
 	if err != nil {
 		return err
 	}
@@ -90,7 +94,7 @@ func (k Keeper) WithdrawCollateral(ctx context.Context, owner, depositor sdk.Acc
 	}
 
 	cdp.Collateral = cdp.Collateral.Sub(collateral)
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(sdkCtx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	err = k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 	if err != nil {
 		return err
@@ -104,7 +108,7 @@ func (k Keeper) WithdrawCollateral(ctx context.Context, owner, depositor sdk.Acc
 		k.SetDeposit(ctx, deposit)
 	}
 
-	ctx.EventManager().EmitEvent(
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpWithdrawal,
 			sdk.NewAttribute(sdk.AttributeKeyAmount, collateral.String()),
@@ -117,7 +121,8 @@ func (k Keeper) WithdrawCollateral(ctx context.Context, owner, depositor sdk.Acc
 
 // GetDeposit returns the deposit of a depositor on a particular cdp from the store
 func (k Keeper) GetDeposit(ctx context.Context, cdpID uint64, depositor sdk.AccAddress) (deposit types.Deposit, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.DepositKeyPrefix)
 	bz := store.Get(types.DepositKey(cdpID, depositor))
 	if bz == nil {
 		return deposit, false
@@ -128,7 +133,8 @@ func (k Keeper) GetDeposit(ctx context.Context, cdpID uint64, depositor sdk.AccA
 
 // SetDeposit sets the deposit in the store
 func (k Keeper) SetDeposit(ctx context.Context, deposit types.Deposit) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.DepositKeyPrefix)
 	bz := k.cdc.MustMarshal(&deposit)
 
 	store.Set(types.DepositKey(deposit.CdpID, deposit.Depositor), bz)
@@ -136,14 +142,16 @@ func (k Keeper) SetDeposit(ctx context.Context, deposit types.Deposit) {
 
 // DeleteDeposit deletes a deposit from the store
 func (k Keeper) DeleteDeposit(ctx context.Context, cdpID uint64, depositor sdk.AccAddress) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.DepositKeyPrefix)
 	store.Delete(types.DepositKey(cdpID, depositor))
 }
 
 // IterateDeposits iterates over the all the deposits of a cdp and performs a callback function
 func (k Keeper) IterateDeposits(ctx context.Context, cdpID uint64, cb func(deposit types.Deposit) (stop bool)) {
-	store := prefix.NewStore(ctx.KVStore(k.key), types.DepositKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, types.GetCdpIDBytes(cdpID))
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.DepositKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, types.GetCdpIDBytes(cdpID))
 
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {

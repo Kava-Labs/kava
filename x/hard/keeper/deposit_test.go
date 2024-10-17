@@ -113,7 +113,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 				},
 				[]sdk.AccAddress{tc.args.depositor},
 			)
-			loanToValue, _ := sdk.NewDecFromStr("0.6")
+			loanToValue, _ := sdkmath.LegacyNewDecFromStr("0.6")
 			hardGS := types.NewGenesisState(types.NewParams(
 				types.MoneyMarkets{
 					types.NewMoneyMarket("usdx", types.NewBorrowLimit(false, sdkmath.LegacyNewDec(1000000000000000), loanToValue), "usdx:usd", sdkmath.NewInt(1000000), types.NewInterestRateModel(sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyMustNewDecFromStr("2"), sdkmath.LegacyMustNewDecFromStr("0.8"), sdkmath.LegacyMustNewDecFromStr("10")), sdkmath.LegacyMustNewDecFromStr("0.05"), sdkmath.LegacyZeroDec()),
@@ -270,7 +270,7 @@ func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
 			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
-			loanToValue, _ := sdk.NewDecFromStr("0.6")
+			loanToValue, _ := sdkmath.LegacyNewDecFromStr("0.6")
 			depositor := sdk.AccAddress(crypto.AddressHash([]byte("test")))
 			authGS := app.NewFundedGenStateWithCoins(
 				tApp.AppCodec(),

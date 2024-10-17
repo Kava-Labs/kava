@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 	"sort"
 
 	errorsmod "cosmossdk.io/errors"
@@ -261,7 +262,7 @@ func GrpcFilterCDPs(ctx sdk.Context, k Keeper, req types.QueryCdpsRequest) (type
 	ratio := sdkmath.LegacyZeroDec()
 
 	if req.Ratio != "" {
-		ratio, err = sdk.NewDecFromStr(req.Ratio)
+		ratio, err = sdkmath.LegacyNewDecFromStr(req.Ratio)
 		if err != nil {
 			if err != nil {
 				return nil, status.Errorf(codes.InvalidArgument, "invalid ratio")

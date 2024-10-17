@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 	"math"
 
@@ -16,14 +17,15 @@ var scalingFactor = 1e18
 // AccumulateInterest calculates the new interest that has accrued for the input collateral type based on the total amount of principal
 // that has been created with that collateral type and the amount of time that has passed since interest was last accumulated
 func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, ctype)
 	if !found {
-		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
+		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
 	}
 
 	timeElapsed := int64(math.RoundToEven(
-		ctx.BlockTime().Sub(previousAccrualTime).Seconds(),
+		sdkCtx.BlockTime().Sub(previousAccrualTime).Seconds(),
 	))
 	if timeElapsed == 0 {
 		return nil
@@ -31,7 +33,7 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 
 	totalPrincipalPrior := k.GetTotalPrincipal(ctx, ctype, types.DefaultStableDenom)
 	if totalPrincipalPrior.IsZero() || totalPrincipalPrior.IsNegative() {
-		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
+		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
 	}
 
@@ -39,13 +41,13 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 	if !foundInterestFactorPrior {
 		k.SetInterestFactor(ctx, ctype, sdkmath.LegacyOneDec())
 		// set previous accrual time exit early because interest accumulated will be zero
-		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
+		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
 	}
 
 	borrowRateSpy := k.getFeeRate(ctx, ctype)
 	if borrowRateSpy.Equal(sdkmath.LegacyOneDec()) {
-		k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
+		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
 	}
 	interestFactor := CalculateInterestFactor(borrowRateSpy, sdkmath.NewInt(timeElapsed))
@@ -54,7 +56,7 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 		// in the case accumulated interest rounds to zero, exit early without updating accrual time
 		return nil
 	}
-	err := k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(ctx), sdk.NewCoin(types.DefaultStableDenom, interestAccumulated))
+	err := k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(sdkCtx), sdk.NewCoin(types.DefaultStableDenom, interestAccumulated))
 	if err != nil {
 		return err
 	}
@@ -79,7 +81,7 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 
 	k.SetTotalPrincipal(ctx, ctype, types.DefaultStableDenom, totalPrincipalNew)
 	k.SetInterestFactor(ctx, ctype, interestFactorNew)
-	k.SetPreviousAccrualTime(ctx, ctype, ctx.BlockTime())
+	k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 
 	return nil
 }
@@ -88,7 +90,7 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 // which is equal to: (per-second interest rate ** number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
 func CalculateInterestFactor(perSecondInterestRate sdkmath.LegacyDec, secondsElapsed sdkmath.Int) sdkmath.LegacyDec {
-	scalingFactorUint := sdk.NewUint(uint64(scalingFactor))
+	scalingFactorUint := sdkmath.NewUint(uint64(scalingFactor))
 	scalingFactorInt := sdkmath.NewInt(int64(scalingFactor))
 
 	// Convert per-second interest rate to a uint scaled by 1e18
@@ -101,18 +103,19 @@ func CalculateInterestFactor(perSecondInterestRate sdkmath.LegacyDec, secondsEla
 	interestFactorMantissa := sdkmath.RelativePow(interestMantissa, secondsElapsedUint, scalingFactorUint)
 
 	// Convert interest factor to an unscaled sdkmath.LegacyDec
-	return sdk.NewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
+	return sdkmath.LegacyNewDecFromBigInt(interestFactorMantissa.BigInt()).QuoInt(scalingFactorInt)
 }
 
 // SynchronizeInterest updates the input cdp object to reflect the current accumulated interest, updates the cdp state in the store,
 // and returns the updated cdp object
 func (k Keeper) SynchronizeInterest(ctx context.Context, cdp types.CDP) types.CDP {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	globalInterestFactor, found := k.GetInterestFactor(ctx, cdp.Type)
 	if !found {
 		k.SetInterestFactor(ctx, cdp.Type, sdkmath.LegacyOneDec())
 		cdp.InterestFactor = sdkmath.LegacyOneDec()
-		cdp.FeesUpdated = ctx.BlockTime()
-		if err := k.SetCDP(ctx, cdp); err != nil {
+		cdp.FeesUpdated = sdkCtx.BlockTime()
+		if err := k.SetCDP(sdkCtx, cdp); err != nil {
 			panic(err)
 		}
 		return cdp
@@ -131,7 +134,7 @@ func (k Keeper) SynchronizeInterest(ctx context.Context, cdp types.CDP) types.CD
 		}
 		// if apy is zero, we need to update FeesUpdated
 		cdp.FeesUpdated = prevAccrualTime
-		if err := k.SetCDP(ctx, cdp); err != nil {
+		if err := k.SetCDP(sdkCtx, cdp); err != nil {
 			panic(err)
 		}
 	}
@@ -139,7 +142,7 @@ func (k Keeper) SynchronizeInterest(ctx context.Context, cdp types.CDP) types.CD
 	cdp.AccumulatedFees = cdp.AccumulatedFees.Add(accumulatedInterest)
 	cdp.FeesUpdated = prevAccrualTime
 	cdp.InterestFactor = globalInterestFactor
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(sdkCtx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	if err := k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio); err != nil {
 		panic(err)
 	}
@@ -163,10 +166,11 @@ func (k Keeper) CalculateNewInterest(ctx context.Context, cdp types.CDP) sdk.Coi
 
 // SynchronizeInterestForRiskyCDPs synchronizes the interest for the slice of cdps with the lowest collateral:debt ratio
 func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio sdkmath.LegacyDec, cp types.CollateralParam) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	debtParam := k.GetParams(ctx).DebtParam
 
-	cdpStore := prefix.NewStore(ctx.KVStore(k.key), types.CdpKeyPrefix)
-	collateralRatioStore := prefix.NewStore(ctx.KVStore(k.key), types.CollateralRatioIndexPrefix)
+	cdpStore := prefix.NewStore(sdkCtx.KVStore(k.key), types.CdpKeyPrefix)
+	collateralRatioStore := prefix.NewStore(sdkCtx.KVStore(k.key), types.CollateralRatioIndexPrefix)
 
 	cdpIDs := make([]uint64, 0, cp.CheckCollateralizationIndexCount.Int64())
 
@@ -207,7 +211,7 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio
 		//
 		// HOOK
 		//
-		k.hooks.BeforeCDPModified(ctx, cdp)
+		k.hooks.BeforeCDPModified(sdkCtx, cdp)
 
 		//
 		// CALC INTEREST
@@ -260,12 +264,12 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio
 }
 
 func calculateCollateralRatio(debtParam types.DebtParam, collateralParam types.CollateralParam, cdp types.CDP) sdkmath.LegacyDec {
-	debtTotal := sdkmath.LegacyNewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdk.OneInt(), debtParam.ConversionFactor.Int64()))
+	debtTotal := sdkmath.LegacyNewDecFromInt(cdp.GetTotalPrincipal().Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdkmath.OneInt(), debtParam.ConversionFactor.Int64()))
 
 	if debtTotal.IsZero() || debtTotal.GTE(types.MaxSortableDec) {
-		return types.MaxSortableDec.Sub(sdk.SmallestDec())
+		return types.MaxSortableDec.Sub(sdkmath.LegacySmallestDec())
 	} else {
-		collateralBaseUnits := sdkmath.LegacyNewDecFromInt(cdp.Collateral.Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdk.OneInt(), collateralParam.ConversionFactor.Int64()))
+		collateralBaseUnits := sdkmath.LegacyNewDecFromInt(cdp.Collateral.Amount).Mul(sdkmath.LegacyNewDecFromIntWithPrec(sdkmath.OneInt(), collateralParam.ConversionFactor.Int64()))
 		return collateralBaseUnits.Quo(debtTotal)
 	}
 }

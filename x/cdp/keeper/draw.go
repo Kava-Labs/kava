@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	sdkmath "cosmossdk.io/math"
 	"fmt"
 
@@ -72,32 +73,33 @@ func (k Keeper) AddPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralTy
 
 // RepayPrincipal removes debt from the cdp
 // If all debt is repaid, the collateral is returned to depositors and the cdp is removed from the store
-func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateralType string, payment sdk.Coin) error {
+func (k Keeper) RepayPrincipal(ctx context.Context, owner sdk.AccAddress, collateralType string, payment sdk.Coin) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	// validation
 	cdp, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
 	if !found {
 		return errorsmod.Wrapf(types.ErrCdpNotFound, "owner %s, denom %s", owner, collateralType)
 	}
 
-	err := k.ValidatePaymentCoins(ctx, cdp, payment)
+	err := k.ValidatePaymentCoins(sdkCtx, cdp, payment)
 	if err != nil {
 		return err
 	}
 
-	err = k.ValidateBalance(ctx, payment, owner)
+	err = k.ValidateBalance(sdkCtx, payment, owner)
 	if err != nil {
 		return err
 	}
-	k.hooks.BeforeCDPModified(ctx, cdp)
+	k.hooks.BeforeCDPModified(sdkCtx, cdp)
 	cdp = k.SynchronizeInterest(ctx, cdp)
 
 	// Note: assumes cdp.Principal and cdp.AccumulatedFees don't change during calculations
 	totalPrincipal := cdp.GetTotalPrincipal()
 
 	// calculate fee and principal payment
-	feePayment, principalPayment := k.calculatePayment(ctx, totalPrincipal, cdp.AccumulatedFees, payment)
+	feePayment, principalPayment := k.calculatePayment(sdkCtx, totalPrincipal, cdp.AccumulatedFees, payment)
 
-	err = k.validatePrincipalPayment(ctx, cdp, principalPayment)
+	err = k.validatePrincipalPayment(sdkCtx, cdp, principalPayment)
 	if err != nil {
 		return err
 	}
@@ -114,10 +116,10 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	}
 
 	// burn the corresponding amount of debt coins
-	cdpDebt := k.getModAccountDebt(ctx, types.ModuleName)
+	cdpDebt := k.getModAccountDebt(sdkCtx, types.ModuleName)
 	paymentAmount := feePayment.Add(principalPayment).Amount
 
-	debtDenom := k.GetDebtDenom(ctx)
+	debtDenom := k.GetDebtDenom(sdkCtx)
 	coinsToBurn := sdk.NewCoin(debtDenom, paymentAmount)
 
 	if paymentAmount.GT(cdpDebt) {
@@ -131,7 +133,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	}
 
 	// emit repayment event
-	ctx.EventManager().EmitEvent(
+	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeCdpRepay,
 			sdk.NewAttribute(sdk.AttributeKeyAmount, feePayment.Add(principalPayment).String()),
@@ -153,15 +155,15 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	// if the debt is fully paid, return collateral to depositors,
 	// and remove the cdp and indexes from the store
 	if cdp.Principal.IsZero() && cdp.AccumulatedFees.IsZero() {
-		k.ReturnCollateral(ctx, cdp)
-		k.RemoveCdpOwnerIndex(ctx, cdp)
+		k.ReturnCollateral(sdkCtx, cdp)
+		k.RemoveCdpOwnerIndex(sdkCtx, cdp)
 		err := k.DeleteCdpAndCollateralRatioIndex(ctx, cdp)
 		if err != nil {
 			return err
 		}
 
 		// emit cdp close event
-		ctx.EventManager().EmitEvent(
+		sdkCtx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypeCdpClose,
 				sdk.NewAttribute(types.AttributeKeyCdpID, fmt.Sprintf("%d", cdp.ID)),
@@ -171,7 +173,7 @@ func (k Keeper) RepayPrincipal(ctx sdk.Context, owner sdk.AccAddress, collateral
 	}
 
 	// set cdp state and update indexes
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(sdkCtx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 	return k.UpdateCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
 }
 

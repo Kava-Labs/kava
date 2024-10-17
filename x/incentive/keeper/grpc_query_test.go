@@ -50,7 +50,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 
 	suite.queryClient = types.NewQueryClient(queryHelper)
 
-	loanToValue, _ := sdk.NewDecFromStr("0.6")
+	loanToValue, _ := sdkmath.LegacyNewDecFromStr("0.6")
 	borrowLimit := sdkmath.LegacyNewDec(1000000000000000)
 	hardGS := hardtypes.NewGenesisState(
 		hardtypes.NewParams(

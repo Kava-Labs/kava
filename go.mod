@@ -15,7 +15,7 @@ require (
 	cosmossdk.io/x/tx v0.13.5
 	cosmossdk.io/x/upgrade v0.1.4
 	github.com/Kava-Labs/opendb v0.0.0-20240719173129-a2f11f6d7e51
-	github.com/cenkalti/backoff/v4 v4.1.3
+	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/cometbft/cometbft v1.0.0-rc1.0.20240908111210-ab0be101882f
 	github.com/cometbft/cometbft-db v0.11.0
 	github.com/cosmos/cosmos-db v1.0.2
@@ -268,7 +268,10 @@ replace (
 	// Tracking kava-labs/etheremint master branch
 	// TODO: Tag before release
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240802224012-586960857184
-	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241016164224-570d73868d76
+	// first PR
+	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241017145243-770ae9c06817
+	// second PR
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241017164116-201b6699fad7
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors

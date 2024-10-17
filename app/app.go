@@ -585,19 +585,6 @@ func NewApp(
 		app.accountKeeper,
 	)
 
-	//NewEVMWrapper := func(
-	//	blockCtx vm.BlockContext,
-	//	txCtx vm.TxContext,
-	//	stateDB vm.StateDB,
-	//	chainConfig *goparams.ChainConfig,
-	//	config vm.Config,
-	//	_ ethermintvm.PrecompiledContracts, // unused
-	//) ethermintvm.EVM {
-	//	return vm.NewEVM(blockCtx, txCtx, stateDB, chainConfig, config)
-	//}
-
-	//Cannot use 'NewEVMWrapper' (type
-	//func(blockCtx vm.BlockContext, txCtx vm.TxContext, stateDB vm.StateDB, chainConfig *goparams.ChainConfig, config vm.Config, customPrecompiles ethermintvm.PrecompiledContracts) *vm.EVM) as the type evm.Constructor
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec,
 		keys[evmtypes.StoreKey],
@@ -607,7 +594,6 @@ func NewApp(
 		app.precisebankKeeper, // x/precisebank in place of x/bank
 		app.stakingKeeper,
 		app.feeMarketKeeper,
-		nil, // no custom precompiles
 		vm.NewEVM,
 		options.EVMTrace,
 		evmSubspace,

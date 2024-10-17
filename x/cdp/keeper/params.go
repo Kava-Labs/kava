@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
@@ -12,13 +13,15 @@ import (
 // GetParams returns the params from the store
 func (k Keeper) GetParams(ctx context.Context) types.Params {
 	var p types.Params
-	k.paramSubspace.GetParamSetIfExists(ctx, &p)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	k.paramSubspace.GetParamSetIfExists(sdkCtx, &p)
 	return p
 }
 
 // SetParams sets params on the store
 func (k Keeper) SetParams(ctx context.Context, params types.Params) {
-	k.paramSubspace.SetParamSet(ctx, &params)
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	k.paramSubspace.SetParamSet(sdkCtx, &params)
 }
 
 // GetCollateral returns the collateral param with corresponding denom
