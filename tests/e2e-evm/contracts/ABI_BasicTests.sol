@@ -18,12 +18,67 @@ contract Caller {
 
             // solhint-disable-next-line no-inline-assembly
             assembly {
+                // Bubble up errors: revert(pointer, length of revert reason)
+                // - result is a dynamic array, so the first 32 bytes is the
+                //   length of the array.
+                // - add(32, result) skips the length of the array and points to
+                //   the start of the data.
+                // - mload(result) reads 32 bytes from the memory location,
+                //   which is the length of the revert reason.
                 revert(add(32, result), mload(result))
             }
         }
     }
 
-    // TODO: Callcode
+    function functionCallCode(address to, bytes calldata data) external payable {
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            // Copy the calldata to memory, as callcode uses memory pointers.
+            // offset is where the actual data starts in the calldata. Copy the
+            // data to memory starting at 0.
+            // Note: We are taking full control of memory as we do not return
+            // to high-level Solidity code. This would be not memory safe as it
+            // may exceed the scratch space in the first 64 bytes from 0.
+            // This should be safe to still do, similar to the OpenZeppelin
+            // proxy contract, overwriting the full memory scratch pad at
+            // target 0 AND never returning to high-level Solidity code.
+            calldatacopy(0, data.offset, data.length)
+
+            // callcode(g, a, v, in, insize, out, outsize)
+            // returns 0 on error (eg. out of gas) and 1 on success
+            let result := callcode(
+                gas(), // gas
+                to, // to address
+                callvalue(), // value
+                0, // in - pointer to start of input, 0 since we copied the data to 0
+                data.length, // insize - size of the input
+                0, // out
+                0 // outsize - 0 since we don't know the size of the output
+            )
+
+            // Copy the returned data to memory.
+            // returndatacopy(t, f, s)
+            // - t: target location in memory
+            // - f: source location in return data
+            // - s: size
+            // Note: Same memory safety notes as above with calldatacopy()
+            returndatacopy(0, 0, returndatasize())
+
+            switch result
+            // 0 on error
+            case 0 {
+                revert(0, returndatasize())
+            }
+            // 1 on success
+            case 1 {
+                return(0, returndatasize())
+            }
+            // Invalid result
+            default {
+                revert(0, 0)
+            }
+        }
+    }
 
     function functionDelegateCall(address to, bytes calldata data) external {
         // solhint-disable-next-line avoid-low-level-calls
