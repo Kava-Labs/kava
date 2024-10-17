@@ -152,8 +152,8 @@ describe("CallCode", () => {
         }),
         // msg.sender is the caller contract
         wantSender: (ctx) => ctx.lowLevelCaller.address,
-        // msg.value is not preserved via callcode
-        wantValue: 0n,
+        // msg.value is still 100 since the value is passed to callcode()
+        wantValue: 100n,
       },
       {
         name: "callcode with storage",
@@ -195,7 +195,7 @@ describe("CallCode", () => {
         const res = await publicClient.call(txData);
 
         // Check the return value for the msg.sender and msg.value if applicable
-        if (tc.wantSender && tc.wantValue) {
+        if (tc.wantSender) {
           if (!res.data) {
             // Fail this way as a type guard to ensure res.data is not undefined
             expect.fail("no data returned");
@@ -213,6 +213,8 @@ describe("CallCode", () => {
           // getAddress to ensure both are checksum encoded
           expect(getAddress(returnAddress)).to.equal(getAddress(expectedSender), "unexpected msg.sender");
           expect(returnValue).to.equal(tc.wantValue, "unexpected msg.value");
+        } else {
+          expect(res.data).to.be.undefined;
         }
 
         const txHash = await walletClient.sendTransaction(txData);
@@ -235,6 +237,7 @@ describe("CallCode", () => {
           expect(storageValue).to.equal(expectedStorage, "unexpected storage value");
         }
 
+        // Verify balance with the added value
         const balance = await publicClient.getBalance({ address: txData.to });
         const expectedBalance = startingBalance + (txData.value ?? 0n);
         expect(balance).to.equal(expectedBalance, "unexpected balance");
