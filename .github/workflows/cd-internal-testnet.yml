@@ -1,60 +1,45 @@
 name: Continuous Deployment (Internal Testnet)
-# run after every successful CI job of new commits to the master branch
-# if deploy version or config has changed
+
+## run after every successful CI job of new commits to the master branch, or on manual dispatch
 on:
   workflow_run:
     workflows: [Continuous Integration (Kava Master)]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
+  # when not manually dispatched, we only want merges to master that change the relevant files
+  # to trigger the network reset
   changed_files:
     runs-on: ubuntu-latest
-    # define output for first job forwarding output of changedInternalTestnetConfig job
     outputs:
-        changedInternalTestnetConfig: ${{ steps.changed-internal-testnet-config.outputs.any_changed }}
+      changedInternalTestnetConfig: ${{ steps.changed-internal-testnet-config.outputs.any_changed }}
     steps:
-        - uses: actions/checkout@v4
-          with:
-            fetch-depth: 0 # OR "2" -> To retrieve the preceding commit.
-        - name: Get all changed internal testnet files
-          id: changed-internal-testnet-config
-          uses: tj-actions/changed-files@v42
-          with:
-            # Avoid using single or double quotes for multiline patterns
-            files: |
-              ci/env/kava-internal-testnet/**
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # OR "2" -> To retrieve the preceding commit.
+      - name: Get all changed internal testnet files
+        id: changed-internal-testnet-config
+        uses: tj-actions/changed-files@v42
+        with:
+          # Avoid using single or double quotes for multiline patterns
+          files: |
+            ci/env/kava-internal-testnet/**
 
-  # in order:
-  # enter standby (prevents autoscaling group from killing node during deploy)
-  # stop kava
-  # take ebs + zfs snapshots
-  # download updated binary and genesis
-  # reset application database state (only done on internal testnet)
-  reset-chain-to-zero-state:
+  reset-and-restart-chain:
+    # only start cd pipeline if last ci run was successful (or it this is being manually dispatched)
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && needs.changed_files.outputs.changedInternalTestnetConfig == 'true')
+    uses: ./.github/workflows/cd-reset-network.yml
+    with:
+      aws-region: us-east-1
+      chain-id: kava_2221-17000
+      ssm-document-name: kava-internal-testnet-instance-update
+      playbook-infrastructure-branch: master
+    secrets: inherit
     needs: [changed_files]
-    # only start cd pipeline if last ci run was successful
-    if: ${{ github.event.workflow_run.conclusion == 'success' && needs.changed_files.outputs.changedInternalTestnetConfig == 'true' }}
-    uses: ./.github/workflows/cd-reset-internal-testnet.yml
-    with:
-      aws-region: us-east-1
-      chain-id: kava_2221-17000
-      ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: reset-internal-testnet-playbook.yml
-      playbook-infrastructure-branch: master
-    secrets: inherit
-
-  # start kava with new binary and genesis state on api, peer and seed nodes, place nodes in service once they start and are synched to live
-  start-chain-api:
-    uses: ./.github/workflows/cd-start-chain.yml
-    with:
-      aws-region: us-east-1
-      chain-id: kava_2221-17000
-      ssm-document-name: kava-testnet-internal-node-update
-      playbook-name: start-chain-api-playbook.yml
-      playbook-infrastructure-branch: master
-    secrets: inherit
-    needs: [reset-chain-to-zero-state]
 
   # setup test and development accounts and balances, deploy contracts by calling the chain's api
   seed-chain-state:
@@ -65,9 +50,10 @@ jobs:
       seed-script-filename: seed-internal-testnet.sh
       erc20-deployer-network-name: internal_testnet
       genesis_validator_addresses: "kavavaloper1xcgtffvv2yeqmgs3yz4gv29kgjrj8usxrnrlwp kavavaloper1w66m9hdzwgd6uc8g93zqkcumgwzrpcw958sh3s"
-      kava_version_filepath:  ./ci/env/kava-internal-testnet/KAVA.VERSION
+      kava_version_filepath: ./ci/env/kava-internal-testnet/KAVA.VERSION
     secrets: inherit
-    needs: [start-chain-api]
+    needs: [reset-and-restart-chain]
+
   post-pipeline-metrics:
     uses: ./.github/workflows/metric-pipeline.yml
     if: always() # always run so we metric failures and successes
