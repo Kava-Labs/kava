@@ -44,9 +44,7 @@ func (suite *Suite) SetupTest(numAddrs int) {
 		sdk.NewCoin("token2", sdkmath.NewInt(100)),
 	)
 
-	ctx := tApp.NewContext(true)
-	ctx.WithBlockHeight(1)
-	ctx.WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 
 	modName := "liquidator"
 	modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(modName), nil, 0, 0)

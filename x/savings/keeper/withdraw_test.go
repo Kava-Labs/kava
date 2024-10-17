@@ -141,7 +141,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 			authGS := app.NewFundedGenStateWithCoins(
 				tApp.AppCodec(),
 				[]sdk.Coins{tc.args.initialDepositorBalance},

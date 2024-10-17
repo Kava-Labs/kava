@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -17,7 +16,7 @@ import (
 func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, keeper keeper.Keeper)) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmprototypes.Header{}).
+	ctx := tApp.NewContext(true).
 		WithBlockTime(time.Now().UTC())
 	keeper := tApp.GetPriceFeedKeeper()
 
@@ -170,7 +169,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper keeper.Keeper)) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmprototypes.Header{}).
+	ctx := tApp.NewContext(true).
 		WithBlockTime(time.Now().UTC())
 	keeper := tApp.GetPriceFeedKeeper()
 

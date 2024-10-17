@@ -186,7 +186,7 @@ func TestFractionalDenomNotInBankInvariant(t *testing.T) {
 			func(ctx sdk.Context, bk *mocks.MockBankKeeper) {
 				bk.EXPECT().
 					GetSupply(ctx, types.ExtendedCoinDenom).
-					Return(sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000))).
+					Return(sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(1000))).
 					Once()
 			},
 			true,

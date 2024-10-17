@@ -36,9 +36,7 @@ type Suite struct {
 // SetupTest instantiates a new app, keepers, and sets suite state
 func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true)
-	ctx.WithBlockTime(tmtime.Now())
-	ctx.WithBlockHeight(1)
+	ctx := tApp.NewContext(true).WithBlockTime(tmtime.Now()).WithBlockHeight(1)
 
 	suite.Ctx = ctx
 	suite.App = tApp

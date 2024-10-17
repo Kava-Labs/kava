@@ -24,18 +24,18 @@ func TestKeeper_GetBalance(t *testing.T) {
 			"extended denom - no fractional balance",
 			types.ExtendedCoinDenom,
 			// queried bank balance in ukava when querying for akava
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
 			// integer + fractional
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_000_000_000_000)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(1000_000_000_000_000)),
 		},
 		{
 			"extended denom - with fractional balance",
 			types.ExtendedCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.NewInt(100),
 			// integer + fractional
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_000_000_000_100)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(1000_000_000_000_100)),
 		},
 		{
 			"extended denom - only fractional balance",
@@ -43,43 +43,43 @@ func TestKeeper_GetBalance(t *testing.T) {
 			// no coins in bank, only fractional balance
 			sdk.NewCoins(),
 			sdkmath.NewInt(100),
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(100)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(100)),
 		},
 		{
 			"extended denom - max fractional balance",
 			types.ExtendedCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			types.ConversionFactor().SubRaw(1),
 			// integer + fractional
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_999_999_999_999)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(1000_999_999_999_999)),
 		},
 		{
 			"non-extended denom - ukava returns ukava",
 			types.IntegerCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
-			sdk.NewCoin("ukava", sdk.NewInt(1000)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1000)),
 		},
 		{
 			"non-extended denom - unaffected by fractional balance",
 			"ukava",
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000))),
 			sdkmath.NewInt(100),
-			sdk.NewCoin("ukava", sdk.NewInt(1000)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1000)),
 		},
 		{
 			"unrelated denom - no fractional",
 			"busd",
-			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin("busd", sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
-			sdk.NewCoin("busd", sdk.NewInt(1000)),
+			sdk.NewCoin("busd", sdkmath.NewInt(1000)),
 		},
 		{
 			"unrelated denom - unaffected by fractional balance",
 			"busd",
-			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin("busd", sdkmath.NewInt(1000))),
 			sdkmath.NewInt(100),
-			sdk.NewCoin("busd", sdk.NewInt(1000)),
+			sdk.NewCoin("busd", sdkmath.NewInt(1000)),
 		},
 	}
 
@@ -139,18 +139,18 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			"extended denom - no fractional balance",
 			types.ExtendedCoinDenom,
 			// queried bank balance in ukava when querying for akava
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
 			// integer + fractional
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_000_000_000_000)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(1000_000_000_000_000)),
 		},
 		{
 			"extended denom - with fractional balance",
 			types.ExtendedCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.NewInt(100),
 			// integer + fractional
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_000_000_000_100)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(1000_000_000_000_100)),
 		},
 		{
 			"extended denom - only fractional balance",
@@ -158,43 +158,43 @@ func TestKeeper_SpendableCoin(t *testing.T) {
 			// no coins in bank, only fractional balance
 			sdk.NewCoins(),
 			sdkmath.NewInt(100),
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(100)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(100)),
 		},
 		{
 			"extended denom - max fractional balance",
 			types.ExtendedCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			types.ConversionFactor().SubRaw(1),
 			// integer + fractional
-			sdk.NewCoin(types.ExtendedCoinDenom, sdk.NewInt(1000_999_999_999_999)),
+			sdk.NewCoin(types.ExtendedCoinDenom, sdkmath.NewInt(1000_999_999_999_999)),
 		},
 		{
 			"non-extended denom - ukava returns ukava",
 			types.IntegerCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
-			sdk.NewCoin("ukava", sdk.NewInt(1000)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1000)),
 		},
 		{
 			"non-extended denom - unaffected by fractional balance",
 			"ukava",
-			sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000))),
 			sdkmath.NewInt(100),
-			sdk.NewCoin("ukava", sdk.NewInt(1000)),
+			sdk.NewCoin("ukava", sdkmath.NewInt(1000)),
 		},
 		{
 			"unrelated denom - no fractional",
 			"busd",
-			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin("busd", sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
-			sdk.NewCoin("busd", sdk.NewInt(1000)),
+			sdk.NewCoin("busd", sdkmath.NewInt(1000)),
 		},
 		{
 			"unrelated denom - unaffected by fractional balance",
 			"busd",
-			sdk.NewCoins(sdk.NewCoin("busd", sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin("busd", sdkmath.NewInt(1000))),
 			sdkmath.NewInt(100),
-			sdk.NewCoin("busd", sdk.NewInt(1000)),
+			sdk.NewCoin("busd", sdkmath.NewInt(1000)),
 		},
 	}
 

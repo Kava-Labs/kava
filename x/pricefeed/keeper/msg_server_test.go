@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
@@ -15,7 +14,7 @@ import (
 func TestKeeper_PostPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmprototypes.Header{}).
+	ctx := tApp.NewContext(true).
 		WithBlockTime(time.Now().UTC())
 	k := tApp.GetPriceFeedKeeper()
 	msgSrv := keeper.NewMsgServerImpl(k)

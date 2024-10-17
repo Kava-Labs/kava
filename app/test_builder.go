@@ -106,6 +106,11 @@ func newPeriodicVestingAccount(address sdk.AccAddress, periods vestingtypes.Peri
 	}
 	endTime := firstPeriodStartTimestamp + totalPeriods
 
-	baseVestingAccount := vestingtypes.NewBaseVestingAccount(baseAccount, originalVesting, endTime)
+	baseVestingAccount, err := vestingtypes.NewBaseVestingAccount(baseAccount, originalVesting, endTime)
+	if err != nil {
+		// TODO(boodyvo): should return err?
+		panic(err)
+	}
+
 	return vestingtypes.NewPeriodicVestingAccountRaw(baseVestingAccount, firstPeriodStartTimestamp, periods)
 }

@@ -134,7 +134,7 @@ func TestBurnCoins_Errors(t *testing.T) {
 			},
 			sdk.Coins{sdk.Coin{
 				Denom:  "ukava",
-				Amount: sdk.NewInt(-1000),
+				Amount: sdkmath.NewInt(-1000),
 			}},
 			"-1000ukava: invalid coins",
 		},

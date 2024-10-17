@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -27,7 +26,7 @@ type InterestTestSuite struct {
 
 func (suite *InterestTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 	cdc := tApp.AppCodec()
 	tApp.InitializeFromGenesisStates(
 		NewPricefeedGenStateMulti(cdc),
@@ -720,12 +719,12 @@ func (suite *InterestTestSuite) TestSyncInterestForRiskyCDPs() {
 				if cp.Type == tc.args.ctype {
 					ctype = cp
 
-					cp.CheckCollateralizationIndexCount = sdk.NewInt(int64(tc.args.slice))
+					cp.CheckCollateralizationIndexCount = sdkmath.NewInt(int64(tc.args.slice))
 					break
 				}
 			}
 
-			err = suite.keeper.SynchronizeInterestForRiskyCDPs(suite.ctx, sdk.MaxSortableDec, ctype)
+			err = suite.keeper.SynchronizeInterestForRiskyCDPs(suite.ctx, sdkmath.LegacyMaxSortableDec, ctype)
 			suite.Require().NoError(err)
 
 			cdpsUpdatedCount := 0

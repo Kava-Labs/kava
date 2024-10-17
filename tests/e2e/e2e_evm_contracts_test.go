@@ -103,15 +103,15 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 		Denom:   "ukava",
 	})
 	suite.NoError(err)
-	suite.Equal(sdk.NewInt(1e3), balRes.Balance.Amount)
+	suite.Equal(sdkmath.NewInt(1e3), balRes.Balance.Amount)
 }
 
 // Note that this test works because the deployed erc20 is configured in evmutil & cdp params.
 // This test matches the webapp's "USDT Earn" workflow
 func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToLend() {
 	// cdp requires minimum of $11 collateral
-	amount := sdk.NewInt(11e6) // 11 USDT
-	principal := sdk.NewCoin("usdx", sdk.NewInt(10e6))
+	amount := sdkmath.NewInt(11e6) // 11 USDT
+	principal := sdk.NewCoin("usdx", sdkmath.NewInt(10e6))
 	sdkDenom := suite.DeployedErc20.CosmosDenom
 
 	// create new funded account

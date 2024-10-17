@@ -11,10 +11,10 @@ import (
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	tmdb "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
+	tmdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -105,6 +105,9 @@ func NewTestAppFromSealed() TestApp {
 		log.NewNopLogger(), db, DefaultNodeHome, nil,
 		encCfg, DefaultOptions, baseapp.SetChainID(TestChainId),
 	)
+
+	fmt.Println("NewTestAppFromSealed returned app")
+
 	return TestApp{App: *app}
 }
 
@@ -162,6 +165,7 @@ func GenesisStateWithSingleValidator(
 	app *TestApp,
 	genesisState GenesisState,
 ) GenesisState {
+	fmt.Println("GenesisStateWithSingleValidator")
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	if err != nil {
@@ -212,7 +216,7 @@ func genesisStateWithValSet(
 	bondAmt := sdk.DefaultPowerReduction
 
 	for _, val := range valSet.Validators {
-		pk, err := cryptocodec.FromTmPubKeyInterface(val.PubKey)
+		pk, err := cryptocodec.FromCmtPubKeyInterface(val.PubKey)
 		if err != nil {
 			panic(fmt.Errorf("error converting validator public key: %w", err))
 		}
@@ -228,22 +232,28 @@ func genesisStateWithValSet(
 			Jailed:          false,
 			Status:          stakingtypes.Bonded,
 			Tokens:          bondAmt,
-			DelegatorShares: sdk.OneDec(),
+			DelegatorShares: sdkmath.LegacyOneDec(),
 			Description: stakingtypes.Description{
 				Moniker: "genesis validator",
 			},
 			UnbondingHeight:   int64(0),
 			UnbondingTime:     time.Unix(0, 0).UTC(),
-			Commission:        stakingtypes.NewCommission(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
-			MinSelfDelegation: sdk.ZeroInt(),
+			Commission:        stakingtypes.NewCommission(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
+			MinSelfDelegation: sdkmath.ZeroInt(),
 		}
 		validators = append(validators, validator)
-		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
+		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress().String(), val.Address.String(), sdkmath.LegacyOneDec()))
 
 	}
 	// set validators and delegations
 	currentStakingGenesis := stakingtypes.GetGenesisStateFromAppState(app.appCodec, genesisState)
 	currentStakingGenesis.Params.BondDenom = "ukava"
+
+	fmt.Println("currentStakingGenesis.Params", currentStakingGenesis.Params)
+	fmt.Println("currentStakingGenesis.Validators", currentStakingGenesis.Validators)
+	fmt.Println("currentStakingGenesis.Validators only validators", validators)
+	fmt.Println("currentStakingGenesis.Delegations", currentStakingGenesis.Delegations)
+	fmt.Println("currentStakingGenesis.Delegations only validators", delegations)
 
 	stakingGenesis := stakingtypes.NewGenesisState(
 		currentStakingGenesis.Params,
@@ -319,6 +329,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	genesisState := NewDefaultGenesisState()
 	modifiedStates := make(map[string]bool)
 
+	fmt.Println("initializing genesis states")
 	for _, state := range genesisStates {
 		for k, v := range state {
 			genesisState[k] = v
@@ -334,8 +345,11 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		}
 	}
 
+	fmt.Println("applying genesis states")
+
 	// Add default genesis states for at least 1 validator
 	if addValidator {
+		fmt.Println("adding default validator")
 		genesisState = GenesisStateWithSingleValidator(
 			&tApp,
 			genesisState,
@@ -347,8 +361,13 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("genesisState", string(stateBytes))
+
+	fmt.Println("initializing chain")
+
 	tApp.InitChain(
-		abci.RequestInitChain{
+		&abci.RequestInitChain{
 			Time:          genTime,
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
@@ -363,12 +382,10 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 			InitialHeight: initialHeight,
 		},
 	)
+	fmt.Println("chain initialized")
 	tApp.Commit()
-	tApp.BeginBlock(abci.RequestBeginBlock{
-		Header: tmproto.Header{
-			Height: tApp.LastBlockHeight() + 1, Time: genTime, ChainID: chainID,
-		},
-	})
+	ctx := tApp.NewContext(true).WithBlockTime(genTime).WithBlockHeight(tApp.LastBlockHeight() + 1).WithChainID(chainID)
+	tApp.BeginBlocker(ctx)
 
 	return tApp
 }
@@ -379,7 +396,8 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 // it must be deleted additional validators are created.
 func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	sk := tApp.GetStakingKeeper()
-	vals := sk.GetAllValidators(ctx)
+	vals, err := sk.GetAllValidators(ctx)
+	require.NoError(t, err)
 
 	var genVal stakingtypes.Validator
 	found := false
@@ -393,9 +411,10 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 
 	require.True(t, found, "genesis validator not found")
 
-	delegations := sk.GetValidatorDelegations(ctx, genVal.GetOperator())
+	delegations, err := sk.GetValidatorDelegations(ctx, []byte(genVal.GetOperator()))
+	require.NoError(t, err)
 	for _, delegation := range delegations {
-		_, err := sk.Undelegate(ctx, delegation.GetDelegatorAddr(), genVal.GetOperator(), delegation.Shares)
+		_, _, err := sk.Undelegate(ctx, []byte(delegation.GetDelegatorAddr()), []byte(genVal.GetOperator()), delegation.Shares)
 		require.NoError(t, err)
 	}
 }
@@ -459,12 +478,17 @@ func (tApp TestApp) FundModuleAccount(ctx sdk.Context, recipientMod string, amou
 // CreateNewUnbondedValidator creates a new validator in the staking module.
 // New validators are unbonded until the end blocker is run.
 func (tApp TestApp) CreateNewUnbondedValidator(ctx sdk.Context, valAddress sdk.ValAddress, selfDelegation sdkmath.Int) error {
+	bondDnom, err := tApp.stakingKeeper.BondDenom(ctx)
+	if err != nil {
+		return err
+	}
+
 	msg, err := stakingtypes.NewMsgCreateValidator(
-		valAddress,
+		valAddress.String(),
 		ed25519.GenPrivKey().PubKey(),
-		sdk.NewCoin(tApp.stakingKeeper.BondDenom(ctx), selfDelegation),
+		sdk.NewCoin(bondDnom, selfDelegation),
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1e6),
 	)
 	if err != nil {
@@ -480,8 +504,8 @@ func (tApp TestApp) SetInflation(ctx sdk.Context, value sdkmath.LegacyDec) {
 	mk := tApp.GetMintKeeper()
 
 	mintParams := mk.GetParams(ctx)
-	mintParams.InflationMax = sdk.ZeroDec()
-	mintParams.InflationMin = sdk.ZeroDec()
+	mintParams.InflationMax = sdkmath.LegacyZeroDec()
+	mintParams.InflationMin = sdkmath.LegacyZeroDec()
 
 	if err := mintParams.Validate(); err != nil {
 		panic(err)

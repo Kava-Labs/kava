@@ -34,7 +34,7 @@ func (suite *KeeperTestSuite) SetupTest() {
 
 func (suite *KeeperTestSuite) ResetChain() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 	keeper := tApp.GetBep3Keeper()
 
 	suite.app = tApp

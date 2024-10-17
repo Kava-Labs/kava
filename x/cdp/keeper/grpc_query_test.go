@@ -5,7 +5,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/kava-labs/kava/app"
@@ -31,8 +30,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 		NewPricefeedGenStateMulti(suite.tApp.AppCodec()),
 		NewCDPGenStateMulti(suite.tApp.AppCodec()),
 	)
-	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
-		WithBlockTime(time.Now().UTC())
+	suite.ctx = suite.tApp.NewContext(true).WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetCDPKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 

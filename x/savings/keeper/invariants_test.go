@@ -32,7 +32,7 @@ func (suite *invariantTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(1)
 	suite.addrs = addrs

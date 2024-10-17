@@ -51,7 +51,7 @@ func TestCollateralRatioKey(t *testing.T) {
 }
 
 func TestCollateralRatioKey_BigRatio(t *testing.T) {
-	bigRatio := sdkmath.LegacyOneDec().Quo(sdk.SmallestDec()).Mul(sdkmath.LegacyOneDec().Add(sdkmath.LegacyOneDec()))
+	bigRatio := sdkmath.LegacyOneDec().Quo(sdkmath.LegacySmallestDec()).Mul(sdkmath.LegacyOneDec().Add(sdkmath.LegacyOneDec()))
 	collateralKey := CollateralRatioKey("kava-a", 2, bigRatio)
 	collateralType, id, ratio := SplitCollateralRatioKey(collateralKey)
 	require.Equal(t, "kava-a", collateralType)

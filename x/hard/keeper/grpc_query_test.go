@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard/keeper"
@@ -28,7 +27,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 
 	suite.addrs = addrs
 
-	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
+	suite.ctx = suite.tApp.NewContext(true).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetHardKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper, suite.tApp.GetAccountKeeper(), suite.tApp.GetBankKeeper())

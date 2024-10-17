@@ -182,7 +182,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 			Type:                             USDCCDPType,
 			LiquidationRatio:                 sdk.MustNewDecFromStr("1.01"),
 			DebtLimit:                        sdk.NewInt64Coin("usdx", 500000000000),
-			StabilityFee:                     sdk.OneDec(),
+			StabilityFee:                     sdkmath.LegacyOneDec(),
 			AuctionSize:                      sdkmath.NewIntFromUint64(10000000000),
 			LiquidationPenalty:               sdk.MustNewDecFromStr("0.05"),
 			CheckCollateralizationIndexCount: sdkmath.NewInt(10),
@@ -211,7 +211,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 				JumpMultiplier: sdk.MustNewDecFromStr("10"),
 			},
 			ReserveFactor:          sdk.MustNewDecFromStr("0.05"),
-			KeeperRewardPercentage: sdk.ZeroDec(),
+			KeeperRewardPercentage: sdkmath.LegacyZeroDec(),
 		},
 	}
 
@@ -663,7 +663,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 				// validate user cosmos erc20/usd balance
 				bk := suite.tApp.GetBankKeeper()
 				amt := bk.GetBalance(suite.ctx, suite.testAddr, USDCCoinDenom)
-				suite.Require().Equal(sdk.ZeroInt(), amt.Amount)
+				suite.Require().Equal(sdkmath.ZeroInt(), amt.Amount)
 
 				// validate cdp
 				cdp, found := suite.tApp.GetCDPKeeper().GetCdpByOwnerAndCollateralType(suite.ctx, suite.testAddr, USDCCDPType)
@@ -781,7 +781,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 	// validate user cosmos erc20/usd balance
 	bk := suite.tApp.GetBankKeeper()
 	amt := bk.GetBalance(suite.ctx, suite.testAddr, USDCCoinDenom)
-	suite.Require().Equal(sdk.ZeroInt(), amt.Amount)
+	suite.Require().Equal(sdkmath.ZeroInt(), amt.Amount)
 
 	// validate erc20 balance
 	coinBal, err = suite.evmutilKeeper.QueryERC20BalanceOf(suite.ctx, suite.usdcEVMAddr, suite.testEVMAddr)

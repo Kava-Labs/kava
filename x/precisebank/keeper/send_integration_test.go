@@ -158,7 +158,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 			"invalid coins",
 			senderModuleName,
 			sdk.AccAddress([]byte{2}),
-			sdk.Coins{sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)}},
+			sdk.Coins{sdk.Coin{Denom: "ukava", Amount: sdkmath.NewInt(-1)}},
 			"-1ukava: invalid coins",
 			"",
 		},
@@ -233,7 +233,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoins_MatchingErrors() {
 		{
 			"invalid coins",
 			cs(),
-			sdk.Coins{sdk.Coin{Denom: "ukava", Amount: sdk.NewInt(-1)}},
+			sdk.Coins{sdk.Coin{Denom: "ukava", Amount: sdkmath.NewInt(-1)}},
 			"-1ukava: invalid coins",
 		},
 		{

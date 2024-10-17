@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/pricefeed/keeper"
@@ -26,7 +25,7 @@ type grpcQueryTestSuite struct {
 
 func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.tApp = app.NewTestApp()
-	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
+	suite.ctx = suite.tApp.NewContext(true).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetPriceFeedKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)

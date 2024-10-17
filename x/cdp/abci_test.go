@@ -40,9 +40,7 @@ type liquidationTracker struct {
 
 func (suite *ModuleTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true)
-	ctx.WithBlockHeight(1)
-	ctx.WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 	tracker := liquidationTracker{}
 
 	coins := cs(c("btc", 100000000), c("xrp", 10000000000), c("erc20/usdc", 10000000000))

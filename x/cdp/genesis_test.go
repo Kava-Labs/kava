@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/stretchr/testify/suite"
 
@@ -34,7 +32,7 @@ type GenesisTestSuite struct {
 func (suite *GenesisTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	suite.genTime = tmtime.Canonical(time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC))
-	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genTime})
+	suite.ctx = tApp.NewContext(true).WithBlockTime(suite.genTime).WithBlockHeight(1)
 	suite.keeper = tApp.GetCDPKeeper()
 	suite.app = tApp
 
@@ -103,7 +101,7 @@ func (suite *GenesisTestSuite) TestInvalidGenState() {
 				deposits:           types.Deposits{},
 				debtDenom:          types.DefaultDebtDenom,
 				govDenom:           types.DefaultGovDenom,
-				genAccumTimes:      types.GenesisAccumulationTimes{types.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdkmath.LegacyOneDec().Sub(sdk.SmallestDec()))},
+				genAccumTimes:      types.GenesisAccumulationTimes{types.NewGenesisAccumulationTime("bnb-a", time.Time{}, sdkmath.LegacyOneDec().Sub(sdkmath.LegacySmallestDec()))},
 				genTotalPrincipals: types.DefaultGenesisState().TotalPrincipals,
 			},
 			errArgs: errArgs{
@@ -270,7 +268,7 @@ func (suite *GenesisTestSuite) Test_InitExportGenesis() {
 
 	// We run the BeginBlocker at time.Now() to accumulate interest
 	suite.ctx = suite.ctx.WithBlockTime(time.Now())
-	cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}, suite.keeper)
+	cdp.BeginBlocker(suite.ctx, suite.keeper)
 
 	expectedGenesis := cdpGenesis
 

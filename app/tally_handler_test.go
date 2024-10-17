@@ -76,9 +76,9 @@ func (suite *tallyHandlerSuite) TestVotePower_AllSourcesCounted() {
 
 	_, _, results := suite.tallier.Tally(suite.ctx, proposal)
 	suite.Equal(sdkmath.NewInt(500e6+250e6+250e6).String(), results.YesCount)
-	suite.Equal(sdk.ZeroInt().String(), results.NoCount)
-	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
-	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.NoCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.AbstainCount)
 }
 
 func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
@@ -109,9 +109,9 @@ func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
 		selfDelegated.Add(userPower).String(),
 		results.YesCount,
 	)
-	suite.Equal(sdk.ZeroInt().String(), results.NoCount)
-	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
-	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.NoCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.AbstainCount)
 
 	// User votes, taking power away from validator.
 	suite.voteOnProposal(user.GetAddress(), proposal.Id, govv1beta1.OptionNo)
@@ -119,8 +119,8 @@ func (suite *tallyHandlerSuite) TestVotePower_UserOverridesValidator() {
 	_, _, results = suite.tallier.Tally(suite.ctx, proposal)
 	suite.Equal(selfDelegated.String(), results.YesCount)
 	suite.Equal(userPower.String(), results.NoCount)
-	suite.Equal(sdk.ZeroInt().String(), results.NoWithVetoCount)
-	suite.Equal(sdk.ZeroInt().String(), results.AbstainCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.NoWithVetoCount)
+	suite.Equal(sdkmath.ZeroInt().String(), results.AbstainCount)
 }
 
 func (suite *tallyHandlerSuite) TestTallyOutcomes() {
@@ -364,7 +364,7 @@ func (h stakingHelper) createUnbondedValidator(ctx sdk.Context, address sdk.ValA
 		ed25519.GenPrivKey().PubKey(),
 		h.newBondCoin(ctx, selfDelegation),
 		stakingtypes.Description{},
-		stakingtypes.NewCommissionRates(sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec()),
+		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1e6),
 	)
 	if err != nil {

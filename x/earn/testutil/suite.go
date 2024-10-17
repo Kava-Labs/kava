@@ -183,7 +183,7 @@ func (suite *Suite) SetupTest() {
 		},
 	)
 
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 
 	suite.Ctx = ctx
 	suite.App = tApp

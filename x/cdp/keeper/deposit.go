@@ -45,7 +45,7 @@ func (k Keeper) DepositCollateral(ctx context.Context, owner, depositor sdk.AccA
 	k.SetDeposit(ctx, deposit)
 
 	cdp.Collateral = cdp.Collateral.Add(collateral)
-	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
+	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(sdkCtx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 
 	sdkCtx.EventManager().EmitEvent(
 		sdk.NewEvent(

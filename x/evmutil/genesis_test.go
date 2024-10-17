@@ -1,6 +1,7 @@
 package evmutil_test
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 
 	"github.com/stretchr/testify/suite"

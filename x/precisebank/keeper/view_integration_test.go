@@ -40,9 +40,9 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 			"extended denom, no fractional - locked coins",
 			types.ExtendedCoinDenom,
 			// queried bank balance in ukava when querying for akava
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(10))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(10))),
 			// (integer + fractional) - locked
 			sdk.NewCoin(
 				types.ExtendedCoinDenom,
@@ -53,9 +53,9 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 			"extended denom, with fractional - locked coins",
 			types.ExtendedCoinDenom,
 			// queried bank balance in ukava when querying for akava
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.NewInt(5000),
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(10))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(10))),
 			sdk.NewCoin(
 				types.ExtendedCoinDenom,
 				// (integer - locked) + fractional
@@ -65,19 +65,19 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 		{
 			"non-extended denom - ukava returns ukava",
 			types.IntegerCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			sdkmath.ZeroInt(),
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(10))),
-			sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(990)),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(10))),
+			sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(990)),
 		},
 		{
 			"non-extended denom, with fractional - ukava returns ukava",
 			types.IntegerCoinDenom,
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(1000))),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1000))),
 			// does not affect balance
 			sdkmath.NewInt(100),
-			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(10))),
-			sdk.NewCoin(types.IntegerCoinDenom, sdk.NewInt(990)),
+			sdk.NewCoins(sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(10))),
+			sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(990)),
 		},
 	}
 
@@ -141,7 +141,7 @@ func (suite *viewIntegrationTestSuite) TestKeeper_HiddenReserve() {
 	// Mint fractional coins to an account, which should cause a mint of 1
 	// integer coin to the reserve to back it.
 	extCoin := sdk.NewCoin(types.ExtendedCoinDenom, types.ConversionFactor().AddRaw(1000))
-	unrelatedCoin := sdk.NewCoin("unrelated", sdk.NewInt(1000))
+	unrelatedCoin := sdk.NewCoin("unrelated", sdkmath.NewInt(1000))
 	suite.MintToAccount(
 		addr1,
 		sdk.NewCoins(

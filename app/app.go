@@ -29,7 +29,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -186,7 +185,7 @@ var (
 	// DefaultNodeHome default home directories for the application daemon
 	DefaultNodeHome string
 
-	ac = addresscodec.NewBech32Codec("cosmos")
+	ac = addresscodec.NewBech32Codec(Bech32MainPrefix)
 
 	LegacyProposalHandler       = govclient.NewProposalHandler(func() *cobra.Command { return upgradecli.NewCmdSubmitUpgradeProposal(ac) })
 	LegacyCancelProposalHandler = govclient.NewProposalHandler(func() *cobra.Command { return upgradecli.NewCmdSubmitCancelUpgradeProposal(ac) })
@@ -494,15 +493,36 @@ func NewApp(
 		govAuthAddrStr,
 		logger,
 	)
+
+	fmt.Println("creating staking keeper")
+
+	// ac = addresscodec.NewBech32Codec(Bech32MainPrefix)
 	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[stakingtypes.StoreKey]),
 		app.accountKeeper,
 		app.bankKeeper,
 		govAuthAddrStr,
-		authcodec.NewBech32Codec(sdk.Bech32PrefixValAddr),
-		authcodec.NewBech32Codec(sdk.Bech32PrefixConsAddr),
+		// TODO(boodyvo): validate which codecs to use. Looks like for validation before it used another codec, using AccAddress
+		//ac,
+		addresscodec.NewBech32Codec(Bech32PrefixValAddr),
+		addresscodec.NewBech32Codec(Bech32PrefixConsAddr),
 	)
+	// InitGenesis
+	// params:<unbonding_time:<seconds:1814400 > max_validators:100 max_entries:7 historical_entries:10000 bond_denom:"ukava" min_commission_rate:"0" >
+	// last_total_power:"0"
+	// validators:<
+	//		operator_address:"kavavaloper1a9ry5y5yfnrl3r80pw67w3mllptwenxxvqnhse"
+	//		consensus_pubkey:<type_url:"/cosmos.crypto.ed25519.PubKey" value:"\n eU\203\020:\n{\260\224\374\245S\202\257\303\351\245\"0\353\n\\\036\302=\232\266^,\022\021\250" >
+	//		status:BOND_STATUS_BONDED
+	//		tokens:"1000000"
+	//		delegator_shares:"1000000000000000000"
+	//		description:<moniker:"genesis validator" >
+	//		unbonding_time:<>
+	//		commission:<commission_rates:<rate:"0" max_rate:"0" max_change_rate:"0" > update_time:<> > min_self_delegation:"0"
+	//	>
+	//	delegations:<delegator_address:"kava1jhh0t7f3pp939cw07pdjxyde2r4kjk9lmcp33w" validator_address:"E9464A12844CC7F88CEF0BB5E7477FF856ECCCC6" shares:"1000000000000000000" >
+
 	app.authzKeeper = authzkeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[authzkeeper.StoreKey]),
 		appCodec,
@@ -854,6 +874,8 @@ func NewApp(
 	)
 	app.govKeeper.SetTallyHandler(tallyHandler)
 
+	fmt.Println("going to initialize the module manager")
+
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
@@ -1008,6 +1030,8 @@ func NewApp(
 		precisebanktypes.ModuleName,
 	)
 
+	fmt.Println("going to set the order init genesis")
+
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
 	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName, // initialize capabilities, run before any module creating or claiming capabilities in InitGenesis
@@ -1052,6 +1076,8 @@ func NewApp(
 		precisebanktypes.ModuleName, // Must be run after x/bank to verify reserve balance
 		crisistypes.ModuleName,      // runs the invariants at genesis, should run after other modules
 	)
+
+	fmt.Println("going to set the order export genesis")
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 
@@ -1113,6 +1139,8 @@ func NewApp(
 		panic(fmt.Sprintf("failed to create antehandler: %s", err))
 	}
 
+	fmt.Println("setting different setters")
+
 	app.SetAnteHandler(antehandler)
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
@@ -1127,6 +1155,8 @@ func NewApp(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
+
+	fmt.Println("returning app")
 
 	return app
 }
@@ -1152,6 +1182,7 @@ func (app *App) PreBlocker(ctx sdk.Context, req *abci.RequestFinalizeBlock) (*sd
 
 // InitChainer contains app specific logic for the InitChain abci call.
 func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+	fmt.Println("init chainer call from app")
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
@@ -1160,6 +1191,8 @@ func (app *App) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.
 	// Store current module versions in kava-10 to setup future in-place upgrades.
 	// During in-place migrations, the old module versions in the store will be referenced to determine which migrations to run.
 	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+
+	fmt.Println("going to init genesis")
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }

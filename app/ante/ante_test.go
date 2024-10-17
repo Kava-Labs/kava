@@ -166,7 +166,7 @@ func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 					SupplyLimit: bep3types.SupplyLimit{
 						Limit:          sdkmath.NewInt(350000000000000),
 						TimeLimited:    false,
-						TimeBasedLimit: sdk.ZeroInt(),
+						TimeBasedLimit: sdkmath.ZeroInt(),
 						TimePeriod:     time.Hour,
 					},
 					Active:        true,
@@ -181,10 +181,10 @@ func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 		},
 		Supplies: bep3types.AssetSupplies{
 			bep3types.NewAssetSupply(
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
-				sdk.NewCoin("bnb", sdk.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
+				sdk.NewCoin("bnb", sdkmath.ZeroInt()),
 				time.Duration(0),
 			),
 		},

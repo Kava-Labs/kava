@@ -26,7 +26,7 @@ type ParamsTestSuite struct {
 
 func (suite *ParamsTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 	_, addrs := app.GeneratePrivKeyAddressPairs(10)
 	tApp.InitializeFromGenesisStates(NewBep3GenStateMulti(tApp.AppCodec(), addrs[0]))
 	suite.keeper = tApp.GetBep3Keeper()

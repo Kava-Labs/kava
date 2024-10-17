@@ -48,7 +48,7 @@ func (suite *invariantsIntegrationTestSuite) TestReserveBackingFractionalInvaria
 				k.SetFractionalBalance(ctx, sdk.AccAddress{1}, types.ConversionFactor().QuoRaw(2))
 				k.SetFractionalBalance(ctx, sdk.AccAddress{2}, types.ConversionFactor().QuoRaw(2))
 				// 1 integer backs same amount fractional
-				suite.FundReserve(sdk.NewInt(1))
+				suite.FundReserve(sdkmath.NewInt(1))
 			},
 			false,
 			"",
@@ -59,7 +59,7 @@ func (suite *invariantsIntegrationTestSuite) TestReserveBackingFractionalInvaria
 				k.SetFractionalBalance(ctx, sdk.AccAddress{1}, types.ConversionFactor().QuoRaw(2))
 				k.SetRemainderAmount(ctx, types.ConversionFactor().QuoRaw(2))
 				// 1 integer backs same amount fractional including remainder
-				suite.FundReserve(sdk.NewInt(1))
+				suite.FundReserve(sdkmath.NewInt(1))
 			},
 			false,
 			"",
@@ -84,7 +84,7 @@ func (suite *invariantsIntegrationTestSuite) TestReserveBackingFractionalInvaria
 				k.SetRemainderAmount(ctx, amt)
 
 				// Needs 2 to back 0.5 x 4
-				suite.FundReserve(sdk.NewInt(1))
+				suite.FundReserve(sdkmath.NewInt(1))
 			},
 			true,
 			"precisebank: module reserve backing total fractional balances invariant\nakava reserve balance 1000000000000 mismatches 2000000000000 (fractional balances 1500000000000 + remainder 500000000000)\n\n",
@@ -101,7 +101,7 @@ func (suite *invariantsIntegrationTestSuite) TestReserveBackingFractionalInvaria
 				k.SetRemainderAmount(ctx, amt)
 
 				// Needs 2 to back 0.5 x 4
-				suite.FundReserve(sdk.NewInt(3))
+				suite.FundReserve(sdkmath.NewInt(3))
 			},
 			true,
 			"precisebank: module reserve backing total fractional balances invariant\nakava reserve balance 3000000000000 mismatches 2000000000000 (fractional balances 1500000000000 + remainder 500000000000)\n\n",

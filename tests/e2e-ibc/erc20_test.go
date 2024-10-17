@@ -230,7 +230,7 @@ func TestInterchainErc20(t *testing.T) {
 	convertTx := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&msg},
 		GasLimit:  4e5,
-		FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(400))),
+		FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(400))),
 		Data:      "converting sdk coin to erc20",
 	}
 	res := user.SignAndBroadcastKavaTx(convertTx)

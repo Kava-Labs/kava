@@ -7,8 +7,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/kava-labs/kava/x/community/keeper"
 )
 
@@ -41,7 +39,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		//
 		{
 			name:         "inflation only: no bonded tokens -> 0%",
-			totalSupply:  sdk.NewInt(42),
+			totalSupply:  sdkmath.NewInt(42),
 			totalBonded:  sdkmath.ZeroInt(),
 			inflation:    sdkmath.LegacyOneDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -50,7 +48,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "inflation only: 0% inflation -> 0%",
-			totalSupply:  sdk.NewInt(123),
+			totalSupply:  sdkmath.NewInt(123),
 			totalBonded:  sdkmath.NewInt(45),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -59,8 +57,8 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "inflation only: 100% bonded w/ 100% inflation -> 100%",
-			totalSupply:  sdk.NewInt(42),
-			totalBonded:  sdk.NewInt(42),
+			totalSupply:  sdkmath.NewInt(42),
+			totalBonded:  sdkmath.NewInt(42),
 			inflation:    sdkmath.LegacyOneDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
 			perSecReward: sdkmath.LegacyZeroDec(),
@@ -68,7 +66,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "inflation only: 100% community tax -> 0%",
-			totalSupply:  sdk.NewInt(123),
+			totalSupply:  sdkmath.NewInt(123),
 			totalBonded:  sdkmath.NewInt(45),
 			inflation:    sdkmath.LegacyMustNewDecFromStr("0.853"),
 			communityTax: sdkmath.LegacyOneDec(),
@@ -77,8 +75,8 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "inflation only: Oct 2023 case",
-			totalSupply:  sdk.NewInt(857570000e6),
-			totalBonded:  sdk.NewInt(127680000e6),
+			totalSupply:  sdkmath.NewInt(857570000e6),
+			totalBonded:  sdkmath.NewInt(127680000e6),
 			inflation:    sdkmath.LegacyMustNewDecFromStr("0.595"),
 			communityTax: sdkmath.LegacyMustNewDecFromStr("0.9495"),
 			perSecReward: sdkmath.LegacyZeroDec(),
@@ -87,8 +85,8 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "inflation only: low inflation",
-			totalSupply:  sdk.NewInt(857570000e6),
-			totalBonded:  sdk.NewInt(127680000e6),
+			totalSupply:  sdkmath.NewInt(857570000e6),
+			totalBonded:  sdkmath.NewInt(127680000e6),
 			inflation:    sdkmath.LegacyMustNewDecFromStr("0.0000000001"),
 			communityTax: sdkmath.LegacyMustNewDecFromStr("0.9495"),
 			perSecReward: sdkmath.LegacyZeroDec(),
@@ -96,8 +94,8 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "inflation only: absurdly high inflation",
-			totalSupply:  sdk.NewInt(857570000e6),
-			totalBonded:  sdk.NewInt(127680000e6),
+			totalSupply:  sdkmath.NewInt(857570000e6),
+			totalBonded:  sdkmath.NewInt(127680000e6),
 			inflation:    sdkmath.LegacyNewDecFromBigInt(hugeInflation), // 2^205. a higher exponent than this overflows.
 			communityTax: sdkmath.LegacyMustNewDecFromStr("0.9495"),
 			perSecReward: sdkmath.LegacyZeroDec(),
@@ -111,7 +109,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		//
 		{
 			name:         "rps only: no bonded tokens -> 0%",
-			totalSupply:  sdk.NewInt(42),
+			totalSupply:  sdkmath.NewInt(42),
 			totalBonded:  sdkmath.ZeroInt(),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -120,7 +118,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "rps only: rps = total bonded / seconds in year -> basically 100%",
-			totalSupply:  sdk.NewInt(12345),
+			totalSupply:  sdkmath.NewInt(12345),
 			totalBonded:  sdkmath.NewInt(1234),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -129,7 +127,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "rps only: 10M kava / year rewards",
-			totalSupply:  sdk.NewInt(870950000e6),
+			totalSupply:  sdkmath.NewInt(870950000e6),
 			totalBonded:  sdkmath.NewInt(130380000e6),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -138,7 +136,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "rps only: 25M kava / year rewards",
-			totalSupply:  sdk.NewInt(870950000e6),
+			totalSupply:  sdkmath.NewInt(870950000e6),
 			totalBonded:  sdkmath.NewInt(130380000e6),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -147,7 +145,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "rps only: too much kava / year rewards",
-			totalSupply:  sdk.NewInt(870950000e6),
+			totalSupply:  sdkmath.NewInt(870950000e6),
 			totalBonded:  sdkmath.NewInt(130380000e6),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -157,7 +155,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "rps only: low kava / year rewards",
-			totalSupply:  sdk.NewInt(870950000e6),
+			totalSupply:  sdkmath.NewInt(870950000e6),
 			totalBonded:  sdkmath.NewInt(130380000e6),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),
@@ -166,7 +164,7 @@ func TestStakingRewardsCalculator(t *testing.T) {
 		},
 		{
 			name:         "rps only: 1 ukava / year rewards",
-			totalSupply:  sdk.NewInt(870950000e6),
+			totalSupply:  sdkmath.NewInt(870950000e6),
 			totalBonded:  sdkmath.NewInt(130380000e6),
 			inflation:    sdkmath.LegacyZeroDec(),
 			communityTax: sdkmath.LegacyZeroDec(),

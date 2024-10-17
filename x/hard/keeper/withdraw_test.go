@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 			authGS := app.NewFundedGenStateWithCoins(
 				tApp.AppCodec(),
 				[]sdk.Coins{sdk.NewCoins(
@@ -262,7 +262,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 
 			// Auth module genesis state
 			authGS := app.NewFundedGenStateWithCoins(

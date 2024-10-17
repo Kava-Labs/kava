@@ -10,7 +10,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -28,7 +27,7 @@ type CdpTestSuite struct {
 
 func (suite *CdpTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 	tApp.InitializeFromGenesisStates(
 		NewPricefeedGenStateMulti(tApp.AppCodec()),
 		NewCDPGenStateMulti(tApp.AppCodec()),
@@ -245,11 +244,11 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	}
 	xrpCdps := suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("1.25"))
 	suite.Equal(0, len(xrpCdps))
-	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("1.25").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("1.25").Add(sdkmath.LegacySmallestDec()))
 	suite.Equal(1, len(xrpCdps))
-	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdkmath.LegacySmallestDec()))
 	suite.Equal(2, len(xrpCdps))
-	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("100.0").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("100.0").Add(sdkmath.LegacySmallestDec()))
 	suite.Equal(3, len(xrpCdps))
 
 	suite.NoError(suite.keeper.DeleteCDP(suite.ctx, cdps[0]))
@@ -257,7 +256,7 @@ func (suite *CdpTestSuite) TestIterateCdpsByCollateralRatio() {
 	suite.keeper.RemoveCdpOwnerIndex(suite.ctx, cdps[0])
 	cr := suite.keeper.CalculateCollateralToDebtRatio(suite.ctx, cdps[0].Collateral, cdps[0].Type, cdps[0].Principal)
 	suite.keeper.RemoveCdpCollateralRatioIndex(suite.ctx, cdps[0].Type, cdps[0].ID, cr)
-	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdk.SmallestDec()))
+	xrpCdps = suite.keeper.GetAllCdpsByCollateralTypeAndRatio(suite.ctx, "xrp-a", d("2.0").Add(sdkmath.LegacySmallestDec()))
 	suite.Equal(1, len(xrpCdps))
 }
 

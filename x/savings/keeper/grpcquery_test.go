@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
-	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -43,7 +42,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 
 	suite.addrs = addrs
 
-	suite.ctx = suite.tApp.NewContext(true, tmprototypes.Header{}).
+	suite.ctx = suite.tApp.NewContext(true).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetSavingsKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)

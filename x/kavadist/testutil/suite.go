@@ -43,7 +43,7 @@ func (suite *Suite) SetupTest() {
 	coins := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1000000000000)))
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
 
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 
 	testPeriods := []types.Period{
 		{

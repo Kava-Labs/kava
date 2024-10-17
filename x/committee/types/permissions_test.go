@@ -91,7 +91,7 @@ func TestCommunityPoolLendWithdrawPermission_Allows(t *testing.T) {
 			proposal: communitytypes.NewCommunityPoolLendWithdrawProposal(
 				"withdraw lend position",
 				"this fake proposal withdraws a lend position for the community pool",
-				sdk.NewCoins(sdk.NewCoin("ukava", sdk.NewInt(1e10))),
+				sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e10))),
 			),
 			allowed: true,
 		},
