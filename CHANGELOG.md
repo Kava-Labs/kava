@@ -45,6 +45,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
 - (deps) [#1988] Bump cometbft to v0.37.9-kava.1
 
+### Bug Fixes
+- (deps) [#2021] Bump Ethermint dependency to exclude incorrect and unnecessary
+  fields `verifyingContract` and `salt` from `EIP712Domain` to resolve MetaMask
+  signing errors.
+
 ## [v0.26.0]
 
 ### Features
@@ -340,6 +345,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
   large-scale simulations remotely using aws-batch
 
 [#2017]: https://github.com/Kava-Labs/kava/pull/2017
+[#2021]: https://github.com/Kava-Labs/kava/pull/2021
 [#1988]: https://github.com/Kava-Labs/kava/pull/1988
 [#1922]: https://github.com/Kava-Labs/kava/pull/1922
 [#1906]: https://github.com/Kava-Labs/kava/pull/1906
