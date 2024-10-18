@@ -2,6 +2,7 @@ package liquid
 
 import (
 	"context"
+	"cosmossdk.io/core/appmodule"
 	"encoding/json"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -21,8 +22,13 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
+	_ appmodule.AppModule   = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	_ appmodule.AppModule       = (*AppModule)(nil)
+	_ appmodule.HasBeginBlocker = (*AppModule)(nil)
+	// TODO(boodyvo): should we put it here? Looks like it is different interface
+	//_ appmodule.HasEndBlocker   = (*AppModule)(nil)
 )
 
 // AppModuleBasic app module basics object
@@ -117,12 +123,12 @@ func (am AppModule) ExportGenesis(_ sdk.Context, cdc codec.JSONCodec) json.RawMe
 }
 
 // BeginBlock module begin-block
-func (am AppModule) BeginBlock(ctx sdk.Context) error {
+func (am AppModule) BeginBlock(ctx context.Context) error {
 	return nil
 }
 
 // EndBlock module end-block
-func (am AppModule) EndBlock(_ sdk.Context) ([]abci.ValidatorUpdate, error) {
+func (am AppModule) EndBlock(_ context.Context) ([]abci.ValidatorUpdate, error) {
 	return []abci.ValidatorUpdate{}, nil
 }
 

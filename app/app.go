@@ -923,6 +923,7 @@ func NewApp(
 		precisebank.NewAppModule(app.precisebankKeeper, app.bankKeeper, app.accountKeeper),
 	)
 
+	// NOTE: upgrade module is required to be prioritized
 	app.mm.SetOrderPreBlockers(
 		// Upgrade begin blocker runs migrations on the first block after an upgrade. It should run before any other module.
 		upgradetypes.ModuleName,

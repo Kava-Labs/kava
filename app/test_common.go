@@ -106,8 +106,6 @@ func NewTestAppFromSealed() TestApp {
 		encCfg, DefaultOptions, baseapp.SetChainID(TestChainId),
 	)
 
-	fmt.Println("NewTestAppFromSealed returned app")
-
 	return TestApp{App: *app}
 }
 
@@ -362,10 +360,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		panic(err)
 	}
 
-	fmt.Println("genesisState", string(stateBytes))
-
-	fmt.Println("initializing chain")
-
 	tApp.InitChain(
 		&abci.RequestInitChain{
 			Time:          genTime,
@@ -383,9 +377,14 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		},
 	)
 	fmt.Println("chain initialized")
-	tApp.Commit()
-	ctx := tApp.NewContext(true).WithBlockTime(genTime).WithBlockHeight(tApp.LastBlockHeight() + 1).WithChainID(chainID)
-	tApp.BeginBlocker(ctx)
+	_, err = tApp.Commit()
+	fmt.Println("chain committed: ", err)
+	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: tApp.LastBlockHeight() + 1,
+		Hash:   tApp.LastCommitID().Hash,
+		Time:   genTime,
+	})
+	fmt.Println("block finalized: ", err)
 
 	return tApp
 }
@@ -544,6 +543,7 @@ func RandomAddress() sdk.AccAddress {
 
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
+	fmt.Println("initializing genesis state", balance)
 	builder := NewAuthBankGenesisBuilder()
 	for _, address := range addresses {
 		builder.WithSimpleAccount(address, balance)
