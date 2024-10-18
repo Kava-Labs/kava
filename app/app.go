@@ -504,25 +504,9 @@ func NewApp(
 		app.bankKeeper,
 		govAuthAddrStr,
 		// TODO(boodyvo): validate which codecs to use. Looks like for validation before it used another codec, using AccAddress
-		//ac,
 		addresscodec.NewBech32Codec(Bech32PrefixValAddr),
 		addresscodec.NewBech32Codec(Bech32PrefixConsAddr),
 	)
-	// InitGenesis
-	// params:<unbonding_time:<seconds:1814400 > max_validators:100 max_entries:7 historical_entries:10000 bond_denom:"ukava" min_commission_rate:"0" >
-	// last_total_power:"0"
-	// validators:<
-	//		operator_address:"kavavaloper1a9ry5y5yfnrl3r80pw67w3mllptwenxxvqnhse"
-	//		consensus_pubkey:<type_url:"/cosmos.crypto.ed25519.PubKey" value:"\n eU\203\020:\n{\260\224\374\245S\202\257\303\351\245\"0\353\n\\\036\302=\232\266^,\022\021\250" >
-	//		status:BOND_STATUS_BONDED
-	//		tokens:"1000000"
-	//		delegator_shares:"1000000000000000000"
-	//		description:<moniker:"genesis validator" >
-	//		unbonding_time:<>
-	//		commission:<commission_rates:<rate:"0" max_rate:"0" max_change_rate:"0" > update_time:<> > min_self_delegation:"0"
-	//	>
-	//	delegations:<delegator_address:"kava1jhh0t7f3pp939cw07pdjxyde2r4kjk9lmcp33w" validator_address:"E9464A12844CC7F88CEF0BB5E7477FF856ECCCC6" shares:"1000000000000000000" >
-
 	app.authzKeeper = authzkeeper.NewKeeper(
 		runtime.NewKVStoreService(keys[authzkeeper.StoreKey]),
 		appCodec,
