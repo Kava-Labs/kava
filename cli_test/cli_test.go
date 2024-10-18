@@ -476,12 +476,12 @@ func TestKvCLIQueryRewards(t *testing.T) {
 	f := InitFixtures(t)
 
 	genesisState := f.GenesisState()
-	inflationMin := sdk.MustNewDecFromStr("1.0")
+	inflationMin := sdkmath.LegacyMustNewDecFromStr("1.0")
 	var mintData mint.GenesisState
 	f.cdc.UnmarshalJSON(genesisState[mint.ModuleName], &mintData)
 	mintData.Minter.Inflation = inflationMin
 	mintData.Params.InflationMin = inflationMin
-	mintData.Params.InflationMax = sdk.MustNewDecFromStr("1.0")
+	mintData.Params.InflationMax = sdkmath.LegacyMustNewDecFromStr("1.0")
 	mintDataBz, err := f.cdc.MarshalJSON(mintData)
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz
@@ -735,12 +735,12 @@ func TestKvCLISubmitCommunityPoolSpendProposal(t *testing.T) {
 
 	// create some inflation
 	genesisState := f.GenesisState()
-	inflationMin := sdk.MustNewDecFromStr("1.0")
+	inflationMin := sdkmath.LegacyMustNewDecFromStr("1.0")
 	var mintData mint.GenesisState
 	f.cdc.UnmarshalJSON(genesisState[mint.ModuleName], &mintData)
 	mintData.Minter.Inflation = inflationMin
 	mintData.Params.InflationMin = inflationMin
-	mintData.Params.InflationMax = sdk.MustNewDecFromStr("1.0")
+	mintData.Params.InflationMax = sdkmath.LegacyMustNewDecFromStr("1.0")
 	mintDataBz, err := f.cdc.MarshalJSON(mintData)
 	require.NoError(t, err)
 	genesisState[mint.ModuleName] = mintDataBz

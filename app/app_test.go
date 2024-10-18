@@ -3,14 +3,13 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"sort"
 	"testing"
 	"time"
 
 	"cosmossdk.io/log"
-	db "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
+	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -28,7 +27,8 @@ import (
 func TestNewApp(t *testing.T) {
 	SetSDKConfig()
 	NewApp(
-		log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
+		log.NewTestLogger(t),
+		//log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
 		db.NewMemDB(),
 		DefaultNodeHome,
 		nil,
@@ -40,14 +40,17 @@ func TestNewApp(t *testing.T) {
 func TestExport(t *testing.T) {
 	SetSDKConfig()
 	db := db.NewMemDB()
-	app := NewApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions, baseapp.SetChainID(TestChainId))
+	app := NewApp(
+		log.NewTestLogger(t),
+		//log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
+		db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions, baseapp.SetChainID(TestChainId))
 
 	genesisState := GenesisStateWithSingleValidator(&TestApp{App: *app}, NewDefaultGenesisState())
 
 	stateBytes, err := json.Marshal(genesisState)
 	require.NoError(t, err)
 
-	initRequest := abci.RequestInitChain{
+	initRequest := &abci.RequestInitChain{
 		Time:            time.Date(1998, 1, 1, 0, 0, 0, 0, time.UTC),
 		ChainId:         TestChainId,
 		InitialHeight:   1,
@@ -58,16 +61,24 @@ func TestExport(t *testing.T) {
 	app.InitChain(initRequest)
 	app.Commit()
 
+	fmt.Println("Exporting genesis...")
+
 	exportedApp, err := app.ExportAppStateAndValidators(false, []string{}, []string{})
 	require.NoError(t, err)
+
+	fmt.Println("Exported genesis")
 
 	// Assume each module is exported correctly, so only check modules in genesis are present in export
 	initialModules, err := unmarshalJSONKeys(initRequest.AppStateBytes)
 	require.NoError(t, err)
+
+	fmt.Println("Initial modules")
 	// note ibctm is only registered in the BasicManager and not module manager so can be ignored
 	initialModules = removeIbcTmModule(initialModules)
 	exportedModules, err := unmarshalJSONKeys(exportedApp.AppState)
 	require.NoError(t, err)
+
+	fmt.Println("Exported modules")
 	assert.ElementsMatch(t, initialModules, exportedModules)
 
 	assert.Equal(t, initRequest.InitialHeight+1, exportedApp.Height) // app.Commit() increments height

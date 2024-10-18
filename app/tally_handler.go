@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	addresscodec "cosmossdk.io/core/address"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
@@ -19,26 +20,33 @@ var _ govv1.TallyHandler = TallyHandler{}
 
 // TallyHandler is the tally handler for kava
 type TallyHandler struct {
-	gk  govkeeper.Keeper
-	stk stakingkeeper.Keeper
-	svk savingskeeper.Keeper
-	ek  earnkeeper.Keeper
-	lk  liquidkeeper.Keeper
-	bk  bankkeeper.Keeper
+	gk                    govkeeper.Keeper
+	stk                   stakingkeeper.Keeper
+	svk                   savingskeeper.Keeper
+	ek                    earnkeeper.Keeper
+	lk                    liquidkeeper.Keeper
+	bk                    bankkeeper.Keeper
+	validatorAddressCodec addresscodec.Codec
 }
 
 // NewTallyHandler creates a new tally handler.
 func NewTallyHandler(
 	gk govkeeper.Keeper, stk stakingkeeper.Keeper, svk savingskeeper.Keeper,
 	ek earnkeeper.Keeper, lk liquidkeeper.Keeper, bk bankkeeper.Keeper,
+	validatorAddressCodec addresscodec.Codec,
 ) TallyHandler {
+	if validatorAddressCodec == nil {
+		panic("validator address codec is nil")
+	}
+
 	return TallyHandler{
-		gk:  gk,
-		stk: stk,
-		svk: svk,
-		ek:  ek,
-		lk:  lk,
-		bk:  bk,
+		gk:                    gk,
+		stk:                   stk,
+		svk:                   svk,
+		ek:                    ek,
+		lk:                    lk,
+		bk:                    bk,
+		validatorAddressCodec: validatorAddressCodec,
 	}
 }
 
@@ -60,8 +68,13 @@ func (th TallyHandler) Tally(
 
 	// fetch all the bonded validators, insert them into currValidators
 	th.stk.IterateBondedValidatorsByPower(ctx, func(index int64, validator stakingtypes.ValidatorI) (stop bool) {
+		validatorAddr, err := th.validatorAddressCodec.StringToBytes(validator.GetOperator())
+		if err != nil {
+			// TODO(boodyvo): What should we do here: skip or stop?
+			panic(err)
+		}
 		currValidators[validator.GetOperator()] = govv1.NewValidatorGovInfo(
-			[]byte(validator.GetOperator()),
+			validatorAddr,
 			validator.GetBondedTokens(),
 			validator.GetDelegatorShares(),
 			sdkmath.LegacyZeroDec(),

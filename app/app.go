@@ -855,6 +855,7 @@ func NewApp(
 	tallyHandler := NewTallyHandler(
 		app.govKeeper, *app.stakingKeeper, app.savingsKeeper, app.earnKeeper,
 		app.liquidKeeper, app.bankKeeper,
+		addresscodec.NewBech32Codec(Bech32PrefixValAddr),
 	)
 	app.govKeeper.SetTallyHandler(tallyHandler)
 
