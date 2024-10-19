@@ -32,7 +32,7 @@ type GenesisTestSuite struct {
 func (suite *GenesisTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	suite.genTime = tmtime.Canonical(time.Date(2021, 1, 1, 1, 1, 1, 1, time.UTC))
-	suite.ctx = tApp.NewContext(true).WithBlockTime(suite.genTime).WithBlockHeight(1)
+	suite.ctx = tApp.NewContextLegacy(true).WithBlockTime(suite.genTime).WithBlockHeight(1)
 	suite.keeper = tApp.GetCDPKeeper()
 	suite.app = tApp
 

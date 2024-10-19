@@ -202,7 +202,7 @@ func (suite *MsgServerSuite) TestConvertERC20ToCoin() {
 				invoker,
 				invokerCosmosAddr,
 				contractAddr,
-				sdkmath.NewIntFromBigInt(pairStartingBal).Add(sdk.OneInt()),
+				sdkmath.NewIntFromBigInt(pairStartingBal).Add(sdkmath.OneInt()),
 			),
 			math.MaxBig256,
 			errArgs{

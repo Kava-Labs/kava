@@ -69,10 +69,10 @@ func TestRelativePow(t *testing.T) {
 		args []sdkmath.Int
 		want sdkmath.Int
 	}{
-		{[]sdkmath.Int{sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdk.OneInt()}, sdk.OneInt()},
+		{[]sdkmath.Int{sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.OneInt()}, sdkmath.OneInt()},
 		{[]sdkmath.Int{sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.NewInt(10)}, sdkmath.NewInt(10)},
-		{[]sdkmath.Int{sdkmath.ZeroInt(), sdk.OneInt(), sdkmath.NewInt(10)}, sdkmath.ZeroInt()},
-		{[]sdkmath.Int{sdkmath.NewInt(10), sdkmath.NewInt(2), sdk.OneInt()}, sdkmath.NewInt(100)},
+		{[]sdkmath.Int{sdkmath.ZeroInt(), sdkmath.OneInt(), sdkmath.NewInt(10)}, sdkmath.ZeroInt()},
+		{[]sdkmath.Int{sdkmath.NewInt(10), sdkmath.NewInt(2), sdkmath.OneInt()}, sdkmath.NewInt(100)},
 		{[]sdkmath.Int{sdkmath.NewInt(210), sdkmath.NewInt(2), sdkmath.NewInt(100)}, sdkmath.NewInt(441)},
 		{[]sdkmath.Int{sdkmath.NewInt(2100), sdkmath.NewInt(2), sdkmath.NewInt(1000)}, sdkmath.NewInt(4410)},
 		{[]sdkmath.Int{sdkmath.NewInt(1000000001547125958), sdkmath.NewInt(600), sdkmath.NewInt(1000000000000000000)}, sdkmath.NewInt(1000000928276004850)},

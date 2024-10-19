@@ -25,7 +25,7 @@ func TestABCIStakingRewardsArePaidOutOnDisableInflationBlock(t *testing.T) {
 	// a block that runs after addition of the disable inflation code on chain
 	// but before the disable inflation time
 	initialBlockTime := time.Now()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: initialBlockTime})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: initialBlockTime})
 
 	poolAcc := accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	feeCollectorAcc := accountKeeper.GetModuleAccount(ctx, authtypes.FeeCollectorName)
@@ -57,7 +57,7 @@ func TestABCIStakingRewardsArePaidOutOnDisableInflationBlock(t *testing.T) {
 
 	// new block when disable inflation runs, 10 seconds from initial block for easy math
 	blockTime := disableTime.Add(1 * time.Second)
-	ctx = tApp.NewContext(true, tmproto.Header{Height: ctx.BlockHeight() + 1, Time: blockTime})
+	ctx = tApp.NewContextLegacy(true, tmproto.Header{Height: ctx.BlockHeight() + 1, Time: blockTime})
 
 	// run the next block
 	community.BeginBlocker(ctx, keeper)

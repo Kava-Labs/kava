@@ -1,6 +1,7 @@
 package auction_test
 
 import (
+	"fmt"
 	"sort"
 	"testing"
 	"time"
@@ -9,7 +10,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/kava-labs/kava/app"
@@ -25,7 +25,7 @@ var (
 		c("lotdenom", 10),
 		testTime,
 		c("biddenom", 1000),
-		types.WeightedAddresses{Addresses: testAddrs, Weights: []sdkmath.Int{sdk.OneInt(), sdk.OneInt()}},
+		types.WeightedAddresses{Addresses: testAddrs, Weights: []sdkmath.Int{sdkmath.OneInt(), sdkmath.OneInt()}},
 		c("debt", 1000),
 	).WithID(3).(types.GenesisAuction)
 )
@@ -34,7 +34,7 @@ func TestInitGenesis(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		// setup keepers
 		tApp := app.NewTestApp()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 		// setup module account
 		modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(types.ModuleName), nil, 0, 0)
@@ -81,7 +81,7 @@ func TestInitGenesis(t *testing.T) {
 	t.Run("invalid (invalid nextAuctionID)", func(t *testing.T) {
 		// setup keepers
 		tApp := app.NewTestApp()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 		// setup module account
 		modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(types.ModuleName), nil, 0, 0)
@@ -105,7 +105,7 @@ func TestInitGenesis(t *testing.T) {
 	t.Run("invalid (missing mod account coins)", func(t *testing.T) {
 		// setup keepers
 		tApp := app.NewTestApp()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 		// invalid as there is no module account setup
 
@@ -128,11 +128,17 @@ func TestExportGenesis(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
 		// setup state
 		tApp := app.NewTestApp()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
+		fmt.Println("tApp created")
 		tApp.InitializeFromGenesisStates()
+
+		fmt.Println("tApp initialized")
+		fmt.Println("tApp minter", tApp.GetMintKeeper().GetMinter(ctx))
 
 		// export
 		gs := auction.ExportGenesis(ctx, tApp.GetAuctionKeeper())
+
+		fmt.Println("exported genesis", gs)
 
 		// check state matches
 		defaultGS := types.DefaultGenesisState()
@@ -141,7 +147,7 @@ func TestExportGenesis(t *testing.T) {
 	t.Run("one auction", func(t *testing.T) {
 		// setup state
 		tApp := app.NewTestApp()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 		tApp.InitializeFromGenesisStates()
 		tApp.GetAuctionKeeper().SetAuction(ctx, testAuction)
 

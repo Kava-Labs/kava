@@ -513,7 +513,7 @@ func (suite *KeeperTestSuite) TestBorrow() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			// Auth module genesis state
 			authGS := app.NewFundedGenStateWithCoins(
@@ -664,7 +664,7 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 
 	// Initialize test app and set context
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	// Auth module genesis state
 	authGS := app.NewFundedGenStateWithSameCoins(
@@ -773,7 +773,7 @@ func (suite *KeeperTestSuite) TestValidateBorrow() {
 	err = suite.keeper.Borrow(
 		suite.ctx,
 		borrower,
-		sdk.NewCoins(sdk.NewCoin("ukava", availableToBorrow.AmountOf("ukava").Add(sdk.OneInt()))),
+		sdk.NewCoins(sdk.NewCoin("ukava", availableToBorrow.AmountOf("ukava").Add(sdkmath.OneInt()))),
 	)
 	suite.Require().Error(err)
 

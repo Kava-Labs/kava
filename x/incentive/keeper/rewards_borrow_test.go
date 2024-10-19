@@ -126,7 +126,7 @@ func (suite *BorrowRewardsTestSuite) SetupApp() {
 	suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
 
-	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *BorrowRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {

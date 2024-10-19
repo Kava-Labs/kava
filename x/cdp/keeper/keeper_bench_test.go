@@ -42,7 +42,7 @@ func BenchmarkAccountIteration(b *testing.B) {
 	for _, bm := range benchmarks {
 		b.Run(bm.name, func(b *testing.B) {
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			ak := tApp.GetAccountKeeper()
 			bk := tApp.GetBankKeeper()
 
@@ -74,7 +74,7 @@ func BenchmarkAccountIteration(b *testing.B) {
 
 func createCdps(n int) (app.TestApp, sdk.Context, keeper.Keeper) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdc := tApp.AppCodec()
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(n)
@@ -122,7 +122,7 @@ var errResult error
 
 func BenchmarkCdpCreation(b *testing.B) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdc := tApp.AppCodec()
 
 	_, addrs := app.GeneratePrivKeyAddressPairs(b.N)

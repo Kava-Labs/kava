@@ -33,7 +33,7 @@ type ModuleTestSuite struct {
 func (suite *ModuleTestSuite) SetupTest() {
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
-	suite.ctx = suite.app.NewContext(true, tmproto.Header{})
+	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{})
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(5)
 }
 

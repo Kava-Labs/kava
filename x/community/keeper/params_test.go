@@ -28,7 +28,7 @@ type StoreTestSuite struct {
 func (suite *StoreTestSuite) SetupTest() {
 	app.SetSDKConfig()
 	suite.App = app.NewTestApp()
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.Keeper = suite.App.GetCommunityKeeper()
 }
 

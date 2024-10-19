@@ -25,7 +25,7 @@ type grpcQueryTestSuite struct {
 
 func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.tApp = app.NewTestApp()
-	suite.ctx = suite.tApp.NewContext(true).
+	suite.ctx = suite.tApp.NewContextLegacy(true).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetPriceFeedKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)

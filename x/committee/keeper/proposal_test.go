@@ -226,7 +226,7 @@ import (
 // 			// Create local testApp because suite doesn't run the SetupTest function for subtests
 // 			tApp := app.NewTestApp()
 // 			keeper := tApp.GetCommitteeKeeper()
-// 			ctx := tApp.NewContext(true, tmproto.Header{})
+// 			ctx := tApp.NewContextLegacy(true, tmproto.Header{})
 // 			tApp.InitializeFromGenesisStates(
 // 				newPricefeedGenState([]string{"bnb"}, []sdkmath.LegacyDec{testutil.D("15.01")}),
 // 				newCDPGenesisState(testCDPParams),
@@ -340,7 +340,7 @@ func (suite *keeperTestSuite) TestAddVote() {
 			// Create local testApp because suite doesn't run the SetupTest function for subtests
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 			tApp.InitializeFromGenesisStates()
 
 			// setup the committee and proposal
@@ -408,7 +408,7 @@ func (suite *keeperTestSuite) TestTallyMemberCommitteeVotes() {
 		// Set up test app
 		tApp := app.NewTestApp()
 		keeper := tApp.GetCommitteeKeeper()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 
 		// Initialize test app with genesis state
 		tApp.InitializeFromGenesisStates(
@@ -547,7 +547,7 @@ func (suite *keeperTestSuite) TestTallyTokenCommitteeVotes() {
 		// Set up test app
 		tApp := app.NewTestApp()
 		keeper := tApp.GetCommitteeKeeper()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 
 		// Initialize test app with genesis state
 		tApp.InitializeFromGenesisStates(
@@ -624,7 +624,7 @@ func (suite *keeperTestSuite) TestGetMemberCommitteeProposalResult() {
 			// Create local testApp because suite doesn't run the SetupTest function for subtests
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 
 			tApp.InitializeFromGenesisStates(
 				committeeGenState(
@@ -751,7 +751,7 @@ func (suite *keeperTestSuite) TestGetTokenCommitteeProposalResult() {
 			// Create local testApp because suite doesn't run the SetupTest function for subtests
 			tApp := app.NewTestApp()
 			keeper := tApp.GetCommitteeKeeper()
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 
 			tApp.InitializeFromGenesisStates(
 				committeeGenState(
@@ -790,7 +790,7 @@ func (suite *keeperTestSuite) TestCloseProposal() {
 
 	tApp := app.NewTestApp()
 	keeper := tApp.GetCommitteeKeeper()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 
 	tApp.InitializeFromGenesisStates(
 		committeeGenState(
@@ -1171,7 +1171,7 @@ var _ types.PubProposal = &UnregisteredPubProposal{}
 // 			// Create local testApp because suite doesn't run the SetupTest function for subtests
 // 			tApp := app.NewTestApp()
 // 			keeper := tApp.GetCommitteeKeeper()
-// 			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+// 			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 
 // 			// Initialize all committees, proposals, and votes via Genesis
 // 			tApp.InitializeFromGenesisStates(

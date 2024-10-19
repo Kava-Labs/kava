@@ -122,7 +122,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 		NewPricefeedGenStateMultiFromTime(cdc, suite.genesisTime),
 	)
 
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 
 	suite.addrs = addrs
 	suite.keeper = keeper
@@ -277,7 +277,7 @@ func (suite *GenesisTestSuite) TestExportedGenesisMatchesImported() {
 	)
 
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 0, Time: genesisTime})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 0, Time: genesisTime})
 
 	// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 	// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.
@@ -363,7 +363,7 @@ func (suite *GenesisTestSuite) TestInitGenesisPanicsWhenAccumulationTimesTooLong
 
 	for _, tc := range testCases {
 		tApp := app.NewTestApp()
-		ctx := tApp.NewContext(true, tmproto.Header{Height: 0, Time: genesisTime})
+		ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 0, Time: genesisTime})
 
 		// Incentive init genesis reads from the cdp keeper to check params are ok. So it needs to be initialized first.
 		// Then the cdp keeper reads from pricefeed keeper to check its params are ok. So it also need initialization.

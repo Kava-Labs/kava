@@ -86,7 +86,14 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	fee := legacytx.NewStdFee(gas, gasAmount)
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
-	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "", nil)
+	// chainID string,
+	//	accnum,
+	//	sequence,
+	//	timeout uint64,
+	//	fee legacytx.StdFee,
+	//	msgs []sdk.Msg,
+	//	memo string,
+	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "")
 	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, data, &eip712.FeeDelegationOptions{
 		FeePayer: from,
 	}, suite.tApp.GetEvmKeeper().GetParams(suite.ctx))
@@ -96,7 +103,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 
 	// Sign typedData
 	keyringSigner := tests.NewSigner(priv)
-	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
+	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash, signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON)
 	suite.Require().NoError(err)
 	signature[crypto.RecoveryIDOffset] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
 
@@ -287,7 +294,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	consAddress := sdk.ConsAddress(consPriv.PubKey().Address())
 
-	ctx := tApp.NewContext(false, tmproto.Header{
+	ctx := tApp.NewContextLegacy(false, tmproto.Header{
 		Height:          tApp.LastBlockHeight() + 1,
 		ChainID:         ChainID,
 		Time:            time.Now().UTC(),
@@ -322,7 +329,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 	tApp.GetAccountKeeper().SetAccount(ctx, valAcc)
 	_, testAddresses := app.GeneratePrivKeyAddressPairs(1)
 	valAddr := sdk.ValAddress(testAddresses[0].Bytes())
-	validator, err := stakingtypes.NewValidator(valAddr, consPriv.PubKey(), stakingtypes.Description{})
+	validator, err := stakingtypes.NewValidator(valAddr.String(), consPriv.PubKey(), stakingtypes.Description{})
 	suite.Require().NoError(err)
 	err = tApp.GetStakingKeeper().SetValidatorByConsAddr(ctx, validator)
 	suite.Require().NoError(err)
@@ -450,15 +457,21 @@ func (suite *EIP712TestSuite) SetupTest() {
 }
 
 func (suite *EIP712TestSuite) Commit() {
-	_ = suite.tApp.Commit()
+	_, err := suite.tApp.Commit()
+	suite.Require().NoError(err)
 	header := suite.ctx.BlockHeader()
 	header.Height += 1
-	suite.tApp.BeginBlock(abci.RequestBeginBlock{
-		Header: header,
+	// TODO(boodyvo): validate, as we cannot pass the header in full
+	suite.tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height: header.Height,
+		//Header: header,
 	})
+	//suite.tApp.BeginBlock(abci.RequestBeginBlock{
+	//	Header: header,
+	//})
 
 	// update ctx
-	suite.ctx = suite.tApp.NewContext(false, header)
+	suite.ctx = suite.tApp.NewContextLegacy(false, header)
 }
 
 func (suite *EIP712TestSuite) deployUSDCERC20(app app.TestApp, ctx sdk.Context) evmutiltypes.InternalEVMAddress {
@@ -638,12 +651,13 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			txBytes, err := encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 			suite.Require().NoError(err)
 
-			resCheckTx := suite.tApp.CheckTx(
-				abci.RequestCheckTx{
+			resCheckTx, err := suite.tApp.CheckTx(
+				&abci.RequestCheckTx{
 					Tx:   txBytes,
 					Type: abci.CheckTxType_New,
 				},
 			)
+			suite.Require().NoError(err)
 			if !tc.failCheckTx {
 				suite.Require().Equal(resCheckTx.Code, uint32(0), resCheckTx.Log)
 			} else {
@@ -651,11 +665,19 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 				suite.Require().Contains(resCheckTx.Log, tc.errMsg)
 			}
 
-			resDeliverTx := suite.tApp.DeliverTx(
-				abci.RequestDeliverTx{
-					Tx: txBytes,
-				},
-			)
+			resDeliverTxs, err := suite.tApp.FinalizeBlock(
+				&abci.RequestFinalizeBlock{
+					Txs: [][]byte{txBytes},
+				})
+			suite.Require().NoError(err)
+			//resDeliverTx := suite.tApp.DeliverTx(
+			//	abci.RequestDeliverTx{
+			//		Tx: txBytes,
+			//	},
+			//)
+
+			suite.Require().Len(resDeliverTxs.TxResults, 1)
+			resDeliverTx := resDeliverTxs.TxResults[0]
 
 			if tc.errMsg == "" {
 				suite.Require().Equal(resDeliverTx.Code, uint32(0), resDeliverTx.Log)
@@ -720,11 +742,18 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 	)
 	txBytes, err := encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
-	resDeliverTx := suite.tApp.DeliverTx(
-		abci.RequestDeliverTx{
-			Tx: txBytes,
-		},
-	)
+	resDeliverTxs, err := suite.tApp.FinalizeBlock(
+		&abci.RequestFinalizeBlock{
+			Txs: [][]byte{txBytes},
+		})
+	suite.Require().NoError(err)
+	suite.Require().Len(resDeliverTxs.TxResults, 1)
+	resDeliverTx := resDeliverTxs.TxResults[0]
+	//resDeliverTx := suite.tApp.DeliverTx(
+	//	abci.RequestDeliverTx{
+	//		Tx: txBytes,
+	//	},
+	//)
 	suite.Require().Equal(resDeliverTx.Code, uint32(0), resDeliverTx.Log)
 
 	// validate hard
@@ -765,11 +794,18 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 	)
 	txBytes, err = encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
-	resDeliverTx = suite.tApp.DeliverTx(
-		abci.RequestDeliverTx{
-			Tx: txBytes,
-		},
-	)
+	resDeliverTxs, err = suite.tApp.FinalizeBlock(
+		&abci.RequestFinalizeBlock{
+			Txs: [][]byte{txBytes},
+		})
+	suite.Require().NoError(err)
+	suite.Require().Len(resDeliverTxs.TxResults, 1)
+	resDeliverTx = resDeliverTxs.TxResults[0]
+	//resDeliverTx = suite.tApp.DeliverTx(
+	//	abci.RequestDeliverTx{
+	//		Tx: txBytes,
+	//	},
+	//)
 	suite.Require().Equal(resDeliverTx.Code, uint32(0), resDeliverTx.Log)
 
 	// validate hard & cdp should be repayed

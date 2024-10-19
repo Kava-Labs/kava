@@ -25,7 +25,7 @@ func (*MockGauge) Add(_ float64)                                  {}
 func ctxWithHeight(height int64) sdk.Context {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates()
-	return tApp.NewContext(false, tmproto.Header{Height: height})
+	return tApp.NewContextLegacy(false, tmproto.Header{Height: height})
 }
 
 func TestBeginBlockEmitsLatestHeight(t *testing.T) {

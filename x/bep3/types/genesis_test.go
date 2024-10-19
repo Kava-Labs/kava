@@ -20,7 +20,7 @@ type GenesisTestSuite struct {
 }
 
 func (suite *GenesisTestSuite) SetupTest() {
-	coin := sdk.NewCoin("kava", sdk.OneInt())
+	coin := sdk.NewCoin("kava", sdkmath.OneInt())
 	suite.swaps = atomicSwaps(10)
 
 	supply := types.NewAssetSupply(coin, coin, coin, coin, time.Duration(0))

@@ -13,7 +13,7 @@ import (
 
 func TestItCreatesModuleAccountOnInitBlock(t *testing.T) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 	tApp.InitializeFromGenesisStates()
 
 	accKeeper := tApp.GetAccountKeeper()

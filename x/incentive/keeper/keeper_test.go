@@ -42,7 +42,7 @@ func (suite *KeeperTestSuite) SetupApp() {
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 
-	suite.ctx = suite.app.NewContext(true, tmprototypes.Header{Time: suite.genesisTime})
+	suite.ctx = suite.App.NewContextLegacy(true, tmprototypes.Header{Time: suite.genesisTime})
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {

@@ -257,7 +257,7 @@ func (suite *USDXRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
-	suite.ctx = suite.app.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {

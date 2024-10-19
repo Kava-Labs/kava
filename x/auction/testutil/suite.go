@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/stretchr/testify/suite"
 
 	sdkmath "cosmossdk.io/math"
@@ -44,7 +45,7 @@ func (suite *Suite) SetupTest(numAddrs int) {
 		sdk.NewCoin("token2", sdkmath.NewInt(100)),
 	)
 
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	modName := "liquidator"
 	modBaseAcc := authtypes.NewBaseAccount(authtypes.NewModuleAddress(modName), nil, 0, 0)

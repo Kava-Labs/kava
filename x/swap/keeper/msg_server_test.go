@@ -219,7 +219,7 @@ func (suite *msgServerTestSuite) TestWithdraw_AllShares() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	res, err := suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), withdraw)
 	suite.Require().Equal(&types.MsgWithdrawResponse{}, res)
 	suite.Require().NoError(err)
@@ -275,7 +275,7 @@ func (suite *msgServerTestSuite) TestWithdraw_PartialShares() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	res, err := suite.msgServer.Withdraw(sdk.WrapSDKContext(suite.Ctx), withdraw)
 	suite.Require().Equal(&types.MsgWithdrawResponse{}, res)
 	suite.Require().NoError(err)
@@ -382,7 +382,7 @@ func (suite *msgServerTestSuite) TestSwapExactForTokens() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	res, err := suite.msgServer.SwapExactForTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
 	suite.Require().Equal(&types.MsgSwapExactForTokensResponse{}, res)
 	suite.Require().NoError(err)
@@ -446,7 +446,7 @@ func (suite *msgServerTestSuite) TestSwapExactForTokens_SlippageFailure() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	res, err := suite.msgServer.SwapExactForTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
 	suite.Require().Nil(res)
 	suite.EqualError(err, "slippage 0.010000123252155223 > limit 0.010000000000000000: slippage exceeded")
@@ -495,7 +495,7 @@ func (suite *msgServerTestSuite) TestSwapForExactTokens() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	res, err := suite.msgServer.SwapForExactTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
 	suite.Require().Equal(&types.MsgSwapForExactTokensResponse{}, res)
 	suite.Require().NoError(err)
@@ -559,7 +559,7 @@ func (suite *msgServerTestSuite) TestSwapForExactTokens_SlippageFailure() {
 		time.Now().Add(10*time.Minute).Unix(),
 	)
 
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	res, err := suite.msgServer.SwapForExactTokens(sdk.WrapSDKContext(suite.Ctx), swapMsg)
 	suite.Require().Nil(res)
 	suite.EqualError(err, "slippage 0.010000979019022939 > limit 0.010000000000000000: slippage exceeded")

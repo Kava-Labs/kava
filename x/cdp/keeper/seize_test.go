@@ -43,7 +43,6 @@ type liquidationTracker struct {
 func (suite *SeizeTestSuite) SetupTest() {
 	fmt.Println("SetupTest()")
 	tApp := app.NewTestApp()
-	//ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now()).WithChainID(app.TestChainId)
 	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainId})
 	tracker := liquidationTracker{}
 	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
@@ -71,7 +70,6 @@ func (suite *SeizeTestSuite) SetupTest() {
 func (suite *SeizeTestSuite) createCdps() {
 	tApp := app.NewTestApp()
 	fmt.Println("creating new context")
-	//ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
 	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(types.CDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)

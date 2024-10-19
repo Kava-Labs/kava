@@ -95,7 +95,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			Active:        true,
 			DeputyAddress: testDeputy,
 			FixedFee:      sdkmath.NewInt(1000),
-			MinSwapAmount: sdk.OneInt(),
+			MinSwapAmount: sdkmath.OneInt(),
 			MaxSwapAmount: sdkmath.NewInt(1000000000000),
 			MinBlockLock:  bep3types.DefaultMinBlockLock,
 			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
@@ -112,7 +112,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 			Active:        false,
 			DeputyAddress: testDeputy,
 			FixedFee:      sdkmath.NewInt(1000),
-			MinSwapAmount: sdk.OneInt(),
+			MinSwapAmount: sdkmath.OneInt(),
 			MaxSwapAmount: sdkmath.NewInt(1000000000000),
 			MinBlockLock:  bep3types.DefaultMinBlockLock,
 			MaxBlockLock:  bep3types.DefaultMaxBlockLock,
@@ -252,7 +252,7 @@ func (suite *PermissionTestSuite) TestSubParamChangePermission_Allows() {
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true, abci.Header{})
+			ctx := tApp.NewContextLegacy(true, abci.Header{})
 			tApp.InitializeFromGenesisStates(tc.genState...)
 
 			suite.Equal(

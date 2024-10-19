@@ -35,7 +35,7 @@ type KeeperTestSuite struct {
 // The default state used by each test
 func (suite *KeeperTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	tApp.InitializeFromGenesisStates()
 

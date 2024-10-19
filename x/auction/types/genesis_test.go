@@ -37,7 +37,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		MaxBid:            sdk.NewInt64Coin("usdx", 5e4),
 		LotReturns: WeightedAddresses{
 			Addresses: []sdk.AccAddress{sdk.AccAddress("test return address")},
-			Weights:   []sdkmath.Int{sdk.OneInt()},
+			Weights:   []sdkmath.Int{sdkmath.OneInt()},
 		},
 	}
 

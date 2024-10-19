@@ -471,7 +471,7 @@ func TestAuctionBidding(t *testing.T) {
 			gs := app.GenesisState{types.ModuleName: moduleGs}
 			tApp.InitializeFromGenesisStates(authGS, gs)
 
-			ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: someTime})
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: someTime})
 			keeper := tApp.GetAuctionKeeper()
 			bank := tApp.GetBankKeeper()
 

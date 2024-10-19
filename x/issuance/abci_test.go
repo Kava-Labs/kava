@@ -34,7 +34,7 @@ type ABCITestSuite struct {
 func (suite *ABCITestSuite) SetupTest() {
 	tApp := app.NewTestApp()
 	blockTime := tmtime.Now()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: blockTime})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: blockTime})
 	tApp.InitializeFromGenesisStates()
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	keeper := tApp.GetIssuanceKeeper()

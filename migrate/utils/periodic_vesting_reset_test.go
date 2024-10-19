@@ -23,7 +23,12 @@ func createVestingAccount(balance sdk.Coins, vestingStart time.Time, vestingPeri
 		originalVesting = originalVesting.Add(vp.Amount...)
 	}
 
-	return vestingtypes.NewPeriodicVestingAccount(acc, originalVesting, vestingStart.Unix(), vestingPeriods)
+	vasting, err := vestingtypes.NewPeriodicVestingAccount(acc, originalVesting, vestingStart.Unix(), vestingPeriods)
+	if err != nil {
+		panic(err)
+	}
+
+	return vasting
 }
 
 func TestResetPeriodVestingAccount_NoVestingPeriods(t *testing.T) {

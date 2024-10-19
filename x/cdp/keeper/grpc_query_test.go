@@ -30,7 +30,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 		NewPricefeedGenStateMulti(suite.tApp.AppCodec()),
 		NewCDPGenStateMulti(suite.tApp.AppCodec()),
 	)
-	suite.ctx = suite.tApp.NewContext(true).WithBlockTime(time.Now().UTC())
+	suite.ctx = suite.tApp.NewContextLegacy(true).WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetCDPKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 

@@ -14,7 +14,7 @@ import (
 func TestKeeper_PostPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).
+	ctx := tApp.NewContextLegacy(true).
 		WithBlockTime(time.Now().UTC())
 	k := tApp.GetPriceFeedKeeper()
 	msgSrv := keeper.NewMsgServerImpl(k)

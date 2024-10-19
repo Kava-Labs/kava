@@ -16,7 +16,7 @@ import (
 func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, keeper keeper.Keeper)) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).
+	ctx := tApp.NewContextLegacy(true).
 		WithBlockTime(time.Now().UTC())
 	keeper := tApp.GetPriceFeedKeeper()
 
@@ -169,7 +169,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper keeper.Keeper)) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).
+	ctx := tApp.NewContextLegacy(true).
 		WithBlockTime(time.Now().UTC())
 	keeper := tApp.GetPriceFeedKeeper()
 

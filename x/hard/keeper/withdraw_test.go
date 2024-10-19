@@ -117,7 +117,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			authGS := app.NewFundedGenStateWithCoins(
 				tApp.AppCodec(),
 				[]sdk.Coins{sdk.NewCoins(
@@ -262,7 +262,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			// Auth module genesis state
 			authGS := app.NewFundedGenStateWithCoins(
@@ -348,7 +348,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			suite.Require().NoError(err)
 
 			// Attempting to withdraw fails
-			err = suite.keeper.Withdraw(suite.ctx, tc.args.borrower, sdk.NewCoins(sdk.NewCoin("ukava", sdk.OneInt())))
+			err = suite.keeper.Withdraw(suite.ctx, tc.args.borrower, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.OneInt())))
 			suite.Require().Error(err)
 			suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 
@@ -358,7 +358,7 @@ func (suite *KeeperTestSuite) TestLtvWithdraw() {
 			hard.BeginBlocker(liqCtx, suite.keeper)
 
 			// Attempted withdraw of 1 coin still fails
-			err = suite.keeper.Withdraw(suite.ctx, tc.args.borrower, sdk.NewCoins(sdk.NewCoin("ukava", sdk.OneInt())))
+			err = suite.keeper.Withdraw(suite.ctx, tc.args.borrower, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.OneInt())))
 			suite.Require().Error(err)
 			suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
 

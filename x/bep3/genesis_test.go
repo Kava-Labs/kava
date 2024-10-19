@@ -29,7 +29,7 @@ func (suite *GenesisTestSuite) SetupTest() {
 	app.SetBech32AddressPrefixes(config)
 
 	tApp := app.NewTestApp()
-	suite.ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.ctx = tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.keeper = tApp.GetBep3Keeper()
 	suite.app = tApp
 

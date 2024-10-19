@@ -42,7 +42,7 @@ func (suite *HandlerTestSuite) SetupTest() {
 func (suite *HandlerTestSuite) SetupApp() {
 	suite.App = app.NewTestApp()
 
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *HandlerTestSuite) SetupWithGenState(builders ...testutil.GenesisBuilder) {

@@ -64,7 +64,7 @@ func (suite *proposalTestSuite) SetupTest() {
 		Build()
 
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{
 		Height:  1,
 		Time:    genTime,
 		ChainID: chainID,

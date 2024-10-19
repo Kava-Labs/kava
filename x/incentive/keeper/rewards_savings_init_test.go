@@ -28,7 +28,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimAddedWhenClaimDoesNotExistAn
 
 	owner := arbitraryAddress()
 
-	amount := sdk.NewCoin("test", sdk.OneInt())
+	amount := sdk.NewCoin("test", sdkmath.OneInt())
 	deposit := savingstypes.NewDeposit(owner, sdk.NewCoins(amount))
 
 	suite.keeper.InitializeSavingsReward(suite.ctx, deposit)
@@ -49,7 +49,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimAddedWhenClaimDoesNotExistAn
 	// When a claim doesn't exist, and a user deposits to a rewarded pool;
 	// then a claim is added with no rewards and indexes matching the global indexes
 
-	amount := sdk.NewCoin("test", sdk.OneInt())
+	amount := sdk.NewCoin("test", sdkmath.OneInt())
 
 	globalIndexes := types.MultiRewardIndexes{
 		{
@@ -105,7 +105,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndNoR
 
 	// no global indexes stored as the new denom is not rewarded
 	newDenom := "test"
-	deposit := savingstypes.NewDeposit(claim.Owner, sdk.NewCoins(sdk.NewCoin(newDenom, sdk.OneInt())))
+	deposit := savingstypes.NewDeposit(claim.Owner, sdk.NewCoins(sdk.NewCoin(newDenom, sdkmath.OneInt())))
 	suite.keeper.InitializeSavingsReward(suite.ctx, deposit)
 
 	syncedClaim, found := suite.keeper.GetSavingsClaim(suite.ctx, claim.Owner)
@@ -173,7 +173,7 @@ func (suite *InitializeSavingsRewardTests) TestClaimUpdatedWhenClaimExistsAndRew
 	}
 	suite.storeGlobalSavingsIndexes(globalIndexes)
 
-	deposit := savingstypes.NewDeposit(claim.Owner, sdk.NewCoins(sdk.NewCoin(newDenom, sdk.OneInt())))
+	deposit := savingstypes.NewDeposit(claim.Owner, sdk.NewCoins(sdk.NewCoin(newDenom, sdkmath.OneInt())))
 	suite.keeper.InitializeSavingsReward(suite.ctx, deposit)
 
 	syncedClaim, _ := suite.keeper.GetSavingsClaim(suite.ctx, claim.Owner)

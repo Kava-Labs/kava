@@ -92,7 +92,7 @@ func (suite *keeperTestSuite) TestWithdraw_GreaterThanSharesOwned() {
 	totalShares := sdkmath.NewInt(30e6)
 	suite.setupPool(reserves, totalShares, owner.GetAddress())
 
-	sharesToWithdraw := totalShares.Add(sdk.OneInt())
+	sharesToWithdraw := totalShares.Add(sdkmath.OneInt())
 	err := suite.Keeper.Withdraw(suite.Ctx, owner.GetAddress(), sharesToWithdraw, reserves[0], reserves[1])
 	suite.EqualError(err, fmt.Sprintf("withdraw of %s shares greater than %s shares owned: invalid shares", sharesToWithdraw, totalShares))
 }

@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"errors"
 	"fmt"
 	"time"
@@ -400,7 +401,8 @@ func Sign(
 		return txBuilder.GetTx(), nil, err
 	}
 
-	signBytes, err := txConfig.SignModeHandler().GetSignBytes(signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
+	// TEXTTUAL will use context for formatting the sign bytes, other just ignore context
+	signBytes, err := txConfig.SignModeHandler().GetSignBytes(context.Background(), signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT), signerData, txBuilder.GetTx())
 	if err != nil {
 		return txBuilder.GetTx(), nil, err
 	}

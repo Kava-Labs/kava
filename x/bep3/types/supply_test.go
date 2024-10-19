@@ -10,7 +10,7 @@ import (
 )
 
 func TestAssetSupplyValidate(t *testing.T) {
-	coin := sdk.NewCoin("kava", sdk.OneInt())
+	coin := sdk.NewCoin("kava", sdkmath.OneInt())
 	invalidCoin := sdk.Coin{Denom: "Invalid Denom", Amount: sdkmath.NewInt(-1)}
 	testCases := []struct {
 		msg     string
@@ -78,8 +78,8 @@ func TestAssetSupplyValidate(t *testing.T) {
 }
 
 func TestAssetSupplyEquality(t *testing.T) {
-	coin := sdk.NewCoin("test", sdk.OneInt())
-	coin2 := sdk.NewCoin("other", sdk.OneInt())
+	coin := sdk.NewCoin("test", sdkmath.OneInt())
+	coin2 := sdk.NewCoin("other", sdkmath.OneInt())
 	testCases := []struct {
 		name    string
 		asset1  AssetSupply

@@ -102,7 +102,7 @@ func (suite *KeeperTestSuite) TestDeposit() {
 
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			authGS := app.NewFundedGenStateWithCoins(
 				tApp.AppCodec(),
 				[]sdk.Coins{
@@ -269,7 +269,7 @@ func (suite *KeeperTestSuite) TestDecrementSuppliedCoins() {
 		suite.Run(tc.name, func() {
 			// Initialize test app and set context
 			tApp := app.NewTestApp()
-			ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+			ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			loanToValue, _ := sdkmath.LegacyNewDecFromStr("0.6")
 			depositor := sdk.AccAddress(crypto.AddressHash([]byte("test")))
 			authGS := app.NewFundedGenStateWithCoins(

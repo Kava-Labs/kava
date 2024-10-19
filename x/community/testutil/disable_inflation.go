@@ -46,7 +46,7 @@ func (suite *disableInflationTestSuite) SetupTest() {
 	app.SetSDKConfig()
 	tApp := app.NewTestApp()
 	suite.App = tApp
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.Keeper = suite.App.GetCommunityKeeper()
 
 	// Set up x/mint and x/kavadist gen state

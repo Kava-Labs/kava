@@ -80,7 +80,7 @@ func (suite *IntegrationTester) StartChain(genesisStates ...app.GenesisState) {
 		genesisStates...,
 	)
 
-	suite.Ctx = suite.App.NewContext(false)
+	suite.Ctx = suite.App.NewContextLegacy(false)
 	suite.Ctx.WithBlockTime(suite.GenesisTime)
 	suite.Ctx.WithChainID(app.TestChainId)
 	suite.Ctx.WithBlockHeight(1)

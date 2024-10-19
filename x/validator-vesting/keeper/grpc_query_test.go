@@ -39,7 +39,7 @@ func (m *mockBankKeeper) GetSupply(ctx sdk.Context, denom string) sdk.Coin {
 func (suite *grpcQueryTestSuite) SetupTest() {
 	testTime := time.Date(2024, 2, 29, 12, 00, 00, 00, time.UTC)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1, Time: testTime})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: testTime})
 	suite.app = tApp
 	suite.ctx = ctx
 	suite.bk = &mockBankKeeper{}

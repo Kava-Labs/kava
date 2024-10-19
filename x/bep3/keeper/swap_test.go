@@ -45,7 +45,7 @@ func (suite *AtomicSwapTestSuite) SetupTest() {
 
 	// Initialize test app and set context
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdc := tApp.AppCodec()
 
 	// Create and load 20 accounts with bnb tokens

@@ -29,7 +29,7 @@ type ABCITestSuite struct {
 
 func (suite *ABCITestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	// Set up auth GenesisState
 	_, addrs := app.GeneratePrivKeyAddressPairs(12)

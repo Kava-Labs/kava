@@ -165,7 +165,7 @@ package keeper_test
 // 	for _, tc := range testcases {
 // 		suite.Run(tc.name, func() {
 // 			tApp := app.NewTestApp()
-// 			ctx := tApp.NewContext(true, abci.Header{})
+// 			ctx := tApp.NewContextLegacy(true, abci.Header{})
 // 			tApp.InitializeFromGenesisStates()
 // 			com := types.NewMemberCommittee(
 // 				12,

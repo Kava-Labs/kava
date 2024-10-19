@@ -25,7 +25,7 @@ type KeeperTestSuite struct {
 
 func (suite *KeeperTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true, tmprototypes.Header{Height: 1, Time: tmtime.Now()})
+	ctx := tApp.NewContextLegacy(true, tmprototypes.Header{Height: 1, Time: tmtime.Now()})
 	tApp.InitializeFromGenesisStates(
 		NewPricefeedGenStateMulti(),
 	)

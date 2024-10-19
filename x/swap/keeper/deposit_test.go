@@ -192,7 +192,7 @@ func (suite *keeperTestSuite) TestDeposit_PoolExists() {
 	depositA := sdk.NewCoin("usdx", balance.AmountOf("usdx"))
 	depositB := sdk.NewCoin("ukava", balance.AmountOf("ukava"))
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	err = suite.Keeper.Deposit(ctx, depositor.GetAddress(), depositA, depositB, sdkmath.LegacyMustNewDecFromStr("4"))
 	suite.Require().NoError(err)
@@ -291,7 +291,7 @@ func (suite *keeperTestSuite) TestDeposit_Slippage() {
 			)
 			depositor := suite.CreateAccount(balance)
 
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 			err = suite.Keeper.Deposit(ctx, depositor.GetAddress(), tc.depositA, tc.depositB, tc.slippage)
 			if tc.shouldFail {

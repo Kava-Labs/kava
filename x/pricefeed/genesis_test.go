@@ -25,7 +25,7 @@ type GenesisTestSuite struct {
 
 func (suite *GenesisTestSuite) SetupTest() {
 	suite.tApp = app.NewTestApp()
-	suite.ctx = suite.tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.ctx = suite.tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.keeper = suite.tApp.GetPriceFeedKeeper()
 }
 

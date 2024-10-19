@@ -27,7 +27,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 
 	suite.addrs = addrs
 
-	suite.ctx = suite.tApp.NewContext(true).
+	suite.ctx = suite.tApp.NewContextLegacy(true).
 		WithBlockTime(time.Now().UTC())
 	suite.keeper = suite.tApp.GetHardKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper, suite.tApp.GetAccountKeeper(), suite.tApp.GetBankKeeper())

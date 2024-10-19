@@ -46,7 +46,7 @@ func (suite *IntegrationTestSuite) TestEvmRespectsMinFee() {
 	minGasPrice := minFees.AmountOf("akava").TruncateInt()
 
 	// attempt tx with less than min gas price (min fee - 1)
-	tooLowGasPrice := minGasPrice.Sub(sdk.OneInt()).BigInt()
+	tooLowGasPrice := minGasPrice.Sub(sdkmath.OneInt()).BigInt()
 	req := util.EvmTxRequest{
 		Tx:   ethtypes.NewTransaction(0, randoReceiver, big.NewInt(5e2), 1e5, tooLowGasPrice, nil),
 		Data: "this tx should fail because it's gas price is too low",

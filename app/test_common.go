@@ -355,7 +355,8 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	}
 
 	// Initialize the chain
-	stateBytes, err := json.Marshal(genesisState)
+	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
+	//stateBytes, err := json.Marshal(genesisState)
 	if err != nil {
 		panic(err)
 	}
@@ -377,9 +378,17 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		},
 	)
 	fmt.Println("chain initialized")
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{})
+	fmt.Println("context for chain", ctx)
+	fmt.Println("trying to get acounts", tApp.GetAccountKeeper().GetAllAccounts(ctx))
+	fmt.Println("trying to get auctions", tApp.GetAuctionKeeper().GetAllAuctions(ctx))
+	fmt.Println("trying to get minter", tApp.GetMintKeeper().GetMinter(ctx))
 	_, err = tApp.Commit()
 	fmt.Println("chain committed: ", err)
 	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		// Height:             app.LastBlockHeight() + 1,
+		//		Hash:               app.LastCommitID().Hash,
+		//		NextValidatorsHash: valSet.Hash(),
 		Height: tApp.LastBlockHeight() + 1,
 		Hash:   tApp.LastCommitID().Hash,
 		Time:   genTime,

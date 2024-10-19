@@ -28,7 +28,7 @@ type GenesisTestSuite struct {
 func (suite *GenesisTestSuite) SetupTest() {
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
-	suite.ctx = suite.app.NewContext(true, tmproto.Header{})
+	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{})
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(10)
 }
 
@@ -133,7 +133,7 @@ func (suite *GenesisTestSuite) TestInitGenesis() {
 			// Setup (note: suite.SetupTest is not run before every suite.Run)
 			suite.app = app.NewTestApp()
 			suite.keeper = suite.app.GetCommitteeKeeper()
-			suite.ctx = suite.app.NewContext(true, tmproto.Header{})
+			suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{})
 
 			// Run
 			var exportedGenState *types.GenesisState

@@ -32,7 +32,7 @@ func (suite *AssetTestSuite) SetupTest() {
 
 	// Initialize test app and set context
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	// Initialize genesis state
 	deputy, _ := sdk.AccAddressFromBech32(TestDeputy)
@@ -641,7 +641,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						Active:        true,
 						DeputyAddress: deputy,
 						FixedFee:      sdkmath.NewInt(1000),
-						MinSwapAmount: sdk.OneInt(),
+						MinSwapAmount: sdkmath.OneInt(),
 						MaxSwapAmount: sdkmath.NewInt(1000000000000),
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
@@ -658,7 +658,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						Active:        false,
 						DeputyAddress: deputy,
 						FixedFee:      sdkmath.NewInt(1000),
-						MinSwapAmount: sdk.OneInt(),
+						MinSwapAmount: sdkmath.OneInt(),
 						MaxSwapAmount: sdkmath.NewInt(1000000000000),
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,
@@ -675,7 +675,7 @@ func (suite *AssetTestSuite) TestUpdateTimeBasedSupplyLimits() {
 						Active:        false,
 						DeputyAddress: deputy,
 						FixedFee:      sdkmath.NewInt(1000),
-						MinSwapAmount: sdk.OneInt(),
+						MinSwapAmount: sdkmath.OneInt(),
 						MaxSwapAmount: sdkmath.NewInt(1000000000000),
 						MinBlockLock:  types.DefaultMinBlockLock,
 						MaxBlockLock:  types.DefaultMaxBlockLock,

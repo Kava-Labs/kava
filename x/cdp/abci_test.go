@@ -40,7 +40,7 @@ type liquidationTracker struct {
 
 func (suite *ModuleTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tracker := liquidationTracker{}
 
 	coins := cs(c("btc", 100000000), c("xrp", 10000000000), c("erc20/usdc", 10000000000))
@@ -61,7 +61,7 @@ func (suite *ModuleTestSuite) SetupTest() {
 
 func (suite *ModuleTestSuite) createCdps() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true)
+	ctx := tApp.NewContextLegacy(true)
 	ctx.WithBlockHeight(1)
 	ctx.WithBlockTime(tmtime.Now())
 	cdps := make(types.CDPs, 100)

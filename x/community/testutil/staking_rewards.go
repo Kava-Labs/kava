@@ -239,7 +239,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			// initial context at height 1
 			height := int64(1)
 			blockTime := tc.periodStart
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: height, Time: blockTime})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: height, Time: blockTime})
 
 			// ensure community pool balance matches the test expectations
 			poolAcc := accountKeeper.GetModuleAccount(ctx, types.ModuleName)
@@ -283,7 +283,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 				if blockTime.After(tc.periodEnd) {
 					blockTime = tc.periodEnd
 				}
-				ctx = suite.App.NewContext(true, tmproto.Header{Height: height, Time: blockTime})
+				ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: height, Time: blockTime})
 			}
 
 			endingFeeCollectorBalance := bankKeeper.GetBalance(ctx, feeCollectorAcc.GetAddress(), "ukava").Amount
@@ -323,7 +323,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewardsDoNotAccumulateWhenPoolI
 
 	// first block
 	blockTime := time.Now()
-	ctx := app.NewContext(true, tmproto.Header{Height: 1, Time: blockTime})
+	ctx := app.NewContextLegacy(true, tmproto.Header{Height: 1, Time: blockTime})
 
 	poolAcc := accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	feeCollectorAcc := accountKeeper.GetModuleAccount(ctx, authtypes.FeeCollectorName)
@@ -345,17 +345,17 @@ func (suite *stakingRewardsTestSuite) TestStakingRewardsDoNotAccumulateWhenPoolI
 
 	// run second block 10 seconds in future and spend all community pool rewards
 	blockTime = blockTime.Add(10 * time.Second)
-	ctx = app.NewContext(true, tmproto.Header{Height: 2, Time: blockTime})
+	ctx = app.NewContextLegacy(true, tmproto.Header{Height: 2, Time: blockTime})
 	community.BeginBlocker(ctx, keeper)
 
 	// run third block 10 seconds in future which no rewards will be paid
 	blockTime = blockTime.Add(10 * time.Second)
-	ctx = app.NewContext(true, tmproto.Header{Height: 3, Time: blockTime})
+	ctx = app.NewContextLegacy(true, tmproto.Header{Height: 3, Time: blockTime})
 	community.BeginBlocker(ctx, keeper)
 
 	// run fourth block 10 seconds in future which no rewards will be paid
 	blockTime = blockTime.Add(10 * time.Second)
-	ctx = app.NewContext(true, tmproto.Header{Height: 4, Time: blockTime})
+	ctx = app.NewContextLegacy(true, tmproto.Header{Height: 4, Time: blockTime})
 	community.BeginBlocker(ctx, keeper)
 
 	// refund the community pool with 100 KAVA -- plenty of funds
@@ -363,7 +363,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewardsDoNotAccumulateWhenPoolI
 
 	// run fifth block 10 seconds in future which no rewards will be paid
 	blockTime = blockTime.Add(10 * time.Second)
-	ctx = app.NewContext(true, tmproto.Header{Height: 5, Time: blockTime})
+	ctx = app.NewContextLegacy(true, tmproto.Header{Height: 5, Time: blockTime})
 	community.BeginBlocker(ctx, keeper)
 
 	// assert that only 20 total KAVA has been distributed in rewards
@@ -375,7 +375,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewardsDoNotAccumulateWhenPoolI
 func (suite *stakingRewardsTestSuite) TestPanicsOnMissingParameters() {
 	suite.SetupTest()
 
-	ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: time.Now()})
+	ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: time.Now()})
 	store := ctx.KVStore(suite.App.GetKVStoreKey(types.StoreKey))
 	store.Delete(types.ParamsKey)
 

@@ -34,7 +34,7 @@ type Suite struct {
 func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
 
-	suite.Ctx = tApp.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+	suite.Ctx = tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	suite.App = tApp
 	suite.BankKeeper = tApp.GetBankKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
@@ -53,7 +53,7 @@ func (suite *Suite) SetupTest() {
 	consAddress := sdk.ConsAddress(consPriv.PubKey().Address())
 
 	// InitializeFromGenesisStates commits first block so we start at 2 here
-	suite.Ctx = suite.App.NewContext(false, tmproto.Header{
+	suite.Ctx = suite.App.NewContextLegacy(false, tmproto.Header{
 		Height:          suite.App.LastBlockHeight() + 1,
 		ChainID:         app.TestChainId,
 		Time:            time.Now().UTC(),
@@ -87,7 +87,7 @@ func (suite *Suite) Commit() {
 	})
 
 	// update ctx
-	suite.Ctx = suite.App.NewContext(false, header)
+	suite.Ctx = suite.App.NewContextLegacy(false, header)
 }
 
 // MintToAccount mints coins to an account with the x/precisebank methods. This

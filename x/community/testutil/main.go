@@ -26,7 +26,7 @@ type Suite struct {
 func (suite *Suite) SetupTest() {
 	app.SetSDKConfig()
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	suite.App = tApp.InitializeFromGenesisStates()
 

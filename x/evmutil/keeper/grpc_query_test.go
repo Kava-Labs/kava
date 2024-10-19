@@ -31,7 +31,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.App.InitializeFromGenesisStates()
 
 	suite.Keeper = suite.App.GetEvmutilKeeper()
-	suite.Ctx = suite.App.NewContext(true, tmproto.Header{Height: 1})
+	suite.Ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.Ctx, suite.App.InterfaceRegistry())
 	types.RegisterQueryServer(queryHelper, keeper.NewQueryServerImpl(suite.App.GetEvmutilKeeper()))

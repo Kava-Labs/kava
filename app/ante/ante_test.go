@@ -8,8 +8,8 @@ import (
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	tmdb "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
+	tmdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -129,12 +129,13 @@ func TestAppAnteHandler_AuthorizedMempool(t *testing.T) {
 			txBytes, err := encodingConfig.TxConfig.TxEncoder()(stdTx)
 			require.NoError(t, err)
 
-			res := tApp.CheckTx(
-				abci.RequestCheckTx{
+			res, err := tApp.CheckTx(
+				&abci.RequestCheckTx{
 					Tx:   txBytes,
 					Type: abci.CheckTxType_New,
 				},
 			)
+			require.NoError(t, err)
 
 			if tc.expectPass {
 				require.Zero(t, res.Code, res.Log)
@@ -172,7 +173,7 @@ func newBep3GenStateMulti(cdc codec.JSONCodec, deputyAddress sdk.AccAddress) app
 					Active:        true,
 					DeputyAddress: deputyAddress,
 					FixedFee:      sdkmath.NewInt(1000),
-					MinSwapAmount: sdk.OneInt(),
+					MinSwapAmount: sdkmath.OneInt(),
 					MaxSwapAmount: sdkmath.NewInt(1000000000000),
 					MinBlockLock:  bep3types.DefaultMinBlockLock,
 					MaxBlockLock:  bep3types.DefaultMaxBlockLock,
@@ -255,20 +256,31 @@ func TestAppAnteHandler_RejectMsgsInAuthz(t *testing.T) {
 			txBytes, err := encodingConfig.TxConfig.TxEncoder()(stdTx)
 			require.NoError(t, err)
 
-			resCheckTx := tApp.CheckTx(
-				abci.RequestCheckTx{
+			resCheckTx, err := tApp.CheckTx(
+				&abci.RequestCheckTx{
 					Tx:   txBytes,
 					Type: abci.CheckTxType_New,
 				},
 			)
+			require.NoError(t, err)
 			require.Equal(t, resCheckTx.Code, tc.expectedCode, resCheckTx.Log)
 
-			resDeliverTx := tApp.DeliverTx(
-				abci.RequestDeliverTx{
-					Tx: txBytes,
+			//resDeliverTx := tApp.DeliverTx(
+			//	abci.RequestDeliverTx{
+			//		Tx: txBytes,
+			//	},
+			//)
+			// TODO(boodyvo): validate if this is the correct way to test deliver tx
+			resDeliverTx, err := tApp.FinalizeBlock(
+				&abci.RequestFinalizeBlock{
+					Txs: [][]byte{txBytes},
 				},
 			)
-			require.Equal(t, resDeliverTx.Code, tc.expectedCode, resDeliverTx.Log)
+			require.NoError(t, err)
+			for _, tx := range resDeliverTx.TxResults {
+				require.Equal(t, tx.Code, tc.expectedCode, tx.Log)
+			}
+			//require.Equal(t, resDeliverTx.Code, tc.expectedCode, resDeliverTx.Log)
 		})
 	}
 }

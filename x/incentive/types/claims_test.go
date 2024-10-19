@@ -31,7 +31,7 @@ func TestClaims_Validate(t *testing.T) {
 			{
 				"valid",
 				USDXMintingClaims{
-					NewUSDXMintingClaim(owner, sdk.NewCoin("bnb", sdk.OneInt()), RewardIndexes{NewRewardIndex("bnb-a", sdkmath.LegacyZeroDec())}),
+					NewUSDXMintingClaim(owner, sdk.NewCoin("bnb", sdkmath.OneInt()), RewardIndexes{NewRewardIndex("bnb-a", sdkmath.LegacyZeroDec())}),
 				},
 				true,
 			},
@@ -64,7 +64,7 @@ func TestClaims_Validate(t *testing.T) {
 					{
 						BaseClaim: BaseClaim{
 							Owner:  owner,
-							Reward: sdk.NewCoin("bnb", sdk.OneInt()),
+							Reward: sdk.NewCoin("bnb", sdkmath.OneInt()),
 						},
 						RewardIndexes: []RewardIndex{{"", sdkmath.LegacyZeroDec()}},
 					},

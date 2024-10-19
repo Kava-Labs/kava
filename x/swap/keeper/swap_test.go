@@ -146,7 +146,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_Slippage() {
 			)
 			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, tc.slippage)
 
 			if tc.shouldFail {
@@ -187,7 +187,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds() {
 			balance := sdk.NewCoins(tc.balanceA)
 			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
@@ -224,7 +224,7 @@ func (suite *keeperTestSuite) TestSwapExactForTokens_InsufficientFunds_Vesting()
 			vesting := sdk.NewCoins(tc.vestingA)
 			requester := suite.CreateVestingAccount(balance, vesting)
 
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			err := suite.Keeper.SwapExactForTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
@@ -373,7 +373,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_OutputLessThanPoolReserves(
 	requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 	coinA := sdk.NewCoin("ukava", sdkmath.NewInt(1e6))
 
-	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(500e6).Add(sdk.OneInt()))
+	coinB := sdk.NewCoin("usdx", sdkmath.NewInt(500e6).Add(sdkmath.OneInt()))
 	err := suite.Keeper.SwapForExactTokens(suite.Ctx, requester.GetAddress(), coinA, coinB, sdkmath.LegacyMustNewDecFromStr("0.01"))
 	suite.EqualError(err, "output 500000001 >= pool reserves 500000000: insufficient liquidity")
 
@@ -457,7 +457,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_Slippage() {
 			)
 			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, tc.slippage)
 
 			if tc.shouldFail {
@@ -498,7 +498,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds() {
 			balance := sdk.NewCoins(tc.balanceA)
 			requester := suite.NewAccountFromAddr(sdk.AccAddress("requester-----------"), balance)
 
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})
@@ -535,7 +535,7 @@ func (suite *keeperTestSuite) TestSwapForExactTokens_InsufficientFunds_Vesting()
 			vesting := sdk.NewCoins(tc.vestingA)
 			requester := suite.CreateVestingAccount(balance, vesting)
 
-			ctx := suite.App.NewContext(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
+			ctx := suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 			err := suite.Keeper.SwapForExactTokens(ctx, requester.GetAddress(), tc.coinA, tc.coinB, sdkmath.LegacyMustNewDecFromStr("0.1"))
 			suite.Require().True(errors.Is(err, sdkerrors.ErrInsufficientFunds), fmt.Sprintf("got err %s", err))
 		})

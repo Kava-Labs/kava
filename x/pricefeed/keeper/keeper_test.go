@@ -18,7 +18,7 @@ import (
 // TestKeeper_SetGetMarket tests adding markets to the pricefeed, getting markets from the store
 func TestKeeper_SetGetMarket(t *testing.T) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true)
+	ctx := tApp.NewContextLegacy(true)
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
@@ -57,7 +57,7 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 func TestKeeper_GetSetPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true)
+	ctx := tApp.NewContextLegacy(true)
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
@@ -109,7 +109,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).
+	ctx := tApp.NewContextLegacy(true).
 		WithBlockTime(time.Now().UTC())
 	keeper := tApp.GetPriceFeedKeeper()
 
@@ -199,7 +199,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 func TestKeeper_ExpiredSetCurrentPrices(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).
+	ctx := tApp.NewContextLegacy(true).
 		WithBlockTime(time.Now().UTC())
 	keeper := tApp.GetPriceFeedKeeper()
 

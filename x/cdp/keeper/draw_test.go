@@ -28,7 +28,7 @@ type DrawTestSuite struct {
 
 func (suite *DrawTestSuite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContext(true).WithBlockHeight(1).WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdc := tApp.AppCodec()
 	_, addrs := app.GeneratePrivKeyAddressPairs(3)
 	coins := []sdk.Coins{

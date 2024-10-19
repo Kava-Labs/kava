@@ -16,7 +16,7 @@ func SetGetDeleteAuction(t *testing.T) {
 	// setup keeper, create auction
 	tApp := app.NewTestApp()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 	someTime := time.Date(43, time.January, 1, 0, 0, 0, 0, time.UTC) // need to specify UTC as tz info is lost on unmarshal
 	var id uint64 = 5
@@ -52,7 +52,7 @@ func TestIncrementNextAuctionID(t *testing.T) {
 	// setup keeper
 	tApp := app.NewTestApp()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 	// store id
 	var id uint64 = 123456
@@ -71,7 +71,7 @@ func TestIterateAuctions(t *testing.T) {
 	tApp := app.NewTestApp()
 	tApp.InitializeFromGenesisStates()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 	auctions := []types.Auction{
 		types.NewSurplusAuction("sellerMod", c("denom", 12345678), "anotherdenom", time.Date(1998, time.January, 1, 0, 0, 0, 0, time.UTC)).WithID(0),
@@ -97,7 +97,7 @@ func TestIterateAuctionsByTime(t *testing.T) {
 	// setup keeper
 	tApp := app.NewTestApp()
 	keeper := tApp.GetAuctionKeeper()
-	ctx := tApp.NewContext(true, tmproto.Header{Height: 1})
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1})
 
 	// setup byTime index
 	byTimeIndex := []struct {

@@ -29,7 +29,7 @@ func (suite *Suite) SetupTest() {
 	suite.App = app.NewTestApp()
 	suite.Keeper = suite.App.GetCommitteeKeeper()
 	suite.BankKeeper = suite.App.GetBankKeeper()
-	suite.Ctx = suite.App.NewContext(true)
+	suite.Ctx = suite.App.NewContextLegacy(true)
 	_, accAddresses := app.GeneratePrivKeyAddressPairs(10)
 	suite.Addresses = accAddresses
 
