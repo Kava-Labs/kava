@@ -377,12 +377,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 			InitialHeight: initialHeight,
 		},
 	)
-	fmt.Println("chain initialized")
-	ctx := tApp.NewContextLegacy(true, tmproto.Header{})
-	fmt.Println("context for chain", ctx)
-	fmt.Println("trying to get acounts", tApp.GetAccountKeeper().GetAllAccounts(ctx))
-	fmt.Println("trying to get auctions", tApp.GetAuctionKeeper().GetAllAuctions(ctx))
-	fmt.Println("trying to get minter", tApp.GetMintKeeper().GetMinter(ctx))
 	_, err = tApp.Commit()
 	fmt.Println("chain committed: ", err)
 	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
