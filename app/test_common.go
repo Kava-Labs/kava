@@ -377,8 +377,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 			InitialHeight: initialHeight,
 		},
 	)
-	_, err = tApp.Commit()
-	fmt.Println("chain committed: ", err)
 	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
 		// Height:             app.LastBlockHeight() + 1,
 		//		Hash:               app.LastCommitID().Hash,
@@ -388,6 +386,8 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		Time:   genTime,
 	})
 	fmt.Println("block finalized: ", err)
+	_, err = tApp.Commit()
+	fmt.Println("chain committed: ", err)
 
 	return tApp
 }
