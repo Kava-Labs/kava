@@ -3,7 +3,6 @@ package keeper_test
 import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/liquid/types"
 
@@ -31,7 +30,8 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 
 	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
 	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	// Transfers delegation to module account
 	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))

@@ -1,6 +1,7 @@
 package v2_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"testing"
 	"time"
 
@@ -8,7 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	v2 "github.com/kava-labs/kava/x/community/migrations/v2"
 	"github.com/kava-labs/kava/x/community/types"
@@ -17,8 +17,8 @@ import (
 func TestMigrateStore(t *testing.T) {
 	tApp := app.NewTestApp()
 	cdc := tApp.AppCodec()
-	storeKey := sdk.NewKVStoreKey("community")
-	ctx := testutil.DefaultContext(storeKey, sdk.NewTransientStoreKey("transient_test"))
+	storeKey := storetypes.NewKVStoreKey("community")
+	ctx := testutil.DefaultContext(storeKey, storetypes.NewTransientStoreKey("transient_test"))
 	store := ctx.KVStore(storeKey)
 
 	require.Nil(

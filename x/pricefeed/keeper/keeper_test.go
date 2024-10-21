@@ -1,7 +1,10 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"errors"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"testing"
 	"time"
 
@@ -18,7 +21,7 @@ import (
 // TestKeeper_SetGetMarket tests adding markets to the pricefeed, getting markets from the store
 func TestKeeper_SetGetMarket(t *testing.T) {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true)
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
@@ -57,7 +60,7 @@ func TestKeeper_SetGetMarket(t *testing.T) {
 func TestKeeper_GetSetPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true)
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
@@ -109,8 +112,7 @@ func TestKeeper_GetSetPrice(t *testing.T) {
 func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{
@@ -199,8 +201,7 @@ func TestKeeper_GetSetCurrentPrice(t *testing.T) {
 func TestKeeper_ExpiredSetCurrentPrices(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	mp := types.Params{

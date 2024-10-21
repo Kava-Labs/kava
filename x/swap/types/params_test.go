@@ -2,6 +2,7 @@ package types_test
 
 import (
 	"bytes"
+	sdkmath "cosmossdk.io/math"
 	"encoding/json"
 	"fmt"
 	"reflect"

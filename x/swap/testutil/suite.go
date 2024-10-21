@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"fmt"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"reflect"
 	"time"
 
@@ -36,7 +37,7 @@ type Suite struct {
 // SetupTest instantiates a new app, keepers, and sets suite state
 func (suite *Suite) SetupTest() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true).WithBlockTime(tmtime.Now()).WithBlockHeight(1)
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 
 	suite.Ctx = ctx
 	suite.App = tApp

@@ -1,16 +1,15 @@
 package keeper_test
 
 import (
-	"testing"
-	"time"
-
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"github.com/stretchr/testify/suite"
+	"testing"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/kava-labs/kava/app"
@@ -42,8 +41,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 
 	suite.addrs = addrs
 
-	suite.ctx = suite.tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	suite.ctx = suite.tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
 	suite.keeper = suite.tApp.GetSavingsKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 
@@ -236,9 +234,10 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalSupply() {
 		address2, derivatives2, _ := suite.createAccountWithDerivatives(bkava2, sdkmath.NewInt(1e9))
 
 		// bond validators
-		staking.EndBlocker(suite.ctx, suite.tApp.GetStakingKeeper())
+		_, err := suite.tApp.GetStakingKeeper().EndBlocker(suite.ctx)
+		suite.Require().NoError(err)
 		// slash val2 - its shares are now 80% as valuable!
-		err := suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.2"))
+		err = suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.2"))
 		suite.Require().NoError(err)
 
 		suite.addDeposits(
@@ -276,7 +275,7 @@ func (suite *grpcQueryTestSuite) addDeposits(deposits types.Deposits) {
 // createUnbondedValidator creates an unbonded validator with the given amount of self-delegation.
 func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress, selfDelegation sdk.Coin, minSelfDelegation sdkmath.Int) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
-		address,
+		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
@@ -295,7 +294,8 @@ func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress,
 // createAccountWithDerivatives creates an account with the given amount and denom of derivative token.
 // Internally, it creates a validator account and mints derivatives from the validator's self delegation.
 func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amount sdkmath.Int) (sdk.AccAddress, sdk.Coin, sdk.Coins) {
-	bondDenom := suite.tApp.GetStakingKeeper().BondDenom(suite.ctx)
+	bondDenom, err := suite.tApp.GetStakingKeeper().BondDenom(suite.ctx)
+	suite.Require().NoError(err)
 	valAddress, err := liquidtypes.ParseLiquidStakingTokenDenom(denom)
 	suite.Require().NoError(err)
 	address := sdk.AccAddress(valAddress)
@@ -333,8 +333,8 @@ func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amou
 func (suite *grpcQueryTestSuite) slashValidator(address sdk.ValAddress, slashFraction sdkmath.LegacyDec) error {
 	stakingKeeper := suite.tApp.GetStakingKeeper()
 
-	validator, found := stakingKeeper.GetValidator(suite.ctx, address)
-	suite.Require().True(found)
+	validator, err := stakingKeeper.GetValidator(suite.ctx, address)
+	suite.Require().NoError(err)
 	consAddr, err := validator.GetConsAddr()
 	suite.Require().NoError(err)
 

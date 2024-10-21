@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	"context"
 	mock "github.com/stretchr/testify/mock"
 
 	types "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +13,9 @@ import (
 type MockBankKeeper struct {
 	mock.Mock
 }
+
+// need the method: IsSendEnabledCoins(ctx context.Context, coins ...sdk.Coin) error
+// have the method: IsSendEnabledCoins(ctx types.Context, coins ...types.Coin) erro
 
 type MockBankKeeper_Expecter struct {
 	mock *mock.Mock
@@ -68,7 +72,7 @@ func (_c *MockBankKeeper_BlockedAddr_Call) RunAndReturn(run func(types.AccAddres
 }
 
 // BurnCoins provides a mock function with given fields: ctx, moduleName, amt
-func (_m *MockBankKeeper) BurnCoins(ctx types.Context, moduleName string, amt types.Coins) error {
+func (_m *MockBankKeeper) BurnCoins(ctx context.Context, moduleName string, amt types.Coins) error {
 	ret := _m.Called(ctx, moduleName, amt)
 
 	if len(ret) == 0 {
@@ -76,8 +80,9 @@ func (_m *MockBankKeeper) BurnCoins(ctx types.Context, moduleName string, amt ty
 	}
 
 	var r0 error
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, string, types.Coins) error); ok {
-		r0 = rf(ctx, moduleName, amt)
+		r0 = rf(sdkCtx, moduleName, amt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -116,7 +121,7 @@ func (_c *MockBankKeeper_BurnCoins_Call) RunAndReturn(run func(types.Context, st
 }
 
 // GetBalance provides a mock function with given fields: ctx, addr, denom
-func (_m *MockBankKeeper) GetBalance(ctx types.Context, addr types.AccAddress, denom string) types.Coin {
+func (_m *MockBankKeeper) GetBalance(ctx context.Context, addr types.AccAddress, denom string) types.Coin {
 	ret := _m.Called(ctx, addr, denom)
 
 	if len(ret) == 0 {
@@ -124,8 +129,9 @@ func (_m *MockBankKeeper) GetBalance(ctx types.Context, addr types.AccAddress, d
 	}
 
 	var r0 types.Coin
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, types.AccAddress, string) types.Coin); ok {
-		r0 = rf(ctx, addr, denom)
+		r0 = rf(sdkCtx, addr, denom)
 	} else {
 		r0 = ret.Get(0).(types.Coin)
 	}
@@ -164,7 +170,7 @@ func (_c *MockBankKeeper_GetBalance_Call) RunAndReturn(run func(types.Context, t
 }
 
 // GetSupply provides a mock function with given fields: ctx, denom
-func (_m *MockBankKeeper) GetSupply(ctx types.Context, denom string) types.Coin {
+func (_m *MockBankKeeper) GetSupply(ctx context.Context, denom string) types.Coin {
 	ret := _m.Called(ctx, denom)
 
 	if len(ret) == 0 {
@@ -172,8 +178,9 @@ func (_m *MockBankKeeper) GetSupply(ctx types.Context, denom string) types.Coin 
 	}
 
 	var r0 types.Coin
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, string) types.Coin); ok {
-		r0 = rf(ctx, denom)
+		r0 = rf(sdkCtx, denom)
 	} else {
 		r0 = ret.Get(0).(types.Coin)
 	}
@@ -211,7 +218,7 @@ func (_c *MockBankKeeper_GetSupply_Call) RunAndReturn(run func(types.Context, st
 }
 
 // IsSendEnabledCoins provides a mock function with given fields: ctx, coins
-func (_m *MockBankKeeper) IsSendEnabledCoins(ctx types.Context, coins ...types.Coin) error {
+func (_m *MockBankKeeper) IsSendEnabledCoins(ctx context.Context, coins ...types.Coin) error {
 	_va := make([]interface{}, len(coins))
 	for _i := range coins {
 		_va[_i] = coins[_i]
@@ -226,8 +233,9 @@ func (_m *MockBankKeeper) IsSendEnabledCoins(ctx types.Context, coins ...types.C
 	}
 
 	var r0 error
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, ...types.Coin) error); ok {
-		r0 = rf(ctx, coins...)
+		r0 = rf(sdkCtx, coins...)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -272,7 +280,7 @@ func (_c *MockBankKeeper_IsSendEnabledCoins_Call) RunAndReturn(run func(types.Co
 }
 
 // MintCoins provides a mock function with given fields: ctx, moduleName, amt
-func (_m *MockBankKeeper) MintCoins(ctx types.Context, moduleName string, amt types.Coins) error {
+func (_m *MockBankKeeper) MintCoins(ctx context.Context, moduleName string, amt types.Coins) error {
 	ret := _m.Called(ctx, moduleName, amt)
 
 	if len(ret) == 0 {
@@ -280,8 +288,9 @@ func (_m *MockBankKeeper) MintCoins(ctx types.Context, moduleName string, amt ty
 	}
 
 	var r0 error
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, string, types.Coins) error); ok {
-		r0 = rf(ctx, moduleName, amt)
+		r0 = rf(sdkCtx, moduleName, amt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -320,7 +329,7 @@ func (_c *MockBankKeeper_MintCoins_Call) RunAndReturn(run func(types.Context, st
 }
 
 // SendCoins provides a mock function with given fields: ctx, fromAddr, toAddr, amt
-func (_m *MockBankKeeper) SendCoins(ctx types.Context, fromAddr types.AccAddress, toAddr types.AccAddress, amt types.Coins) error {
+func (_m *MockBankKeeper) SendCoins(ctx context.Context, fromAddr types.AccAddress, toAddr types.AccAddress, amt types.Coins) error {
 	ret := _m.Called(ctx, fromAddr, toAddr, amt)
 
 	if len(ret) == 0 {
@@ -328,8 +337,9 @@ func (_m *MockBankKeeper) SendCoins(ctx types.Context, fromAddr types.AccAddress
 	}
 
 	var r0 error
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, types.AccAddress, types.AccAddress, types.Coins) error); ok {
-		r0 = rf(ctx, fromAddr, toAddr, amt)
+		r0 = rf(sdkCtx, fromAddr, toAddr, amt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -369,7 +379,7 @@ func (_c *MockBankKeeper_SendCoins_Call) RunAndReturn(run func(types.Context, ty
 }
 
 // SendCoinsFromAccountToModule provides a mock function with given fields: ctx, senderAddr, recipientModule, amt
-func (_m *MockBankKeeper) SendCoinsFromAccountToModule(ctx types.Context, senderAddr types.AccAddress, recipientModule string, amt types.Coins) error {
+func (_m *MockBankKeeper) SendCoinsFromAccountToModule(ctx context.Context, senderAddr types.AccAddress, recipientModule string, amt types.Coins) error {
 	ret := _m.Called(ctx, senderAddr, recipientModule, amt)
 
 	if len(ret) == 0 {
@@ -377,8 +387,9 @@ func (_m *MockBankKeeper) SendCoinsFromAccountToModule(ctx types.Context, sender
 	}
 
 	var r0 error
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, types.AccAddress, string, types.Coins) error); ok {
-		r0 = rf(ctx, senderAddr, recipientModule, amt)
+		r0 = rf(sdkCtx, senderAddr, recipientModule, amt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -418,7 +429,7 @@ func (_c *MockBankKeeper_SendCoinsFromAccountToModule_Call) RunAndReturn(run fun
 }
 
 // SendCoinsFromModuleToAccount provides a mock function with given fields: ctx, senderModule, recipientAddr, amt
-func (_m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins) error {
+func (_m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx context.Context, senderModule string, recipientAddr types.AccAddress, amt types.Coins) error {
 	ret := _m.Called(ctx, senderModule, recipientAddr, amt)
 
 	if len(ret) == 0 {
@@ -426,8 +437,9 @@ func (_m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types.Context, sender
 	}
 
 	var r0 error
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, string, types.AccAddress, types.Coins) error); ok {
-		r0 = rf(ctx, senderModule, recipientAddr, amt)
+		r0 = rf(sdkCtx, senderModule, recipientAddr, amt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -467,7 +479,7 @@ func (_c *MockBankKeeper_SendCoinsFromModuleToAccount_Call) RunAndReturn(run fun
 }
 
 // SendCoinsFromModuleToModule provides a mock function with given fields: ctx, senderModule, recipientModule, amt
-func (_m *MockBankKeeper) SendCoinsFromModuleToModule(ctx types.Context, senderModule string, recipientModule string, amt types.Coins) error {
+func (_m *MockBankKeeper) SendCoinsFromModuleToModule(ctx context.Context, senderModule string, recipientModule string, amt types.Coins) error {
 	ret := _m.Called(ctx, senderModule, recipientModule, amt)
 
 	if len(ret) == 0 {
@@ -475,8 +487,9 @@ func (_m *MockBankKeeper) SendCoinsFromModuleToModule(ctx types.Context, senderM
 	}
 
 	var r0 error
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, string, string, types.Coins) error); ok {
-		r0 = rf(ctx, senderModule, recipientModule, amt)
+		r0 = rf(sdkCtx, senderModule, recipientModule, amt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -516,7 +529,7 @@ func (_c *MockBankKeeper_SendCoinsFromModuleToModule_Call) RunAndReturn(run func
 }
 
 // SpendableCoin provides a mock function with given fields: ctx, addr, denom
-func (_m *MockBankKeeper) SpendableCoin(ctx types.Context, addr types.AccAddress, denom string) types.Coin {
+func (_m *MockBankKeeper) SpendableCoin(ctx context.Context, addr types.AccAddress, denom string) types.Coin {
 	ret := _m.Called(ctx, addr, denom)
 
 	if len(ret) == 0 {
@@ -524,8 +537,9 @@ func (_m *MockBankKeeper) SpendableCoin(ctx types.Context, addr types.AccAddress
 	}
 
 	var r0 types.Coin
+	sdkCtx := types.UnwrapSDKContext(ctx)
 	if rf, ok := ret.Get(0).(func(types.Context, types.AccAddress, string) types.Coin); ok {
-		r0 = rf(ctx, addr, denom)
+		r0 = rf(sdkCtx, addr, denom)
 	} else {
 		r0 = ret.Get(0).(types.Coin)
 	}

@@ -9,7 +9,6 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/app"
@@ -184,10 +183,10 @@ func (suite *KeeperTestSuite) TestDeposit() {
 
 			suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 			suite.CreateDelegation(valAddr, delegator, initialBalance)
-			staking.EndBlocker(suite.ctx, suite.app.GetStakingKeeper())
+			_, err := suite.app.GetStakingKeeper().EndBlocker(suite.ctx)
+			suite.Require().NoError(err)
 
 			// run the test
-			var err error
 			for i := 0; i < tc.args.numberDeposits; i++ {
 				err = suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
 			}

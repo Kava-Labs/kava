@@ -27,9 +27,9 @@ type testData struct {
 // NewMockedTestData creates a new testData instance with mocked bank and
 // account keepers.
 func NewMockedTestData(t *testing.T) testData {
-	storeKey := sdk.NewKVStoreKey(types.ModuleName)
+	storeKey := storetypes.NewKVStoreKey(types.ModuleName)
 	// Not required by module, but needs to be non-nil for context
-	tKey := sdk.NewTransientStoreKey("transient_test")
+	tKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(storeKey, tKey)
 
 	bk := mocks.NewMockBankKeeper(t)
@@ -37,6 +37,10 @@ func NewMockedTestData(t *testing.T) testData {
 
 	tApp := app.NewTestApp()
 	cdc := tApp.AppCodec()
+	// cdc codec.BinaryCodec,
+	//	storeKey storetypes.StoreKey,
+	//	bk types.BankKeeper,
+	//	ak types.AccountKeeper,
 	k := keeper.NewKeeper(cdc, storeKey, bk, ak)
 
 	return testData{

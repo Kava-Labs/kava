@@ -146,7 +146,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_ChangeCommittee() {
 			suite.app = suite.app.InitializeFromGenesisStates(
 				NewCommitteeGenState(suite.app.AppCodec(), suite.testGenesis),
 			)
-			suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: testTime})
+			suite.ctx = suite.app.NewContextLegacy(true, tmproto.Header{Height: 1, Time: testTime})
 			handler := committee.NewProposalHandler(suite.keeper)
 
 			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.GetNewCommittee().GetID())
@@ -208,7 +208,7 @@ func (suite *ProposalHandlerTestSuite) TestProposalHandler_DeleteCommittee() {
 			suite.app = suite.app.InitializeFromGenesisStates(
 				NewCommitteeGenState(suite.app.AppCodec(), suite.testGenesis),
 			)
-			suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: testTime})
+			suite.ctx = suite.app.NewContextLegacy(true, tmproto.Header{Height: 1, Time: testTime})
 			handler := committee.NewProposalHandler(suite.keeper)
 
 			oldProposals := suite.keeper.GetProposalsByCommittee(suite.ctx, tc.proposal.CommitteeID)

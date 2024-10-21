@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,8 +22,8 @@ func (suite *disableInflationTestSuite) TestStartCommunityFundConsolidation() {
 		{
 			"basic test with both balances and dust",
 			sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("ukava", sdk.NewDecWithPrec(123456, 2)),
-				sdk.NewDecCoinFromDec("usdx", sdk.NewDecWithPrec(654321, 3)),
+				sdk.NewDecCoinFromDec("ukava", sdkmath.LegacyNewDecWithPrec(123456, 2)),
+				sdk.NewDecCoinFromDec("usdx", sdkmath.LegacyNewDecWithPrec(654321, 3)),
 			),
 			sdk.NewCoins(
 				sdk.NewInt64Coin("ukava", 10_000),
@@ -40,8 +41,8 @@ func (suite *disableInflationTestSuite) TestStartCommunityFundConsolidation() {
 		{
 			"empty x/kavadist balance",
 			sdk.NewDecCoins(
-				sdk.NewDecCoinFromDec("ukava", sdk.NewDecWithPrec(123456, 2)),
-				sdk.NewDecCoinFromDec("usdx", sdk.NewDecWithPrec(654321, 3)),
+				sdk.NewDecCoinFromDec("ukava", sdkmath.LegacyNewDecWithPrec(123456, 2)),
+				sdk.NewDecCoinFromDec("usdx", sdkmath.LegacyNewDecWithPrec(654321, 3)),
 			),
 			sdk.Coins{},
 		},

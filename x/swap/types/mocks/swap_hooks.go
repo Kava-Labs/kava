@@ -3,6 +3,7 @@
 package mocks
 
 import (
+	"context"
 	math "cosmossdk.io/math"
 	mock "github.com/stretchr/testify/mock"
 
@@ -15,11 +16,11 @@ type SwapHooks struct {
 }
 
 // AfterPoolDepositCreated provides a mock function with given fields: ctx, poolID, depositor, sharedOwned
-func (_m *SwapHooks) AfterPoolDepositCreated(ctx types.Context, poolID string, depositor types.AccAddress, sharedOwned math.Int) {
+func (_m *SwapHooks) AfterPoolDepositCreated(ctx context.Context, poolID string, depositor types.AccAddress, sharedOwned math.Int) {
 	_m.Called(ctx, poolID, depositor, sharedOwned)
 }
 
 // BeforePoolDepositModified provides a mock function with given fields: ctx, poolID, depositor, sharedOwned
-func (_m *SwapHooks) BeforePoolDepositModified(ctx types.Context, poolID string, depositor types.AccAddress, sharedOwned math.Int) {
+func (_m *SwapHooks) BeforePoolDepositModified(ctx context.Context, poolID string, depositor types.AccAddress, sharedOwned math.Int) {
 	_m.Called(ctx, poolID, depositor, sharedOwned)
 }

@@ -560,8 +560,13 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
 			suite.Require().NoError(err)
 
+			fmt.Println("get auctions before", suite.app.GetAuctionKeeper().GetAllAuctions(suite.ctx))
+
 			_, err = suite.app.BeginBlocker(suite.ctx)
 			suite.Require().NoError(err)
+
+			fmt.Println("get auctions after", suite.app.GetAuctionKeeper().GetAllAuctions(suite.ctx))
+
 			ak := suite.app.GetAuctionKeeper()
 			auctions := ak.GetAllAuctions(suite.ctx)
 			if tc.errArgs.expectLiquidate {

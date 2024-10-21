@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"

@@ -1,12 +1,12 @@
 package v2_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -16,8 +16,8 @@ import (
 
 func TestStoreMigrationAddsKeyTableIncludingNewParam(t *testing.T) {
 	encCfg := moduletestutil.MakeTestEncodingConfig()
-	cdpKey := sdk.NewKVStoreKey(types.ModuleName)
-	tcdpKey := sdk.NewTransientStoreKey("transient_test")
+	cdpKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tcdpKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(cdpKey, tcdpKey)
 	paramstore := paramtypes.NewSubspace(encCfg.Codec, encCfg.Amino, cdpKey, tcdpKey, types.ModuleName)
 
@@ -38,8 +38,8 @@ func TestStoreMigrationAddsKeyTableIncludingNewParam(t *testing.T) {
 
 func TestStoreMigrationSetsNewParamOnExistingKeyTable(t *testing.T) {
 	encCfg := moduletestutil.MakeTestEncodingConfig()
-	cdpKey := sdk.NewKVStoreKey(types.ModuleName)
-	tcdpKey := sdk.NewTransientStoreKey("transient_test")
+	cdpKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tcdpKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(cdpKey, tcdpKey)
 	paramstore := paramtypes.NewSubspace(encCfg.Codec, encCfg.Amino, cdpKey, tcdpKey, types.ModuleName)
 	paramstore.WithKeyTable(types.ParamKeyTable())

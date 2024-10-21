@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func TestSortableDecBytes(t *testing.T) {
@@ -21,11 +20,11 @@ func TestSortableDecBytes(t *testing.T) {
 		{sdkmath.LegacyMustNewDecFromStr("-2.0"), []byte("-000000000000000002.000000000000000000")},
 		{sdkmath.LegacyNewDec(10), []byte("000000000000000010.000000000000000000")},
 		{sdkmath.LegacyNewDec(12340), []byte("000000000000012340.000000000000000000")},
-		{sdk.NewDecWithPrec(12340, 4), []byte("000000000000000001.234000000000000000")},
-		{sdk.NewDecWithPrec(12340, 5), []byte("000000000000000000.123400000000000000")},
-		{sdk.NewDecWithPrec(12340, 8), []byte("000000000000000000.000123400000000000")},
-		{sdk.NewDecWithPrec(1009009009009009009, 17), []byte("000000000000000010.090090090090090090")},
-		{sdk.NewDecWithPrec(-1009009009009009009, 17), []byte("-000000000000000010.090090090090090090")},
+		{sdkmath.LegacyNewDecWithPrec(12340, 4), []byte("000000000000000001.234000000000000000")},
+		{sdkmath.LegacyNewDecWithPrec(12340, 5), []byte("000000000000000000.123400000000000000")},
+		{sdkmath.LegacyNewDecWithPrec(12340, 8), []byte("000000000000000000.000123400000000000")},
+		{sdkmath.LegacyNewDecWithPrec(1009009009009009009, 17), []byte("000000000000000010.090090090090090090")},
+		{sdkmath.LegacyNewDecWithPrec(-1009009009009009009, 17), []byte("-000000000000000010.090090090090090090")},
 		{sdkmath.LegacyNewDec(1000000000000000000), []byte("max")},
 		{sdkmath.LegacyNewDec(-1000000000000000000), []byte("--")},
 	}
@@ -48,11 +47,11 @@ func TestParseSortableDecBytes(t *testing.T) {
 		{sdkmath.LegacyMustNewDecFromStr("-2.0"), []byte("-000000000000000002.000000000000000000")},
 		{sdkmath.LegacyNewDec(10), []byte("000000000000000010.000000000000000000")},
 		{sdkmath.LegacyNewDec(12340), []byte("000000000000012340.000000000000000000")},
-		{sdk.NewDecWithPrec(12340, 4), []byte("000000000000000001.234000000000000000")},
-		{sdk.NewDecWithPrec(12340, 5), []byte("000000000000000000.123400000000000000")},
-		{sdk.NewDecWithPrec(12340, 8), []byte("000000000000000000.000123400000000000")},
-		{sdk.NewDecWithPrec(1009009009009009009, 17), []byte("000000000000000010.090090090090090090")},
-		{sdk.NewDecWithPrec(-1009009009009009009, 17), []byte("-000000000000000010.090090090090090090")},
+		{sdkmath.LegacyNewDecWithPrec(12340, 4), []byte("000000000000000001.234000000000000000")},
+		{sdkmath.LegacyNewDecWithPrec(12340, 5), []byte("000000000000000000.123400000000000000")},
+		{sdkmath.LegacyNewDecWithPrec(12340, 8), []byte("000000000000000000.000123400000000000")},
+		{sdkmath.LegacyNewDecWithPrec(1009009009009009009, 17), []byte("000000000000000010.090090090090090090")},
+		{sdkmath.LegacyNewDecWithPrec(-1009009009009009009, 17), []byte("-000000000000000010.090090090090090090")},
 		{sdkmath.LegacyNewDec(1000000000000000000), []byte("max")},
 		{sdkmath.LegacyNewDec(-1000000000000000000), []byte("--")},
 	}

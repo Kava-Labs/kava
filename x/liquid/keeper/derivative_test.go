@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/app"
@@ -82,7 +81,8 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 			moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
 			suite.CreateNewUnbondedValidator(valAddr, i(1e6))
 			suite.CreateDelegation(valAddr, moduleAccAddress, tc.moduleDelegation)
-			staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			suite.Require().NoError(err)
 			modBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, moduleAccAddress)
 
 			_, err := suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
@@ -288,7 +288,8 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 
 			suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 			suite.CreateDelegation(valAddr, delegator, initialBalance)
-			staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			suite.Require().NoError(err)
 
 			_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
 
@@ -332,7 +333,8 @@ func (suite *KeeperTestSuite) TestIsDerivativeDenom() {
 
 	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
 	suite.CreateDelegation(valAddr1, delegator, initialBalance)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	testCases := []struct {
 		name        string
@@ -404,7 +406,8 @@ func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 
 	suite.CreateNewUnbondedValidator(valAddr3, initialBalance)
 	suite.CreateDelegation(valAddr3, delegator, delegateAmount)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	suite.SlashValidator(valAddr3, d("0.05"))
 
@@ -492,7 +495,8 @@ func (suite *KeeperTestSuite) TestGetDerivativeValue() {
 
 	suite.CreateNewUnbondedValidator(valAddr2, initialBalance)
 	suite.CreateDelegation(valAddr2, delegator, delegateAmount)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
 	suite.Require().NoError(err)
@@ -539,7 +543,8 @@ func (suite *KeeperTestSuite) TestDerivativeFromTokens() {
 
 	suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 	suite.CreateDelegation(valAddr, moduleAccAddress, initialBalance)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	_, err := suite.Keeper.DerivativeFromTokens(suite.Ctx, valAddr, sdk.NewCoin("invalid", initialBalance))
 	suite.ErrorIs(err, types.ErrInvalidDenom)

@@ -1,6 +1,7 @@
 package ante_test
 
 import (
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -86,13 +87,6 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	fee := legacytx.NewStdFee(gas, gasAmount)
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
-	// chainID string,
-	//	accnum,
-	//	sequence,
-	//	timeout uint64,
-	//	fee legacytx.StdFee,
-	//	msgs []sdk.Msg,
-	//	memo string,
 	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "")
 	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, data, &eip712.FeeDelegationOptions{
 		FeePayer: from,
@@ -294,11 +288,14 @@ func (suite *EIP712TestSuite) SetupTest() {
 	suite.Require().NoError(err)
 	consAddress := sdk.ConsAddress(consPriv.PubKey().Address())
 
+	fmt.Println("going to create new context for test")
+
 	ctx := tApp.NewContextLegacy(false, tmproto.Header{
-		Height:          tApp.LastBlockHeight() + 1,
-		ChainID:         ChainID,
-		Time:            time.Now().UTC(),
-		ProposerAddress: consAddress.Bytes(),
+		Height:  tApp.LastBlockHeight() + 1,
+		ChainID: ChainID,
+		Time:    time.Now().UTC(),
+		//ProposerAddress: sdk.AccAddress(consAddress.Bytes()),
+		ProposerAddress: consAddress,
 		Version: tmversion.Consensus{
 			Block: version.BlockProtocol,
 		},
@@ -323,7 +320,9 @@ func (suite *EIP712TestSuite) SetupTest() {
 	// https://github.com/evmos/ethermint/blob/f21592ebfe74da7590eb42ed926dae970b2a9a3f/x/evm/keeper/state_transition.go#L487
 	// evmkeeper.EVMConfig() will return error "failed to load evm config" if not set
 	valAcc := &etherminttypes.EthAccount{
-		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(consAddress.Bytes()), nil, 0, 0),
+		//BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(consAddress.Bytes()), nil, 0, 0),
+		// TODO(boodyvo): how to correctly transform the address from consAddress to sdk.AccAddress?
+		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(consAddress), nil, 0, 0),
 		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
 	}
 	tApp.GetAccountKeeper().SetAccount(ctx, valAcc)
@@ -611,7 +610,9 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 
 	for _, tc := range testcases {
 		suite.Run(tc.name, func() {
+			fmt.Println("updated testcases: going to set up tests")
 			suite.SetupTest()
+			fmt.Println("updated testcases: setup tests")
 
 			// create messages to convert, mint, and deposit to lend
 			usdcAmt := suite.getEVMAmount(tc.usdcDepositAmt)

@@ -51,8 +51,8 @@ func (suite *disableInflationTestSuite) SetupTest() {
 
 	// Set up x/mint and x/kavadist gen state
 	mintGen := minttypes.DefaultGenesisState()
-	mintGen.Params.InflationMax = sdk.NewDecWithPrec(595, 3)
-	mintGen.Params.InflationMin = sdk.NewDecWithPrec(595, 3)
+	mintGen.Params.InflationMax = sdkmath.LegacyNewDecWithPrec(595, 3)
+	mintGen.Params.InflationMin = sdkmath.LegacyNewDecWithPrec(595, 3)
 	suite.genesisMintState = mintGen
 
 	kavadistGen := kavadisttypes.DefaultGenesisState()

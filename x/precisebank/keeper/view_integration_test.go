@@ -98,7 +98,7 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 				acc = authtypes.NewBaseAccount(addr, nil, 0, 0)
 			}
 
-			vestingAcc := vestingtypes.NewPeriodicVestingAccount(
+			vestingAcc, err := vestingtypes.NewPeriodicVestingAccount(
 				acc.(*authtypes.BaseAccount),
 				tt.giveLockedCoins,
 				suite.Ctx.BlockTime().Unix(),
@@ -109,6 +109,7 @@ func (suite *viewIntegrationTestSuite) TestKeeper_SpendableCoin() {
 					},
 				},
 			)
+			suite.Require().NoError(err)
 			suite.AccountKeeper.SetAccount(suite.Ctx, vestingAcc)
 
 			fetchedLockedCoins := vestingAcc.LockedCoins(suite.Ctx.BlockTime())

@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"testing"
 	"time"
 
@@ -25,8 +28,7 @@ type grpcQueryTestSuite struct {
 
 func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.tApp = app.NewTestApp()
-	suite.ctx = suite.tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	suite.ctx = suite.tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
 	suite.keeper = suite.tApp.GetPriceFeedKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 

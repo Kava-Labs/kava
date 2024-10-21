@@ -3,9 +3,9 @@
 package mocks
 
 import (
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"context"
 	mock "github.com/stretchr/testify/mock"
-
+	
 	types "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -23,19 +23,20 @@ func (_m *MockAccountKeeper) EXPECT() *MockAccountKeeper_Expecter {
 }
 
 // GetModuleAccount provides a mock function with given fields: ctx, moduleName
-func (_m *MockAccountKeeper) GetModuleAccount(ctx types.Context, moduleName string) sdk.ModuleAccountI {
+func (_m *MockAccountKeeper) GetModuleAccount(ctx context.Context, moduleName string) types.ModuleAccountI {
 	ret := _m.Called(ctx, moduleName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetModuleAccount")
 	}
 
-	var r0 sdk.ModuleAccountI
-	if rf, ok := ret.Get(0).(func(types.Context, string) sdk.ModuleAccountI); ok {
-		r0 = rf(ctx, moduleName)
+	var r0 types.ModuleAccountI
+	sdkCtx := types.UnwrapSDKContext(ctx)
+	if rf, ok := ret.Get(0).(func(types.Context, string) types.ModuleAccountI); ok {
+		r0 = rf(sdkCtx, moduleName)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(sdk.ModuleAccountI)
+			r0 = ret.Get(0).(types.ModuleAccountI)
 		}
 	}
 
@@ -61,12 +62,12 @@ func (_c *MockAccountKeeper_GetModuleAccount_Call) Run(run func(ctx types.Contex
 	return _c
 }
 
-func (_c *MockAccountKeeper_GetModuleAccount_Call) Return(_a0 sdk.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
+func (_c *MockAccountKeeper_GetModuleAccount_Call) Return(_a0 types.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *MockAccountKeeper_GetModuleAccount_Call) RunAndReturn(run func(types.Context, string) sdk.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
+func (_c *MockAccountKeeper_GetModuleAccount_Call) RunAndReturn(run func(types.Context, string) types.ModuleAccountI) *MockAccountKeeper_GetModuleAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -120,7 +121,7 @@ func (_c *MockAccountKeeper_GetModuleAddress_Call) RunAndReturn(run func(string)
 }
 
 // GetSequence provides a mock function with given fields: _a0, _a1
-func (_m *MockAccountKeeper) GetSequence(_a0 types.Context, _a1 types.AccAddress) (uint64, error) {
+func (_m *MockAccountKeeper) GetSequence(_a0 context.Context, _a1 types.AccAddress) (uint64, error) {
 	ret := _m.Called(_a0, _a1)
 
 	if len(ret) == 0 {
@@ -129,17 +130,18 @@ func (_m *MockAccountKeeper) GetSequence(_a0 types.Context, _a1 types.AccAddress
 
 	var r0 uint64
 	var r1 error
+	sdkCtx := types.UnwrapSDKContext(_a0)
 	if rf, ok := ret.Get(0).(func(types.Context, types.AccAddress) (uint64, error)); ok {
-		return rf(_a0, _a1)
+		return rf(sdkCtx, _a1)
 	}
 	if rf, ok := ret.Get(0).(func(types.Context, types.AccAddress) uint64); ok {
-		r0 = rf(_a0, _a1)
+		r0 = rf(sdkCtx, _a1)
 	} else {
 		r0 = ret.Get(0).(uint64)
 	}
 
 	if rf, ok := ret.Get(1).(func(types.Context, types.AccAddress) error); ok {
-		r1 = rf(_a0, _a1)
+		r1 = rf(sdkCtx, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}

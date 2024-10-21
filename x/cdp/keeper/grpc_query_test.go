@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"testing"
 	"time"
 
@@ -30,7 +32,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 		NewPricefeedGenStateMulti(suite.tApp.AppCodec()),
 		NewCDPGenStateMulti(suite.tApp.AppCodec()),
 	)
-	suite.ctx = suite.tApp.NewContextLegacy(true).WithBlockTime(time.Now().UTC())
+	suite.ctx = suite.tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now()})
 	suite.keeper = suite.tApp.GetCDPKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 

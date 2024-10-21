@@ -79,12 +79,43 @@ func (suite *Suite) SetupTest() {
 }
 
 func (suite *Suite) Commit() {
-	_ = suite.App.Commit()
+	_, err := suite.App.Commit()
+	suite.Require().NoError(err)
+	// tendermint.version.Consensus version  = 1 [(gogoproto.nullable) = false];
+	//  string                       chain_id = 2 [(gogoproto.customname) = "ChainID"];
+	//  int64                        height   = 3;
+	//  google.protobuf.Timestamp    time     = 4 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+	//
+	//  // prev block info
+	//  BlockID last_block_id = 5 [(gogoproto.nullable) = false];
+	//
+	//  // hashes of block data
+	//  bytes last_commit_hash = 6;  // commit from validators from the last block
+	//  bytes data_hash        = 7;  // transactions
+	//
+	//  // hashes from the app output from the prev block
+	//  bytes validators_hash      = 8;   // validators for the current block
+	//  bytes next_validators_hash = 9;   // validators for the next block
+	//  bytes consensus_hash       = 10;  // consensus params for current block
+	//  bytes app_hash             = 11;  // state after txs from the previous block
+	//  bytes last_results_hash    = 12;  // root hash of all results from the txs from the previous block
+	//
+	//  // consensus info
+	//  bytes evidence_hash    = 13;  // evidence included in the block
+	//  bytes proposer_address = 14;  // original proposer of the block
 	header := suite.Ctx.BlockHeader()
 	header.Height += 1
-	suite.App.BeginBlock(abci.RequestBeginBlock{
-		Header: header,
+	//suite.App.BeginBlock(abci.RequestBeginBlock{
+	//	Header: header,
+	//})
+
+	_, err = suite.App.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             header.Height,
+		Time:               header.Time,
+		NextValidatorsHash: header.NextValidatorsHash,
+		ProposerAddress:    header.ProposerAddress,
 	})
+	suite.Require().NoError(err)
 
 	// update ctx
 	suite.Ctx = suite.App.NewContextLegacy(false, header)

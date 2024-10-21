@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
@@ -33,7 +32,7 @@ type ModuleTestSuite struct {
 func (suite *ModuleTestSuite) SetupTest() {
 	suite.app = app.NewTestApp()
 	suite.keeper = suite.app.GetCommitteeKeeper()
-	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{})
+	suite.ctx = suite.app.NewContextLegacy(true, tmproto.Header{})
 	_, suite.addresses = app.GeneratePrivKeyAddressPairs(5)
 }
 
@@ -63,7 +62,7 @@ func (suite *ModuleTestSuite) TestBeginBlock_ClosesExpired() {
 	// Run BeginBlocker
 	proposalDurationLaterCtx := suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(memberCom.ProposalDuration))
 	suite.NotPanics(func() {
-		committee.BeginBlocker(proposalDurationLaterCtx, abci.RequestBeginBlock{}, suite.keeper)
+		committee.BeginBlocker(proposalDurationLaterCtx, suite.keeper)
 	})
 
 	// Check expired proposals are gone

@@ -1,6 +1,9 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"testing"
 	"time"
 
@@ -14,8 +17,7 @@ import (
 func TestKeeper_PostPrice(t *testing.T) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(4)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
 	k := tApp.GetPriceFeedKeeper()
 	msgSrv := keeper.NewMsgServerImpl(k)
 

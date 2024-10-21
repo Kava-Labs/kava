@@ -106,9 +106,14 @@ func (suite *proposalTestSuite) NextBlock() {
 	newTime := suite.Ctx.BlockTime().Add(6 * time.Second)
 	newHeight := suite.Ctx.BlockHeight() + 1
 
-	suite.App.EndBlocker(suite.Ctx, abcitypes.RequestEndBlock{})
-	suite.Ctx = suite.Ctx.WithBlockTime(newTime).WithBlockHeight(newHeight).WithChainID(chainID)
-	suite.App.BeginBlocker(suite.Ctx, abcitypes.RequestBeginBlock{})
+	suite.App.FinalizeBlock(&abcitypes.RequestFinalizeBlock{
+		Time:   newTime,
+		Height: newHeight,
+	})
+
+	//suite.App.EndBlocker(suite.Ctx, abcitypes.RequestEndBlock{})
+	//suite.Ctx = suite.Ctx.WithBlockTime(newTime).WithBlockHeight(newHeight).WithChainID(chainID)
+	//suite.App.BeginBlocker(suite.Ctx, abcitypes.RequestBeginBlock{})
 }
 
 func (suite *proposalTestSuite) FundCommunityPool(coins sdk.Coins) {
@@ -132,7 +137,7 @@ func (suite *proposalTestSuite) GetCommunityPoolBalance() sdk.Coins {
 func (suite *proposalTestSuite) CheckCommunityPoolBalance(expected sdk.Coins) {
 	actual := suite.GetCommunityPoolBalance()
 	// check that balance is expected
-	suite.True(expected.IsEqual(actual), fmt.Sprintf("unexpected balance in community pool\nexpected: %s\nactual: %s", expected, actual))
+	suite.True(expected.Equal(actual), fmt.Sprintf("unexpected balance in community pool\nexpected: %s\nactual: %s", expected, actual))
 }
 
 func (suite *proposalTestSuite) TestCommunityLendDepositProposal() {
@@ -451,7 +456,7 @@ func (suite *proposalTestSuite) TestCommunityCDPRepayDebtProposal() {
 
 			// verify the balance changed as expected
 			moduleBalanceAfter := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
-			suite.True(expectedModuleBalance.IsEqual(moduleBalanceAfter), "module balance changed unexpectedly")
+			suite.True(expectedModuleBalance.Equal(moduleBalanceAfter), "module balance changed unexpectedly")
 		})
 	}
 }
@@ -556,7 +561,7 @@ func (suite *proposalTestSuite) TestCommunityCDPWithdrawCollateralProposal() {
 
 			// verify the balance changed as expected
 			moduleBalanceAfter := suite.Keeper.GetModuleAccountBalance(suite.Ctx)
-			suite.True(expectedModuleBalance.IsEqual(moduleBalanceAfter), "module balance changed unexpectedly")
+			suite.True(expectedModuleBalance.Equal(moduleBalanceAfter), "module balance changed unexpectedly")
 		})
 	}
 }

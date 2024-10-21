@@ -82,7 +82,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryBalance() {
 			tc.setup()
 			res, err := suite.queryClient.Balance(context.Background(), &types.QueryBalanceRequest{})
 			suite.Require().NoError(err)
-			suite.Require().True(expCoins.IsEqual(res.Coins))
+			suite.Require().True(expCoins.Equal(res.Coins))
 		})
 	}
 }
@@ -161,7 +161,7 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalBalance() {
 			tc.setup()
 			res, err := suite.queryClient.TotalBalance(context.Background(), &types.QueryTotalBalanceRequest{})
 			suite.Require().NoError(err)
-			suite.Require().True(expCoins.IsEqual(res.Pool))
+			suite.Require().True(expCoins.Equal(res.Pool))
 		})
 	}
 }
@@ -273,7 +273,8 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryAnnualizedRewards() {
 func (suite *grpcQueryTestSuite) adjustBondedRatio(desiredRatio sdkmath.LegacyDec) sdkmath.Int {
 	// from the InitGenesis validator
 	bondedTokens := sdkmath.NewInt(1e6)
-	bondDenom := suite.App.GetStakingKeeper().BondDenom(suite.Ctx)
+	bondDenom, err := suite.App.GetStakingKeeper().BondDenom(suite.Ctx)
+	suite.Require().NoError(err)
 
 	// first, burn all non-delegated coins (bonded ratio = 100%)
 	suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
@@ -285,7 +286,7 @@ func (suite *grpcQueryTestSuite) adjustBondedRatio(desiredRatio sdkmath.LegacyDe
 	// mint new tokens to adjust the bond ratio
 	newTotalSupply := sdkmath.LegacyNewDecFromInt(bondedTokens).Quo(desiredRatio).TruncateInt()
 	coinsToMint := newTotalSupply.Sub(bondedTokens)
-	err := suite.App.FundAccount(suite.Ctx, app.RandomAddress(), sdk.NewCoins(sdk.NewCoin(bondDenom, coinsToMint)))
+	err = suite.App.FundAccount(suite.Ctx, app.RandomAddress(), sdk.NewCoins(sdk.NewCoin(bondDenom, coinsToMint)))
 	suite.Require().NoError(err)
 
 	return newTotalSupply

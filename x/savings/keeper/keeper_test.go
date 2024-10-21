@@ -136,14 +136,15 @@ func (suite *KeeperTestSuite) CreateVestingAccountWithAddress(addr sdk.AccAddres
 			Amount: vestingBalance,
 		},
 	}
-	vacc := vestingtypes.NewPeriodicVestingAccount(bacc, vestingBalance, suite.ctx.BlockTime().Unix(), periods)
+	vacc, err := vestingtypes.NewPeriodicVestingAccount(bacc, vestingBalance, suite.ctx.BlockTime().Unix(), periods)
+	suite.Require().NoError(err)
 	suite.app.GetAccountKeeper().SetAccount(suite.ctx, vacc)
 	return vacc
 }
 
 func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
-		address,
+		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
@@ -168,8 +169,8 @@ func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, se
 
 	// New validators are created in an unbonded state. Note if the end blocker is run later this validator could become bonded.
 
-	validator, found := suite.app.GetStakingKeeper().GetValidator(suite.ctx, addr)
-	suite.Require().True(found)
+	validator, err := suite.app.GetStakingKeeper().GetValidator(suite.ctx, addr)
+	suite.Require().NoError(err)
 	return validator
 }
 
@@ -177,18 +178,19 @@ func (suite *KeeperTestSuite) CreateNewUnbondedValidator(addr sdk.ValAddress, se
 func (suite *KeeperTestSuite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdkmath.LegacyDec {
 	sk := suite.app.GetStakingKeeper()
 
-	stakingDenom := sk.BondDenom(suite.ctx)
+	stakingDenom, err := sk.BondDenom(suite.ctx)
+	suite.Require().NoError(err)
 	msg := stakingtypes.NewMsgDelegate(
-		delegator,
-		valAddr,
+		delegator.String(),
+		valAddr.String(),
 		sdk.NewCoin(stakingDenom, amount),
 	)
 
 	msgServer := stakingkeeper.NewMsgServerImpl(sk)
-	_, err := msgServer.Delegate(sdk.WrapSDKContext(suite.ctx), msg)
+	_, err = msgServer.Delegate(sdk.WrapSDKContext(suite.ctx), msg)
 	suite.Require().NoError(err)
 
-	del, found := sk.GetDelegation(suite.ctx, delegator, valAddr)
-	suite.Require().True(found)
+	del, err := sk.GetDelegation(suite.ctx, delegator, valAddr)
+	suite.Require().NoError(err)
 	return del.Shares
 }

@@ -7,7 +7,6 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
 
@@ -154,7 +153,8 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	// Create a slashed validator, where the delegator owns fractional tokens.
 	suite.CreateNewUnbondedValidator(valAddr, sdkmath.NewInt(1e9))
 	suite.CreateDelegation(valAddr, user, sdkmath.NewInt(1e9))
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.666666666666666667"))
 
 	// Query the full staked balance and convert it all to derivatives
@@ -209,7 +209,8 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 
 	// Create a slashed validator, where a future delegator will own fractional tokens.
 	suite.CreateNewUnbondedValidator(valAddr, valBalance)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.4")) // tokens remaining 600_000_000
 
 	userBalance := sdkmath.NewInt(100e6)
@@ -275,7 +276,8 @@ func (suite *msgServerTestSuite) setupValidator() (sdk.AccAddress, sdk.ValAddres
 	suite.CreateAccountWithAddress(user, suite.NewBondCoins(balance))
 
 	suite.CreateNewUnbondedValidator(valAddr, balance)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	return user, valAddr, balance
 }
 
@@ -291,7 +293,8 @@ func (suite *msgServerTestSuite) setupValidatorAndDelegation() (sdk.AccAddress, 
 
 	suite.CreateNewUnbondedValidator(valAddr, balance)
 	suite.CreateDelegation(valAddr, user, balance)
-	staking.EndBlocker(suite.Ctx, suite.StakingKeeper)
+	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	return user, valAddr, balance
 }
 

@@ -1,6 +1,7 @@
 package pricefeed_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

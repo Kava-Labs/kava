@@ -16,38 +16,29 @@ import (
 // AddCdp adds a cdp for a specific owner and collateral type
 func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk.Coin, principal sdk.Coin, collateralType string) error {
 	// validation
-	fmt.Println("AddCdp", collateralType)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	fmt.Println("0", sdkCtx.BlockHeader())
-	fmt.Println("AddCdp 0 params: ", k.GetParams(sdkCtx))
 	err := k.ValidateCollateral(sdkCtx, collateral, collateralType)
-	fmt.Println("1", err)
 	if err != nil {
 		return err
 	}
 	err = k.ValidateBalance(sdkCtx, collateral, owner)
-	fmt.Println("2", err)
 	if err != nil {
 		return err
 	}
 	_, found := k.GetCdpByOwnerAndCollateralType(ctx, owner, collateralType)
-	fmt.Println("3", found)
 	if found {
 		return errorsmod.Wrapf(types.ErrCdpAlreadyExists, "owner %s, denom %s", owner, collateral.Denom)
 	}
 	err = k.ValidatePrincipalAdd(sdkCtx, principal)
-	fmt.Println("4", err)
 	if err != nil {
 		return err
 	}
 
 	err = k.ValidateDebtLimit(sdkCtx, collateralType, principal)
-	fmt.Println("5", err)
 	if err != nil {
 		return err
 	}
 	err = k.ValidateCollateralizationRatio(sdkCtx, collateral, collateralType, principal, sdk.NewCoin(principal.Denom, sdkmath.ZeroInt()))
-	fmt.Println("6", err)
 	if err != nil {
 		return err
 	}
@@ -55,7 +46,6 @@ func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk
 	// send coins from the owners account to the cdp module
 	id := k.GetNextCdpID(sdkCtx)
 	interestFactor, found := k.GetInterestFactor(ctx, collateralType)
-	fmt.Println("7", interestFactor, found)
 	if !found {
 		interestFactor = sdkmath.LegacyOneDec()
 		k.SetInterestFactor(ctx, collateralType, interestFactor)
@@ -64,26 +54,22 @@ func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk
 	cdp := types.NewCDP(id, owner, collateral, collateralType, principal, sdkCtx.BlockHeader().Time, interestFactor)
 	deposit := types.NewDeposit(cdp.ID, owner, collateral)
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, owner, types.ModuleName, sdk.NewCoins(collateral))
-	fmt.Println("8", err)
 	if err != nil {
 		return err
 	}
 
 	// mint the principal and send to the owners account
 	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, sdk.NewCoins(principal))
-	fmt.Println("9", err)
 	if err != nil {
 		panic(err)
 	}
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, owner, sdk.NewCoins(principal))
-	fmt.Println("10", err)
 	if err != nil {
 		panic(err)
 	}
 
 	// mint the corresponding amount of debt coins
 	err = k.MintDebtCoins(ctx, types.ModuleName, k.GetDebtDenom(sdkCtx), principal)
-	fmt.Println("11", err)
 	if err != nil {
 		panic(err)
 	}
@@ -94,7 +80,6 @@ func (k Keeper) AddCdp(ctx context.Context, owner sdk.AccAddress, collateral sdk
 	// set the cdp, deposit, and indexes in the store
 	collateralToDebtRatio := k.CalculateCollateralToDebtRatio(sdkCtx, collateral, cdp.Type, principal)
 	err = k.SetCdpAndCollateralRatioIndex(ctx, cdp, collateralToDebtRatio)
-	fmt.Println("12", err)
 	if err != nil {
 		return err
 	}
@@ -421,9 +406,7 @@ func (k Keeper) SetGovDenom(ctx sdk.Context, denom string) {
 
 // ValidateCollateral validates that a collateral is valid for use in cdps
 func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coin, collateralType string) error {
-	fmt.Println("ValidateCollateral", collateralType)
 	cp, found := k.GetCollateral(ctx, collateralType)
-	fmt.Println("1", cp, found)
 	if !found {
 		return errorsmod.Wrap(types.ErrCollateralNotSupported, collateral.Denom)
 	}
@@ -431,12 +414,10 @@ func (k Keeper) ValidateCollateral(ctx sdk.Context, collateral sdk.Coin, collate
 		return errorsmod.Wrapf(types.ErrInvalidCollateral, "collateral type: %s expected denom: %s got: %s", collateralType, cp.Denom, collateral.Denom)
 	}
 	ok := k.GetMarketStatus(ctx, cp.SpotMarketID)
-	fmt.Println("2", ok)
 	if !ok {
 		return errorsmod.Wrap(types.ErrPricefeedDown, collateral.Denom)
 	}
 	ok = k.GetMarketStatus(ctx, cp.LiquidationMarketID)
-	fmt.Println("3", ok)
 	if !ok {
 		return errorsmod.Wrap(types.ErrPricefeedDown, collateral.Denom)
 	}

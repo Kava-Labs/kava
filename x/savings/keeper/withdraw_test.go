@@ -9,7 +9,6 @@ import (
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/kava-labs/kava/app"
@@ -171,9 +170,10 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 
 			suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 			suite.CreateDelegation(valAddr, delegator, initialBalance)
-			staking.EndBlocker(suite.ctx, suite.app.GetStakingKeeper())
+			_, err := suite.app.GetStakingKeeper().EndBlocker(suite.ctx)
+			suite.Require().NoError(err)
 
-			err := suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
+			err = suite.keeper.Deposit(suite.ctx, tc.args.depositor, tc.args.depositAmount)
 			suite.Require().NoError(err)
 
 			err = suite.keeper.Withdraw(suite.ctx, tc.args.depositor, tc.args.withdrawAmount)
@@ -184,7 +184,7 @@ func (suite *KeeperTestSuite) TestWithdraw() {
 				suite.Require().Equal(tc.args.expectedAccountBalance, bankKeeper.GetAllBalances(ctx, acc.GetAddress()))
 				// Check savings module account balance
 				mAcc := suite.getModuleAccount(types.ModuleAccountName)
-				suite.Require().True(tc.args.expectedModAccountBalance.IsEqual(bankKeeper.GetAllBalances(ctx, mAcc.GetAddress())))
+				suite.Require().True(tc.args.expectedModAccountBalance.Equal(bankKeeper.GetAllBalances(ctx, mAcc.GetAddress())))
 				// Check deposit
 				testDeposit, f := suite.keeper.GetDeposit(suite.ctx, tc.args.depositor)
 				if tc.errArgs.expectDelete {

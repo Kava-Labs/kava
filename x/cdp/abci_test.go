@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/simulation"
 
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtime "github.com/cometbft/cometbft/types/time"
 
 	"github.com/kava-labs/kava/app"
@@ -61,9 +62,7 @@ func (suite *ModuleTestSuite) SetupTest() {
 
 func (suite *ModuleTestSuite) createCdps() {
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true)
-	ctx.WithBlockHeight(1)
-	ctx.WithBlockTime(tmtime.Now())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(types.CDPs, 100)
 	tracker := liquidationTracker{}
 

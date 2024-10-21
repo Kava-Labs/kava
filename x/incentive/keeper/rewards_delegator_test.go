@@ -5,11 +5,9 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
@@ -54,7 +52,7 @@ func (suite *DelegatorRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.stakingKeeper = suite.app.GetStakingKeeper()
 
-	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime, ChainID: app.TestChainId})
+	suite.ctx = suite.app.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime, ChainID: app.TestChainId})
 }
 
 func (suite *DelegatorRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {
@@ -146,7 +144,8 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 			// Delete genesis validator to not influence rewards
 			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
-			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			suite.Require().NoError(err)
 
 			// Set up chain context at future time
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
@@ -239,11 +238,13 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 			suite.SetupWithGenState(authBuilder, incentBuilder)
 
 			// Create validator account
-			staking.BeginBlocker(suite.ctx, suite.stakingKeeper)
-			selfDelegationCoins := c("ukava", 1_000_000)
-			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], selfDelegationCoins)
+			err := suite.stakingKeeper.BeginBlocker(suite.ctx)
 			suite.Require().NoError(err)
-			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+			selfDelegationCoins := c("ukava", 1_000_000)
+			err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], selfDelegationCoins)
+			suite.Require().NoError(err)
+			_, err = suite.stakingKeeper.EndBlocker(suite.ctx)
+			suite.Require().NoError(err)
 
 			// Delete genesis validator to not influence rewards
 			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
@@ -253,8 +254,8 @@ func (suite *DelegatorRewardsTestSuite) TestSynchronizeDelegatorReward() {
 			suite.Require().NoError(err)
 
 			// Check that validator account has been created and delegation was successful
-			valAcc, found := suite.stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[0])
-			suite.True(found)
+			valAcc, err := suite.stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[0])
+			suite.Require().NoError(err)
 			suite.Require().Equal(valAcc.Status, stakingtypes.Bonded)
 			suite.Require().Equal(valAcc.Tokens, tc.args.delegation.Amount.Add(selfDelegationCoins.Amount))
 
@@ -374,7 +375,8 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 			// Delete genesis validator to not influence rewards
 			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
-			staking.EndBlocker(suite.ctx, suite.stakingKeeper)
+			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			suite.Require().NoError(err)
 
 			// Check that Staking hooks initialized a DelegatorClaim
 			claim, found := suite.keeper.GetDelegatorClaim(suite.ctx, suite.addrs[0])
@@ -421,7 +423,7 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 
 func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
-		address,
+		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},
@@ -439,8 +441,8 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Contex
 
 func (suite *DelegatorRewardsTestSuite) deliverMsgDelegate(ctx sdk.Context, delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
 	msg := stakingtypes.NewMsgDelegate(
-		delegator,
-		validator,
+		delegator.String(),
+		validator.String(),
 		amount,
 	)
 
@@ -451,9 +453,10 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgDelegate(ctx sdk.Context, dele
 
 func (suite *DelegatorRewardsTestSuite) deliverMsgRedelegate(ctx sdk.Context, delegator sdk.AccAddress, sourceValidator, destinationValidator sdk.ValAddress, amount sdk.Coin) error {
 	msg := stakingtypes.NewMsgBeginRedelegate(
-		delegator,
-		sourceValidator,
-		destinationValidator,
+		// TODO(boodyvo): should it be string
+		delegator.String(),
+		sourceValidator.String(),
+		destinationValidator.String(),
 		amount,
 	)
 
@@ -483,12 +486,13 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
-	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	stakingParams, err := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	suite.Require().NoError(err)
 	stakingParams.MaxValidators = 2
 	suite.app.GetStakingKeeper().SetParams(suite.ctx, stakingParams)
 
 	// Create 3 validators
-	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
 	suite.Require().NoError(err)
 	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 5_000_000))
 	suite.Require().NoError(err)
@@ -496,26 +500,31 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 	suite.Require().NoError(err)
 
 	// End the block so top validators become bonded
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+	_, err = suite.app.BeginBlocker(suite.ctx) // height and time in header are ignored by module begin blockers
+	suite.Require().NoError(err)
 
 	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
 	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
 	suite.Require().NoError(err)
 
 	// Start a new block to accumulate some delegation rewards for the user.
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+	_, err = suite.app.BeginBlocker(suite.ctx) // height and time in header are ignored by module begin blockers
+	suite.Require().NoError(err)
 
 	// Delegate to the unbonded validator to push it into the bonded validator set, pushing out the user's delegated validator
 	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[2], suite.validatorAddrs[2], c(bondDenom, 8_000_000))
 	suite.Require().NoError(err)
 
 	// End the block to start unbonding the user's validator
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	// but don't start the next block as it will accumulate delegator rewards and we won't be able to tell if the user's reward was synced.
 
 	// Check that the user's claim has been synced. ie rewards added, index updated
@@ -537,7 +546,8 @@ func (suite *DelegatorRewardsTestSuite) TestUnbondingValidatorSyncsClaim() {
 
 	// Run another block and check the claim is not accumulating more rewards
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+	_, err = suite.app.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
 
@@ -577,12 +587,13 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
-	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	stakingParams, err := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	suite.Require().NoError(err)
 	stakingParams.MaxValidators = 2
 	suite.app.GetStakingKeeper().SetParams(suite.ctx, stakingParams)
 
 	// Create 3 validators
-	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
 	suite.Require().NoError(err)
 	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 5_000_000))
 	suite.Require().NoError(err)
@@ -590,26 +601,31 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	suite.Require().NoError(err)
 
 	// End the block so top validators become bonded
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+	_, err = suite.app.BeginBlocker(suite.ctx) // height and time in header are ignored by module begin blockers
+	suite.Require().NoError(err)
 
 	// Delegate to an unbonded validator from the test user. This will initialize their incentive claim.
 	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[2], c(bondDenom, 1_000_000))
 	suite.Require().NoError(err)
 
 	// Start a new block to accumulate some delegation rewards globally.
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+	_, err = suite.app.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	// Delegate to the user's unbonded validator to push it into the bonded validator set
 	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[2], suite.validatorAddrs[2], c(bondDenom, 4_000_000))
 	suite.Require().NoError(err)
 
 	// End the block to bond the user's validator
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	// but don't start the next block as it will accumulate delegator rewards and we won't be able to tell if the user's reward was synced.
 
 	// Check that the user's claim has been synced. ie rewards added, index updated
@@ -631,7 +647,8 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 
 	// Run another block and check the claim is accumulating more rewards
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(3 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{})
+	_, err = suite.app.BeginBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	suite.keeper.SynchronizeDelegatorRewards(suite.ctx, suite.addrs[0], nil, false)
 
@@ -669,21 +686,24 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	blockDuration := 10 * time.Second
 
 	// Reduce the size of the validator set
-	stakingParams := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	stakingParams, err := suite.app.GetStakingKeeper().GetParams(suite.ctx)
+	suite.Require().NoError(err)
 	stakingParams.MaxValidators = 2
 	suite.app.GetStakingKeeper().SetParams(suite.ctx, stakingParams)
 
 	// Create 2 validators
-	err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
+	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], c(bondDenom, 10_000_000))
 	suite.Require().NoError(err)
 	err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[1], c(bondDenom, 10_000_000))
 	suite.Require().NoError(err)
 
 	// End the block so validators become bonded
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+	_, err = suite.app.BeginBlocker(suite.ctx) // height and time in header are ignored by module begin blockers
+	suite.Require().NoError(err)
 
 	// Delegate to a bonded validator from the test user. This will initialize their incentive claim.
 	err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))
@@ -700,16 +720,18 @@ func (suite *DelegatorRewardsTestSuite) TestSlashingValidatorSyncsClaim() {
 	suite.True(initialClaim.Reward.Empty()) // Initial claim should not have any rewards
 
 	// Start a new block to accumulate some delegation rewards for the user.
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(2 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+	_, err = suite.app.BeginBlocker(suite.ctx) // height and time in header are ignored by module begin blockers
+	suite.Require().NoError(err)
 
 	// Fetch validator and slash them
 	stakingKeeper := suite.app.GetStakingKeeper()
-	validator, found := stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[1])
-	suite.Require().True(found)
+	validator, err := stakingKeeper.GetValidator(suite.ctx, suite.validatorAddrs[1])
+	suite.Require().NoError(err)
 	suite.Require().True(validator.GetTokens().IsPositive())
-	fraction := sdk.NewDecWithPrec(5, 1)
+	fraction := sdkmath.LegacyNewDecWithPrec(5, 1)
 
 	consAddr, err := validator.GetConsAddr()
 	suite.Require().NoError(err)
@@ -768,9 +790,11 @@ func (suite *DelegatorRewardsTestSuite) TestRedelegationSyncsClaim() {
 	suite.Require().NoError(err)
 
 	// Start a new block to accumulate some delegation rewards globally.
-	_ = suite.app.EndBlocker(suite.ctx, abci.RequestEndBlock{})
+	_, err = suite.app.EndBlocker(suite.ctx)
+	suite.Require().NoError(err)
 	suite.ctx = suite.ctx.WithBlockTime(suite.genesisTime.Add(1 * blockDuration))
-	_ = suite.app.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}) // height and time in header are ignored by module begin blockers
+	_, err = suite.app.BeginBlocker(suite.ctx) // height and time in header are ignored by module begin blockers
+	suite.Require().NoError(err)
 
 	// Redelegate the user's delegation between the two validators. This should trigger hooks that sync the user's claim.
 	err = suite.deliverMsgRedelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], suite.validatorAddrs[1], c(bondDenom, 1_000_000))

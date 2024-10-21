@@ -69,7 +69,7 @@ func (suite *MsgServerTestSuite) SetupTest() {
 		// TODO: not used?
 		// NewDistributionGenesisWithPool(suite.communityPoolAmt),
 	)
-	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
+	suite.ctx = suite.app.NewContextLegacy(true, tmproto.Header{Height: 1, Time: firstBlockTime})
 }
 
 func (suite *MsgServerTestSuite) TestSubmitProposalMsg_Valid() {

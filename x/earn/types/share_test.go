@@ -43,9 +43,9 @@ func (s *vaultShareTestSuite) TestNewVaultShareFromDec() {
 }
 
 func (s *vaultShareTestSuite) TestAddVaultShare() {
-	vaultShareA1 := types.NewVaultShare(testDenom1, sdk.NewDecWithPrec(11, 1))
-	vaultShareA2 := types.NewVaultShare(testDenom1, sdk.NewDecWithPrec(22, 1))
-	vaultShareB1 := types.NewVaultShare(testDenom2, sdk.NewDecWithPrec(11, 1))
+	vaultShareA1 := types.NewVaultShare(testDenom1, sdkmath.LegacyNewDecWithPrec(11, 1))
+	vaultShareA2 := types.NewVaultShare(testDenom1, sdkmath.LegacyNewDecWithPrec(22, 1))
+	vaultShareB1 := types.NewVaultShare(testDenom2, sdkmath.LegacyNewDecWithPrec(11, 1))
 
 	// regular add
 	res := vaultShareA1.Add(vaultShareA1)
@@ -360,8 +360,8 @@ func (s *vaultShareTestSuite) TestVaultSharesString() {
 		{types.VaultShares{}, ""},
 		{
 			types.VaultShares{
-				types.NewVaultShare("atom", sdk.NewDecWithPrec(5040000000000000000, sdk.Precision)),
-				types.NewVaultShare("stake", sdk.NewDecWithPrec(4000000000000000, sdk.Precision)),
+				types.NewVaultShare("atom", sdkmath.LegacyNewDecWithPrec(5040000000000000000, sdk.Precision)),
+				types.NewVaultShare("stake", sdkmath.LegacyNewDecWithPrec(4000000000000000, sdk.Precision)),
 			},
 			"5.040000000000000000atom,0.004000000000000000stake",
 		},

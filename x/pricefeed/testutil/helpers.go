@@ -1,6 +1,9 @@
 package testutil
 
 import (
+	sdkmath "cosmossdk.io/math"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"testing"
 	"time"
 
@@ -16,8 +19,7 @@ import (
 func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, keeper keeper.Keeper)) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	params := types.Params{
@@ -169,8 +171,7 @@ func SetCurrentPrices_PriceCalculations(t *testing.T, f func(ctx sdk.Context, ke
 func SetCurrentPrices_EventEmission(t *testing.T, f func(ctx sdk.Context, keeper keeper.Keeper)) {
 	_, addrs := app.GeneratePrivKeyAddressPairs(5)
 	tApp := app.NewTestApp()
-	ctx := tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	ctx := tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
 	keeper := tApp.GetPriceFeedKeeper()
 
 	params := types.Params{
