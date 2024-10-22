@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -377,48 +378,55 @@ var _ types.StakingKeeper = newFakeStakingKeeper()
 func newFakeStakingKeeper() *fakeStakingKeeper { return &fakeStakingKeeper{} }
 
 func (k *fakeStakingKeeper) addBondedTokens(amount int64) *fakeStakingKeeper {
-	if len(k.validators) != 0 {
+	if len(k.validators.Validators) != 0 {
 		panic("cannot set total bonded if keeper already has validators set")
 	}
 	// add a validator with all the tokens
-	k.validators = append(k.validators, stakingtypes.Validator{
+	k.validators.Validators = append(k.validators.Validators, stakingtypes.Validator{
 		Status: stakingtypes.Bonded,
 		Tokens: sdkmath.NewInt(amount),
 	})
 	return k
 }
 
-func (k *fakeStakingKeeper) TotalBondedTokens(_ sdk.Context) sdkmath.Int {
+func (k *fakeStakingKeeper) TotalBondedTokens(_ context.Context) (sdkmath.Int, error) {
 	total := sdkmath.ZeroInt()
-	for _, val := range k.validators {
+	for _, val := range k.validators.Validators {
 		if val.GetStatus() == stakingtypes.Bonded {
 			total = total.Add(val.GetBondedTokens())
 		}
 	}
-	return total
+	return total, nil
 }
 
-func (k *fakeStakingKeeper) GetDelegatorDelegations(_ sdk.Context, delegator sdk.AccAddress, maxRetrieve uint16) []stakingtypes.Delegation {
-	return k.delegations
+func (k *fakeStakingKeeper) GetDelegatorDelegations(_ context.Context, delegator sdk.AccAddress, maxRetrieve uint16) ([]stakingtypes.Delegation, error) {
+	return k.delegations, nil
 }
 
-func (k *fakeStakingKeeper) GetValidator(_ sdk.Context, addr sdk.ValAddress) (stakingtypes.Validator, bool) {
-	for _, val := range k.validators {
-		if val.GetOperator().Equals(addr) {
-			return val, true
+func (k *fakeStakingKeeper) GetValidator(_ context.Context, addr sdk.ValAddress) (stakingtypes.Validator, error) {
+	for _, val := range k.validators.Validators {
+		v, err := k.validators.ValidatorCodec.StringToBytes(val.GetOperator())
+		if err != nil {
+			return stakingtypes.Validator{}, fmt.Errorf("failed to convert operator address to bytes: %w", err)
+		}
+
+		if addr.Equals(sdk.AccAddress(v)) {
+			return val, nil
 		}
 	}
-	return stakingtypes.Validator{}, false
+
+	return stakingtypes.Validator{}, fmt.Errorf("validator not found")
 }
 
-func (k *fakeStakingKeeper) GetValidatorDelegations(_ sdk.Context, valAddr sdk.ValAddress) []stakingtypes.Delegation {
+func (k *fakeStakingKeeper) GetValidatorDelegations(_ context.Context, valAddr sdk.ValAddress) ([]stakingtypes.Delegation, error) {
 	var delegations stakingtypes.Delegations
 	for _, d := range k.delegations {
-		if d.GetValidatorAddr().Equals(valAddr) {
+		// TODO(boodyvo): check if string comparison is correct
+		if strings.EqualFold(d.GetValidatorAddr(), valAddr.String()) {
 			delegations = append(delegations, d)
 		}
 	}
-	return delegations
+	return delegations, nil
 }
 
 // fakeCDPKeeper is a stub cdp keeper.
@@ -447,22 +455,22 @@ func (k *fakeCDPKeeper) addTotalPrincipal(p sdkmath.Int) *fakeCDPKeeper {
 	return k
 }
 
-func (k *fakeCDPKeeper) GetInterestFactor(_ sdk.Context, collateralType string) (sdkmath.LegacyDec, bool) {
+func (k *fakeCDPKeeper) GetInterestFactor(_ context.Context, collateralType string) (sdkmath.LegacyDec, bool) {
 	if k.interestFactor != nil {
 		return *k.interestFactor, true
 	}
 	return sdkmath.LegacyDec{}, false
 }
 
-func (k *fakeCDPKeeper) GetTotalPrincipal(_ sdk.Context, collateralType string, principalDenom string) sdkmath.Int {
+func (k *fakeCDPKeeper) GetTotalPrincipal(_ context.Context, collateralType string, principalDenom string) sdkmath.Int {
 	return k.totalPrincipal
 }
 
-func (k *fakeCDPKeeper) GetCdpByOwnerAndCollateralType(_ sdk.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool) {
+func (k *fakeCDPKeeper) GetCdpByOwnerAndCollateralType(_ context.Context, owner sdk.AccAddress, collateralType string) (cdptypes.CDP, bool) {
 	return cdptypes.CDP{}, false
 }
 
-func (k *fakeCDPKeeper) GetCollateral(_ sdk.Context, collateralType string) (cdptypes.CollateralParam, bool) {
+func (k *fakeCDPKeeper) GetCollateral(_ context.Context, collateralType string) (cdptypes.CollateralParam, bool) {
 	return cdptypes.CollateralParam{}, false
 }
 
@@ -641,8 +649,8 @@ func (k *fakeDistrKeeper) setCommunityTax(percent sdkmath.LegacyDec) *fakeDistrK
 	return k
 }
 
-func (k *fakeDistrKeeper) GetCommunityTax(ctx sdk.Context) (percent sdkmath.LegacyDec) {
-	return k.communityTax
+func (k *fakeDistrKeeper) GetCommunityTax(ctx context.Context) (percent sdkmath.LegacyDec, err error) {
+	return k.communityTax, nil
 }
 
 type fakeMintKeeper struct {
@@ -660,7 +668,7 @@ func (k *fakeMintKeeper) setMinter(minter minttypes.Minter) *fakeMintKeeper {
 	return k
 }
 
-func (k *fakeMintKeeper) GetMinter(ctx sdk.Context) (minter minttypes.Minter) {
+func (k *fakeMintKeeper) GetMinter(ctx context.Context) (minter minttypes.Minter) {
 	return k.minter
 }
 
@@ -711,7 +719,7 @@ func (k *fakeBankKeeper) setSupply(coins ...sdk.Coin) *fakeBankKeeper {
 }
 
 func (k *fakeBankKeeper) SendCoinsFromModuleToAccount(
-	ctx sdk.Context,
+	ctx context.Context,
 	senderModule string,
 	recipientAddr sdk.AccAddress,
 	amt sdk.Coins,
@@ -719,11 +727,11 @@ func (k *fakeBankKeeper) SendCoinsFromModuleToAccount(
 	panic("not implemented")
 }
 
-func (k *fakeBankKeeper) GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
+func (k *fakeBankKeeper) GetAllBalances(ctx context.Context, addr sdk.AccAddress) sdk.Coins {
 	panic("not implemented")
 }
 
-func (k *fakeBankKeeper) GetSupply(ctx sdk.Context, denom string) sdk.Coin {
+func (k *fakeBankKeeper) GetSupply(ctx context.Context, denom string) sdk.Coin {
 	supply, found := k.supply[denom]
 	if !found {
 		return sdk.NewCoin(denom, sdkmath.ZeroInt())

@@ -205,7 +205,7 @@ func (suite *Suite) GetEvents() sdk.Events {
 // AddCoinsToModule adds coins to the earn module account
 func (suite *Suite) AddCoinsToModule(amount sdk.Coins) {
 	// Does not use suite.BankKeeper.MintCoins as module account would not have permission to mint
-	err := banktestutil.FundModuleAccount(suite.BankKeeper, suite.Ctx, types.ModuleName, amount)
+	err := banktestutil.FundModuleAccount(suite.Ctx, suite.BankKeeper, types.ModuleName, amount)
 	suite.Require().NoError(err)
 }
 
@@ -227,7 +227,7 @@ func (suite *Suite) CreateAccount(initialBalance sdk.Coins, index int) sdk.Accou
 	acc := ak.NewAccountWithAddress(suite.Ctx, addrs[index])
 	ak.SetAccount(suite.Ctx, acc)
 
-	err := banktestutil.FundAccount(suite.BankKeeper, suite.Ctx, acc.GetAddress(), initialBalance)
+	err := banktestutil.FundAccount(suite.Ctx, suite.BankKeeper, acc.GetAddress(), initialBalance)
 	suite.Require().NoError(err)
 
 	return acc
@@ -240,7 +240,7 @@ func (suite *Suite) NewAccountFromAddr(addr sdk.AccAddress, balance sdk.Coins) s
 	acc := ak.NewAccountWithAddress(suite.Ctx, addr)
 	ak.SetAccount(suite.Ctx, acc)
 
-	err := banktestutil.FundAccount(suite.BankKeeper, suite.Ctx, acc.GetAddress(), balance)
+	err := banktestutil.FundAccount(suite.Ctx, suite.BankKeeper, acc.GetAddress(), balance)
 	suite.Require().NoError(err)
 
 	return acc
@@ -382,14 +382,16 @@ func (suite *Suite) CreateNewUnbondedValidator(addr sdk.ValAddress, selfDelegati
 
 	// New validators are created in an unbonded state. Note if the end blocker is run later this validator could become bonded.
 
-	validator, found := suite.App.GetStakingKeeper().GetValidator(suite.Ctx, addr)
-	suite.Require().True(found)
+	validator, err := suite.App.GetStakingKeeper().GetValidator(suite.Ctx, addr)
+	suite.Require().NoError(err)
 	return validator
 }
 
 // NewBondCoin creates a Coin with the current staking denom.
 func (suite *Suite) NewBondCoin(amount sdkmath.Int) sdk.Coin {
-	stakingDenom := suite.App.GetStakingKeeper().BondDenom(suite.Ctx)
+	stakingDenom, err := suite.App.GetStakingKeeper().BondDenom(suite.Ctx)
+	suite.Require().NoError(err)
+
 	return sdk.NewCoin(stakingDenom, amount)
 }
 
@@ -397,25 +399,26 @@ func (suite *Suite) NewBondCoin(amount sdkmath.Int) sdk.Coin {
 func (suite *Suite) CreateDelegation(valAddr sdk.ValAddress, delegator sdk.AccAddress, amount sdkmath.Int) sdkmath.LegacyDec {
 	sk := suite.App.GetStakingKeeper()
 
-	stakingDenom := sk.BondDenom(suite.Ctx)
+	stakingDenom, err := sk.BondDenom(suite.Ctx)
+	suite.Require().NoError(err)
 	msg := stakingtypes.NewMsgDelegate(
-		delegator,
-		valAddr,
+		delegator.String(),
+		valAddr.String(),
 		sdk.NewCoin(stakingDenom, amount),
 	)
 
 	msgServer := stakingkeeper.NewMsgServerImpl(sk)
-	_, err := msgServer.Delegate(sdk.WrapSDKContext(suite.Ctx), msg)
+	_, err = msgServer.Delegate(sdk.WrapSDKContext(suite.Ctx), msg)
 	suite.Require().NoError(err)
 
-	del, found := sk.GetDelegation(suite.Ctx, delegator, valAddr)
-	suite.Require().True(found)
+	del, err := sk.GetDelegation(suite.Ctx, delegator, valAddr)
+	suite.Require().NoError(err)
 	return del.Shares
 }
 
 func (suite *Suite) deliverMsgCreateValidator(ctx sdk.Context, address sdk.ValAddress, selfDelegation sdk.Coin) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
-		address,
+		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},

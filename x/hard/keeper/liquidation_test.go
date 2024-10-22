@@ -740,7 +740,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 				suppliedCoinsPost, _ := suite.keeper.GetSuppliedCoins(liqCtx)
 				suite.Require().Equal(tc.args.expectedTotalSuppliedCoins, suppliedCoinsPost)
 				borrowedCoinsPost, _ := suite.keeper.GetBorrowedCoins(liqCtx)
-				suite.Require().True(tc.args.expectedTotalBorrowedCoins.IsEqual(borrowedCoinsPost))
+				suite.Require().True(tc.args.expectedTotalBorrowedCoins.Equal(borrowedCoinsPost))
 			} else {
 				suite.Require().Error(err)
 				suite.Require().True(strings.Contains(err.Error(), tc.errArgs.contains))
@@ -758,7 +758,7 @@ func (suite *KeeperTestSuite) TestKeeperLiquidation() {
 
 				// Check that supplied and borrowed coins have not been updated post-liquidation
 				suite.Require().Equal(tc.args.expectedTotalSuppliedCoins, suppliedCoinsPre)
-				suite.Require().True(tc.args.expectedTotalBorrowedCoins.IsEqual(borrowedCoinsPre))
+				suite.Require().True(tc.args.expectedTotalBorrowedCoins.Equal(borrowedCoinsPre))
 			}
 		})
 	}

@@ -1,13 +1,12 @@
 package types_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"strings"
 	"testing"
 
 	"github.com/kava-labs/kava/x/earn/types"
 	"github.com/stretchr/testify/suite"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var (
@@ -360,8 +359,8 @@ func (s *vaultShareTestSuite) TestVaultSharesString() {
 		{types.VaultShares{}, ""},
 		{
 			types.VaultShares{
-				types.NewVaultShare("atom", sdkmath.LegacyNewDecWithPrec(5040000000000000000, sdk.Precision)),
-				types.NewVaultShare("stake", sdkmath.LegacyNewDecWithPrec(4000000000000000, sdk.Precision)),
+				types.NewVaultShare("atom", sdkmath.LegacyNewDecWithPrec(5040000000000000000, sdkmath.LegacyPrecision)),
+				types.NewVaultShare("stake", sdkmath.LegacyNewDecWithPrec(4000000000000000, sdkmath.LegacyPrecision)),
 			},
 			"5.040000000000000000atom,0.004000000000000000stake",
 		},

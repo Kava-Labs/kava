@@ -30,15 +30,15 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 
 	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
 	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	// Transfers delegation to module account
-	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
+	_, err = suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
 	suite.Require().NoError(err)
 
-	validator, found := suite.StakingKeeper.GetValidator(suite.Ctx, valAddr1)
-	suite.Require().True(found)
+	validator, err := suite.StakingKeeper.GetValidator(suite.Ctx, valAddr1)
+	suite.Require().NoError(err)
 
 	suite.Ctx = suite.Ctx.WithBlockHeight(2)
 
@@ -51,12 +51,14 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 	rewardCoins := sdk.NewDecCoins(sdk.NewDecCoin("ukava", sdkmath.NewInt(500e6)))
 	distrKeeper.AllocateTokensToValidator(suite.Ctx, validator, rewardCoins)
 
-	delegation, found := stakingKeeper.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
-	suite.Require().True(found)
+	delegation, err := stakingKeeper.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
+	suite.Require().NoError(err)
 
 	// Get amount of rewards
-	endingPeriod := distrKeeper.IncrementValidatorPeriod(suite.Ctx, validator)
-	delegationRewards := distrKeeper.CalculateDelegationRewards(suite.Ctx, validator, delegation, endingPeriod)
+	endingPeriod, err := distrKeeper.IncrementValidatorPeriod(suite.Ctx, validator)
+	suite.Require().NoError(err)
+	delegationRewards, err := distrKeeper.CalculateDelegationRewards(suite.Ctx, validator, delegation, endingPeriod)
+	suite.Require().NoError(err)
 	truncatedRewards, _ := delegationRewards.TruncateDecimal()
 
 	suite.Run("collect staking rewards", func() {

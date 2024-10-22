@@ -310,7 +310,7 @@ func (suite *KeeperTestSuite) TestRepay() {
 				expectedRepayerCoins := previousRepayerCoins.Sub(repaymentCoins...)
 				acc := suite.getAccount(tc.args.repayer)
 				// use IsEqual for sdk.Coins{nil} vs sdk.Coins{}
-				suite.Require().True(expectedRepayerCoins.IsEqual(bankKeeper.GetAllBalances(suite.ctx, acc.GetAddress())))
+				suite.Require().True(expectedRepayerCoins.Equal(bankKeeper.GetAllBalances(suite.ctx, acc.GetAddress())))
 
 				// Check module account balance
 				expectedModuleCoins := tc.args.initialModuleCoins.Add(tc.args.depositCoins...).Sub(tc.args.borrowCoins...).Add(repaymentCoins...)

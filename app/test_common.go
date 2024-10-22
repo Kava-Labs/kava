@@ -163,7 +163,6 @@ func GenesisStateWithSingleValidator(
 	app *TestApp,
 	genesisState GenesisState,
 ) GenesisState {
-	fmt.Println("GenesisStateWithSingleValidator")
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	if err != nil {
@@ -247,12 +246,6 @@ func genesisStateWithValSet(
 	currentStakingGenesis := stakingtypes.GetGenesisStateFromAppState(app.appCodec, genesisState)
 	currentStakingGenesis.Params.BondDenom = "ukava"
 
-	fmt.Println("currentStakingGenesis.Params", currentStakingGenesis.Params)
-	fmt.Println("currentStakingGenesis.Validators", currentStakingGenesis.Validators)
-	fmt.Println("currentStakingGenesis.Validators only validators", validators)
-	fmt.Println("currentStakingGenesis.Delegations", currentStakingGenesis.Delegations)
-	fmt.Println("currentStakingGenesis.Delegations only validators", delegations)
-
 	stakingGenesis := stakingtypes.NewGenesisState(
 		currentStakingGenesis.Params,
 		append(currentStakingGenesis.Validators, validators...),
@@ -327,7 +320,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	genesisState := NewDefaultGenesisState()
 	modifiedStates := make(map[string]bool)
 
-	fmt.Println("initializing genesis states")
 	for _, state := range genesisStates {
 		for k, v := range state {
 			genesisState[k] = v
@@ -343,11 +335,8 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		}
 	}
 
-	fmt.Println("applying genesis states")
-
 	// Add default genesis states for at least 1 validator
 	if addValidator {
-		fmt.Println("adding default validator")
 		genesisState = GenesisStateWithSingleValidator(
 			&tApp,
 			genesisState,
@@ -378,7 +367,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		},
 	)
 
-	fmt.Println("chain initialized: ", err)
 	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
 		// Height:             app.LastBlockHeight() + 1,
 		//		Hash:               app.LastCommitID().Hash,
@@ -387,7 +375,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		Hash:   tApp.LastCommitID().Hash,
 		Time:   genTime,
 	})
-	fmt.Println("block finalized: ", err)
+	//fmt.Println("block finalized: ", err)
 	//_, err = tApp.Commit()
 	// Should we call commit?
 
@@ -550,7 +538,6 @@ func RandomAddress() sdk.AccAddress {
 
 // NewFundedGenStateWithSameCoins creates a (auth and bank) genesis state populated with accounts from the given addresses and balance.
 func NewFundedGenStateWithSameCoins(cdc codec.JSONCodec, balance sdk.Coins, addresses []sdk.AccAddress) GenesisState {
-	fmt.Println("initializing genesis state", balance)
 	builder := NewAuthBankGenesisBuilder()
 	for _, address := range addresses {
 		builder.WithSimpleAccount(address, balance)

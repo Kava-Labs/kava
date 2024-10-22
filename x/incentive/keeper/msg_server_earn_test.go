@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -118,12 +119,13 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	suite.Require().NoError(err)
 
 	// BeginBlocker to update minter annual provisions as it starts at 0 which results in no minted coins
-	_ = suite.App.BeginBlocker(suite.Ctx, abci.RequestBeginBlock{})
+	_, err = suite.App.BeginBlocker(suite.Ctx)
+	suite.Require().NoError(err)
 
 	// DeliverMsgCreateValidator uses a generated pubkey, so we need to fetch
 	// the validator to get the correct pubkey
-	validator1, found := sk.GetValidator(suite.Ctx, valAddr1)
-	suite.Require().True(found)
+	validator1, err := sk.GetValidator(suite.Ctx, valAddr1)
+	suite.Require().NoError(err)
 
 	pk, err := validator1.ConsPubKey()
 	suite.Require().NoError(err)
@@ -136,7 +138,9 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// Query for next block to get staking rewards
 	suite.Ctx = suite.Ctx.
 		WithBlockHeight(suite.Ctx.BlockHeight() + 1).
-		WithBlockTime(suite.Ctx.BlockTime().Add(7 * time.Second))
+		WithBlockTime(suite.Ctx.BlockTime().Add(7 * time.Second)).
+		// TODO(boodyvo): Cannot for some reason set SignedLastBlock
+		WithVoteInfos([]abci.VoteInfo{{Validator: val}})
 
 	// Mint tokens
 	mint.BeginBlocker(
@@ -147,23 +151,25 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// Distribute to validators, block needs votes
 	distribution.BeginBlocker(
 		suite.Ctx,
-		abci.RequestBeginBlock{
-			LastCommitInfo: abci.CommitInfo{
-				Votes: []abci.VoteInfo{{
-					Validator:       val,
-					SignedLastBlock: true,
-				}},
-			},
-		},
+		// TODO(boodyvo): Looks like it wasn't used, proposer is extracted from ctx
+		//abci.RequestBeginBlock{
+		//	LastCommitInfo: abci.CommitInfo{
+		//		Votes: []abci.VoteInfo{{
+		//			Validator:       val,
+		//			SignedLastBlock: true,
+		//		}},
+		//	},
+		//},
 		dk,
 	)
 
 	liquidMacc := suite.App.GetAccountKeeper().GetModuleAccount(suite.Ctx, liquidtypes.ModuleAccountName)
-	delegation, found := sk.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
-	suite.Require().True(found)
+	delegation, err := sk.GetDelegation(suite.Ctx, liquidMacc.GetAddress(), valAddr1)
+	suite.Require().NoError(err)
 
 	// Get amount of rewards
-	endingPeriod := dk.IncrementValidatorPeriod(suite.Ctx, validator1)
+	endingPeriod, err := dk.IncrementValidatorPeriod(suite.Ctx, validator1)
+	suite.Require().NoError(err)
 
 	// Zero rewards since this block is the same as the block it was last claimed
 
@@ -174,7 +180,8 @@ func (suite *HandlerTestSuite) TestEarnLiquidClaim() {
 	// 1. x/mint + x/distribution BeginBlocker
 	// 2. CalculateDelegationRewards
 	// 3. x/incentive BeginBlocker to claim staking rewards
-	delegationRewards := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
+	delegationRewards, err := dk.CalculateDelegationRewards(suite.Ctx, validator1, delegation, endingPeriod)
+	suite.Require().NoError(err)
 	suite.Require().False(delegationRewards.IsZero(), "expected non-zero delegation rewards")
 
 	// Claim staking rewards via incentive.

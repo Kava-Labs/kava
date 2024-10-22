@@ -41,24 +41,19 @@ type liquidationTracker struct {
 }
 
 func (suite *SeizeTestSuite) SetupTest() {
-	fmt.Println("SetupTest()")
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now(), ChainID: app.TestChainId})
 	tracker := liquidationTracker{}
 	coins := cs(c("btc", 100000000), c("xrp", 10000000000))
 
-	fmt.Println("Generating addresses")
-
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
-	fmt.Println("Initializing app")
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(tApp.AppCodec()),
 		NewCDPGenStateMulti(tApp.AppCodec()),
 	)
-	fmt.Println("App initialized")
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
@@ -69,7 +64,6 @@ func (suite *SeizeTestSuite) SetupTest() {
 
 func (suite *SeizeTestSuite) createCdps() {
 	tApp := app.NewTestApp()
-	fmt.Println("creating new context")
 	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(types.CDPs, 100)
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
@@ -83,7 +77,6 @@ func (suite *SeizeTestSuite) createCdps() {
 		NewCDPGenStateMulti(tApp.AppCodec()),
 	)
 
-	fmt.Println("initialized app from genesis state")
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
@@ -106,7 +99,6 @@ func (suite *SeizeTestSuite) createCdps() {
 				tracker.debt += int64(debt)
 			}
 		}
-		fmt.Println("creating collateral", collateral)
 		err := suite.keeper.AddCdp(suite.ctx, addrs[j], c(collateral, int64(amount)), c("usdx", int64(debt)), collateral+"-a")
 		suite.NoError(err)
 		c, f := suite.keeper.GetCDP(suite.ctx, collateral+"-a", uint64(j+1))
@@ -396,9 +388,7 @@ func (suite *SeizeTestSuite) TestKeeperLiquidation() {
 
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
-			fmt.Println("settings up test")
 			suite.SetupTest()
-			fmt.Println("test setup complete")
 
 			spotMarket := fmt.Sprintf("%s:usd", tc.args.collateral.Denom)
 			liquidationMarket := fmt.Sprintf("%s:30", spotMarket)
@@ -560,12 +550,8 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 			err = pk.SetCurrentPrices(suite.ctx, "btc:usd")
 			suite.Require().NoError(err)
 
-			fmt.Println("get auctions before", suite.app.GetAuctionKeeper().GetAllAuctions(suite.ctx))
-
 			_, err = suite.app.BeginBlocker(suite.ctx)
 			suite.Require().NoError(err)
-
-			fmt.Println("get auctions after", suite.app.GetAuctionKeeper().GetAllAuctions(suite.ctx))
 
 			ak := suite.app.GetAuctionKeeper()
 			auctions := ak.GetAllAuctions(suite.ctx)

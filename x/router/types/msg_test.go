@@ -179,7 +179,10 @@ func TestMsg_Validate(t *testing.T) {
 			msgs := []sdk.Msg{&msgMintDeposit, &msgDelegateMintDeposit, &msgWithdrawBurn, &msgWithdrawBurnUndelegate}
 			for _, msg := range msgs {
 				t.Run(fmt.Sprintf("%T", msg), func(t *testing.T) {
-					err := msg.ValidateBasic()
+					validateBasic, ok := msg.(sdk.HasValidateBasic)
+					require.True(t, ok, "msg does not implement sdk.HasValidateBasic")
+
+					err := validateBasic.ValidateBasic()
 					if tc.expectedErr == nil {
 						require.NoError(t, err)
 					} else {

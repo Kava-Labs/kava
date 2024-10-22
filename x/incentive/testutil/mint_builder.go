@@ -1,8 +1,8 @@
 package testutil
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"

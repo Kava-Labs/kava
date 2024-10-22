@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtime "github.com/cometbft/cometbft/types/time"
 	"testing"
 	"time"
 
@@ -40,8 +42,7 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 
 	suite.addrs = addrs
 
-	suite.ctx = suite.tApp.NewContextLegacy(true).
-		WithBlockTime(time.Now().UTC())
+	suite.ctx = suite.tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now().UTC()})
 	suite.keeper = suite.tApp.GetIncentiveKeeper()
 
 	queryHelper := baseapp.NewQueryServerTestHelper(suite.ctx, suite.tApp.InterfaceRegistry())

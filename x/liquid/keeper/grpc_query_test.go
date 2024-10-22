@@ -58,7 +58,7 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 
 				suite.CreateNewUnbondedValidator(sdk.ValAddress(valAddr), initBalance.Amount)
 				suite.CreateDelegation(sdk.ValAddress(valAddr), delAddr, initBalance.Amount.QuoRaw(4))
-				err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 				suite.Require().NoError(err) // bond the validator
 
 				return delAddr.String()
@@ -82,7 +82,7 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 				suite.CreateNewUnbondedValidator(sdk.ValAddress(valAddr), initBalance.Amount)
 				threeQuarters := initBalance.Amount.QuoRaw(4).MulRaw(3)
 				suite.CreateDelegation(sdk.ValAddress(valAddr), delAddr, threeQuarters)
-				err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 				suite.Require().NoError(err) // bond the validator
 
 				return delAddr.String()
@@ -137,7 +137,7 @@ func (suite *grpcQueryTestSuite) TestQueryDelegatedBalance() {
 
 				suite.CreateNewUnbondedValidator(valAcc.GetAddress().Bytes(), initBalance.Amount)
 				suite.CreateDelegation(valAcc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
-				err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 				suite.Require().NoError(err) // bond the validator
 
 				suite.CreateUnbondingDelegation(delAcc.GetAddress(), valAcc.GetAddress().Bytes(), initBalance.Amount.QuoRaw(2))
@@ -192,10 +192,10 @@ func (suite *grpcQueryTestSuite) TestQueryTotalSupply() {
 
 				suite.CreateNewUnbondedValidator(valAcc.GetAddress().Bytes(), initBalance.Amount)
 				suite.CreateDelegation(valAcc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
-				err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 				suite.Require().NoError(err) // bond the validator
 
-				_, err := suite.Keeper.MintDerivative(
+				_, err = suite.Keeper.MintDerivative(
 					suite.Ctx,
 					delAcc.GetAddress(),
 					valAcc.GetAddress().Bytes(),
@@ -218,10 +218,10 @@ func (suite *grpcQueryTestSuite) TestQueryTotalSupply() {
 				suite.CreateDelegation(val1Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
 				suite.CreateNewUnbondedValidator(val2Acc.GetAddress().Bytes(), initBalance.Amount)
 				suite.CreateDelegation(val2Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
-				err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 				suite.Require().NoError(err) // bond the validator
 
-				_, err := suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val1Acc.GetAddress().Bytes(), initBalance)
+				_, err = suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val1Acc.GetAddress().Bytes(), initBalance)
 				suite.Require().NoError(err)
 				_, err = suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val2Acc.GetAddress().Bytes(), initBalance)
 				suite.Require().NoError(err)
@@ -240,10 +240,10 @@ func (suite *grpcQueryTestSuite) TestQueryTotalSupply() {
 				suite.CreateNewUnbondedValidator(valAcc.GetAddress().Bytes(), initBalance.Amount)
 				suite.CreateDelegation(valAcc.GetAddress().Bytes(), del1Acc.GetAddress(), initBalance.Amount)
 				suite.CreateDelegation(valAcc.GetAddress().Bytes(), del2Acc.GetAddress(), initBalance.Amount)
-				err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 				suite.Require().NoError(err) // bond the validator
 
-				_, err := suite.Keeper.MintDerivative(suite.Ctx, del1Acc.GetAddress(), valAcc.GetAddress().Bytes(), initBalance)
+				_, err = suite.Keeper.MintDerivative(suite.Ctx, del1Acc.GetAddress(), valAcc.GetAddress().Bytes(), initBalance)
 				suite.Require().NoError(err)
 				_, err = suite.Keeper.MintDerivative(suite.Ctx, del2Acc.GetAddress(), valAcc.GetAddress().Bytes(), initBalance)
 				suite.Require().NoError(err)
@@ -263,10 +263,10 @@ func (suite *grpcQueryTestSuite) TestQueryTotalSupply() {
 				suite.CreateDelegation(val1Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
 				suite.CreateNewUnbondedValidator(val2Acc.GetAddress().Bytes(), initBalance.Amount)
 				suite.CreateDelegation(val2Acc.GetAddress().Bytes(), delAcc.GetAddress(), initBalance.Amount)
-				err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 				suite.Require().NoError(err) // bond the validator
 
-				_, err := suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val1Acc.GetAddress().Bytes(), initBalance)
+				_, err = suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val1Acc.GetAddress().Bytes(), initBalance)
 				suite.Require().NoError(err)
 				_, err = suite.Keeper.MintDerivative(suite.Ctx, delAcc.GetAddress(), val2Acc.GetAddress().Bytes(), initBalance)
 				suite.Require().NoError(err)

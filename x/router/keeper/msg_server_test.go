@@ -124,7 +124,8 @@ func (suite *msgServerTestSuite) TestWithdrawBurnUndelegate_Events() {
 			sdk.NewAttribute(sdk.AttributeKeySender, user.String()),
 		),
 	)
-	unbondingTime := suite.StakingKeeper.UnbondingTime(suite.Ctx)
+	unbondingTime, err := suite.StakingKeeper.UnbondingTime(suite.Ctx)
+	suite.Require().NoError(err)
 	completionTime := suite.Ctx.BlockTime().Add(unbondingTime)
 	suite.EventsContains(suite.Ctx.EventManager().Events(),
 		sdk.NewEvent(
@@ -153,7 +154,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	// Create a slashed validator, where the delegator owns fractional tokens.
 	suite.CreateNewUnbondedValidator(valAddr, sdkmath.NewInt(1e9))
 	suite.CreateDelegation(valAddr, user, sdkmath.NewInt(1e9))
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.666666666666666667"))
 
@@ -167,7 +168,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 		valAddr,
 		delegation.Balance,
 	)
-	_, err := suite.msgServer.MintDeposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
+	_, err = suite.msgServer.MintDeposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
 	suite.Require().NoError(err)
 
 	// There should be no extractable balance left in delegation
@@ -209,7 +210,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 
 	// Create a slashed validator, where a future delegator will own fractional tokens.
 	suite.CreateNewUnbondedValidator(valAddr, valBalance)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.4")) // tokens remaining 600_000_000
 
@@ -231,7 +232,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 		valAddr,
 		balance[0],
 	)
-	_, err := suite.msgServer.DelegateMintDeposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
+	_, err = suite.msgServer.DelegateMintDeposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
 	suite.Require().NoError(err)
 
 	// All spendable balance should be withdrawn
@@ -276,7 +277,7 @@ func (suite *msgServerTestSuite) setupValidator() (sdk.AccAddress, sdk.ValAddres
 	suite.CreateAccountWithAddress(user, suite.NewBondCoins(balance))
 
 	suite.CreateNewUnbondedValidator(valAddr, balance)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	return user, valAddr, balance
 }
@@ -293,7 +294,7 @@ func (suite *msgServerTestSuite) setupValidatorAndDelegation() (sdk.AccAddress, 
 
 	suite.CreateNewUnbondedValidator(valAddr, balance)
 	suite.CreateDelegation(valAddr, user, balance)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	return user, valAddr, balance
 }

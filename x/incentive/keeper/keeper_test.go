@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 	"time"
 
@@ -42,7 +43,7 @@ func (suite *KeeperTestSuite) SetupApp() {
 
 	suite.keeper = suite.app.GetIncentiveKeeper()
 
-	suite.ctx = suite.App.NewContextLegacy(true, tmprototypes.Header{Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContextLegacy(true, tmprototypes.Header{Time: suite.genesisTime})
 }
 
 func (suite *KeeperTestSuite) TestGetSetDeleteUSDXMintingClaim() {

@@ -81,11 +81,11 @@ func (suite *KeeperTestSuite) TestBurnDerivative() {
 			moduleAccAddress := authtypes.NewModuleAddress(types.ModuleAccountName)
 			suite.CreateNewUnbondedValidator(valAddr, i(1e6))
 			suite.CreateDelegation(valAddr, moduleAccAddress, tc.moduleDelegation)
-			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 			suite.Require().NoError(err)
 			modBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, moduleAccAddress)
 
-			_, err := suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
+			_, err = suite.Keeper.BurnDerivative(suite.Ctx, user, valAddr, tc.burnAmount)
 
 			suite.Require().ErrorIs(err, tc.expectedErr)
 			if tc.expectedErr != nil {
@@ -288,10 +288,10 @@ func (suite *KeeperTestSuite) TestMintDerivative() {
 
 			suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 			suite.CreateDelegation(valAddr, delegator, initialBalance)
-			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 			suite.Require().NoError(err)
 
-			_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
+			_, err = suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr, tc.amount)
 
 			suite.Require().ErrorIs(err, tc.expectedErr)
 			if tc.expectedErr != nil {
@@ -333,7 +333,7 @@ func (suite *KeeperTestSuite) TestIsDerivativeDenom() {
 
 	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
 	suite.CreateDelegation(valAddr1, delegator, initialBalance)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	testCases := []struct {
@@ -406,12 +406,12 @@ func (suite *KeeperTestSuite) TestGetStakedTokensForDerivatives() {
 
 	suite.CreateNewUnbondedValidator(valAddr3, initialBalance)
 	suite.CreateDelegation(valAddr3, delegator, delegateAmount)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	suite.SlashValidator(valAddr3, d("0.05"))
 
-	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
+	_, err = suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
 	suite.Require().NoError(err)
 
 	testCases := []struct {
@@ -495,10 +495,10 @@ func (suite *KeeperTestSuite) TestGetDerivativeValue() {
 
 	suite.CreateNewUnbondedValidator(valAddr2, initialBalance)
 	suite.CreateDelegation(valAddr2, delegator, delegateAmount)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
-	_, err := suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
+	_, err = suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr1, suite.NewBondCoin(delegateAmount))
 	suite.Require().NoError(err)
 
 	_, err = suite.Keeper.MintDerivative(suite.Ctx, delegator, valAddr2, suite.NewBondCoin(delegateAmount))
@@ -543,10 +543,10 @@ func (suite *KeeperTestSuite) TestDerivativeFromTokens() {
 
 	suite.CreateNewUnbondedValidator(valAddr, initialBalance)
 	suite.CreateDelegation(valAddr, moduleAccAddress, initialBalance)
-	err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
-	_, err := suite.Keeper.DerivativeFromTokens(suite.Ctx, valAddr, sdk.NewCoin("invalid", initialBalance))
+	_, err = suite.Keeper.DerivativeFromTokens(suite.Ctx, valAddr, sdk.NewCoin("invalid", initialBalance))
 	suite.ErrorIs(err, types.ErrInvalidDenom)
 
 	derivatives, err := suite.Keeper.DerivativeFromTokens(suite.Ctx, valAddr, suite.NewBondCoin(initialBalance))

@@ -494,8 +494,6 @@ func NewApp(
 		logger,
 	)
 
-	fmt.Println("creating staking keeper")
-
 	// ac = addresscodec.NewBech32Codec(Bech32MainPrefix)
 	app.stakingKeeper = stakingkeeper.NewKeeper(
 		appCodec,
@@ -859,8 +857,6 @@ func NewApp(
 	)
 	app.govKeeper.SetTallyHandler(tallyHandler)
 
-	fmt.Println("going to initialize the module manager")
-
 	// create the module manager (Note: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.)
 	app.mm = module.NewManager(
@@ -1016,8 +1012,6 @@ func NewApp(
 		precisebanktypes.ModuleName,
 	)
 
-	fmt.Println("going to set the order init genesis")
-
 	// Warning: Some init genesis methods must run before others. Ensure the dependencies are understood before modifying this list
 	app.mm.SetOrderInitGenesis(
 		capabilitytypes.ModuleName, // initialize capabilities, run before any module creating or claiming capabilities in InitGenesis
@@ -1062,8 +1056,6 @@ func NewApp(
 		precisebanktypes.ModuleName, // Must be run after x/bank to verify reserve balance
 		crisistypes.ModuleName,      // runs the invariants at genesis, should run after other modules
 	)
-
-	fmt.Println("going to set the order export genesis")
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
 
@@ -1125,8 +1117,6 @@ func NewApp(
 		panic(fmt.Sprintf("failed to create antehandler: %s", err))
 	}
 
-	fmt.Println("setting different setters")
-
 	app.SetAnteHandler(antehandler)
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
@@ -1141,8 +1131,6 @@ func NewApp(
 
 	app.ScopedIBCKeeper = scopedIBCKeeper
 	app.ScopedTransferKeeper = scopedTransferKeeper
-
-	fmt.Println("returning app")
 
 	return app
 }

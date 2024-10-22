@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	"context"
+	sdkmath "cosmossdk.io/math"
 	types "github.com/cosmos/cosmos-sdk/types"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -13,12 +15,12 @@ type EarnHooks struct {
 }
 
 // AfterVaultDepositCreated provides a mock function with given fields: ctx, vaultDenom, depositor, sharesOwned
-func (_m *EarnHooks) AfterVaultDepositCreated(ctx types.Context, vaultDenom string, depositor types.AccAddress, sharesOwned types.Dec) {
+func (_m *EarnHooks) AfterVaultDepositCreated(ctx context.Context, vaultDenom string, depositor types.AccAddress, sharesOwned sdkmath.LegacyDec) {
 	_m.Called(ctx, vaultDenom, depositor, sharesOwned)
 }
 
 // BeforeVaultDepositModified provides a mock function with given fields: ctx, vaultDenom, depositor, sharesOwned
-func (_m *EarnHooks) BeforeVaultDepositModified(ctx types.Context, vaultDenom string, depositor types.AccAddress, sharesOwned types.Dec) {
+func (_m *EarnHooks) BeforeVaultDepositModified(ctx context.Context, vaultDenom string, depositor types.AccAddress, sharesOwned sdkmath.LegacyDec) {
 	_m.Called(ctx, vaultDenom, depositor, sharesOwned)
 }
 

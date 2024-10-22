@@ -53,7 +53,7 @@ func (suite *PayoutTestSuite) SetupApp() {
 	suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
-	suite.ctx = suite.App.NewContextLegacy(true, tmprototypes.Header{Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContextLegacy(true, tmprototypes.Header{Time: suite.genesisTime})
 }
 
 func (suite *PayoutTestSuite) SetupWithGenState(authBuilder app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {

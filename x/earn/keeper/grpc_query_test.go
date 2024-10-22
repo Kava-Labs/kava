@@ -9,7 +9,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/suite"
@@ -252,7 +251,8 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
 	suite.CreateDelegation(valAddr2, delegator, delegateAmount)
 
-	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
+	_, err := suite.App.GetStakingKeeper().EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
 
 	savingsParams := suite.SavingsKeeper.GetParams(suite.Ctx)
 	savingsParams.SupportedDenoms = append(savingsParams.SupportedDenoms, "bkava")
@@ -275,7 +275,7 @@ func (suite *grpcQueryTestSuite) TestDeposits() {
 	// Deposit into each vault from each account - 4 total deposits
 	// Acc 1: usdx + busd
 	// Acc 2: usdx + bkava-1 + bkava-2
-	err := suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount, types.STRATEGY_TYPE_HARD)
+	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit1Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
 	err = suite.Keeper.Deposit(suite.Ctx, acc1, deposit2Amount, types.STRATEGY_TYPE_HARD)
 	suite.Require().NoError(err)
@@ -522,7 +522,8 @@ func (suite *grpcQueryTestSuite) TestDeposits_bKava() {
 
 	// Slash the last validator to reduce the value of it's derivatives to test bkava to underlying token conversion.
 	// First call end block to bond validator to enable slashing.
-	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
+	_, err = suite.App.GetStakingKeeper().EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
 	err = suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.5"))
 	suite.Require().NoError(err)
 
@@ -645,8 +646,9 @@ func (suite *grpcQueryTestSuite) TestVault_bKava_Aggregate() {
 	address3, derivatives3, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[2], sdkmath.NewInt(1e9))
 	// Slash the last validator to reduce the value of it's derivatives to test bkava to underlying token conversion.
 	// First call end block to bond validator to enable slashing.
-	staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
-	err := suite.slashValidator(sdk.ValAddress(address3), sdkmath.LegacyMustNewDecFromStr("0.5"))
+	_, err := suite.App.GetStakingKeeper().EndBlocker(suite.Ctx)
+	suite.Require().NoError(err)
+	err = suite.slashValidator(sdk.ValAddress(address3), sdkmath.LegacyMustNewDecFromStr("0.5"))
 	suite.Require().NoError(err)
 
 	// vault denom is only "bkava" which has it's own special handler
@@ -797,9 +799,10 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 				address2, derivatives2, _ := suite.createAccountWithDerivatives(testutil.TestBkavaDenoms[1], sdkmath.NewInt(1e9))
 
 				// bond validators
-				staking.EndBlocker(suite.Ctx, suite.App.GetStakingKeeper())
+				_, err := suite.App.GetStakingKeeper().EndBlocker(suite.Ctx)
+				suite.Require().NoError(err)
 				// slash val2 - its shares are now 80% as valuable!
-				err := suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.2"))
+				err = suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.2"))
 				suite.Require().NoError(err)
 
 				// create "bkava" vault. it holds all bkava denoms
@@ -835,7 +838,8 @@ func (suite *grpcQueryTestSuite) TestTotalSupply() {
 // createUnbondedValidator creates an unbonded validator with the given amount of self-delegation.
 func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress, selfDelegation sdk.Coin, minSelfDelegation sdkmath.Int) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
-		address,
+		//TODO(boodyvo): validate if correct
+		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
 		stakingtypes.Description{},

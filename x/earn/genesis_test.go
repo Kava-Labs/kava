@@ -1,6 +1,7 @@
 package earn_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 
 	"github.com/kava-labs/kava/app"

@@ -133,6 +133,7 @@ func (k Keeper) CreateAtomicSwap(ctx sdk.Context, randomNumberHash []byte, times
 
 // ClaimAtomicSwap validates a claim attempt, and if successful, sends the escrowed amount and closes the AtomicSwap.
 func (k Keeper) ClaimAtomicSwap(ctx sdk.Context, from sdk.AccAddress, swapID []byte, randomNumber []byte) error {
+
 	atomicSwap, found := k.GetAtomicSwap(ctx, swapID)
 	if !found {
 		return errorsmod.Wrapf(types.ErrAtomicSwapNotFound, "%s", swapID)

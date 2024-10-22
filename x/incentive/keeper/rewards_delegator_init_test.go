@@ -51,12 +51,15 @@ func (suite *InitializeDelegatorRewardTests) TestClaimIsSyncedAndIndexesAreSetWh
 			ValidatorAddress: validatorAddress.String(),
 			Shares:           d("1000"),
 		}},
-		validators: stakingtypes.Validators{{
-			OperatorAddress: validatorAddress.String(),
-			Status:          stakingtypes.Bonded,
-			Tokens:          i(1000),
-			DelegatorShares: d("1000"),
-		}},
+		validators: stakingtypes.Validators{
+			Validators: []stakingtypes.Validator{{
+				OperatorAddress: validatorAddress.String(),
+				Status:          stakingtypes.Bonded,
+				Tokens:          i(1000),
+				DelegatorShares: d("1000"),
+			},
+			},
+		},
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, sk, nil, nil, nil, nil)
 

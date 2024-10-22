@@ -1,14 +1,13 @@
 package kavadist_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 
 	tmtime "github.com/cometbft/cometbft/types/time"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/kavadist"
 	testutil "github.com/kava-labs/kava/x/kavadist/testutil"

@@ -107,7 +107,7 @@ func (suite *keeperTestSuite) TestGRPCBalance() {
 
 			if testCase.expPass {
 				suite.Require().NoError(err)
-				suite.Require().True(expCoins.IsEqual(res.Coins))
+				suite.Require().True(expCoins.Equal(res.Coins))
 			} else {
 				suite.Require().Error(err)
 			}

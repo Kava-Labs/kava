@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -94,7 +95,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsUnchangedWhenGlobalFac
 			},
 		},
 		validators: stakingtypes.Validators{
-			unslashedBondedValidator(validatorAddress),
+			Validators: []stakingtypes.Validator{unslashedBondedValidator(validatorAddress)},
 		},
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
@@ -139,7 +140,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenNewReward
 			},
 		},
 		validators: stakingtypes.Validators{
-			unslashedBondedValidator(validatorAddress),
+			Validators: []stakingtypes.Validator{unslashedBondedValidator(validatorAddress)},
 		},
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
@@ -189,7 +190,7 @@ func (suite *SynchronizeDelegatorRewardTests) TestRewardIsIncreasedWhenGlobalFac
 			},
 		},
 		validators: stakingtypes.Validators{
-			unslashedBondedValidator(validatorAddress),
+			Validators: []stakingtypes.Validator{unslashedBondedValidator(validatorAddress)},
 		},
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
@@ -293,10 +294,12 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenValAddrIsNil()
 			},
 		},
 		validators: stakingtypes.Validators{
-			unslashedBondedValidator(validatorAddresses[0]),
-			unslashedBondedValidator(validatorAddresses[1]),
-			unslashedNotBondedValidator(validatorAddresses[2]),
-			unslashedNotBondedValidator(validatorAddresses[3]),
+			Validators: []stakingtypes.Validator{
+				unslashedBondedValidator(validatorAddresses[0]),
+				unslashedBondedValidator(validatorAddresses[1]),
+				unslashedNotBondedValidator(validatorAddresses[2]),
+				unslashedNotBondedValidator(validatorAddresses[3]),
+			},
 		},
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
@@ -337,10 +340,12 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenExcludingAVali
 			},
 		},
 		validators: stakingtypes.Validators{
-			unslashedBondedValidator(validatorAddresses[0]),
-			unslashedBondedValidator(validatorAddresses[1]),
-			unslashedNotBondedValidator(validatorAddresses[2]),
-			unslashedNotBondedValidator(validatorAddresses[3]),
+			Validators: []stakingtypes.Validator{
+				unslashedBondedValidator(validatorAddresses[0]),
+				unslashedBondedValidator(validatorAddresses[1]),
+				unslashedNotBondedValidator(validatorAddresses[2]),
+				unslashedNotBondedValidator(validatorAddresses[3]),
+			},
 		},
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
@@ -381,10 +386,12 @@ func (suite *SynchronizeDelegatorRewardTests) TestGetDelegatedWhenIncludingAVali
 			},
 		},
 		validators: stakingtypes.Validators{
-			unslashedBondedValidator(validatorAddresses[0]),
-			unslashedBondedValidator(validatorAddresses[1]),
-			unslashedNotBondedValidator(validatorAddresses[2]),
-			unslashedNotBondedValidator(validatorAddresses[3]),
+			Validators: []stakingtypes.Validator{
+				unslashedBondedValidator(validatorAddresses[0]),
+				unslashedBondedValidator(validatorAddresses[1]),
+				unslashedNotBondedValidator(validatorAddresses[2]),
+				unslashedNotBondedValidator(validatorAddresses[3]),
+			},
 		},
 	}
 	suite.keeper = suite.NewKeeper(&fakeParamSubspace{}, nil, nil, nil, nil, stakingKeeper, nil, nil, nil, nil)
