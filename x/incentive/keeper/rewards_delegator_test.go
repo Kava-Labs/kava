@@ -90,41 +90,40 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 				},
 			},
 		},
-		// TODO(boodyvo): move tests back
-		//{
-		//	"1 day",
-		//	args{
-		//		delegation:       c("ukava", 1_000_000),
-		//		rewardsPerSecond: cs(c("hard", 122354)),
-		//		timeElapsed:      86400,
-		//		expectedRewardIndexes: types.RewardIndexes{
-		//			types.NewRewardIndex("hard", d("5285.692800000000000000")),
-		//		},
-		//	},
-		//},
-		//{
-		//	"0 seconds",
-		//	args{
-		//		delegation:       c("ukava", 1_000_000),
-		//		rewardsPerSecond: cs(c("hard", 122354)),
-		//		timeElapsed:      0,
-		//		expectedRewardIndexes: types.RewardIndexes{
-		//			types.NewRewardIndex("hard", d("0.0")),
-		//		},
-		//	},
-		//},
-		//{
-		//	"multiple reward coins",
-		//	args{
-		//		delegation:       c("ukava", 1_000_000),
-		//		rewardsPerSecond: cs(c("hard", 122354), c("swp", 567889)),
-		//		timeElapsed:      7,
-		//		expectedRewardIndexes: types.RewardIndexes{
-		//			types.NewRewardIndex("hard", d("0.428239000000000000")),
-		//			types.NewRewardIndex("swp", d("1.987611500000000000")),
-		//		},
-		//	},
-		//},
+		{
+			"1 day",
+			args{
+				delegation:       c("ukava", 1_000_000),
+				rewardsPerSecond: cs(c("hard", 122354)),
+				timeElapsed:      86400,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("5285.692800000000000000")),
+				},
+			},
+		},
+		{
+			"0 seconds",
+			args{
+				delegation:       c("ukava", 1_000_000),
+				rewardsPerSecond: cs(c("hard", 122354)),
+				timeElapsed:      0,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.0")),
+				},
+			},
+		},
+		{
+			"multiple reward coins",
+			args{
+				delegation:       c("ukava", 1_000_000),
+				rewardsPerSecond: cs(c("hard", 122354), c("swp", 567889)),
+				timeElapsed:      7,
+				expectedRewardIndexes: types.RewardIndexes{
+					types.NewRewardIndex("hard", d("0.428239000000000000")),
+					types.NewRewardIndex("swp", d("1.987611500000000000")),
+				},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
@@ -138,28 +137,16 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
 
-			tb, err := suite.stakingKeeper.TotalBondedTokens(suite.ctx)
-			fmt.Println("second first tb: ", tb, err)
-
-			err = suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
+			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
-			tb, err = suite.stakingKeeper.TotalBondedTokens(suite.ctx)
-			fmt.Println("second tb: ", tb, err)
-
-			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
-			suite.Require().NoError(err)
-
-			tb, err = suite.stakingKeeper.TotalBondedTokens(suite.ctx)
-			fmt.Println("third tb: ", tb, err)
+			//err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
+			//suite.Require().NoError(err)
 
 			// Delete genesis validator to not influence rewards
 			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
-			tb, err = suite.stakingKeeper.TotalBondedTokens(suite.ctx)
-			fmt.Println("forth tb: ", tb, err)
-
-			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			_, err = suite.stakingKeeper.EndBlocker(suite.ctx)
 			suite.Require().NoError(err)
 
 			// Set up chain context at future time
@@ -390,7 +377,7 @@ func (suite *DelegatorRewardsTestSuite) TestSimulateDelegatorRewardSynchronizati
 			// Delete genesis validator to not influence rewards
 			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
-			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
+			_, err = suite.stakingKeeper.EndBlocker(suite.ctx)
 			suite.Require().NoError(err)
 
 			// Check that Staking hooks initialized a DelegatorClaim
@@ -649,6 +636,7 @@ func (suite *DelegatorRewardsTestSuite) TestBondingValidatorSyncsClaim() {
 	suite.Require().True(found)
 
 	rewardIndexes, found := suite.keeper.GetDelegatorRewardIndexes(suite.ctx, bondDenom)
+	fmt.Println("rewardIndexes", rewardIndexes)
 	suite.Require().True(found)
 	globalIndex, found := rewardIndexes.Get(rewardsPerSecond[0].Denom)
 	suite.Require().True(found)
