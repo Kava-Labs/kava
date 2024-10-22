@@ -32,6 +32,7 @@ func NewAccumulator(previousAccrual time.Time, indexes RewardIndexes) *Accumulat
 //
 // totalSourceShares is the sum of all users' source shares. For example:total btcb supplied to hard, total usdx borrowed from all bnb CDPs, or total shares in a swap pool.
 func (acc *Accumulator) Accumulate(period MultiRewardPeriod, totalSourceShares sdkmath.LegacyDec, currentTime time.Time) {
+	fmt.Println("Accumulate: ", period, totalSourceShares, currentTime)
 	acc.AccumulateDecCoins(
 		period.Start,
 		period.End,
