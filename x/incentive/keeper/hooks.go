@@ -162,6 +162,7 @@ func (h Hooks) AfterValidatorBonded(ctx context.Context, consAddr sdk.ConsAddres
 		return err
 	}
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	fmt.Println("val addr", valAddr.String())
 	// Sync all claims for users delegated to this validator.
 	// For each claim, sync based on the total delegated to bonded validators, except for delegations to valAddr.
 	// valAddr's status has just been set to Bonded, but we don't want to include delegations to it in the sync

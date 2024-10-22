@@ -256,6 +256,7 @@ func (k Keeper) GetDelegatorClaim(ctx sdk.Context, addr sdk.AccAddress) (types.D
 
 // SetDelegatorClaim sets the claim in the store corresponding to the input address, collateral type, and id
 func (k Keeper) SetDelegatorClaim(ctx sdk.Context, c types.DelegatorClaim) {
+	fmt.Println("SetDelegatorClaim: ", c.Owner.String(), c.Reward, c.RewardIndexes)
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorClaimKeyPrefix)
 	bz := k.cdc.MustMarshal(&c)
 	store.Set(c.Owner, bz)
