@@ -26,6 +26,7 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
 	totalSource := k.getDelegatorTotalSourceShares(ctx, rewardPeriod.CollateralType)
+	fmt.Println("accumulating request for: ", totalSource)
 
 	fmt.Println("accumulating request for: ", acc.Indexes)
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
@@ -42,6 +43,7 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 // In the case of delegation, this is the total tokens staked to bonded validators.
 func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdkmath.LegacyDec {
 	totalBonded, err := k.stakingKeeper.TotalBondedTokens(ctx)
+	fmt.Println("getDelegatorTotalSourceShares totalBonded: ", totalBonded, err)
 	if err != nil {
 		// TODO(boodyvo): should we panic here or return zero?
 		//panic(fmt.Sprintf("could not retrieve total bonded tokens: %v", err))
@@ -53,6 +55,7 @@ func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdk
 
 // InitializeDelegatorReward initializes the reward index of a delegator claim
 func (k Keeper) InitializeDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
+	fmt.Println("InitializeDelegatorReward: ", delegator)
 	claim, found := k.GetDelegatorClaim(ctx, delegator)
 	if !found {
 		claim = types.NewDelegatorClaim(delegator, sdk.Coins{}, nil)
@@ -126,6 +129,7 @@ func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAd
 }
 
 func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) sdkmath.LegacyDec {
+	fmt.Println("GetTotalDelegated: ", delegator, valAddr, shouldIncludeValidator)
 	totalDelegated := sdkmath.LegacyZeroDec()
 
 	delegations, err := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 200)
