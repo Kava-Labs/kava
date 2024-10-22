@@ -36,6 +36,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [unreleased]
 
+### Bug Fixes
+
+* (ethermint) Fix infinite loop edge cases in evm indexer
+  * [ethermint#77] Wait for chain to start syncing when in statesync before starting evm indexer
+  * [ethermint#82] Wait after failed attempts to fetch block or block results in evm indexer
+
+
 ## [v0.26.2-iavl-v1-alpha.0]
 
 This is the first release candidate for Kava on IAVL V1.
@@ -385,6 +392,9 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+
+[ethermint#82]: https://github.com/Kava-Labs/ethermint/pull/82
+[ethermint#77]: https://github.com/Kava-Labs/ethermint/pull/77
 [#1973]: https://github.com/Kava-Labs/kava/pull/1973
 [#1967]: https://github.com/Kava-Labs/kava/pull/1967
 [#1954]: https://github.com/Kava-Labs/kava/pull/1954
