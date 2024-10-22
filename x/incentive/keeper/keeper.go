@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"fmt"
+	"runtime/debug"
 	"time"
 
 	"cosmossdk.io/store/prefix"
@@ -556,6 +558,8 @@ func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.
 
 // SetDelegatorRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetDelegatorRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
+	fmt.Println("SetDelegatorRewardIndexes", denom, indexes)
+	debug.PrintStack()
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
 	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
 		RewardIndexes: indexes,

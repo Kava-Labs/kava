@@ -138,7 +138,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
-	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+	suite.Ctx = suite.Ctx.WithVoteInfos([]abci.VoteInfo{
 		{
 			Validator: val0,
 			//SignedLastBlock: true,
@@ -273,7 +273,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
-	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+	suite.Ctx = suite.Ctx.WithVoteInfos([]abci.VoteInfo{
 		{
 			Validator: val0,
 			//SignedLastBlock: true,
@@ -472,7 +472,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSource
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
-	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+	suite.Ctx = suite.Ctx.WithVoteInfos([]abci.VoteInfo{
 		{
 			Validator: val0,
 			//SignedLastBlock: true,
@@ -541,7 +541,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
-	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+	suite.Ctx = suite.Ctx.WithVoteInfos([]abci.VoteInfo{
 		{
 			Validator: val0,
 			//SignedLastBlock: true,
@@ -604,7 +604,7 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 		},
 	})
 
-	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+	suite.Ctx = suite.Ctx.WithVoteInfos([]abci.VoteInfo{
 		{
 			Validator: val0,
 			//SignedLastBlock: true,

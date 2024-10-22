@@ -140,7 +140,7 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 
 	val := suite.GetAbciValidator(suite.valAddrs[0])
 
-	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+	suite.Ctx = suite.Ctx.WithVoteInfos([]abci.VoteInfo{
 		{
 			Validator: val,
 			//SignedLastBlock: true,

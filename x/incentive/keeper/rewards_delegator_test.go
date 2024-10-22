@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -126,6 +127,7 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 	}
 	for _, tc := range testCases {
 		suite.Run(tc.name, func() {
+			fmt.Println("start at time", suite.ctx.BlockTime())
 			authBuilder := app.NewAuthBankGenesisBuilder().
 				WithSimpleAccount(suite.addrs[0], cs(c("ukava", 1e9))).
 				WithSimpleAccount(sdk.AccAddress(suite.validatorAddrs[0]), cs(c("ukava", 1e9)))
@@ -136,24 +138,39 @@ func (suite *DelegatorRewardsTestSuite) TestAccumulateDelegatorRewards() {
 
 			suite.SetupWithGenState(authBuilder, incentBuilder)
 
+			fmt.Println("after setup at time", suite.ctx.BlockTime())
+
 			err := suite.deliverMsgCreateValidator(suite.ctx, suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 			err = suite.deliverMsgDelegate(suite.ctx, suite.addrs[0], suite.validatorAddrs[0], tc.args.delegation)
 			suite.Require().NoError(err)
 
+			fmt.Println("after delegate at time", suite.ctx.BlockTime())
+
 			// Delete genesis validator to not influence rewards
 			suite.app.DeleteGenesisValidator(suite.T(), suite.ctx)
 
+			fmt.Println("after delete genesis validator at time", suite.ctx.BlockTime())
+
+			fmt.Println(suite.keeper.GetDelegatorRewardIndexes(suite.ctx, tc.args.delegation.Denom))
+
 			err = suite.stakingKeeper.BeginBlocker(suite.ctx)
 			suite.Require().NoError(err)
+
+			fmt.Println("after begin blocker at time", suite.ctx.BlockTime())
 
 			// Set up chain context at future time
 			runAtTime := suite.ctx.BlockTime().Add(time.Duration(int(time.Second) * tc.args.timeElapsed))
 			runCtx := suite.ctx.WithBlockTime(runAtTime)
 
+			fmt.Println("after setting runCtx at time", suite.ctx.BlockTime(), runCtx.BlockTime())
+
 			rewardPeriods, found := suite.keeper.GetDelegatorRewardPeriods(runCtx, tc.args.delegation.Denom)
 			suite.Require().True(found)
 			suite.keeper.AccumulateDelegatorRewards(runCtx, rewardPeriods)
+
+			fmt.Println("after accumulate delegator rewards at time", suite.ctx.BlockTime(), runCtx.BlockTime())
+			fmt.Println(suite.keeper.GetDelegatorRewardIndexes(suite.ctx, tc.args.delegation.Denom))
 
 			rewardIndexes, _ := suite.keeper.GetDelegatorRewardIndexes(runCtx, tc.args.delegation.Denom)
 			suite.Require().Equal(tc.args.expectedRewardIndexes, rewardIndexes)
@@ -426,7 +443,7 @@ func (suite *DelegatorRewardsTestSuite) deliverMsgCreateValidator(ctx sdk.Contex
 		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
-		stakingtypes.Description{},
+		stakingtypes.NewDescription("foo_moniker", "", "", "", ""),
 		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1_000_000),
 	)

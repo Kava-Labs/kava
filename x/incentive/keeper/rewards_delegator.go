@@ -27,7 +27,9 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 
 	totalSource := k.getDelegatorTotalSourceShares(ctx, rewardPeriod.CollateralType)
 
+	fmt.Println("accumulating request for: ", acc.Indexes)
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
+	fmt.Println("accumulating result: ", acc.Indexes)
 
 	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {

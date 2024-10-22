@@ -2,8 +2,8 @@ package incentive
 
 import (
 	"context"
+	"cosmossdk.io/core/appmodule"
 	"encoding/json"
-
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 
@@ -21,8 +21,10 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
+	_ appmodule.AppModule   = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	_ appmodule.HasBeginBlocker = (*AppModule)(nil)
 )
 
 // AppModuleBasic defines the basic application module used by the incentive module.
@@ -133,14 +135,15 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock returns the begin blocker for the incentive module.
-func (am AppModule) BeginBlock(ctx sdk.Context) error {
-	BeginBlocker(ctx, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	BeginBlocker(sdkCtx, am.keeper)
 
 	return nil
 }
 
 // EndBlock returns the end blocker for the incentive module. It returns no validator updates.
-func (am AppModule) EndBlock(_ sdk.Context) ([]abci.ValidatorUpdate, error) {
+func (am AppModule) EndBlock(_ context.Context) ([]abci.ValidatorUpdate, error) {
 	return []abci.ValidatorUpdate{}, nil
 }
 
