@@ -91,11 +91,13 @@ func (k Keeper) SynchronizeDelegatorClaim(ctx sdk.Context, claim types.Delegator
 // side of a validator's state update (from this module's perspective).
 func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) {
 	claim, found := k.GetDelegatorClaim(ctx, delegator)
+	fmt.Println("SynchronizeDelegatorRewards claim: ", delegator.String(), claim)
 	if !found {
 		return
 	}
 
 	globalRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, types.BondDenom)
+	fmt.Println("SynchronizeDelegatorRewards globalRewardIndexes: ", globalRewardIndexes)
 	if !found {
 		// The global factor is only not found if
 		// - the bond denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -122,6 +124,8 @@ func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAd
 		// This panics if a global reward factor decreases or disappears between the old and new indexes.
 		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
 	}
+
+	fmt.Println("rewardsEarned: ", rewardsEarned)
 
 	claim.Reward = claim.Reward.Add(rewardsEarned...)
 	claim.RewardIndexes = claim.RewardIndexes.With(types.BondDenom, globalRewardIndexes)
