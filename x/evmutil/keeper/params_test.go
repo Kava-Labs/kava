@@ -1,11 +1,10 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/evmutil/keeper"
 	"github.com/kava-labs/kava/x/evmutil/testutil"
@@ -49,7 +48,7 @@ func (suite *ParamsTestSuite) TestHistoricParamsQuery() {
 
 	oldStateKeeper := keeper.NewKeeper(
 		suite.App.AppCodec(),
-		sdk.NewKVStoreKey(types.StoreKey),
+		storetypes.NewKVStoreKey(types.StoreKey),
 		oldParamStore,
 		suite.App.GetBankKeeper(),
 		suite.App.GetAccountKeeper(),

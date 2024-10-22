@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"math/big"
 	"testing"
 
@@ -166,7 +167,7 @@ func (suite *ConversionTestSuite) TestConvertCoinToERC20() {
 	suite.Require().NoError(err)
 
 	// convert coin to erc20
-	ctx := suite.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx := suite.Ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 	err = suite.Keeper.ConvertCoinToERC20(
 		ctx,
 		originAcc,
@@ -284,7 +285,7 @@ func (suite *ConversionTestSuite) TestConvertERC20ToCoin() {
 	)
 	suite.Require().NoError(err)
 
-	ctx := suite.Ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
+	ctx := suite.Ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 	convertAmt := sdkmath.NewInt(50)
 	err = suite.Keeper.ConvertERC20ToCoin(
 		ctx,

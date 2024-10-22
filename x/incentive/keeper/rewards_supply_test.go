@@ -1,10 +1,10 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 	"time"
 
-	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
@@ -129,7 +129,7 @@ func (suite *SupplyRewardsTestSuite) SetupApp() {
 	suite.hardKeeper = suite.app.GetHardKeeper()
 	suite.committeeKeeper = suite.app.GetCommitteeKeeper()
 
-	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *SupplyRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder, hardBuilder testutil.HardGenesisBuilder) {
@@ -721,7 +721,7 @@ func (suite *SupplyRewardsTestSuite) TestSynchronizeHardSupplyReward() {
 
 			// 7. Run committee module's begin blocker to enact proposal
 			suite.NotPanics(func() {
-				committee.BeginBlocker(suite.ctx, abci.RequestBeginBlock{}, suite.committeeKeeper)
+				committee.BeginBlocker(suite.ctx, suite.committeeKeeper)
 			})
 
 			// We need to accumulate hard supply-side rewards again

@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 	"time"
 
@@ -257,7 +258,7 @@ func (suite *USDXRewardsTestSuite) SetupApp() {
 	suite.keeper = suite.app.GetIncentiveKeeper()
 	suite.cdpKeeper = suite.app.GetCDPKeeper()
 
-	suite.ctx = suite.App.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
+	suite.ctx = suite.app.NewContextLegacy(true, tmproto.Header{Height: 1, Time: suite.genesisTime})
 }
 
 func (suite *USDXRewardsTestSuite) SetupWithGenState(authBuilder *app.AuthBankGenesisBuilder, incentBuilder testutil.IncentiveGenesisBuilder) {

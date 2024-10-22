@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"testing"
 	"time"
 
@@ -139,19 +140,26 @@ func (suite *EarnStakingRewardsIntegrationTestSuite) TestStakingRewardsDistribut
 
 	val := suite.GetAbciValidator(suite.valAddrs[0])
 
+	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+		{
+			Validator: val,
+			//SignedLastBlock: true,
+		},
+	})
+
 	// Mint tokens, distribute to validators, claim staking rewards
 	// 1 hour later
 	_, resBeginBlock := suite.NextBlockAfterWithReq(
-		1*time.Hour,
-		abci.RequestEndBlock{},
-		abci.RequestBeginBlock{
-			LastCommitInfo: abci.CommitInfo{
-				Votes: []abci.VoteInfo{{
-					Validator:       val,
-					SignedLastBlock: true,
-				}},
-			},
-		},
+		1 * time.Hour,
+		//abci.RequestEndBlock{},
+		//abci.RequestBeginBlock{
+		//	LastCommitInfo: abci.CommitInfo{
+		//		Votes: []abci.VoteInfo{{
+		//			Validator:       val,
+		//			SignedLastBlock: true,
+		//		}},
+		//	},
+		//},
 	)
 
 	// check time and factors

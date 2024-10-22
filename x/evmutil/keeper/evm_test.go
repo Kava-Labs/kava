@@ -29,7 +29,7 @@ func (suite *evmKeeperTestSuite) SetupTest() {
 }
 
 func (suite *evmKeeperTestSuite) StateDB() *statedb.StateDB {
-	return statedb.New(suite.Ctx, suite.App.GetEvmKeeper(), statedb.NewEmptyTxConfig(common.BytesToHash(suite.Ctx.HeaderHash().Bytes())))
+	return statedb.New(suite.Ctx, suite.App.GetEvmKeeper(), statedb.NewEmptyTxConfig(common.BytesToHash(suite.Ctx.HeaderHash())))
 }
 
 func (suite *evmKeeperTestSuite) TestEvmKeeper_SetAccount() {
@@ -38,7 +38,8 @@ func (suite *evmKeeperTestSuite) TestEvmKeeper_SetAccount() {
 	ethAddr := tests.GenerateAddress()
 	ethAcc := &etherminttypes.EthAccount{BaseAccount: &authtypes.BaseAccount{Address: sdk.AccAddress(ethAddr.Bytes()).String()}, CodeHash: common.BytesToHash(types.EmptyCodeHash).String()}
 	vestingAddr := tests.GenerateAddress()
-	vestingAcc := vestingtypes.NewBaseVestingAccount(&authtypes.BaseAccount{Address: sdk.AccAddress(vestingAddr.Bytes()).String()}, sdk.NewCoins(), time.Now().Unix())
+	vestingAcc, err := vestingtypes.NewBaseVestingAccount(&authtypes.BaseAccount{Address: sdk.AccAddress(vestingAddr.Bytes()).String()}, sdk.NewCoins(), time.Now().Unix())
+	suite.Require().NoError(err)
 
 	testCases := []struct {
 		name        string

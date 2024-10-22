@@ -3,6 +3,7 @@ package testutil
 import (
 	"errors"
 	"fmt"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -80,47 +81,43 @@ func (suite *IntegrationTester) StartChain(genesisStates ...app.GenesisState) {
 		genesisStates...,
 	)
 
-	suite.Ctx = suite.App.NewContextLegacy(false)
-	suite.Ctx.WithBlockTime(suite.GenesisTime)
-	suite.Ctx.WithChainID(app.TestChainId)
-	suite.Ctx.WithBlockHeight(1)
+	suite.Ctx = suite.App.NewContextLegacy(false, tmproto.Header{Height: 1, Time: suite.GenesisTime, ChainID: app.TestChainId})
 }
 
 func (suite *IntegrationTester) NextBlockAfter(blockDuration time.Duration) {
 	suite.NextBlockAfterWithReq(
 		blockDuration,
-		abcitypes.RequestEndBlock{},
-		abcitypes.RequestBeginBlock{},
+		//abcitypes.RequestEndBlock{},
+		//abcitypes.RequestBeginBlock{},
 	)
 }
 
 func (suite *IntegrationTester) NextBlockAfterWithReq(
 	blockDuration time.Duration,
-	reqEnd abcitypes.RequestEndBlock,
-	reqBegin abcitypes.RequestBeginBlock,
-) (abcitypes.ResponseEndBlock, abcitypes.ResponseBeginBlock) {
+	// reqEnd abcitypes.RequestEndBlock,
+	// reqBegin abcitypes.RequestBeginBlock,
+) (sdk.EndBlock, sdk.BeginBlock) {
 	return suite.NextBlockAtWithRequest(
 		suite.Ctx.BlockTime().Add(blockDuration),
-		reqEnd,
-		reqBegin,
+		//reqEnd,
+		//reqBegin,
 	)
 }
 
 func (suite *IntegrationTester) NextBlockAt(
 	blockTime time.Time,
-) (abcitypes.ResponseEndBlock, abcitypes.ResponseBeginBlock) {
+) (sdk.EndBlock, sdk.BeginBlock) {
 	return suite.NextBlockAtWithRequest(
 		blockTime,
-		abcitypes.RequestEndBlock{},
-		abcitypes.RequestBeginBlock{},
+		//abcitypes.RequestEndBlock{},
+		//abcitypes.RequestBeginBlock{},
 	)
 }
 
 func (suite *IntegrationTester) NextBlockAtWithRequest(
 	blockTime time.Time,
-	reqEnd abcitypes.RequestEndBlock,
-	reqBegin abcitypes.RequestBeginBlock,
-) (abcitypes.ResponseEndBlock, abcitypes.ResponseBeginBlock) {
+) (sdk.EndBlock, sdk.BeginBlock) {
+	fmt.Println("before block time", suite.Ctx.BlockTime())
 	if !suite.Ctx.BlockTime().Before(blockTime) {
 		panic(fmt.Sprintf("new block time %s must be after current %s", blockTime, suite.Ctx.BlockTime()))
 	}
@@ -129,6 +126,7 @@ func (suite *IntegrationTester) NextBlockAtWithRequest(
 	responseEndBlock, err := suite.App.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	suite.Ctx = suite.Ctx.WithBlockTime(blockTime).WithBlockHeight(blockHeight).WithChainID(app.TestChainId)
+	fmt.Println("after block time", suite.Ctx.BlockTime())
 	responseBeginBlock, err := suite.App.BeginBlocker(suite.Ctx) // height and time in RequestBeginBlock are ignored by module begin blockers
 	suite.Require().NoError(err)
 
@@ -168,8 +166,8 @@ func (suite *IntegrationTester) MintLiquidAnyValAddr(
 	amount sdk.Coin,
 ) (sdk.Coin, error) {
 	// Check if validator already created
-	_, found := suite.App.GetStakingKeeper().GetValidator(suite.Ctx, validator)
-	if !found {
+	_, err := suite.App.GetStakingKeeper().GetValidator(suite.Ctx, validator)
+	if err != nil {
 		// Create validator
 		if err := suite.DeliverMsgCreateValidator(validator, sdk.NewCoin("ukava", sdkmath.NewInt(1e9))); err != nil {
 			return sdk.Coin{}, err
@@ -186,8 +184,8 @@ func (suite *IntegrationTester) MintLiquidAnyValAddr(
 func (suite *IntegrationTester) GetAbciValidator(valAddr sdk.ValAddress) abcitypes.Validator {
 	sk := suite.App.GetStakingKeeper()
 
-	val, found := sk.GetValidator(suite.Ctx, valAddr)
-	suite.Require().True(found)
+	val, err := sk.GetValidator(suite.Ctx, valAddr)
+	suite.Require().NoError(err)
 
 	pk, err := val.ConsPubKey()
 	suite.Require().NoError(err)
@@ -200,10 +198,10 @@ func (suite *IntegrationTester) GetAbciValidator(valAddr sdk.ValAddress) abcityp
 
 func (suite *IntegrationTester) DeliverMsgCreateValidator(address sdk.ValAddress, selfDelegation sdk.Coin) error {
 	msg, err := stakingtypes.NewMsgCreateValidator(
-		address,
+		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
-		stakingtypes.Description{},
+		stakingtypes.NewDescription("foo_moniker", "", "", "", ""),
 		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1_000_000),
 	)
@@ -219,8 +217,8 @@ func (suite *IntegrationTester) DeliverMsgCreateValidator(address sdk.ValAddress
 
 func (suite *IntegrationTester) DeliverMsgDelegate(delegator sdk.AccAddress, validator sdk.ValAddress, amount sdk.Coin) error {
 	msg := stakingtypes.NewMsgDelegate(
-		delegator,
-		validator,
+		delegator.String(),
+		validator.String(),
 		amount,
 	)
 	msgServer := stakingkeeper.NewMsgServerImpl(suite.App.GetStakingKeeper())
@@ -432,12 +430,14 @@ func (suite *IntegrationTester) USDXRewardEquals(owner sdk.AccAddress, expected 
 func (suite *IntegrationTester) EarnRewardEquals(owner sdk.AccAddress, expected sdk.Coins) {
 	claim, found := suite.App.GetIncentiveKeeper().GetEarnClaim(suite.Ctx, owner)
 	suite.Require().Truef(found, "expected earn claim to be found for %s", owner)
-	suite.Truef(expected.IsEqual(claim.Reward), "expected earn claim reward to be %s, but got %s", expected, claim.Reward)
+	suite.Truef(expected.Equal(claim.Reward), "expected earn claim reward to be %s, but got %s", expected, claim.Reward)
 }
 
 // AddTestAddrsFromPubKeys adds the addresses into the SimApp providing only the public keys.
 func (suite *IntegrationTester) AddTestAddrsFromPubKeys(ctx sdk.Context, pubKeys []cryptotypes.PubKey, accAmt sdkmath.Int) {
-	initCoins := sdk.NewCoins(sdk.NewCoin(suite.App.GetStakingKeeper().BondDenom(ctx), accAmt))
+	bondDenom, err := suite.App.GetStakingKeeper().BondDenom(ctx)
+	suite.Require().NoError(err)
+	initCoins := sdk.NewCoins(sdk.NewCoin(bondDenom, accAmt))
 
 	for _, pk := range pubKeys {
 		suite.App.FundAccount(ctx, sdk.AccAddress(pk.Address()), initCoins)
@@ -538,7 +538,7 @@ func (suite *IntegrationTester) DeliverMsgDelegateMint(
 // x/distribution
 
 func (suite *IntegrationTester) GetBeginBlockClaimedStakingRewards(
-	resBeginBlock abcitypes.ResponseBeginBlock,
+	resBeginBlock sdk.BeginBlock,
 ) (validatorRewards map[string]sdk.Coins, totalRewards sdk.Coins) {
 	// Events emitted in BeginBlocker are in the ResponseBeginBlock, not in
 	// ctx.EventManager().Events() as BeginBlock is called with a NewEventManager()

@@ -138,25 +138,36 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
+	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+		{
+			Validator: val0,
+			//SignedLastBlock: true,
+		},
+		{
+			Validator: val1,
+			//SignedLastBlock: true,
+		},
+	})
+
 	// Mint tokens, distribute to validators, claim staking rewards
 	// 1 hour later
 	_, resBeginBlock := suite.NextBlockAfterWithReq(
-		1*time.Hour,
-		abci.RequestEndBlock{},
-		abci.RequestBeginBlock{
-			LastCommitInfo: abci.CommitInfo{
-				Votes: []abci.VoteInfo{
-					{
-						Validator:       val0,
-						SignedLastBlock: true,
-					},
-					{
-						Validator:       val1,
-						SignedLastBlock: true,
-					},
-				},
-			},
-		},
+		1 * time.Hour,
+		//abci.RequestEndBlock{},
+		//abci.RequestBeginBlock{
+		//	LastCommitInfo: abci.CommitInfo{
+		//		Votes: []abci.VoteInfo{
+		//			{
+		//				Validator:       val0,
+		//				SignedLastBlock: true,
+		//			},
+		//			{
+		//				Validator:       val1,
+		//				SignedLastBlock: true,
+		//			},
+		//		},
+		//	},
+		//},
 	)
 
 	validatorRewards, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
@@ -262,25 +273,36 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateUpdatedWhenBlockTim
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
+	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+		{
+			Validator: val0,
+			//SignedLastBlock: true,
+		},
+		{
+			Validator: val1,
+			//SignedLastBlock: true,
+		},
+	})
+
 	// Mint tokens, distribute to validators, claim staking rewards
 	// 1 hour later
 	_, resBeginBlock := suite.NextBlockAfterWithReq(
-		1*time.Hour,
-		abci.RequestEndBlock{},
-		abci.RequestBeginBlock{
-			LastCommitInfo: abci.CommitInfo{
-				Votes: []abci.VoteInfo{
-					{
-						Validator:       val0,
-						SignedLastBlock: true,
-					},
-					{
-						Validator:       val1,
-						SignedLastBlock: true,
-					},
-				},
-			},
-		},
+		1 * time.Hour,
+		//abci.RequestEndBlock{},
+		//abci.RequestBeginBlock{
+		//	LastCommitInfo: abci.CommitInfo{
+		//		Votes: []abci.VoteInfo{
+		//			{
+		//				Validator:       val0,
+		//				SignedLastBlock: true,
+		//			},
+		//			{
+		//				Validator:       val1,
+		//				SignedLastBlock: true,
+		//			},
+		//		},
+		//	},
+		//},
 	)
 
 	validatorRewards, _ := suite.GetBeginBlockClaimedStakingRewards(resBeginBlock)
@@ -450,25 +472,36 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestNoAccumulationWhenSource
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
+	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+		{
+			Validator: val0,
+			//SignedLastBlock: true,
+		},
+		{
+			Validator: val1,
+			//SignedLastBlock: true,
+		},
+	})
+
 	// Mint tokens, distribute to validators, claim staking rewards
 	// 1 hour later
 	_, _ = suite.NextBlockAfterWithReq(
-		1*time.Hour,
-		abci.RequestEndBlock{},
-		abci.RequestBeginBlock{
-			LastCommitInfo: abci.CommitInfo{
-				Votes: []abci.VoteInfo{
-					{
-						Validator:       val0,
-						SignedLastBlock: true,
-					},
-					{
-						Validator:       val1,
-						SignedLastBlock: true,
-					},
-				},
-			},
-		},
+		1 * time.Hour,
+		//abci.RequestEndBlock{},
+		//abci.RequestBeginBlock{
+		//	LastCommitInfo: abci.CommitInfo{
+		//		Votes: []abci.VoteInfo{
+		//			{
+		//				Validator:       val0,
+		//				SignedLastBlock: true,
+		//			},
+		//			{
+		//				Validator:       val1,
+		//				SignedLastBlock: true,
+		//			},
+		//		},
+		//	},
+		//},
 	)
 	// check time and factors
 
@@ -508,23 +541,34 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 	val0 := suite.GetAbciValidator(suite.valAddrs[0])
 	val1 := suite.GetAbciValidator(suite.valAddrs[1])
 
-	_, resBeginBlock := suite.NextBlockAfterWithReq(
-		1*time.Hour,
-		abci.RequestEndBlock{},
-		abci.RequestBeginBlock{
-			LastCommitInfo: abci.CommitInfo{
-				Votes: []abci.VoteInfo{
-					{
-						Validator:       val0,
-						SignedLastBlock: true,
-					},
-					{
-						Validator:       val1,
-						SignedLastBlock: true,
-					},
-				},
-			},
+	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+		{
+			Validator: val0,
+			//SignedLastBlock: true,
 		},
+		{
+			Validator: val1,
+			//SignedLastBlock: true,
+		},
+	})
+
+	_, resBeginBlock := suite.NextBlockAfterWithReq(
+		1 * time.Hour,
+		//abci.RequestEndBlock{},
+		//abci.RequestBeginBlock{
+		//	LastCommitInfo: abci.CommitInfo{
+		//		Votes: []abci.VoteInfo{
+		//			{
+		//				Validator:       val0,
+		//				SignedLastBlock: true,
+		//			},
+		//			{
+		//				Validator:       val1,
+		//				SignedLastBlock: true,
+		//			},
+		//		},
+		//	},
+		//},
 	)
 
 	// After the second accumulation both current block time and indexes should be stored.
@@ -560,23 +604,34 @@ func (suite *AccumulateEarnRewardsIntegrationTests) TestStateAddedWhenStateDoesN
 		},
 	})
 
-	_, resBeginBlock = suite.NextBlockAfterWithReq(
-		1*time.Hour,
-		abci.RequestEndBlock{},
-		abci.RequestBeginBlock{
-			LastCommitInfo: abci.CommitInfo{
-				Votes: []abci.VoteInfo{
-					{
-						Validator:       val0,
-						SignedLastBlock: true,
-					},
-					{
-						Validator:       val1,
-						SignedLastBlock: true,
-					},
-				},
-			},
+	suite.Ctx.WithVoteInfos([]abci.VoteInfo{
+		{
+			Validator: val0,
+			//SignedLastBlock: true,
 		},
+		{
+			Validator: val1,
+			//SignedLastBlock: true,
+		},
+	})
+
+	_, resBeginBlock = suite.NextBlockAfterWithReq(
+		1 * time.Hour,
+		//abci.RequestEndBlock{},
+		//abci.RequestBeginBlock{
+		//	LastCommitInfo: abci.CommitInfo{
+		//		Votes: []abci.VoteInfo{
+		//			{
+		//				Validator:       val0,
+		//				SignedLastBlock: true,
+		//			},
+		//			{
+		//				Validator:       val1,
+		//				SignedLastBlock: true,
+		//			},
+		//		},
+		//	},
+		//},
 	)
 
 	// After the second accumulation both current block time and indexes should be stored.

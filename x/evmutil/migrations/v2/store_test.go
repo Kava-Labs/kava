@@ -1,12 +1,12 @@
 package v2_test
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -16,8 +16,8 @@ import (
 
 func TestStoreMigrationAddsKeyTableIncludingNewParam(t *testing.T) {
 	encCfg := moduletestutil.MakeTestEncodingConfig()
-	evmutilKey := sdk.NewKVStoreKey(types.ModuleName)
-	tEvmutilKey := sdk.NewTransientStoreKey("transient_test")
+	evmutilKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tEvmutilKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(evmutilKey, tEvmutilKey)
 	paramstore := paramtypes.NewSubspace(encCfg.Codec, encCfg.Amino, evmutilKey, tEvmutilKey, types.ModuleName)
 
@@ -34,8 +34,8 @@ func TestStoreMigrationAddsKeyTableIncludingNewParam(t *testing.T) {
 
 func TestStoreMigrationSetsNewParamOnExistingKeyTable(t *testing.T) {
 	encCfg := moduletestutil.MakeTestEncodingConfig()
-	evmutilKey := sdk.NewKVStoreKey(types.ModuleName)
-	tEvmutilKey := sdk.NewTransientStoreKey("transient_test")
+	evmutilKey := storetypes.NewKVStoreKey(types.ModuleName)
+	tEvmutilKey := storetypes.NewTransientStoreKey("transient_test")
 	ctx := testutil.DefaultContext(evmutilKey, tEvmutilKey)
 	paramstore := paramtypes.NewSubspace(encCfg.Codec, encCfg.Amino, evmutilKey, tEvmutilKey, types.ModuleName)
 	paramstore.WithKeyTable(types.ParamKeyTable())

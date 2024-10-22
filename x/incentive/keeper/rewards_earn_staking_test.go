@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"time"
 
 	earntypes "github.com/kava-labs/kava/x/earn/types"

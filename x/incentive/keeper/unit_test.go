@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"context"
+	"cosmossdk.io/store/metrics"
 	"fmt"
 	"strings"
 	"time"
@@ -10,7 +11,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"cosmossdk.io/store"
 	storetypes "cosmossdk.io/store/types"
-	db "github.com/cometbft/cometbft-db"
+	db "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -32,7 +33,7 @@ import (
 // NewTestContext sets up a basic context with an in-memory db
 func NewTestContext(requiredStoreKeys ...storetypes.StoreKey) sdk.Context {
 	memDB := db.NewMemDB()
-	cms := store.NewCommitMultiStore(memDB)
+	cms := store.NewCommitMultiStore(memDB, log.NewNopLogger(), metrics.NewNoOpMetrics())
 
 	for _, key := range requiredStoreKeys {
 		cms.MountStoreWithDB(key, storetypes.StoreTypeIAVL, nil)
@@ -60,7 +61,7 @@ func (suite *unitTester) SetupSuite() {
 	tApp := app.NewTestApp()
 	suite.cdc = tApp.AppCodec()
 
-	suite.incentiveStoreKey = sdk.NewKVStoreKey(types.StoreKey)
+	suite.incentiveStoreKey = storetypes.NewKVStoreKey(types.StoreKey)
 }
 
 func (suite *unitTester) SetupTest() {
