@@ -255,7 +255,9 @@ func genesisStateWithValSet(
 
 	// Add the new balances to the existing ones
 	currentBankGenesis := banktypes.GetGenesisStateFromAppState(app.appCodec, genesisState)
+	fmt.Println("genesisStateWithValSet currentBankGenesis", currentBankGenesis)
 	balances = append(currentBankGenesis.Balances, balances...)
+	fmt.Println("genesisStateWithValSet balances", balances)
 
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
@@ -350,6 +352,7 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 
 	// Initialize the chain
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
+	fmt.Println("stateBytes", string(stateBytes))
 	//stateBytes, err := json.Marshal(genesisState)
 	if err != nil {
 		panic(err)

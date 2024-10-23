@@ -90,6 +90,7 @@ func (k Keeper) mintIncentivePeriods(ctx sdk.Context, periods types.Periods, pre
 func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdkmath.LegacyDec, timePeriods sdkmath.Int, denom string) (sdk.Coin, error) {
 	fmt.Println("mintInflationaryCoins", inflationRate, timePeriods, denom)
 	totalSupply := k.bankKeeper.GetSupply(ctx, denom)
+	fmt.Println("totalSupply", totalSupply)
 	// used to scale accumulator calculations by 10^18
 	scalar := sdkmath.NewInt(1000000000000000000)
 	// convert inflation rate to integer
@@ -101,10 +102,12 @@ func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdkmath.Leg
 	accumulator := sdkmath.LegacyNewDecFromBigInt(sdkmath.RelativePow(inflationInt, timePeriodsUint, scalarUint).BigInt()).Mul(sdkmath.LegacySmallestDec())
 	// calculate the number of coins to mint
 	amountToMint := (sdkmath.LegacyNewDecFromInt(totalSupply.Amount).Mul(accumulator)).Sub(sdkmath.LegacyNewDecFromInt(totalSupply.Amount)).TruncateInt()
+	fmt.Println("amountToMint", amountToMint)
 	if amountToMint.IsZero() {
 		return sdk.Coin{}, nil
 	}
 	err := k.bankKeeper.MintCoins(ctx, types.KavaDistMacc, sdk.NewCoins(sdk.NewCoin(denom, amountToMint)))
+	fmt.Println("mintInflationaryCoins", amountToMint)
 	if err != nil {
 		return sdk.Coin{}, err
 	}
