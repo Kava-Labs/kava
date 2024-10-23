@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -321,6 +322,8 @@ func (suite *KeeperTestSuite) TestTransferDelegation_RedelegationsForbidden() {
 	suite.Require().NoError(err)
 
 	_, err = suite.Keeper.TransferDelegation(suite.Ctx, val2Addr, fromDelegator, toDelegator, fromDelegationShares)
+	fmt.Println("err", err)
+	fmt.Println("expected", types.ErrRedelegationsNotCompleted)
 	suite.ErrorIs(err, types.ErrRedelegationsNotCompleted)
 	suite.DelegationSharesEqual(val2Addr, fromDelegator, fromDelegationShares)
 	suite.DelegationSharesEqual(val2Addr, toDelegator, sdkmath.LegacyZeroDec())

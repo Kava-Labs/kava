@@ -138,8 +138,9 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock module begin-block
-func (am AppModule) BeginBlock(ctx sdk.Context) error {
-	BeginBlocker(ctx, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	BeginBlocker(sdkCtx, am.keeper)
 
 	return nil
 }

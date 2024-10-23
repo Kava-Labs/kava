@@ -28,11 +28,11 @@ type mockBankKeeper struct {
 	supply sdk.Coin
 }
 
-func (m *mockBankKeeper) SetSupply(ctx sdk.Context, denom string, amt sdkmath.Int) {
+func (m *mockBankKeeper) SetSupply(ctx context.Context, denom string, amt sdkmath.Int) {
 	m.supply = sdk.NewCoin(denom, amt)
 }
 
-func (m *mockBankKeeper) GetSupply(ctx sdk.Context, denom string) sdk.Coin {
+func (m *mockBankKeeper) GetSupply(ctx context.Context, denom string) sdk.Coin {
 	return m.supply
 }
 

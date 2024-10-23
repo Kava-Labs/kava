@@ -842,7 +842,7 @@ func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress,
 		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
-		stakingtypes.Description{},
+		stakingtypes.NewDescription("earn_moniker", "", "", "", ""),
 		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		minSelfDelegation,
 	)

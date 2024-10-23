@@ -2,6 +2,7 @@ package hard
 
 import (
 	"context"
+	"cosmossdk.io/core/appmodule"
 	"encoding/json"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -21,8 +22,10 @@ import (
 )
 
 var (
-	_ module.AppModule      = AppModule{}
+	_ appmodule.AppModule   = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	_ appmodule.HasBeginBlocker = AppModule{}
 )
 
 // AppModuleBasic app module basics object
@@ -138,8 +141,9 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock module begin-block
-func (am AppModule) BeginBlock(ctx sdk.Context) error {
-	BeginBlocker(ctx, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	BeginBlocker(sdkCtx, am.keeper)
 
 	return nil
 }

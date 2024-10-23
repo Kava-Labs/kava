@@ -4,10 +4,10 @@
 package types
 
 import (
+	cosmossdk_io_math "cosmossdk.io/math"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
@@ -75,9 +75,9 @@ var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 type Params struct {
 	MaxAuctionDuration  time.Duration                          `protobuf:"bytes,1,opt,name=max_auction_duration,json=maxAuctionDuration,proto3,stdduration" json:"max_auction_duration"`
 	BidDuration         time.Duration                          `protobuf:"bytes,2,opt,name=bid_duration,json=bidDuration,proto3,stdduration" json:"bid_duration"`
-	IncrementSurplus    github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=increment_surplus,json=incrementSurplus,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"increment_surplus"`
-	IncrementDebt       github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=increment_debt,json=incrementDebt,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"increment_debt"`
-	IncrementCollateral github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,5,opt,name=increment_collateral,json=incrementCollateral,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"increment_collateral"`
+	IncrementSurplus    cosmossdk_io_math.LegacyDec `protobuf:"bytes,3,opt,name=increment_surplus,json=incrementSurplus,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"increment_surplus"`
+	IncrementDebt       cosmossdk_io_math.LegacyDec `protobuf:"bytes,4,opt,name=increment_debt,json=incrementDebt,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"increment_debt"`
+	IncrementCollateral cosmossdk_io_math.LegacyDec `protobuf:"bytes,5,opt,name=increment_collateral,json=incrementCollateral,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"increment_collateral"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }

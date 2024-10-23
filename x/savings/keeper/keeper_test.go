@@ -147,7 +147,7 @@ func (suite *KeeperTestSuite) deliverMsgCreateValidator(ctx sdk.Context, address
 		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
-		stakingtypes.Description{},
+		stakingtypes.NewDescription("savings_moniker", "", "", "", ""),
 		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		sdkmath.NewInt(1e6),
 	)

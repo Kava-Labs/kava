@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -101,8 +102,9 @@ func (am AppModule) ExportGenesis(_ sdk.Context, cdc codec.JSONCodec) json.RawMe
 }
 
 // BeginBlock module begin-block
-func (am AppModule) BeginBlock(ctx sdk.Context) error {
-	BeginBlocker(ctx, am.metrics)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	BeginBlocker(sdkCtx, am.metrics)
 
 	return nil
 }
