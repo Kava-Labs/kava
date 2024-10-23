@@ -352,7 +352,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 
 	// Initialize the chain
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
-	fmt.Println("stateBytes", string(stateBytes))
 	//stateBytes, err := json.Marshal(genesisState)
 	if err != nil {
 		panic(err)
