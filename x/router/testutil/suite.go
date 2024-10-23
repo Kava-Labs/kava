@@ -237,7 +237,7 @@ func (suite *Suite) DelegationBalanceLessThan(valAddr sdk.ValAddress, delegator 
 func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdkmath.Int) bool {
 	shares := sdkmath.LegacyZeroDec()
 	del, err := suite.StakingKeeper.GetDelegation(suite.Ctx, delegator, valAddr)
-	if err != nil {
+	if err == nil {
 		shares = del.Shares
 	}
 
@@ -255,7 +255,7 @@ func (suite *Suite) DelegationBalanceInDeltaBelow(valAddr sdk.ValAddress, delega
 func (suite *Suite) UnbondingDelegationInDeltaBelow(valAddr sdk.ValAddress, delegator sdk.AccAddress, expected, delta sdkmath.Int) bool {
 	tokens := sdkmath.ZeroInt()
 	ubd, err := suite.StakingKeeper.GetUnbondingDelegation(suite.Ctx, delegator, valAddr)
-	if err != nil {
+	if err == nil {
 		for _, entry := range ubd.Entries {
 			tokens = tokens.Add(entry.Balance)
 		}

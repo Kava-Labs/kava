@@ -154,7 +154,7 @@ func (suite *msgServerTestSuite) TestMintDepositAndWithdrawBurn_TransferEntireBa
 	// Create a slashed validator, where the delegator owns fractional tokens.
 	suite.CreateNewUnbondedValidator(valAddr, sdkmath.NewInt(1e9))
 	suite.CreateDelegation(valAddr, user, sdkmath.NewInt(1e9))
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.666666666666666667"))
 
@@ -210,7 +210,10 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 
 	// Create a slashed validator, where a future delegator will own fractional tokens.
 	suite.CreateNewUnbondedValidator(valAddr, valBalance)
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+
+	fmt.Println("valAddr", valAddr)
+
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	suite.SlashValidator(valAddr, sdkmath.LegacyMustNewDecFromStr("0.4")) // tokens remaining 600_000_000
 
@@ -232,7 +235,6 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 		valAddr,
 		balance[0],
 	)
-	fmt.Println("msgDeposit", msgDeposit)
 	_, err = suite.msgServer.DelegateMintDeposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
 	suite.Require().NoError(err)
 
@@ -278,7 +280,7 @@ func (suite *msgServerTestSuite) setupValidator() (sdk.AccAddress, sdk.ValAddres
 	suite.CreateAccountWithAddress(user, suite.NewBondCoins(balance))
 
 	suite.CreateNewUnbondedValidator(valAddr, balance)
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	return user, valAddr, balance
 }
@@ -295,7 +297,7 @@ func (suite *msgServerTestSuite) setupValidatorAndDelegation() (sdk.AccAddress, 
 
 	suite.CreateNewUnbondedValidator(valAddr, balance)
 	suite.CreateDelegation(valAddr, user, balance)
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 	return user, valAddr, balance
 }
