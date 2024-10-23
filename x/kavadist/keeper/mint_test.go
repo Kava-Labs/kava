@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"fmt"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -224,13 +225,28 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 		coreReward := types.NewCoreReward(suite.Addrs[0], sdkmath.LegacyOneDec())
 		params := types.NewParams(true, types.DefaultPeriods, types.NewInfraParams(tc.args.infraPeriods, types.DefaultInfraParams.PartnerRewards, types.CoreRewards{coreReward}))
 		ctx := suite.Ctx.WithBlockTime(tc.args.startTime)
+
+		notBondedAcc := suite.AccountKeeper.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName)
+		fmt.Println("inside test notBondedAcc 1", notBondedAcc)
+		fmt.Println("inside test balance for the notBondedAcc", suite.BankKeeper.GetBalance(ctx, notBondedAcc.GetAddress(), "ukava"))
+
 		suite.Keeper.SetParams(ctx, params)
 		suite.Require().NotPanics(func() {
 			suite.Keeper.SetPreviousBlockTime(ctx, tc.args.startTime)
 		})
 
+		notBondedAcc = suite.AccountKeeper.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName)
+		fmt.Println("inside test notBondedAcc 2", notBondedAcc)
+		fmt.Println("inside test balance for the notBondedAcc", suite.BankKeeper.GetBalance(ctx, notBondedAcc.GetAddress(), "ukava"))
+
+		//
+
 		// Delete initial genesis tokens to start with a clean slate
 		suite.App.DeleteGenesisValidator(suite.T(), suite.Ctx)
+		notBondedAcc = suite.AccountKeeper.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName)
+		fmt.Println("inside test notBondedAcc 3", notBondedAcc)
+		fmt.Println("inside test balance for the notBondedAcc", suite.BankKeeper.GetBalance(ctx, notBondedAcc.GetAddress(), "ukava"))
+
 		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
 
 		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
