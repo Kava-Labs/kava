@@ -513,6 +513,11 @@ func (tApp TestApp) DeleteGenesisValidatorCoins(t *testing.T, ctx sdk.Context) {
 	notBondedAcc := ak.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName)
 	fmt.Println("DeleteGenesisValidatorCoins notBondedAcc", notBondedAcc)
 
+	for _, add := range tApp.GenesisAddrs {
+		fmt.Println("DeleteGenesisValidatorCoins address", add.String())
+		fmt.Println("balance for the address", bk.GetBalance(ctx, add, "ukava"))
+	}
+	fmt.Println("balance for the notBondedAcc", bk.GetBalance(ctx, notBondedAcc.GetAddress(), "ukava"))
 	// Burn genesis account balance - use staking module to burn
 	genAccBal := bk.GetAllBalances(ctx, tApp.GenesisAddrs[0])
 	fmt.Println("DeleteGenesisValidatorCoins genAccBal", genAccBal)
@@ -520,6 +525,8 @@ func (tApp TestApp) DeleteGenesisValidatorCoins(t *testing.T, ctx sdk.Context) {
 	fmt.Println("DeleteGenesisValidatorCoins SendCoinsFromAccountToModule", err)
 	require.NoError(t, err)
 
+	fmt.Println("DeleteGenesisValidatorCoins BurnCoins all balances", bk.GetAllBalances(ctx, notBondedAcc.GetAddress()))
+	fmt.Println("DeleteGenesisValidatorCoins BurnCoins all addresses", notBondedAcc.GetAddress())
 	// Burn coins from the module account
 	err = bk.BurnCoins(
 		ctx,
