@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -96,7 +97,9 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 			validator, err := suite.StakingKeeper.GetValidator(suite.Ctx, valAddr)
 			suite.Require().NoError(err)
 			notBondedBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, notBondedModAddr)
+			fmt.Println("notBondedBalance", notBondedBalance)
 			bondedBalance := suite.BankKeeper.GetAllBalances(suite.Ctx, bondedModAddr)
+			fmt.Println("bondedBalance", bondedBalance)
 
 			shares := d("1000")
 

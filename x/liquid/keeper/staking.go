@@ -3,6 +3,7 @@ package keeper
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -16,6 +17,7 @@ import (
 // A validator cannot reduce self delegated shares below its min self delegation.
 // Attempting to transfer zero shares will error.
 func (k Keeper) TransferDelegation(ctx sdk.Context, valAddr sdk.ValAddress, fromDelegator, toDelegator sdk.AccAddress, shares sdkmath.LegacyDec) (sdkmath.LegacyDec, error) {
+	fmt.Println("TransferDelegation")
 	// Redelegations link a delegation to it's previous validator so slashes are propagated to the new validator.
 	// If the delegation is transferred to a new owner, the redelegation object must be updated.
 	// For expediency all transfers with redelegations are blocked.

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"runtime/debug"
 	"testing"
 	"time"
 
@@ -489,6 +490,9 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	var genVal stakingtypes.Validator
 	found := false
 	for _, val := range vals {
+		fmt.Println("DeleteGenesisValidator val GetMoniker", val.GetMoniker())
+		fmt.Println("DeleteGenesisValidator val GetTokens", val.GetTokens())
+		fmt.Println("DeleteGenesisValidator val GetBondedTokens", val.GetBondedTokens())
 		if val.GetMoniker() == "genesis validator" {
 			genVal = val
 			found = true
@@ -501,12 +505,14 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	delegations, err := sk.GetValidatorDelegations(ctx, []byte(genVal.GetOperator()))
 	require.NoError(t, err)
 	for _, delegation := range delegations {
+		fmt.Println("DeleteGenesisValidator delegation", delegation)
 		_, _, err := sk.Undelegate(ctx, []byte(delegation.GetDelegatorAddr()), []byte(genVal.GetOperator()), delegation.Shares)
 		require.NoError(t, err)
 	}
 }
 
 func (tApp TestApp) DeleteGenesisValidatorCoins(t *testing.T, ctx sdk.Context) {
+	debug.PrintStack()
 	ak := tApp.GetAccountKeeper()
 	bk := tApp.GetBankKeeper()
 
