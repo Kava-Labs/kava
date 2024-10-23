@@ -269,12 +269,10 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	// set the trading price for btc:usd pools
 	suite.setPrice(d("6000"), "btc:usd")
 
-	fmt.Println("balance 5:", bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
-
 	// btc collateral test case execution
 	cdp.BeginBlocker(suite.ctx, suite.keeper)
 
-	fmt.Println("balance 6:", bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
+	fmt.Println("balance 5:", bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
 
 	// btc collateral test case assertion 1
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
