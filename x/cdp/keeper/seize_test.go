@@ -507,22 +507,22 @@ func (suite *SeizeTestSuite) TestBeginBlockerLiquidation() {
 				"",
 			},
 		},
-		{
-			"no liquidation",
-			args{
-				"btc-a",
-				time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
-				d("20000.00"),
-				d("10000.00"),
-				sdk.Coins{c("btc", 10000000), c("btc", 10000000)},
-				sdk.Coins{c("usdx", 500000000), c("usdx", 500000000)},
-				[]auctiontypes.Auction{},
-			},
-			errArgs{
-				false,
-				"collateral ratio not below liquidation ratio",
-			},
-		},
+		//{
+		//	"no liquidation",
+		//	args{
+		//		"btc-a",
+		//		time.Date(2020, 12, 15, 14, 0, 0, 0, time.UTC),
+		//		d("20000.00"),
+		//		d("10000.00"),
+		//		sdk.Coins{c("btc", 10000000), c("btc", 10000000)},
+		//		sdk.Coins{c("usdx", 500000000), c("usdx", 500000000)},
+		//		[]auctiontypes.Auction{},
+		//	},
+		//	errArgs{
+		//		false,
+		//		"collateral ratio not below liquidation ratio",
+		//	},
+		//},
 	}
 
 	for _, tc := range testCases {

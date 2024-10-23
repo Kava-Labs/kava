@@ -1,6 +1,7 @@
 package cdp_test
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -40,6 +41,7 @@ type liquidationTracker struct {
 }
 
 func (suite *ModuleTestSuite) SetupTest() {
+	fmt.Println("test setup")
 	tApp := app.NewTestApp()
 	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	tracker := liquidationTracker{}
@@ -47,21 +49,26 @@ func (suite *ModuleTestSuite) SetupTest() {
 	coins := cs(c("btc", 100000000), c("xrp", 10000000000), c("erc20/usdc", 10000000000))
 	_, addrs := app.GeneratePrivKeyAddressPairs(100)
 	authGS := app.NewFundedGenStateWithSameCoins(tApp.AppCodec(), coins, addrs)
+	fmt.Println("before init")
 	tApp.InitializeFromGenesisStates(
 		authGS,
 		NewPricefeedGenStateMulti(tApp.AppCodec()),
 		NewCDPGenStateMulti(tApp.AppCodec()),
 	)
+	fmt.Println("after init")
 	suite.ctx = ctx
 	suite.app = tApp
 	suite.keeper = tApp.GetCDPKeeper()
 	suite.cdps = types.CDPs{}
 	suite.addrs = addrs
 	suite.liquidations = tracker
+	fmt.Println("test setup done")
 }
 
 func (suite *ModuleTestSuite) createCdps() {
+	fmt.Println("before app creation")
 	tApp := app.NewTestApp()
+	fmt.Println("after app creation")
 	ctx := tApp.NewContextLegacy(true, tmproto.Header{Height: 1, Time: tmtime.Now()})
 	cdps := make(types.CDPs, 100)
 	tracker := liquidationTracker{}
@@ -75,6 +82,8 @@ func (suite *ModuleTestSuite) createCdps() {
 		NewPricefeedGenStateMulti(tApp.AppCodec()),
 		NewCDPGenStateMulti(tApp.AppCodec()),
 	)
+
+	fmt.Println("after app init")
 
 	suite.ctx = ctx
 	suite.app = tApp
@@ -106,6 +115,8 @@ func (suite *ModuleTestSuite) createCdps() {
 		suite.True(f)
 		cdps[j] = c
 	}
+
+	fmt.Println("after cdp creation")
 
 	suite.cdps = cdps
 	suite.addrs = addrs
@@ -234,8 +245,12 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	// set the trading price for xrp:usd pools
 	suite.setPrice(d("0.2"), "xrp:usd")
 
+	fmt.Println("balance 3:", bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
+
 	// test case 1 execution
 	cdp.BeginBlocker(suite.ctx, suite.keeper)
+
+	fmt.Println("balance 4:", bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
 
 	// test case 1 assert
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
@@ -254,8 +269,12 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	// set the trading price for btc:usd pools
 	suite.setPrice(d("6000"), "btc:usd")
 
+	fmt.Println("balance 5:", bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
+
 	// btc collateral test case execution
 	cdp.BeginBlocker(suite.ctx, suite.keeper)
+
+	fmt.Println("balance 6:", bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
 
 	// btc collateral test case assertion 1
 	acc = ak.GetModuleAccount(suite.ctx, types.ModuleName)

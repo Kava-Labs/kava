@@ -24,8 +24,9 @@ import (
 
 var (
 	_ appmodule.AppModule   = AppModule{}
-	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	//_ appmodule.HasBeginBlocker = AppModule{}
 )
 
 // ConsensusVersion defines the current module consensus version.
@@ -147,14 +148,23 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 }
 
 // BeginBlock module begin-block
-func (am AppModule) BeginBlock(ctx sdk.Context) error {
-	BeginBlocker(ctx, am.keeper)
+func (am AppModule) BeginBlock(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	BeginBlocker(sdkCtx, am.keeper)
 
 	return nil
 }
 
+// // BeginBlock module begin-block
+//
+//	func (am AppModule) BeginBlock(ctx sdk.Context) error {
+//		BeginBlocker(ctx, am.keeper)
+//
+//		return nil
+//	}
+//
 // EndBlock module end-block
-func (am AppModule) EndBlock(_ sdk.Context) ([]abci.ValidatorUpdate, error) {
+func (am AppModule) EndBlock(_ context.Context) ([]abci.ValidatorUpdate, error) {
 	return []abci.ValidatorUpdate{}, nil
 }
 

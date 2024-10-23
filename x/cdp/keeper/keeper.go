@@ -136,6 +136,7 @@ func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx context.Context, cutoffCount sd
 
 // GetPreviousAccrualTime returns the last time an individual market accrued interest
 func (k Keeper) GetPreviousAccrualTime(ctx context.Context, ctype string) (time.Time, bool) {
+	fmt.Println("GetPreviousAccrualTime: ", ctype)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz := store.Get([]byte(ctype))
@@ -151,6 +152,7 @@ func (k Keeper) GetPreviousAccrualTime(ctx context.Context, ctype string) (time.
 
 // SetPreviousAccrualTime sets the most recent accrual time for a particular market
 func (k Keeper) SetPreviousAccrualTime(ctx context.Context, ctype string, previousAccrualTime time.Time) {
+	fmt.Println("SetPreviousAccrualTime: ", ctype, previousAccrualTime)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz, err := previousAccrualTime.MarshalBinary()

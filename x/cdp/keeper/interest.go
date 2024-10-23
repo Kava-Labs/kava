@@ -17,8 +17,10 @@ var scalingFactor = 1e18
 // AccumulateInterest calculates the new interest that has accrued for the input collateral type based on the total amount of principal
 // that has been created with that collateral type and the amount of time that has passed since interest was last accumulated
 func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
+	fmt.Println("AccumulateInterest", ctype)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, ctype)
+	fmt.Println("previousAccrualTime", previousAccrualTime, found)
 	if !found {
 		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
@@ -31,11 +33,15 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 		return nil
 	}
 
+	fmt.Println("timeElapsed", timeElapsed)
+
 	totalPrincipalPrior := k.GetTotalPrincipal(ctx, ctype, types.DefaultStableDenom)
 	if totalPrincipalPrior.IsZero() || totalPrincipalPrior.IsNegative() {
 		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
 	}
+
+	fmt.Println("totalPrincipalPrior", totalPrincipalPrior)
 
 	interestFactorPrior, foundInterestFactorPrior := k.GetInterestFactor(ctx, ctype)
 	if !foundInterestFactorPrior {
@@ -44,6 +50,8 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
 	}
+
+	fmt.Println("interestFactorPrior", interestFactorPrior)
 
 	borrowRateSpy := k.getFeeRate(ctx, ctype)
 	if borrowRateSpy.Equal(sdkmath.LegacyOneDec()) {
@@ -60,6 +68,9 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println("interestFactor", interestFactor)
+	fmt.Println("interestAccumulated", interestAccumulated)
 
 	dp, found := k.GetDebtParam(ctx, types.DefaultStableDenom)
 	if !found {
@@ -78,6 +89,9 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 
 	interestFactorNew := interestFactorPrior.Mul(interestFactor)
 	totalPrincipalNew := totalPrincipalPrior.Add(interestAccumulated)
+
+	fmt.Println("interestFactorNew", interestFactorNew)
+	fmt.Println("totalPrincipalNew", totalPrincipalNew)
 
 	k.SetTotalPrincipal(ctx, ctype, types.DefaultStableDenom, totalPrincipalNew)
 	k.SetInterestFactor(ctx, ctype, interestFactorNew)
