@@ -503,6 +503,7 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	require.True(t, found, "genesis validator not found")
 
 	delegations, err := sk.GetValidatorDelegations(ctx, []byte(genVal.GetOperator()))
+	fmt.Println("DeleteGenesisValidator delegations", delegations)
 	require.NoError(t, err)
 	for _, delegation := range delegations {
 		fmt.Println("DeleteGenesisValidator delegation", delegation)
