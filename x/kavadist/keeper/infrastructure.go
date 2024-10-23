@@ -11,6 +11,7 @@ import (
 )
 
 func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods, previousBlockTime time.Time) (sdk.Coin, sdkmath.Int, error) {
+	fmt.Println("mintInfrastructurePeriods", periods, previousBlockTime)
 	var err error
 	coinsMinted := sdk.NewCoin(types.GovDenom, sdkmath.ZeroInt())
 	timeElapsed := sdkmath.ZeroInt()
@@ -23,8 +24,11 @@ func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods
 		// Case 2 - period has ended since the previous block time
 		case period.End.After(previousBlockTime) && (period.End.Before(ctx.BlockTime()) || period.End.Equal(ctx.BlockTime())):
 			// calculate time elapsed relative to the periods end time
+			fmt.Println("Case 2 period.End", period.End)
 			timeElapsed = sdkmath.NewInt(period.End.Unix() - previousBlockTime.Unix())
+			fmt.Println("timeElapsed", timeElapsed)
 			coins, errI := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
+			fmt.Println("coins", coins)
 			err = errI
 			if !coins.IsZero() {
 				coinsMinted = coinsMinted.Add(coins)
@@ -32,12 +36,16 @@ func (k Keeper) mintInfrastructurePeriods(ctx sdk.Context, periods types.Periods
 			// update the value of previousBlockTime so that the next period starts from the end of the last
 			// period and not the original value of previousBlockTime
 			previousBlockTime = period.End
+			fmt.Println("previousBlockTime", previousBlockTime)
 
 		// Case 3 - period is ongoing
 		case (period.Start.Before(previousBlockTime) || period.Start.Equal(previousBlockTime)) && period.End.After(ctx.BlockTime()):
 			// calculate time elapsed relative to the current block time
+			fmt.Println("Case 3 ctx.BlockTime()", ctx.BlockTime())
 			timeElapsed = sdkmath.NewInt(ctx.BlockTime().Unix() - previousBlockTime.Unix())
+			fmt.Println("timeElapsed", timeElapsed)
 			coins, errI := k.mintInflationaryCoins(ctx, period.Inflation, timeElapsed, types.GovDenom)
+			fmt.Println("coins", coins)
 			if !coins.IsZero() {
 				coinsMinted = coinsMinted.Add(coins)
 			}

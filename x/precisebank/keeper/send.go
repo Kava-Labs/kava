@@ -36,6 +36,8 @@ func (k Keeper) SendCoins(
 	// IsSendEnabledCoins() is only used in x/bank in msg server, not in keeper,
 	// so we should also not use it here to align with x/bank behavior.
 
+	fmt.Println("keeper send coins")
+
 	if !amt.IsValid() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, amt.String())
 	}
@@ -51,6 +53,7 @@ func (k Keeper) SendCoins(
 
 	// Send the passthrough coins through x/bank
 	if passthroughCoins.IsAllPositive() {
+		fmt.Println("send passthrough coins")
 		if err := k.bk.SendCoins(ctx, from, to, passthroughCoins); err != nil {
 			return err
 		}
@@ -60,6 +63,7 @@ func (k Keeper) SendCoins(
 
 	// Send the extended coin amount through x/precisebank
 	if extendedCoinAmount.IsPositive() {
+		fmt.Println("send extended coins")
 		if err := k.sendExtendedCoins(sdkCtx, from, to, extendedCoinAmount); err != nil {
 			return err
 		}
@@ -156,6 +160,7 @@ func (k Keeper) sendExtendedCoins(
 	// Full integer amount transfer, including direct transfer of borrow/carry
 	// if any.
 	if integerAmt.IsPositive() {
+		fmt.Println("inside IsPositive")
 		transferCoin := sdk.NewCoin(types.IntegerCoinDenom, integerAmt)
 		if err := k.bk.SendCoins(ctx, from, to, sdk.NewCoins(transferCoin)); err != nil {
 			return k.updateInsufficientFundsError(ctx, from, amt, err)
@@ -166,13 +171,16 @@ func (k Keeper) sendExtendedCoins(
 	// Sender borrows by transferring 1 integer amount to reserve to account for
 	// lack of fractional balance.
 	if senderNeedsBorrow && !recipientNeedsCarry {
+		fmt.Println("inside senderNeedsBorrow")
 		borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1))
-		if err := k.bk.SendCoinsFromAccountToModule(
+		err := k.bk.SendCoinsFromAccountToModule(
 			ctx,
 			from, // sender borrowing
 			types.ModuleName,
 			sdk.NewCoins(borrowCoin),
-		); err != nil {
+		)
+		fmt.Println("err", err)
+		if err != nil {
 			return k.updateInsufficientFundsError(ctx, from, amt, err)
 		}
 	}
@@ -182,6 +190,7 @@ func (k Keeper) sendExtendedCoins(
 	// Always send carry from reserve before receiving borrow from sender to
 	// ensure reserve always has sufficient balance starting from 0.
 	if !senderNeedsBorrow && recipientNeedsCarry {
+		fmt.Println("inside recipientNeedsCarry")
 		reserveAddr := k.ak.GetModuleAddress(types.ModuleName)
 
 		// We use SendCoins instead of SendCoinsFromModuleToAccount to avoid
@@ -357,11 +366,12 @@ func (k Keeper) updateInsufficientFundsError(
 
 	// Use sdk.NewCoins() so that it removes empty balances - ie. prints
 	// empty string if balance is 0. This is to match x/bank behavior.
-	spendable := sdk.NewCoins(bal)
+	//spendable := sdk.NewCoins(bal)
+	//fmt.Println("spendable", spendable)
 
 	return errorsmod.Wrapf(
 		sdkerrors.ErrInsufficientFunds,
 		"spendable balance %s is smaller than %s",
-		spendable, coin,
+		bal, coin,
 	)
 }

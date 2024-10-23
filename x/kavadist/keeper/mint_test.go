@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -233,16 +234,20 @@ func (suite *keeperTestSuite) TestInfraPayoutCore() {
 		suite.App.DeleteGenesisValidatorCoins(suite.T(), suite.Ctx)
 
 		initialBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
+		fmt.Println("initialBalance", initialBalance.Amount)
 		ctx = suite.Ctx.WithBlockTime(tc.args.endTime)
 		err := suite.Keeper.MintPeriodInflation(ctx)
 		suite.Require().NoError(err)
 		finalSupply := suite.BankKeeper.GetSupply(ctx, types.GovDenom)
+		fmt.Println("finalSupply", finalSupply.Amount)
 		marginHigh := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Add(tc.args.marginOfError))
 		marginLow := sdkmath.LegacyNewDecFromInt(tc.args.expectedFinalSupply.Amount).Mul(sdkmath.LegacyOneDec().Sub(tc.args.marginOfError))
 		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).LTE(marginHigh))
 		suite.Require().True(sdkmath.LegacyNewDecFromInt(finalSupply.Amount).GTE(marginLow))
 
 		finalBalance := suite.BankKeeper.GetBalance(ctx, suite.Addrs[0], types.GovDenom)
+		fmt.Println("finalBalance", finalBalance.Amount)
+		// TODO(boodyvo): check here
 		suite.Require().Equal(tc.args.expectedBalanceIncrease, finalBalance.Sub(initialBalance))
 
 	}

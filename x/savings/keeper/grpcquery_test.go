@@ -1,14 +1,14 @@
 package keeper_test
 
 import (
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtime "github.com/cometbft/cometbft/types/time"
-	"github.com/stretchr/testify/suite"
-	"testing"
-
 	sdkmath "cosmossdk.io/math"
+	"fmt"
+	tmprototypes "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
+	"testing"
+	"time"
 
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -39,9 +39,15 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	suite.tApp = app.NewTestApp()
 	_, addrs := app.GeneratePrivKeyAddressPairs(2)
 
+	//fmt.Println("SetupTest: next account number for fund 1", suite.tApp.GetAccountKeeper().NextAccountNumber(suite.ctx))
+
 	suite.addrs = addrs
 
-	suite.ctx = suite.tApp.NewContextLegacy(true, tmproto.Header{Time: tmtime.Now().UTC()})
+	suite.ctx = suite.tApp.NewContextLegacy(true, tmprototypes.Header{}).
+		WithBlockTime(time.Now().UTC())
+
+	fmt.Println("SetupTest: next account number for fund 2", suite.tApp.GetAccountKeeper().NextAccountNumber(suite.ctx))
+
 	suite.keeper = suite.tApp.GetSavingsKeeper()
 	suite.queryServer = keeper.NewQueryServerImpl(suite.keeper)
 
@@ -60,6 +66,8 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 	}
 	savingsGenState := app.GenesisState{types.ModuleName: suite.tApp.AppCodec().MustMarshalJSON(&savingsGenesis)}
 
+	fmt.Println("SetupTest: before genesis", suite.tApp.GetAccountKeeper().NextAccountNumber(suite.ctx))
+
 	suite.tApp.InitializeFromGenesisStates(
 		savingsGenState,
 		app.NewFundedGenStateWithSameCoins(
@@ -71,6 +79,9 @@ func (suite *grpcQueryTestSuite) SetupTest() {
 			addrs,
 		),
 	)
+
+	suite.ctx = suite.tApp.NewContextLegacy(true, tmprototypes.Header{})
+	fmt.Println("SetupTest: after genesis", suite.tApp.GetAccountKeeper().NextAccountNumber(suite.ctx))
 }
 
 func (suite *grpcQueryTestSuite) TestGrpcQueryParams() {
@@ -230,11 +241,16 @@ func (suite *grpcQueryTestSuite) TestGrpcQueryTotalSupply() {
 	suite.Run("aggregates bkava denoms, accounting for slashing", func() {
 		suite.SetupTest()
 
+		err := suite.tApp.GetStakingKeeper().BeginBlocker(suite.ctx)
+		suite.Require().NoError(err)
+
+		fmt.Println("TestGrpcQueryTotalSupply before first")
 		address1, derivatives1, _ := suite.createAccountWithDerivatives(bkava1, sdkmath.NewInt(1e9))
+		fmt.Println("TestGrpcQueryTotalSupply before second")
 		address2, derivatives2, _ := suite.createAccountWithDerivatives(bkava2, sdkmath.NewInt(1e9))
 
 		// bond validators
-		_, err := suite.tApp.GetStakingKeeper().EndBlocker(suite.ctx)
+		_, err = suite.tApp.GetStakingKeeper().EndBlocker(suite.ctx)
 		suite.Require().NoError(err)
 		// slash val2 - its shares are now 80% as valuable!
 		err = suite.slashValidator(sdk.ValAddress(address2), sdkmath.LegacyMustNewDecFromStr("0.2"))
@@ -278,7 +294,7 @@ func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress,
 		address.String(),
 		ed25519.GenPrivKey().PubKey(),
 		selfDelegation,
-		stakingtypes.Description{},
+		stakingtypes.NewDescription("savings_moniker", "", "", "", ""),
 		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		minSelfDelegation,
 	)
@@ -294,11 +310,13 @@ func (suite *grpcQueryTestSuite) createUnbondedValidator(address sdk.ValAddress,
 // createAccountWithDerivatives creates an account with the given amount and denom of derivative token.
 // Internally, it creates a validator account and mints derivatives from the validator's self delegation.
 func (suite *grpcQueryTestSuite) createAccountWithDerivatives(denom string, amount sdkmath.Int) (sdk.AccAddress, sdk.Coin, sdk.Coins) {
+	fmt.Println("createAccountWithDerivatives: next account number for fund", suite.tApp.GetAccountKeeper().NextAccountNumber(suite.ctx))
 	bondDenom, err := suite.tApp.GetStakingKeeper().BondDenom(suite.ctx)
 	suite.Require().NoError(err)
 	valAddress, err := liquidtypes.ParseLiquidStakingTokenDenom(denom)
 	suite.Require().NoError(err)
 	address := sdk.AccAddress(valAddress)
+	fmt.Println("createAccountWithDerivatives before", valAddress.String())
 
 	remainingSelfDelegation := sdkmath.NewInt(1e6)
 	selfDelegation := sdk.NewCoin(

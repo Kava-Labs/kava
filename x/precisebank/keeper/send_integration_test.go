@@ -168,7 +168,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 			senderModuleName,
 			sdk.AccAddress([]byte{2}),
 			cs(c(types.IntegerCoinDenom, 1000)),
-			"spendable balance  is smaller than 1000ukava: insufficient funds",
+			"spendable balance 0ukava is smaller than 1000ukava: insufficient funds",
 			"",
 		},
 		{
@@ -178,7 +178,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 			// We can still test insufficient bal errors with "akava" since
 			// we also expect it to not exist in x/bank
 			cs(c(types.ExtendedCoinDenom, 1000)),
-			"spendable balance  is smaller than 1000akava: insufficient funds",
+			"spendable balance 0akava is smaller than 1000akava: insufficient funds",
 			"",
 		},
 	}
@@ -206,6 +206,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoinsFromModuleToAccount_Matching
 
 			if tt.wantErr != "" {
 				bankErr := suite.BankKeeper.SendCoinsFromModuleToAccount(suite.Ctx, tt.senderModule, tt.recipient, tt.sendAmount)
+				fmt.Println("bankErr", bankErr)
 				suite.Require().Error(bankErr)
 				suite.Require().EqualError(bankErr, tt.wantErr, "expected error should match x/bank SendCoins error")
 
@@ -241,7 +242,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoins_MatchingErrors() {
 			"insufficient empty balance - passthrough",
 			cs(),
 			cs(c(types.IntegerCoinDenom, 1000)),
-			"spendable balance  is smaller than 1000ukava: insufficient funds",
+			"spendable balance 0ukava is smaller than 1000ukava: insufficient funds",
 		},
 		{
 			"insufficient empty balance - extended",
@@ -249,7 +250,7 @@ func (suite *sendIntegrationTestSuite) TestSendCoins_MatchingErrors() {
 			// We can still test insufficient bal errors with "akava" since
 			// we also expect it to not exist in x/bank
 			cs(c(types.ExtendedCoinDenom, 1000)),
-			"spendable balance  is smaller than 1000akava: insufficient funds",
+			"spendable balance 0akava is smaller than 1000akava: insufficient funds",
 		},
 		{
 			"insufficient non-empty balance - passthrough",

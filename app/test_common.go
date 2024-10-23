@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -295,6 +296,10 @@ func (tApp TestApp) InitializeFromGenesisStates(genesisStates ...GenesisState) T
 	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(emptyTime, TestChainId, defaultInitialHeight, true, genesisStates...)
 }
 
+func (tApp TestApp) InitializeFromGenesisStatesCtx(ctx context.Context, genesisStates ...GenesisState) TestApp {
+	return tApp.InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(ctx, emptyTime, TestChainId, defaultInitialHeight, true, genesisStates...)
+}
+
 // InitializeFromGenesisStatesWithTime calls InitChain on the app using the provided genesis states and time.
 // If any module genesis states are missing, defaults are used.
 func (tApp TestApp) InitializeFromGenesisStatesWithTime(genTime time.Time, genesisStates ...GenesisState) TestApp {
@@ -381,6 +386,91 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	})
 	//_, err = tApp.Commit()
 	//fmt.Println("chain committed: ", err)
+
+	return tApp
+}
+
+// InitializeFromGenesisStatesWithTimeAndChainIDAndHeight calls InitChain on the app using the provided genesis states and other parameters.
+// If any module genesis states are missing, defaults are used.
+func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
+	ctx context.Context,
+	genTime time.Time,
+	chainID string,
+	initialHeight int64,
+	addValidator bool,
+	genesisStates ...GenesisState,
+) TestApp {
+	// Create a default genesis state and overwrite with provided values
+	genesisState := NewDefaultGenesisState()
+	modifiedStates := make(map[string]bool)
+
+	for _, state := range genesisStates {
+		for k, v := range state {
+			genesisState[k] = v
+
+			// Ensure that the same module genesis state is not set more than once.
+			// Multiple GenesisStates can have the same module genesis state, but
+			// the same module genesis state will be overwritten.
+			if previouslyModified := modifiedStates[k]; previouslyModified {
+				panic(fmt.Sprintf("genesis state for module %s was set more than once, this overrides previous state", k))
+			}
+
+			modifiedStates[k] = true
+		}
+	}
+
+	// Add default genesis states for at least 1 validator
+	if addValidator {
+		genesisState = GenesisStateWithSingleValidator(
+			&tApp,
+			genesisState,
+		)
+	}
+
+	// Initialize the chain
+	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
+	//stateBytes, err := json.Marshal(genesisState)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("InitializeFromGenesisStatesWithTimeAndChainIDAndHeight: before genesis", tApp.GetAccountKeeper().NextAccountNumber(ctx))
+
+	_, err = tApp.InitChain(
+		&abci.RequestInitChain{
+			Time:          genTime,
+			Validators:    []abci.ValidatorUpdate{},
+			AppStateBytes: stateBytes,
+			ChainId:       chainID,
+			// Set consensus params, which is needed by x/feemarket
+			ConsensusParams: &tmproto.ConsensusParams{
+				Block: &tmproto.BlockParams{
+					MaxBytes: 200000,
+					MaxGas:   20000000,
+				},
+			},
+			InitialHeight: initialHeight,
+		},
+	)
+
+	fmt.Println("InitializeFromGenesisStatesWithTimeAndChainIDAndHeight: after genesis", tApp.GetAccountKeeper().NextAccountNumber(ctx))
+
+	//_, err = tApp.BeginBlocker(tApp.NewContextLegacy(true, tmproto.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}))
+
+	// Should we call commit?
+	//fmt.Println("block finalized: ", err)
+	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Time:   genTime,
+		Hash:   tApp.LastCommitID().Hash,
+		Height: tApp.LastBlockHeight() + 1,
+		//		NextValidatorsHash: valSet.Hash(),
+		//		Hash:               app.LastCommitID().Hash,
+		// Height:             app.LastBlockHeight() + 1,
+	})
+	//_, err = tApp.Commit()
+	//fmt.Println("chain committed: ", err)
+
+	fmt.Println("InitializeFromGenesisStatesWithTimeAndChainIDAndHeight: after finalize", tApp.GetAccountKeeper().NextAccountNumber(ctx))
 
 	return tApp
 }

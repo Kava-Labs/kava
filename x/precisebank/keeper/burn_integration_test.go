@@ -71,7 +71,7 @@ func (suite *burnIntegrationTestSuite) TestBurnCoins_MatchingErrors() {
 			ibctransfertypes.ModuleName,
 			func() {},
 			cs(c("ukava", 1000)),
-			"spendable balance  is smaller than 1000ukava: insufficient funds",
+			"spendable balance 0ukava is smaller than 1000ukava: insufficient funds",
 			"",
 		},
 	}
