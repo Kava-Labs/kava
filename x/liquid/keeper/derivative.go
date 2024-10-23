@@ -124,6 +124,7 @@ func (k Keeper) IsDerivativeDenom(ctx sdk.Context, denom string) bool {
 // GetStakedTokensForDerivatives returns the total value of the provided derivatives
 // in staked tokens, accounting for the specific share prices.
 func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) (sdk.Coin, error) {
+	fmt.Println("GetStakedTokensForDerivatives", coins)
 	total := sdkmath.ZeroInt()
 
 	for _, coin := range coins {
@@ -147,7 +148,11 @@ func (k Keeper) GetStakedTokensForDerivatives(ctx sdk.Context, coins sdk.Coins) 
 		return sdk.Coin{}, err
 	}
 
+	fmt.Println("total", total)
+
 	totalCoin := sdk.NewCoin(bondDenom, total)
+
+	fmt.Println("totalCoin", totalCoin)
 	return totalCoin, nil
 }
 

@@ -76,7 +76,13 @@ func (s queryServer) getDelegatedBalance(ctx sdk.Context, delegator sdk.AccAddre
 	balance := sdkmath.LegacyZeroDec()
 
 	s.keeper.stakingKeeper.IterateDelegatorDelegations(ctx, delegator, func(delegation stakingtypes.Delegation) bool {
-		validator, err := s.keeper.stakingKeeper.GetValidator(ctx, []byte(delegation.GetValidatorAddr()))
+		valAddr, err := s.keeper.stakingKeeper.ValidatorAddressCodec().StringToBytes(delegation.GetValidatorAddr())
+		if err != nil {
+			panic(err)
+		}
+
+		validator, err := s.keeper.stakingKeeper.GetValidator(ctx, valAddr)
+
 		if err != nil {
 			panic(fmt.Sprintf("validator %s for delegation not found", delegation.GetValidatorAddr()))
 		}

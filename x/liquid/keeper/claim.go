@@ -28,6 +28,7 @@ func (k Keeper) CollectStakingRewards(
 		))
 	}
 
+	// ErrNoValidatorExists
 	rewards, err := k.distributionKeeper.WithdrawDelegationRewards(ctx, macc.GetAddress(), validator)
 	if err != nil {
 		return nil, err

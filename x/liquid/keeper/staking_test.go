@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -44,7 +43,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 				delegatorShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 
 				// Run end blocker to update validator state to bonded.
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return delegatorShares, nil
@@ -67,7 +66,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 				delegatorShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 
 				// Run end blocker to update validator state to bonded.
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				// Jail and run end blocker to transition validator to unbonding.
@@ -76,7 +75,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_ValidatorStates() {
 					return sdkmath.LegacyDec{}, err
 				}
 				suite.StakingKeeper.Jail(suite.Ctx, consAddr)
-				err = suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err = suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return delegatorShares, nil
@@ -141,7 +140,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				// Run end blocker to update validator state to bonded.
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
@@ -154,7 +153,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
@@ -168,7 +167,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				toDelegationShares := suite.CreateDelegation(valAddr, toDelegator, i(2e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return fromDelegationShares, toDelegationShares, nil
@@ -182,7 +181,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				toDelegationShares := suite.CreateDelegation(valAddr, toDelegator, i(2e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return fromDelegationShares, toDelegationShares, nil
@@ -195,7 +194,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
@@ -208,7 +207,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return fromDelegationShares, sdkmath.LegacyZeroDec(), nil
@@ -220,7 +219,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			name: "shares cannot be transferred from a non existent delegation",
 			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				return sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), nil
@@ -233,7 +232,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 			createDelegations: func() (sdkmath.LegacyDec, sdkmath.LegacyDec, error) {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 
 				suite.SlashValidator(valAddr, d("0.05"))
@@ -249,7 +248,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_Shares() {
 				suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 				fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(1e9))
 				toDelegationShares := suite.CreateDelegation(valAddr, toDelegator, i(1e9))
-				err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+				_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 				suite.Require().NoError(err)
 				// make 1 share worth more than 1 token
 				suite.SlashValidator(valAddr, d("0.05"))
@@ -312,18 +311,16 @@ func (suite *KeeperTestSuite) TestTransferDelegation_RedelegationsForbidden() {
 	// create bonded validator 1 with a delegation
 	suite.CreateNewUnbondedValidator(val1Addr, i(1e9))
 	fromDelegationShares := suite.CreateDelegation(val1Addr, fromDelegator, i(1e9))
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	// create validator 2 and redelegate to it
 	suite.CreateNewUnbondedValidator(val2Addr, i(1e9))
 	suite.CreateRedelegation(fromDelegator, val1Addr, val2Addr, i(1e9))
-	err = suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err = suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	_, err = suite.Keeper.TransferDelegation(suite.Ctx, val2Addr, fromDelegator, toDelegator, fromDelegationShares)
-	fmt.Println("err", err)
-	fmt.Println("expected", types.ErrRedelegationsNotCompleted)
 	suite.ErrorIs(err, types.ErrRedelegationsNotCompleted)
 	suite.DelegationSharesEqual(val2Addr, fromDelegator, fromDelegationShares)
 	suite.DelegationSharesEqual(val2Addr, toDelegator, sdkmath.LegacyZeroDec())
@@ -343,7 +340,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegati
 		valAddr.String(),
 		ed25519.GenPrivKey().PubKey(),
 		delegation,
-		stakingtypes.Description{},
+		stakingtypes.NewDescription("liquid_moniker", "", "", "", ""),
 		stakingtypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec(), sdkmath.LegacyZeroDec()),
 		minSelfDelegation,
 	)
@@ -352,7 +349,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CompliesWithMinSelfDelegati
 	msgServer := stakingkeeper.NewMsgServerImpl(suite.StakingKeeper)
 	_, err = msgServer.CreateValidator(sdk.WrapSDKContext(suite.Ctx), msg)
 	suite.Require().NoError(err)
-	err = suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err = suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	_, err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, valAccAddr, toDelegator, d("0.000000000000000001"))
@@ -370,7 +367,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CanTransferVested() {
 
 	suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 	fromDelegationShares := suite.CreateDelegation(valAddr, fromDelegator, i(2e9))
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	shares := d("1000000000.0")
@@ -390,7 +387,7 @@ func (suite *KeeperTestSuite) TestTransferDelegation_CannotTransferVesting() {
 
 	suite.CreateNewUnbondedValidator(valAddr, i(1e9))
 	suite.CreateDelegation(valAddr, fromDelegator, i(2e9))
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	_, err = suite.Keeper.TransferDelegation(suite.Ctx, valAddr, fromDelegator, toDelegator, d("1000000001.0"))

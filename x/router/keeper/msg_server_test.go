@@ -232,6 +232,7 @@ func (suite *msgServerTestSuite) TestDelegateMintDepositAndWithdrawBurnUndelegat
 		valAddr,
 		balance[0],
 	)
+	fmt.Println("msgDeposit", msgDeposit)
 	_, err = suite.msgServer.DelegateMintDeposit(sdk.WrapSDKContext(suite.Ctx), msgDeposit)
 	suite.Require().NoError(err)
 

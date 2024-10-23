@@ -30,7 +30,7 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 
 	suite.CreateNewUnbondedValidator(valAddr1, initialBalance)
 	suite.CreateDelegation(valAddr1, delegator, delegateAmount)
-	err := suite.StakingKeeper.BeginBlocker(suite.Ctx)
+	_, err := suite.StakingKeeper.EndBlocker(suite.Ctx)
 	suite.Require().NoError(err)
 
 	// Transfers delegation to module account
@@ -79,7 +79,8 @@ func (suite *KeeperTestSuite) TestCollectStakingRewards() {
 		derivativeDenom := suite.Keeper.GetLiquidStakingTokenDenom(sdk.ValAddress(addrs[2]))
 		_, err := suite.Keeper.CollectStakingRewardsByDenom(suite.Ctx, derivativeDenom, types.ModuleName)
 		suite.Require().Error(err)
-		suite.Require().Equal("no validator distribution info", err.Error())
+		// NOTE(boodyvo): the error was changed in cosmos-sdk
+		suite.Require().Equal("validator does not exist", err.Error())
 	})
 
 	suite.Run("collect staking rewards with invalid denom", func() {
