@@ -2,6 +2,7 @@ package pricefeed
 
 import (
 	"context"
+	"cosmossdk.io/core/appmodule"
 	"encoding/json"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -24,6 +25,8 @@ import (
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+
+	_ appmodule.HasEndBlocker = AppModule{}
 )
 
 // AppModuleBasic app module basics object
@@ -138,10 +141,11 @@ func (am AppModule) BeginBlock(_ sdk.Context) error {
 }
 
 // EndBlock module end-block
-func (am AppModule) EndBlock(ctx sdk.Context) ([]abci.ValidatorUpdate, error) {
-	EndBlocker(ctx, am.keeper)
+func (am AppModule) EndBlock(ctx context.Context) error {
+	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	EndBlocker(sdkCtx, am.keeper)
 
-	return []abci.ValidatorUpdate{}, nil
+	return nil
 }
 
 func (AppModule) IsOnePerModuleType() {}
