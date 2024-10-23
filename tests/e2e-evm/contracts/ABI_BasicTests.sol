@@ -9,8 +9,19 @@ pragma solidity ^0.8.24;
 // Low level caller
 //
 contract Caller {
+    /**
+     * @dev Call a function via CALL with the current msg.value
+     */
     function functionCall(address payable to, bytes calldata data) external payable {
-        (bool success, bytes memory result) = to.call{value: msg.value}(data);
+        this.functionCallWithValue(to, msg.value, data);
+    }
+
+    /**
+     * @dev Call a function via CALL with a specific value that may be different
+     *      from the current msg.value
+     */
+    function functionCallWithValue(address payable to, uint256 value, bytes calldata data) public payable {
+        (bool success, bytes memory result) = to.call{value: value}(data);
 
         if (!success) {
             // solhint-disable-next-line gas-custom-errors
@@ -30,7 +41,18 @@ contract Caller {
         }
     }
 
+    /**
+     * @dev Call a contract function via CALLCODE with the current msg.value
+     */
     function functionCallCode(address to, bytes calldata data) external payable {
+        this.functionCallCodeWithValue(to, msg.value, data);
+    }
+
+    /**
+     * @dev Call a contract function via CALLCODE with a specific value that may
+     *      be different from the current msg.value
+     */
+    function functionCallCodeWithValue(address to, uint256 value, bytes calldata data) external payable {
         // solhint-disable-next-line no-inline-assembly
         assembly {
             // Copy the calldata to memory, as callcode uses memory pointers.
@@ -49,7 +71,7 @@ contract Caller {
             let result := callcode(
                 gas(), // gas
                 to, // to address
-                callvalue(), // value
+                value, // value to send
                 0, // in - pointer to start of input, 0 since we copied the data to 0
                 data.length, // insize - size of the input
                 0, // out
@@ -80,7 +102,12 @@ contract Caller {
         }
     }
 
-    function functionDelegateCall(address to, bytes calldata data) external {
+    /**
+     * @dev Call a contract function via DELEGATECALL with the current msg.value
+     *      and current msg.sender. DELEGATECALL cannot specify a different
+     *      value.
+     */
+    function functionDelegateCall(address to, bytes calldata data) external payable {
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory result) = to.delegatecall(data);
 
@@ -95,7 +122,12 @@ contract Caller {
         }
     }
 
-    function functionStaticCall(address to, bytes calldata data) external view {
+    /**
+     * @dev Call a contract function via STATICCALL with the current msg.value
+     *      and current msg.sender.
+     * @return The result of the static call in bytes.
+     */
+    function functionStaticCall(address to, bytes calldata data) external view returns (bytes memory) {
         (bool success, bytes memory result) = to.staticcall(data);
 
         if (!success) {
@@ -107,6 +139,8 @@ contract Caller {
                 revert(add(32, result), mload(result))
             }
         }
+
+        return result;
     }
 }
 
