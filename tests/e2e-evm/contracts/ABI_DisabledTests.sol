@@ -14,6 +14,10 @@ contract NoopDisabledMock is ABI_BasicTests.NoopReceivePayableFallback {
     function noopPayable() external payable {
         mockRevert();
     }
+    /**
+     * @dev This function is intentionally not marked as pure to test the
+     *      behavior of view functions in disabled contracts.
+     */
     // solc-ignore-next-line func-mutability
     function noopView() external view {
         mockRevert();
