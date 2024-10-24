@@ -119,6 +119,7 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 // which is equal to: (per-second interest rate ** number of seconds elapsed)
 // Will return 1.000x, multiply by principal to get new principal with added interest
 func CalculateInterestFactor(perSecondInterestRate sdkmath.LegacyDec, secondsElapsed sdkmath.Int) sdkmath.LegacyDec {
+	fmt.Println("CalculateInterestFactor", perSecondInterestRate, secondsElapsed)
 	scalingFactorUint := sdkmath.NewUint(uint64(scalingFactor))
 	scalingFactorInt := sdkmath.NewInt(int64(scalingFactor))
 
