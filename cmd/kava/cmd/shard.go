@@ -7,16 +7,12 @@ import (
 	"github.com/kava-labs/kava/app"
 	"github.com/spf13/cobra"
 
-	dbm "github.com/cosmos/cosmos-db"
-
 	pruningtypes "cosmossdk.io/store/pruning/types"
 	"cosmossdk.io/store/rootmulti"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 
-	tmconfig "github.com/cometbft/cometbft/config"
-	"github.com/cometbft/cometbft/node"
 	tmstate "github.com/cometbft/cometbft/state"
 	"github.com/cometbft/cometbft/store"
 
@@ -77,10 +73,10 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			if (endBlock == 0 || endBlock < startBlock) && endBlock != shardEndBlockLatest {
 				return fmt.Errorf("end block (%d) must be greater than start block (%d)", endBlock, startBlock)
 			}
-			onlyAppState, err := cmd.Flags().GetBool(flagShardOnlyAppState)
-			if err != nil {
-				return err
-			}
+			//onlyAppState, err := cmd.Flags().GetBool(flagShardOnlyAppState)
+			//if err != nil {
+			//	return err
+			//}
 			forceAppVersion, err := cmd.Flags().GetInt64(flagShardForceAppVersion)
 			if err != nil {
 				return err
@@ -150,19 +146,19 @@ $ kava shard --home path/to/.kava --start 1000000 --end -1 --only-app-state`,
 			// shard blockstore.db & state.db
 			//////////////////////////////////
 			// open block store & cometbft state
-			blockStore, stateStore, err := openCometBftDbs(ctx.Config)
-			if err != nil {
-				return fmt.Errorf("failed to open cometbft dbs: %s", err)
-			}
-
-			if !onlyAppState {
-				if err := shardCometBftDbs(blockStore, stateStore, startBlock, endBlock); err != nil {
-					return err
-				}
-			} else {
-				fmt.Printf("[%s] skipping sharding of blockstore.db and state.db\n", flagShardOnlyAppState)
-				fmt.Printf("blockstore contains blocks %d - %d\n", blockStore.Base(), blockStore.Height())
-			}
+			//blockStore, stateStore, err := openCometBftDbs(ctx.Config)
+			//if err != nil {
+			//	return fmt.Errorf("failed to open cometbft dbs: %s", err)
+			//}
+			//
+			//if !onlyAppState {
+			//	if err := shardCometBftDbs(blockStore, stateStore, startBlock, endBlock); err != nil {
+			//		return err
+			//	}
+			//} else {
+			//	fmt.Printf("[%s] skipping sharding of blockstore.db and state.db\n", flagShardOnlyAppState)
+			//	fmt.Printf("blockstore contains blocks %d - %d\n", blockStore.Base(), blockStore.Height())
+			//}
 
 			return nil
 		},
@@ -276,47 +272,48 @@ func shardCometBftDbs(blockStore *store.BlockStore, stateStore tmstate.Store, st
 	// Prune blocks to startBlock
 	//////////////////////////////
 	// get starting block of block store
-	baseBlock := blockStore.Base()
+	// TODO(boodyvo): implement for pruning
+	//baseBlock := blockStore.Base()
 
 	// only prune if data exists, otherwise blockStore.PruneBlocks will panic
-	if baseBlock < startBlock {
-		// prune block store
-		fmt.Printf("pruning block store from %d - %d\n", baseBlock, startBlock)
-		if _, err := blockStore.PruneBlocks(startBlock); err != nil {
-			return fmt.Errorf("failed to prune block store (retainHeight=%d): %s", startBlock, err)
-		}
-
-		// prune cometbft state
-		fmt.Printf("pruning cometbft state from %d - %d\n", baseBlock, startBlock)
-		if err := stateStore.PruneStates(baseBlock, startBlock); err != nil {
-			return fmt.Errorf("failed to prune cometbft state store (%d - %d): %s", baseBlock, startBlock, err)
-		}
-	} else {
-		fmt.Printf("blockstore and cometbft state begins at block %d\n", baseBlock)
-	}
+	//if baseBlock < startBlock {
+	//	// prune block store
+	//	fmt.Printf("pruning block store from %d - %d\n", baseBlock, startBlock)
+	//	if _, _, err := blockStore.PruneBlocks(startBlock); err != nil {
+	//		return fmt.Errorf("failed to prune block store (retainHeight=%d): %s", startBlock, err)
+	//	}
+	//
+	//	// prune cometbft state
+	//	fmt.Printf("pruning cometbft state from %d - %d\n", baseBlock, startBlock)
+	//	if err := stateStore.PruneStates(baseBlock, startBlock); err != nil {
+	//		return fmt.Errorf("failed to prune cometbft state store (%d - %d): %s", baseBlock, startBlock, err)
+	//	}
+	//} else {
+	//	fmt.Printf("blockstore and cometbft state begins at block %d\n", baseBlock)
+	//}
 
 	return nil
 }
 
 // inspired by https://github.com/Kava-Labs/cometbft/blob/277b0853db3f67865a55aa1c54f59790b5f591be/node/node.go#L234
-func openCometBftDbs(config *tmconfig.Config) (blockStore *store.BlockStore, stateStore tmstate.Store, err error) {
-	dbProvider := node.DefaultDBProvider
-
-	var blockStoreDB dbm.DB
-	blockStoreDB, err = dbProvider(&node.DBContext{ID: "blockstore", Config: config})
-	if err != nil {
-		return
-	}
-	blockStore = store.NewBlockStore(blockStoreDB)
-
-	stateDB, err := dbProvider(&node.DBContext{ID: "state", Config: config})
-	if err != nil {
-		return
-	}
-
-	stateStore = tmstate.NewStore(stateDB, tmstate.StoreOptions{
-		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
-	})
-
-	return
-}
+//func openCometBftDbs(config *tmconfig.Config) (blockStore *store.BlockStore, stateStore tmstate.Store, err error) {
+//	dbProvider := cmtcfg.DefaultDBProvider
+//
+//	var blockStoreDB dbm.DB
+//	blockStoreDB, err = dbProvider(&cmtcfg.DBContext{ID: "blockstore", Config: config})
+//	if err != nil {
+//		return
+//	}
+//	blockStore = store.NewBlockStore(blockStoreDB)
+//
+//	stateDB, err := dbProvider(&cmtcfg.DBContext{ID: "state", Config: config})
+//	if err != nil {
+//		return
+//	}
+//
+//	stateStore = tmstate.NewStore(stateDB, tmstate.StoreOptions{
+//		DiscardABCIResponses: config.Storage.DiscardABCIResponses,
+//	})
+//
+//	return
+//}

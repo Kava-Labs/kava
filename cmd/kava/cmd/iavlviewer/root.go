@@ -6,10 +6,10 @@ import (
 	"strconv"
 
 	"cosmossdk.io/log"
-	"cosmossdk.io/store/wrapper"
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
+	//"github.com/cosmos/cosmos-sdk/store/wrapper"
 	ethermintserver "github.com/evmos/ethermint/server"
 	"github.com/spf13/cobra"
 
@@ -58,7 +58,8 @@ func openPrefixTree(opts ethermintserver.StartOptions, cmd *cobra.Command, prefi
 		}
 	}()
 
-	cosmosdb := wrapper.NewCosmosDB(db)
+	cosmosdb := NewCosmosDB(db)
+	//cosmosdb := wrapper.NewDBWrapper(db)
 
 	tree, err := readTree(cosmosdb, version, []byte(prefix))
 	if err != nil {

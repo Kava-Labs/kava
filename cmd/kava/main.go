@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 
 	"github.com/kava-labs/kava/app"
@@ -13,13 +12,18 @@ import (
 func main() {
 	rootCmd := cmd.NewRootCmd()
 
-	if err := svrcmd.Execute(rootCmd, cmd.EnvPrefix, app.DefaultNodeHome); err != nil {
-		switch e := err.(type) {
-		case server.ErrorCode:
-			os.Exit(e.Code)
+	//if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+	//	panic(err)
+	//}
 
-		default:
-			os.Exit(1)
-		}
+	if err := svrcmd.Execute(rootCmd, cmd.EnvPrefix, app.DefaultNodeHome); err != nil {
+		os.Exit(1)
+		//switch e := err.(type) {
+		////case server.ErrorCode:
+		////	os.Exit(e.Code)
+		//
+		//default:
+		//	os.Exit(1)
+		//}
 	}
 }

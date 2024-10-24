@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	"errors"
 	"fmt"
+	dbm "github.com/cosmos/cosmos-db"
 	"io"
 	"path/filepath"
 	"strings"
@@ -11,7 +13,6 @@ import (
 	"cosmossdk.io/store"
 	"cosmossdk.io/store/snapshots"
 	snapshottypes "cosmossdk.io/store/snapshots/types"
-	cometbftdb "github.com/cometbft/cometbft-db"
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -44,11 +45,11 @@ type appCreator struct {
 // newApp loads config from AppOptions and returns a new app.
 func (ac appCreator) newApp(
 	logger log.Logger,
-	db cometbftdb.DB,
+	db dbm.DB,
 	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
-	var cache sdk.MultiStorePersistentCache
+	var cache storetypes.MultiStorePersistentCache
 	if cast.ToBool(appOpts.Get(server.FlagInterBlockCache)) {
 		cache = store.NewCommitKVStoreCacheManager()
 	}
@@ -140,7 +141,7 @@ func (ac appCreator) newApp(
 // appExport writes out an app's state to json.
 func (ac appCreator) appExport(
 	logger log.Logger,
-	db cometbftdb.DB,
+	db dbm.DB,
 	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
