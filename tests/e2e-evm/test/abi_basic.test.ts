@@ -17,8 +17,8 @@ import { Abi } from "abitype";
 import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
 import { whaleAddress } from "./addresses";
 
-const defaultGas = 25000n;
-const contractCallerGas = defaultGas + 10000n;
+const defaultGas = 25_000n;
+const contractCallerGas = defaultGas + 12_000n;
 
 interface ContractTestCase {
   interface: keyof ArtifactsMap;
