@@ -231,6 +231,8 @@ github.com/DataDog/datadog-go v3.2.0+incompatible h1:qSG2N4FghB1He/r2mFrWKCaL7dX
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/zstd v1.5.5 h1:oWf5W7GtOLgp6bciQYDmhHHjdhYkALu6S/5Ni9ZgSvQ=
 github.com/DataDog/zstd v1.5.5/go.mod h1:g4AWEaM3yOg3HYfnJ3YIawPnVdXJh9QME85blwSAmyw=
+github.com/Kava-Labs/cosmos-sdk/x/upgrade v0.0.0-20241024201445-a8e1a4abf85b h1:mjvc8bdDGZRZdlYsMZzl2kNEBmD3fjjwAqIFqBbKf/Y=
+github.com/Kava-Labs/cosmos-sdk/x/upgrade v0.0.0-20241024201445-a8e1a4abf85b/go.mod h1:b130aNxXOgphdgbAjilHQIPqGmYM912mTKs2Qzh2hkY=
 github.com/Kava-Labs/go-ethereum v1.10.27-0.20240513233504-6e038346780b h1:gTLS1VJL+6TEcttEmQ9rAmm/UZZw23WlQf6n8R/Xjx0=
 github.com/Kava-Labs/go-ethereum v1.10.27-0.20240513233504-6e038346780b/go.mod h1:tvRm5KYJQ6LT+uss34spIP1oi6JgCfsFYiMKwJLZr6M=
 github.com/Kava-Labs/opendb v0.0.0-20241024062216-dd5bc73e28f2 h1:nbPWQhtnAbLVcRwiboKRdAe9LHCqXTqv53LFWsbMBXI=
@@ -814,10 +816,14 @@ github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/X
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
-github.com/kava-labs/cometbft v0.0.0-20241007151334-8345af773eb9 h1:EdyFg0j6Q8oVy3EynAEQm/M2CyMhBZrTlFjcORLjw5g=
-github.com/kava-labs/cometbft v0.0.0-20241007151334-8345af773eb9/go.mod h1:GPHp3/pehPqgX1930HmK1BpBLZPxB75v/dZg8Viwy+o=
+github.com/kava-labs/cometbft v0.0.0-20241024200036-527d8df9ff12 h1:RqnpnEGEuykjY3XWSLMuMwjUOiJ6cr7gSznAW/tgTQ4=
+github.com/kava-labs/cometbft v0.0.0-20241024200036-527d8df9ff12/go.mod h1:5awmm7t/X8LJ+Wd7/TXHcv4hLfFLcexy6fdS9WvOepA=
 github.com/kava-labs/cometbft-db v0.0.0-20241007145430-b2740b2e4bed h1:3FNJ3fcD9aA9oOwDphrSEJ8u2kBNj9YoYAwl16UKyv4=
 github.com/kava-labs/cometbft-db v0.0.0-20241007145430-b2740b2e4bed/go.mod h1:buPRZKyVp+u5fmwN7tDtOk1zc5xA2z9BJJTy61tNnws=
+github.com/kava-labs/cosmos-sdk v0.0.0-20241024201445-a8e1a4abf85b h1:eNu+QImfuvgfKeLdkawpLuKPdJrxOIgJTSBgeJyKKOI=
+github.com/kava-labs/cosmos-sdk v0.0.0-20241024201445-a8e1a4abf85b/go.mod h1:6Eesrx3ZE7vxBZWpK++30H+Uc7Q4ahQWCL7JKU/LEdU=
+github.com/kava-labs/ethermint v0.0.0-20241024201621-2269119c2171 h1:ndtUCBlFLkUEdI3rh0vqeTjyR8sC0oOi6nNhdQXLSF8=
+github.com/kava-labs/ethermint v0.0.0-20241024201621-2269119c2171/go.mod h1:N55vSpN0Jbwp7CVytLpb1OmRHQy61B2naAhrRpS8bQc=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=

@@ -14,7 +14,6 @@ require (
 	cosmossdk.io/store v1.1.1
 	cosmossdk.io/x/evidence v0.1.1
 	cosmossdk.io/x/tx v0.13.5
-	cosmossdk.io/x/upgrade v0.1.4
 	//github.com/Kava-Labs/opendb v0.0.0-20241024062216-dd5bc73e28f2
 	github.com/Kava-Labs/opendb v0.0.0-20241024062216-dd5bc73e28f2
 	github.com/cenkalti/backoff/v4 v4.3.0
@@ -53,7 +52,10 @@ require (
 	sigs.k8s.io/yaml v1.4.0
 )
 
-require cosmossdk.io/client/v2 v2.0.0-beta.3
+require (
+	cosmossdk.io/client/v2 v2.0.0-beta.3
+	cosmossdk.io/x/upgrade v0.1.4
+)
 
 require (
 	cloud.google.com/go v0.115.1 // indirect
@@ -245,22 +247,25 @@ replace (
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	// Use cometbft fork of tendermint
 	//github.com/cometbft/cometbft => github.com/kava-labs/cometbft cometbft-patch-test // 8345af773eb9d2fe95656815662f28b0f3b64b46
-	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.0.0-20241007151334-8345af773eb9
+	//github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.0.0-20241007151334-8345af773eb9
+	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.0.0-20241024200036-527d8df9ff12
 	//github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db kava-patched-test b2740b2e4bed1112feb4157b154ce969759b52ce
 	github.com/cometbft/cometbft-db => github.com/kava-labs/cometbft-db v0.0.0-20241007145430-b2740b2e4bed
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.50.10-test-patch 5f9239e3147358ef034bfc4d19aacb34e5ea2064
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241007153930-5f9239e31473
-	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241018152705-551d7afde55e
-	github.com/cosmos/cosmos-sdk => ../cosmos-sdk
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241024201445-a8e1a4abf85b
+	//github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 
 	//github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.1
 	github.com/cosmos/cosmos-sdk/x/evidence => cosmossdk.io/x/evidence v0.1.1
 	github.com/cosmos/cosmos-sdk/x/feegrant => cosmossdk.io/x/feegrant v0.1.1
 	github.com/cosmos/cosmos-sdk/x/nft => cosmossdk.io/x/nft v0.1.1
+	github.com/cosmos/cosmos-sdk/x/upgrade => github.com/Kava-Labs/cosmos-sdk/x/upgrade v0.0.0-20241024201445-a8e1a4abf85b
+	//cosmossdk.io/x/upgrade => github.com/Kava-Labs/cosmos-sdk/x/upgrade v0.0.0-20241024201445-a8e1a4abf85b
 	//github.com/cosmos/cosmos-sdk/x/upgrade => cosmossdk.io/x/upgrade v0.1.4
-	github.com/cosmos/cosmos-sdk/x/upgrade => ../cosmos-sdk/x/upgrade
+	//github.com/cosmos/cosmos-sdk/x/upgrade => ../cosmos-sdk/x/upgrade
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
 	// Tracking kava-labs/go-ethereum kava/release/v1.10 branch
@@ -275,8 +280,8 @@ replace (
 	// first PR
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241017145243-770ae9c06817
 	// second PR
-	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241018210905-a6216604a483
-	github.com/evmos/ethermint => ../ethermint
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241024201621-2269119c2171
+	//github.com/evmos/ethermint => ../ethermint
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
