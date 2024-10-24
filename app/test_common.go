@@ -374,14 +374,22 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 			InitialHeight: initialHeight,
 		},
 	)
+	if err != nil {
+		panic(err)
+	}
+
+	//_, err = tApp.BeginBlocker(tApp.NewContextLegacy(true, tmproto.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}))
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	//_, err = tApp.BeginBlocker(tApp.NewContextLegacy(true, tmproto.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}))
 
 	// Should we call commit?
 	//fmt.Println("block finalized: ", err)
 	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Time:   genTime,
-		Hash:   tApp.LastCommitID().Hash,
+		Time: genTime,
+		//Hash:   tApp.LastCommitID().Hash,
 		Height: tApp.LastBlockHeight() + 1,
 		//		NextValidatorsHash: valSet.Hash(),
 		//		Hash:               app.LastCommitID().Hash,

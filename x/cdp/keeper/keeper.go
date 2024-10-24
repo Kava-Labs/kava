@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -153,6 +154,7 @@ func (k Keeper) GetPreviousAccrualTime(ctx context.Context, ctype string) (time.
 // SetPreviousAccrualTime sets the most recent accrual time for a particular market
 func (k Keeper) SetPreviousAccrualTime(ctx context.Context, ctype string, previousAccrualTime time.Time) {
 	fmt.Println("SetPreviousAccrualTime: ", ctype, previousAccrualTime)
+	debug.PrintStack()
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	cdpMacc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	fmt.Println("SetPreviousAccrualTime 1", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(sdkCtx, cdpMacc.GetAddress(), "debt").Amount.Int64())
