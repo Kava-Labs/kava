@@ -36,16 +36,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [unreleased]
 
-### Bug Fixes
 
-* (ethermint) Fix infinite loop edge cases in evm indexer
-  * [ethermint#77] Wait for chain to start syncing when in statesync before starting evm indexer
-  * [ethermint#82] Wait after failed attempts to fetch block or block results in evm indexer
+## [v0.26.2-iavl-v1]
 
-
-## [v0.26.2-iavl-v1-alpha.0]
-
-This is the first release candidate for Kava on IAVL V1.
+This is the first release for Kava on IAVL V1.
 
 IAVL V1 is a new format for the low-level data storage used by the Kava blockchain.
 Using IAVL V1 brings performance speedups for syncing and massively reduces the data stored on disk
@@ -55,7 +49,7 @@ The release is compatible with v0 data, but for the full performance benefits, n
 encouraged to update their data to the v1 format.
 
 For full-archive operators, an IAVL V1 snapshot will be made available in the coming weeks.
-For validators & operators of pruning nodes, it is recommended that node data is re-created from scratch
+For validators & operators of pruning nodes, it is recommended that node data is recreated from scratch
 via statesync.
 
 Future minor versions of v0.26 will be made available for both iavl v0 and iavl v1.
@@ -76,6 +70,12 @@ For more details see the [IAVL V1 migration guide](/migrate/v0_26/iavl-v1.md).
     a state similar to if the data has been pruned.
     - An IAVL v1 reference node is saved at the upgrade height pointing to the version 1 data so app
     data for the upgrade version can be properly loaded.
+
+### Bug Fixes
+
+* (ethermint) Fix infinite loop edge cases in evm indexer
+  * [ethermint#77] Wait for chain to start syncing when in statesync before starting evm indexer
+  * [ethermint#82] Wait after failed attempts to fetch block or block results in evm indexer
 
 
 ## [v0.26.2]
@@ -464,8 +464,8 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1-alpha.0...release/v0.26.x-iavl-v1
-[v0.26.2-iavl-v1-alpha.0]: https://github.com/Kava-Labs/kava/compare/v0.26.2...v0.26.2-iavl-v1-alpha.0
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...release/v0.26.x-iavl-v1
+[v0.26.2-iavl-v1]: https://github.com/Kava-Labs/kava/compare/v0.26.2...v0.26.2-iavl-v1
 [v0.26.2]: https://github.com/Kava-Labs/kava/compare/v0.26.1...v0.26.2
 [v0.26.1]: https://github.com/Kava-Labs/kava/compare/v0.26.0...v0.26.1
 [v0.26.0]: https://github.com/Kava-Labs/kava/compare/v0.25.0...v0.26.0
