@@ -158,321 +158,344 @@ describe("Message calls", () => {
     return decodeAbiParameters(params, log.data);
   }
 
-  describe("msg.sender", () => {
-    let ctx: TestContext<"ContextInspector">;
+  function itHasCorrectMsgSender(getContext: () => TestContext<"ContextInspector">) {
+    describe("msg.sender", () => {
+      let ctx: TestContext<"ContextInspector">;
 
-    before("deploy ContextInspector implementation contract", async function () {
-      const contract = await hre.viem.deployContract("ContextInspector");
-      ctx = {
-        lowLevelCaller: lowLevelCaller,
-        implementationContract: contract,
-      };
-    });
+      before("Setup context", function () {
+        ctx = getContext();
+      });
 
-    // senderTestCase is to validate the expected msg.sender for a given message call type.
-    interface senderTestCase {
-      name: string;
-      type: CallType;
-      wantChildMsgSender: (ctx: TestContext<"ContextInspector">, signer: Address) => Address;
-    }
+      // senderTestCase is to validate the expected msg.sender for a given message call type.
+      interface senderTestCase {
+        name: string;
+        type: CallType;
+        wantChildMsgSender: (ctx: TestContext<"ContextInspector">, signer: Address) => Address;
+      }
 
-    const testCases: senderTestCase[] = [
-      {
-        name: "direct call is parent (signer)",
-        type: "call",
-        wantChildMsgSender: (_, signer) => signer,
-      },
-      {
-        name: "callcode msg.sender is parent",
-        type: "callcode",
-        wantChildMsgSender: (ctx) => ctx.lowLevelCaller.address,
-      },
-      {
-        name: "delegatecall propagates msg.sender",
-        type: "delegatecall",
-        wantChildMsgSender: (_, signer) => signer,
-      },
-      {
-        name: "staticcall msg.sender is parent",
-        type: "staticcall",
-        wantChildMsgSender: (ctx) => ctx.lowLevelCaller.address,
-      },
-    ];
+      const testCases: senderTestCase[] = [
+        {
+          name: "direct call is parent (signer)",
+          type: "call",
+          wantChildMsgSender: (_, signer) => signer,
+        },
+        {
+          name: "callcode msg.sender is parent (caller)",
+          type: "callcode",
+          wantChildMsgSender: (ctx) => ctx.lowLevelCaller.address,
+        },
+        {
+          name: "delegatecall propagates msg.sender (same as caller, parent signer)",
+          type: "delegatecall",
+          wantChildMsgSender: (_, signer) => signer,
+        },
+        {
+          name: "staticcall msg.sender is parent (caller)",
+          type: "staticcall",
+          wantChildMsgSender: (ctx) => ctx.lowLevelCaller.address,
+        },
+      ];
 
-    for (const tc of testCases) {
-      it(tc.name, async function () {
-        let functionName: ContractFunctionName<typeof ctx.implementationContract.abi> = "emitMsgSender";
+      for (const tc of testCases) {
+        it(tc.name, async function () {
+          let functionName: ContractFunctionName<typeof ctx.implementationContract.abi> = "emitMsgSender";
 
-        // Static Call cannot emit events so we use a different function that
-        // just returns the msg.sender.
-        if (tc.type === "staticcall") {
-          functionName = "getMsgSender";
-        }
-
-        // ContextInspector function call data
-        const baseData = encodeFunctionData({
-          abi: ctx.implementationContract.abi,
-          functionName,
-          args: [],
-        });
-
-        // Modify the call data based on the test case type
-        const txData = buildCallData(tc.type, ctx.implementationContract.address, baseData);
-        // No value for this test
-        txData.value = 0n;
-
-        if (tc.type === "staticcall") {
-          // Check return value
-          const returnedMsgSender = await publicClient.call(txData);
-          if (returnedMsgSender.data === undefined) {
-            expect.fail("call return data is undefined");
+          // Static Call cannot emit events so we use a different function that
+          // just returns the msg.sender.
+          if (tc.type === "staticcall") {
+            functionName = "getMsgSender";
           }
 
-          // Decode low level caller first since it is a byte array that
-          // includes the offset, length, and data.
-          const dataBytes = decodeFunctionResult({
-            abi: ctx.lowLevelCaller.abi,
-            functionName: "functionStaticCall",
-            data: returnedMsgSender.data,
+          // ContextInspector function call data
+          const baseData = encodeFunctionData({
+            abi: ctx.implementationContract.abi,
+            functionName,
+            args: [],
           });
 
-          // Decode dataBytes as an address
-          const address = decodeFunctionResult({
-            abi: ctx.implementationContract.abi,
-            functionName: "getMsgSender",
-            data: dataBytes,
-          });
+          // Modify the call data based on the test case type
+          const txData = buildCallData(tc.type, ctx.implementationContract.address, baseData);
+          // No value for this test
+          txData.value = 0n;
+
+          if (tc.type === "staticcall") {
+            // Check return value
+            const returnedMsgSender = await publicClient.call(txData);
+            if (returnedMsgSender.data === undefined) {
+              expect.fail("call return data is undefined");
+            }
+
+            // Decode low level caller first since it is a byte array that
+            // includes the offset, length, and data.
+            const dataBytes = decodeFunctionResult({
+              abi: ctx.lowLevelCaller.abi,
+              functionName: "functionStaticCall",
+              data: returnedMsgSender.data,
+            });
+
+            // Decode dataBytes as an address
+            const address = decodeFunctionResult({
+              abi: ctx.implementationContract.abi,
+              functionName: "getMsgSender",
+              data: dataBytes,
+            });
+
+            const expectedSender = tc.wantChildMsgSender(ctx, walletClient.account.address);
+            expect(getAddress(address)).to.equal(getAddress(expectedSender), "unexpected msg.sender");
+
+            // Skip the rest of the test since staticcall does not emit events.
+            return;
+          }
+
+          await publicClient.call(txData);
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("success");
+
+          const [receivedAddress] = getResponseFromReceiptLogs(
+            ctx.implementationContract.abi,
+            "MsgSender",
+            parseAbiParameters("address"),
+            txReceipt,
+          );
+
+          expect(isAddress(receivedAddress), "log.data should be an address").to.be.true;
 
           const expectedSender = tc.wantChildMsgSender(ctx, walletClient.account.address);
-          expect(getAddress(address)).to.equal(getAddress(expectedSender), "unexpected msg.sender");
+          expect(getAddress(receivedAddress)).to.equal(getAddress(expectedSender), "unexpected msg.sender");
+        });
+      }
+    });
+  }
 
-          // Skip the rest of the test since staticcall does not emit events.
-          return;
-        }
+  function itHasCorrectMsgValue(getContext: () => TestContext<"ContextInspector">) {
+    describe("msg.value", () => {
+      let ctx: TestContext<"ContextInspector">;
 
-        await publicClient.call(txData);
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal("success");
-
-        const [receivedAddress] = getResponseFromReceiptLogs(
-          ctx.implementationContract.abi,
-          "MsgSender",
-          parseAbiParameters("address"),
-          txReceipt,
-        );
-
-        expect(isAddress(receivedAddress), "log.data should be an address").to.be.true;
-
-        const expectedSender = tc.wantChildMsgSender(ctx, walletClient.account.address);
-        expect(getAddress(receivedAddress)).to.equal(getAddress(expectedSender), "unexpected msg.sender");
+      before("Setup context", function () {
+        ctx = getContext();
       });
-    }
-  });
 
-  describe("msg.value", () => {
-    let ctx: TestContext<"ContextInspector">;
+      interface valueTestCase {
+        name: string;
+        type: CallType;
+        wantRevertReason?: string;
+        // msg.value for the parent
+        giveParentValue: bigint;
+        // Call value for the child, only applicable for call, callcode
+        giveChildCallValue?: bigint;
+        // Expected msg.value for the child
+        wantChildMsgValue: (txValue: bigint) => bigint;
+      }
 
-    before("deploy ContextInspector implementation contract", async function () {
-      const contract = await hre.viem.deployContract("ContextInspector");
-      ctx = {
-        lowLevelCaller: lowLevelCaller,
-        implementationContract: contract,
-      };
+      const testCases: valueTestCase[] = [
+        {
+          name: "direct call",
+          type: "call",
+          giveParentValue: 10n,
+          wantChildMsgValue: (txValue) => txValue,
+        },
+        {
+          name: "delegatecall propagates msg.value",
+          type: "delegatecall",
+          giveParentValue: 10n,
+          wantChildMsgValue: (txValue) => txValue,
+        },
+        {
+          name: "callcode with value == parent msg.value",
+          type: "callcode",
+          giveParentValue: 10n,
+          wantChildMsgValue: (txValue) => txValue,
+        },
+        {
+          name: "callcode with a value != parent msg.value",
+          type: "callcode",
+          // Transfers 10 signer -> caller contract
+          giveParentValue: 10n,
+          // Transfers 5 Caller -> implementation contract
+          giveChildCallValue: 5n,
+          wantChildMsgValue: () => 5n,
+        },
+        {
+          name: "staticcall",
+          type: "staticcall",
+          giveParentValue: 10n,
+          wantRevertReason: "non-payable function was called with value 10",
+          wantChildMsgValue: () => 0n,
+        },
+      ];
+
+      for (const tc of testCases) {
+        it(tc.name, async function () {
+          // Initial data of a emitMsgSender() call.
+          const baseData = encodeFunctionData({
+            abi: ctx.implementationContract.abi,
+            functionName: "emitMsgValue",
+            args: [],
+          });
+
+          // Modify the call data based on the test case type
+          const txData = buildCallData(tc.type, ctx.implementationContract.address, baseData, tc.giveChildCallValue);
+          txData.value = tc.giveParentValue;
+
+          if (!tc.wantRevertReason) {
+            // This throws an error with revert reason to make it easier to debug
+            // if the transaction fails.
+            await publicClient.call(txData);
+          } else {
+            // rejectedWith is an string includes matcher
+            await expect(publicClient.call(txData)).to.be.rejectedWith(tc.wantRevertReason);
+
+            // Cannot include msg.value with static call as it changes state so
+            // skip the rest of the test.
+            return;
+          }
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("success");
+
+          const [emittedAmount] = getResponseFromReceiptLogs(
+            ctx.implementationContract.abi,
+            "MsgValue",
+            parseAbiParameters("uint256"),
+            txReceipt,
+          );
+
+          // Assert msg.value is as expected
+          const expectedValue = tc.wantChildMsgValue(txData.value);
+          expect(emittedAmount).to.equal(expectedValue, "unexpected msg.value");
+        });
+      }
+    });
+  }
+
+  function itHasCorrectStorageLocation(getContext: () => TestContext<"StorageBasic">) {
+    describe("storage location", () => {
+      let ctx: TestContext<"StorageBasic">;
+
+      before("Setup context", function () {
+        ctx = getContext();
+      });
+
+      interface storageTestCase {
+        name: string;
+        callType: CallType;
+        wantRevert?: boolean;
+        wantStorageContract: (ctx: TestContext<"StorageBasic">) => Address;
+      }
+
+      const testCases: storageTestCase[] = [
+        {
+          name: "call storage in implementation",
+          callType: "call",
+          wantStorageContract: (ctx) => ctx.implementationContract.address,
+        },
+        {
+          name: "callcode storage in caller",
+          callType: "callcode",
+          // Storage in caller contract
+          wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
+        },
+        {
+          name: "delegatecall storage in caller",
+          callType: "delegatecall",
+          // Storage in caller contract
+          wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
+        },
+        {
+          name: "staticcall storage not allowed",
+          callType: "staticcall",
+          wantRevert: true,
+          // Storage in caller contract
+          wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
+        },
+      ];
+
+      let giveStoreValue = 0n;
+
+      for (const tc of testCases) {
+        it(tc.name, async function () {
+          // Increment storage value for a different value each test
+          giveStoreValue++;
+
+          const baseData = encodeFunctionData({
+            abi: ctx.implementationContract.abi,
+            functionName: "setStorageValue",
+            args: [giveStoreValue],
+          });
+
+          const txData = buildCallData(tc.callType, ctx.implementationContract.address, baseData);
+          // Signer is the whale
+          txData.account = whaleAddress;
+          // Call gas + storage gas
+          txData.gas = contractCallerGas + 20_2000n;
+
+          if (!txData.to) {
+            expect.fail("to field not set");
+          }
+
+          if (tc.wantRevert) {
+            await expect(publicClient.call(txData)).to.be.rejected;
+
+            // No actual transaction or storage to check! Skip the rest of the test.
+            return;
+          } else {
+            // Throw revert errors if the transaction fails. Not using expect()
+            // here since this still fails the test if the transaction fails and
+            // does not mess up the formatting of the error message.
+            await publicClient.call(txData);
+          }
+
+          const txHash = await walletClient.sendTransaction(txData);
+          const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+          expect(txReceipt.status).to.equal("success");
+
+          if (txData.gas) {
+            expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
+          }
+
+          // Check which contract the storage was set on
+          const storageContract = tc.wantStorageContract(ctx);
+          const storageValue = await publicClient.getStorageAt({
+            address: storageContract,
+            slot: toHex(0),
+          });
+
+          const expectedStorage = pad(toHex(giveStoreValue));
+          expect(storageValue).to.equal(expectedStorage, "unexpected storage value");
+        });
+      }
+    });
+  }
+
+  // Test context and storage for mock contracts as a baseline check
+  describe("Mock", () => {
+    let contextInspector: GetContractReturnType<ArtifactsMap["ContextInspector"]["abi"]>;
+    let storageBasic: GetContractReturnType<ArtifactsMap["StorageBasic"]["abi"]>;
+
+    before("deploy mock contracts", async function () {
+      contextInspector = await hre.viem.deployContract("ContextInspector");
+
+      storageBasic = await hre.viem.deployContract("StorageBasic");
     });
 
-    interface valueTestCase {
-      name: string;
-      type: CallType;
-      wantRevertReason?: string;
-      // msg.value for the parent
-      giveParentValue: bigint;
-      // Call value for the child, only applicable for call, callcode
-      giveChildCallValue?: bigint;
-      // Expected msg.value for the child
-      wantChildMsgValue: (txValue: bigint) => bigint;
-    }
+    itHasCorrectMsgSender(() => ({
+      lowLevelCaller: lowLevelCaller,
+      implementationContract: contextInspector,
+    }));
 
-    const testCases: valueTestCase[] = [
-      {
-        name: "direct call",
-        type: "call",
-        giveParentValue: 10n,
-        wantChildMsgValue: (txValue) => txValue,
-      },
-      {
-        name: "delegatecall propagates msg.value",
-        type: "delegatecall",
-        giveParentValue: 10n,
-        wantChildMsgValue: (txValue) => txValue,
-      },
-      {
-        name: "callcode with value == parent msg.value",
-        type: "callcode",
-        giveParentValue: 10n,
-        wantChildMsgValue: (txValue) => txValue,
-      },
-      {
-        name: "callcode with a value != parent msg.value",
-        type: "callcode",
-        // Transfers 10 signer -> caller contract
-        giveParentValue: 10n,
-        // Transfers 5 Caller -> implementation contract
-        giveChildCallValue: 5n,
-        wantChildMsgValue: () => 5n,
-      },
-      {
-        name: "staticcall",
-        type: "staticcall",
-        giveParentValue: 10n,
-        wantRevertReason: "non-payable function was called with value 10",
-        wantChildMsgValue: () => 0n,
-      },
-    ];
+    itHasCorrectMsgValue(() => ({
+      lowLevelCaller: lowLevelCaller,
+      implementationContract: contextInspector,
+    }));
 
-    for (const tc of testCases) {
-      it(tc.name, async function () {
-        // Initial data of a emitMsgSender() call.
-        const baseData = encodeFunctionData({
-          abi: ctx.implementationContract.abi,
-          functionName: "emitMsgValue",
-          args: [],
-        });
-
-        // Modify the call data based on the test case type
-        const txData = buildCallData(tc.type, ctx.implementationContract.address, baseData, tc.giveChildCallValue);
-        txData.value = tc.giveParentValue;
-
-        if (!tc.wantRevertReason) {
-          // This throws an error with revert reason to make it easier to debug
-          // if the transaction fails.
-          await publicClient.call(txData);
-        } else {
-          // rejectedWith is an string includes matcher
-          await expect(publicClient.call(txData)).to.be.rejectedWith(tc.wantRevertReason);
-
-          // Cannot include msg.value with static call as it changes state so
-          // skip the rest of the test.
-          return;
-        }
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal("success");
-
-        const [emittedAmount] = getResponseFromReceiptLogs(
-          ctx.implementationContract.abi,
-          "MsgValue",
-          parseAbiParameters("uint256"),
-          txReceipt,
-        );
-
-        // Assert msg.value is as expected
-        const expectedValue = tc.wantChildMsgValue(txData.value);
-        expect(emittedAmount).to.equal(expectedValue, "unexpected msg.value");
-      });
-    }
+    itHasCorrectStorageLocation(() => ({
+      lowLevelCaller: lowLevelCaller,
+      implementationContract: storageBasic,
+    }));
   });
 
-  describe("storage location", () => {
-    let ctx: TestContext<"StorageBasic">;
-
-    before("deploy storage implementation contract", async function () {
-      const contract = await hre.viem.deployContract("StorageBasic");
-      ctx = {
-        lowLevelCaller: lowLevelCaller,
-        implementationContract: contract,
-      };
-    });
-
-    interface storageTestCase {
-      name: string;
-      callType: CallType;
-      wantRevert?: boolean;
-      wantStorageContract: (ctx: TestContext<"StorageBasic">) => Address;
-    }
-
-    const testCases: storageTestCase[] = [
-      {
-        name: "call storage in implementation",
-        callType: "call",
-        wantStorageContract: (ctx) => ctx.implementationContract.address,
-      },
-      {
-        name: "callcode storage in caller",
-        callType: "callcode",
-        // Storage in caller contract
-        wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
-      },
-      {
-        name: "delegatecall storage in caller",
-        callType: "delegatecall",
-        // Storage in caller contract
-        wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
-      },
-      {
-        name: "staticcall storage not allowed",
-        callType: "staticcall",
-        wantRevert: true,
-        // Storage in caller contract
-        wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
-      },
-    ];
-
-    let giveStoreValue = 0n;
-
-    for (const tc of testCases) {
-      it(tc.name, async function () {
-        // Increment storage value for a different value each test
-        giveStoreValue++;
-
-        const baseData = encodeFunctionData({
-          abi: ctx.implementationContract.abi,
-          functionName: "setStorageValue",
-          args: [giveStoreValue],
-        });
-
-        const txData = buildCallData(tc.callType, ctx.implementationContract.address, baseData);
-        // Signer is the whale
-        txData.account = whaleAddress;
-        // Call gas + storage gas
-        txData.gas = contractCallerGas + 20_2000n;
-
-        if (!txData.to) {
-          expect.fail("to field not set");
-        }
-
-        if (tc.wantRevert) {
-          await expect(publicClient.call(txData)).to.be.rejected;
-
-          // No actual transaction or storage to check! Skip the rest of the test.
-          return;
-        } else {
-          // Throw revert errors if the transaction fails. Not using expect()
-          // here since this still fails the test if the transaction fails and
-          // does not mess up the formatting of the error message.
-          await publicClient.call(txData);
-        }
-
-        const txHash = await walletClient.sendTransaction(txData);
-        const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
-        expect(txReceipt.status).to.equal("success");
-
-        if (txData.gas) {
-          expect(txReceipt.gasUsed < txData.gas, "gas to not be exhausted").to.be.true;
-        }
-
-        // Check which contract the storage was set on
-        const storageContract = tc.wantStorageContract(ctx);
-        const storageValue = await publicClient.getStorageAt({
-          address: storageContract,
-          slot: toHex(0),
-        });
-
-        const expectedStorage = pad(toHex(giveStoreValue));
-        expect(storageValue).to.equal(expectedStorage, "unexpected storage value");
-      });
-    }
-  });
+  // TODO: Test context and storage for precompiles
 });
