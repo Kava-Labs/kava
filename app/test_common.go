@@ -485,6 +485,15 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
 func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	sk := tApp.GetStakingKeeper()
 	vals, err := sk.GetAllValidators(ctx)
+	fmt.Println("DeleteGenesisValidator vals", len(vals))
+	fmt.Println("DeleteGenesisValidator vals", vals)
+	require.NoError(t, err)
+	dels, err := sk.GetAllDelegations(ctx)
+	fmt.Println("DeleteGenesisValidator dels", len(dels))
+	fmt.Println("DeleteGenesisValidator dels", dels)
+	require.NoError(t, err)
+
+	_, err = tApp.Commit()
 	require.NoError(t, err)
 
 	var genVal stakingtypes.Validator
@@ -493,6 +502,8 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 		fmt.Println("DeleteGenesisValidator val GetMoniker", val.GetMoniker())
 		fmt.Println("DeleteGenesisValidator val GetTokens", val.GetTokens())
 		fmt.Println("DeleteGenesisValidator val GetBondedTokens", val.GetBondedTokens())
+		fmt.Println("DeleteGenesisValidator val UnbondingTime", val.UnbondingTime)
+		fmt.Println("DeleteGenesisValidator val UnbondingIds", val.UnbondingIds)
 		if val.GetMoniker() == "genesis validator" {
 			genVal = val
 			found = true
@@ -502,12 +513,19 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 
 	require.True(t, found, "genesis validator not found")
 
-	delegations, err := sk.GetValidatorDelegations(ctx, []byte(genVal.GetOperator()))
+	ctxTest := tApp.NewContextLegacy(true, tmproto.Header{})
+
+	fmt.Println("DeleteGenesisValidator genVal.GetDelegatorShares()", genVal.GetDelegatorShares())
+	fmt.Println("DeleteGenesisValidator bonded tokens", genVal.BondedTokens())
+	fmt.Println("DeleteGenesisValidator bonded tokens", genVal.GetOperator())
+	delegations, err := sk.GetValidatorDelegations(ctxTest, []byte(genVal.GetOperator()))
 	fmt.Println("DeleteGenesisValidator delegations", delegations)
 	require.NoError(t, err)
 	for _, delegation := range delegations {
 		fmt.Println("DeleteGenesisValidator delegation", delegation)
-		_, _, err := sk.Undelegate(ctx, []byte(delegation.GetDelegatorAddr()), []byte(genVal.GetOperator()), delegation.Shares)
+		valBytes, err := sk.ValidatorAddressCodec().StringToBytes(delegation.GetValidatorAddr())
+		require.NoError(t, err)
+		_, _, err = sk.Undelegate(ctx, []byte(delegation.GetDelegatorAddr()), valBytes, delegation.Shares)
 		require.NoError(t, err)
 	}
 }

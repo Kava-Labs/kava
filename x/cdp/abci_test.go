@@ -304,12 +304,14 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 
 	cdpMacc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(i(1000000000), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount)
+	fmt.Println("balance 1:", bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	for i := 0; i < 100; i++ {
 		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
 		cdp.BeginBlocker(suite.ctx, suite.keeper)
 	}
 
 	cdpMacc = ak.GetModuleAccount(suite.ctx, types.ModuleName)
+	fmt.Println("balance 1:", bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	suite.Equal(i(1000000891), (bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount))
 	cdp, _ := suite.keeper.GetCDP(suite.ctx, "xrp-a", 1)
 

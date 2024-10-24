@@ -150,19 +150,22 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 // BeginBlock module begin-block
 func (am AppModule) BeginBlock(ctx context.Context) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	fmt.Println("cdp begin block context")
 	BeginBlocker(sdkCtx, am.keeper)
+	fmt.Println("cdp begin block context end")
 
 	return nil
 }
 
-// // BeginBlock module begin-block
+// BeginBlock module begin-block
+
+//func (am AppModule) BeginBlock(ctx sdk.Context) error {
+//	fmt.Println("cdp begin block ctx")
+//	BeginBlocker(ctx, am.keeper)
 //
-//	func (am AppModule) BeginBlock(ctx sdk.Context) error {
-//		BeginBlocker(ctx, am.keeper)
-//
-//		return nil
-//	}
-//
+//	return nil
+//}
+
 // EndBlock module end-block
 func (am AppModule) EndBlock(_ context.Context) ([]abci.ValidatorUpdate, error) {
 	return []abci.ValidatorUpdate{}, nil
