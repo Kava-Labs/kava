@@ -19,12 +19,23 @@ var scalingFactor = 1e18
 func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 	fmt.Println("AccumulateInterest", ctype)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+
+	// suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
+	//		cdp.BeginBlocker(suite.ctx, suite.keeper)
+	//		// block time with balance 2024-10-24 04:02:57.651655 +0000 UTC 1000000027
+	//		fmt.Println("balance time with balance", suite.ctx.BlockTime(), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
+
+	cdpMacc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	fmt.Println("AccumulateInterest 1", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
+
 	previousAccrualTime, found := k.GetPreviousAccrualTime(ctx, ctype)
 	fmt.Println("previousAccrualTime", previousAccrualTime, found)
 	if !found {
 		k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
 		return nil
 	}
+
+	fmt.Println("AccumulateInterest 2", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	timeElapsed := int64(math.RoundToEven(
 		sdkCtx.BlockTime().Sub(previousAccrualTime).Seconds(),
@@ -34,6 +45,7 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 	}
 
 	fmt.Println("timeElapsed", timeElapsed)
+	fmt.Println("AccumulateInterest 3", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	totalPrincipalPrior := k.GetTotalPrincipal(ctx, ctype, types.DefaultStableDenom)
 	if totalPrincipalPrior.IsZero() || totalPrincipalPrior.IsNegative() {
@@ -42,6 +54,7 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 	}
 
 	fmt.Println("totalPrincipalPrior", totalPrincipalPrior)
+	fmt.Println("AccumulateInterest 4", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	interestFactorPrior, foundInterestFactorPrior := k.GetInterestFactor(ctx, ctype)
 	if !foundInterestFactorPrior {
@@ -96,6 +109,8 @@ func (k Keeper) AccumulateInterest(ctx context.Context, ctype string) error {
 	k.SetTotalPrincipal(ctx, ctype, types.DefaultStableDenom, totalPrincipalNew)
 	k.SetInterestFactor(ctx, ctype, interestFactorNew)
 	k.SetPreviousAccrualTime(ctx, ctype, sdkCtx.BlockTime())
+
+	fmt.Println("AccumulateInterest last", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	return nil
 }
@@ -182,6 +197,9 @@ func (k Keeper) CalculateNewInterest(ctx context.Context, cdp types.CDP) sdk.Coi
 func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio sdkmath.LegacyDec, cp types.CollateralParam) error {
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	debtParam := k.GetParams(ctx).DebtParam
+
+	cdpMacc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	fmt.Println("SynchronizeInterestForRiskyCDPs 1", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	cdpStore := prefix.NewStore(sdkCtx.KVStore(k.key), types.CdpKeyPrefix)
 	collateralRatioStore := prefix.NewStore(sdkCtx.KVStore(k.key), types.CollateralRatioIndexPrefix)
@@ -273,6 +291,8 @@ func (k Keeper) SynchronizeInterestForRiskyCDPs(ctx context.Context, targetRatio
 		cdpStore.Set(types.CdpKey(cdp.Type, cdp.ID), bz)
 		collateralRatioStore.Set(types.CollateralRatioKey(cdp.Type, cdp.ID, updatedCollateralRatio), types.GetCdpIDBytes(cdp.ID))
 	}
+
+	fmt.Println("SynchronizeInterestForRiskyCDPs end", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	return nil
 }

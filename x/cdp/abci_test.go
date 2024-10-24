@@ -307,7 +307,10 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	fmt.Println("balance 1:", bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	for i := 0; i < 100; i++ {
 		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
+		fmt.Println("balance time with balance before", suite.ctx.BlockTime(), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 		cdp.BeginBlocker(suite.ctx, suite.keeper)
+		// block time with balance 2024-10-24 04:02:57.651655 +0000 UTC 1000000027
+		fmt.Println("balance time with balance", suite.ctx.BlockTime(), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	}
 
 	cdpMacc = ak.GetModuleAccount(suite.ctx, types.ModuleName)

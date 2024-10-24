@@ -154,12 +154,15 @@ func (k Keeper) GetPreviousAccrualTime(ctx context.Context, ctype string) (time.
 func (k Keeper) SetPreviousAccrualTime(ctx context.Context, ctype string, previousAccrualTime time.Time) {
 	fmt.Println("SetPreviousAccrualTime: ", ctype, previousAccrualTime)
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
+	cdpMacc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
+	fmt.Println("SetPreviousAccrualTime 1", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(sdkCtx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz, err := previousAccrualTime.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
 	store.Set([]byte(ctype), bz)
+	fmt.Println("SetPreviousAccrualTime 2", sdkCtx.BlockTime(), k.bankKeeper.GetBalance(sdkCtx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 }
 
 // GetInterestFactor returns the current interest factor for an individual collateral type
