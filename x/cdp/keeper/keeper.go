@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"runtime/debug"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -138,7 +137,7 @@ func (k Keeper) GetSliceOfCDPsByRatioAndType(ctx context.Context, cutoffCount sd
 // GetPreviousAccrualTime returns the last time an individual market accrued interest
 func (k Keeper) GetPreviousAccrualTime(ctx context.Context, ctype string) (time.Time, bool) {
 	fmt.Println("GetPreviousAccrualTime: ", ctype)
-	debug.PrintStack()
+	//debug.PrintStack()
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
 	store := prefix.NewStore(sdkCtx.KVStore(k.key), types.PreviousAccrualTimePrefix)
 	bz := store.Get([]byte(ctype))

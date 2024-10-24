@@ -291,10 +291,36 @@ func (suite *ModuleTestSuite) TestBeginBlock() {
 	suite.Equal(int64(71955653865), bk.GetBalance(suite.ctx, acc.GetAddress(), "debt").Amount.Int64())
 }
 
+//fmt.Println("block header 1", suite.ctx.BlockTime())
+//	fmt.Println(suite.keeper.GetPreviousAccrualTime(suite.ctx, "xrp-a"))
+//	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], c("xrp", 10000000000), c("usdx", 1000000000), "xrp-a")
+//	suite.NoError(err)
+//	// verify the total value of all assets in cdps composed of xrp-a/usdx pair equals the amount of the single cdp we just added above
+//	suite.Equal(i(1000000000), suite.keeper.GetTotalPrincipal(suite.ctx, "xrp-a", "usdx"))
+//	ak := suite.app.GetAccountKeeper()
+//	bk := suite.app.GetBankKeeper()
+//
+//	fmt.Println("block header 2", suite.ctx.BlockTime())
+//	fmt.Println(suite.keeper.GetPreviousAccrualTime(suite.ctx, "xrp-a"))
+//
+//	cdpMacc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
+//	suite.Equal(i(1000000000), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount)
+//	fmt.Println("block header 3", suite.ctx.BlockTime())
+//	for i := 0; i < 100; i++ {
+//		fmt.Println("block header 4", suite.ctx.BlockTime())
+//		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
+//		fmt.Println("block header 5", suite.ctx.BlockTime())
+//		fmt.Println(suite.keeper.GetPreviousAccrualTime(suite.ctx, "xrp-a"))
+//		cdp.BeginBlocker(suite.ctx, abci.RequestBeginBlock{Header: suite.ctx.BlockHeader()}, suite.keeper)
+//		fmt.Println("block time with balance", suite.ctx.BlockTime(), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount)
+//	}
+
 func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	// test setup
 	// starting with zero cdps, add a single cdp of
 	// xrp backed 1:1 with usdx
+	fmt.Println("block header 1", suite.ctx.BlockTime())
+	fmt.Println(suite.keeper.GetPreviousAccrualTime(suite.ctx, "xrp-a"))
 	err := suite.keeper.AddCdp(suite.ctx, suite.addrs[0], c("xrp", 10000000000), c("usdx", 1000000000), "xrp-a")
 	suite.NoError(err)
 	// verify the total value of all assets in cdps composed of xrp-a/usdx pair equals the amount of the single cdp we just added above
@@ -302,12 +328,17 @@ func (suite *ModuleTestSuite) TestSeizeSingleCdpWithFees() {
 	ak := suite.app.GetAccountKeeper()
 	bk := suite.app.GetBankKeeper()
 
+	fmt.Println("block header 2", suite.ctx.BlockTime())
+	fmt.Println(suite.keeper.GetPreviousAccrualTime(suite.ctx, "xrp-a"))
+
 	cdpMacc := ak.GetModuleAccount(suite.ctx, types.ModuleName)
 	suite.Equal(i(1000000000), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount)
-	fmt.Println("balance 1:", bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
+	fmt.Println("block header 3", suite.ctx.BlockTime())
 	for i := 0; i < 100; i++ {
+		fmt.Println("block header 4", suite.ctx.BlockTime())
 		suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
-		fmt.Println("balance time with balance before", suite.ctx.BlockTime(), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
+		fmt.Println("block header 5", suite.ctx.BlockTime())
+		fmt.Println(suite.keeper.GetPreviousAccrualTime(suite.ctx, "xrp-a"))
 		cdp.BeginBlocker(suite.ctx, suite.keeper)
 		// block time with balance 2024-10-24 04:02:57.651655 +0000 UTC 1000000027
 		fmt.Println("balance time with balance", suite.ctx.BlockTime(), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
