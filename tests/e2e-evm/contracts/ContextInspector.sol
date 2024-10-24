@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/**
- * @title A contract to inspect the msg context.
- * @notice This contract is used to test the expected msg.sender and msg.value
- *         of a contract call in various scenarios.
- */
-contract ContextInspector {
+interface ContextInspector {
     /**
      * @dev Emitted when the emitMsgSender() function is called.
      */
@@ -19,6 +14,17 @@ contract ContextInspector {
      */
     event MsgValue(uint256 value);
 
+    function emitMsgSender() external;
+    function emitMsgValue() external payable;
+    function getMsgSender() external view returns (address);
+}
+
+/**
+ * @title A contract to inspect the msg context.
+ * @notice This contract is used to test the expected msg.sender and msg.value
+ *         of a contract call in various scenarios.
+ */
+contract ContextInspectorMock is ContextInspector {
     function emitMsgSender() external {
         emit MsgSender(msg.sender);
     }

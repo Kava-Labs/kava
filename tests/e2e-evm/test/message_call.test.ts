@@ -43,7 +43,11 @@ describe("Message calls", () => {
 
   interface TestContext<Impl extends keyof ArtifactsMap> {
     lowLevelCaller: GetContractReturnType<ArtifactsMap["Caller"]["abi"]>;
-    implementationContract: GetContractReturnType<ArtifactsMap[Impl]["abi"]>;
+    // Using a generic to enforce type safety on functions that use this Abi,
+    // eg. decodeFunctionResult would have the functionName parameter type
+    // checked.
+    implementationAbi: ArtifactsMap[Impl]["abi"];
+    implementationAddress: Address;
   }
 
   type CallType = "call" | "callcode" | "delegatecall" | "staticcall";
@@ -198,7 +202,7 @@ describe("Message calls", () => {
 
       for (const tc of testCases) {
         it(tc.name, async function () {
-          let functionName: ContractFunctionName<typeof ctx.implementationContract.abi> = "emitMsgSender";
+          let functionName: ContractFunctionName<typeof ctx.implementationAbi> = "emitMsgSender";
 
           // Static Call cannot emit events so we use a different function that
           // just returns the msg.sender.
@@ -208,13 +212,13 @@ describe("Message calls", () => {
 
           // ContextInspector function call data
           const baseData = encodeFunctionData({
-            abi: ctx.implementationContract.abi,
+            abi: ctx.implementationAbi,
             functionName,
             args: [],
           });
 
           // Modify the call data based on the test case type
-          const txData = buildCallData(tc.type, ctx.implementationContract.address, baseData);
+          const txData = buildCallData(tc.type, ctx.implementationAddress, baseData);
           // No value for this test
           txData.value = 0n;
 
@@ -235,7 +239,7 @@ describe("Message calls", () => {
 
             // Decode dataBytes as an address
             const address = decodeFunctionResult({
-              abi: ctx.implementationContract.abi,
+              abi: ctx.implementationAbi,
               functionName: "getMsgSender",
               data: dataBytes,
             });
@@ -254,7 +258,7 @@ describe("Message calls", () => {
           expect(txReceipt.status).to.equal("success");
 
           const [receivedAddress] = getResponseFromReceiptLogs(
-            ctx.implementationContract.abi,
+            ctx.implementationAbi,
             "MsgSender",
             parseAbiParameters("address"),
             txReceipt,
@@ -330,13 +334,13 @@ describe("Message calls", () => {
         it(tc.name, async function () {
           // Initial data of a emitMsgSender() call.
           const baseData = encodeFunctionData({
-            abi: ctx.implementationContract.abi,
+            abi: ctx.implementationAbi,
             functionName: "emitMsgValue",
             args: [],
           });
 
           // Modify the call data based on the test case type
-          const txData = buildCallData(tc.type, ctx.implementationContract.address, baseData, tc.giveChildCallValue);
+          const txData = buildCallData(tc.type, ctx.implementationAddress, baseData, tc.giveChildCallValue);
           txData.value = tc.giveParentValue;
 
           if (!tc.wantRevertReason) {
@@ -357,7 +361,7 @@ describe("Message calls", () => {
           expect(txReceipt.status).to.equal("success");
 
           const [emittedAmount] = getResponseFromReceiptLogs(
-            ctx.implementationContract.abi,
+            ctx.implementationAbi,
             "MsgValue",
             parseAbiParameters("uint256"),
             txReceipt,
@@ -390,7 +394,7 @@ describe("Message calls", () => {
         {
           name: "call storage in implementation",
           callType: "call",
-          wantStorageContract: (ctx) => ctx.implementationContract.address,
+          wantStorageContract: (ctx) => ctx.implementationAddress,
         },
         {
           name: "callcode storage in caller",
@@ -421,12 +425,12 @@ describe("Message calls", () => {
           giveStoreValue++;
 
           const baseData = encodeFunctionData({
-            abi: ctx.implementationContract.abi,
+            abi: ctx.implementationAbi,
             functionName: "setStorageValue",
             args: [giveStoreValue],
           });
 
-          const txData = buildCallData(tc.callType, ctx.implementationContract.address, baseData);
+          const txData = buildCallData(tc.callType, ctx.implementationAddress, baseData);
           // Signer is the whale
           txData.account = whaleAddress;
           // Call gas + storage gas
@@ -472,28 +476,35 @@ describe("Message calls", () => {
 
   // Test context and storage for mock contracts as a baseline check
   describe("Mock", () => {
-    let contextInspector: GetContractReturnType<ArtifactsMap["ContextInspector"]["abi"]>;
-    let storageBasic: GetContractReturnType<ArtifactsMap["StorageBasic"]["abi"]>;
+    let contextInspectorMock: GetContractReturnType<ArtifactsMap["ContextInspectorMock"]["abi"]>;
+    let storageBasicMock: GetContractReturnType<ArtifactsMap["StorageBasicMock"]["abi"]>;
+
+    // Mock contracts & precompiles need to implement these interfaces. These
+    // ABIs will be used to test the message call behavior.
+    const contextInspectorAbi = hre.artifacts.readArtifactSync("ContextInspector").abi;
+    const storageBasicAbi = hre.artifacts.readArtifactSync("StorageBasic").abi;
 
     before("deploy mock contracts", async function () {
-      contextInspector = await hre.viem.deployContract("ContextInspector");
-
-      storageBasic = await hre.viem.deployContract("StorageBasic");
+      contextInspectorMock = await hre.viem.deployContract("ContextInspectorMock");
+      storageBasicMock = await hre.viem.deployContract("StorageBasicMock");
     });
 
     itHasCorrectMsgSender(() => ({
       lowLevelCaller: lowLevelCaller,
-      implementationContract: contextInspector,
+      implementationAbi: contextInspectorAbi,
+      implementationAddress: contextInspectorMock.address,
     }));
 
     itHasCorrectMsgValue(() => ({
       lowLevelCaller: lowLevelCaller,
-      implementationContract: contextInspector,
+      implementationAbi: contextInspectorAbi,
+      implementationAddress: contextInspectorMock.address,
     }));
 
     itHasCorrectStorageLocation(() => ({
       lowLevelCaller: lowLevelCaller,
-      implementationContract: storageBasic,
+      implementationAbi: storageBasicAbi,
+      implementationAddress: storageBasicMock.address,
     }));
   });
 
