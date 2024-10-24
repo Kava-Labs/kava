@@ -72,6 +72,7 @@ describe("Message calls", () => {
           gas: defaultGas,
           data,
         };
+
       case "callcode":
         if (callCodeValue) {
           // Custom value, use functionCallCodeWithValue that calls the
@@ -160,7 +161,7 @@ describe("Message calls", () => {
   describe("msg.sender", () => {
     let ctx: TestContext<"ContextInspector">;
 
-    before("deploy implementation contract", async function () {
+    before("deploy ContextInspector implementation contract", async function () {
       const contract = await hre.viem.deployContract("ContextInspector");
       ctx = {
         lowLevelCaller: lowLevelCaller,
@@ -273,7 +274,7 @@ describe("Message calls", () => {
   describe("msg.value", () => {
     let ctx: TestContext<"ContextInspector">;
 
-    before("deploy implementation contract", async function () {
+    before("deploy ContextInspector implementation contract", async function () {
       const contract = await hre.viem.deployContract("ContextInspector");
       ctx = {
         lowLevelCaller: lowLevelCaller,
@@ -377,7 +378,7 @@ describe("Message calls", () => {
   describe("storage location", () => {
     let ctx: TestContext<"StorageBasic">;
 
-    before("deploy called contract", async function () {
+    before("deploy storage implementation contract", async function () {
       const contract = await hre.viem.deployContract("StorageBasic");
       ctx = {
         lowLevelCaller: lowLevelCaller,
