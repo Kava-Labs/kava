@@ -164,7 +164,7 @@ func (app *App) AppCodec() codec.Codec {
 func GenesisStateWithSingleValidator(
 	app *TestApp,
 	genesisState GenesisState,
-) GenesisState {
+) (GenesisState, *tmtypes.ValidatorSet) {
 	privVal := mock.NewPV()
 	pubKey, err := privVal.GetPubKey()
 	if err != nil {
@@ -187,7 +187,9 @@ func GenesisStateWithSingleValidator(
 		},
 	}
 
-	return genesisStateWithValSet(app, genesisState, valSet, []authtypes.GenesisAccount{acc}, balances...)
+	genState := genesisStateWithValSet(app, genesisState, valSet, []authtypes.GenesisAccount{acc}, balances...)
+
+	return genState, valSet
 }
 
 // genesisStateWithValSet applies the provided validator set and genesis accounts
@@ -343,12 +345,18 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 		}
 	}
 
+	var (
+		nextValidatorHash []byte
+		valSet            *tmtypes.ValidatorSet
+	)
+
 	// Add default genesis states for at least 1 validator
 	if addValidator {
-		genesisState = GenesisStateWithSingleValidator(
+		genesisState, valSet = GenesisStateWithSingleValidator(
 			&tApp,
 			genesisState,
 		)
+		nextValidatorHash = valSet.Hash()
 	}
 
 	// Initialize the chain
@@ -388,13 +396,14 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeight(
 	// Should we call commit?
 	//fmt.Println("block finalized: ", err)
 	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Time: genTime,
-		//Hash:   tApp.LastCommitID().Hash,
-		Height: tApp.LastBlockHeight() + 1,
-		//		NextValidatorsHash: valSet.Hash(),
-		//		Hash:               app.LastCommitID().Hash,
-		// Height:             app.LastBlockHeight() + 1,
+		Time:               genTime,
+		Hash:               tApp.LastCommitID().Hash,
+		Height:             tApp.LastBlockHeight() + 1,
+		NextValidatorsHash: nextValidatorHash,
 	})
+	if err != nil {
+		panic(err)
+	}
 	//_, err = tApp.Commit()
 	//fmt.Println("chain committed: ", err)
 
@@ -430,12 +439,18 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
 		}
 	}
 
+	var (
+		nextValidatorHash []byte
+		valSet            *tmtypes.ValidatorSet
+	)
+
 	// Add default genesis states for at least 1 validator
 	if addValidator {
-		genesisState = GenesisStateWithSingleValidator(
+		genesisState, valSet = GenesisStateWithSingleValidator(
 			&tApp,
 			genesisState,
 		)
+		nextValidatorHash = valSet.Hash()
 	}
 
 	// Initialize the chain
@@ -471,10 +486,10 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
 	// Should we call commit?
 	//fmt.Println("block finalized: ", err)
 	_, err = tApp.FinalizeBlock(&abci.RequestFinalizeBlock{
-		Time:   genTime,
-		Hash:   tApp.LastCommitID().Hash,
-		Height: tApp.LastBlockHeight() + 1,
-		//		NextValidatorsHash: valSet.Hash(),
+		Time: genTime,
+		//Hash:   tApp.LastCommitID().Hash,
+		Height:             tApp.LastBlockHeight() + 1,
+		NextValidatorsHash: nextValidatorHash,
 		//		Hash:               app.LastCommitID().Hash,
 		// Height:             app.LastBlockHeight() + 1,
 	})

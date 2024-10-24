@@ -4,7 +4,6 @@ go 1.21.9
 
 require (
 	cosmossdk.io/math v1.3.0
-	github.com/cosmos/ibc-go/v7 v7.4.0
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.26.0

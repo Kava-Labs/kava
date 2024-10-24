@@ -211,6 +211,7 @@ var (
 			//upgradeclient.LegacyProposalHandler,
 			//upgradeclient.LegacyCancelProposalHandler,
 			govclient.NewProposalHandler(ibcclientclient.NewTxCmd),
+			//ibcclientclient,
 			//ibcclientclient.UpdateClientProposalHandler,
 			//ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,

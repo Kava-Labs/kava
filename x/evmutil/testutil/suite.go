@@ -131,10 +131,15 @@ func (suite *Suite) SetupTest() {
 	// We need to set the validator as calling the EVM looks up the validator address
 	// https://github.com/evmos/ethermint/blob/f21592ebfe74da7590eb42ed926dae970b2a9a3f/x/evm/keeper/state_transition.go#L487
 	// evmkeeper.EVMConfig() will return error "failed to load evm config" if not set
+	fmt.Println("evmsetup ")
+	fmt.Println(suite.AccountKeeper.GetAccount(suite.Ctx, sdk.AccAddress(suite.Address.Bytes())))
+	fmt.Println(suite.Address)
+	fmt.Println(suite.Address.String())
 	acc := &etherminttypes.EthAccount{
 		BaseAccount: authtypes.NewBaseAccount(sdk.AccAddress(suite.Address.Bytes()), nil, 0, 0),
 		CodeHash:    common.BytesToHash(crypto.Keccak256(nil)).String(),
 	}
+	fmt.Println("acc", acc.GetAddress().String())
 	suite.AccountKeeper.SetAccount(suite.Ctx, acc)
 	valAddr := sdk.ValAddress(suite.Address.Bytes())
 	validator, err := stakingtypes.NewValidator(valAddr.String(), consPriv.PubKey(), stakingtypes.Description{})

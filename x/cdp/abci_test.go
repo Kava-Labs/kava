@@ -121,6 +121,7 @@ func (suite *ModuleTestSuite) createCdps() {
 	suite.cdps = cdps
 	suite.addrs = addrs
 	suite.liquidations = tracker
+	fmt.Println("cdp test setup done")
 }
 
 func (suite *ModuleTestSuite) setPrice(price sdkmath.LegacyDec, market string) {
