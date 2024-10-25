@@ -283,10 +283,6 @@ replace (
 	// Tracking kava-labs/etheremint master branch
 	// TODO: Tag before release
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240802224012-586960857184
-	// first PR
-	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241017145243-770ae9c06817
-	// second PR
-	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241024201621-2269119c2171
 	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241025031311-25d6caa0aef9
 	//github.com/evmos/ethermint => ../ethermint
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
