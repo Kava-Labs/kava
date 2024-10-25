@@ -158,6 +158,13 @@ describe("ABI_DisabledTests", function () {
         gas: messageCallGas,
       },
       {
+        name: "message callcode",
+        to: () => caller.address,
+        mutateData: (data) =>
+          encodeFunctionData({ abi: caller.abi, functionName: "functionCallCode", args: [ctx.address, data] }),
+        gas: messageCallGas,
+      },
+      {
         name: "message delegatecall",
         to: () => caller.address,
         mutateData: (data) =>
