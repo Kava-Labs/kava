@@ -36,6 +36,13 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [unreleased]
 
+### Features
+
+- (cli) [#2017] Support CLI `completion` for bash, zsh, fish, & powershell.
+
+### Improvements
+- (deps) [#1988] Bump cometbft to v0.37.9-kava.1
+
 
 ## [v0.26.2-iavl-v1]
 
@@ -70,10 +77,6 @@ For more details see the [IAVL V1 migration guide](/migrate/v0_26/iavl-v1.md).
     a state similar to if the data has been pruned.
     - An IAVL v1 reference node is saved at the upgrade height pointing to the version 1 data so app
     data for the upgrade version can be properly loaded.
-- (cli) [#2017] Support CLI `completion` for bash, zsh, fish, & powershell.
-
-### Improvements
-- (deps) [#1988] Bump cometbft to v0.37.9-kava.1
 
 ### Bug Fixes
 
