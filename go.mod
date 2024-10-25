@@ -287,7 +287,8 @@ replace (
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241017145243-770ae9c06817
 	// second PR
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241024201621-2269119c2171
-	github.com/evmos/ethermint => ../ethermint
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241025031311-25d6caa0aef9
+	//github.com/evmos/ethermint => ../ethermint
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
 	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
