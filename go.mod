@@ -284,7 +284,7 @@ replace (
 	// TODO: Tag before release
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240802224012-586960857184
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241025031311-25d6caa0aef9
-	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241025140645-2d95f1f26ab4
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241025141234-c69c04dc0b78
 	//github.com/evmos/ethermint => ../ethermint
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
