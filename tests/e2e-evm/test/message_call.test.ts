@@ -284,11 +284,11 @@ describe("Message calls", () => {
       interface valueTestCase {
         name: string;
         type: CallType;
-        wantRevertReason?: string;
         // msg.value for the parent
         giveParentValue: bigint;
         // Call value for the child, only applicable for call, callcode
         giveChildCallValue?: bigint;
+        wantRevertReason?: string;
         // Expected msg.value for the child
         wantChildMsgValue: (txValue: bigint) => bigint;
       }
@@ -387,7 +387,7 @@ describe("Message calls", () => {
         name: string;
         callType: CallType;
         wantRevert?: boolean;
-        wantStorageContract: (ctx: TestContext<"StorageBasic">) => Address;
+        wantStorageContract?: (ctx: TestContext<"StorageBasic">) => Address;
       }
 
       const testCases: storageTestCase[] = [
@@ -412,8 +412,7 @@ describe("Message calls", () => {
           name: "staticcall storage not allowed",
           callType: "staticcall",
           wantRevert: true,
-          // Storage in caller contract
-          wantStorageContract: (ctx) => ctx.lowLevelCaller.address,
+          // No expected storage due to revert
         },
       ];
 
@@ -452,6 +451,10 @@ describe("Message calls", () => {
             await publicClient.call(txData);
           }
 
+          if (!tc.wantStorageContract) {
+            expect.fail("expected storage contract set");
+          }
+
           const txHash = await walletClient.sendTransaction(txData);
           const txReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
           expect(txReceipt.status).to.equal("success");
@@ -474,15 +477,15 @@ describe("Message calls", () => {
     });
   }
 
+  // Mock contracts & precompiles need to implement these interfaces. These
+  // ABIs will be used to test the message call behavior.
+  const contextInspectorAbi = hre.artifacts.readArtifactSync("ContextInspector").abi;
+  const storageBasicAbi = hre.artifacts.readArtifactSync("StorageBasic").abi;
+
   // Test context and storage for mock contracts as a baseline check
   describe("Mock", () => {
     let contextInspectorMock: GetContractReturnType<ArtifactsMap["ContextInspectorMock"]["abi"]>;
     let storageBasicMock: GetContractReturnType<ArtifactsMap["StorageBasicMock"]["abi"]>;
-
-    // Mock contracts & precompiles need to implement these interfaces. These
-    // ABIs will be used to test the message call behavior.
-    const contextInspectorAbi = hre.artifacts.readArtifactSync("ContextInspector").abi;
-    const storageBasicAbi = hre.artifacts.readArtifactSync("StorageBasic").abi;
 
     before("deploy mock contracts", async function () {
       contextInspectorMock = await hre.viem.deployContract("ContextInspectorMock");
