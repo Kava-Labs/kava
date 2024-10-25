@@ -78,7 +78,12 @@ func (app *App) prepForZeroHeightGenesis(ctx sdk.Context, jailWhiteList []string
 
 	// withdraw all validator commission
 	app.stakingKeeper.IterateValidators(ctx, func(_ int64, val stakingtypes.ValidatorI) (stop bool) {
-		_, _ = app.distrKeeper.WithdrawValidatorCommission(ctx, []byte(val.GetOperator()))
+		valAddr, err := app.stakingKeeper.ValidatorAddressCodec().StringToBytes(val.GetOperator())
+		if err != nil {
+			// should we panic?
+			panic(err)
+		}
+		_, _ = app.distrKeeper.WithdrawValidatorCommission(ctx, valAddr)
 		return false
 	})
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
@@ -10,6 +11,7 @@ import (
 )
 
 func main() {
+	fmt.Println("starting cmd")
 	rootCmd := cmd.NewRootCmd()
 
 	//if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
@@ -17,6 +19,7 @@ func main() {
 	//}
 
 	if err := svrcmd.Execute(rootCmd, cmd.EnvPrefix, app.DefaultNodeHome); err != nil {
+		fmt.Println("error for main: ", err)
 		os.Exit(1)
 		//switch e := err.(type) {
 		////case server.ErrorCode:
@@ -26,4 +29,6 @@ func main() {
 		//	os.Exit(1)
 		//}
 	}
+
+	fmt.Println("finished without errors")
 }

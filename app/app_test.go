@@ -45,7 +45,7 @@ func TestExport(t *testing.T) {
 		//log.NewTMLogger(log.NewSyncWriter(os.Stdout)),
 		db, DefaultNodeHome, nil, MakeEncodingConfig(), DefaultOptions, baseapp.SetChainID(TestChainId))
 
-	genesisState := GenesisStateWithSingleValidator(&TestApp{App: *app}, NewDefaultGenesisState())
+	genesisState, _ := GenesisStateWithSingleValidator(&TestApp{App: *app}, NewDefaultGenesisState())
 
 	stateBytes, err := json.Marshal(genesisState)
 	require.NoError(t, err)
