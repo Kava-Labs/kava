@@ -195,8 +195,6 @@ var (
 	LegacyProposalHandler       = govclient.NewProposalHandler(func() *cobra.Command { return upgradecli.NewCmdSubmitUpgradeProposal(ac) })
 	LegacyCancelProposalHandler = govclient.NewProposalHandler(func() *cobra.Command { return upgradecli.NewCmdSubmitCancelUpgradeProposal(ac) })
 
-	// ModuleBasics manages simple versions of full app modules.
-	// It's used for things such as codec registration and genesis file verification.
 	ModuleBasics = module.NewBasicManager(
 		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
 		auth.AppModuleBasic{},
@@ -212,8 +210,6 @@ var (
 			//upgradeclient.LegacyCancelProposalHandler,
 			govclient.NewProposalHandler(ibcclientclient.NewTxCmd),
 			//ibcclientclient,
-			//ibcclientclient.UpdateClientProposalHandler,
-			//ibcclientclient.UpgradeProposalHandler,
 			kavadistclient.ProposalHandler,
 			committeeclient.ProposalHandler,
 			earnclient.DepositProposalHandler,

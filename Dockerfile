@@ -4,7 +4,7 @@ FROM golang:1.21-alpine AS build-env
 # bash, jq, curl for debugging
 # git, make for installation
 # libc-dev, gcc, linux-headers, eudev-dev are used for cgo and ledger installation
-RUN apk add bash git make libc-dev gcc linux-headers eudev-dev jq curl
+RUN apk add bash git make libc-dev gcc linux-headers eudev-dev jq curl binutils-gold
 
 # Set working directory for the build
 WORKDIR /root/kava
