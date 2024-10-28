@@ -398,7 +398,7 @@ func NewApp(
 	options Options,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
+	interfaceRegistry, err := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
 		ProtoFiles: proto.HybridResolver,
 		SigningOptions: signing.Options{
 			AddressCodec: address.Bech32Codec{
@@ -409,6 +409,10 @@ func NewApp(
 			},
 		},
 	})
+	if err != nil {
+		panic(err)
+	}
+
 	appCodec := codec.NewProtoCodec(interfaceRegistry)
 	legacyAmino := codec.NewLegacyAmino()
 	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
