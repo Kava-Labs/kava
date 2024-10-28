@@ -36,8 +36,6 @@ func (k Keeper) SendCoins(
 	// IsSendEnabledCoins() is only used in x/bank in msg server, not in keeper,
 	// so we should also not use it here to align with x/bank behavior.
 
-	fmt.Println("keeper send coins")
-
 	if !amt.IsValid() {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidCoins, amt.String())
 	}
@@ -53,7 +51,6 @@ func (k Keeper) SendCoins(
 
 	// Send the passthrough coins through x/bank
 	if passthroughCoins.IsAllPositive() {
-		fmt.Println("send passthrough coins")
 		if err := k.bk.SendCoins(ctx, from, to, passthroughCoins); err != nil {
 			return err
 		}

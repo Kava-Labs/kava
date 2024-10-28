@@ -13,10 +13,8 @@ import (
 
 // SubmitProposal adds a proposal to a committee so that it can be voted on.
 func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committeeID uint64, pubProposal types.PubProposal) (uint64, error) {
-	fmt.Println("keeper.SubmitProposal")
 	// Limit proposals to only be submitted by committee members
 	com, found := k.GetCommittee(ctx, committeeID)
-	fmt.Println("com", com, found)
 	if !found {
 		return 0, errorsmod.Wrapf(types.ErrUnknownCommittee, "%d", committeeID)
 	}
@@ -29,8 +27,6 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 		return 0, errorsmod.Wrap(sdkerrors.ErrUnauthorized, "committee does not have permissions to enact proposal")
 	}
 
-	fmt.Println("ValidatePubProposal", k.ValidatePubProposal(ctx, pubProposal))
-
 	// Check proposal is valid
 	if err := k.ValidatePubProposal(ctx, pubProposal); err != nil {
 		return 0, err
@@ -39,7 +35,6 @@ func (k Keeper) SubmitProposal(ctx sdk.Context, proposer sdk.AccAddress, committ
 	// Get a new ID and store the proposal
 	deadline := ctx.BlockTime().Add(com.GetProposalDuration())
 	proposalID, err := k.StoreNewProposal(ctx, pubProposal, committeeID, deadline)
-	fmt.Println("proposalID", proposalID, err)
 	if err != nil {
 		return 0, err
 	}
@@ -102,9 +97,6 @@ func (k Keeper) ValidatePubProposal(ctx sdk.Context, pubProposal types.PubPropos
 	if err := pubProposal.ValidateBasic(); err != nil {
 		return err
 	}
-
-	fmt.Println("proposal route", pubProposal.ProposalRoute())
-	fmt.Println("HasRoute", k.router.HasRoute(pubProposal.ProposalRoute()))
 
 	if !k.router.HasRoute(pubProposal.ProposalRoute()) {
 		return errorsmod.Wrapf(types.ErrNoProposalHandlerExists, "%T", pubProposal)

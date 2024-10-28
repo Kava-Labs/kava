@@ -258,9 +258,7 @@ func genesisStateWithValSet(
 
 	// Add the new balances to the existing ones
 	currentBankGenesis := banktypes.GetGenesisStateFromAppState(app.appCodec, genesisState)
-	fmt.Println("genesisStateWithValSet currentBankGenesis", currentBankGenesis)
 	balances = append(currentBankGenesis.Balances, balances...)
-	fmt.Println("genesisStateWithValSet balances", balances)
 
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
@@ -460,8 +458,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
 		panic(err)
 	}
 
-	fmt.Println("InitializeFromGenesisStatesWithTimeAndChainIDAndHeight: before genesis", tApp.GetAccountKeeper().NextAccountNumber(ctx))
-
 	_, err = tApp.InitChain(
 		&abci.RequestInitChain{
 			Time:          genTime,
@@ -479,8 +475,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
 		},
 	)
 
-	fmt.Println("InitializeFromGenesisStatesWithTimeAndChainIDAndHeight: after genesis", tApp.GetAccountKeeper().NextAccountNumber(ctx))
-
 	//_, err = tApp.BeginBlocker(tApp.NewContextLegacy(true, tmproto.Header{Height: tApp.LastBlockHeight() + 1, Time: genTime}))
 
 	// Should we call commit?
@@ -496,8 +490,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
 	//_, err = tApp.Commit()
 	//fmt.Println("chain committed: ", err)
 
-	fmt.Println("InitializeFromGenesisStatesWithTimeAndChainIDAndHeight: after finalize", tApp.GetAccountKeeper().NextAccountNumber(ctx))
-
 	return tApp
 }
 
@@ -508,12 +500,6 @@ func (tApp TestApp) InitializeFromGenesisStatesWithTimeAndChainIDAndHeightCtx(
 func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	sk := tApp.GetStakingKeeper()
 	vals, err := sk.GetAllValidators(ctx)
-	fmt.Println("DeleteGenesisValidator vals", len(vals))
-	fmt.Println("DeleteGenesisValidator vals", vals)
-	require.NoError(t, err)
-	dels, err := sk.GetAllDelegations(ctx)
-	fmt.Println("DeleteGenesisValidator dels", len(dels))
-	fmt.Println("DeleteGenesisValidator dels", dels)
 	require.NoError(t, err)
 
 	_, err = tApp.Commit()
@@ -522,11 +508,6 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 	var genVal stakingtypes.Validator
 	found := false
 	for _, val := range vals {
-		fmt.Println("DeleteGenesisValidator val GetMoniker", val.GetMoniker())
-		fmt.Println("DeleteGenesisValidator val GetTokens", val.GetTokens())
-		fmt.Println("DeleteGenesisValidator val GetBondedTokens", val.GetBondedTokens())
-		fmt.Println("DeleteGenesisValidator val UnbondingTime", val.UnbondingTime)
-		fmt.Println("DeleteGenesisValidator val UnbondingIds", val.UnbondingIds)
 		if val.GetMoniker() == "genesis validator" {
 			genVal = val
 			found = true
@@ -538,14 +519,9 @@ func (tApp TestApp) DeleteGenesisValidator(t *testing.T, ctx sdk.Context) {
 
 	ctxTest := tApp.NewContextLegacy(true, tmproto.Header{})
 
-	fmt.Println("DeleteGenesisValidator genVal.GetDelegatorShares()", genVal.GetDelegatorShares())
-	fmt.Println("DeleteGenesisValidator bonded tokens", genVal.BondedTokens())
-	fmt.Println("DeleteGenesisValidator bonded tokens", genVal.GetOperator())
 	delegations, err := sk.GetValidatorDelegations(ctxTest, []byte(genVal.GetOperator()))
-	fmt.Println("DeleteGenesisValidator delegations", delegations)
 	require.NoError(t, err)
 	for _, delegation := range delegations {
-		fmt.Println("DeleteGenesisValidator delegation", delegation)
 		valBytes, err := sk.ValidatorAddressCodec().StringToBytes(delegation.GetValidatorAddr())
 		require.NoError(t, err)
 		_, _, err = sk.Undelegate(ctx, []byte(delegation.GetDelegatorAddr()), valBytes, delegation.Shares)
@@ -559,29 +535,18 @@ func (tApp TestApp) DeleteGenesisValidatorCoins(t *testing.T, ctx sdk.Context) {
 	bk := tApp.GetBankKeeper()
 
 	notBondedAcc := ak.GetModuleAccount(ctx, stakingtypes.NotBondedPoolName)
-	fmt.Println("DeleteGenesisValidatorCoins notBondedAcc", notBondedAcc)
 
-	for _, add := range tApp.GenesisAddrs {
-		fmt.Println("DeleteGenesisValidatorCoins address", add.String())
-		fmt.Println("balance for the address", bk.GetBalance(ctx, add, "ukava"))
-	}
-	fmt.Println("balance for the notBondedAcc", bk.GetBalance(ctx, notBondedAcc.GetAddress(), "ukava"))
 	// Burn genesis account balance - use staking module to burn
 	genAccBal := bk.GetAllBalances(ctx, tApp.GenesisAddrs[0])
-	fmt.Println("DeleteGenesisValidatorCoins genAccBal", genAccBal)
 	err := bk.SendCoinsFromAccountToModule(ctx, tApp.GenesisAddrs[0], stakingtypes.NotBondedPoolName, genAccBal)
-	fmt.Println("DeleteGenesisValidatorCoins SendCoinsFromAccountToModule", err)
 	require.NoError(t, err)
 
-	fmt.Println("DeleteGenesisValidatorCoins BurnCoins all balances", bk.GetAllBalances(ctx, notBondedAcc.GetAddress()))
-	fmt.Println("DeleteGenesisValidatorCoins BurnCoins all addresses", notBondedAcc.GetAddress())
 	// Burn coins from the module account
 	err = bk.BurnCoins(
 		ctx,
 		stakingtypes.NotBondedPoolName,
 		bk.GetAllBalances(ctx, notBondedAcc.GetAddress()),
 	)
-	fmt.Println("DeleteGenesisValidatorCoins BurnCoins", err)
 	require.NoError(t, err)
 }
 

@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	sdkmath "cosmossdk.io/math"
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -156,17 +155,14 @@ func (h Hooks) AfterValidatorBeginUnbonding(ctx context.Context, consAddr sdk.Co
 // AfterValidatorBonded is called after a validator is bonded
 // Validator status is set to Bonded prior to hook running
 func (h Hooks) AfterValidatorBonded(ctx context.Context, consAddr sdk.ConsAddress, valAddr sdk.ValAddress) error {
-	fmt.Println("calling AfterValidatorBonded")
 	delegations, err := h.k.stakingKeeper.GetValidatorDelegations(ctx, valAddr)
 	if err != nil {
 		return err
 	}
 	sdkCtx := sdk.UnwrapSDKContext(ctx)
-	fmt.Println("val addr", valAddr.String())
 	// Sync all claims for users delegated to this validator.
 	// For each claim, sync based on the total delegated to bonded validators, except for delegations to valAddr.
 	// valAddr's status has just been set to Bonded, but we don't want to include delegations to it in the sync
-	fmt.Println("delegations: ", delegations)
 	for _, delegation := range delegations {
 		h.k.SynchronizeDelegatorRewards(sdkCtx, []byte(delegation.GetDelegatorAddr()), valAddr, false)
 	}

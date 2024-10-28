@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	enccodec "github.com/evmos/ethermint/encoding/codec"
 
 	"github.com/kava-labs/kava/app/params"
@@ -9,9 +8,7 @@ import (
 
 // MakeEncodingConfig creates an EncodingConfig and registers the app's types on it.
 func MakeEncodingConfig() params.EncodingConfig {
-	fmt.Println("MakeEncodingConfig inside app")
 	encodingConfig := params.MakeEncodingConfig()
-	fmt.Println("encodingConfig: ", encodingConfig)
 	enccodec.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	enccodec.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	//ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)

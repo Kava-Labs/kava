@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -12,7 +11,6 @@ import (
 
 // MintPeriodInflation mints new tokens according to the inflation schedule specified in the parameters
 func (k Keeper) MintPeriodInflation(ctx sdk.Context) error {
-	fmt.Println("MintPeriodInflation")
 	params := k.GetParams(ctx)
 	if !params.Active {
 		ctx.EventManager().EmitEvent(
@@ -25,26 +23,22 @@ func (k Keeper) MintPeriodInflation(ctx sdk.Context) error {
 	}
 
 	previousBlockTime, found := k.GetPreviousBlockTime(ctx)
-	fmt.Println("previousBlockTime", previousBlockTime)
 	if !found {
 		previousBlockTime = ctx.BlockTime()
 		k.SetPreviousBlockTime(ctx, previousBlockTime)
 		return nil
 	}
 	err := k.mintIncentivePeriods(ctx, params.Periods, previousBlockTime)
-	fmt.Println("mintIncentivePeriods", err)
 	if err != nil {
 		return err
 	}
 
 	coinsToDistribute, timeElapsed, err := k.mintInfrastructurePeriods(ctx, params.InfrastructureParams.InfrastructurePeriods, previousBlockTime)
-	fmt.Println("mintInfrastructurePeriods", coinsToDistribute, timeElapsed, err)
 	if err != nil {
 		return err
 	}
 
 	err = k.distributeInfrastructureCoins(ctx, params.InfrastructureParams.PartnerRewards, params.InfrastructureParams.CoreRewards, timeElapsed, coinsToDistribute)
-	fmt.Println("distributeInfrastructureCoins", err)
 	if err != nil {
 		return err
 	}
@@ -88,9 +82,7 @@ func (k Keeper) mintIncentivePeriods(ctx sdk.Context, periods types.Periods, pre
 }
 
 func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdkmath.LegacyDec, timePeriods sdkmath.Int, denom string) (sdk.Coin, error) {
-	fmt.Println("mintInflationaryCoins", inflationRate, timePeriods, denom)
 	totalSupply := k.bankKeeper.GetSupply(ctx, denom)
-	fmt.Println("totalSupply", totalSupply)
 	// used to scale accumulator calculations by 10^18
 	scalar := sdkmath.NewInt(1000000000000000000)
 	// convert inflation rate to integer
@@ -102,12 +94,10 @@ func (k Keeper) mintInflationaryCoins(ctx sdk.Context, inflationRate sdkmath.Leg
 	accumulator := sdkmath.LegacyNewDecFromBigInt(sdkmath.RelativePow(inflationInt, timePeriodsUint, scalarUint).BigInt()).Mul(sdkmath.LegacySmallestDec())
 	// calculate the number of coins to mint
 	amountToMint := (sdkmath.LegacyNewDecFromInt(totalSupply.Amount).Mul(accumulator)).Sub(sdkmath.LegacyNewDecFromInt(totalSupply.Amount)).TruncateInt()
-	fmt.Println("amountToMint", amountToMint)
 	if amountToMint.IsZero() {
 		return sdk.Coin{}, nil
 	}
 	err := k.bankKeeper.MintCoins(ctx, types.KavaDistMacc, sdk.NewCoins(sdk.NewCoin(denom, amountToMint)))
-	fmt.Println("mintInflationaryCoins", amountToMint)
 	if err != nil {
 		return sdk.Coin{}, err
 	}

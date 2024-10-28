@@ -23,15 +23,12 @@ func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
 	// only run CDP liquidations every `LiquidationBlockInterval` blocks
 	skipSyncronizeAndLiquidations := ctx.BlockHeight()%params.LiquidationBlockInterval != 0
 
-	fmt.Println("skipSyncronizeAndLiquidations ", skipSyncronizeAndLiquidations)
-
 	// suite.ctx = suite.ctx.WithBlockTime(suite.ctx.BlockTime().Add(time.Second * 6))
 	//		cdp.BeginBlocker(suite.ctx, suite.keeper)
 	//		// block time with balance 2024-10-24 04:02:57.651655 +0000 UTC 1000000027
 	//		fmt.Println("balance time with balance", suite.ctx.BlockTime(), bk.GetBalance(suite.ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	for _, cp := range params.CollateralParams {
-		fmt.Println("cp ", cp)
 		ok := k.UpdatePricefeedStatus(ctx, cp.SpotMarketID)
 		if !ok {
 			continue

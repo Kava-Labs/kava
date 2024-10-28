@@ -558,7 +558,6 @@ func (k Keeper) GetDelegatorRewardIndexes(ctx sdk.Context, denom string) (types.
 
 // SetDelegatorRewardIndexes sets the current reward indexes for an individual denom
 func (k Keeper) SetDelegatorRewardIndexes(ctx sdk.Context, denom string, indexes types.RewardIndexes) {
-	fmt.Println("SetDelegatorRewardIndexes", denom, indexes)
 	store := prefix.NewStore(ctx.KVStore(k.key), types.DelegatorRewardIndexesKeyPrefix)
 	bz := k.cdc.MustMarshal(&types.RewardIndexesProto{
 		RewardIndexes: indexes,

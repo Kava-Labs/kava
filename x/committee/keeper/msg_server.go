@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/kava-labs/kava/x/committee/types"
@@ -23,17 +21,14 @@ var _ types.MsgServer = msgServer{}
 
 // SubmitProposal handles MsgSubmitProposal messages
 func (m msgServer) SubmitProposal(goCtx context.Context, msg *types.MsgSubmitProposal) (*types.MsgSubmitProposalResponse, error) {
-	fmt.Println("msgServer.SubmitProposal")
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	proposer, err := sdk.AccAddressFromBech32(msg.Proposer)
-	fmt.Println("proposer", proposer, err)
 	if err != nil {
 		return nil, err
 	}
 
 	proposalID, err := m.keeper.SubmitProposal(ctx, proposer, msg.CommitteeID, msg.GetPubProposal())
-	fmt.Println("proposalID", proposalID, err)
 	if err != nil {
 		return nil, err
 	}

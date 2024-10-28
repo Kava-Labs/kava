@@ -18,7 +18,6 @@ import (
 // AccumulateEarnRewards calculates new rewards to distribute this block and updates the global indexes to reflect this.
 // The provided rewardPeriod must be valid to avoid panics in calculating time durations.
 func (k Keeper) AccumulateEarnRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
-	fmt.Println("AccumulateEarnRewards", rewardPeriod)
 	if rewardPeriod.CollateralType == "bkava" {
 		return k.accumulateEarnBkavaRewards(ctx, rewardPeriod)
 	}
@@ -65,7 +64,6 @@ func GetProportionalRewardsPerSecond(
 // accumulateEarnBkavaRewards does the same as AccumulateEarnRewards but for
 // *all* bkava vaults.
 func (k Keeper) accumulateEarnBkavaRewards(ctx sdk.Context, rewardPeriod types.MultiRewardPeriod) error {
-	fmt.Println("accumulateEarnBkavaRewards", rewardPeriod)
 	// All bkava vault denoms
 	bkavaVaultsDenoms := make(map[string]bool)
 

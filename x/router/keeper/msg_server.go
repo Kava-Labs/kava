@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -63,8 +62,6 @@ func (m msgServer) MintDeposit(goCtx context.Context, msg *types.MsgMintDeposit)
 func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDelegateMintDeposit) (*types.MsgDelegateMintDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fmt.Println("msgServer.DelegateMintDeposit")
-
 	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		return nil, err
@@ -78,7 +75,6 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 		return nil, stakingtypes.ErrNoValidatorFound
 	}
 	bondDenom, err := m.keeper.stakingKeeper.BondDenom(ctx)
-	fmt.Println("bondDenom", bondDenom, err)
 	if err != nil {
 		return nil, err
 	}
@@ -89,19 +85,16 @@ func (m msgServer) DelegateMintDeposit(goCtx context.Context, msg *types.MsgDele
 		)
 	}
 	newShares, err := m.keeper.stakingKeeper.Delegate(ctx, depositor, msg.Amount.Amount, stakingtypes.Unbonded, validator, true)
-	fmt.Println("newShares", newShares, err)
 	if err != nil {
 		return nil, err
 	}
 
 	derivativeMinted, err := m.keeper.liquidKeeper.MintDerivative(ctx, depositor, valAddr, msg.Amount)
-	fmt.Println("derivativeMinted", derivativeMinted, err)
 	if err != nil {
 		return nil, err
 	}
 
 	err = m.keeper.earnKeeper.Deposit(ctx, depositor, derivativeMinted, earntypes.STRATEGY_TYPE_SAVINGS)
-	fmt.Println("earnKeeper.Deposit err", err)
 	if err != nil {
 		return nil, err
 	}

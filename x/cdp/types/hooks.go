@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -15,7 +14,6 @@ func NewMultiCDPHooks(hooks ...CDPHooks) MultiCDPHooks {
 
 // BeforeCDPModified runs before a cdp is modified
 func (h MultiCDPHooks) BeforeCDPModified(ctx sdk.Context, cdp CDP) {
-	fmt.Println("BeforeCDPModified hook")
 	for i := range h {
 		h[i].BeforeCDPModified(ctx, cdp)
 	}

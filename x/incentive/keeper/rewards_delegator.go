@@ -26,11 +26,7 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 	acc := types.NewAccumulator(previousAccrualTime, indexes)
 
 	totalSource := k.getDelegatorTotalSourceShares(ctx, rewardPeriod.CollateralType)
-	fmt.Println("accumulating request for: ", totalSource)
-
-	fmt.Println("accumulating request for: ", acc.Indexes)
 	acc.Accumulate(rewardPeriod, totalSource, ctx.BlockTime())
-	fmt.Println("accumulating result: ", acc.Indexes)
 
 	k.SetPreviousDelegatorRewardAccrualTime(ctx, rewardPeriod.CollateralType, acc.PreviousAccumulationTime)
 	if len(acc.Indexes) > 0 {
@@ -43,7 +39,6 @@ func (k Keeper) AccumulateDelegatorRewards(ctx sdk.Context, rewardPeriod types.M
 // In the case of delegation, this is the total tokens staked to bonded validators.
 func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdkmath.LegacyDec {
 	totalBonded, err := k.stakingKeeper.TotalBondedTokens(ctx)
-	fmt.Println("getDelegatorTotalSourceShares totalBonded: ", totalBonded, err)
 	if err != nil {
 		// TODO(boodyvo): should we panic here or return zero?
 		//panic(fmt.Sprintf("could not retrieve total bonded tokens: %v", err))
@@ -55,7 +50,6 @@ func (k Keeper) getDelegatorTotalSourceShares(ctx sdk.Context, denom string) sdk
 
 // InitializeDelegatorReward initializes the reward index of a delegator claim
 func (k Keeper) InitializeDelegatorReward(ctx sdk.Context, delegator sdk.AccAddress) {
-	fmt.Println("InitializeDelegatorReward: ", delegator)
 	claim, found := k.GetDelegatorClaim(ctx, delegator)
 	if !found {
 		claim = types.NewDelegatorClaim(delegator, sdk.Coins{}, nil)
@@ -91,13 +85,11 @@ func (k Keeper) SynchronizeDelegatorClaim(ctx sdk.Context, claim types.Delegator
 // side of a validator's state update (from this module's perspective).
 func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) {
 	claim, found := k.GetDelegatorClaim(ctx, delegator)
-	fmt.Println("SynchronizeDelegatorRewards claim: ", delegator.String(), claim)
 	if !found {
 		return
 	}
 
 	globalRewardIndexes, found := k.GetDelegatorRewardIndexes(ctx, types.BondDenom)
-	fmt.Println("SynchronizeDelegatorRewards globalRewardIndexes: ", globalRewardIndexes)
 	if !found {
 		// The global factor is only not found if
 		// - the bond denom has not started accumulating rewards yet (either there is no reward specified in params, or the reward start time hasn't been hit)
@@ -125,15 +117,12 @@ func (k Keeper) SynchronizeDelegatorRewards(ctx sdk.Context, delegator sdk.AccAd
 		panic(fmt.Sprintf("corrupted global reward indexes found: %v", err))
 	}
 
-	fmt.Println("rewardsEarned: ", rewardsEarned)
-
 	claim.Reward = claim.Reward.Add(rewardsEarned...)
 	claim.RewardIndexes = claim.RewardIndexes.With(types.BondDenom, globalRewardIndexes)
 	k.SetDelegatorClaim(ctx, claim)
 }
 
 func (k Keeper) GetTotalDelegated(ctx sdk.Context, delegator sdk.AccAddress, valAddr sdk.ValAddress, shouldIncludeValidator bool) sdkmath.LegacyDec {
-	fmt.Println("GetTotalDelegated: ", delegator, valAddr, shouldIncludeValidator)
 	totalDelegated := sdkmath.LegacyZeroDec()
 
 	delegations, err := k.stakingKeeper.GetDelegatorDelegations(ctx, delegator, 200)

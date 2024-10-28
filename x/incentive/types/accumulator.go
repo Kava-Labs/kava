@@ -32,7 +32,6 @@ func NewAccumulator(previousAccrual time.Time, indexes RewardIndexes) *Accumulat
 //
 // totalSourceShares is the sum of all users' source shares. For example:total btcb supplied to hard, total usdx borrowed from all bnb CDPs, or total shares in a swap pool.
 func (acc *Accumulator) Accumulate(period MultiRewardPeriod, totalSourceShares sdkmath.LegacyDec, currentTime time.Time) {
-	fmt.Println("Accumulate: ", period, totalSourceShares, currentTime)
 	acc.AccumulateDecCoins(
 		period.Start,
 		period.End,
@@ -50,12 +49,9 @@ func (acc *Accumulator) AccumulateDecCoins(
 	totalSourceShares sdkmath.LegacyDec,
 	currentTime time.Time,
 ) {
-	fmt.Println("AccumulateDecCoins: ", periodStart, periodEnd, periodRewardsPerSecond, totalSourceShares, currentTime)
 	accumulationDuration := acc.getTimeElapsedWithinLimits(acc.PreviousAccumulationTime, currentTime, periodStart, periodEnd)
-	fmt.Println("accumulationDuration: ", accumulationDuration)
 
 	indexesIncrement := acc.calculateNewRewards(periodRewardsPerSecond, totalSourceShares, accumulationDuration)
-	fmt.Println("indexesIncrement: ", indexesIncrement)
 
 	acc.Indexes = acc.Indexes.Add(indexesIncrement)
 	acc.PreviousAccumulationTime = minTime(periodEnd, currentTime)
@@ -64,7 +60,6 @@ func (acc *Accumulator) AccumulateDecCoins(
 // getTimeElapsedWithinLimits returns the duration between start and end times, capped by min and max times.
 // If the start and end range is outside the min to max time range then zero duration is returned.
 func (*Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMax time.Time) time.Duration {
-	fmt.Println("getTimeElapsedWithinLimits: ", start, end, limitMin, limitMax)
 	if start.After(end) {
 		panic(fmt.Sprintf("start time (%s) cannot be after end time (%s)", start, end))
 	}
@@ -83,7 +78,6 @@ func (*Accumulator) getTimeElapsedWithinLimits(start, end, limitMin, limitMax ti
 // total rewards per source share, which is what the indexes store.
 // Note, duration is rounded to the nearest second to keep rewards calculation consistent with kava-7.
 func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.DecCoins, totalSourceShares sdkmath.LegacyDec, duration time.Duration) RewardIndexes {
-	fmt.Println("calculateNewRewards: ", rewardsPerSecond, totalSourceShares, duration)
 	if totalSourceShares.LTE(sdkmath.LegacyZeroDec()) {
 		// When there is zero source shares, there is no users with deposits/borrows/delegations to pay out the current block's rewards to.
 		// So drop the rewards and pay out nothing.
@@ -96,9 +90,6 @@ func (*Accumulator) calculateNewRewards(rewardsPerSecond sdk.DecCoins, totalSour
 		return nil
 	}
 	increment := NewRewardIndexesFromCoins(rewardsPerSecond)
-	fmt.Println("increment: ", increment)
-	fmt.Println("durationSeconds: ", durationSeconds)
-	fmt.Println("totalSourceShares: ", totalSourceShares)
 	increment = increment.Mul(sdkmath.LegacyNewDec(durationSeconds)).Quo(totalSourceShares)
 	return increment
 }
@@ -123,7 +114,6 @@ func maxTime(t1, t2 time.Time) time.Time {
 func NewRewardIndexesFromCoins(coins sdk.DecCoins) RewardIndexes {
 	var indexes RewardIndexes
 	for _, coin := range coins {
-		fmt.Println("NewRewardIndexesFromCoins: ", coin.Denom, coin.Amount)
 		indexes = append(indexes, NewRewardIndex(coin.Denom, coin.Amount))
 	}
 	return indexes

@@ -3,7 +3,6 @@ package app
 import (
 	storetypes "cosmossdk.io/store/types"
 	"encoding/json"
-	"fmt"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"log"
 
@@ -21,18 +20,13 @@ func (app *App) ExportAppStateAndValidators(forZeroHeight bool, jailWhiteList []
 	// block time is not available and defaults to Jan 1st, 0001
 	ctx := app.NewContextLegacy(true, tmproto.Header{Height: app.LastBlockHeight()})
 
-	fmt.Println("Exporting genesis 0")
 	height := app.LastBlockHeight() + 1
 	if forZeroHeight {
 		height = 0
 		app.prepForZeroHeightGenesis(ctx, jailWhiteList)
 	}
 
-	fmt.Println("Exporting genesis after zero height...")
-
 	genState, err := app.mm.ExportGenesisForModules(ctx, app.appCodec, modulesToExport)
-	fmt.Println("Exporting genesis 1: ", genState)
-	fmt.Println("Exporting genesis 1 err: ", err)
 	if err != nil {
 		return servertypes.ExportedApp{}, err
 	}

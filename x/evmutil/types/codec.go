@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -13,7 +12,6 @@ import (
 // RegisterLegacyAminoCodec registers the necessary evmutil interfaces and concrete types
 // on the provided LegacyAmino codec. These types are used for Amino JSON serialization.
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
-	fmt.Println("RegisterLegacyAminoCodec evmutil types")
 	legacy.RegisterAminoMsg(cdc, &MsgConvertCoinToERC20{}, "evmutil/MsgConvertCoinToERC20")
 	legacy.RegisterAminoMsg(cdc, &MsgConvertERC20ToCoin{}, "evmutil/MsgConvertERC20ToCoin")
 	legacy.RegisterAminoMsg(cdc, &MsgConvertCosmosCoinToERC20{}, "evmutil/MsgConvertCosmosCoinToERC20")
@@ -21,7 +19,6 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
-	fmt.Println("RegisterInterfaces evmutil types")
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgConvertCoinToERC20{},
 		&MsgConvertERC20ToCoin{},

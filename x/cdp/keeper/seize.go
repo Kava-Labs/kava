@@ -43,26 +43,16 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 	// Calculate the previous collateral ratio
 	oldCollateralToDebtRatio := k.CalculateCollateralToDebtRatio(ctx, cdp.Collateral, cdp.Type, cdp.GetTotalPrincipal())
 
-	cdpMacc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
-	fmt.Println("SeizeCollateral 1", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
-
 	// Move debt coins from cdp to liquidator account
 	deposits := k.GetDeposits(ctx, cdp.ID)
-	fmt.Println("SeizeCollateral first deposits", deposits)
 	debt := cdp.GetTotalPrincipal().Amount
-	fmt.Println("SeizeCollateral first debt", debt)
 	modAccountDebt := k.getModAccountDebt(ctx, types.ModuleName)
 	debt = sdkmath.MinInt(debt, modAccountDebt)
 	debtCoin := sdk.NewCoin(k.GetDebtDenom(ctx), debt)
-	fmt.Println("SeizeCollateral 1.1", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
-	fmt.Println("SeizeCollateral debt", debt)
-	fmt.Println("SeizeCollateral modAccountDebt", modAccountDebt)
-	fmt.Println("SeizeCollateral debtCoin", debtCoin)
 	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, types.LiquidatorMacc, sdk.NewCoins(debtCoin))
 	if err != nil {
 		return err
 	}
-	fmt.Println("SeizeCollateral 2", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	// liquidate deposits and send collateral from cdp to liquidator
 	for _, dep := range deposits {
@@ -82,26 +72,18 @@ func (k Keeper) SeizeCollateral(ctx sdk.Context, cdp types.CDP) error {
 		)
 	}
 
-	fmt.Println("SeizeCollateral 3", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
-
 	err = k.AuctionCollateral(ctx, deposits, cdp.Type, debt, cdp.Principal.Denom)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("SeizeCollateral 4", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
-
 	// Decrement total principal for this collateral type
 	coinsToDecrement := cdp.GetTotalPrincipal()
 	k.DecrementTotalPrincipal(ctx, cdp.Type, coinsToDecrement)
-	fmt.Println("SeizeCollateral 5", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	// Delete CDP from state
 	k.RemoveCdpOwnerIndex(ctx, cdp)
-	fmt.Println("SeizeCollateral 6", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	k.RemoveCdpCollateralRatioIndex(ctx, cdp.Type, cdp.ID, oldCollateralToDebtRatio)
-
-	fmt.Println("SeizeCollateral end", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	return k.DeleteCDP(ctx, cdp)
 }
@@ -117,26 +99,18 @@ func (k Keeper) LiquidateCdps(ctx sdk.Context, marketID string, collateralType s
 		priceDivLiqRatio = sdkmath.LegacySmallestDec()
 	}
 
-	cdpMacc := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
-	fmt.Println("LiquidateCdps 1", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	// price = $0.5
 	// liquidation ratio = 1.5
 	// normalizedRatio = (1/(0.5/1.5)) = 3
 	normalizedRatio := sdkmath.LegacyOneDec().Quo(priceDivLiqRatio)
 	cdpsToLiquidate := k.GetSliceOfCDPsByRatioAndType(ctx, count, normalizedRatio, collateralType)
-	fmt.Println("LiquidateCdps 2", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 	for _, c := range cdpsToLiquidate {
-		fmt.Println("LiquidateCdps 3", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 		k.hooks.BeforeCDPModified(ctx, c)
-		fmt.Println("LiquidateCdps 4", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 		err := k.SeizeCollateral(ctx, c)
-		fmt.Println("LiquidateCdps 5", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64(), err)
 		if err != nil {
 			return err
 		}
 	}
-
-	fmt.Println("LiquidateCdps end", k.bankKeeper.GetBalance(ctx, cdpMacc.GetAddress(), "debt").Amount.Int64())
 
 	return nil
 }
