@@ -36,6 +36,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [unreleased]
 
+### State Machine Breaking Changes
+
+- (ethermint) [ethermint#75] Remove unused fields `verifyingContract` & `salt` from EIP712 domain separator.
+  - Resolves inability to sign EIP712 messages with Metamask.
+
 ### Features
 
 - (cli) [#2017] Support CLI `completion` for bash, zsh, fish, & powershell.
@@ -402,6 +407,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 
 [ethermint#82]: https://github.com/Kava-Labs/ethermint/pull/82
 [ethermint#77]: https://github.com/Kava-Labs/ethermint/pull/77
+[ethermint#75]: https://github.com/Kava-Labs/ethermint/pull/75
 [#2017]: https://github.com/Kava-Labs/kava/pull/2017
 [#1988]: https://github.com/Kava-Labs/kava/pull/1988
 [#1973]: https://github.com/Kava-Labs/kava/pull/1973
