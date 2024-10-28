@@ -4,7 +4,6 @@ import (
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
-	"cosmossdk.io/x/tx/signing"
 	"fmt"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmjson "github.com/cometbft/cometbft/libs/json"
@@ -21,7 +20,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	authcodec "github.com/cosmos/cosmos-sdk/x/auth/codec"
-	"github.com/cosmos/gogoproto/proto"
 	"github.com/spf13/cobra"
 	"io"
 	stdlog "log"
@@ -58,8 +56,6 @@ import (
 	upgradecli "cosmossdk.io/x/upgrade/client/cli"
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	"github.com/cosmos/cosmos-sdk/codec/address"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	consensus "github.com/cosmos/cosmos-sdk/x/consensus"
 	consensusparamkeeper "github.com/cosmos/cosmos-sdk/x/consensus/keeper"
 	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
@@ -398,24 +394,26 @@ func NewApp(
 	options Options,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	interfaceRegistry, err := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
-		ProtoFiles: proto.HybridResolver,
-		SigningOptions: signing.Options{
-			AddressCodec: address.Bech32Codec{
-				Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
-			},
-			ValidatorAddressCodec: address.Bech32Codec{
-				Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
-			},
-		},
-	})
-	if err != nil {
-		panic(err)
-	}
+	//encodingConfig.InterfaceRegistry
+	//interfaceRegistry, err := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
+	//	ProtoFiles: proto.HybridResolver,
+	//	SigningOptions: signing.Options{
+	//		AddressCodec: address.Bech32Codec{
+	//			Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
+	//		},
+	//		ValidatorAddressCodec: address.Bech32Codec{
+	//			Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
+	//		},
+	//	},
+	//})
+	//if err != nil {
+	//	panic(err)
+	//}
 
-	appCodec := codec.NewProtoCodec(interfaceRegistry)
-	legacyAmino := codec.NewLegacyAmino()
-	txConfig := tx.NewTxConfig(appCodec, tx.DefaultSignModes)
+	appCodec := encodingConfig.Marshaler
+	legacyAmino := encodingConfig.Amino
+	interfaceRegistry := encodingConfig.InterfaceRegistry
+	txConfig := encodingConfig.TxConfig
 
 	if err := txConfig.SigningContext().Validate(); err != nil {
 		panic(err)
