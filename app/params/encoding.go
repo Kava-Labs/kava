@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/gogoproto/proto"
+	enccodec "github.com/evmos/ethermint/encoding/codec"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -44,6 +45,9 @@ func MakeEncodingConfig() EncodingConfig {
 	if txCfg.SigningContext().Validate() != nil {
 		panic("invalid tx signing context")
 	}
+
+	enccodec.RegisterLegacyAminoCodec(amino)
+	enccodec.RegisterInterfaces(interfaceRegistry)
 
 	return EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,

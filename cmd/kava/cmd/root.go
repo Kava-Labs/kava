@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cosmossdk.io/log"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -40,6 +41,7 @@ func NewRootCmd() *cobra.Command {
 	app.SetSDKConfig().Seal()
 
 	encodingConfig := app.MakeEncodingConfig()
+	tempApp := app.NewApp(log.NewNopLogger(), dbm.NewMemDB(), app.DefaultNodeHome, nil, encodingConfig, app.DefaultOptions)
 
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Marshaler).
@@ -87,6 +89,14 @@ func NewRootCmd() *cobra.Command {
 
 	addSubCmds(rootCmd, encodingConfig, app.DefaultNodeHome)
 
+	// add keyring to autocli opts
+	autoCliOpts := tempApp.AutoCliOpts()
+	autoCliOpts.ClientCtx = initClientCtx
+
+	if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
+		panic(err)
+	}
+
 	return rootCmd
 }
 
@@ -121,8 +131,9 @@ func addSubCmds(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, de
 		//config.Cmd(),
 	)
 
+	newConf := params.MakeEncodingConfig()
 	ac := appCreator{
-		encodingConfig: encodingConfig,
+		encodingConfig: newConf,
 	}
 
 	opts := ethermintserver.StartOptions{
