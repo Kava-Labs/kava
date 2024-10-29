@@ -265,7 +265,7 @@ replace (
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.50.10-test-patch 5f9239e3147358ef034bfc4d19aacb34e5ea2064
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241024201445-a8e1a4abf85b
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241028210826-2ee91f938fbb
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241029003441-f8e61c868e7f
 	//github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 
 	//github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.1
