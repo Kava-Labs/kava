@@ -9,6 +9,9 @@ unless otherwise specified.
 
 Steps for using IAVL V1:
 
+> [!IMPORTANT]  
+> Nodes running IAVL V1 should set `iavl-disable-fastnode = true` in their `app.toml` file.
+
 **For `goleveldb` nodes:**
 1. Replace or recreate your node data with IAVL V1: see [Data](#data).
 2. Install an IAVL V1 binary:
