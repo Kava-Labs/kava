@@ -7,6 +7,10 @@ storage footprint required for Kava nodes.
 The first version of Kava using IAVL V1 is `v0.26.2-iavl-v1`. Future major versions will use IAVL V1
 unless otherwise specified.
 
+> [!IMPORTANT]
+> IAVL V1 should not be used with the fastnode. In `app.toml`, ensure it is disabled:
+> `iavl-disable-fastnode = true`
+
 Steps for using IAVL V1:
 
 **For `goleveldb` nodes:**
@@ -40,6 +44,9 @@ For nodes with minimal historical state, we recommend bootstrapping your node wi
 For an example of how to setup a node with statesync, see [here](https://www.polkachu.com/state_sync/kava).
 
 A public RPC server is available at `https://rpc.kava.io:443`.
+
+If you would prefer to start from a compressed data directory, a [fully-pruned IAVL V1 goleveldb
+snapshot is available for download from Polkachu](https://www.polkachu.com/tendermint_snapshots/kava).
 
 ### Full-archive node
 
