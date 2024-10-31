@@ -6,6 +6,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
+	"github.com/cometbft/cometbft/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -21,12 +26,6 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-
-	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/crypto/tmhash"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmversion "github.com/cometbft/cometbft/proto/tendermint/version"
-	"github.com/cometbft/cometbft/version"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/tests"
@@ -48,6 +47,7 @@ const (
 	ChainID       = app.TestChainId
 	USDCCoinDenom = "erc20/usdc"
 	USDCCDPType   = "erc20-usdc"
+	TxGas         = uint64(sims.DefaultGenTxGas * 10)
 )
 
 type EIP712TestSuite struct {
@@ -72,31 +72,59 @@ func (suite *EIP712TestSuite) getEVMAmount(amount int64) sdkmath.Int {
 	return sdkmath.NewInt(amount).Mul(sdkmath.NewIntFromUint64(incr.Uint64()))
 }
 
-func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
-	from sdk.AccAddress,
-	priv cryptotypes.PrivKey,
-	chainId string,
-	gas uint64,
+func (suite *EIP712TestSuite) buildTransaction(
 	gasAmount sdk.Coins,
 	msgs []sdk.Msg,
+	nonce uint64,
+	pubKey cryptotypes.PubKey,
+	option *codectypes.Any,
+) client.TxBuilder {
+	suite.clientCtx.TxConfig.SignModeHandler()
+	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
+	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
+	suite.Require().True(ok)
+
+	builder.SetExtensionOptions(option)
+	builder.SetFeeAmount(gasAmount)
+	builder.SetGasLimit(TxGas)
+
+	sigsV2 := signing.SignatureV2{
+		PubKey: pubKey,
+		Data: &signing.SingleSignatureData{
+			SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+		},
+		Sequence: nonce,
+	}
+
+	err := builder.SetSignatures(sigsV2)
+	suite.Require().NoError(err)
+
+	err = builder.SetMsgs(msgs...)
+	suite.Require().NoError(err)
+
+	return builder
+}
+
+func (suite *EIP712TestSuite) buildSigHash(
+	from sdk.AccAddress,
+	chainID string,
+	gasAmount sdk.Coins,
+	msgs []sdk.Msg,
+	nonce uint64,
 	customDomain *apitypes.TypedDataDomain,
 	customDomainTypes []apitypes.Type,
-) client.TxBuilder {
-	// Get required info
-	nonce, err := suite.tApp.GetAccountKeeper().GetSequence(suite.ctx, from)
+) []byte {
+	pc, err := etherminttypes.ParseChainID(chainID)
 	suite.Require().NoError(err)
-
-	pc, err := etherminttypes.ParseChainID(chainId)
-	suite.Require().NoError(err)
-	ethChainId := pc.Uint64()
+	ethChainID := pc.Uint64()
 
 	// GenerateTypedData TypedData
-	fee := legacytx.NewStdFee(gas, gasAmount)
+	fee := legacytx.NewStdFee(TxGas, gasAmount) //nolint:staticcheck // Deprecated but EIP712 still uses legacytx
 	accNumber := suite.tApp.GetAccountKeeper().GetAccount(suite.ctx, from).GetAccountNumber()
 
-	data := eip712.ConstructUntypedEIP712Data(chainId, accNumber, nonce, 0, fee, msgs, "", nil)
+	data := eip712.ConstructUntypedEIP712Data(chainID, accNumber, nonce, 0, fee, msgs, "", nil)
 	typedData, err := eip712.WrapTxToTypedData(
-		ethChainId,
+		ethChainID,
 		msgs,
 		data,
 		&eip712.FeeDelegationOptions{
@@ -120,6 +148,36 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 	sigHash, err := eip712.ComputeTypedDataHash(typedData)
 	suite.Require().NoError(err)
 
+	return sigHash
+}
+
+func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
+	from sdk.AccAddress,
+	priv cryptotypes.PrivKey,
+	chainID string,
+	gasAmount sdk.Coins,
+	msgs []sdk.Msg,
+	customDomain *apitypes.TypedDataDomain,
+	customDomainTypes []apitypes.Type,
+) client.TxBuilder {
+	// Get required info
+	nonce, err := suite.tApp.GetAccountKeeper().GetSequence(suite.ctx, from)
+	suite.Require().NoError(err)
+
+	pc, err := etherminttypes.ParseChainID(chainID)
+	suite.Require().NoError(err)
+	ethChainID := pc.Uint64()
+
+	sigHash := suite.buildSigHash(
+		from,
+		chainID,
+		gasAmount,
+		msgs,
+		nonce,
+		customDomain,
+		customDomainTypes,
+	)
+
 	// Sign sighHash
 	keyringSigner := tests.NewSigner(priv)
 	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
@@ -130,50 +188,31 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 	var option *codectypes.Any
 	option, err = codectypes.NewAnyWithValue(&etherminttypes.ExtensionOptionsWeb3Tx{
 		FeePayer:         from.String(),
-		TypedDataChainID: ethChainId,
+		TypedDataChainID: ethChainID,
 		FeePayerSig:      signature,
 	})
 	suite.Require().NoError(err)
 
-	suite.clientCtx.TxConfig.SignModeHandler()
-	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
-	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok)
-
-	builder.SetExtensionOptions(option)
-	builder.SetFeeAmount(gasAmount)
-	builder.SetGasLimit(gas)
-
-	sigsV2 := signing.SignatureV2{
-		PubKey: pubKey,
-		Data: &signing.SingleSignatureData{
-			SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
-		},
-		Sequence: nonce,
-	}
-
-	err = builder.SetSignatures(sigsV2)
-	suite.Require().NoError(err)
-
-	err = builder.SetMsgs(msgs...)
-	suite.Require().NoError(err)
-
-	return builder
+	return suite.buildTransaction(
+		gasAmount,
+		msgs,
+		nonce,
+		pubKey,
+		option,
+	)
 }
 
 func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilder(
 	from sdk.AccAddress,
 	priv cryptotypes.PrivKey,
-	chainId string,
-	gas uint64,
+	chainID string,
 	gasAmount sdk.Coins,
 	msgs []sdk.Msg,
 ) client.TxBuilder {
 	return suite.createTestEIP712CosmosTxBuilderWithDomain(
 		from,
 		priv,
-		chainId,
-		gas,
+		chainID,
 		gasAmount,
 		msgs,
 		nil,
@@ -358,6 +397,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 	suite.ctx = ctx
 
 	// We need to set the validator as calling the EVM looks up the validator address
+	//nolint:lll // ignore long line for link
 	// https://github.com/evmos/ethermint/blob/f21592ebfe74da7590eb42ed926dae970b2a9a3f/x/evm/keeper/state_transition.go#L487
 	// evmkeeper.EVMConfig() will return error "failed to load evm config" if not set
 	valAcc := &etherminttypes.EthAccount{
@@ -374,7 +414,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 	tApp.GetStakingKeeper().SetValidator(ctx, validator)
 
 	// Deploy an ERC20 contract for USDC
-	contractAddr := suite.deployUSDCERC20(tApp, ctx)
+	contractAddr := suite.deployUSDCERC20()
 	pair := evmutiltypes.NewConversionPair(
 		contractAddr,
 		USDCCoinDenom,
@@ -467,21 +507,22 @@ func (suite *EIP712TestSuite) SetupTest() {
 			},
 		},
 	}
-	evmKeeper.SetParams(suite.ctx, params)
+	err = evmKeeper.SetParams(suite.ctx, params)
+	suite.Require().NoError(err)
 
 	// give test address 50k erc20 usdc to begin with
 	initBal := suite.getEVMAmount(50_000)
 	err = suite.evmutilKeeper.MintERC20(
 		ctx,
 		pair.GetAddress(), // contractAddr
-		suite.testEVMAddr, //receiver
+		suite.testEVMAddr, // receiver
 		initBal.BigInt(),
 	)
 	suite.Require().NoError(err)
 	err = suite.evmutilKeeper.MintERC20(
 		ctx,
 		pair.GetAddress(),  // contractAddr
-		suite.testEVMAddr2, //receiver
+		suite.testEVMAddr2, // receiver
 		initBal.BigInt(),
 	)
 	suite.Require().NoError(err)
@@ -497,7 +538,7 @@ func (suite *EIP712TestSuite) SetupTest() {
 func (suite *EIP712TestSuite) Commit() {
 	_ = suite.tApp.Commit()
 	header := suite.ctx.BlockHeader()
-	header.Height += 1
+	header.Height++
 	suite.tApp.BeginBlock(abci.RequestBeginBlock{
 		Header: header,
 	})
@@ -506,13 +547,14 @@ func (suite *EIP712TestSuite) Commit() {
 	suite.ctx = suite.tApp.NewContext(false, header)
 }
 
-func (suite *EIP712TestSuite) deployUSDCERC20(app app.TestApp, ctx sdk.Context) evmutiltypes.InternalEVMAddress {
+func (suite *EIP712TestSuite) deployUSDCERC20() evmutiltypes.InternalEVMAddress {
 	// make sure module account is created
-	suite.tApp.FundModuleAccount(
+	err := suite.tApp.FundModuleAccount(
 		suite.ctx,
 		evmutiltypes.ModuleName,
 		sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(0))),
 	)
+	suite.Require().NoError(err)
 
 	contractAddr, err := suite.evmutilKeeper.DeployTestMintableERC20Contract(suite.ctx, "USDC", "USDC", uint8(18))
 	suite.Require().NoError(err)
@@ -589,13 +631,14 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  90,
 			failCheckTx:    true,
 			errMsg:         "tx intended signer does not match the given signer",
-			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
-				var option *codectypes.Any
-				option, _ = codectypes.NewAnyWithValue(&etherminttypes.ExtensionOptionsWeb3Tx{
+			updateTx: func(txBuilder client.TxBuilder, _ []sdk.Msg) client.TxBuilder {
+				option, err := codectypes.NewAnyWithValue(&etherminttypes.ExtensionOptionsWeb3Tx{
 					FeePayer:         suite.testAddr.String(),
 					TypedDataChainID: 2221,
 					FeePayerSig:      []byte("sig"),
 				})
+				suite.Require().NoError(err)
+
 				builder, _ := txBuilder.(authtx.ExtensionOptionsTxBuilder)
 				builder.SetExtensionOptions(option)
 				return txBuilder
@@ -606,10 +649,16 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdcDepositAmt: 100,
 			usdxToMintAmt:  90,
 			errMsg:         "insufficient funds",
-			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+			updateTx: func(txBuilder client.TxBuilder, _ []sdk.Msg) client.TxBuilder {
 				bk := suite.tApp.GetBankKeeper()
 				gasCoins := bk.GetBalance(suite.ctx, suite.testAddr, "ukava")
-				suite.tApp.GetBankKeeper().SendCoins(suite.ctx, suite.testAddr, suite.testAddr2, sdk.NewCoins(gasCoins))
+				err := suite.tApp.GetBankKeeper().SendCoins(
+					suite.ctx,
+					suite.testAddr,
+					suite.testAddr2,
+					sdk.NewCoins(gasCoins),
+				)
+				suite.Require().NoError(err)
 				return txBuilder
 			},
 		},
@@ -619,10 +668,14 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  90,
 			failCheckTx:    true,
 			errMsg:         "invalid chain-id",
-			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+			updateTx: func(_ client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 				return suite.createTestEIP712CosmosTxBuilder(
-					suite.testAddr, suite.testPrivKey, "kavatest_12-1", uint64(sims.DefaultGenTxGas*10), gasAmt, msgs,
+					suite.testAddr,
+					suite.testPrivKey,
+					"kavatest_12-1",
+					gasAmt,
+					msgs,
 				)
 			},
 		},
@@ -632,10 +685,14 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  90,
 			failCheckTx:    true,
 			errMsg:         "invalid pubkey",
-			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+			updateTx: func(_ client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 				return suite.createTestEIP712CosmosTxBuilder(
-					suite.testAddr2, suite.testPrivKey2, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, msgs,
+					suite.testAddr2,
+					suite.testPrivKey2,
+					ChainID,
+					gasAmt,
+					msgs,
 				)
 			},
 		},
@@ -645,12 +702,12 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  90,
 			failCheckTx:    false,
 			errMsg:         "",
-			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+			updateTx: func(_ client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 
 				pc, err := etherminttypes.ParseChainID(ChainID)
 				suite.Require().NoError(err)
-				ethChainId := pc.Int64()
+				ethChainID := pc.Int64()
 
 				// Expected domain used in Ethermint ante handler
 				// These are explicitly set in this test to ensure Ethermint
@@ -658,9 +715,9 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 				domain := apitypes.TypedDataDomain{
 					Name:    "Kava Cosmos",
 					Version: "1.0.0",
-					ChainId: math.NewHexOrDecimal256(ethChainId),
+					ChainId: math.NewHexOrDecimal256(ethChainID),
 
-					// Both should be ommitted
+					// Both should be omitted
 					Salt:              "",
 					VerifyingContract: "",
 				}
@@ -688,7 +745,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr,
 					suite.testPrivKey,
 					ChainID,
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 					&domain,
@@ -702,12 +758,12 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  90,
 			failCheckTx:    true,
 			errMsg:         "signature verification failed",
-			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+			updateTx: func(_ client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 
 				pc, err := etherminttypes.ParseChainID(ChainID)
 				suite.Require().NoError(err)
-				ethChainId := pc.Int64()
+				ethChainID := pc.Int64()
 
 				// Domain and types are **not** included in the tx data.
 				// Both signature creation on client & verification in ante
@@ -715,7 +771,7 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 				domain := apitypes.TypedDataDomain{
 					Name:    "Kava Cosmos",
 					Version: "1.0.0",
-					ChainId: math.NewHexOrDecimal256(ethChainId),
+					ChainId: math.NewHexOrDecimal256(ethChainID),
 
 					Salt: "",
 					// Original value with string type instead of address.
@@ -747,7 +803,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr,
 					suite.testPrivKey,
 					ChainID,
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 					&domain,
@@ -761,17 +816,17 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 			usdxToMintAmt:  90,
 			failCheckTx:    true,
 			errMsg:         "signature verification failed",
-			updateTx: func(txBuilder client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
+			updateTx: func(_ client.TxBuilder, msgs []sdk.Msg) client.TxBuilder {
 				gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 
 				pc, err := etherminttypes.ParseChainID(ChainID)
 				suite.Require().NoError(err)
-				ethChainId := pc.Int64()
+				ethChainID := pc.Int64()
 
 				domain := apitypes.TypedDataDomain{
 					Name:    "Kava Cosmos",
 					Version: "1.0.0",
-					ChainId: math.NewHexOrDecimal256(ethChainId),
+					ChainId: math.NewHexOrDecimal256(ethChainID),
 
 					Salt: "",
 					// Address type
@@ -802,7 +857,6 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 					suite.testAddr,
 					suite.testPrivKey,
 					ChainID,
-					uint64(sims.DefaultGenTxGas*10),
 					gasAmt,
 					msgs,
 					&domain,
@@ -846,7 +900,11 @@ func (suite *EIP712TestSuite) TestEIP712Tx() {
 
 			gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 			txBuilder := suite.createTestEIP712CosmosTxBuilder(
-				suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, msgs,
+				suite.testAddr,
+				suite.testPrivKey,
+				ChainID,
+				gasAmt,
+				msgs,
 			)
 			if tc.updateTx != nil {
 				txBuilder = tc.updateTx(txBuilder, msgs)
@@ -932,7 +990,11 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 	// deliver deposit msg
 	gasAmt := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(20)))
 	txBuilder := suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, depositMsgs,
+		suite.testAddr,
+		suite.testPrivKey,
+		ChainID,
+		gasAmt,
+		depositMsgs,
 	)
 	txBytes, err := encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
@@ -977,7 +1039,11 @@ func (suite *EIP712TestSuite) TestEIP712Tx_DepositAndWithdraw() {
 
 	// deliver withdraw msg
 	txBuilder = suite.createTestEIP712CosmosTxBuilder(
-		suite.testAddr, suite.testPrivKey, ChainID, uint64(sims.DefaultGenTxGas*10), gasAmt, withdrawMsgs,
+		suite.testAddr,
+		suite.testPrivKey,
+		ChainID,
+		gasAmt,
+		withdrawMsgs,
 	)
 	txBytes, err = encodingConfig.TxConfig.TxEncoder()(txBuilder.GetTx())
 	suite.Require().NoError(err)
