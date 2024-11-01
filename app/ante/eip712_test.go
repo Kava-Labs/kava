@@ -178,7 +178,7 @@ func (suite *EIP712TestSuite) createTestEIP712CosmosTxBuilderWithDomain(
 		customDomainTypes,
 	)
 
-	// Sign sighHash
+	// Sign sigHash
 	keyringSigner := tests.NewSigner(priv)
 	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
 	suite.Require().NoError(err)
