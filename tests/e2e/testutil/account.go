@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"log"
 	"math/big"
 	"os"
@@ -208,7 +209,7 @@ func (a *SigningAccount) SignAndBroadcastEvmTx(req util.EvmTxRequest) EvmTxRespo
 // It does not broadcast the signed data.
 func (a *SigningAccount) SignRawEvmData(msg []byte) ([]byte, cryptotypes.PubKey, error) {
 	keyringSigner := emtests.NewSigner(a.evmPrivKey)
-	return keyringSigner.SignByAddress(a.SdkAddress, msg)
+	return keyringSigner.SignByAddress(a.SdkAddress, msg, signing.SignMode_SIGN_MODE_DIRECT)
 }
 
 // NewFundedAccount creates a SigningAccount for a random account & funds the account from the whale.

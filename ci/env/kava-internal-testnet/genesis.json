@@ -2636,6 +2636,11 @@
         "send_sequences": [],
         "recv_sequences": [],
         "ack_sequences": [],
+        "params": {
+          "upgrade_timeout": {
+            "timestamp":"600000000000"
+          }
+        },
         "next_channel_sequence": "0"
       }
     },

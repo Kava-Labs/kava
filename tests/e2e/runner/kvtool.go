@@ -68,12 +68,18 @@ func (k *KvtoolRunner) StartChains() Chains {
 	// start the chain
 	startKavaCmd := exec.Command("kvtool", kvtoolArgs...)
 	startKavaCmd.Env = os.Environ()
-	startKavaCmd.Env = append(startKavaCmd.Env, fmt.Sprintf("KAVA_TAG=%s", k.config.ImageTag))
+	//startKavaCmd.Env = append(startKavaCmd.Env, fmt.Sprintf("KAVA_TAG=%s", k.config.ImageTag))
+	startKavaCmd.Env = append(startKavaCmd.Env, fmt.Sprintf("KAVA_TAG=local"))
+	fmt.Println("going to run cmd with image tag", k.config.ImageTag)
+	fmt.Println("going to run cmd with env", startKavaCmd.Env)
+	fmt.Println("going to run cmd", startKavaCmd.String())
 	startKavaCmd.Stdout = os.Stdout
 	startKavaCmd.Stderr = os.Stderr
 	log.Println(startKavaCmd.String())
+	fmt.Println("going to run cmd", startKavaCmd.String())
 	if err := startKavaCmd.Run(); err != nil {
-		panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
+		//panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
+		fmt.Println("failed to start kava: %s", err.Error())
 	}
 
 	// wait for chain to be live.
@@ -105,7 +111,7 @@ func (k *KvtoolRunner) Shutdown() {
 	shutdownKavaCmd := exec.Command("kvtool", "testnet", "down")
 	shutdownKavaCmd.Stdout = os.Stdout
 	shutdownKavaCmd.Stderr = os.Stderr
-	if err := shutdownKavaCmd.Run(); err != nil {
-		panic(fmt.Sprintf("failed to shutdown kvtool: %s", err.Error()))
-	}
+	//if err := shutdownKavaCmd.Run(); err != nil {
+	//	panic(fmt.Sprintf("failed to shutdown kvtool: %s", err.Error()))
+	//}
 }

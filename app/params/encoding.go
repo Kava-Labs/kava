@@ -10,6 +10,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/gogoproto/proto"
 	enccodec "github.com/evmos/ethermint/encoding/codec"
+	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // EncodingConfig specifies the concrete encoding types to use for a given app.
@@ -31,9 +33,9 @@ func MakeEncodingConfig() EncodingConfig {
 		ValidatorAddressCodec: address.Bech32Codec{
 			Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
 		},
-		//CustomGetSigners: map[protoreflect.FullName]signing.GetSignersFunc{
-		//	ethermint.MsgEthereumTxCustomGetSigner.MsgType:     ethermint.MsgEthereumTxCustomGetSigner.Fn,
-		//},
+		CustomGetSigners: map[protoreflect.FullName]signing.GetSignersFunc{
+			evmtypes.MsgEthereumTxGetSigner.MsgType: evmtypes.MsgEthereumTxGetSigner.Fn,
+		},
 	}
 	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
 		ProtoFiles:     proto.HybridResolver,

@@ -249,8 +249,15 @@ func (chain *Chain) GetBeginBlockEvents(ctx context.Context, height int64) (sdk.
 
 	// Do not use sdk.StringifyEvents as it flattens events which makes it
 	// more difficult to parse.
-	strEvents := make(sdk.StringEvents, 0, len(res.BeginBlockEvents))
-	for _, e := range res.BeginBlockEvents {
+
+	// TODO(boodyvo): identify what should be done here, as BeginBlockEvents are not publically exposed, so necessary to check what is the logic
+
+	//strEvents := make(sdk.StringEvents, 0, len(res.BeginBlockEvents))
+	//for _, e := range res.BeginBlockEvents {
+	//	strEvents = append(strEvents, sdk.StringifyEvent(e))
+	//}
+	strEvents := make(sdk.StringEvents, 0, len(res.FinalizeBlockEvents))
+	for _, e := range res.FinalizeBlockEvents {
 		strEvents = append(strEvents, sdk.StringifyEvent(e))
 	}
 

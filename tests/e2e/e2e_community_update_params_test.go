@@ -121,6 +121,8 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		"community-update-params",
 		"title",
 		"summary",
+		// TODO(boodyvo): add expidited test when turned on
+		false,
 	)
 	suite.NoError(err)
 

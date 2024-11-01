@@ -26,8 +26,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime/debug"
-
 	//storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -396,24 +394,6 @@ func NewApp(
 	options Options,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {
-	fmt.Println("NewApp initialization", encodingConfig)
-	debug.PrintStack()
-	//encodingConfig.InterfaceRegistry
-	//interfaceRegistry, err := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
-	//	ProtoFiles: proto.HybridResolver,
-	//	SigningOptions: signing.Options{
-	//		AddressCodec: address.Bech32Codec{
-	//			Bech32Prefix: sdk.GetConfig().GetBech32AccountAddrPrefix(),
-	//		},
-	//		ValidatorAddressCodec: address.Bech32Codec{
-	//			Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
-	//		},
-	//	},
-	//})
-	//if err != nil {
-	//	panic(err)
-	//}
-
 	appCodec := encodingConfig.Marshaler
 	legacyAmino := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry

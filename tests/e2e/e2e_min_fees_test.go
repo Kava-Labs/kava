@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 	"math/big"
 	"os"
 	"path/filepath"

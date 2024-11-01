@@ -22,7 +22,7 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	acc *SigningAccount, chain *Chain, gas uint64, gasAmount sdk.Coins, msgs []sdk.Msg, memo string,
 ) client.TxBuilder {
 	// get account details
-	var accDetails authtypes.AccountI
+	var accDetails sdk.AccountI
 	a, err := chain.Grpc.Query.Auth.Account(context.Background(), &authtypes.QueryAccountRequest{
 		Address: acc.SdkAddress.String(),
 	})
@@ -54,7 +54,6 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 		fee,
 		msgs,
 		memo,
-		nil,
 	)
 	// -- typed data
 	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, untypedData, &eip712.FeeDelegationOptions{

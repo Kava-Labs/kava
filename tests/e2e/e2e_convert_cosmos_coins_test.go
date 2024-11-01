@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"math/big"
 	"time"
@@ -426,7 +427,7 @@ func (suite *IntegrationTestSuite) TestConvertCosmosCoins_ERC20Magic() {
 	suite.BigIntsEqual(big.NewInt(0), erc20Balance, "expected no erc20 balance for bob")
 	// bob should have sdk balance
 	balance := suite.Kava.QuerySdkForBalances(bob.SdkAddress).AmountOf(denom)
-	suite.Equal(sdk.NewIntFromBigInt(amount), balance)
+	suite.Equal(sdkmath.NewIntFromBigInt(amount), balance)
 
 	// alice should have the remaining balance
 	erc20Balance = suite.Kava.GetErc20Balance(contractAddress.Address, alice.EvmAddress)

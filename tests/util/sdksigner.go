@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-	"cosmossdk.io/api/cosmos/tx/signing/v1beta1"
 	"errors"
 	"fmt"
 	"time"
@@ -12,6 +11,7 @@ import (
 	grpcstatus "google.golang.org/grpc/status"
 
 	errorsmod "cosmossdk.io/errors"
+	//"cosmossdk.io/x/tx/signing"
 	tmmempool "github.com/cometbft/cometbft/mempool"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -401,11 +401,23 @@ func Sign(
 		return txBuilder.GetTx(), nil, err
 	}
 
-	// TEXTTUAL will use context for formatting the sign bytes, other just ignore context
-	signBytes, err := txConfig.SignModeHandler().GetSignBytes(context.Background(), signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT), signerData, txBuilder.GetTx())
+	signBytes, err := authsigning.GetSignBytesAdapter(
+		context.Background(), txConfig.SignModeHandler(), signing.SignMode_SIGN_MODE_DIRECT, signerData, txBuilder.GetTx())
 	if err != nil {
 		return txBuilder.GetTx(), nil, err
 	}
+
+	// ctx context.Context, signMode signingv1beta1.SignMode, signerData SignerData, txData TxData
+	// TEXTTUAL will use context for formatting the sign bytes, other just ignore context
+	//signBytes, err := txConfig.SignModeHandler().GetSignBytes(
+	//	context.Background(),
+	//	signingv1beta1.SignMode(signing.SignMode_SIGN_MODE_DIRECT),
+	//	signerData,
+	//	txBuilder.GetTx(),
+	//)
+	//if err != nil {
+	//	return txBuilder.GetTx(), nil, err
+	//}
 	signature, err := privKey.Sign(signBytes)
 	if err != nil {
 		return txBuilder.GetTx(), nil, err

@@ -17,15 +17,16 @@ func FilterEventsByType(events []abci.Event, eventType string) []abci.Event {
 	return filteredEvents
 }
 
+// TODO(boodyvo): is not used?
 // FilterTxEventsByType returns a slice of events that match the given type
 // from any and all txs in a slice of ResponseDeliverTx.
-func FilterTxEventsByType(txs []*abci.ResponseDeliverTx, eventType string) []abci.Event {
-	filteredEvents := []abci.Event{}
-
-	for _, tx := range txs {
-		events := FilterEventsByType(tx.Events, eventType)
-		filteredEvents = append(filteredEvents, events...)
-	}
-
-	return filteredEvents
-}
+//func FilterTxEventsByType(txs []*abci.ResponseDeliverTx, eventType string) []abci.Event {
+//	filteredEvents := []abci.Event{}
+//
+//	for _, tx := range txs {
+//		events := FilterEventsByType(tx.Events, eventType)
+//		filteredEvents = append(filteredEvents, events...)
+//	}
+//
+//	return filteredEvents
+//}
