@@ -240,6 +240,6 @@ replace (
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
 	// See https://github.com/cometbft/cometbft-db/pull/191
 	github.com/syndtr/goleveldb => github.com/informalsystems/goleveldb v0.0.0-20240822155617-8112573615f8
-	// Avoid change in slices.SortFunc, see https://github.com/cosmos/cosmos-sdk/issues/20159
+	// Avoid change in slices.SortFunc, see https://github.com/cosmos/cosmos-sdk/issues/18415
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 )
