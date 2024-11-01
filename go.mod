@@ -36,7 +36,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/subosito/gotenv v1.6.0
 	golang.org/x/crypto v0.27.0
-	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	google.golang.org/genproto/googleapis/api v0.0.0-20240814211410-ddb44dafa142
 	google.golang.org/grpc v1.67.0
 	google.golang.org/protobuf v1.34.2
@@ -107,7 +107,7 @@ require (
 	github.com/getsentry/sentry-go v0.27.0 // indirect
 	github.com/go-kit/log v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
-	github.com/go-logr/logr v1.4.1 // indirect
+	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
@@ -239,8 +239,8 @@ replace (
 	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.0-kava-v27.0
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0
-	// Downgraded to avoid bugs in following commits which causes "version does not exist" errors
-	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	// See https://github.com/cometbft/cometbft-db/pull/191
+	github.com/syndtr/goleveldb => github.com/informalsystems/goleveldb v0.0.0-20240822155617-8112573615f8
 	// Avoid change in slices.SortFunc, see https://github.com/cosmos/cosmos-sdk/issues/20159
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 )
