@@ -396,6 +396,8 @@ github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE
 github.com/coinbase/kryptology v1.8.0/go.mod h1:RYXOAPdzOGUe3qlSFkMGn58i3xUA8hmxYHksuq+8ciI=
 github.com/coinbase/rosetta-sdk-go v0.7.9 h1:lqllBjMnazTjIqYrOGv8h8jxjg9+hJazIGZr9ZvoCcA=
 github.com/coinbase/rosetta-sdk-go v0.7.9/go.mod h1:0/knutI7XGVqXmmH4OQD8OckFrbQ8yMsUZTG7FXCR2M=
+github.com/cometbft/cometbft-db v0.9.5 h1:ZlIm/peuB9BlRuK01/b/hIIWH2U2m2Q0DNfZ7JmCvhY=
+github.com/cometbft/cometbft-db v0.9.5/go.mod h1:Sr3SrYWcAyGvL0HzZMaSJOGMWDEIyiXV1QjCMxM/HNk=
 github.com/confio/ics23/go v0.9.0 h1:cWs+wdbS2KRPZezoaaj+qBleXgUk5WOQFMP3CQFGTr4=
 github.com/confio/ics23/go v0.9.0/go.mod h1:4LPZ2NYqnYIVRklaozjNR1FScgDJ2s5Xrp+e/mYVRak=
 github.com/consensys/bavard v0.1.8-0.20210406032232-f3452dc9b572/go.mod h1:Bpd0/3mZuaj6Sj+PqrmIquiOKy397AKGThQPaGzNXAQ=
@@ -901,8 +903,6 @@ github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef/go.mod h1:Ct9fl0F
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
 github.com/kava-labs/cometbft v0.37.13-kava.1 h1:r7HgFDLu6jCfVbRMoQCpvcGzFEvmqyLKeVibFtxjLkk=
 github.com/kava-labs/cometbft v0.37.13-kava.1/go.mod h1:PHxduPKAWdfFUAqi6a2nrA+WBfjEqQ6Vg27fIBntRYE=
-github.com/kava-labs/cometbft-db v0.9.1-kava.2 h1:ZQaio886ifvml9XtJB4IYHhlArgA3+/a5Zwidg7H2J8=
-github.com/kava-labs/cometbft-db v0.9.1-kava.2/go.mod h1:PvUZbx7zeR7I4CAvtKBoii/5ia5gXskKjDjIVpt7gDw=
 github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.2 h1:rbUXwJFlrRd05G1D5S5zAlmTTBbkcf0w36QFf5+i9tk=
 github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.2/go.mod h1:OwLYEBcsnijCLE8gYkwQ7jycZZ/Acd+a83pJU+V+MKw=
 github.com/kava-labs/ethermint v0.21.0-kava-v27.0 h1:TzFhLQULsyQUA+b620FMGvZHTNriRuWLFGShwW/4xCA=
