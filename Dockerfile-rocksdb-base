@@ -1,6 +1,6 @@
 # published to https://hub.docker.com/repository/docker/kava/rocksdb/tags
 # docker buildx build --platform linux/amd64,linux/arm64 -t kava/rocksdb:v8.10.1-go1.21 -f Dockerfile-rocksdb-base . --push
-FROM golang:1.21-bullseye
+FROM golang:1.22-bullseye
 
 # Set up dependencies
 RUN apt-get update \
