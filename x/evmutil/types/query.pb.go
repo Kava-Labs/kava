@@ -411,6 +411,7 @@ func _Query_DeployedCosmosCoinContracts_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.evmutil.v1beta1.Query",
 	HandlerType: (*QueryServer)(nil),

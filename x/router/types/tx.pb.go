@@ -574,6 +574,7 @@ func _Msg_WithdrawBurnUndelegate_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.router.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),

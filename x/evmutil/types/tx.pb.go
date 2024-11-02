@@ -1124,6 +1124,7 @@ func _Msg_ConvertCosmosCoinFromERC20_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+var Msg_serviceDesc = _Msg_serviceDesc
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "kava.evmutil.v1beta1.Msg",
 	HandlerType: (*MsgServer)(nil),
