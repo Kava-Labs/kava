@@ -11,7 +11,7 @@ require (
 	cosmossdk.io/simapp v0.0.0-20231127212628-044ff4d8c015
 	github.com/Kava-Labs/opendb v0.0.0-20240719173129-a2f11f6d7e51
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/cometbft/cometbft v0.37.9
+	github.com/cometbft/cometbft v0.37.13
 	github.com/cometbft/cometbft-db v0.9.5
 	github.com/cosmos/cosmos-proto v1.0.0-beta.5
 	github.com/cosmos/cosmos-sdk v0.47.10
