@@ -834,6 +834,8 @@ github.com/kava-labs/cometbft-db v0.0.0-20241007145430-b2740b2e4bed h1:3FNJ3fcD9
 github.com/kava-labs/cometbft-db v0.0.0-20241007145430-b2740b2e4bed/go.mod h1:buPRZKyVp+u5fmwN7tDtOk1zc5xA2z9BJJTy61tNnws=
 github.com/kava-labs/cosmos-sdk v0.0.0-20241104154228-9f413992bbe2 h1:rZ3KCm7PZG/IsX2r1L8ZyMhxRL/8FCZ4pGGjPd7obZ0=
 github.com/kava-labs/cosmos-sdk v0.0.0-20241104154228-9f413992bbe2/go.mod h1:6Eesrx3ZE7vxBZWpK++30H+Uc7Q4ahQWCL7JKU/LEdU=
+github.com/kava-labs/ethermint v0.0.0-20241104233136-8128d9ec7482 h1:UAr+KpZ6Xde0TsW3JmGEztFL7GibrkSHMC0xzwoacJQ=
+github.com/kava-labs/ethermint v0.0.0-20241104233136-8128d9ec7482/go.mod h1:dFh15Ndobz1zWqWcJm9ML+0BnMt5m8gS+MhVUcAGLpg=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
 github.com/kisielk/errcheck v1.2.0/go.mod h1:/BMXB+zMLi60iA8Vv6Ksmxu/1UDYcXs4uQLJ+jE2L00=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
