@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	errorsmod "cosmossdk.io/errors"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -10,19 +11,19 @@ import (
 )
 
 const (
-	UpgradeName_Mainnet = "v0.27.0"
-	UpgradeName_Testnet = "v0.27.0-alpha.0"
+	UpgradeNameMainnet = "v0.27.0"
+	UpgradeNameTestnet = "v0.27.0-alpha.0"
 )
 
 // RegisterUpgradeHandlers registers the upgrade handlers for the app.
 func (app App) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(
-		UpgradeName_Mainnet,
-		upgradeHandler(app, UpgradeName_Mainnet),
+		UpgradeNameMainnet,
+		upgradeHandler(app, UpgradeNameMainnet),
 	)
 	app.upgradeKeeper.SetUpgradeHandler(
-		UpgradeName_Testnet,
-		upgradeHandler(app, UpgradeName_Testnet),
+		UpgradeNameTestnet,
+		upgradeHandler(app, UpgradeNameTestnet),
 	)
 
 	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
@@ -30,8 +31,8 @@ func (app App) RegisterUpgradeHandlers() {
 		panic(err)
 	}
 
-	doUpgrade := upgradeInfo.Name == UpgradeName_Mainnet ||
-		upgradeInfo.Name == UpgradeName_Testnet
+	doUpgrade := upgradeInfo.Name == UpgradeNameMainnet ||
+		upgradeInfo.Name == UpgradeNameTestnet
 
 	if doUpgrade && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
 		storeUpgrades := storetypes.StoreUpgrades{}
@@ -57,7 +58,7 @@ func upgradeHandler(
 		// run migrations for all modules and return new consensus version map
 		versionMap, err := app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		if err != nil {
-			return nil, err
+			return nil, errorsmod.Wrap(err, "failed to run migrations")
 		}
 
 		logger.Info("completed store migrations")

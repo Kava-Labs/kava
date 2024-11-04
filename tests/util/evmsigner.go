@@ -18,6 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	etherminttypes "github.com/evmos/ethermint/types"
 )
 
 var (
@@ -81,8 +82,8 @@ func NewEvmSigner(
 	}, nil
 }
 
-func NewEvmSignerFromMnemonic(evmClient *ethclient.Client, evmChainId *big.Int, mnemonic string) (*EvmSigner, error) {
-	hdPath := hd.CreateHDPath(60, 0, 0)
+func NewEvmSignerFromMnemonic(evmClient *ethclient.Client, evmChainID *big.Int, mnemonic string) (*EvmSigner, error) {
+	hdPath := hd.CreateHDPath(etherminttypes.Bip44CoinType, 0, 0)
 	privKeyBytes, err := hd.Secp256k1.Derive()(mnemonic, "", hdPath.String())
 	if err != nil {
 		return nil, errorsmod.Wrap(err, "failed to derive private key from mnemonic")
@@ -90,10 +91,10 @@ func NewEvmSignerFromMnemonic(evmClient *ethclient.Client, evmChainId *big.Int, 
 	privKey := &ethsecp256k1.PrivKey{Key: privKeyBytes}
 	ecdsaPrivKey, err := crypto.HexToECDSA(hex.EncodeToString(privKey.Bytes()))
 	if err != nil {
-		return nil, err
+		return nil, errorsmod.Wrap(err, "failed to convert hex to ECDSA")
 	}
 
-	return NewEvmSigner(evmClient, ecdsaPrivKey, evmChainId)
+	return NewEvmSigner(evmClient, ecdsaPrivKey, evmChainID)
 }
 
 func (s *EvmSigner) Run(requests <-chan EvmTxRequest) <-chan EvmTxResponse {

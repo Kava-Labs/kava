@@ -1,9 +1,8 @@
+//nolint:lll // these tests have some long lines :D
 package keeper_test
 
 import (
 	"time"
-
-	"github.com/kava-labs/kava/x/hard/keeper"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto"
@@ -12,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/x/hard"
+	"github.com/kava-labs/kava/x/hard/keeper"
 	"github.com/kava-labs/kava/x/hard/types"
 	pricefeedtypes "github.com/kava-labs/kava/x/pricefeed/types"
 )
