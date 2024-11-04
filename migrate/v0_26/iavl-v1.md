@@ -7,12 +7,12 @@ storage footprint required for Kava nodes.
 The first version of Kava using IAVL V1 is `v0.26.2-iavl-v1`. Future major versions will use IAVL V1
 unless otherwise specified.
 
-Steps for using IAVL V1:
+## Configuration
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Nodes running IAVL V1 should set `iavl-disable-fastnode = true` in their `app.toml` file.
 
-**For `goleveldb` nodes:**
+### `goleveldb` nodes
 1. Replace or recreate your node data with IAVL V1: see [Data](#data).
 2. Install an IAVL V1 binary:
 ```sh
@@ -21,7 +21,18 @@ make install
 ```
 1. Start kava as usual: `kava start`
 
-**For `rocksdb` nodes:**
+### `rocksdb` nodes
+
+> [!TIP]
+> Since v0.26.2, databases are opened with [opendb](https://github.com/Kava-Labs/opendb/) which
+> makes rocksdb more configurable. For best memory performance, node operators are encouraged to add
+> these settings to their `app.toml` when running with `db_backend = rocksdb`:
+> ```toml
+> [rocksdb]
+> max_open_files = 16384 # increase default max # of open files from 4096
+> block_size = 16384 # decreases block index memory by 4x!
+> ```
+
 1. Replace or recreate your node data with IAVL V1: see [Data](#data).
 2. Update your default memory allocator: see [default memory allocator](#default-memory-allocator)
 3. Install an IAVL V1 binary:
