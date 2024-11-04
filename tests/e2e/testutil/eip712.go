@@ -62,6 +62,11 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 	}, evmParams.Params)
 	suite.NoError(err)
 
+	// --- Validate the typed data for EMPTY EIP712 domain fields - verifyingContract and salt
+	// Related path for Metamask signing: https://github.com/Kava-Labs/ethermint/pull/75
+	suite.Require().Equal("", typedData.Domain.VerifyingContract, "EIP712 domain.VerifyingContract should be empty")
+	suite.Require().Equal("", typedData.Domain.Salt, "EIP712 domain.Salt should be empty")
+
 	// -- raw data hash!
 	data, err := eip712.ComputeTypedDataHash(typedData)
 	suite.NoError(err)
