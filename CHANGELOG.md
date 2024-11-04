@@ -46,8 +46,10 @@ Ref: https://keepachangelog.com/en/1.0.0/
 - (cli) [#2017] Support CLI `completion` for bash, zsh, fish, & powershell.
 
 ### Improvements
-- (deps) [#1988] Bump cometbft to v0.37.9-kava.1
-
+- (deps) [#2047] Bump cometbft to v0.37.13-kava.1
+- (deps) [#2047] Bump cometbft-db to v0.9.5 for use with rocksdb v9.2.1
+- (deps) [#2047] Replace goleveldb with informalsystems fork to resolve [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
+- (deps) [#2047] Bump Go version minimum requirement to `1.22`
 
 ## [v0.26.2-iavl-v1]
 
@@ -408,8 +410,8 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [ethermint#82]: https://github.com/Kava-Labs/ethermint/pull/82
 [ethermint#77]: https://github.com/Kava-Labs/ethermint/pull/77
 [ethermint#75]: https://github.com/Kava-Labs/ethermint/pull/75
+[#2047]: https://github.com/Kava-Labs/kava/pull/2047
 [#2017]: https://github.com/Kava-Labs/kava/pull/2017
-[#1988]: https://github.com/Kava-Labs/kava/pull/1988
 [#1973]: https://github.com/Kava-Labs/kava/pull/1973
 [#1967]: https://github.com/Kava-Labs/kava/pull/1967
 [#1954]: https://github.com/Kava-Labs/kava/pull/1954
