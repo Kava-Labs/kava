@@ -1,8 +1,12 @@
 package testutil
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -16,6 +20,87 @@ import (
 	emtypes "github.com/evmos/ethermint/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 )
+
+func dataMismatchError(encType string, encValue interface{}) error {
+	return fmt.Errorf("provided data '%v' doesn't match type '%s'", encValue, encType)
+}
+
+func EncodeData(typedData apitypes.TypedData, primaryType string, data map[string]interface{}, depth int) (hexutil.Bytes, error) {
+	//if err := typedData.validate(); err != nil {
+	//	return nil, err
+	//}
+
+	buffer := bytes.Buffer{}
+
+	// Verify extra data
+	if exp, got := len(typedData.Types[primaryType]), len(data); exp < got {
+		return nil, fmt.Errorf("there is extra data provided in the message (%d < %d)", exp, got)
+	}
+
+	// Add typehash
+	buffer.Write(typedData.TypeHash(primaryType))
+
+	// Add field contents. Structs and arrays have special handlers.
+	for _, field := range typedData.Types[primaryType] {
+		fmt.Println("field", field)
+		encType := field.Type
+		encValue := data[field.Name]
+		if encType[len(encType)-1:] == "]" {
+			arrayValue, ok := encValue.([]interface{})
+			fmt.Println("arrayValue 1", arrayValue, ok)
+			if !ok {
+				return nil, dataMismatchError(encType, encValue)
+			}
+
+			arrayBuffer := bytes.Buffer{}
+			parsedType := strings.Split(encType, "[")[0]
+			for _, item := range arrayValue {
+				if typedData.Types[parsedType] != nil {
+					mapValue, ok := item.(map[string]interface{})
+					fmt.Println("mapValue 1", mapValue, ok)
+					if !ok {
+						return nil, dataMismatchError(parsedType, item)
+					}
+					encodedData, err := typedData.EncodeData(parsedType, mapValue, depth+1)
+					fmt.Println("encodedData 1", encodedData, err)
+					if err != nil {
+						return nil, err
+					}
+					arrayBuffer.Write(crypto.Keccak256(encodedData))
+				} else {
+					bytesValue, err := typedData.EncodePrimitiveValue(parsedType, item, depth)
+					fmt.Println("bytesValue 1", bytesValue, err)
+					if err != nil {
+						return nil, err
+					}
+					arrayBuffer.Write(bytesValue)
+				}
+			}
+
+			buffer.Write(crypto.Keccak256(arrayBuffer.Bytes()))
+		} else if typedData.Types[field.Type] != nil {
+			mapValue, ok := encValue.(map[string]interface{})
+			fmt.Println("mapValue 2", mapValue, ok)
+			if !ok {
+				return nil, dataMismatchError(encType, encValue)
+			}
+			encodedData, err := typedData.EncodeData(field.Type, mapValue, depth+1)
+			fmt.Println("encodedData 2", encodedData, err)
+			if err != nil {
+				return nil, err
+			}
+			buffer.Write(crypto.Keccak256(encodedData))
+		} else {
+			byteValue, err := typedData.EncodePrimitiveValue(encType, encValue, depth)
+			fmt.Println("byteValue 2", byteValue, err)
+			if err != nil {
+				return nil, err
+			}
+			buffer.Write(byteValue)
+		}
+	}
+	return buffer.Bytes(), nil
+}
 
 // NewEip712TxBuilder is a helper method for creating an EIP712 signed tx
 // A tx like this is what a user signing cosmos messages with Metamask would broadcast.
@@ -63,6 +148,11 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 		FeePayer: acc.SdkAddress,
 	}, evmParams.Params)
 	suite.NoError(err)
+
+	fmt.Println("got typedData", typedData)
+
+	encodedData, err := EncodeData(typedData, typedData.PrimaryType, typedData.Message, 1)
+	fmt.Println("encodedData", encodedData, err)
 
 	// -- raw data hash!
 	data, err := eip712.ComputeTypedDataHash(typedData)

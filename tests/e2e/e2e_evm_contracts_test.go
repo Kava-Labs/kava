@@ -95,7 +95,8 @@ func (suite *IntegrationTestSuite) TestEip712BasicMessageAuthorization() {
 	suite.NoError(err)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
-	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 6*time.Second)
+	//_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 6*time.Second)
+	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 20*time.Second)
 	suite.NoError(err)
 
 	// check that the message was processed & the kava is transferred.

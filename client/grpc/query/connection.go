@@ -2,8 +2,10 @@ package query
 
 import (
 	"context"
+	"cosmossdk.io/log"
 	"crypto/tls"
 	"fmt"
+	dbm "github.com/cosmos/cosmos-db"
 	"net/url"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -34,6 +36,14 @@ func newGrpcConnection(ctx context.Context, endpoint string) (*grpc.ClientConn, 
 	// otherwise it will produce panics like:
 	// invalid Go type math.Int for field ...
 	encodingConfig := app.MakeEncodingConfig()
+	_ = app.NewApp(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		app.DefaultNodeHome,
+		nil,
+		encodingConfig,
+		app.DefaultOptions,
+	)
 	protoCodec := codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
 	grpcCodec := protoCodec.GRPCCodec()
 
