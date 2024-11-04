@@ -242,6 +242,6 @@ replace (
 	github.com/syndtr/goleveldb => github.com/informalsystems/goleveldb v0.0.0-20240822155617-8112573615f8
 	// Avoid change in slices.SortFunc, see https://github.com/cosmos/cosmos-sdk/issues/18415
 	golang.org/x/exp => golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
-	// stick with compatible version of rapid in v0.47.x line
+	// Rapid is only used for Cosmos SDK tests, including replace to match for clarity and explicitness
 	pgregory.net/rapid => pgregory.net/rapid v0.5.5
 )
