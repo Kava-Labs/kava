@@ -2,6 +2,7 @@ package testutil
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -23,10 +24,12 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 ) client.TxBuilder {
 	// get account details
 	var accDetails sdk.AccountI
+	fmt.Println("going to fetch", acc.SdkAddress.String())
 	a, err := chain.Grpc.Query.Auth.Account(context.Background(), &authtypes.QueryAccountRequest{
 		Address: acc.SdkAddress.String(),
 	})
 	suite.NoError(err)
+	fmt.Println("a.Account after check: ", a)
 	err = chain.EncodingConfig.InterfaceRegistry.UnpackAny(a.Account, &accDetails)
 	suite.NoError(err)
 

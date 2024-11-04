@@ -33,13 +33,13 @@ func NewClientWithConfig(grpcUrl string, config KavaGrpcClientConfig) (*KavaGrpc
 	if grpcUrl == "" {
 		return nil, errors.New("grpc url cannot be empty")
 	}
-	query, error := query.NewQueryClient(grpcUrl)
-	if error != nil {
-		return nil, error
+	queryClient, err := query.NewQueryClient(grpcUrl)
+	if err != nil {
+		return nil, err
 	}
 	client := &KavaGrpcClient{
-		Query:  query,
-		Util:   util.NewUtil(query),
+		Query:  queryClient,
+		Util:   util.NewUtil(queryClient),
 		config: config,
 	}
 	return client, nil

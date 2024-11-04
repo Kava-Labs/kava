@@ -2,6 +2,8 @@ package util
 
 import (
 	"context"
+	"cosmossdk.io/log"
+	dbm "github.com/cosmos/cosmos-db"
 	"strconv"
 
 	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
@@ -20,9 +22,19 @@ type Util struct {
 
 // NewUtil creates a new Util instance
 func NewUtil(query *query.QueryClient) *Util {
+	encodingConfig := app.MakeEncodingConfig()
+	_ = app.NewApp(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		app.DefaultNodeHome,
+		nil,
+		encodingConfig,
+		app.DefaultOptions,
+	)
+
 	return &Util{
 		query:          query,
-		encodingConfig: app.MakeEncodingConfig(),
+		encodingConfig: encodingConfig,
 	}
 }
 

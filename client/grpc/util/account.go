@@ -3,12 +3,14 @@ package util
 import (
 	"context"
 	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // Account fetches an account via an address and returns the unpacked account
-func (u *Util) Account(addr string) (authtypes.AccountI, error) {
+func (u *Util) Account(addr string) (sdk.AccountI, error) {
+	fmt.Println("Util fetching account for address:", addr)
 	res, err := u.query.Auth.Account(context.Background(), &authtypes.QueryAccountRequest{
 		Address: addr,
 	})
@@ -16,7 +18,10 @@ func (u *Util) Account(addr string) (authtypes.AccountI, error) {
 		return nil, fmt.Errorf("failed to fetch account: %w", err)
 	}
 
-	var acc authtypes.AccountI
+	var acc sdk.AccountI
+
+	fmt.Println("trying to unpack any", res.Account)
+
 	err = u.encodingConfig.Marshaler.UnpackAny(res.Account, &acc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unpack account: %w", err)
@@ -27,6 +32,7 @@ func (u *Util) Account(addr string) (authtypes.AccountI, error) {
 // BaseAccount fetches a base account via an address or returns an error if
 // the account is not a base account
 func (u *Util) BaseAccount(addr string) (authtypes.BaseAccount, error) {
+	fmt.Println("Util fetching base account for address:", addr)
 	acc, err := u.Account(addr)
 	if err != nil {
 		return authtypes.BaseAccount{}, err

@@ -2,7 +2,9 @@ package testutil
 
 import (
 	"context"
+	"cosmossdk.io/log"
 	"fmt"
+	dbm "github.com/cosmos/cosmos-db"
 	"math/big"
 	"testing"
 
@@ -60,6 +62,15 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		erc20s:        make(map[common.Address]struct{}),
 	}
 	chain.EncodingConfig = app.MakeEncodingConfig()
+	// we need to register necessary codec for encoding config
+	_ = app.NewApp(
+		log.NewNopLogger(),
+		dbm.NewMemDB(),
+		app.DefaultNodeHome,
+		nil,
+		chain.EncodingConfig,
+		app.DefaultOptions,
+	)
 
 	// setup keyring
 	kr, err := keyring.New(
