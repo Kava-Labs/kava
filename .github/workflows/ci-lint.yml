@@ -21,7 +21,7 @@ jobs:
         id: load-version
         run: |
           GOLANGCI_VERSION=$(cat .golangci-version)
-          REV=$(git merge-base origin/master HEAD)
+          REV=$(git merge-base v0.26.2-iavl-v1 HEAD)
           echo "GOLANGCI_VERSION=$GOLANGCI_VERSION" >> $GITHUB_ENV
           echo "REV=$REV" >> $GITHUB_ENV
       - name: golangci-lint
