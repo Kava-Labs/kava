@@ -27,6 +27,8 @@ pull_request_rules:
           - release/v0.24.x
           - release/v0.25.x
           - release/v0.26.x
+          - release/v0.26.x-iavl-v1
+          - release/v0.27.x
 
   - name: Backport patches to the release/v0.17.x branch
     conditions:
@@ -99,3 +101,21 @@ pull_request_rules:
       backport:
         branches:
           - release/v0.26.x
+
+  - name: Backport patches to the release/v0.26.x-iavl-v1 branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.26.x-iavl-v1
+    actions:
+      backport:
+        branches:
+          - release/v0.26.x-iavl-v1
+
+  - name: Backport patches to the release/v0.27.x branch
+    conditions:
+      - base=master
+      - label=A:backport/v0.27.x
+    actions:
+      backport:
+        branches:
+          - release/v0.27.x
