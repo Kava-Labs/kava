@@ -2,6 +2,7 @@ package params
 
 import (
 	"cosmossdk.io/x/tx/signing"
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"
@@ -12,6 +13,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	enccodec "github.com/evmos/ethermint/encoding/codec"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -41,8 +43,15 @@ func MakeEncodingConfig() EncodingConfig {
 			evmutiltypes.MsgConvertERC20ToCoinGetSigners.MsgType:         evmutiltypes.MsgConvertERC20ToCoinGetSigners.Fn,
 			evmutiltypes.MsgConvertCosmosCoinToERC20GetSigners.MsgType:   evmutiltypes.MsgConvertCosmosCoinToERC20GetSigners.Fn,
 			evmutiltypes.MsgConvertCosmosCoinFromERC20GetSigners.MsgType: evmutiltypes.MsgConvertCosmosCoinFromERC20GetSigners.Fn,
+			cdptypes.MsgCreateCDPGetSigners.MsgType:                      cdptypes.MsgCreateCDPGetSigners.Fn,
+			cdptypes.MsgDepositGetSigners.MsgType:                        cdptypes.MsgDepositGetSigners.Fn,
+			cdptypes.MsgWithdrawGetSigners.MsgType:                       cdptypes.MsgWithdrawGetSigners.Fn,
+			cdptypes.MsgDrawDebtGetSigners.MsgType:                       cdptypes.MsgDrawDebtGetSigners.Fn,
+			cdptypes.MsgRepayDebtGetSigners.MsgType:                      cdptypes.MsgRepayDebtGetSigners.Fn,
+			cdptypes.MsgLiquidateGetSigners.MsgType:                      cdptypes.MsgLiquidateGetSigners.Fn,
 		},
 	}
+	fmt.Println("registering customer signers", signingOptions.CustomGetSigners)
 	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
 		ProtoFiles:     proto.HybridResolver,
 		SigningOptions: signingOptions,

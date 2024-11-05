@@ -1,8 +1,14 @@
 package types
 
 import (
+	txsigning "cosmossdk.io/x/tx/signing"
 	"errors"
 	"fmt"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	protov1 "github.com/golang/protobuf/proto"
+	protov2 "google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/protoadapt"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"strings"
 
 	errorsmod "cosmossdk.io/errors"
@@ -18,6 +24,33 @@ var (
 	_ sdk.Msg = &MsgDrawDebt{}
 	_ sdk.Msg = &MsgRepayDebt{}
 	_ sdk.Msg = &MsgLiquidate{}
+)
+
+var (
+	MsgCreateCDPGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgCreateCDP{})),
+		Fn:      GetSignersMsgCreateCDP,
+	}
+	MsgDepositGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgDeposit{})),
+		Fn:      GetSignersMsgDeposit,
+	}
+	MsgWithdrawGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgWithdraw{})),
+		Fn:      GetSignersMsgWithdraw,
+	}
+	MsgDrawDebtGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgDrawDebt{})),
+		Fn:      GetSignersMsgDrawDebt,
+	}
+	MsgRepayDebtGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgRepayDebt{})),
+		Fn:      GetSignersMsgRepayDebt,
+	}
+	MsgLiquidateGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgLiquidate{})),
+		Fn:      GetSignersMsgLiquidate,
+	}
 )
 
 // NewMsgCreateCDP returns a new MsgPlaceBid.
@@ -61,13 +94,35 @@ func (msg MsgCreateCDP) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// GetSigners returns the addresses of signers that must sign.
+// GetSignersMsgCreateCDP returns the addresses of signers that must sign.
 func (msg MsgCreateCDP) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{sender}
+}
+
+func GetSignersMsgCreateCDP(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgCreateCDP{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msgTyped.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{sender}, nil
 }
 
 // NewMsgDeposit returns a new MsgDeposit
@@ -112,13 +167,35 @@ func (msg MsgDeposit) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// GetSigners returns the addresses of signers that must sign.
-func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
-	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
+// GetSignersMsgCreateCDP returns the addresses of signers that must sign.
+//func (msg MsgDeposit) GetSigners() []sdk.AccAddress {
+//	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return []sdk.AccAddress{depositor}
+//}
+
+func GetSignersMsgDeposit(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return []sdk.AccAddress{depositor}
+
+	msgTyped := &MsgDeposit{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	depositor, err := sdk.AccAddressFromBech32(msgTyped.Depositor)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{depositor}, nil
 }
 
 // NewMsgWithdraw returns a new MsgDeposit
@@ -163,13 +240,35 @@ func (msg MsgWithdraw) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// GetSigners returns the addresses of signers that must sign.
+// GetSignersMsgCreateCDP returns the addresses of signers that must sign.
 func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	depositor, err := sdk.AccAddressFromBech32(msg.Depositor)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{depositor}
+}
+
+func GetSignersMsgWithdraw(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgWithdraw{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	depositor, err := sdk.AccAddressFromBech32(msgTyped.Depositor)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{depositor}, nil
 }
 
 // NewMsgDrawDebt returns a new MsgDrawDebt
@@ -209,13 +308,35 @@ func (msg MsgDrawDebt) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// GetSigners returns the addresses of signers that must sign.
+// GetSignersMsgCreateCDP returns the addresses of signers that must sign.
 func (msg MsgDrawDebt) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{sender}
+}
+
+func GetSignersMsgDrawDebt(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgDrawDebt{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msgTyped.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{sender}, nil
 }
 
 // NewMsgRepayDebt returns a new MsgRepayDebt
@@ -255,13 +376,35 @@ func (msg MsgRepayDebt) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// GetSigners returns the addresses of signers that must sign.
+// GetSignersMsgCreateCDP returns the addresses of signers that must sign.
 func (msg MsgRepayDebt) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.Sender)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{sender}
+}
+
+func GetSignersMsgRepayDebt(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgRepayDebt{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msgTyped.Sender)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{sender}, nil
 }
 
 // NewMsgLiquidate returns a new MsgLiquidate
@@ -302,11 +445,33 @@ func (msg MsgLiquidate) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
-// GetSigners returns the addresses of signers that must sign.
+// GetSignersMsgCreateCDP returns the addresses of signers that must sign.
 func (msg MsgLiquidate) GetSigners() []sdk.AccAddress {
 	keeper, err := sdk.AccAddressFromBech32(msg.Keeper)
 	if err != nil {
 		panic(err)
 	}
 	return []sdk.AccAddress{keeper}
+}
+
+func GetSignersMsgLiquidate(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgLiquidate{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	keeper, err := sdk.AccAddressFromBech32(msgTyped.Keeper)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{keeper}, nil
 }
