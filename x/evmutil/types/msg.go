@@ -3,10 +3,17 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	txsigning "cosmossdk.io/x/tx/signing"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
 	"github.com/ethereum/go-ethereum/common"
+	"google.golang.org/protobuf/protoadapt"
+	"google.golang.org/protobuf/reflect/protoreflect"
+
+	protov1 "github.com/golang/protobuf/proto" //nolint:staticcheck
+	protov2 "google.golang.org/protobuf/proto"
 )
 
 // ensure Msg interface compliance at compile time
@@ -21,6 +28,32 @@ var (
 	_ legacytx.LegacyMsg = &MsgConvertCosmosCoinToERC20{}
 	_ sdk.Msg            = &MsgConvertCosmosCoinFromERC20{}
 	_ legacytx.LegacyMsg = &MsgConvertCosmosCoinFromERC20{}
+)
+
+//var MsgsGetSigners = map[protoreflect.FullName]txsigning.GetSignersFunc{
+//	protoreflect.FullName(protov1.MessageName(&MsgConvertCoinToERC20{})):         GetSignersMsgConvertCoinToERC20,
+//	protoreflect.FullName(protov1.MessageName(&MsgConvertERC20ToCoin{})):         GetSignersMsgConvertERC20ToCoin,
+//	protoreflect.FullName(protov1.MessageName(&MsgConvertCosmosCoinToERC20{})):   GetSignersMsgConvertCosmosCoinToERC20,
+//	protoreflect.FullName(protov1.MessageName(&MsgConvertCosmosCoinFromERC20{})): GetSignersMsgConvertCosmosCoinFromERC20,
+//}
+
+var (
+	MsgConvertCoinToERC20GetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgConvertCoinToERC20{})),
+		Fn:      GetSignersMsgConvertCoinToERC20,
+	}
+	MsgConvertERC20ToCoinGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgConvertERC20ToCoin{})),
+		Fn:      GetSignersMsgConvertERC20ToCoin,
+	}
+	MsgConvertCosmosCoinToERC20GetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgConvertCosmosCoinToERC20{})),
+		Fn:      GetSignersMsgConvertCosmosCoinToERC20,
+	}
+	MsgConvertCosmosCoinFromERC20GetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgConvertCosmosCoinFromERC20{})),
+		Fn:      GetSignersMsgConvertCosmosCoinFromERC20,
+	}
 )
 
 // legacy message types
@@ -56,6 +89,28 @@ func (msg MsgConvertCoinToERC20) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{sender}
+}
+
+func GetSignersMsgConvertCoinToERC20(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgConvertCoinToERC20{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msgTyped.Initiator)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{sender}, nil
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
@@ -115,6 +170,26 @@ func (msg MsgConvertERC20ToCoin) GetSigners() []sdk.AccAddress {
 	addr := common.HexToAddress(msg.Initiator)
 	sender := sdk.AccAddress(addr.Bytes())
 	return []sdk.AccAddress{sender}
+}
+
+func GetSignersMsgConvertERC20ToCoin(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgConvertERC20ToCoin{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	addr := common.HexToAddress(msgTyped.Initiator)
+	sender := sdk.AccAddress(addr.Bytes())
+
+	return [][]byte{sender}, nil
 }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
@@ -186,6 +261,28 @@ func (msg MsgConvertCosmosCoinToERC20) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{sender}
 }
 
+func GetSignersMsgConvertCosmosCoinToERC20(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgConvertERC20ToCoin{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	sender, err := sdk.AccAddressFromBech32(msgTyped.Initiator)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{sender}, nil
+}
+
 // ValidateBasic implements types.Msg
 func (msg MsgConvertCosmosCoinToERC20) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Initiator)
@@ -235,6 +332,28 @@ func (msg MsgConvertCosmosCoinFromERC20) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{sender0x.Bytes()}
+}
+
+func GetSignersMsgConvertCosmosCoinFromERC20(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgConvertERC20ToCoin{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	sender0x, err := NewInternalEVMAddressFromString(msgTyped.Initiator)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{sender0x.Bytes()}, nil
 }
 
 // ValidateBasic implements types.Msg

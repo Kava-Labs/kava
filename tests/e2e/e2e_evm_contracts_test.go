@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -152,8 +153,12 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToLend() {
 		"doing the USDT Earn workflow! erc20 -> sdk.Coin -> USDX hard deposit",
 	).GetTx()
 
+	fmt.Println("tx", tx)
+
 	txBytes, err := suite.Kava.EncodingConfig.TxConfig.TxEncoder()(tx)
 	suite.NoError(err)
+
+	fmt.Println("txBytes", string(txBytes))
 
 	// broadcast tx
 	res, err := suite.Kava.Grpc.Query.Tx.BroadcastTx(context.Background(), &txtypes.BroadcastTxRequest{
@@ -161,6 +166,7 @@ func (suite *IntegrationTestSuite) TestEip712ConvertToCoinAndDepositToLend() {
 		Mode:    txtypes.BroadcastMode_BROADCAST_MODE_SYNC,
 	})
 	suite.NoError(err)
+	fmt.Println("res", res)
 	suite.Equal(sdkerrors.SuccessABCICode, res.TxResponse.Code)
 
 	_, err = util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.TxResponse.TxHash, 6*time.Second)

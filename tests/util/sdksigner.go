@@ -92,15 +92,12 @@ func (s *KavaSigner) pollAccountState() <-chan sdk.AccountI {
 			request := authtypes.QueryAccountRequest{
 				Address: GetAccAddress(s.privKey).String(),
 			}
-			fmt.Println("pollAccountState: fetching account for address:", request.Address)
 			response, err := s.authClient.Account(context.Background(), &request)
 
 			if err == nil {
 				var account sdk.AccountI
 
 				err = s.encodingConfig.InterfaceRegistry.UnpackAny(response.Account, &account)
-				fmt.Println("pollAccountState: unpacked account", account)
-				fmt.Println("pollAccountState: error", err)
 				if err == nil {
 					accountState <- account
 				}

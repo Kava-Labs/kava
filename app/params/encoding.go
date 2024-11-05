@@ -12,6 +12,7 @@ import (
 	"github.com/cosmos/gogoproto/proto"
 	enccodec "github.com/evmos/ethermint/encoding/codec"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -35,7 +36,11 @@ func MakeEncodingConfig() EncodingConfig {
 			Bech32Prefix: sdk.GetConfig().GetBech32ValidatorAddrPrefix(),
 		},
 		CustomGetSigners: map[protoreflect.FullName]signing.GetSignersFunc{
-			evmtypes.MsgEthereumTxGetSigner.MsgType: evmtypes.MsgEthereumTxGetSigner.Fn,
+			evmtypes.MsgEthereumTxGetSigner.MsgType:                      evmtypes.MsgEthereumTxGetSigner.Fn,
+			evmutiltypes.MsgConvertCoinToERC20GetSigners.MsgType:         evmutiltypes.MsgConvertCoinToERC20GetSigners.Fn,
+			evmutiltypes.MsgConvertERC20ToCoinGetSigners.MsgType:         evmutiltypes.MsgConvertERC20ToCoinGetSigners.Fn,
+			evmutiltypes.MsgConvertCosmosCoinToERC20GetSigners.MsgType:   evmutiltypes.MsgConvertCosmosCoinToERC20GetSigners.Fn,
+			evmutiltypes.MsgConvertCosmosCoinFromERC20GetSigners.MsgType: evmutiltypes.MsgConvertCosmosCoinFromERC20GetSigners.Fn,
 		},
 	}
 	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
