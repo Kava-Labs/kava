@@ -47,7 +47,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ### Improvements
 - (deps) [#2047] Bump cometbft to v0.37.13-kava.1
-- (deps) [#2047] Bump cometbft-db to v0.9.5 for use with rocksdb v9.2.1
+- (deps) [#2047] Bump cometbft-db to v0.9.5 for use with rocksdb v9.3.1
 - (deps) [#2047] Replace goleveldb with informalsystems fork to resolve [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
 - (deps) [#2047] Bump Go version minimum requirement to `1.22`
 
