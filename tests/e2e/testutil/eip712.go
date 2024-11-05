@@ -37,6 +37,8 @@ func EncodeData(typedData apitypes.TypedData, primaryType string, data map[strin
 		return nil, fmt.Errorf("there is extra data provided in the message (%d < %d)", exp, got)
 	}
 
+	fmt.Println("data", data)
+
 	// Add typehash
 	buffer.Write(typedData.TypeHash(primaryType))
 
@@ -79,6 +81,8 @@ func EncodeData(typedData apitypes.TypedData, primaryType string, data map[strin
 
 			buffer.Write(crypto.Keccak256(arrayBuffer.Bytes()))
 		} else if typedData.Types[field.Type] != nil {
+			fmt.Println("typedData.Types[field.Type]", typedData.Types[field.Type])
+			fmt.Println("encValue", encValue)
 			mapValue, ok := encValue.(map[string]interface{})
 			fmt.Println("mapValue 2", mapValue, ok)
 			if !ok {
@@ -143,6 +147,9 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 		msgs,
 		memo,
 	)
+
+	fmt.Println("ConstructUntypedEIP712Data untypedData: ", untypedData)
+
 	// -- typed data
 	typedData, err := eip712.WrapTxToTypedData(ethChainId, msgs, untypedData, &eip712.FeeDelegationOptions{
 		FeePayer: acc.SdkAddress,
@@ -151,8 +158,9 @@ func (suite *E2eTestSuite) NewEip712TxBuilder(
 
 	fmt.Println("got typedData", typedData)
 
+	fmt.Println("ConstructUntypedEIP712Data typedData: ", typedData.Message)
 	encodedData, err := EncodeData(typedData, typedData.PrimaryType, typedData.Message, 1)
-	fmt.Println("encodedData", encodedData, err)
+	fmt.Println("ConstructUntypedEIP712Data encodedData: ", encodedData, err)
 
 	// -- raw data hash!
 	data, err := eip712.ComputeTypedDataHash(typedData)
