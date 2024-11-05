@@ -1,7 +1,7 @@
 name: Continuous Integration (Rocksdb Build)
 
 env:
-  ROCKSDB_VERSION: v8.10.0
+  ROCKSDB_VERSION: v9.3.1
 
 on:
   workflow_call:
