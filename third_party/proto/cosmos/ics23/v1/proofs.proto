@@ -6,13 +6,16 @@ option go_package = "github.com/cosmos/ics23/go;ics23";
 
 enum HashOp {
   // NO_HASH is the default if no data passed. Note this is an illegal argument some places.
-  NO_HASH    = 0;
-  SHA256     = 1;
-  SHA512     = 2;
-  KECCAK     = 3;
-  RIPEMD160  = 4;
-  BITCOIN    = 5; // ripemd160(sha256(x))
-  SHA512_256 = 6;
+  NO_HASH     = 0;
+  SHA256      = 1;
+  SHA512      = 2;
+  KECCAK256   = 3;
+  RIPEMD160   = 4;
+  BITCOIN     = 5; // ripemd160(sha256(x))
+  SHA512_256  = 6;
+  BLAKE2B_512 = 7;
+  BLAKE2S_256 = 8;
+  BLAKE3      = 9;
 }
 
 /**
@@ -160,6 +163,7 @@ message ProofSpec {
   LeafOp    leaf_spec  = 1;
   InnerSpec inner_spec = 2;
   // max_depth (if > 0) is the maximum number of InnerOps allowed (mainly for fixed-depth tries)
+  // the max_depth is interpreted as 128 if set to 0
   int32 max_depth = 3;
   // min_depth (if > 0) is the minimum number of InnerOps allowed (mainly for fixed-depth tries)
   int32 min_depth = 4;

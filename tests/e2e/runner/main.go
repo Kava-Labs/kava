@@ -18,6 +18,7 @@ type NodeRunner interface {
 // waitForChainStart sets a timeout and repeatedly pings the chains.
 // If the chain is successfully reached before the timeout, this returns no error.
 func waitForChainStart(chainDetails ChainDetails) error {
+	fmt.Println("waiting for chain to start...")
 	// exponential backoff on trying to ping the node, timeout after 30 seconds
 	b := backoff.NewExponentialBackOff()
 	b.MaxInterval = 5 * time.Second
@@ -31,6 +32,8 @@ func waitForChainStart(chainDetails ChainDetails) error {
 	if err := backoff.Retry(func() error { return pingEvm(chainDetails.EvmRpcUrl) }, b); err != nil {
 		return fmt.Errorf("failed connect to chain: %s", err)
 	}
+
+	fmt.Println("chain is live!")
 	return nil
 }
 

@@ -414,6 +414,10 @@ func _Msg_FundCommunityPool_Handler(srv interface{}, ctx context.Context, dec fu
 }
 
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	fmt.Println("_Msg_UpdateParams_Handler invoked srv", srv)
+	fmt.Println("_Msg_UpdateParams_Handler invoked ctx", ctx)
+	fmt.Println("_Msg_UpdateParams_Handler invoked dec", dec)
+	fmt.Println("_Msg_UpdateParams_Handler invoked interceptor", interceptor)
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
 		return nil, err

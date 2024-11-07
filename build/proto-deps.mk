@@ -56,7 +56,8 @@ proto-update-deps: check-rsync ## Update all third party proto files
 
 	@mkdir -p client/docs
 	@cp -f $(COSMOS_SDK_PATH)/client/docs/swagger-ui/swagger.yaml client/docs/cosmos-swagger.yml
-	@cp -f $(IBC_GO_PATH)/docs/client/swagger-ui/swagger.yaml client/docs/ibc-go-swagger.yml
+	# TODO(boodyvo): do we need this?
+	@#cp -f $(IBC_GO_PATH)/docs/client/swagger-ui/swagger.yaml client/docs/ibc-go-swagger.yml
 	@cp -f $(ETHERMINT_PATH)/client/docs/swagger-ui/swagger.yaml client/docs/ethermint-swagger.yml
 
 	@mkdir -p $(COSMOS_PROTO_TYPES)

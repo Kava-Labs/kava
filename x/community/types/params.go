@@ -39,6 +39,8 @@ func DefaultParams() Params {
 
 // Validate checks the params are valid
 func (p Params) Validate() error {
+	fmt.Println("Params.Validate stakingRewardsPerSecond", p.StakingRewardsPerSecond)
+	fmt.Println("Params.Validate UpgradeTimeSetStakingRewardsPerSecond", p.UpgradeTimeSetStakingRewardsPerSecond)
 	// p.UpgradeTimeDisableInflation.IsZero() is a valid state. It's taken to mean inflation will be disabled on the block 1.
 
 	if err := validateDecNotNilNonNegative(p.StakingRewardsPerSecond, "StakingRewardsPerSecond"); err != nil {

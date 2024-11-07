@@ -439,7 +439,6 @@ func (m *MsgConvertCosmosCoinFromERC20Response) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgConvertCosmosCoinFromERC20Response proto.InternalMessageInfo
 
 func init() {
-	fmt.Println("init kava.evmutil")
 	proto.RegisterType((*MsgConvertCoinToERC20)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20")
 	proto.RegisterType((*MsgConvertCoinToERC20Response)(nil), "kava.evmutil.v1beta1.MsgConvertCoinToERC20Response")
 	proto.RegisterType((*MsgConvertERC20ToCoin)(nil), "kava.evmutil.v1beta1.MsgConvertERC20ToCoin")

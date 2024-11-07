@@ -3,6 +3,7 @@ package types
 import (
 	errorsmod "cosmossdk.io/errors"
 	txsigning "cosmossdk.io/x/tx/signing"
+	"fmt"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -113,7 +114,9 @@ func (msg MsgUpdateParams) Type() string { return sdk.MsgTypeURL(&msg) }
 
 // ValidateBasic does a simple validation check that doesn't require access to any other information.
 func (msg MsgUpdateParams) ValidateBasic() error {
+	fmt.Println("MsgUpdateParams.ValidateBasic")
 	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	fmt.Println("MsgUpdateParams.ValidateBasic err", err)
 	if err != nil {
 		return errorsmod.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
@@ -121,6 +124,8 @@ func (msg MsgUpdateParams) ValidateBasic() error {
 	if err := msg.Params.Validate(); err != nil {
 		return errorsmod.Wrap(ErrInvalidParams, err.Error())
 	}
+
+	fmt.Println("MsgUpdateParams.ValidateBasic is ok")
 
 	return nil
 }

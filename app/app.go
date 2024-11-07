@@ -885,6 +885,8 @@ func NewApp(
 		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper, slashingSubspace, app.interfaceRegistry),
 		consensus.NewAppModule(appCodec, app.consensusParamsKeeper),
 		ibc.NewAppModule(app.ibcKeeper),
+		// TODO(boodyvo): check if this is needed. We want to register /ibc.lightclients.tendermint.v1.ClientState
+		ibctm.NewAppModule(),
 		packetforward.NewAppModule(app.packetForwardKeeper, packetforwardSubspace),
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		feemarket.NewAppModule(app.feeMarketKeeper, feemarketSubspace),

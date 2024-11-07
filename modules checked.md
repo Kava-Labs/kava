@@ -42,5 +42,5 @@ E2E tests:
 | e2e_grpc_client_util_test.go        | ✅   |                                                                                                 |
 | e2e_min_fees_test.go                | ✅   |                                              |
 | e2e_precompile_genesis_test.go      |    | TestPrecompileGenesis (potentially, just need rebase with some changes that were not in master) |
-| e2e_test.go                        |    | TestIbcTransfer                                                                                 |
+| e2e_test.go                        | ✅   |                                                                                  |
 | e2e_upgrade_handler_test.go         | ✅   | Not sure what and how it should be tested (skipped)                                             |

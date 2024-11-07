@@ -57,6 +57,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		ParamsType: govv1.ParamDeposit,
 	})
 	suite.NoError(err)
+	fmt.Println("govParamsRes", govParamsRes)
 
 	// Check initial params
 	communityParamsResInitial, err := suite.Kava.Grpc.Query.Community.Params(
@@ -64,6 +65,8 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		&communitytypes.QueryParamsRequest{},
 	)
 	suite.Require().NoError(err)
+
+	fmt.Println("communityParamsResInitial", communityParamsResInitial)
 
 	// setup kava account
 	// .1 KAVA + min deposit amount for proposal
@@ -96,6 +99,8 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		StakingRewardsPerSecond.
 		Add(sdkmath.LegacyNewDec(1))
 
+	fmt.Println("newStakingRewardsPerSecond", newStakingRewardsPerSecond)
+
 	// 1. Proposal
 	// Only modify stakingRewardsPerSecond, as to not re-run the switchover and
 	// to not influence other tests
@@ -107,6 +112,7 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 			communityParamsResInitial.Params.UpgradeTimeSetStakingRewardsPerSecond,
 		),
 	)
+	fmt.Println("updateParamsMsg", updateParamsMsg)
 
 	// Make sure we're actually changing the params
 	suite.NotEqual(
@@ -126,6 +132,8 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		false,
 	)
 	suite.NoError(err)
+
+	fmt.Println("proposalMsg", proposalMsg)
 
 	req := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{proposalMsg},

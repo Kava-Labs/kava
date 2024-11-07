@@ -79,7 +79,7 @@ func (k *KvtoolRunner) StartChains() Chains {
 	fmt.Println("going to run cmd", startKavaCmd.String())
 	if err := startKavaCmd.Run(); err != nil {
 		//panic(fmt.Sprintf("failed to start kava: %s", err.Error()))
-		fmt.Println("failed to start kava: %s", err.Error())
+		fmt.Printf("failed to start kava: %s\n", err.Error())
 	}
 
 	// wait for chain to be live.
