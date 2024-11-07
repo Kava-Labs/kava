@@ -2,7 +2,6 @@ package params
 
 import (
 	"cosmossdk.io/x/tx/signing"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/address"
@@ -14,6 +13,7 @@ import (
 	enccodec "github.com/evmos/ethermint/encoding/codec"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
+	communitytypes "github.com/kava-labs/kava/x/community/types"
 	evmutiltypes "github.com/kava-labs/kava/x/evmutil/types"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -49,9 +49,12 @@ func MakeEncodingConfig() EncodingConfig {
 			cdptypes.MsgDrawDebtGetSigners.MsgType:                       cdptypes.MsgDrawDebtGetSigners.Fn,
 			cdptypes.MsgRepayDebtGetSigners.MsgType:                      cdptypes.MsgRepayDebtGetSigners.Fn,
 			cdptypes.MsgLiquidateGetSigners.MsgType:                      cdptypes.MsgLiquidateGetSigners.Fn,
+			// MsgFundCommunityPoolGetSigners
+			// MsgUpdateParamsSigners
+			communitytypes.MsgFundCommunityPoolGetSigners.MsgType: communitytypes.MsgFundCommunityPoolGetSigners.Fn,
+			communitytypes.MsgUpdateParamsSigners.MsgType:         communitytypes.MsgUpdateParamsSigners.Fn,
 		},
 	}
-	fmt.Println("registering customer signers", signingOptions.CustomGetSigners)
 	interfaceRegistry, _ := types.NewInterfaceRegistryWithOptions(types.InterfaceRegistryOptions{
 		ProtoFiles:     proto.HybridResolver,
 		SigningOptions: signingOptions,

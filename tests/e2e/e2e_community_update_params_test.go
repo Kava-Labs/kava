@@ -3,6 +3,7 @@ package e2e_test
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -132,8 +133,13 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		FeeAmount: sdk.NewCoins(fee),
 		Memo:      "this is a proposal please accept me",
 	}
+
+	fmt.Println("test req", req)
+
 	res := kavaAcc.SignAndBroadcastKavaTx(req)
 	suite.Require().NoError(res.Err)
+
+	fmt.Println("test res", res)
 
 	// Wait for proposal to be submitted
 	txRes, err := util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.Result.TxHash, 6*time.Second)

@@ -459,6 +459,8 @@ func WaitForSdkTxCommit(txClient txtypes.ServiceClient, txHash string, timeout t
 			err = ErrSdkBroadcastTimeout
 		default:
 			res, err = txClient.GetTx(context.Background(), &txtypes.GetTxRequest{Hash: txHash})
+			fmt.Println("WaitForSdkTxCommit res", res)
+			fmt.Println("WaitForSdkTxCommit err", err)
 			if err != nil {
 				status, ok := grpcstatus.FromError(err)
 				if ok && status.Code() == codes.NotFound {
@@ -469,6 +471,7 @@ func WaitForSdkTxCommit(txClient txtypes.ServiceClient, txHash string, timeout t
 				break
 			}
 			txRes = res.TxResponse
+			fmt.Println("WaitForSdkTxCommit txRes", txRes)
 			if err == nil && txRes.Code != uint32(codes.OK) {
 				err = errorsmod.Wrapf(ErrUnsuccessfulTx, "code = %d; %s", txRes.Code, txRes.RawLog)
 			}

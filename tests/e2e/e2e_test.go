@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"strings"
 	"testing"
@@ -120,6 +121,7 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 	// ARRANGE
 	// setup kava account
 	funds := ukava(1e5) // .1 KAVA
+	fmt.Println("funds", funds)
 	kavaAcc := suite.Kava.NewFundedAccount("ibc-transfer-kava-side", sdk.NewCoins(funds))
 	// setup ibc account
 	ibcAcc := suite.Ibc.NewFundedAccount("ibc-transfer-ibc-side", sdk.NewCoins())
@@ -139,7 +141,14 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 		"",
 	)
 	// initial - sent - fee
+	fmt.Println("fundsToSend", fundsToSend)
 	expectedSrcBalance := funds.Sub(fundsToSend).Sub(fee)
+	fmt.Println("expectedSrcBalance", expectedSrcBalance)
+
+	fmt.Println("transferMsg", transferMsg)
+	fmt.Println("validate basic", transferMsg.ValidateBasic())
+	fmt.Println("gasLimit", gasLimit)
+	fmt.Println("fee", fee)
 
 	// ACT
 	// IBC transfer from kava -> ibc
@@ -149,7 +158,9 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 		FeeAmount: sdk.NewCoins(fee),
 		Memo:      "sent from Kava!",
 	}
+	fmt.Println("transferTo", transferTo)
 	res := kavaAcc.SignAndBroadcastKavaTx(transferTo)
+	fmt.Println(res)
 
 	// ASSERT
 	suite.NoError(res.Err)
@@ -157,12 +168,14 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 	// the balance should be deducted from kava account
 	suite.Eventually(func() bool {
 		balance := suite.Kava.QuerySdkForBalances(kavaAcc.SdkAddress)
+		fmt.Println("checking balance: ", balance)
 		return balance.AmountOf("ukava").Equal(expectedSrcBalance.Amount)
 	}, 10*time.Second, 1*time.Second)
 
 	// expect the balance to be transferred to the ibc chain!
 	suite.Eventually(func() bool {
 		balance := suite.Ibc.QuerySdkForBalances(ibcAcc.SdkAddress)
+		fmt.Println("checking balance 2: ", balance)
 		found := false
 		for _, c := range balance {
 			// find the ibc denom coin

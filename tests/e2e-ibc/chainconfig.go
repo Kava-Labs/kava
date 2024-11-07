@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testutil"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testutil"
 )
 
 const (
@@ -39,14 +39,15 @@ func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 		ChainID: chainId,
 		Images:  []ibc.DockerImage{{Repository: "kava/kava", Version: kavaImageTag, UidGid: "0:0"}},
 		// Images:                []ibc.DockerImage{{Repository: "ghcr.io/strangelove-ventures/heighliner/kava", Version: "v0.26.0", UidGid: "1025:1025"}},
-		Bin:                   "kava",
-		Bech32Prefix:          "kava",
-		Denom:                 "ukava",
-		GasPrices:             "0ukava", // 0 gas price makes calculating expected balances simpler
-		GasAdjustment:         1.5,
-		TrustingPeriod:        "168h0m0s",
-		ModifyGenesis:         cosmos.ModifyGenesis(genesis),
-		ExposeAdditionalPorts: []string{"8545/tcp"},
-		ConfigFileOverrides:   map[string]any{"config/app.toml": appTomlOverrides},
+		Bin:              "kava",
+		Bech32Prefix:     "kava",
+		Denom:            "ukava",
+		GasPrices:        "0ukava", // 0 gas price makes calculating expected balances simpler
+		GasAdjustment:    1.5,
+		TrustingPeriod:   "168h0m0s",
+		ModifyGenesis:    cosmos.ModifyGenesis(genesis),
+		HostPortOverride: map[int]int{8545: 8545},
+		//ExposeAdditionalPorts: []string{"8545/tcp"},
+		ConfigFileOverrides: map[string]any{"config/app.toml": appTomlOverrides},
 	}
 }

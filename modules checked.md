@@ -27,3 +27,20 @@ Table:
 | swap](x%2Fswap)                            | ✅      |                                                                                                                                                                                                                      |
 | validator-vesting](x%2Fvalidator-vesting)  | ✅     |                                                                                                                                                                                                                      |
 
+
+
+
+E2E tests:
+
+
+| File                                                                                   | Status | Notes                                                                                           
+|----------------------------------------------------------------------------------------|-----|-------------------------------------------------------------------------------------------------|
+| e2e_community_update_params_test.go |     | TestCommunityUpdateParams_Authority                                                             |
+| e2e_convert_cosmos_coins_test.go   |     | TestConvertCosmosCoins_ForbiddenERC20Calls, TestConvertCosmosCoins_ERC20Magic                   |
+| e2e_evm_contracts_test.go           | ✅    |                                                                                                 |
+| e2e_grpc_client_query_test.go       | ✅   |                                                                                                 |
+| e2e_grpc_client_util_test.go        | ✅   |                                                                                                 |
+| e2e_min_fees_test.go                | ✅   |                                              |
+| e2e_precompile_genesis_test.go      |    | TestPrecompileGenesis (potentially, just need rebase with some changes that were not in master) |
+| e2e_test.go                        |    | TestIbcTransfer                                                                                 |
+| e2e_upgrade_handler_test.go         | ✅   | Not sure what and how it should be tested (skipped)                                             |

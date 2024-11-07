@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/strangelove-ventures/interchaintest/v8"
 	"math/big"
 	"path/filepath"
 	"testing"
@@ -21,10 +22,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/ethclient"
 
-	"github.com/strangelove-ventures/interchaintest/v7"
-	"github.com/strangelove-ventures/interchaintest/v7/chain/cosmos"
-	"github.com/strangelove-ventures/interchaintest/v7/ibc"
-	"github.com/strangelove-ventures/interchaintest/v7/testreporter"
+	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
+	"github.com/strangelove-ventures/interchaintest/v8/ibc"
+	"github.com/strangelove-ventures/interchaintest/v8/testreporter"
 
 	"github.com/kava-labs/kava/app"
 	"github.com/kava-labs/kava/client/erc20"
@@ -116,11 +116,14 @@ func TestInterchainErc20(t *testing.T) {
 	// default coin type to 60 in the chain config.
 	// we need to fund an account and then all of kava's e2e testutil chain management will work.
 
-	rpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "26657/tcp")
+	//rpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "26657/tcp")
+	rpcUrl := ictKava.FullNodes[0].HostName() + ":26657"
 	require.NoError(t, err, "failed to find rpc URL")
-	grpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "9090/tcp")
+	//grpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "9090/tcp")
+	grpcUrl := ictKava.FullNodes[0].HostName() + ":9090"
 	require.NoError(t, err, "failed to find grpc URL")
-	evmUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "8545/tcp")
+	//evmUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "8545/tcp")
+	evmUrl := ictKava.FullNodes[0].HostName() + ":8545"
 	require.NoError(t, err, "failed to find evm URL")
 
 	evmClient, err := ethclient.Dial(evmUrl)
@@ -199,11 +202,13 @@ func TestInterchainErc20(t *testing.T) {
 	propId := int64(1)
 
 	// 2. Vote on Proposal
-	err = ictKava.VoteOnProposalAllValidators(ctx, propId, cosmos.ProposalVoteYes)
+	//err = ictKava.VoteOnProposalAllValidators(ctx, propId, cosmos.ProposalVoteYes)
+	proIDString := fmt.Sprintf("%d", propId)
+	err = ictKava.VoteOnProposalAllValidators(ctx, proIDString, cosmos.ProposalVoteYes)
 	require.NoError(t, err, "failed to submit votes")
 
 	height, _ = ictKava.Height(ctx)
-	_, err = cosmos.PollForProposalStatus(ctx, ictKava, height, height+10, propId, gov1beta1.StatusPassed)
+	_, err = cosmos.PollForProposalStatus(ctx, ictKava, height, height+10, uint64(propId), gov1beta1.StatusPassed)
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	// fund a user & mint them some usdt
@@ -230,7 +235,7 @@ func TestInterchainErc20(t *testing.T) {
 	convertTx := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{&msg},
 		GasLimit:  4e5,
-		FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(400))),
+		FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(400))),
 		Data:      "converting sdk coin to erc20",
 	}
 	res := user.SignAndBroadcastKavaTx(convertTx)

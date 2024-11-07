@@ -11,7 +11,6 @@ import (
 )
 
 func main() {
-	fmt.Println("starting cmd")
 	rootCmd := cmd.NewRootCmd()
 
 	//if err := autoCliOpts.EnhanceRootCommand(rootCmd); err != nil {
@@ -29,6 +28,4 @@ func main() {
 		//	os.Exit(1)
 		//}
 	}
-
-	fmt.Println("finished without errors")
 }

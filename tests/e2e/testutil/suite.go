@@ -111,9 +111,12 @@ func (suite *E2eTestSuite) SetupSuite() {
 		suite.T().Fatalf("failed to create kava chain querier: %s", err)
 	}
 
+	fmt.Println("checking is IBC tests are enabled")
 	if suiteConfig.IncludeIbcTests {
+		fmt.Println("setting up ibc chain")
 		ibcchain := chains.MustGetChain("ibc")
 		suite.Ibc, err = NewChain(suite.T(), ibcchain, suiteConfig.FundedAccountMnemonic)
+		fmt.Println("ibc chain setup", err)
 		if err != nil {
 			suite.runner.Shutdown()
 			suite.T().Fatalf("failed to create ibc chain querier: %s", err)

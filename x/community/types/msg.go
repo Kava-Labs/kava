@@ -2,9 +2,15 @@ package types
 
 import (
 	errorsmod "cosmossdk.io/errors"
+	txsigning "cosmossdk.io/x/tx/signing"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
+	protov1 "github.com/golang/protobuf/proto"
+	protov2 "google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/protoadapt"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // ensure Msg interface compliance at compile time
@@ -13,6 +19,17 @@ var (
 	_ legacytx.LegacyMsg = &MsgFundCommunityPool{}
 	_ sdk.Msg            = &MsgUpdateParams{}
 	_ legacytx.LegacyMsg = &MsgUpdateParams{}
+)
+
+var (
+	MsgFundCommunityPoolGetSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgFundCommunityPool{})),
+		Fn:      GetSignersMsgFundCommunityPool,
+	}
+	MsgUpdateParamsSigners = txsigning.CustomGetSigner{
+		MsgType: protoreflect.FullName(protov1.MessageName(&MsgUpdateParams{})),
+		Fn:      GetSignersMsgUpdateParams,
+	}
 )
 
 // NewMsgFundCommunityPool returns a new MsgFundCommunityPool
@@ -58,6 +75,28 @@ func (msg MsgFundCommunityPool) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{depositor}
 }
 
+func GetSignersMsgFundCommunityPool(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgFundCommunityPool{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	depositor, err := sdk.AccAddressFromBech32(msgTyped.Depositor)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{depositor}, nil
+}
+
 // NewMsgUpdateParams returns a new MsgUpdateParams
 func NewMsgUpdateParams(authority sdk.AccAddress, params Params) MsgUpdateParams {
 	return MsgUpdateParams{
@@ -99,4 +138,26 @@ func (msg MsgUpdateParams) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{depositor}
+}
+
+func GetSignersMsgUpdateParams(msg protov2.Message) ([][]byte, error) {
+	msgV1 := protoadapt.MessageV1Of(msg)
+
+	tryingTypeAnyV1, err := codectypes.NewAnyWithValue(msgV1)
+	if err != nil {
+		return nil, err
+	}
+
+	msgTyped := &MsgUpdateParams{}
+	err = msgTyped.Unmarshal(tryingTypeAnyV1.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	depositor, err := sdk.AccAddressFromBech32(msgTyped.Authority)
+	if err != nil {
+		return nil, err
+	}
+
+	return [][]byte{depositor}, nil
 }
