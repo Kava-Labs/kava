@@ -6,6 +6,7 @@ import (
 	"fmt"
 	dbm "github.com/cosmos/cosmos-db"
 	"math/big"
+	"runtime/debug"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -85,6 +86,9 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 		return nil, err
 	}
 	chain.Keyring = kr
+
+	fmt.Println("going to start new chain", details)
+	debug.PrintStack()
 
 	client, err := grpc.NewClient(details.GrpcUrl)
 	if err != nil {

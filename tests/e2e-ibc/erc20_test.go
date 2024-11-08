@@ -5,11 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/kava-labs/kava/tests/interchain/dockerutil"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"math/big"
 	"path/filepath"
-	"reflect"
 	"testing"
 	"time"
 
@@ -62,6 +60,15 @@ func TestInterchainErc20(t *testing.T) {
 
 	r := interchaintest.NewBuiltinRelayerFactory(ibc.CosmosRly, zaptest.NewLogger(t)).
 		Build(t, client, network)
+
+	// // Get a relayer instance
+	//	rf := interchaintest.NewBuiltinRelayerFactory(
+	//		ibc.CosmosRly,
+	//		zaptest.NewLogger(t),
+	//		relayer.StartupFlags("-b", "100"),
+	//	)
+	//
+	//	r := rf.Build(t, client, network)
 
 	// configure interchain
 	const kavaGaiaIbcPath = "kava-gaia-ibc"
@@ -122,9 +129,11 @@ func TestInterchainErc20(t *testing.T) {
 	//rpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "26657/tcp")
 	//require.NoError(t, err, "failed to find rpc URL")
 	rpcUrl := ictKava.GetHostRPCAddress()
+	fmt.Println("rpcUrl: ", rpcUrl)
 	//grpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "9090/tcp")
 	//require.NoError(t, err, "failed to find grpc URL")
 	grpcUrl := ictKava.GetHostGRPCAddress()
+	fmt.Println("grpcUrl: ", grpcUrl)
 	//evmUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "8545/tcp")
 	require.NoError(t, err, "failed to find evm URL")
 	evmUrl := ictKava.GetHostAPIAddress()
@@ -132,21 +141,24 @@ func TestInterchainErc20(t *testing.T) {
 
 	// lifecycle is hidden for package, so we will need fork with an expose method for the particular port.
 	// at the moment such unsafe workaround
-	value := reflect.ValueOf(ictKava).FieldByName("containerLifecycle")
-
-	var containerLifecycle *dockerutil.ContainerLifecycle
-
-	if value.IsValid() && value.CanInterface() {
-		fmt.Println(value.Interface().(*dockerutil.ContainerLifecycle))
-		containerLifecycle = value.Interface().(*dockerutil.ContainerLifecycle)
-	} else {
-		panic("containerLifecycle is not valid")
-	}
-
-	hostPorts, err := containerLifecycle.GetHostPorts(ctx, "8545/tcp")
+	//value := reflect.ValueOf(ictKava).FieldByName("containerLifecycle")
+	//
+	//var containerLifecycle *dockerutil.ContainerLifecycle
+	//
+	//if value.IsValid() && value.CanInterface() {
+	//	fmt.Println(value.Interface().(*dockerutil.ContainerLifecycle))
+	//	containerLifecycle = value.Interface().(*dockerutil.ContainerLifecycle)
+	//} else {
+	//	panic("containerLifecycle is not valid")
+	//}
+	hostPorts, err := ictKava.FullNodes[0].ContainerLifecycle.GetHostPorts(ctx, "8545/tcp")
+	fmt.Println("hostPorts: ", hostPorts)
+	fmt.Println("ictKava.FullNodes[0]: ", ictKava.FullNodes[0])
+	fmt.Println("ictKava.FullNodes[0].ContainerLifecycle: ", ictKava.FullNodes[0].ContainerLifecycle)
+	//hostPorts, err := containerLifecycle.GetHostPorts(ctx, "8545/tcp")
 	require.NoError(t, err, "failed to find evm URL")
-	evmUrl = hostPorts[0]
-	fmt.Println("evmUrl 2: ", evmUrl)
+	evmUrl = "http://" + hostPorts[0]
+	fmt.Println("evmUrl 2:", evmUrl)
 
 	evmClient, err := ethclient.Dial(evmUrl)
 	require.NoError(t, err, "failed to connect to evm")
