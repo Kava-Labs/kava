@@ -17,6 +17,7 @@ func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 	kavaImageTag := os.Getenv("KAVA_TAG")
 	if kavaImageTag == "" {
 		kavaImageTag = "v0.26.0-rocksdb"
+		//kavaImageTag = "local"
 	}
 
 	// app.toml overrides

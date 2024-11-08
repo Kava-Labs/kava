@@ -65,9 +65,10 @@ func (suite *IntegrationTestSuite) setupAccountWithCosmosCoinERC20Balance(
 		convertAmount,
 	)
 	tx := util.KavaMsgRequest{
-		Msgs:      []sdk.Msg{&msg},
-		GasLimit:  4e5,
-		FeeAmount: sdk.NewCoins(ukava(400)),
+		Msgs:     []sdk.Msg{&msg},
+		GasLimit: 10e6,
+		//FeeAmount: sdk.NewCoins(ukava(400)),
+		FeeAmount: sdk.NewCoins(ukava(10000)),
 		Data:      "converting sdk coin to erc20",
 	}
 	res := user.SignAndBroadcastKavaTx(tx)

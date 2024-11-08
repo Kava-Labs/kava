@@ -5,9 +5,11 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"github.com/kava-labs/kava/tests/interchain/dockerutil"
 	"github.com/strangelove-ventures/interchaintest/v8"
 	"math/big"
 	"path/filepath"
+	"reflect"
 	"testing"
 	"time"
 
@@ -85,7 +87,8 @@ func TestInterchainErc20(t *testing.T) {
 		TestName:         t.Name(),
 		Client:           client,
 		NetworkID:        network,
-		SkipPathCreation: false},
+		SkipPathCreation: false,
+	},
 	)
 	require.NoError(t, err)
 
@@ -117,14 +120,33 @@ func TestInterchainErc20(t *testing.T) {
 	// we need to fund an account and then all of kava's e2e testutil chain management will work.
 
 	//rpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "26657/tcp")
-	rpcUrl := ictKava.FullNodes[0].HostName() + ":26657"
-	require.NoError(t, err, "failed to find rpc URL")
+	//require.NoError(t, err, "failed to find rpc URL")
+	rpcUrl := ictKava.GetHostRPCAddress()
 	//grpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "9090/tcp")
-	grpcUrl := ictKava.FullNodes[0].HostName() + ":9090"
-	require.NoError(t, err, "failed to find grpc URL")
+	//require.NoError(t, err, "failed to find grpc URL")
+	grpcUrl := ictKava.GetHostGRPCAddress()
 	//evmUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "8545/tcp")
-	evmUrl := ictKava.FullNodes[0].HostName() + ":8545"
 	require.NoError(t, err, "failed to find evm URL")
+	evmUrl := ictKava.GetHostAPIAddress()
+	fmt.Println("evmUrl 1: ", evmUrl)
+
+	// lifecycle is hidden for package, so we will need fork with an expose method for the particular port.
+	// at the moment such unsafe workaround
+	value := reflect.ValueOf(ictKava).FieldByName("containerLifecycle")
+
+	var containerLifecycle *dockerutil.ContainerLifecycle
+
+	if value.IsValid() && value.CanInterface() {
+		fmt.Println(value.Interface().(*dockerutil.ContainerLifecycle))
+		containerLifecycle = value.Interface().(*dockerutil.ContainerLifecycle)
+	} else {
+		panic("containerLifecycle is not valid")
+	}
+
+	hostPorts, err := containerLifecycle.GetHostPorts(ctx, "8545/tcp")
+	require.NoError(t, err, "failed to find evm URL")
+	evmUrl = hostPorts[0]
+	fmt.Println("evmUrl 2: ", evmUrl)
 
 	evmClient, err := ethclient.Dial(evmUrl)
 	require.NoError(t, err, "failed to connect to evm")

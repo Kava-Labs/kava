@@ -35,7 +35,7 @@ E2E tests:
 
 | File                                                                                   | Status | Notes                                                                                           
 |----------------------------------------------------------------------------------------|-----|-------------------------------------------------------------------------------------------------|
-| e2e_community_update_params_test.go |     | TestCommunityUpdateParams_Authority                                                             |
+| e2e_community_update_params_test.go | ✅    |                                                              |
 | e2e_convert_cosmos_coins_test.go   |     | TestConvertCosmosCoins_ForbiddenERC20Calls, TestConvertCosmosCoins_ERC20Magic                   |
 | e2e_evm_contracts_test.go           | ✅    |                                                                                                 |
 | e2e_grpc_client_query_test.go       | ✅   |                                                                                                 |

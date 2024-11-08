@@ -3,7 +3,6 @@ package e2e_test
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -57,7 +56,6 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		ParamsType: govv1.ParamDeposit,
 	})
 	suite.NoError(err)
-	fmt.Println("govParamsRes", govParamsRes)
 
 	// Check initial params
 	communityParamsResInitial, err := suite.Kava.Grpc.Query.Community.Params(
@@ -66,15 +64,16 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	)
 	suite.Require().NoError(err)
 
-	fmt.Println("communityParamsResInitial", communityParamsResInitial)
-
 	// setup kava account
 	// .1 KAVA + min deposit amount for proposal
-	funds := sdk.NewCoins(ukava(1e5)).Add(govParamsRes.DepositParams.MinDeposit...)
+	//funds := sdk.NewCoins(ukava(1e5)).Add(govParamsRes.DepositParams.MinDeposit...)
+	funds := sdk.NewCoins(ukava(1e6)).Add(govParamsRes.DepositParams.MinDeposit...)
 	kavaAcc := suite.Kava.NewFundedAccount("community-update-params", funds)
 
-	gasLimit := int64(2e5)
-	fee := ukava(200)
+	//gasLimit := int64(2e5)
+	gasLimit := int64(3e5)
+	//fee := ukava(200)
+	fee := ukava(300)
 
 	// Wait until switchover actually happens - When testing without the upgrade
 	// handler that sets a relative switchover time, the switchover time in
@@ -99,8 +98,6 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		StakingRewardsPerSecond.
 		Add(sdkmath.LegacyNewDec(1))
 
-	fmt.Println("newStakingRewardsPerSecond", newStakingRewardsPerSecond)
-
 	// 1. Proposal
 	// Only modify stakingRewardsPerSecond, as to not re-run the switchover and
 	// to not influence other tests
@@ -112,7 +109,6 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 			communityParamsResInitial.Params.UpgradeTimeSetStakingRewardsPerSecond,
 		),
 	)
-	fmt.Println("updateParamsMsg", updateParamsMsg)
 
 	// Make sure we're actually changing the params
 	suite.NotEqual(
@@ -133,8 +129,6 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 	)
 	suite.NoError(err)
 
-	fmt.Println("proposalMsg", proposalMsg)
-
 	req := util.KavaMsgRequest{
 		Msgs:      []sdk.Msg{proposalMsg},
 		GasLimit:  uint64(gasLimit),
@@ -142,12 +136,8 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
 		Memo:      "this is a proposal please accept me",
 	}
 
-	fmt.Println("test req", req)
-
 	res := kavaAcc.SignAndBroadcastKavaTx(req)
 	suite.Require().NoError(res.Err)
-
-	fmt.Println("test res", res)
 
 	// Wait for proposal to be submitted
 	txRes, err := util.WaitForSdkTxCommit(suite.Kava.Grpc.Query.Tx, res.Result.TxHash, 6*time.Second)

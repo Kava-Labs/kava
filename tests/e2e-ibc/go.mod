@@ -4,8 +4,11 @@ go 1.21.9
 
 require (
 	cosmossdk.io/math v1.3.0
+	github.com/avast/retry-go/v4 v4.5.1
 	github.com/cosmos/cosmos-sdk v0.53.0
 	github.com/cosmos/ibc-go/v8 v8.5.1
+	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/go-connections v0.5.0
 	github.com/ethereum/go-ethereum v1.13.14
 	github.com/kava-labs/kava v0.0.0-00010101000000-000000000000
 	github.com/strangelove-ventures/interchaintest/v8 v8.2.0
@@ -49,7 +52,6 @@ require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/StirlingMarketingGroup/go-namecase v1.0.0 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.1 // indirect
-	github.com/avast/retry-go/v4 v4.5.1 // indirect
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
@@ -93,8 +95,6 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/desertbit/timer v0.0.0-20180107155436-c41aec40b27f // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
-	github.com/docker/docker v24.0.7+incompatible // indirect
-	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/dvsekhvalnov/jose2go v1.6.0 // indirect
@@ -313,6 +313,8 @@ replace (
 	// github.com/ComposableFi/go-subkey/v2 => github.com/vedhavyas/go-subkey/v2 v2.0.0
 	//github.com/misko9/go-substrate-rpc-client/v4 => github.com/faddat/go-substrate-rpc-client/v4 v4.0.1-0.20240402155230-48db8c110afe
 	github.com/misko9/go-substrate-rpc-client/v4 => github.com/misko9/go-substrate-rpc-client/v4 v4.0.0-20230913220906-b988ea7da0c2
+
+	github.com/strangelove-ventures/interchaintest/v8 => ../../../interchaintest
 
 )
 

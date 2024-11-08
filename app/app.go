@@ -931,6 +931,7 @@ func NewApp(
 					paramsclient.ProposalHandler,
 				},
 			),
+			ibctm.ModuleName: ibctm.NewAppModule(),
 		})
 	app.BasicModuleManager.RegisterLegacyAminoCodec(legacyAmino)
 	app.BasicModuleManager.RegisterInterfaces(interfaceRegistry)
