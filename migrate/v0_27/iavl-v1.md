@@ -4,21 +4,37 @@ IAVL V1 is an updated data format for the low-level storage of application data 
 The change in format results in much more performant syncing of the chain, and greatly reduces the
 storage footprint required for Kava nodes.
 
-The first version of Kava using IAVL V1 is `v0.26.2-iavl-v1`. Future major versions will use IAVL V1
-unless otherwise specified.
+As of `v0.27.0`, IAVL V1 is the data storage format for the Kava blockchain.
 
-Steps for using IAVL V1:
+# Configuration
 
-**For `goleveldb` nodes:**
+> [!IMPORTANT]
+> Nodes running IAVL V1 should set `iavl-disable-fastnode = true` in their `app.toml` file.
+
+> [!IMPORTANT]
+> Before starting kava on existing IAVL V0 data, please read the note about pruning changes.
+
+### `goleveldb` nodes
 1. Replace or recreate your node data with IAVL V1: see [Data](#data).
 2. Install an IAVL V1 binary:
 ```sh
-git checkout v0.26.2-iavl-v1
+git checkout v0.27.0
 make install
 ```
-1. Start kava as usual: `kava start`
+3. Start kava as usual: `kava start`
 
-**For `rocksdb` nodes:**
+### `rocksdb` nodes
+
+> [!TIP]
+> Since v0.26.2, databases are opened with [opendb](https://github.com/Kava-Labs/opendb/) which
+> makes rocksdb more configurable. For best memory performance, node operators are encouraged to add
+> these settings to their `app.toml` when running with `db_backend = rocksdb`:
+> ```toml
+> [rocksdb]
+> max_open_files = 16384 # increase default max # of open files from 4096
+> block_size = 16384 # decreases block index memory by 4x!
+> ```
+
 1. Replace or recreate your node data with IAVL V1: see [Data](#data).
 2. Update your default memory allocator: see [default memory allocator](#default-memory-allocator)
 3. Install an IAVL V1 binary:
@@ -66,3 +82,30 @@ To update your node to use `tcmalloc`:
     * from source: see [tcmalloc Quickstart](https://google.github.io/tcmalloc/quickstart.html)
 2. whenever running kava, do so with the new memory allocator: `LD_PRELOAD=/path/to/tcmalloc kava start`
     * replace `/path/to/tcmalloc` above with correct path
+
+## IAVL V1 Pruning Changes
+
+There is an important difference in how changes to pruning settings are handled in IAVL V1.
+
+In IAVL V0, a change to pruning settings takes effect only for new blocks. In IAVL V1, all blocks are
+pruned to the new settings the moment the change is made.
+
+When switching to IAVL V1 in this upgrade, you will experience a long startup time if your node has
+had a change to pruning settings. If your node has changed its pruning settings during its runtime,
+you are encouraged to upgrade with `pruning = "nothing"`.
+
+If you experience a long start time or an out of memory error on startup, try again with `pruning = "nothing"`.
+For optimal performance, node operators are encouraged to reinitialize their node with fully IAVL V1
+data.
+
+**Example:**
+A node is started with `pruning = "nothing"` on IAVL V0 (any release prior to `kava@v0.26.2-iavl-v1`).
+
+The node runs for awhile, is stopped, and then switched to `pruning = "everything"`.
+
+On startup, the node does not prune the existing blocks. Only new blocks are processed with the current
+pruning setting.
+
+In IAVL V1 (when you start v0.27 on top of the above data), the `pruning = "everything"` setting is
+applied to the entire state. Depending on how many blocks there are that should be pruned, the intial
+start up can take a long time and may fail due to a lack of memory.

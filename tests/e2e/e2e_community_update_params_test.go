@@ -51,6 +51,8 @@ func (suite *IntegrationTestSuite) TestCommunityUpdateParams_NonAuthority() {
 }
 
 func (suite *IntegrationTestSuite) TestCommunityUpdateParams_Authority() {
+	suite.SkipIfKvtoolDisabled() // probably not testing w/ an account that has 1000 KAVA
+
 	// ARRANGE
 	govParamsRes, err := suite.Kava.Grpc.Query.Gov.Params(context.Background(), &govv1.QueryParamsRequest{
 		ParamsType: govv1.ParamDeposit,
