@@ -58,7 +58,7 @@ kava version --long
 # name: kava
 # server_name: kava
 # version: 0.27.0
-# commit: TODO
+# commit: e77e0fed1cd64fdbc9f40dac6737c9e7a33cd4ae
 # build_tags: netgo ledger,
 # go: go version go1.22.9 linux/amd64
 # build_deps:
