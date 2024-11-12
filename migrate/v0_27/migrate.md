@@ -31,18 +31,18 @@ Please reference the [RocksDB repository](https://github.com/facebook/rocksdb/tr
 
 Node operators using rocksdb are encouraged to [use `tcmalloc` as their memory allocator](https://github.com/Kava-Labs/kava/blob/v0.26.2-iavl-v1/migrate/v0_26/iavl-v1.md#default-memory-allocator).
 
-### On the day of the upgrade
+## On the day of the upgrade
 
 The kava chain is expected to halt at block height **12766500**. **Do not stop your node and begin the upgrade before the upgrade height**, or you may go offline and be unable to recover until after the upgrade!
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
-**Ensure you are using golang 1.22.7+ and not a different version.** Golang 1.22.6 and below is not compatible and may cause app hash mismatches!
+**Ensure you are using golang 1.22.7+ and not a different version.** Golang 1.22.6 and below may cause app hash mismatches!
 
 To update to v0.27.0
 
 ```sh
-# check go version - look for 1.22!
+# check go version - look for 1.22.7+!
 go version
 # go version go1.22.9 linux/amd64
 
@@ -50,7 +50,7 @@ go version
 git fetch
 git checkout v0.27.0
 
-# Note: Golang 1.22 must be installed before this step
+# Note: Golang 1.22.7+ must be installed before this step
 make install
 
 # verify versions
