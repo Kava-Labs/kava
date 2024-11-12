@@ -34,7 +34,7 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
-## [unreleased]
+## [v0.27.0]
 
 ### State Machine Breaking Changes
 
@@ -482,6 +482,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
 [unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...release/v0.26.x-iavl-v1
+[v0.27.0]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...v0.27.0
 [v0.26.2-iavl-v1]: https://github.com/Kava-Labs/kava/compare/v0.26.2...v0.26.2-iavl-v1
 [v0.26.2]: https://github.com/Kava-Labs/kava/compare/v0.26.1...v0.26.2
 [v0.26.1]: https://github.com/Kava-Labs/kava/compare/v0.26.0...v0.26.1
