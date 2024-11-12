@@ -240,6 +240,8 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 						continue
 					}
 
+					fmt.Println("going to build transaction", currentRequest)
+					fmt.Println("going to build transaction with gas limit", currentRequest.GasLimit)
 					txBuilder := s.encodingConfig.TxConfig.NewTxBuilder()
 					txBuilder.SetMsgs(currentRequest.Msgs...)
 					txBuilder.SetGasLimit(currentRequest.GasLimit)

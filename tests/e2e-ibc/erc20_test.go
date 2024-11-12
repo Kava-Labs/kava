@@ -44,8 +44,14 @@ func TestInterchainErc20(t *testing.T) {
 	app.SetSDKConfig()
 	ctx := context.Background()
 
+	// exportGenesis := os.Getenv("EXPORT_GENESIS_FILE_PATH")
+	// export EXPORT_GENESIS_FILE_PATH=./e2e_genesis.json
+	// export EXPORT_GENESIS_CHAIN=kava_8888-1
+	//	exportGenesisChain := os.Getenv("EXPORT_GENESIS_CHAIN")
+
 	// Configure & run chains with interchaintest
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
+		//{Name: "kava", Version: "local", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
 		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
 		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom"}},
 	})
@@ -85,9 +91,12 @@ func TestInterchainErc20(t *testing.T) {
 	// Log location
 	f, err := interchaintest.CreateLogFile(fmt.Sprintf("%d.json", time.Now().Unix()))
 	require.NoError(t, err)
+	fmt.Println("f: ", f.Name())
 	// Reporter/logs
 	rep := testreporter.NewReporter(f)
+	fmt.Println("rep: ", rep)
 	eRep := rep.RelayerExecReporter(t)
+	fmt.Println("eRep: ", eRep)
 
 	// Build interchain
 	err = ic.Build(ctx, eRep, interchaintest.InterchainBuildOptions{
@@ -99,10 +108,17 @@ func TestInterchainErc20(t *testing.T) {
 	)
 	require.NoError(t, err)
 
+	fmt.Println("built interchain", err)
+
 	// Create and Fund User Wallets
 	fundAmount := math.NewInt(1e12)
 
 	users := interchaintest.GetAndFundTestUsers(t, ctx, t.Name(), fundAmount, ictKava, gaia)
+	fmt.Println("users: ", users)
+	for i, u := range users {
+		fmt.Println("user: ", i, u, u.KeyName())
+	}
+	// kava tx bank send faucet kava1m6477zyykew9ezxl599qc2lurz83elwv5xx332 1000000000000ukava --gas-prices 0ukava --gas-adjustment 1.5 --from faucet --keyring-backend test --output json -y --chain-id kava_8888-1 --home /var/cosmos-chain/kava-1 --node tcp://kava_8888-1-val-0-TestInterchainErc20:26657
 	kavaUser := users[0]
 	gaiaUser := users[1]
 
@@ -132,7 +148,7 @@ func TestInterchainErc20(t *testing.T) {
 	fmt.Println("rpcUrl: ", rpcUrl)
 	//grpcUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "9090/tcp")
 	//require.NoError(t, err, "failed to find grpc URL")
-	grpcUrl := ictKava.GetHostGRPCAddress()
+	grpcUrl := "http://" + ictKava.GetHostGRPCAddress()
 	fmt.Println("grpcUrl: ", grpcUrl)
 	//evmUrl, err := ictKava.FullNodes[0].GetHostAddress(ctx, "8545/tcp")
 	require.NoError(t, err, "failed to find evm URL")
@@ -171,6 +187,7 @@ func TestInterchainErc20(t *testing.T) {
 	require.NoError(t, err)
 
 	deployerKavaAddr := util.EvmToSdkAddress(evmDeployer.Address())
+	fmt.Println("going to send funds from", kavaUser.KeyName(), "to ", deployerKavaAddr.String())
 	err = ictKava.SendFunds(ctx, kavaUser.KeyName(), ibc.WalletAmount{
 		Address: deployerKavaAddr.String(),
 		Denom:   "ukava",
@@ -189,6 +206,10 @@ func TestInterchainErc20(t *testing.T) {
 	require.NoError(t, err)
 
 	deployer := kava.GetAccount("whale")
+
+	balance := kava.QuerySdkForBalances(deployer.SdkAddress)
+
+	fmt.Println("balance", balance)
 
 	// deploy ERC20 contract
 	usdtAddr, deployTx, usdt, err := erc20.DeployErc20(
@@ -229,6 +250,7 @@ func TestInterchainErc20(t *testing.T) {
 		Deposit: "10000000ukava",
 	}
 
+	fmt.Println("kavaUser", kavaUser.KeyName())
 	_, err = legacyParamChangeProposal(ictKava.FullNodes[0], ctx, kavaUser.KeyName(), &paramChange)
 	require.NoError(t, err, "error submitting param change proposal tx")
 
@@ -324,6 +346,9 @@ func legacyParamChangeProposal(tn *cosmos.ChainNode, ctx context.Context, keyNam
 		"param-change",
 		proposalPath,
 	}
+
+	fmt.Println("command: ", command)
+	fmt.Println("keyName: ", keyName)
 
 	return tn.ExecTx(ctx, keyName, command...)
 }

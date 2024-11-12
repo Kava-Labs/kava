@@ -832,8 +832,8 @@ github.com/kava-labs/cometbft v0.0.0-20241024200036-527d8df9ff12 h1:RqnpnEGEuykj
 github.com/kava-labs/cometbft v0.0.0-20241024200036-527d8df9ff12/go.mod h1:5awmm7t/X8LJ+Wd7/TXHcv4hLfFLcexy6fdS9WvOepA=
 github.com/kava-labs/cometbft-db v0.0.0-20241007145430-b2740b2e4bed h1:3FNJ3fcD9aA9oOwDphrSEJ8u2kBNj9YoYAwl16UKyv4=
 github.com/kava-labs/cometbft-db v0.0.0-20241007145430-b2740b2e4bed/go.mod h1:buPRZKyVp+u5fmwN7tDtOk1zc5xA2z9BJJTy61tNnws=
-github.com/kava-labs/cosmos-sdk v0.0.0-20241107170058-27e0ccccc208 h1:0Z/vypO858xcywSSzxuDsuFW+CuuxeE+8XR1jyMM7qQ=
-github.com/kava-labs/cosmos-sdk v0.0.0-20241107170058-27e0ccccc208/go.mod h1:Yf8jj8R5+9NWCbdot0IMId92WeAIF22Thc/pRR2hSoI=
+github.com/kava-labs/cosmos-sdk v0.0.0-20241108231030-e1beb1437b24 h1:89aBfvV1XKbOaGklejzQnAove63jH6TxNL1hT6BIf6U=
+github.com/kava-labs/cosmos-sdk v0.0.0-20241108231030-e1beb1437b24/go.mod h1:Yf8jj8R5+9NWCbdot0IMId92WeAIF22Thc/pRR2hSoI=
 github.com/kava-labs/ethermint v0.0.0-20241107232649-d8ee91e8450e h1:79mJSoWItAG2gPLOzVfdRJnMWy3vwAPdnahjh3jmUno=
 github.com/kava-labs/ethermint v0.0.0-20241107232649-d8ee91e8450e/go.mod h1:Vulovod3ZhLTCfs9RkILIDK8WSDyYhnEp665kTRv530=
 github.com/kisielk/errcheck v1.1.0/go.mod h1:EZBBE59ingxPouuu3KfxchcWSUPOHkagtvWXihfKN4Q=
