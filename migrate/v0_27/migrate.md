@@ -4,7 +4,7 @@
 
 - The version of `kava` for Kava 17 is `v0.27.0`
 - The Kava 17 chain will be shutdown with a `SoftwareUpgradeProposal` that
-  activates at height 12766500 on approximately 15:00 UTC on November 21, 2024.
+  activates at height 12766500 at approximately 15:00 UTC on November 21, 2024.
 
 ## Data Storage Changes
 
