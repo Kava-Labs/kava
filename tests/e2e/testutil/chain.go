@@ -6,7 +6,6 @@ import (
 	"fmt"
 	dbm "github.com/cosmos/cosmos-db"
 	"math/big"
-	"runtime/debug"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -88,8 +87,6 @@ func NewChain(t *testing.T, details *runner.ChainDetails, fundedAccountMnemonic 
 	chain.Keyring = kr
 
 	fmt.Println("going to start new chain", details)
-	debug.PrintStack()
-
 	client, err := grpc.NewClient(details.GrpcUrl)
 	if err != nil {
 		chain.t.Fatalf("failed to create kava grpc client: %s", err)

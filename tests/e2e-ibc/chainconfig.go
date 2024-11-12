@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/kava-labs/kava/app"
 	"os"
 
 	"github.com/strangelove-ventures/interchaintest/v8/chain/cosmos"
@@ -27,9 +28,15 @@ func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 	appTomlOverrides := make(testutil.Toml)
 	appTomlOverrides["json-rpc"] = jsonRpcOverrides
 
+	cosmos.SetSDKConfig(app.Bech32MainPrefix)
+
 	// genesis param overrides
 	genesis := []cosmos.GenesisKV{
-		//cosmos.NewGenesisKV("consensus_params.block.max_gas", "20000000"),
+		// TODO(boodyvo): investigate why it is "consensus.params" as there is one test for ethermint in interchaintest, that works with "consensus_params"
+		// Updatae: It was impacted by kava docker, not interchaintest
+		cosmos.NewGenesisKV("consensus_params.block.max_gas", "20000000"),
+		//cosmos.NewGenesisKV("consensus.params.block.max_gas", "20000000"),
+
 		cosmos.NewGenesisKV("app_state.evm.params.evm_denom", "akava"),
 		// update for fast voting periods
 		cosmos.NewGenesisKV("app_state.gov.params.voting_period", "10s"),

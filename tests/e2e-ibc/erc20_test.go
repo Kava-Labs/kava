@@ -207,10 +207,6 @@ func TestInterchainErc20(t *testing.T) {
 
 	deployer := kava.GetAccount("whale")
 
-	balance := kava.QuerySdkForBalances(deployer.SdkAddress)
-
-	fmt.Println("balance", balance)
-
 	// deploy ERC20 contract
 	usdtAddr, deployTx, usdt, err := erc20.DeployErc20(
 		deployer.EvmAuth, kava.EvmClient,
@@ -331,6 +327,7 @@ func legacyParamChangeProposal(tn *cosmos.ChainNode, ctx context.Context, keyNam
 	if err != nil {
 		return "", err
 	}
+	fmt.Println("content: ", string(content))
 
 	hash := sha256.Sum256(content)
 	proposalFilename := fmt.Sprintf("%x.json", hash)

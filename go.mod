@@ -261,7 +261,7 @@ replace (
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.50.10-test-patch 5f9239e3147358ef034bfc4d19aacb34e5ea2064
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241108231030-e1beb1437b24
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241112165205-09a815df9157
 	//github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 
 	//github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.1
