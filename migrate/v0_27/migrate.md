@@ -4,7 +4,7 @@
 
 - The version of `kava` for Kava 17 is `v0.27.0`
 - The Kava 17 chain will be shutdown with a `SoftwareUpgradeProposal` that
-  activates at approximately 15:00 UTC on November 21, 2024.
+  activates at height 12766500 at approximately 15:00 UTC on November 21, 2024.
 
 ## Data Storage Changes
 
@@ -33,11 +33,11 @@ Node operators using rocksdb are encouraged to [use `tcmalloc` as their memory a
 
 ### On the day of the upgrade
 
-The kava chain is expected to halt at block height **TO BE DETERMINED**. **Do not stop your node and begin the upgrade before the upgrade height**, or you may go offline and be unable to recover until after the upgrade!
+The kava chain is expected to halt at block height **12766500**. **Do not stop your node and begin the upgrade before the upgrade height**, or you may go offline and be unable to recover until after the upgrade!
 
 **Make sure the kava process is stopped before proceeding and that you have backed up your validator**. Failure to backup your validator could make it impossible to restart your node if the upgrade fails.
 
-**Ensure you are using golang 1.22.x and not a different version.** Golang 1.21 and below may cause app hash mismatches!
+**Ensure you are using golang 1.22.7+ and not a different version.** Golang 1.22.6 and below is not compatible and may cause app hash mismatches!
 
 To update to v0.27.0
 
