@@ -60,7 +60,6 @@ func (k Keeper) SendCoins(
 
 	// Send the extended coin amount through x/precisebank
 	if extendedCoinAmount.IsPositive() {
-		fmt.Println("send extended coins")
 		if err := k.sendExtendedCoins(sdkCtx, from, to, extendedCoinAmount); err != nil {
 			return err
 		}
@@ -157,7 +156,6 @@ func (k Keeper) sendExtendedCoins(
 	// Full integer amount transfer, including direct transfer of borrow/carry
 	// if any.
 	if integerAmt.IsPositive() {
-		fmt.Println("inside IsPositive")
 		transferCoin := sdk.NewCoin(types.IntegerCoinDenom, integerAmt)
 		if err := k.bk.SendCoins(ctx, from, to, sdk.NewCoins(transferCoin)); err != nil {
 			return k.updateInsufficientFundsError(ctx, from, amt, err)
@@ -168,7 +166,6 @@ func (k Keeper) sendExtendedCoins(
 	// Sender borrows by transferring 1 integer amount to reserve to account for
 	// lack of fractional balance.
 	if senderNeedsBorrow && !recipientNeedsCarry {
-		fmt.Println("inside senderNeedsBorrow")
 		borrowCoin := sdk.NewCoin(types.IntegerCoinDenom, sdkmath.NewInt(1))
 		err := k.bk.SendCoinsFromAccountToModule(
 			ctx,
@@ -176,7 +173,6 @@ func (k Keeper) sendExtendedCoins(
 			types.ModuleName,
 			sdk.NewCoins(borrowCoin),
 		)
-		fmt.Println("err", err)
 		if err != nil {
 			return k.updateInsufficientFundsError(ctx, from, amt, err)
 		}

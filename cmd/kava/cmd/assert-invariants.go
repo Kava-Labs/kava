@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"cosmossdk.io/log"
 	"encoding/json"
 	"fmt"
+	dbm "github.com/cosmos/cosmos-db"
 
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -32,7 +34,11 @@ func AssertInvariantsCmd(config params.EncodingConfig) *cobra.Command {
 			if err := json.Unmarshal(genDoc.AppState, &newAppState); err != nil {
 				return fmt.Errorf("failed to marshal app state from genesis doc: %s: %w", importGenesis, err)
 			}
-			err = app.ModuleBasics.ValidateGenesis(config.Marshaler, config.TxConfig, newAppState)
+
+			encodingConfig := app.MakeEncodingConfig()
+			tempApp := app.NewApp(log.NewNopLogger(), dbm.NewMemDB(), app.DefaultNodeHome, nil, encodingConfig, app.DefaultOptions)
+
+			err = tempApp.BasicModuleManager.ValidateGenesis(config.Marshaler, config.TxConfig, newAppState)
 			if err != nil {
 				return fmt.Errorf("genesis doc did not pass validate genesis: %s: %w", importGenesis, err)
 			}

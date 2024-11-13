@@ -98,12 +98,10 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v8/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v8/modules/core/02-client"
-	ibcclientclient "github.com/cosmos/ibc-go/v8/modules/core/02-client/client/cli"
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcporttypes "github.com/cosmos/ibc-go/v8/modules/core/05-port/types"
 	ibcexported "github.com/cosmos/ibc-go/v8/modules/core/exported"
 	ibckeeper "github.com/cosmos/ibc-go/v8/modules/core/keeper"
-	solomachine "github.com/cosmos/ibc-go/v8/modules/light-clients/06-solomachine"
 	ibctm "github.com/cosmos/ibc-go/v8/modules/light-clients/07-tendermint"
 	"github.com/ethereum/go-ethereum/core/vm"
 	evmante "github.com/evmos/ethermint/app/ante"
@@ -130,15 +128,12 @@ import (
 	cdpkeeper "github.com/kava-labs/kava/x/cdp/keeper"
 	cdptypes "github.com/kava-labs/kava/x/cdp/types"
 	"github.com/kava-labs/kava/x/committee"
-	committeeclient "github.com/kava-labs/kava/x/committee/client"
 	committeekeeper "github.com/kava-labs/kava/x/committee/keeper"
 	committeetypes "github.com/kava-labs/kava/x/committee/types"
 	"github.com/kava-labs/kava/x/community"
-	communityclient "github.com/kava-labs/kava/x/community/client"
 	communitykeeper "github.com/kava-labs/kava/x/community/keeper"
 	communitytypes "github.com/kava-labs/kava/x/community/types"
 	earn "github.com/kava-labs/kava/x/earn"
-	earnclient "github.com/kava-labs/kava/x/earn/client"
 	earnkeeper "github.com/kava-labs/kava/x/earn/keeper"
 	earntypes "github.com/kava-labs/kava/x/earn/types"
 	evmutil "github.com/kava-labs/kava/x/evmutil"
@@ -154,7 +149,6 @@ import (
 	issuancekeeper "github.com/kava-labs/kava/x/issuance/keeper"
 	issuancetypes "github.com/kava-labs/kava/x/issuance/types"
 	"github.com/kava-labs/kava/x/kavadist"
-	kavadistclient "github.com/kava-labs/kava/x/kavadist/client"
 	kavadistkeeper "github.com/kava-labs/kava/x/kavadist/keeper"
 	kavadisttypes "github.com/kava-labs/kava/x/kavadist/types"
 	"github.com/kava-labs/kava/x/liquid"
@@ -194,65 +188,6 @@ var (
 
 	LegacyProposalHandler       = govclient.NewProposalHandler(func() *cobra.Command { return upgradecli.NewCmdSubmitUpgradeProposal(ac) })
 	LegacyCancelProposalHandler = govclient.NewProposalHandler(func() *cobra.Command { return upgradecli.NewCmdSubmitCancelUpgradeProposal(ac) })
-
-	ModuleBasics = module.NewBasicManager(
-		genutil.NewAppModuleBasic(genutiltypes.DefaultMessageValidator),
-		auth.AppModuleBasic{},
-		bank.AppModuleBasic{},
-		capability.AppModuleBasic{},
-		staking.AppModuleBasic{},
-		distr.AppModuleBasic{},
-		gov.NewAppModuleBasic([]govclient.ProposalHandler{
-			paramsclient.ProposalHandler,
-			LegacyProposalHandler,
-			LegacyCancelProposalHandler,
-			//upgradeclient.LegacyProposalHandler,
-			//upgradeclient.LegacyCancelProposalHandler,
-			govclient.NewProposalHandler(ibcclientclient.NewTxCmd),
-			//ibcclientclient,
-			kavadistclient.ProposalHandler,
-			committeeclient.ProposalHandler,
-			earnclient.DepositProposalHandler,
-			earnclient.WithdrawProposalHandler,
-			communityclient.LendDepositProposalHandler,
-			communityclient.LendWithdrawProposalHandler,
-		}),
-		params.AppModuleBasic{},
-		crisis.AppModuleBasic{},
-		slashing.AppModuleBasic{},
-		ibc.AppModuleBasic{},
-		ibctm.AppModuleBasic{},
-		solomachine.AppModuleBasic{},
-		packetforward.AppModuleBasic{},
-		upgrade.AppModuleBasic{},
-		evidence.AppModuleBasic{},
-		authzmodule.AppModuleBasic{},
-		transfer.AppModuleBasic{},
-		vesting.AppModuleBasic{},
-		evm.AppModuleBasic{},
-		feemarket.AppModuleBasic{},
-		kavadist.AppModuleBasic{},
-		auction.AppModuleBasic{},
-		issuance.AppModuleBasic{},
-		bep3.AppModuleBasic{},
-		pricefeed.AppModuleBasic{},
-		swap.AppModuleBasic{},
-		cdp.AppModuleBasic{},
-		hard.AppModuleBasic{},
-		committee.AppModuleBasic{},
-		incentive.AppModuleBasic{},
-		savings.AppModuleBasic{},
-		validatorvesting.AppModuleBasic{},
-		evmutil.AppModuleBasic{},
-		liquid.AppModuleBasic{},
-		earn.AppModuleBasic{},
-		router.AppModuleBasic{},
-		mint.AppModuleBasic{},
-		community.AppModuleBasic{},
-		metrics.AppModuleBasic{},
-		consensus.AppModuleBasic{},
-		precisebank.AppModuleBasic{},
-	)
 
 	// module account permissions
 	// If these are changed, the permissions stored in accounts
@@ -1238,7 +1173,7 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	// Register GRPC Gateway routes
 	tmservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
-	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
+	app.BasicModuleManager.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 	nodeservice.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// Swagger API configuration is ignored

@@ -261,7 +261,7 @@ replace (
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.10-iavl-v1-kava.1
 	//github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.50.10-test-patch 5f9239e3147358ef034bfc4d19aacb34e5ea2064
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241112165205-09a815df9157
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.0.0-20241112215550-dfd34308fe09
 	//github.com/cosmos/cosmos-sdk => ../cosmos-sdk
 
 	//github.com/cosmos/cosmos-sdk/store => cosmossdk.io/store v1.1.1
@@ -281,7 +281,7 @@ replace (
 	// Tracking kava-labs/etheremint master branch
 	// TODO: Tag before release
 	//github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.21.1-0.20240802224012-586960857184
-	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241107232649-d8ee91e8450e
+	github.com/evmos/ethermint => github.com/kava-labs/ethermint v0.0.0-20241112214305-986ef503477d
 	//github.com/evmos/ethermint => ../ethermint
 	// See https://github.com/cosmos/cosmos-sdk/pull/10401, https://github.com/cosmos/cosmos-sdk/commit/0592ba6158cd0bf49d894be1cef4faeec59e8320
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.0

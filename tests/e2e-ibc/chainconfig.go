@@ -18,8 +18,8 @@ const (
 func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 	kavaImageTag := os.Getenv("KAVA_TAG")
 	if kavaImageTag == "" {
-		kavaImageTag = "v0.26.0-rocksdb"
-		//kavaImageTag = "local"
+		//kavaImageTag = "v0.26.0-rocksdb"
+		kavaImageTag = "local"
 	}
 
 	// app.toml overrides
@@ -34,8 +34,8 @@ func DefaultKavaChainConfig(chainId string) ibc.ChainConfig {
 	genesis := []cosmos.GenesisKV{
 		// TODO(boodyvo): investigate why it is "consensus.params" as there is one test for ethermint in interchaintest, that works with "consensus_params"
 		// Updatae: It was impacted by kava docker, not interchaintest
-		cosmos.NewGenesisKV("consensus_params.block.max_gas", "20000000"),
-		//cosmos.NewGenesisKV("consensus.params.block.max_gas", "20000000"),
+		//cosmos.NewGenesisKV("consensus_params.block.max_gas", "20000000"),
+		cosmos.NewGenesisKV("consensus.params.block.max_gas", "20000000"),
 
 		cosmos.NewGenesisKV("app_state.evm.params.evm_denom", "akava"),
 		// update for fast voting periods
