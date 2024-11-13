@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
+	"github.com/kava-labs/kava/app"
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +47,7 @@ func newTxCmd() *cobra.Command {
 
 	//tempApp.BasicModuleManager.AddTxCommands(cmd)
 
-	//app.ModuleBasics.AddTxCommands(cmd)
+	app.ModuleBasics.AddTxCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
