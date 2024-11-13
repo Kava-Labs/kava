@@ -292,6 +292,7 @@ func TestInterchainErc20(t *testing.T) {
 	}
 	res := user.SignAndBroadcastKavaTx(convertTx)
 	require.NoError(t, res.Err)
+	fmt.Println("res: ", res)
 
 	// check balance of cosmos coin!
 	sdkBalance := kava.QuerySdkForBalances(user.SdkAddress)
@@ -342,6 +343,10 @@ func legacyParamChangeProposal(tn *cosmos.ChainNode, ctx context.Context, keyNam
 		"gov", "submit-legacy-proposal",
 		"param-change",
 		proposalPath,
+		"--type", "text",
+		"--title", prop.Title,
+		"--description", prop.Description,
+		"--deposit", prop.Deposit,
 	}
 
 	fmt.Println("command: ", command)
