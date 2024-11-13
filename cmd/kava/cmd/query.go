@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
@@ -32,10 +30,10 @@ func newQueryCmd() *cobra.Command {
 		authcmd.QueryTxCmd(),
 	)
 
-	encodingConfig := app.MakeEncodingConfig()
-	tempApp := app.NewApp(log.NewNopLogger(), dbm.NewMemDB(), app.DefaultNodeHome, nil, encodingConfig, app.DefaultOptions)
+	//encodingConfig := app.MakeEncodingConfig()
+	//tempApp := app.NewApp(log.NewNopLogger(), dbm.NewMemDB(), app.DefaultNodeHome, nil, encodingConfig, app.DefaultOptions)
 
-	tempApp.BasicModuleManager.AddQueryCommands(cmd)
+	app.ModuleBasics.AddQueryCommands(cmd)
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
