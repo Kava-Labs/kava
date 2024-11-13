@@ -167,10 +167,8 @@ func TestInterchainErc20(t *testing.T) {
 	//} else {
 	//	panic("containerLifecycle is not valid")
 	//}
-	hostPorts, err := ictKava.FullNodes[0].ContainerLifecycle.GetHostPorts(ctx, "8545/tcp")
-	fmt.Println("hostPorts: ", hostPorts)
-	fmt.Println("ictKava.FullNodes[0]: ", ictKava.FullNodes[0])
-	fmt.Println("ictKava.FullNodes[0].ContainerLifecycle: ", ictKava.FullNodes[0].ContainerLifecycle)
+	hostPorts, err := ictKava.Validators[0].ContainerLifecycle.GetHostPorts(ctx, "8545/tcp")
+	//hostPorts, err := ictKava.FullNodes[0].ContainerLifecycle.GetHostPorts(ctx, "8545/tcp")
 	//hostPorts, err := containerLifecycle.GetHostPorts(ctx, "8545/tcp")
 	require.NoError(t, err, "failed to find evm URL")
 	evmUrl = "http://" + hostPorts[0]
@@ -243,11 +241,12 @@ func TestInterchainErc20(t *testing.T) {
 				Value:    rawCps,
 			},
 		},
-		Deposit: "10000000ukava",
+		Deposit: "1000000000ukava",
 	}
 
 	fmt.Println("kavaUser", kavaUser.KeyName())
-	_, err = legacyParamChangeProposal(ictKava.FullNodes[0], ctx, kavaUser.KeyName(), &paramChange)
+	fmt.Println("full node 0", ictKava.Validators[0])
+	_, err = legacyParamChangeProposal(ictKava.Validators[0], ctx, kavaUser.KeyName(), &paramChange)
 	require.NoError(t, err, "error submitting param change proposal tx")
 
 	// TODO: query proposal id. assuming it is 1 here.
@@ -264,8 +263,11 @@ func TestInterchainErc20(t *testing.T) {
 	require.NoError(t, err, "proposal status did not change to passed in expected number of blocks")
 
 	// fund a user & mint them some usdt
-	user := kava.NewFundedAccount("tether-user", sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(1e7))))
+	//user := kava.NewFundedAccount("tether-user", sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(1e7))))
+	user := kava.NewFundedAccount("tether-user", sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(1e9))))
 	erc20FundAmt := big.NewInt(100e6)
+	// 10000000
+	//erc20FundAmt := big.NewInt(6_000_000_000)
 	mintTx, err := usdt.Mint(deployer.EvmAuth, user.EvmAddress, erc20FundAmt)
 	require.NoError(t, err)
 
@@ -285,10 +287,12 @@ func TestInterchainErc20(t *testing.T) {
 		amountToConvert,
 	)
 	convertTx := util.KavaMsgRequest{
-		Msgs:      []sdk.Msg{&msg},
-		GasLimit:  4e5,
-		FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(400))),
-		Data:      "converting sdk coin to erc20",
+		Msgs:     []sdk.Msg{&msg},
+		GasLimit: 4e5,
+		//FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(400))),
+		FeeAmount: sdk.NewCoins(sdk.NewCoin("ukava", math.NewInt(40000000))),
+		// 40000000ukava:
+		Data: "converting sdk coin to erc20",
 	}
 	res := user.SignAndBroadcastKavaTx(convertTx)
 	require.NoError(t, res.Err)
@@ -343,10 +347,6 @@ func legacyParamChangeProposal(tn *cosmos.ChainNode, ctx context.Context, keyNam
 		"gov", "submit-legacy-proposal",
 		"param-change",
 		proposalPath,
-		"--type", "text",
-		"--title", prop.Title,
-		"--description", prop.Description,
-		"--deposit", prop.Deposit,
 	}
 
 	fmt.Println("command: ", command)

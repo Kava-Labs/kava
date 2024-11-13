@@ -257,9 +257,10 @@ func (a *SigningAccount) NextNonce() (uint64, error) {
 func (a *SigningAccount) BankSend(to sdk.AccAddress, amount sdk.Coins) util.KavaMsgResponse {
 	return a.SignAndBroadcastKavaTx(
 		util.KavaMsgRequest{
-			Msgs:      []sdk.Msg{banktypes.NewMsgSend(a.SdkAddress, to, amount)},
-			GasLimit:  2e5,                                                        // 200,000 gas
-			FeeAmount: sdk.NewCoins(sdk.NewCoin(a.gasDenom, sdkmath.NewInt(200))), // assume min gas price of .001ukava
+			Msgs:     []sdk.Msg{banktypes.NewMsgSend(a.SdkAddress, to, amount)},
+			GasLimit: 2e5, // 200,000 gas
+			//FeeAmount: sdk.NewCoins(sdk.NewCoin(a.gasDenom, sdkmath.NewInt(200))), // assume min gas price of .001ukava
+			FeeAmount: sdk.NewCoins(sdk.NewCoin(a.gasDenom, sdkmath.NewInt(20000000))), // assume min gas price of .001ukava
 			Data:      fmt.Sprintf("sending %s to %s", amount, to),
 		},
 	)
