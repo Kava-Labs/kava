@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
-VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
+VERSION := v0.19.1-testnet.1
+# VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 TM_PKG_VERSION := $(shell go list -m github.com/tendermint/tendermint | sed 's:.* ::')
 COSMOS_PKG_VERSION := $(shell go list -m github.com/cosmos/cosmos-sdk | sed 's:.* ::')
 COMMIT := $(shell git log -1 --format='%H')
