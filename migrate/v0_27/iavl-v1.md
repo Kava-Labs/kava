@@ -46,7 +46,7 @@ make install COSMOS_BUILD_OPTIONS=rocksdb
 
 ## Data
 
-The IAVL V1 binaries are compatible with IAVL V0 data (all chain data snapshots available up until this time).
+The IAVL V1 binaries are compatible with IAVL V0 data, but it is recommended to start from state sync or a IAVL v1 snapshot.
 However, for maximum performance & storage benefit, node operators should use data that is completely
 built with IAVL V1.
 
@@ -59,8 +59,7 @@ A public RPC server is available at `https://rpc.kava.io:443`.
 
 ### Full-archive node
 
-For nodes with the complete historical data, we are in the process of creating and sharing a snapshot
-of full-archive node data. An update will be made when they are publicly available.
+For nodes that need complete historical data, a full archive IAVL v1 snapshot is avaiable at https://quicksync.io/kava.
 
 In addition to the most recent version on this file, the Release Notes for
 [`v0.26.2-iavl-v1`](https://github.com/Kava-Labs/kava/releases/tag/v0.26.2-iavl-v1) will contain
