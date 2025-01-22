@@ -903,8 +903,8 @@ github.com/jwilder/encoding v0.0.0-20170811194829-b4e1701a28ef/go.mod h1:Ct9fl0F
 github.com/karalabe/usb v0.0.2/go.mod h1:Od972xHfMJowv7NGVDiWVxk2zxnWgjLlJzE+F4F7AGU=
 github.com/kava-labs/cometbft v0.37.13-kava.1 h1:r7HgFDLu6jCfVbRMoQCpvcGzFEvmqyLKeVibFtxjLkk=
 github.com/kava-labs/cometbft v0.37.13-kava.1/go.mod h1:PHxduPKAWdfFUAqi6a2nrA+WBfjEqQ6Vg27fIBntRYE=
-github.com/kava-labs/cosmos-sdk v0.47.16-0.20250121221936-a254e397844d h1:pE08cUZMrcfwDOInJkKswsOF1zNM5yBbJ7SnOi3uHYo=
-github.com/kava-labs/cosmos-sdk v0.47.16-0.20250121221936-a254e397844d/go.mod h1:3pOQQAEomoC6oCIWuYoVJdadWFexIkHmi2pGsPKQo90=
+github.com/kava-labs/cosmos-sdk v0.47.15-iavl-v1-kava.1 h1:8cGSQsQgdpE8TGyU86WbNVRlRmzrDMGV9r16wl/CIMA=
+github.com/kava-labs/cosmos-sdk v0.47.15-iavl-v1-kava.1/go.mod h1:3pOQQAEomoC6oCIWuYoVJdadWFexIkHmi2pGsPKQo90=
 github.com/kava-labs/ethermint v0.21.0-kava-v27.0 h1:TzFhLQULsyQUA+b620FMGvZHTNriRuWLFGShwW/4xCA=
 github.com/kava-labs/ethermint v0.21.0-kava-v27.0/go.mod h1:zGcUyJhdcoO0VfxAQwiXpGjBAV8w+Hig1yaH2l7KB5k=
 github.com/kava-labs/iavl v1.2.0-kava.2 h1:RfEqQ9u7fvhzXOfYxxqEnVNCTb3pYJiT7X86N6cgI0M=

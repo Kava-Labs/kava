@@ -230,7 +230,7 @@ replace (
 	// Use cometbft fork of tendermint
 	github.com/cometbft/cometbft => github.com/kava-labs/cometbft v0.37.13-kava.1
 	// Use cosmos-sdk fork with backported fix for unsafe-reset-all, staking transfer events, and custom tally handler support
-	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.16-0.20250121221936-a254e397844d
+	github.com/cosmos/cosmos-sdk => github.com/kava-labs/cosmos-sdk v0.47.15-iavl-v1-kava.1
 	github.com/cosmos/iavl => github.com/kava-labs/iavl v1.2.0-kava.2
 	// See https://github.com/cosmos/cosmos-sdk/pull/13093
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.4.2
