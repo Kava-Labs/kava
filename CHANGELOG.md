@@ -34,6 +34,11 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [v0.27.1]
+
+### Improvements
+- (deps) [#2062] Bump cosmos-sdk to v0.47.15-iavl-v1-kava.1
+
 ## [v0.27.0]
 
 ### State Machine Breaking Changes
@@ -410,6 +415,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [ethermint#82]: https://github.com/Kava-Labs/ethermint/pull/82
 [ethermint#77]: https://github.com/Kava-Labs/ethermint/pull/77
 [ethermint#75]: https://github.com/Kava-Labs/ethermint/pull/75
+[#2062]: https://github.com/Kava-Labs/kava/pull/2062
 [#2047]: https://github.com/Kava-Labs/kava/pull/2047
 [#2017]: https://github.com/Kava-Labs/kava/pull/2017
 [#1973]: https://github.com/Kava-Labs/kava/pull/1973
@@ -482,6 +488,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
 [unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...release/v0.26.x-iavl-v1
+[v0.27.1]: https://github.com/Kava-Labs/kava/compare/v0.27.0...v0.27.1
 [v0.27.0]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...v0.27.0
 [v0.26.2-iavl-v1]: https://github.com/Kava-Labs/kava/compare/v0.26.2...v0.26.2-iavl-v1
 [v0.26.2]: https://github.com/Kava-Labs/kava/compare/v0.26.1...v0.26.2
