@@ -6,14 +6,14 @@ toolchain go1.22.8
 
 require (
 	cosmossdk.io/math v1.4.0
-	github.com/cosmos/ibc-go/v7 v7.4.0
+	github.com/cosmos/ibc-go/v7 v7.7.0
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.26.0
 )
 
 require (
-	github.com/cosmos/cosmos-sdk v0.47.10
+	github.com/cosmos/cosmos-sdk v0.47.13
 	github.com/kava-labs/kava v0.0.0-00010101000000-000000000000
 	github.com/strangelove-ventures/interchaintest/v7 v7.0.1-0.20240506191732-71a15c29f2b7
 )
@@ -71,7 +71,7 @@ require (
 	github.com/cosmos/gogogateway v1.2.0 // indirect
 	github.com/cosmos/gogoproto v1.7.0 // indirect
 	github.com/cosmos/iavl v1.2.0 // indirect
-	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.1.3 // indirect
+	github.com/cosmos/ibc-apps/middleware/packet-forward-middleware/v7 v7.2.1 // indirect
 	github.com/cosmos/ibc-go/modules/capability v1.0.0-rc1 // indirect
 	github.com/cosmos/ics23/go v0.10.0 // indirect
 	github.com/cosmos/interchain-security/v3 v3.1.1-0.20231102122221-81650a84f989 // indirect
@@ -145,7 +145,7 @@ require (
 	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
-	github.com/iancoleman/orderedmap v0.2.0 // indirect
+	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/icza/dyno v0.0.0-20220812133438-f0b6f8a18845 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
