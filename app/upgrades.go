@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	UpgradeNameMainnet = "v0.27.0"
-	UpgradeNameTestnet = "v0.27.0-alpha.0"
+	UpgradeNameMainnet = "v0.28.0"
+	UpgradeNameTestnet = "v0.28.0-alpha.0"
 )
 
 // RegisterUpgradeHandlers registers the upgrade handlers for the app.
