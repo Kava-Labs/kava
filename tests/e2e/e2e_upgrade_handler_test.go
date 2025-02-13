@@ -4,6 +4,7 @@ import (
 	"context"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 
@@ -19,9 +20,15 @@ func (suite *IntegrationTestSuite) getEscrowAccountBalances(
 
 	channelsRes, err := grpcClient.Query.IbcChannel.Channels(
 		ctx,
-		&ibcchanneltypes.QueryChannelsRequest{},
+		&ibcchanneltypes.QueryChannelsRequest{
+			Pagination: &query.PageRequest{
+				Limit: 1000,
+			},
+		},
 	)
 	suite.Require().NoError(err)
+
+	suite.T().Logf("found %d IBC channels", len(channelsRes.Channels))
 
 	escrowBals := make(map[string]sdk.Coins)
 	totalEscrowBal := sdk.Coins{}
@@ -35,6 +42,12 @@ func (suite *IntegrationTestSuite) getEscrowAccountBalances(
 			},
 		)
 		suite.Require().NoError(err)
+
+		// Check if escrow addr already exists in map
+		if _, ok := escrowBals[escrowAddress.String()]; ok {
+			suite.T().Logf("escrow address %s already exists in map", escrowAddress.String())
+			continue
+		}
 
 		escrowBalances, err := grpcClient.Query.Bank.AllBalances(ctx, &banktypes.QueryAllBalancesRequest{
 			Address: escrowAddress.EscrowAddress,
@@ -100,9 +113,12 @@ func (suite *IntegrationTestSuite) TestPfmUpgrade() {
 	suite.T().Logf("escrowBankBalsAfter: %s", escrowBankBalsAfter)
 
 	// Balances in escrow STATE, not bank
-	escrowStateAfter := suite.getEscrowStateBalances(afterUpgradeCtx, totalBankEscrowBefore)
+	escrowStateAfter := suite.getEscrowStateBalances(afterUpgradeCtx, totalBankEscrowAfter)
 	suite.T().Logf("escrowStateAfter: %s", escrowStateAfter)
 
+	// Bank balances should stay unchanged before/after upgrade
+	suite.Require().Equal(totalBankEscrowBefore, totalBankEscrowAfter, "bank balances should stay the same after upgrade")
+
 	// Post-upgrade, escrow bank balances should match escrow state
-	suite.Require().Equal(escrowStateAfter, totalBankEscrowAfter, "escrow mismatch after upgrade")
+	suite.Require().Equal(escrowStateAfter, totalBankEscrowAfter, "escrow state/balance mismatch after upgrade")
 }
