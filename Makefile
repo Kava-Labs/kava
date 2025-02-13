@@ -304,7 +304,7 @@ test-e2e: docker-build
 # run interchaintest tests (./tests/e2e-ibc)
 # Use -count=1 to prevent caching, in case docker-build changes
 test-ibc: docker-build
-	cd tests/e2e-ibc && KAVA_TAG=local $(GO_BIN) test -timeout 10m -count=1 .
+	cd tests/e2e-ibc && KAVA_TAG=local $(GO_BIN) test -failfast -timeout 10m -count=1 .
 .PHONY: test-ibc
 
 test:
