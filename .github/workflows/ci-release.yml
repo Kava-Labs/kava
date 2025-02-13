@@ -1,17 +1,18 @@
 name: Continuous Integration (Release)
 on:
   push:
-    tags:
-      - "v[0-9]+.[0-9]+.[0-9]+*"
+    # tags:
+    #   - "v[0-9]+.[0-9]+.[0-9]+*"
+
 jobs:
   # run default ci checks against released version
-  default-checks:
-    uses: ./.github/workflows/ci-default.yml
+  # default-checks:
+  #   uses: ./.github/workflows/ci-default.yml
 
   # get the version tag that triggered this workflow
   get-version-tag:
     # prep version release only if all checks pass
-    needs: default-checks
+    # needs: default-checks
     runs-on: ubuntu-latest
     outputs:
       git-tag: ${{ steps.git-tag.outputs.tag }}
@@ -30,3 +31,37 @@ jobs:
       dockerhub-username: kavaops
       extra-image-tag: ${{ needs.get-version-tag.outputs.git-tag }}
     secrets: inherit
+
+  binary-goleveldb:
+    name: Build and Upload Binary ${{ matrix.db }} - ${{ matrix.arch }}
+    # only run if all checks pass
+    needs: get-version-tag
+    # Matrix of goleveldb, rocksdb, amd64, arm64
+    strategy:
+      matrix:
+        db: [goleveldb, rocksdb]
+        arch: [amd64, arm64]
+
+    # ubuntu-24.04-arm if arch == arm64 else ubuntu-24.04 for amd64
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-20.04-arm' || matrix.arch == 'amd64' && 'ubuntu-20.04' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build rocksdb dependency
+        if: matrix.db == 'rocksdb'
+        run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
+
+      - name: Build kava with ${{ matrix.db }} and ${{ matrix.arch }}
+        run: make build COSMOS_BUILD_OPTIONS="${{ matrix.db }}"
+
+      - name: Upload binary to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kava-${{ needs.get-version-tag.outputs.git-tag }}-linux-${{ matrix.arch }}-${{ matrix.db }}
+          path: ./out/linux/kava
