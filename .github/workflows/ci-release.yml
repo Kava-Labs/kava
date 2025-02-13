@@ -33,7 +33,7 @@ jobs:
     secrets: inherit
 
   binary-goleveldb:
-    name: Build and Upload Binary ${{ matrix.db }} - ${{ matrix.arch }}
+    name: Build binaries ${{ matrix.db }} - ${{ matrix.arch }}
     # only run if all checks pass
     needs: get-version-tag
     # Matrix of goleveldb, rocksdb, amd64, arm64
@@ -43,7 +43,7 @@ jobs:
         arch: [amd64, arm64]
 
     # ubuntu-24.04-arm if arch == arm64 else ubuntu-24.04 for amd64
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-20.04-arm' || matrix.arch == 'amd64' && 'ubuntu-20.04' }}
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || matrix.arch == 'amd64' && 'ubuntu-24.04' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -55,6 +55,8 @@ jobs:
 
       - name: Build rocksdb dependency
         if: matrix.db == 'rocksdb'
+        env:
+          ROCKSDB_VERSION: v9.3.1
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
 
       - name: Build kava with ${{ matrix.db }} and ${{ matrix.arch }}
