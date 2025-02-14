@@ -21,6 +21,7 @@ import (
 
 	ibctransfertypes "github.com/cosmos/ibc-go/v7/modules/apps/transfer/types"
 	ibcclienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
+	ibcchanneltypes "github.com/cosmos/ibc-go/v7/modules/core/04-channel/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	feemarkettypes "github.com/evmos/ethermint/x/feemarket/types"
 
@@ -66,6 +67,7 @@ type QueryClient struct {
 	Evm         evmtypes.QueryClient
 	Feemarket   feemarkettypes.QueryClient
 	IbcClient   ibcclienttypes.QueryClient
+	IbcChannel  ibcchanneltypes.QueryClient
 	IbcTransfer ibctransfertypes.QueryClient
 
 	// kava module query clients
@@ -113,6 +115,7 @@ func NewQueryClient(grpcEndpoint string) (*QueryClient, error) {
 		Evm:         evmtypes.NewQueryClient(conn),
 		Feemarket:   feemarkettypes.NewQueryClient(conn),
 		IbcClient:   ibcclienttypes.NewQueryClient(conn),
+		IbcChannel:  ibcchanneltypes.NewQueryClient(conn),
 		IbcTransfer: ibctransfertypes.NewQueryClient(conn),
 
 		Auction:   auctiontypes.NewQueryClient(conn),

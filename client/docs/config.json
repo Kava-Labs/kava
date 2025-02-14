@@ -270,32 +270,6 @@
       }
     },
     {
-      "url": "./client/docs/ibc-go-swagger.yml",
-      "dereference": {
-        "circular": "ignore"
-      },
-      "tags": {
-        "rename": {
-          "Query": "IBC"
-        }
-      },
-      "operationIds": {
-        "rename": [
-          {
-            "type": "regex",
-            "from": "(.*)",
-            "to": "Ibc$1"
-          }
-        ]
-      },
-      "paths": {
-        "exclude": [
-          "^/ibc/apps/interchain_accounts/.*",
-          "^/ibc/apps/fee/.*"
-        ]
-      }
-    },
-    {
       "url": "./client/docs/ethermint-swagger.yml",
       "dereference": {
         "circular": "ignore"
@@ -315,8 +289,7 @@
         ]
       },
       "paths": {
-        "exclude": [
-        ]
+        "exclude": []
       }
     },
     {
