@@ -32,7 +32,7 @@ jobs:
       extra-image-tag: ${{ needs.get-version-tag.outputs.git-tag }}
     secrets: inherit
 
-  binary-goleveldb:
+  build-binary:
     name: Build binary (${{ matrix.arch }} - ${{ matrix.db }})
     # only run if all checks pass
     needs: get-version-tag
