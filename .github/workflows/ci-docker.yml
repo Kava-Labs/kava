@@ -74,7 +74,7 @@ jobs:
 
   docker-rocksdb:
     # https://github.com/marketplace/actions/build-and-push-docker-images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       # ensure working with latest code
       - name: Checkout
@@ -93,6 +93,7 @@ jobs:
           # Latest version causes segfault:
           # https://github.com/docker/setup-qemu-action/issues/198
           image: tonistiigi/binfmt:qemu-v7.0.0-28
+          platforms: linux/amd64,linux/arm64
 
       # cross-platform build of the image
       - name: Set up Docker Buildx
