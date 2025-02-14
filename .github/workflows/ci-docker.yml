@@ -88,6 +88,11 @@ jobs:
       # qemu is used to emulate different platform architectures
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+        with:
+          # Default is tonistiigi/binfmt:latest
+          # Latest version causes segfault:
+          # https://github.com/docker/setup-qemu-action/issues/198
+          image: tonistiigi/binfmt:qemu-v7.0.0-28
 
       # cross-platform build of the image
       - name: Set up Docker Buildx

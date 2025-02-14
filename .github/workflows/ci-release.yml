@@ -33,7 +33,7 @@ jobs:
     secrets: inherit
 
   binary-goleveldb:
-    name: Build binaries ${{ matrix.db }} - ${{ matrix.arch }}
+    name: Build binary (${{ matrix.arch }} - ${{ matrix.db }})
     # only run if all checks pass
     needs: get-version-tag
     # Matrix of goleveldb, rocksdb, amd64, arm64
