@@ -1,18 +1,18 @@
 name: Continuous Integration (Release)
 on:
   push:
-    # tags:
-    #   - "v[0-9]+.[0-9]+.[0-9]+*"
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
 
 jobs:
   # run default ci checks against released version
-  #default-checks:
-  #  uses: ./.github/workflows/ci-default.yml
+  default-checks:
+    uses: ./.github/workflows/ci-default.yml
 
   # get the version tag that triggered this workflow
   get-version-tag:
     # prep version release only if all checks pass
-    # needs: default-checks
+    needs: default-checks
     runs-on: ubuntu-latest
     outputs:
       git-tag: ${{ steps.git-tag.outputs.tag }}
