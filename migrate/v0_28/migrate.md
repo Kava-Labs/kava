@@ -54,7 +54,7 @@ kava version --long
 # build_deps:
 #  ...
 # build_tags: netgo ledger,
-# commit: xxx
+# commit: d9ce773f62418183beac2e9168c7cfafa30bc508
 # cosmos_sdk_version: v0.47.15
 # go: go version go1.22.9 linux/amd64
 # name: kava
