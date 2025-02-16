@@ -42,8 +42,8 @@ jobs:
         db: [goleveldb, rocksdb]
         arch: [amd64, arm64]
 
-    # ubuntu-24.04-arm if arch == arm64 else ubuntu-24.04 for amd64
-    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || matrix.arch == 'amd64' && 'ubuntu-24.04' }}
+    # Use older Ubuntu versions instead of 24/latest for wider compatibility of glibc
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-22.04-arm' || matrix.arch == 'amd64' && 'ubuntu-20.04' }}
 
     steps:
       - uses: actions/checkout@v4
