@@ -18,6 +18,10 @@ jobs:
       git-tag: ${{ steps.git-tag.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Force build tag again
+          ref: "v0.28.0"
+
       - id: git-tag
         run: echo "tag=$(git describe --always --tags --match='v*')" >> $GITHUB_OUTPUT
 
@@ -47,6 +51,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Force build tag again
+          ref: "v0.28.0"
 
       - name: Set up Go
         uses: actions/setup-go@v5
