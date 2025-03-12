@@ -146,7 +146,7 @@ func (s *KavaSigner) Run(requests <-chan KavaMsgRequest) (<-chan KavaMsgResponse
 			// if currentRequest is not nil, then checkTxSeq will be used to sign that request
 			//
 			// therefore, assuming no errors, broadcastTxSeq will be checkTxSeq-1 or checkTxSeq, dependent on
-			// if the currentRequest has been been successfully broadcast
+			// if the currentRequest has been successfully broadcast
 			//
 			// if an unauthorized error occurs, a tx in the mempool was dropped (or mempool flushed, node restart, etc)
 			// and broadcastTxSeq is reset to account.GetSequence() in order to refil the mempool and ensure
