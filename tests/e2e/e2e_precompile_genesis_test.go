@@ -14,7 +14,7 @@ import (
 	"github.com/kava-labs/kava/precompile/registry"
 )
 
-// TestPrecompileGenesis tests that the the following is true for enabled precompiles:
+// TestPrecompileGenesis tests that the following is true for enabled precompiles:
 //
 //   - An enabled precompile has an EthAccount with matching code hash,
 //     sequence of 1, and no public key
