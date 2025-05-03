@@ -1,13 +1,17 @@
 import hre from "hardhat";
 import type { ArtifactsMap } from "hardhat/types/artifacts";
-import type {
-  PublicClient,
-  WalletClient,
-  ContractName,
-  GetContractReturnType,
-} from "@nomicfoundation/hardhat-viem/types";
+import type { PublicClient, WalletClient, GetContractReturnType } from "@nomicfoundation/hardhat-viem/types";
 import { expect } from "chai";
-import { Address, BaseError, Hex, toFunctionSelector, toFunctionSignature, concat, encodeFunctionData } from "viem";
+import {
+  Address,
+  BaseError,
+  Hex,
+  toFunctionSelector,
+  toFunctionSignature,
+  concat,
+  encodeFunctionData,
+  isHex,
+} from "viem";
 import { Abi } from "abitype";
 import { getAbiFallbackFunction, getAbiReceiveFunction } from "./helpers/abi";
 import { whaleAddress } from "./addresses";
@@ -17,23 +21,23 @@ const messageCallGas = defaultGas + 10000n;
 
 interface ContractTestCase {
   interface: keyof ArtifactsMap;
-  mock: ContractName<keyof ArtifactsMap>;
+  mock: keyof ArtifactsMap;
   precompile: Address;
 }
 
 const disabledPrecompiles: Address[] = [
-  "0x9000000000000000000000000000000000000007", // noop recieve and payable fallback
+  "0x9000000000000000000000000000000000000007", // noop receive and payable fallback
 ];
 
 // ABI_DisabledTests assert ethereum + solidity transaction ABI interactions perform as expected.
 describe("ABI_DisabledTests", function () {
-  const testCases = [
+  const testCases: ContractTestCase[] = [
     {
       interface: "NoopReceivePayableFallback", // interface to test valid function selectors against
       mock: "NoopDisabledMock", // mimics how a disabled precompile would behave
-      precompile: disabledPrecompiles[0], // disabled noop recieve and payable fallback
+      precompile: disabledPrecompiles[0], // disabled noop receive and payable fallback
     },
-  ] as ContractTestCase[];
+  ];
 
   //
   // Client + Wallet Setup
@@ -84,71 +88,97 @@ describe("ABI_DisabledTests", function () {
       ctx = await getContext();
     });
 
+    // testCase is a single test case with the value and data to send. Each of
+    // these will be tested against each of the callCases.
     interface testCase {
-      name: string
+      name: string;
       value: bigint;
       data: Hex;
     }
-    const testCases: testCase[] = [
-      { name: "zero value transfer", value: 0n, data: "0x" },
-      { name: "value transfer", value: 1n, data: "0x" },
-      { name: "invalid function selector", value: 0n, data: "0x010203" },
-      { name: "invalid function selector with value", value: 1n, data: "0x010203" },
-      { name: "non-matching function selector", value: 0n, data: toFunctionSelector("does_not_exist()")},
-      { name: "non-matching function selector with value", value: 1n, data: toFunctionSelector("does_not_exist()")},
-      { name: "non-matching function selector with extra data", value: 0n, data: concat([toFunctionSelector("does_not_exist()"), "0x01"])},
-      { name: "non-matching function selector with value and extra data", value: 1n, data: concat([toFunctionSelector("does_not_exist()"), "0x01"])},
-    ];
+    const testCases: testCase[] = [];
+
+    if (receiveFunction) {
+      testCases.push(
+        { name: "zero value transfer", value: 0n, data: "0x" },
+        { name: "value transfer", value: 1n, data: "0x" },
+      );
+    }
+
+    if (fallbackFunction) {
+      testCases.push(
+        { name: "invalid function selector", value: 0n, data: "0x010203" },
+        { name: "invalid function selector with value", value: 1n, data: "0x010203" },
+        { name: "non-matching function selector", value: 0n, data: toFunctionSelector("does_not_exist()") },
+        { name: "non-matching function selector with value", value: 1n, data: toFunctionSelector("does_not_exist()") },
+        {
+          name: "non-matching function selector with extra data",
+          value: 0n,
+          data: concat([toFunctionSelector("does_not_exist()"), "0x01"]),
+        },
+        {
+          name: "non-matching function selector with value and extra data",
+          value: 1n,
+          data: concat([toFunctionSelector("does_not_exist()"), "0x01"]),
+        },
+      );
+    }
 
     for (const funcDesc of abi) {
-      if (funcDesc.type !== "function") continue;
+      if (funcDesc.type !== "function") {
+        continue;
+      }
+
       const funcSelector = toFunctionSelector(toFunctionSignature(funcDesc));
-      testCases.concat([
+
+      testCases.push(
         { name: funcDesc.name, value: 0n, data: funcSelector },
         { name: `${funcDesc.name} with value`, value: 1n, data: funcSelector },
         { name: `${funcDesc.name} with extra data`, value: 0n, data: concat([funcSelector, "0x01"]) },
         { name: `${funcDesc.name} with value and extra data`, value: 1n, data: concat([funcSelector, "0x01"]) },
-      ]);
+      );
     }
 
     const callCases: {
       name: string;
-      mutateData: (tc: Hex) => Promise<Hex>;
-      to: () => Promise<Address>;
+      mutateData: (tc: Hex) => Hex;
+      to: () => Address;
       gas: bigint;
     }[] = [
       {
         name: "external call",
-        to: async () => ctx.address,
-        mutateData: async (data) => data,
+        to: () => ctx.address,
+        mutateData: (data) => data,
         gas: defaultGas,
       },
       {
         name: "message call",
-        to: async () => caller.address,
-        mutateData: async (data) => encodeFunctionData({ abi: caller.abi, functionName: "functionCall", args: [ctx.address, data] }),
+        to: () => caller.address,
+        mutateData: (data) =>
+          encodeFunctionData({ abi: caller.abi, functionName: "functionCall", args: [ctx.address, data] }),
         gas: messageCallGas,
       },
       {
         name: "message delegatecall",
-        to: async () => caller.address,
-        mutateData: async (data) => encodeFunctionData({ abi: caller.abi, functionName: "functionDelegateCall", args: [ctx.address, data] }),
+        to: () => caller.address,
+        mutateData: (data) =>
+          encodeFunctionData({ abi: caller.abi, functionName: "functionDelegateCall", args: [ctx.address, data] }),
         gas: messageCallGas,
       },
       {
         name: "message staticcall",
-        to: async () => caller.address,
-        mutateData: async (data) => encodeFunctionData({ abi: caller.abi, functionName: "functionStaticCall", args: [ctx.address, data] }),
+        to: () => caller.address,
+        mutateData: (data) =>
+          encodeFunctionData({ abi: caller.abi, functionName: "functionStaticCall", args: [ctx.address, data] }),
         gas: messageCallGas,
       },
     ];
 
     for (const tc of testCases) {
-      describe(tc.name, function() {
+      describe(tc.name, function () {
         for (const cc of callCases) {
-          it(`reverts on ${cc.name}`, async function() {
-            const to = await cc.to();
-            const data = await cc.mutateData(tc.data);
+          it(`reverts on ${cc.name}`, async function () {
+            const to = cc.to();
+            const data = cc.mutateData(tc.data);
 
             const txData = { to: to, data: data, gas: cc.gas };
             const startingBalance = await publicClient.getBalance({ address: ctx.address });
@@ -165,14 +195,16 @@ describe("ABI_DisabledTests", function () {
             let revertDetail = "";
             try {
               await call;
-            } catch(e) {
+            } catch (e) {
+              expect(e).to.be.instanceOf(BaseError, "expected error to be a BaseError");
+
               if (e instanceof BaseError) {
                 revertDetail = e.details;
               }
             }
 
-            const expectedMatch = /call not allowed to disabled contract/;
-            expect(expectedMatch.test(revertDetail), `expected ${revertDetail} to match ${expectedMatch}`).to.be.true;
+            const expectedMatch = "call not allowed to disabled contract";
+            expect(revertDetail).to.equal(revertDetail, `expected ${revertDetail} to match ${expectedMatch}`);
           });
         }
       });
@@ -198,10 +230,16 @@ describe("ABI_DisabledTests", function () {
         let deployedBytecode: Hex;
 
         before("deploy mock", async function () {
-          mockAddress = (await hre.viem.deployContract(tc.mock)).address;
-          // TODO: fix typing and do not use explicit any, unsafe assignment, or unsafe access
-          // eslint-disable-next-line  @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-          deployedBytecode = ((await hre.artifacts.readArtifact(tc.mock)) as any).deployedBytecode;
+          const mockContractName: string = tc.mock;
+
+          mockAddress = (await hre.viem.deployContract(mockContractName)).address;
+
+          const mockArtifact = await hre.artifacts.readArtifact(mockContractName);
+          if (isHex(mockArtifact.deployedBytecode)) {
+            deployedBytecode = mockArtifact.deployedBytecode;
+          } else {
+            expect.fail("deployedBytecode is not hex");
+          }
         });
 
         itHasCorrectState(() =>
