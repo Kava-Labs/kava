@@ -27,7 +27,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 FROM ubuntu:22.04
 
 RUN apt-get update \
-    && apt-get install -y libsnappy1v5 libgflags2.2 zlib1g libbz2-1.0 curl jq \
+    && apt-get install -y libsnappy1v5 libgflags2.2 zlib1g libbz2-1.0 google-perftools curl jq \
     && rm -rf /var/lib/apt/lists/*
 
 # copy rocksdb shared objects
@@ -37,4 +37,5 @@ RUN ldconfig
 # copy kava binary
 COPY --from=kava-builder /go/bin/kava /bin/kava
 
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4"
 CMD ["kava"]
