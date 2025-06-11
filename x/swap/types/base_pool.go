@@ -335,7 +335,7 @@ func (p *BasePool) ShareValue(shares sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
 	return sdkmath.NewIntFromBigInt(&resultA), sdkmath.NewIntFromBigInt(&resultB)
 }
 
-// assertInvariantAndUpdateRerserves asserts the constant product invariant is not violated, subtracting
+// assertInvariantAndUpdateReserves asserts the constant product invariant is not violated, subtracting
 // any fees first, then updates the pool reserves.  Panics if invariant is violated.
 func (p *BasePool) assertInvariantAndUpdateReserves(newReservesA, feeA, newReservesB, feeB sdkmath.Int) {
 	var invariant big.Int
@@ -377,21 +377,21 @@ func (p *BasePool) assertFeeIsValid(fee sdk.Dec) {
 	}
 }
 
-// assertSharesPositive panics if shares is zero or negative
+// assertSharesArePositive panics if shares is zero or negative
 func (p *BasePool) assertSharesArePositive(shares sdkmath.Int) {
 	if !shares.IsPositive() {
 		panic("invalid value: shares must be positive")
 	}
 }
 
-// assertSharesLessThanTotal panics if the number of shares is greater than the total shares
+// assertSharesAreLessThanTotal panics if the number of shares is greater than the total shares
 func (p *BasePool) assertSharesAreLessThanTotal(shares sdkmath.Int) {
 	if shares.GT(p.totalShares) {
 		panic(fmt.Sprintf("out of bounds: shares %s > total shares %s", shares, p.totalShares))
 	}
 }
 
-// assertDepositsPositive panics if a deposit is zero or negative
+// assertDepositsArePositive panics if a deposit is zero or negative
 func (p *BasePool) assertDepositsArePositive(depositA, depositB sdkmath.Int) {
 	if !depositA.IsPositive() {
 		panic("invalid value: deposit A must be positive")
