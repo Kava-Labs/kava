@@ -2,6 +2,7 @@ package ante
 
 import (
 	"fmt"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -77,10 +78,5 @@ func (ald AuthzLimiterDecorator) checkForDisabledMsg(msgs []sdk.Msg, searchOnlyI
 }
 
 func (ald AuthzLimiterDecorator) isDisabled(msgTypeURL string) bool {
-	for _, disabledType := range ald.disabledMsgTypes {
-		if msgTypeURL == disabledType {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(ald.disabledMsgTypes, msgTypeURL)
 }
