@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	fmt "fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -239,15 +240,7 @@ func validateParamChangesAreAllowed(current SubparamChanges, incoming SubparamCh
 	// All state machine code must be deterministic between validators.
 	// This function's output is deterministic despite the range.
 	for k, v := range current {
-		isAllowed := false
-
-		// check if the param attr key is in the allow list
-		for _, allowedKey := range allowList {
-			if k == allowedKey {
-				isAllowed = true
-				break
-			}
-		}
+		isAllowed := slices.Contains(allowList, k)
 
 		// if not allowed, incoming value needs to be the same, or it is rejected
 		if !isAllowed && !reflect.DeepEqual(v, incoming[k]) {

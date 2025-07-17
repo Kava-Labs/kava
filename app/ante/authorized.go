@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"slices"
 )
 
 // AddressFetcher is a type signature for functions used by the AuthenticatedMempoolDecorator to get authorized addresses.
@@ -49,10 +50,8 @@ func (amd AuthenticatedMempoolDecorator) fetchAuthorizedAddresses(ctx sdk.Contex
 // commonAddressesExist checks if there is any intersection between two lists of addresses
 func commonAddressesExist(addresses1, addresses2 []sdk.AccAddress) bool {
 	for _, a1 := range addresses1 {
-		for _, a2 := range addresses2 {
-			if a1.Equals(a2) {
-				return true
-			}
+		if slices.ContainsFunc(addresses2, a1.Equals) {
+			return true
 		}
 	}
 	return false

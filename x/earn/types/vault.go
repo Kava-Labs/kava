@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"slices"
 
 	errorsmod "cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -122,13 +123,7 @@ func (a *AllowedVault) Validate() error {
 // IsStrategyAllowed returns true if the given strategy type is allowed for the
 // vault.
 func (a *AllowedVault) IsStrategyAllowed(strategy StrategyType) bool {
-	for _, s := range a.Strategies {
-		if s == strategy {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(a.Strategies, strategy)
 }
 
 // IsAccountAllowed returns true if the given account is allowed to deposit into
