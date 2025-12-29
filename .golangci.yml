@@ -93,9 +93,6 @@ linters-settings:
   errcheck:
     check-blank: true # check for assignments to the blank identifier '_' when errors are returned
     check-type-assertions: false # check type assertion
-  errorlint:
-    check-generated: false # disabled linting of generated files
-    default-signifies-exhaustive: false # exhaustive handling of error types
   exhaustive:
     default-signifies-exhaustive: false # exhaustive handling of error types
   gci:
@@ -117,9 +114,9 @@ linters-settings:
     line-length: 120
   misspell:
     locale: US
-    ignore-words: expect
+    ignore-words:
+      - expect
   nolintlint:
-    allow-leading-space: false
     require-explanation: true
     require-specific: true
   prealloc:
