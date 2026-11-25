@@ -6,9 +6,9 @@ present, you must initialize the subrepo: `git submodule update --init`.
 
 Run `make test-e2e` with Docker, Go and jq installed. The suite builds the
 `kava/kava:local` image and the pinned kvtool under `build/.cache/kvtool`.
-The Go and EVM tests share a fresh v0.28 genesis derived from kvtool's funded
-v0.27 fixture. Its escrow corrections reproduce the released v0.28 migration
-on that fixture. The historical upgrade test runs on `release/v0.28.x`.
+The Go and EVM tests use kvtool's funded `master` template. The Go suite
+opens a new IBC channel to a second chain by default. Named upgrade rehearsals
+use the versioned fixtures on their respective release branches.
 
 ## Configuration
 

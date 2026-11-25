@@ -75,12 +75,7 @@ jobs:
       - name: Bootstrap the Kava E2E network
         run: |
           source tests/e2e/.env
-          args=(--kava.configTemplate "$E2E_KVTOOL_KAVA_CONFIG_TEMPLATE")
-          if [[ "$E2E_INCLUDE_AUTOMATED_UPGRADE" == true ]]; then
-            args+=(--upgrade-name "$E2E_KAVA_UPGRADE_NAME" --upgrade-height "$E2E_KAVA_UPGRADE_HEIGHT"
-                   --upgrade-base-image-tag "$E2E_KAVA_UPGRADE_BASE_IMAGE_TAG")
-          fi
-          kvtool testnet bootstrap "${args[@]}"
+          kvtool testnet bootstrap --kava.configTemplate "$E2E_KVTOOL_KAVA_CONFIG_TEMPLATE"
       - name: Wait for JSON RPC to start
         run: "curl --retry-all-errors --retry 12 --retry-delay 5 -X POST -H \"Content-Type: application/json\" http://127.0.0.1:8545"
       - name: Run test suite against kvtool network
