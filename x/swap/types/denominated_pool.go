@@ -154,7 +154,7 @@ func (p *DenominatedPool) coinA(amount sdkmath.Int) sdk.Coin {
 	return sdk.NewCoin(p.denomA, amount)
 }
 
-// coinA returns a new coin denominated in denomB
+// coinB returns a new coin denominated in denomB
 func (p *DenominatedPool) coinB(amount sdkmath.Int) sdk.Coin {
 	return sdk.NewCoin(p.denomB, amount)
 }
