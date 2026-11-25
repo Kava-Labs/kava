@@ -248,7 +248,7 @@ func (suite *stakingRewardsTestSuite) TestStakingRewards() {
 			// fund withexact amount from test case
 			suite.App.FundAccount(ctx, poolAcc.GetAddress(), sdk.NewCoins(sdk.NewCoin("ukava", tc.communityPoolFunds)))
 
-			// get starting balance of fee collector to substract later in case this is non-zero in genesis
+			// get starting balance of fee collector to subtract later in case this is non-zero in genesis
 			feeCollectorAcc := accountKeeper.GetModuleAccount(ctx, authtypes.FeeCollectorName)
 			initialFeeCollectorBalance := bankKeeper.GetBalance(ctx, feeCollectorAcc.GetAddress(), "ukava").Amount
 

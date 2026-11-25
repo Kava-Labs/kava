@@ -3010,7 +3010,7 @@ GenesisState defines the community module's genesis state.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the parameters related to commmunity |
+| `params` | [Params](#kava.community.v1beta1.Params) |  | params defines all the parameters related to community |
 | `staking_rewards_state` | [StakingRewardsState](#kava.community.v1beta1.StakingRewardsState) |  | StakingRewardsState stores the internal staking reward data required to track staking rewards across blocks |
 
 
