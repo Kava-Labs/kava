@@ -26,7 +26,7 @@ func createVestingAccount(balance sdk.Coins, vestingStart time.Time, vestingPeri
 	return vestingtypes.NewPeriodicVestingAccount(acc, originalVesting, vestingStart.Unix(), vestingPeriods)
 }
 
-func TestResetPeriodVestingAccount_NoVestingPeriods(t *testing.T) {
+func TestResetPeriodicVestingAccount_NoVestingPeriods(t *testing.T) {
 	vestingStartTime := time.Now().Add(-1 * time.Hour)
 	vacc := createVestingAccount(sdk.Coins{}, vestingStartTime, vestingtypes.Periods{})
 
@@ -40,7 +40,7 @@ func TestResetPeriodVestingAccount_NoVestingPeriods(t *testing.T) {
 	assert.Equal(t, []vestingtypes.Period{}, vacc.VestingPeriods, "expected vesting periods to be empty")
 }
 
-func TestResetPeriodVestingAccount_SingleVestingPeriod_Vested(t *testing.T) {
+func TestResetPeriodicVestingAccount_SingleVestingPeriod_Vested(t *testing.T) {
 	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
@@ -63,7 +63,7 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_Vested(t *testing.T) {
 	assert.Equal(t, []vestingtypes.Period{}, vacc.VestingPeriods, "expected vesting periods to be empty")
 }
 
-func TestResetPeriodVestingAccount_SingleVestingPeriod_Vesting(t *testing.T) {
+func TestResetPeriodicVestingAccount_SingleVestingPeriod_Vesting(t *testing.T) {
 	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
@@ -96,7 +96,7 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_Vesting(t *testing.T) {
 	assert.Equal(t, expectedPeriods, vacc.VestingPeriods, "expected vesting periods to be updated")
 }
 
-func TestResetPeriodVestingAccount_SingleVestingPeriod_ExactStartTime(t *testing.T) {
+func TestResetPeriodicVestingAccount_SingleVestingPeriod_ExactStartTime(t *testing.T) {
 	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
@@ -124,7 +124,7 @@ func TestResetPeriodVestingAccount_SingleVestingPeriod_ExactStartTime(t *testing
 	assert.Equal(t, expectedPeriods, vacc.VestingPeriods, "expected vesting periods to be updated")
 }
 
-func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
+func TestResetPeriodicVestingAccount_MultiplePeriods(t *testing.T) {
 	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(4e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
@@ -173,7 +173,7 @@ func TestResetPeriodVestingAccount_MultiplePeriods(t *testing.T) {
 	assert.Equal(t, expectedPeriods, vacc.VestingPeriods, "expected vesting periods to be updated")
 }
 
-func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testing.T) {
+func TestResetPeriodicVestingAccount_DelegatedVesting_GreaterThanVesting(t *testing.T) {
 	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(3e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
@@ -202,7 +202,7 @@ func TestResetPeriodVestingAccount_DelegatedVesting_GreaterThanVesting(t *testin
 	assert.Equal(t, sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(1e6))), vacc.DelegatedVesting, "expected delegated vesting to be updated")
 }
 
-func TestResetPeriodVestingAccount_DelegatedVesting_LessThanVested(t *testing.T) {
+func TestResetPeriodicVestingAccount_DelegatedVesting_LessThanVested(t *testing.T) {
 	balance := sdk.NewCoins(sdk.NewCoin("ukava", sdkmath.NewInt(3e6)))
 	vestingStartTime := time.Now().Add(-30 * 24 * time.Hour) // 30 days in past
 
