@@ -51,9 +51,21 @@ message AllowedCosmosCoinERC20Token {
 
 ```protobuf
 message GenesisState {
-  // previously stored accounts containing fractional balances.
-  reserved 1;
+  repeated Account accounts = 1 [(gogoproto.nullable) = false];
   Params params = 2 [(gogoproto.nullable) = false];
+}
+```
+
+## Account
+
+An `Account` is a struct representing the excess `akava` balance of an address.
+
+Since an address's total `akava` balance is derived from its `ukava` balance and the excess `akava` balance stored by the `Account` struct, the `akava` balance here should never exceed 1 `ukava` (10^12 `akava`).
+
+```protobuf
+message Account {
+  bytes address = 1;
+  string balance = 2;
 }
 ```
 

@@ -54,8 +54,8 @@ proto-update-deps: check-rsync ## Update all third party proto files
 	@curl -sSL $(PROTOBUF_ANY_DOWNLOAD_URL)/any.proto > $(PROTOBUF_GOOGLE_TYPES)/any.proto
 
 	@mkdir -p client/docs
+	# IBC swagger removed in ibc-go@v7.5.0
 	@cp -f $(COSMOS_SDK_PATH)/client/docs/swagger-ui/swagger.yaml client/docs/cosmos-swagger.yml
-	@cp -f $(IBC_GO_PATH)/docs/client/swagger-ui/swagger.yaml client/docs/ibc-go-swagger.yml
 	@cp -f $(ETHERMINT_PATH)/client/docs/swagger-ui/swagger.yaml client/docs/ethermint-swagger.yml
 
 	@mkdir -p $(COSMOS_PROTO_TYPES)

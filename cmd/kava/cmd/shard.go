@@ -219,13 +219,8 @@ func shardApplicationDb(multistore *rootmulti.Store, startBlock, endBlock int64)
 	}
 
 	if len(pruneHeights) > 0 {
-		// prune application state
 		fmt.Printf("pruning application state to height %d\n", startBlock)
-		for _, pruneHeight := range pruneHeights {
-			if err := multistore.PruneStores(pruneHeight); err != nil {
-				return fmt.Errorf("failed to prune application state: %s", err)
-			}
-		}
+		multistore.PruneStores(startBlock)
 	}
 
 	return nil

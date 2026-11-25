@@ -47,7 +47,7 @@ func TestInterchainErc20(t *testing.T) {
 	// Configure & run chains with interchaintest
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
-		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom"}},
+		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom", Images: heighlinerImages("gaia")}},
 	})
 
 	chains, err := cf.Chains(t.Name())

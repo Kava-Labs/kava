@@ -1,11 +1,11 @@
 package util
 
-import (
-	"path/filepath"
-)
+import "path/filepath"
 
-// KavaHomePath returns the OS-specific filepath for the kava home directory
-// Assumes network is running with kvtool installed from the sub-repository in tests/e2e/kvtool
+// KavaHomePath returns the local kvtool node home relative to tests/e2e.
 func KavaHomePath() string {
-	return filepath.Join("kvtool", "full_configs", "generated", "kava", "initstate", ".kava")
+	return filepath.Join(
+		"..", "..", "build", ".cache", "kvtool",
+		"full_configs", "generated", "kava", "initstate", ".kava",
+	)
 }

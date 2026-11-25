@@ -1,4 +1,13 @@
-import { Address, defineChain, Chain, PublicClientConfig, WalletClientConfig } from "viem";
+import {
+  Address,
+  defineChain,
+  Chain,
+  PublicClientConfig,
+  TransactionReceiptNotFoundError,
+  WaitForTransactionReceiptParameters,
+  WalletClientConfig,
+  withRetry,
+} from "viem";
 import { DeployContractConfig, ContractName } from "@nomicfoundation/hardhat-viem/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types/runtime";
 
@@ -42,8 +51,25 @@ export function extendViem(hre: HardhatRuntimeEnvironment) {
   const { getPublicClient, getWalletClients, getWalletClient, deployContract } = hre.viem;
   /* eslint-enable @typescript-eslint/unbound-method */
 
-  hre.viem.getPublicClient = (publicClientConfig?: Partial<PublicClientConfig>) =>
-    getPublicClient({ ...defaultPublicClientConfig, ...publicClientConfig, ...getChainConfig(hre) });
+  hre.viem.getPublicClient = async (publicClientConfig?: Partial<PublicClientConfig>) => {
+    const client = await getPublicClient({
+      ...defaultPublicClientConfig,
+      ...publicClientConfig,
+      ...getChainConfig(hre),
+    });
+    if (hre.network.name !== "kvtool") return client;
+
+    // Kava may expose a mined transaction before its receipt is available via JSON-RPC.
+    return {
+      ...client,
+      waitForTransactionReceipt: (args: WaitForTransactionReceiptParameters) =>
+        withRetry(() => client.waitForTransactionReceipt(args), {
+          shouldRetry: ({ error }) => error instanceof TransactionReceiptNotFoundError,
+          retryCount: 4,
+          delay: ({ count }) => 250 * 2 ** count,
+        }),
+    };
+  };
 
   hre.viem.getWalletClients = (walletClientConfig?: Partial<WalletClientConfig>) =>
     getWalletClients({ ...walletClientConfig, ...getChainConfig(hre) });

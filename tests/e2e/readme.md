@@ -4,13 +4,11 @@ These tests use [`kvtool`](https://github.com/kava-labs/kvtool) to spin up a kav
 and then runs tests against the running network. It is a git sub-repository in this directory. If not
 present, you must initialize the subrepo: `git submodule update --init`.
 
-Steps to run
-1. Ensure latest `kvtool` is installed: `make update-kvtool`
-2. Run the test suite: `make test-e2e`
-   This will build a docker image tagged `kava/kava:local` that will be run by kvtool.
-
-**Note:** The suite will use your locally installed `kvtool` if present. If not present, it will be
-installed. If the `kvtool` repo is updated, you must manually update your existing local binary: `make update-kvtool`
+Run `make test-e2e` with Docker, Go and jq installed. The suite builds the
+`kava/kava:local` image and the pinned kvtool under `build/.cache/kvtool`.
+The Go and EVM tests share a fresh v0.28 genesis derived from kvtool's funded
+v0.27 fixture. Its escrow corrections reproduce the released v0.28 migration
+on that fixture. The historical upgrade test runs on `release/v0.28.x`.
 
 ## Configuration
 

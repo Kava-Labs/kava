@@ -1,4 +1,4 @@
-FROM kava/rocksdb:v8.10.1-go1.21 AS kava-builder
+FROM kava/rocksdb:v9.3.1-go1.22 AS kava-builder
 
 RUN apt-get update
 

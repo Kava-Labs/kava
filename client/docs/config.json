@@ -183,23 +183,6 @@
       }
     },
     {
-      "url": "./out/swagger/kava/precisebank/v1/query.swagger.json",
-      "tags": {
-        "rename": {
-          "Query": "Precisebank"
-        }
-      },
-      "operationIds": {
-        "rename": [
-          {
-            "type": "regex",
-            "from": "(.*)",
-            "to": "Precisebank$1"
-          }
-        ]
-      }
-    },
-    {
       "url": "./out/swagger/kava/pricefeed/v1beta1/query.swagger.json",
       "tags": {
         "rename": {
@@ -287,32 +270,6 @@
       }
     },
     {
-      "url": "./client/docs/ibc-go-swagger.yml",
-      "dereference": {
-        "circular": "ignore"
-      },
-      "tags": {
-        "rename": {
-          "Query": "IBC"
-        }
-      },
-      "operationIds": {
-        "rename": [
-          {
-            "type": "regex",
-            "from": "(.*)",
-            "to": "Ibc$1"
-          }
-        ]
-      },
-      "paths": {
-        "exclude": [
-          "^/ibc/apps/interchain_accounts/.*",
-          "^/ibc/apps/fee/.*"
-        ]
-      }
-    },
-    {
       "url": "./client/docs/ethermint-swagger.yml",
       "dereference": {
         "circular": "ignore"
@@ -332,8 +289,7 @@
         ]
       },
       "paths": {
-        "exclude": [
-        ]
+        "exclude": []
       }
     },
     {

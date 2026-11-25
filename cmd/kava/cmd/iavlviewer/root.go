@@ -2,11 +2,10 @@ package iavlviewer
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 
 	"cosmossdk.io/log"
-	dbm "github.com/cosmos/cosmos-db"
+	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store/wrapper"
@@ -58,9 +57,7 @@ func openPrefixTree(opts ethermintserver.StartOptions, cmd *cobra.Command, prefi
 		}
 	}()
 
-	cosmosdb := wrapper.NewCosmosDB(db)
-
-	tree, err := readTree(cosmosdb, version, []byte(prefix))
+	tree, err := readTree(db, version, []byte(prefix))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read tree with prefix %s: %s", prefix, err)
 	}
@@ -74,8 +71,9 @@ func readTree(db dbm.DB, version int, prefix []byte) (*iavl.MutableTree, error) 
 	if len(prefix) != 0 {
 		db = dbm.NewPrefixDB(db, prefix)
 	}
+	dbt := wrapper.NewCosmosDB(db)
+	tree := iavl.NewMutableTree(iavldb.NewWrapper(dbt), DefaultCacheSize, false, log.NewNopLogger())
 
-	tree := iavl.NewMutableTree(iavldb.NewWrapper(db), DefaultCacheSize, false, log.NewLogger(os.Stdout))
 	ver, err := tree.LoadVersion(int64(version))
 	if err != nil {
 		return nil, err

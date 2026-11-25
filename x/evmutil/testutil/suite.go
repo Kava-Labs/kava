@@ -50,6 +50,7 @@ type Suite struct {
 	BankKeeper     bankkeeper.Keeper
 	AccountKeeper  authkeeper.AccountKeeper
 	Keeper         keeper.Keeper
+	EvmBankKeeper  keeper.EvmBankKeeper
 	Addrs          []sdk.AccAddress
 	EvmModuleAddr  sdk.AccAddress
 	QueryClient    types.QueryClient
@@ -67,6 +68,7 @@ func (suite *Suite) SetupTest() {
 	suite.BankKeeper = tApp.GetBankKeeper()
 	suite.AccountKeeper = tApp.GetAccountKeeper()
 	suite.Keeper = tApp.GetEvmutilKeeper()
+	suite.EvmBankKeeper = keeper.NewEvmBankKeeper(tApp.GetEvmutilKeeper(), suite.BankKeeper, suite.AccountKeeper)
 	suite.EvmModuleAddr = suite.AccountKeeper.GetModuleAddress(evmtypes.ModuleName)
 
 	// test evm user keys that have no minting permissions

@@ -40,7 +40,7 @@ func TestIbcConformance(t *testing.T) {
 				NumValidators: &numValidators,
 				NumFullNodes:  &numFullNodes,
 			},
-			{Name: "osmosis", Version: "v24.0.1", NumValidators: &numValidators, NumFullNodes: &numFullNodes},
+			{Name: "osmosis", Version: "v24.0.1", ChainConfig: ibc.ChainConfig{Images: heighlinerImages("osmosis")}, NumValidators: &numValidators, NumFullNodes: &numFullNodes},
 		}),
 	)
 

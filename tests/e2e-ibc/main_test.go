@@ -28,8 +28,8 @@ func TestInterchainIBC(t *testing.T) {
 	// setup chains
 	cf := interchaintest.NewBuiltinChainFactory(zaptest.NewLogger(t), []*interchaintest.ChainSpec{
 		{Name: "kava", ChainConfig: kavainterchain.DefaultKavaChainConfig(kavainterchain.KavaTestChainId)},
-		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom"}},
-		{Name: "osmosis", Version: "v24.0.1"},
+		{Name: "gaia", Version: "v15.2.0", ChainConfig: ibc.ChainConfig{GasPrices: "0.0uatom", Images: heighlinerImages("gaia")}},
+		{Name: "osmosis", Version: "v24.0.1", ChainConfig: ibc.ChainConfig{Images: heighlinerImages("osmosis")}},
 	})
 
 	chains, err := cf.Chains(t.Name())
@@ -203,4 +203,9 @@ func TestInterchainIBC(t *testing.T) {
 		expected := fundAmount.Sub(amountToSend).MulRaw(1e12)
 		require.Equal(t, expected.BigInt().String(), bal.String())
 	})
+}
+
+// The pinned interchaintest defaults reference Heighliner's former GHCR namespace.
+func heighlinerImages(chain string) []ibc.DockerImage {
+	return []ibc.DockerImage{{Repository: "ghcr.io/amygdala-labs/heighliner/" + chain, UidGid: "1025:1025"}}
 }

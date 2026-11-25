@@ -7,6 +7,8 @@ import (
 	"os/exec"
 )
 
+const kvtoolBinary = "../../build/.cache/kvtool/kvtool"
+
 type KvtoolRunnerConfig struct {
 	KavaConfigTemplate string
 
@@ -42,7 +44,7 @@ func NewKvtoolRunner(config KvtoolRunnerConfig) *KvtoolRunner {
 // StartChains implements NodeRunner.
 // For KvtoolRunner, it sets up, runs, and connects to a local chain via kvtool.
 func (k *KvtoolRunner) StartChains() Chains {
-	// install kvtool if not already installed
+	// Prepare the pinned kvtool and the development genesis fixture.
 	installKvtoolCmd := exec.Command("./scripts/install-kvtool.sh")
 	installKvtoolCmd.Stdout = os.Stdout
 	installKvtoolCmd.Stderr = os.Stderr
@@ -66,7 +68,7 @@ func (k *KvtoolRunner) StartChains() Chains {
 		)
 	}
 	// start the chain
-	startKavaCmd := exec.Command("kvtool", kvtoolArgs...)
+	startKavaCmd := exec.Command(kvtoolBinary, kvtoolArgs...)
 	startKavaCmd.Env = os.Environ()
 	startKavaCmd.Env = append(startKavaCmd.Env, fmt.Sprintf("KAVA_TAG=%s", k.config.ImageTag))
 	startKavaCmd.Stdout = os.Stdout
@@ -102,7 +104,7 @@ func (k *KvtoolRunner) Shutdown() {
 		return
 	}
 	log.Println("shutting down kava node")
-	shutdownKavaCmd := exec.Command("kvtool", "testnet", "down")
+	shutdownKavaCmd := exec.Command(kvtoolBinary, "testnet", "down")
 	shutdownKavaCmd.Stdout = os.Stdout
 	shutdownKavaCmd.Stderr = os.Stderr
 	if err := shutdownKavaCmd.Run(); err != nil {

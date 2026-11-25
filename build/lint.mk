@@ -13,7 +13,7 @@ endif
 ###                             Lint Settings                                ###
 ################################################################################
 
-LINT_FROM_REV ?= $(shell git merge-base origin/master HEAD)
+LINT_FROM_REV ?= $(shell sh build/compatibility-base.sh $$(git merge-base origin/master HEAD))
 
 GOLANGCI_VERSION ?= $(shell cat .golangci-version)
 GOLANGCI_IMAGE_TAG ?= golangci/golangci-lint:$(GOLANGCI_VERSION)
