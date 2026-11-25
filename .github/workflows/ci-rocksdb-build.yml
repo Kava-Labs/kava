@@ -7,7 +7,8 @@ on:
   workflow_call:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Match the native RocksDB toolchain used for release binaries.
+    runs-on: ubuntu-22.04
     steps:
       - name: checkout repo from current commit
         uses: actions/checkout@v4

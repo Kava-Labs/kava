@@ -19,9 +19,16 @@ jobs:
           go-version-file: go.mod
       - name: Load Version
         id: load-version
+        env:
+          BEFORE: ${{ github.event.before }}
         run: |
           GOLANGCI_VERSION=$(cat .golangci-version)
-          REV=$(sh build/compatibility-base.sh "$(git merge-base origin/master HEAD)")
+          if [[ "$GITHUB_REF" == refs/heads/master ]]; then
+            base=$(git rev-parse --verify "${BEFORE}^{commit}" 2>/dev/null || git rev-parse HEAD^1)
+          else
+            base=$(git merge-base origin/master HEAD)
+          fi
+          REV=$(sh build/compatibility-base.sh "$base")
           echo "GOLANGCI_VERSION=$GOLANGCI_VERSION" >> $GITHUB_ENV
           echo "REV=$REV" >> $GITHUB_ENV
       - name: golangci-lint

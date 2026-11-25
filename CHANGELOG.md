@@ -34,10 +34,12 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 # Changelog
 
+## [Unreleased]
+
 ## [v0.28.0]
 
 ### Improvements
-- (deps) [#2064] Bump acket-forward-middleware to v7.2.1
+- (deps) [#2064] Bump packet-forward-middleware to v7.2.1
 
 ## [v0.27.1]
 
@@ -493,7 +495,7 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...release/v0.26.x-iavl-v1
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.28.2...HEAD
 [v0.28.0]: https://github.com/Kava-Labs/kava/compare/v0.27.1...v0.28.0
 [v0.27.1]: https://github.com/Kava-Labs/kava/compare/v0.27.0...v0.27.1
 [v0.27.0]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...v0.27.0

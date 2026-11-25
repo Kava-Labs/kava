@@ -16,7 +16,8 @@ jobs:
   publish-internal:
     # only run if all checks pass
     needs: [lint-checks, default-checks]
-    runs-on: ubuntu-latest
+    # Match the native RocksDB toolchain used for release binaries.
+    runs-on: ubuntu-22.04
     steps:
       - name: checkout repo from current commit
         uses: actions/checkout@v4
