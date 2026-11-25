@@ -245,7 +245,7 @@ format:
 
 # Build docker image and tag as kava/kava:local
 docker-build:
-	DOCKER_BUILDKIT=1 $(DOCKER) build -t kava/kava:local .
+	DOCKER_BUILDKIT=1 $(DOCKER) build -t kava/kava:local --load .
 
 docker-build-rocksdb:
 	DOCKER_BUILDKIT=1 $(DOCKER) build -f Dockerfile-rocksdb -t kava/kava:local .
@@ -303,7 +303,7 @@ test-e2e: docker-build
 
 # run interchaintest tests (./tests/e2e-ibc)
 test-ibc: docker-build
-	cd tests/e2e-ibc && KAVA_TAG=local $(GO_BIN) test -timeout 10m .
+	cd tests/e2e-ibc && KAVA_TAG=local bash run-tests.sh $(GO_BIN)
 .PHONY: test-ibc
 
 test:
@@ -318,18 +318,6 @@ test-cli: build
 # Run tests for migration cli command
 test-migrate:
 	@$(GO_BIN) test -v -count=1 ./migrate/...
-
-# Use the old Apple linker to workaround broken xcode - https://github.com/golang/go/issues/65169
-ifeq ($(OS_FAMILY),Darwin)
-  FUZZLDFLAGS := -ldflags=-extldflags=-Wl,-ld_classic
-endif
-
-test-fuzz:
-	@$(GO_BIN) test $(FUZZLDFLAGS) -run NOTAREALTEST -v -fuzztime 10s -fuzz=FuzzMintCoins ./x/precisebank/keeper
-	@$(GO_BIN) test $(FUZZLDFLAGS) -run NOTAREALTEST -v -fuzztime 10s -fuzz=FuzzBurnCoins ./x/precisebank/keeper
-	@$(GO_BIN) test $(FUZZLDFLAGS) -run NOTAREALTEST -v -fuzztime 10s -fuzz=FuzzSendCoins ./x/precisebank/keeper
-	@$(GO_BIN) test $(FUZZLDFLAGS) -run NOTAREALTEST -v -fuzztime 10s -fuzz=FuzzGenesisStateValidate_NonZeroRemainder ./x/precisebank/types
-	@$(GO_BIN) test $(FUZZLDFLAGS) -run NOTAREALTEST -v -fuzztime 10s -fuzz=FuzzGenesisStateValidate_ZeroRemainder ./x/precisebank/types
 
 # Kick start lots of sims on an AWS cluster.
 # This submits an AWS Batch job to run a lot of sims, each within a docker image. Results are uploaded to S3
@@ -351,4 +339,4 @@ update-kvtool:
 	git submodule update
 	cd tests/e2e/kvtool && make install
 
-.PHONY: all build-linux install build test test-cli test-all test-rest test-basic test-fuzz start-remote-sims
+.PHONY: all build-linux install clean build test test-cli test-all test-rest test-basic start-remote-sims

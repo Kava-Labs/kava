@@ -36,14 +36,93 @@ Ref: https://keepachangelog.com/en/1.0.0/
 
 ## [Unreleased]
 
+## [v0.28.0]
+
+### Improvements
+- (deps) [#2064] Bump packet-forward-middleware to v7.2.1
+
+## [v0.27.1]
+
+### Improvements
+- (deps) [#2062] Bump cosmos-sdk to v0.47.15-iavl-v1-kava.1
+
+## [v0.27.0]
+
+### State Machine Breaking Changes
+
+- (ethermint) [ethermint#75] Remove unused fields `verifyingContract` & `salt` from EIP712 domain separator.
+  - Resolves inability to sign EIP712 messages with Metamask.
+
 ### Features
-- (precisebank) [#1906] Add new `x/precisebank` module with bank decimal extension for EVM usage.
-- (cli) [#1922] Add `iavlviewer` CLI command for low-level iavl db debugging.
+
 - (cli) [#2017] Support CLI `completion` for bash, zsh, fish, & powershell.
 
 ### Improvements
+- (deps) [#2047] Bump cometbft to v0.37.13-kava.1
+- (deps) [#2047] Bump cometbft-db to v0.9.5 for use with rocksdb v9.3.1
+- (deps) [#2047] Replace goleveldb with informalsystems fork to resolve [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
+- (deps) [#2047] Bump Go version minimum requirement to `1.22`
+
+## [v0.26.2-iavl-v1]
+
+This is the first release for Kava on IAVL V1.
+
+IAVL V1 is a new format for the low-level data storage used by the Kava blockchain.
+Using IAVL V1 brings performance speedups for syncing and massively reduces the data stored on disk
+(~2.4x less data storage required for a full-archive node).
+
+The release is compatible with v0 data, but for the full performance benefits, node operators are
+encouraged to update their data to the v1 format.
+
+For full-archive operators, an IAVL V1 snapshot will be made available in the coming weeks.
+For validators & operators of pruning nodes, it is recommended that node data is recreated from scratch
+via statesync.
+
+Future minor versions of v0.26 will be made available for both iavl v0 and iavl v1.
+Future major versions will use IAVL V1 unless otherwise specified.
+
+Node operators using rocksdb are encouraged to use `tcmalloc` as their memory allocator.
+
+For more details see the [IAVL V1 migration guide](/migrate/v0_26/iavl-v1.md).
+
+### Features
+
+- (deps) Upgrade to IAVL V1
+  - For backwards compatibility with v0 state, a patched version of IAVL v1 is used, available [here](https://github.com/Kava-Labs/iavl/tree/v1.2.0-kava.2).
+  - The patched version includes the following changes:
+    - Initial version of new modules is 1, not the current height. This matches the behavior of v0
+    and prevents app hash mismatches during the v0.25 & v0.26 upgrade blocks that added modules.
+    - To prevent being interpreted as data for height 1, the version is saved with nonce 0, creating
+    a state similar to if the data has been pruned.
+    - An IAVL v1 reference node is saved at the upgrade height pointing to the version 1 data so app
+    data for the upgrade version can be properly loaded.
+
+### Bug Fixes
+
+* (ethermint) Fix infinite loop edge cases in evm indexer
+  * [ethermint#77] Wait for chain to start syncing when in statesync before starting evm indexer
+  * [ethermint#82] Wait after failed attempts to fetch block or block results in evm indexer
+
+
+## [v0.26.2]
+
+### Features
+- (cli) [#1954] Add `--unsafe-remove-modules` parameter flag to `rollback`
+- (opendb) [#1973] Support custom configurations for each database
+  see https://github.com/Kava-Labs/opendb/blob/a2f11f6d/README.md#individual-database-configuration
+
+### Improvements
 - (rocksdb) [#1903] Bump cometbft-db dependency for use with rocksdb v8.10.0
-- (deps) [#1988] Bump cometbft to v0.37.9-kava.1
+- (opendb) [#1967] Extract `opendb` package to its own repository
+
+## [v0.26.1]
+
+### Features
+- (cli) [#1922] Add `iavlviewer` CLI command for low-level iavl db debugging.
+
+### Improvements
+- (pricefeed) [#1851] optimize EndBlocker to iterate all markets only once
+- (cdp) [#1822] optimize BeginBlocker by removing unnecessary/redundant checks & calculations
 
 ## [v0.26.0]
 
@@ -339,16 +418,26 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 - [#257](https://github.com/Kava-Labs/kava/pulls/257) Include scripts to run
   large-scale simulations remotely using aws-batch
 
+
+[ethermint#82]: https://github.com/Kava-Labs/ethermint/pull/82
+[ethermint#77]: https://github.com/Kava-Labs/ethermint/pull/77
+[ethermint#75]: https://github.com/Kava-Labs/ethermint/pull/75
+[#2064]: https://github.com/Kava-Labs/kava/pull/2064
+[#2062]: https://github.com/Kava-Labs/kava/pull/2062
+[#2047]: https://github.com/Kava-Labs/kava/pull/2047
 [#2017]: https://github.com/Kava-Labs/kava/pull/2017
-[#1988]: https://github.com/Kava-Labs/kava/pull/1988
+[#1973]: https://github.com/Kava-Labs/kava/pull/1973
+[#1967]: https://github.com/Kava-Labs/kava/pull/1967
+[#1954]: https://github.com/Kava-Labs/kava/pull/1954
 [#1922]: https://github.com/Kava-Labs/kava/pull/1922
-[#1906]: https://github.com/Kava-Labs/kava/pull/1906
 [#1903]: https://github.com/Kava-Labs/kava/pull/1903
+[#1851]: https://github.com/Kava-Labs/kava/pull/1851
 [#1846]: https://github.com/Kava-Labs/kava/pull/1846
 [#1848]: https://github.com/Kava-Labs/kava/pull/1848
 [#1839]: https://github.com/Kava-Labs/kava/pull/1839
 [#1836]: https://github.com/Kava-Labs/kava/pull/1836
 [#1832]: https://github.com/Kava-Labs/kava/pull/1832
+[#1822]: https://github.com/Kava-Labs/kava/pull/1822
 [#1811]: https://github.com/Kava-Labs/kava/pull/1811
 [#1804]: https://github.com/Kava-Labs/kava/pull/1804
 [#1785]: https://github.com/Kava-Labs/kava/pull/1785
@@ -406,12 +495,18 @@ the [changelog](https://github.com/cosmos/cosmos-sdk/blob/v0.38.4/CHANGELOG.md).
 [#750]: https://github.com/Kava-Labs/kava/pull/750
 [#751]: https://github.com/Kava-Labs/kava/pull/751
 [#780]: https://github.com/Kava-Labs/kava/pull/780
-[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.26.0...HEAD
+[unreleased]: https://github.com/Kava-Labs/kava/compare/v0.28.2...HEAD
+[v0.28.0]: https://github.com/Kava-Labs/kava/compare/v0.27.1...v0.28.0
+[v0.27.1]: https://github.com/Kava-Labs/kava/compare/v0.27.0...v0.27.1
+[v0.27.0]: https://github.com/Kava-Labs/kava/compare/v0.26.2-iavl-v1...v0.27.0
+[v0.26.2-iavl-v1]: https://github.com/Kava-Labs/kava/compare/v0.26.2...v0.26.2-iavl-v1
+[v0.26.2]: https://github.com/Kava-Labs/kava/compare/v0.26.1...v0.26.2
+[v0.26.1]: https://github.com/Kava-Labs/kava/compare/v0.26.0...v0.26.1
 [v0.26.0]: https://github.com/Kava-Labs/kava/compare/v0.25.0...v0.26.0
 [v0.25.0]: https://github.com/Kava-Labs/kava/compare/v0.24.3...v0.25.0
-[v0.24.3]: https://github.com/Kava-Labs/kava/compare/v0.24.3...v0.24.1
-[v0.24.1]: https://github.com/Kava-Labs/kava/compare/v0.24.1...v0.24.0
-[v0.24.0]: https://github.com/Kava-Labs/kava/compare/v0.24.0...v0.23.2
+[v0.24.3]: https://github.com/Kava-Labs/kava/compare/v0.24.1...v0.24.3
+[v0.24.1]: https://github.com/Kava-Labs/kava/compare/v0.24.0...v0.24.1
+[v0.24.0]: https://github.com/Kava-Labs/kava/compare/v0.23.2...v0.24.0
 [v0.23.2]: https://github.com/Kava-Labs/kava/compare/v0.23.1...v0.23.2
 [v0.23.0]: https://github.com/Kava-Labs/kava/compare/v0.21.1...v0.23.0
 [v0.16.1]: https://github.com/Kava-Labs/kava/compare/v0.16.0...v0.16.1

@@ -68,12 +68,14 @@ jobs:
         working-directory: tests/e2e-evm
       - name: Build local image
         run: make docker-build
-      - name: Install kvtool
-        run: make -C tests/e2e/kvtool install
-      - name: Generate kava config
-        run: kvtool testnet gen-config kava --kava.configTemplate $(sed -nr "s/E2E_KVTOOL_KAVA_CONFIG_TEMPLATE=\"(.*)\"/\1/p" tests/e2e/.env)
-      - name: Start kava chain
-        run: kvtool testnet up -d
+      - name: Prepare kvtool and the E2E genesis
+        run: |
+          tests/e2e/scripts/install-kvtool.sh
+          echo "$GITHUB_WORKSPACE/build/.cache/kvtool" >> "$GITHUB_PATH"
+      - name: Bootstrap the Kava E2E network
+        run: |
+          source tests/e2e/.env
+          kvtool testnet bootstrap --kava.configTemplate "$E2E_KVTOOL_KAVA_CONFIG_TEMPLATE"
       - name: Wait for JSON RPC to start
         run: "curl --retry-all-errors --retry 12 --retry-delay 5 -X POST -H \"Content-Type: application/json\" http://127.0.0.1:8545"
       - name: Run test suite against kvtool network
@@ -82,21 +84,6 @@ jobs:
       - name: Shutdown kava
         if: always()
         run: kvtool testnet down
-  fuzz:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout repo from current commit
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: go.mod
-          cache-dependency-path: |
-            go.sum
-      - name: run fuzz tests
-        run: make test-fuzz
   ibc-test:
     runs-on: ubuntu-latest
     steps:

@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-if hash kvtool 2>/dev/null; then
-  echo "[install-kvtool.sh] kvtool is already installed. skipping installation."
-  exit 0
-fi
+e2e_dir=$(cd "$(dirname "$0")/.." && pwd)
+output="$e2e_dir/../../build/.cache/kvtool"
+templates="$output/config/templates"
+mkdir -p "$templates"
+cp -R "$e2e_dir/kvtool/config/templates/." "$templates/"
 
-echo "[install-kvtool.sh] installing kvtool."
-cd kvtool || exit 1
-make install
+cd "$e2e_dir/kvtool"
+go build -ldflags "-X 'github.com/kava-labs/kvtool/config/generate.ConfigTemplatesDir=$templates'" -o "$output/kvtool" .

@@ -43,10 +43,10 @@ proto-format: install-build-deps
 check-proto-format: proto-format
 	@git diff --exit-code proto/**/*.proto > /dev/null || (echo "Protobuf format is not up to date! Please run \`make proto-format\`."; exit 1)
 
-BUF_CHECK_BREAKING_AGAINST ?= ref=HEAD~1
-BUF_CHECK_BREAKING_AGAINST_REMOTE ?= branch=$(GIT_BRANCH),$(BUF_CHECK_BREAKING_AGAINST)
+BUF_CHECK_BREAKING_AGAINST_REMOTE ?= branch=$(GIT_BRANCH),$(or $(BUF_CHECK_BREAKING_AGAINST),ref=HEAD~1)
 
 .PHONY: check-proto-breaking
+check-proto-breaking: BUF_CHECK_BREAKING_AGAINST ?= $(shell sh build/compatibility-base.sh HEAD^1 --buf)
 check-proto-breaking: install-build-deps
 	@echo "Checking for proto backward compatibility"
 	@$(BUF) breaking --against '.git#$(BUF_CHECK_BREAKING_AGAINST)'

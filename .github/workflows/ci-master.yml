@@ -16,7 +16,8 @@ jobs:
   publish-internal:
     # only run if all checks pass
     needs: [lint-checks, default-checks]
-    runs-on: ubuntu-latest
+    # Match the native RocksDB toolchain used for release binaries.
+    runs-on: ubuntu-22.04
     steps:
       - name: checkout repo from current commit
         uses: actions/checkout@v4
@@ -29,7 +30,7 @@ jobs:
       - name: build rocksdb dependency
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/install-rocksdb.sh
         env:
-          ROCKSDB_VERSION: v8.10.0
+          ROCKSDB_VERSION: v9.3.1
       - name: Build and upload release artifacts
         run: bash ${GITHUB_WORKSPACE}/.github/scripts/publish-internal-release-artifacts.sh
         env:

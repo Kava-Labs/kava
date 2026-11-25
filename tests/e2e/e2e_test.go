@@ -156,13 +156,17 @@ func (suite *IntegrationTestSuite) TestIbcTransfer() {
 
 	// the balance should be deducted from kava account
 	suite.Eventually(func() bool {
-		balance := suite.Kava.QuerySdkForBalances(kavaAcc.SdkAddress)
-		return balance.AmountOf("ukava").Equal(expectedSrcBalance.Amount)
+		balance := suite.Kava.QuerySdkForBalances(kavaAcc.SdkAddress).AmountOf(expectedSrcBalance.Denom)
+		suite.T().Logf("kava balance: %s, expected: %s", balance, expectedSrcBalance.Amount)
+		return balance.Equal(expectedSrcBalance.Amount)
 	}, 10*time.Second, 1*time.Second)
 
 	// expect the balance to be transferred to the ibc chain!
 	suite.Eventually(func() bool {
 		balance := suite.Ibc.QuerySdkForBalances(ibcAcc.SdkAddress)
+
+		suite.T().Logf("ibc balances: %s, expected to include: %s", balance, fundsToSend)
+
 		found := false
 		for _, c := range balance {
 			// find the ibc denom coin

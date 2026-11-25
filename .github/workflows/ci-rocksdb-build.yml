@@ -1,13 +1,14 @@
 name: Continuous Integration (Rocksdb Build)
 
 env:
-  ROCKSDB_VERSION: v8.10.0
+  ROCKSDB_VERSION: v9.3.1
 
 on:
   workflow_call:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # Match the native RocksDB toolchain used for release binaries.
+    runs-on: ubuntu-22.04
     steps:
       - name: checkout repo from current commit
         uses: actions/checkout@v4
