@@ -64,7 +64,9 @@ func (suite *Suite) CreateAccountWithAddress(addr sdk.AccAddress, initialBalance
 	return acc
 }
 
-// CreateVestingAccount creates a new vesting account. `vestingBalance` should be a fraction of `initialBalance`.
+// CreateVestingAccountWithAddress creates a periodic vesting account at addr,
+// funds it with initialBalance, and schedules vestingBalance to vest in one period.
+// It panics if a vesting amount exceeds a nonzero initial amount of the same denomination.
 func (suite *Suite) CreateVestingAccountWithAddress(addr sdk.AccAddress, initialBalance sdk.Coins, vestingBalance sdk.Coins) authtypes.AccountI {
 	if vestingBalance.IsAnyGT(initialBalance) {
 		panic("vesting balance must be less than initial balance")
